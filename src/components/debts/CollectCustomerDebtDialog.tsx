@@ -33,6 +33,7 @@ import QuickDayPicker from '@/components/debts/QuickDayPicker';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import { toast } from 'sonner';
+import { CANCELLED_ORDER_DEBT_NOTE } from '@/constants/debts';
 
 type DialogTab = 'collect' | 'visit' | 'history';
 
@@ -167,7 +168,7 @@ const buildTimeline = (
   const rawEvents: Array<Omit<TimelineEvent, 'beforeAmount' | 'afterAmount' | 'displayDate'>> = [];
 
   debts.forEach((debt) => {
-    const isCancelled = (debt.status as string) === 'cancelled' || (debt.notes && /ملغاة/.test(debt.notes));
+    const isCancelled = (debt.status as string) === 'cancelled' || debt.notes === CANCELLED_ORDER_DEBT_NOTE;
     rawEvents.push({
       id: `debt-${debt.id}`,
       debtId: debt.id,
