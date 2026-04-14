@@ -338,6 +338,7 @@ const MyAchievements: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<AchievementOrderDetails | null>(null);
+  const [selectedAchievement, setSelectedAchievement] = useState<any | null>(null);
   const [selectedDebtCollection, setSelectedDebtCollection] = useState<TodayDebtCollectionOperation | null>(null);
   const [showHandoverSummary, setShowHandoverSummary] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
