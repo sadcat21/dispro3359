@@ -260,7 +260,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+              <span dir="ltr" className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
               <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
                 {paymentStateLabel}
               </Badge>
@@ -330,7 +330,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
 
             <div className="flex items-center justify-between rounded-lg bg-primary/5 p-3">
               <span className="font-bold">المجموع</span>
-              <span className="text-lg font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+              <span dir="ltr" className="text-lg font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
             </div>
 
             <div className="overflow-hidden rounded-lg border">
@@ -351,8 +351,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         {paymentStateLabel}
                       </Badge>
                     </td>
-                    <td className="px-2 py-2 text-center font-bold text-emerald-600">{formatAmountWithMaxFraction(paidAmount)} DA</td>
-                    <td className="px-2 py-2 text-center font-bold text-destructive">{formatAmountWithMaxFraction(remainingAmount)} DA</td>
+                    <td dir="ltr" className="px-2 py-2 text-center font-bold text-emerald-600">{formatAmountWithMaxFraction(paidAmount)} DA</td>
+                    <td dir="ltr" className="px-2 py-2 text-center font-bold text-destructive">{formatAmountWithMaxFraction(remainingAmount)} DA</td>
                   </tr>
                 </tbody>
               </table>
