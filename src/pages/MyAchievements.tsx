@@ -352,7 +352,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 6. Completed accounting sessions for this worker in this period
         supabase.from('accounting_sessions')
-          .select('period_start, period_end')
+          .select('period_start, period_end, completed_at')
           .eq('worker_id', targetWorkerId)
           .eq('status', 'completed')
           .gte('period_end', `${dateFrom}T00:00:00`)
@@ -436,16 +436,19 @@ const MyAchievements: React.FC = () => {
       const accountingSessions = (accountingSessionsResult.data || []).map((s: any) => ({
         start: new Date(s.period_start).getTime(),
         end: new Date(s.period_end).getTime(),
+        completedAt: s.completed_at || s.period_end,
       }));
 
-      const isWithinAccountingSession = (createdAt: string) => {
+      const getAccountingDate = (createdAt: string): string | null => {
         const t = new Date(createdAt).getTime();
-        return accountingSessions.some(s => t >= s.start && t <= s.end);
+        const match = accountingSessions.find(s => t >= s.start && t <= s.end);
+        return match ? match.completedAt : null;
       };
 
       const enrichedVisits = (visits || []).map((visit) => {
         const customerInfo = visit.customer_id ? customerMap.get(visit.customer_id) : null;
         const orderMeta = visit.operation_id ? orderMetaMap.get(visit.operation_id) : null;
+        const accountedDate = getAccountingDate(visit.created_at);
 
         return {
           ...visit,
@@ -462,7 +465,8 @@ const MyAchievements: React.FC = () => {
           order_price_subtype: orderMeta?.priceSubtype || '',
           order_status: orderMeta?.status || null,
           isCancelledOrder: orderMeta?.isCancelled || false,
-          isAccounted: isWithinAccountingSession(visit.created_at),
+          isAccounted: !!accountedDate,
+          accountedDate,
           debtCollectionAmount: visit.operation_type === 'debt_collection'
             ? debtCollectionAmountMap.get(visit.operation_id || (visit as any).entity_id || (visit as any).reference_id || '') || null
             : null,
@@ -946,8 +950,23 @@ const MyAchievements: React.FC = () => {
                     key={visit.id}
                     type="button"
                     onClick={() => handleOpenAchievement(visit)}
-                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] ${borderClass} ${cancelledMute}`}
+                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] overflow-hidden ${borderClass} ${cancelledMute}`}
                   >
+                    {/* Accounting stamp - absolute overlay */}
+                    {visit.isAccounted && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 rotate-[-15deg]">
+                        <div className="w-16 h-16 rounded-full border-[2.5px] border-destructive/50 flex items-center justify-center bg-destructive/5">
+                          <div className="w-[52px] h-[52px] rounded-full border-[1.5px] border-dashed border-destructive/40 flex flex-col items-center justify-center">
+                            <span className="text-[7px] font-black text-destructive/65 leading-none select-none">تمت</span>
+                            <span className="text-[6.5px] font-black text-destructive/65 leading-none select-none mt-0.5">المحاسبة</span>
+                            <span className="text-[5.5px] font-bold text-destructive/50 leading-none select-none mt-0.5 tabular-nums" dir="ltr">
+                              {format(new Date(visit.accountedDate), 'dd/MM')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* ROW 1: store/customer name (right) | date (left) */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1 flex items-baseline gap-1.5">
@@ -966,9 +985,9 @@ const MyAchievements: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* ROW 2: tags (left) | accounting stamp (center) | amount (right) */}
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center gap-1 flex-wrap min-w-0 flex-1">
+                    {/* ROW 2: tags (right) | amount (left) */}
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <div className="flex items-center gap-1 flex-wrap min-w-0">
                         <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium border ${OPERATION_COLORS[visit.operation_type] || 'border-border'}`}>
                           <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
                           {getOperationLabel(visit.operation_type as OperationType)}
@@ -988,20 +1007,8 @@ const MyAchievements: React.FC = () => {
                         )}
                       </div>
 
-                      {visit.isAccounted && (
-                        <div className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full border-2 border-destructive/55 bg-destructive/5 rotate-[18deg]">
-                          <div className="flex items-center justify-center w-11 h-11 rounded-full border border-dashed border-destructive/50">
-                            <span className="text-[7px] font-black leading-[0.9] text-destructive/70 text-center select-none tracking-tight">
-                              تمت
-                              <br />
-                              المحاسبة
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
                       {hasAmount && (
-                        <div className="shrink-0 text-left min-w-[78px]">
+                        <div className="shrink-0 text-left">
                           <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
                           </p>
