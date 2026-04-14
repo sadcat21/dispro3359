@@ -636,7 +636,10 @@ const MyAchievements: React.FC = () => {
         ...(isSaleOperation ? { _forceSold: true } : {}),
         _selectionKey: selectionKey,
         _detailsLoading: false,
-        _hideModifyAction: !order.id,
+        _hideModifyAction: !order.id || (visit.isAccounted && !isAdminRole(role)),
+        _isAccounted: visit.isAccounted,
+        _accountedDate: visit.accountedDate,
+        _operationType: visit.operation_type,
       } as AchievementOrderDetails;
     };
 
