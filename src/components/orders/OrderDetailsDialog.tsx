@@ -226,15 +226,27 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
           <DialogHeader className="p-3 sm:p-4 pb-2 border-b shrink-0 space-y-1">
-            <DialogTitle className="text-sm font-bold leading-snug flex flex-wrap items-center gap-2">
-              <span>{customer?.store_name || customer?.name || '—'}</span>
-              {customer?.store_name && customer?.name && customer.store_name !== customer.name && (
-                <span className="text-xs font-normal text-muted-foreground">({customer.name})</span>
-              )}
-              {isOrderCancelled && (
-                <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
-              )}
-            </DialogTitle>
+            <div className="flex items-start justify-between gap-2">
+              <DialogTitle className="min-w-0 text-sm font-bold leading-snug flex flex-wrap items-center gap-2">
+                <span>{customer?.store_name || customer?.name || '—'}</span>
+                {customer?.store_name && customer?.name && customer.store_name !== customer.name && (
+                  <span className="text-xs font-normal text-muted-foreground">({customer.name})</span>
+                )}
+                {isOrderCancelled && (
+                  <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
+                )}
+              </DialogTitle>
+              <Button
+                aria-label="طباعة الوصل"
+                className="h-9 w-9 shrink-0 border-0 bg-emerald-600 px-0 text-white hover:bg-emerald-700 hover:text-white"
+                size="icon"
+                title="طباعة الوصل"
+                onClick={() => setShowReceiptDialog(true)}
+                disabled={orderItemsLoading || isDetailsLoading}
+              >
+                <Printer className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
               <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
@@ -391,16 +403,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               >
                 <X className="h-4 w-4" />
                 إغلاق
-              </Button>
-              <Button
-                aria-label="طباعة الوصل"
-                className="h-11 w-11 shrink-0 px-0"
-                title="طباعة الوصل"
-                variant="outline"
-                onClick={() => setShowReceiptDialog(true)}
-                disabled={orderItemsLoading || isDetailsLoading}
-              >
-                <Printer className="h-4 w-4" />
               </Button>
             </div>
           </div>
