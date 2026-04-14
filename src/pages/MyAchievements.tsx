@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AdaptiveScrollContainer from '@/components/ui/adaptive-scroll-container';
 import { Input } from '@/components/ui/input';
-import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, BadgeCheck } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
@@ -329,7 +329,7 @@ const MyAchievements: React.FC = () => {
       )];
 
       // Run all secondary queries in parallel
-      const [customersResult, ordersResult, orderItemsResult, debtsResult, debtCollectionsResult] = await Promise.all([
+      const [customersResult, ordersResult, orderItemsResult, debtsResult, debtCollectionsResult, accountingSessionsResult] = await Promise.all([
         // 1. Customers
         customerIds.length
           ? supabase.from('customers').select('id, name, store_name, phone').in('id', customerIds)
@@ -350,6 +350,13 @@ const MyAchievements: React.FC = () => {
         debtCollectionDebtIds.length
           ? supabase.from('debt_collections').select(`debt_id, amount_collected, created_at, debt:customer_debts!debt_collections_debt_id_fkey(customer:customers(id, name, store_name))`).in('debt_id', debtCollectionDebtIds).order('created_at', { ascending: false })
           : Promise.resolve({ data: [] as any[] }),
+        // 6. Completed accounting sessions for this worker in this period
+        supabase.from('accounting_sessions')
+          .select('period_start, period_end')
+          .eq('worker_id', targetWorkerId)
+          .eq('status', 'completed')
+          .gte('period_end', `${dateFrom}T00:00:00`)
+          .lte('period_start', `${dateTo}T23:59:59`),
       ]);
 
       // Process customers
