@@ -275,10 +275,6 @@ const IncomingTab: React.FC<{
       })}
     </div>
   );
-        );
-      })}
-    </div>
-  );
 };
 
 // ─── Outgoing Tab: Items sent by this user, showing status ───
