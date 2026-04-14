@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardCheck, ChevronDown, ChevronUp, Package, Edit, Loader2, Send } from 'lucide-react';
+import { Truck, ChevronDown, ChevronUp, Package, Edit, Loader2, Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,11 +15,11 @@ const OPERATION_LABELS: Record<string, string> = {
   damaged: 'تالف', review: 'مراجعة', exchange: 'استبدال',
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: 'بانتظار الموافقة', color: 'bg-amber-500' },
-  amended: { label: 'معدّل - بانتظار الموافقة', color: 'bg-orange-500' },
-  approved: { label: 'تمت الموافقة', color: 'bg-green-600' },
-  rejected: { label: 'مرفوض', color: 'bg-red-600' },
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon?: React.ReactNode }> = {
+  pending: { label: 'بانتظار التأكيد', color: 'bg-amber-500' },
+  amended: { label: 'معدّل - بانتظار التأكيد', color: 'bg-orange-500' },
+  approved: { label: 'تمت الموافقة', color: 'bg-green-600', icon: <CheckCircle2 className="w-3 h-3" /> },
+  rejected: { label: 'مرفوض - عدم تطابق', color: 'bg-destructive', icon: <AlertTriangle className="w-3 h-3" /> },
 };
 
 const OPERATION_COLORS: Record<string, string> = {
@@ -32,6 +32,17 @@ const fmtQty = (qty: number): string => {
   const piecePart = Math.round((qty - boxes) * 100);
   if (piecePart > 0) return `${boxes}.${String(piecePart).padStart(2, '0')}`;
   return `${boxes}`;
+};
+
+/** Parse mismatch details from rejection_note */
+const parseMismatches = (note: string | null): { product: string; expected: string; actual: string }[] => {
+  if (!note || !note.includes('عدم تطابق الكميات')) return [];
+  const detailPart = note.replace('عدم تطابق الكميات:', '').trim();
+  return detailPart.split(' | ').map(part => {
+    const match = part.match(/(.+?):\s*المسؤول=(\S+)\s*العامل=(\S+)/);
+    if (match) return { product: match[1].trim(), expected: match[2], actual: match[3] };
+    return { product: part, expected: '?', actual: '?' };
+  }).filter(m => m.product);
 };
 
 const ManagerConfirmationsPanel: React.FC = () => {
@@ -70,33 +81,57 @@ const ManagerConfirmationsPanel: React.FC = () => {
   const renderConfirmation = (conf: StockConfirmation) => {
     const isExpanded = expandedId === conf.id;
     const isEditing = editingId === conf.id;
-    const statusInfo = STATUS_LABELS[conf.status] || { label: conf.status, color: 'bg-gray-500' };
+    const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
     const canAmend = conf.status === 'pending' || conf.status === 'rejected';
+    const mismatches = parseMismatches(conf.rejection_note);
 
     return (
-      <div key={conf.id} className="border rounded-lg overflow-hidden">
+      <div key={conf.id} className={`border rounded-lg overflow-hidden ${conf.status === 'rejected' ? 'border-destructive/50' : ''}`}>
         <button
-          className="w-full flex items-center gap-2 p-2.5 text-start"
-          onClick={() => setExpandedId(isExpanded ? null : conf.id)}
+          className={`w-full flex items-center gap-2 p-2.5 text-start ${conf.status === 'rejected' ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}
+          onClick={() => { setExpandedId(isExpanded ? null : conf.id); if (isExpanded) { setEditingId(null); } }}
         >
           <Badge className={`${OPERATION_COLORS[conf.operation_type] || 'bg-gray-600'} text-white text-[10px] px-1.5 py-0`}>
             {OPERATION_LABELS[conf.operation_type] || conf.operation_type}
           </Badge>
-          <Badge className={`${statusInfo.color} text-white text-[9px] px-1.5 py-0`}>
+          <Badge className={`${statusInfo.color} text-white text-[9px] px-1.5 py-0 flex items-center gap-0.5`}>
+            {statusInfo.icon}
             {statusInfo.label}
           </Badge>
-          <span className="text-[10px] text-muted-foreground flex-1 truncate">
+          <span className="text-[10px] flex-1 truncate font-semibold">
             {conf.worker?.full_name || 'عامل'}
-          </span>
-          <span className="text-[9px] text-muted-foreground">
-            {new Date(conf.created_at).toLocaleDateString('ar-DZ')}
           </span>
           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
 
         {isExpanded && (
           <div className="px-2.5 pb-2.5 space-y-2">
-            {conf.rejection_note && (
+            {/* Mismatch details for rejected */}
+            {conf.status === 'rejected' && mismatches.length > 0 && (
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-2 space-y-1">
+                <p className="text-[10px] font-bold text-destructive flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  تفاصيل عدم التطابق:
+                </p>
+                <div className="border rounded overflow-hidden">
+                  <div className="grid grid-cols-3 gap-0 text-[9px] font-bold bg-red-100 dark:bg-red-900/30 p-1">
+                    <span>المنتج</span>
+                    <span className="text-center">أرسلته</span>
+                    <span className="text-center">وجده العامل</span>
+                  </div>
+                  {mismatches.map((m, i) => (
+                    <div key={i} className="grid grid-cols-3 gap-0 text-[10px] p-1 border-t">
+                      <span className="truncate font-semibold">{m.product}</span>
+                      <span className="text-center">{m.expected}</span>
+                      <span className="text-center text-destructive font-bold">{m.actual}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Simple rejection note fallback */}
+            {conf.status === 'rejected' && mismatches.length === 0 && conf.rejection_note && (
               <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-2 text-[10px]">
                 <span className="font-bold">سبب الرفض:</span> {conf.rejection_note}
               </div>
@@ -130,16 +165,17 @@ const ManagerConfirmationsPanel: React.FC = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full h-8 text-xs"
+                    className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
                     onClick={() => startEditing(conf)}
                   >
                     <Edit className="w-3.5 h-3.5 me-1" />
-                    تعديل وإعادة إرسال
+                    تعديل الكميات وإعادة إرسال
                   </Button>
                 )}
               </>
             ) : (
               <div className="space-y-2">
+                <p className="text-[10px] font-bold text-muted-foreground">عدّل الكميات ثم أرسل:</p>
                 {editItems.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
                     <div className="flex-1 min-w-0">
@@ -159,7 +195,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
                 <Textarea
                   value={editNote}
                   onChange={e => setEditNote(e.target.value)}
-                  placeholder="ملاحظة التعديل..."
+                  placeholder="سبب التعديل..."
                   className="text-xs min-h-[50px]"
                 />
                 <div className="flex gap-2">
@@ -193,12 +229,12 @@ const ManagerConfirmationsPanel: React.FC = () => {
     <>
       <button
         onClick={() => { setOpen(true); refetch(); }}
-        className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+        className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors"
         aria-label="متابعة التأكيدات"
       >
-        <ClipboardCheck className="w-4 h-4 text-primary" />
+        <Truck className="w-4 h-4 text-amber-600" />
         {needsAttentionCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold animate-pulse">
             {needsAttentionCount > 9 ? '9+' : needsAttentionCount}
           </span>
         )}
@@ -208,7 +244,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <ClipboardCheck className="w-5 h-5" />
+              <Truck className="w-5 h-5 text-amber-600" />
               متابعة التأكيدات المرسلة
             </DialogTitle>
           </DialogHeader>
