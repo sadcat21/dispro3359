@@ -301,6 +301,8 @@ const MyAchievements: React.FC = () => {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo],
     placeholderData: (prev) => prev,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       const { data: visits } = await supabase
@@ -456,7 +458,6 @@ const MyAchievements: React.FC = () => {
       return { visits: enrichedVisits, counts };
     },
     enabled: !!targetWorkerId,
-    staleTime: 60_000,
   });
 
   const visits = data?.visits || [];
