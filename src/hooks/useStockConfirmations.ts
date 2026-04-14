@@ -80,12 +80,33 @@ export const useStockConfirmations = () => {
 
   const approveConfirmation = useMutation({
     mutationFn: async (confirmationId: string) => {
+      // First get the confirmation details
+      const { data: conf, error: fetchErr } = await supabase
+        .from('stock_confirmations')
+        .select('*')
+        .eq('id', confirmationId)
+        .eq('worker_id', workerId!)
+        .single();
+      if (fetchErr || !conf) throw fetchErr || new Error('لم يتم العثور على العملية');
+
+      const confirmation = conf as any;
+
+      // For load operations, run the atomic RPC to apply stock changes
+      if (confirmation.operation_type === 'load' && confirmation.source_session_id) {
+        const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)(
+          'confirm_loading_session_atomic',
+          { p_session_id: confirmation.source_session_id }
+        );
+        if (rpcError) throw rpcError;
+      }
+
+      // Mark confirmation as approved
       const { error } = await supabase
         .from('stock_confirmations')
         .update({
           status: 'approved',
           responded_at: new Date().toISOString(),
-        })
+        } as any)
         .eq('id', confirmationId)
         .eq('worker_id', workerId!);
       if (error) throw error;
@@ -93,9 +114,13 @@ export const useStockConfirmations = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
       queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
-      toast.success('تمت الموافقة على العملية');
+      queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
+      toast.success('تمت الموافقة على العملية وتم تحديث المخزون');
     },
-    onError: () => toast.error('فشلت الموافقة'),
+    onError: (err: any) => toast.error(err?.message || 'فشلت الموافقة'),
   });
 
   const rejectConfirmation = useMutation({

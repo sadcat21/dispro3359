@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { useStockConfirmations, StockConfirmation, StockConfirmationItem } from '@/hooks/useStockConfirmations';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن',
@@ -35,11 +37,20 @@ const fmtQty = (qty: number, ppb: number = 20): string => {
 };
 
 const StockConfirmationsPopover: React.FC = () => {
+  const { user } = useAuth();
   const { pendingCount, confirmations, isLoading, approveConfirmation, rejectConfirmation, refetch } = useStockConfirmations();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState('');
+
+  // Realtime subscription for instant badge updates
+  useRealtimeSubscription(
+    'stock-confirmations-rt',
+    [{ table: 'stock_confirmations', filter: user?.id ? `worker_id=eq.${user.id}` : undefined }],
+    [['stock-confirmations'], ['stock-confirmations-count']],
+    !!user?.id
+  );
 
   const handleApprove = (id: string) => {
     approveConfirmation.mutate(id);
