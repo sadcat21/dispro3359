@@ -343,6 +343,11 @@ const OutgoingTab: React.FC<{
                         <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
                       </Button>
                     )}
+                    {conf.status === 'rejected' && onRaiseDispute && (
+                      <Button size="sm" variant="outline" className="w-full h-8 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => onRaiseDispute(conf)}>
+                        <Scale className="w-3.5 h-3.5 me-1" />رفع خلاف للمدير
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <div className="space-y-2">
