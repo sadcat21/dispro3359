@@ -113,6 +113,31 @@ const getPaymentMethodLabel = (order: any) => {
   return 'كاش';
 };
 
+const getPaymentCode = (order: any) => {
+  const paymentType = order?.payment_type;
+  const invoiceMethod = order?.invoice_payment_method;
+  const priceSubtype = order?.price_subtype || (order as any)?.items?.[0]?.price_subtype;
+
+  if (paymentType === 'with_invoice') {
+    // F1 = facture with cash/check/transfer/receipt
+    let code = 'F1';
+    if (invoiceMethod === 'cash') code += ' Cash';
+    else if (invoiceMethod === 'check') code += ' Chèque';
+    else if (invoiceMethod === 'transfer') code += ' Virement';
+    else if (invoiceMethod === 'receipt') code += ' Vers.Doc';
+    return code;
+  }
+  if (paymentType === 'without_invoice') {
+    // F2 = without invoice
+    let code = 'F2';
+    if (priceSubtype === 'retail' || priceSubtype === 'detail') code += ' Détail';
+    else if (priceSubtype === 'wholesale' || priceSubtype === 'gros') code += ' Gros';
+    else if (priceSubtype === 'super_wholesale' || priceSubtype === 'super_gros') code += ' S.Gros';
+    return code;
+  }
+  return '';
+};
+
 const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenChange, order, hideModifyAction = false, onCancelOrder, onResumeOrder }) => {
   const { dir } = useLanguage();
   const { user } = useAuth();
@@ -186,6 +211,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
     Number(orderDebt?.total_amount || 0) > 0 ||
     ['pending', 'payment_pending', 'no_payment', 'credit', 'partial', 'payment_partial'].includes(paymentStatus);
   const paymentMethodLabel = getPaymentMethodLabel(order);
+  const paymentCode = getPaymentCode(order);
   const debtTagLabel = remainingAmount > 0
     ? (paidAmount > 0 ? 'دين جزئي' : 'دين كلي')
     : null;
@@ -241,17 +267,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
                 )}
               </DialogTitle>
-              <div className="flex shrink-0 items-center gap-2">
-                {customer?.phone && (
-                  <a
-                    aria-label="الاتصال بالعميل"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
-                    href={`tel:${customer.phone}`}
-                    title="الاتصال بالعميل"
-                  >
-                    <Phone className="h-4 w-4" />
-                  </a>
-                )}
+              <div className="flex shrink-0 flex-col items-center gap-1.5">
                 <Button
                   aria-label="طباعة الوصل"
                   className="h-9 w-9 shrink-0 border-0 bg-blue-600 px-0 text-white hover:bg-blue-700 hover:text-white"
@@ -262,6 +278,16 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 >
                   <Printer className="h-4 w-4" />
                 </Button>
+                {customer?.phone && (
+                  <a
+                    aria-label="الاتصال بالعميل"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                    href={`tel:${customer.phone}`}
+                    title="الاتصال بالعميل"
+                  >
+                    <Phone className="h-4 w-4" />
+                  </a>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -269,7 +295,16 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
                 {paymentStateLabel}
               </Badge>
+              {paymentCode && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-bold">{paymentCode}</Badge>
+              )}
               {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</span>}
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-[11px]">
+              <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
+              {remainingAmount > 0 && (
+                <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+              )}
             </div>
           </DialogHeader>
 
@@ -332,7 +367,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                           const giftBoxes = n.piecesPerBox > 1 ? Math.floor(n.giftPieces / n.piecesPerBox) : n.giftQuantity;
                           const giftRemPieces = n.piecesPerBox > 1 ? n.giftPieces % n.piecesPerBox : 0;
                           const giftLabel = n.piecesPerBox > 1 && n.giftPieces > 0
-                            ? `${giftBoxes}.${giftRemPieces}`
+                            ? `${giftBoxes}.${String(giftRemPieces).padStart(2, '0')}`
                             : `${n.giftQuantity}`;
                           return (
                             <span className="flex h-8 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-3 text-sm font-bold">
@@ -347,35 +382,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               </div>
             )}
 
-            <div className="flex items-center justify-between rounded-lg bg-primary/5 p-3">
-              <span className="font-bold">المجموع</span>
-              <span dir="ltr" className="text-lg font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
-            </div>
-
-            <div className="overflow-hidden rounded-lg border">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-muted/30">
-                    <th className="px-2 py-1.5 text-right font-bold text-muted-foreground">الدفع</th>
-                    <th className="px-2 py-1.5 text-center font-bold text-muted-foreground">الحالة</th>
-                    <th className="px-2 py-1.5 text-center font-bold text-muted-foreground">المدفوع</th>
-                    <th className="px-2 py-1.5 text-center font-bold text-muted-foreground">المتبقي</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-2 py-2 font-bold text-right">{paymentMethodLabel}</td>
-                    <td className="px-2 py-2 text-center">
-                      <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
-                        {paymentStateLabel}
-                      </Badge>
-                    </td>
-                    <td dir="ltr" className="px-2 py-2 text-center font-bold text-emerald-600">{formatAmountWithMaxFraction(paidAmount)} DA</td>
-                    <td dir="ltr" className="px-2 py-2 text-center font-bold text-destructive">{formatAmountWithMaxFraction(remainingAmount)} DA</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
 
             {order.notes && (
               <div className="rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
