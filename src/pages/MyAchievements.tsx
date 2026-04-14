@@ -675,7 +675,9 @@ const MyAchievements: React.FC = () => {
       return order as AchievementOrderDetails;
     };
 
-    setSelectedOrderDetails(buildQuickOrder());
+    const quickOrder = buildQuickOrder();
+    console.log('[Achievement] Quick order built:', { id: quickOrder.id, status: quickOrder.status, _isAccounted: quickOrder._isAccounted, _hideModifyAction: quickOrder._hideModifyAction });
+    setSelectedOrderDetails(quickOrder);
 
     if (!isOrderLike) {
       clearLoadingState();
