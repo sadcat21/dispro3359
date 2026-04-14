@@ -352,7 +352,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 6. Completed accounting sessions for this worker in this period
         supabase.from('accounting_sessions')
-          .select('period_start, period_end')
+          .select('period_start, period_end, completed_at')
           .eq('worker_id', targetWorkerId)
           .eq('status', 'completed')
           .gte('period_end', `${dateFrom}T00:00:00`)
