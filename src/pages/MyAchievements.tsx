@@ -1190,6 +1190,16 @@ const MyAchievements: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!selectedAchievement} onOpenChange={(isOpen) => {
+        if (!isOpen) setSelectedAchievement(null);
+      }}>
+        <DialogContent dir="rtl" className="max-w-md">
+          {selectedAchievement ? (
+            <AchievementDetailContent visit={selectedAchievement} onClose={() => setSelectedAchievement(null)} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
       <OrderDetailsDialog
         open={!!selectedOrderDetails}
         onOpenChange={(isOpen) => {
