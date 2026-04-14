@@ -97,6 +97,40 @@ export const useStockConfirmations = () => {
         if (rpcError) throw rpcError;
       }
 
+      // Handle review confirmation: sync stock + create discrepancies
+      if (confirmation.operation_type === 'review') {
+        const reviewItems = (confirmation.items || []) as any[];
+        const discrepancyItems = reviewItems.filter((ri: any) => ri.status === 'deficit' || ri.status === 'surplus');
+
+        // Sync worker stock with reviewed quantities
+        for (const ri of reviewItems) {
+          if (ri.stock_row_id) {
+            await supabase
+              .from('worker_stock')
+              .update({ quantity: ri.quantity })
+              .eq('id', ri.stock_row_id);
+          }
+        }
+
+        // Record discrepancies
+        if (discrepancyItems.length > 0) {
+          const discRows = discrepancyItems.map((ri: any) => ({
+            worker_id: confirmation.worker_id,
+            product_id: ri.product_id,
+            branch_id: confirmation.branch_id || null,
+            discrepancy_type: ri.status,
+            quantity: Math.abs(ri.difference),
+            remaining_quantity: Math.abs(ri.difference),
+            source_session_id: confirmation.source_session_id || null,
+            notes: `جلسة مراجعة - ${ri.status === 'deficit' ? 'عجز' : 'فائض'}: ${Math.abs(ri.difference)}`,
+          }));
+          const { error: discErr } = await supabase
+            .from('stock_discrepancies')
+            .insert(discRows);
+          if (discErr) throw discErr;
+        }
+      }
+
       const { error } = await supabase
         .from('stock_confirmations')
         .update({
@@ -114,6 +148,8 @@ export const useStockConfirmations = () => {
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
       queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-discrepancies'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-discrepancies-pending'] });
       toast.success('تمت الموافقة على العملية وتم تحديث المخزون');
     },
     onError: (err: any) => toast.error(err?.message || 'فشلت الموافقة'),
