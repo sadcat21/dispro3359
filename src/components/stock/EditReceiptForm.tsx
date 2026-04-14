@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Trash2, Plus, Minus, Truck, User, Phone, Car } from 'lucide-react';
+import { Loader2, Package, Trash2, Plus, Truck, User, Phone, Car } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { parseBP, boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useAuth } from '@/contexts/AuthContext';
 import { StockReceipt, StockReceiptItem } from '@/hooks/useWarehouseStock';
@@ -40,10 +40,31 @@ interface Props {
   onSaved: (options?: { shouldPrint?: boolean; receipt?: StockReceipt }) => void | Promise<void>;
 }
 
+const toDbQuantity = (quantity: number, piecesPerBox: number): number => {
+  return piecesPerBox > 1 ? parseFloat(boxesToBP(quantity, piecesPerBox)) : quantity;
+};
+
+const fromDbQuantity = (quantity: number, piecesPerBox: number): number => {
+  return piecesPerBox > 1 ? dbBPToBoxes(quantity, piecesPerBox) : quantity;
+};
+
 const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, branchId, onSaved }) => {
   const { workerId } = useAuth();
   const receiptMeta = useMemo(() => parseReceiptMeta(receipt.notes), [receipt.notes]);
-  const [editItems, setEditItems] = useState<EditItem[]>(aggregateReceiptItemsForEditing(initialItems));
+
+  const convertDbItemsToEditItems = (items: StockReceiptItem[]): EditItem[] => {
+    return aggregateReceiptItemsForEditing(items).map((item) => {
+      const ppb = products.find((product) => product.id === item.product_id)?.pieces_per_box || 1;
+      return {
+        ...item,
+        new_quantity: fromDbQuantity(item.new_quantity, ppb),
+        compensation_quantity: fromDbQuantity(item.compensation_quantity, ppb),
+        compensation_offers_quantity: fromDbQuantity(item.compensation_offers_quantity, ppb),
+      };
+    });
+  };
+
+  const [editItems, setEditItems] = useState<EditItem[]>(() => convertDbItemsToEditItems(initialItems));
   const [receiptSource, setReceiptSource] = useState<'factory' | 'branch'>(receiptMeta.source || 'factory');
   const [driverName, setDriverName] = useState(receiptMeta.driver_name || '');
   const [driverPhone, setDriverPhone] = useState(receiptMeta.driver_phone || '');
@@ -60,11 +81,10 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const currentProduct = singleProductId ? getProduct(singleProductId) : null;
   const currentPPB = currentProduct?.pieces_per_box || 1;
 
-  const fieldsToCustomFormat = (fields: BoxPieceFields, ppb: number): number => {
+  const fieldsToQuantity = (fields: BoxPieceFields, ppb: number): number => {
     const boxes = parseInt(fields.boxes || '0', 10) || 0;
     const pieces = parseInt(fields.pieces || '0', 10) || 0;
-    const parsed = parseBP(`${boxes}.${pieces}`, ppb);
-    return parsed.boxes + parsed.pieces / 100;
+    return parseBP(`${boxes}.${pieces}`, ppb).totalBoxes;
   };
 
   const quantityToFields = (qty: number, ppb: number): BoxPieceFields => {
@@ -83,7 +103,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   };
 
   const normalizeFields = (fields: BoxPieceFields, ppb: number): BoxPieceFields => {
-    return quantityToFields(fieldsToCustomFormat(fields, ppb), ppb);
+    return quantityToFields(fieldsToQuantity(fields, ppb), ppb);
   };
 
   const handleBlur = (setter: React.Dispatch<React.SetStateAction<BoxPieceFields>>, ppb: number) => {
