@@ -244,6 +244,10 @@ const OutgoingTab: React.FC<{
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItems, setEditItems] = useState<StockConfirmationItem[]>([]);
   const [editNote, setEditNote] = useState('');
+  const editingOriginal = editingId ? confirmations.find(conf => conf.id === editingId) : null;
+  const hasEditedChanges = editingOriginal
+    ? editingOriginal.items.some((originalItem, idx) => Math.abs((editItems[idx]?.quantity ?? originalItem.quantity) - originalItem.quantity) > 0.001)
+    : false;
 
   const startEditing = (conf: StockConfirmation) => {
     setEditingId(conf.id);
@@ -252,8 +256,8 @@ const OutgoingTab: React.FC<{
   };
 
   const handleSaveAmendment = () => {
-    if (!allowAmend || !editingId || !editNote.trim()) return;
-    onAmend(editingId, editItems, editNote.trim());
+    if (!allowAmend || !editingId || !hasEditedChanges) return;
+    onAmend(editingId, editItems, editNote.trim() || 'تم تعديل الكميات بعد رفض العامل');
     setEditingId(null);
     setEditItems([]);
     setEditNote('');
@@ -355,9 +359,9 @@ const OutgoingTab: React.FC<{
                         />
                       </div>
                     ))}
-                    <Textarea value={editNote} onChange={e => setEditNote(e.target.value)} placeholder="سبب التعديل..." className="text-xs min-h-[50px]" />
+                    <Textarea value={editNote} onChange={e => setEditNote(e.target.value)} placeholder="سبب التعديل (اختياري)..." className="text-xs min-h-[50px]" />
                     <div className="flex gap-2">
-                      <Button size="sm" className="flex-1 h-8 text-xs bg-primary" onClick={handleSaveAmendment} disabled={!editNote.trim() || isAmending}>
+                      <Button size="sm" className="flex-1 h-8 text-xs bg-primary" onClick={handleSaveAmendment} disabled={!hasEditedChanges || isAmending}>
                         {isAmending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 me-1" />}إرسال التعديل
                       </Button>
                       <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setEditingId(null); setEditItems([]); setEditNote(''); }}>إلغاء</Button>
