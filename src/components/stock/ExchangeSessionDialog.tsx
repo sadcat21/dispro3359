@@ -68,16 +68,23 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
     setItems([]);
     setSelectedProductId(null);
     setQtyInput('');
-    const fetch = async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('id, name, pieces_per_box, image_url')
-        .eq('is_active', true)
-        .order('name');
-      setProducts(data || []);
+    const fetchData = async () => {
+      const [prodRes, stockRes] = await Promise.all([
+        supabase.from('products').select('id, name, app_name, pieces_per_box, image_url').eq('is_active', true).order('name'),
+        supabase.from('loading_session_items').select('product_id, quantity, session:loading_sessions!inner(worker_id, status)')
+          .eq('session.worker_id' as any, workerId)
+          .in('session.status' as any, ['loaded', 'in_progress']),
+      ]);
+      setProducts(prodRes.data || []);
+      // Build worker stock map (product_id -> total custom qty)
+      const stockMap: Record<string, number> = {};
+      (stockRes.data || []).forEach((item: any) => {
+        stockMap[item.product_id] = (stockMap[item.product_id] || 0) + Number(item.quantity || 0);
+      });
+      setWorkerStock(stockMap);
     };
-    fetch();
-  }, [open]);
+    fetchData();
+  }, [open, workerId]);
 
   const addedMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -246,12 +253,16 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-0.5 p-0.5 flex-wrap min-h-[22px]">
+        <div className="flex flex-col items-center gap-0.5 p-0.5 min-h-[22px]">
+          {/* Show worker stock qty */}
+          {workerStock[p.id] > 0 && !isAdded && (
+            <span className="text-[8px] text-muted-foreground">{fmtQty(workerStock[p.id])}</span>
+          )}
           {isAdded ? (
             <div className="flex items-center gap-0.5 w-full">
               <Badge className="bg-orange-500 text-white text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 flex-1 justify-center">
                 <RefreshCw className="w-2.5 h-2.5" />
-                {addedQty} قطعة
+                {fmtQty(piecesToCustomQty(addedQty, p.pieces_per_box))}
               </Badge>
               <div
                 className="flex items-center justify-center bg-destructive text-destructive-foreground rounded h-4 w-5 cursor-pointer shrink-0"
@@ -290,11 +301,11 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
             <div className="flex items-center gap-2 text-sm font-bold">
               <RefreshCw className="w-5 h-5 text-orange-500" />
               استبدال تالف
+              <span className="text-orange-600 truncate max-w-[120px]">{workerName}</span>
               {validItems.length > 0 && (
                 <Badge className="bg-orange-500 text-white text-[10px]">{validItems.length} منتج</Badge>
               )}
             </div>
-            <div className="text-sm font-bold text-center text-orange-600 truncate mt-1">{workerName}</div>
             <p className="text-[9px] text-muted-foreground text-center">اضغط على المنتج لتحديد كمية التالف</p>
           </div>
 
