@@ -367,7 +367,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                           const giftBoxes = n.piecesPerBox > 1 ? Math.floor(n.giftPieces / n.piecesPerBox) : n.giftQuantity;
                           const giftRemPieces = n.piecesPerBox > 1 ? n.giftPieces % n.piecesPerBox : 0;
                           const giftLabel = n.piecesPerBox > 1 && n.giftPieces > 0
-                            ? `${giftBoxes}.${giftRemPieces}`
+                            ? `${giftBoxes}.${String(giftRemPieces).padStart(2, '0')}`
                             : `${n.giftQuantity}`;
                           return (
                             <span className="flex h-8 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-3 text-sm font-bold">
