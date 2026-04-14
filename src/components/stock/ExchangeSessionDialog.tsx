@@ -56,7 +56,8 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
   const { workerId: currentWorkerId } = useAuth();
   const [items, setItems] = useState<ExchangeItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [products, setProducts] = useState<{ id: string; name: string; pieces_per_box: number; image_url?: string | null }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string; app_name?: string | null; pieces_per_box: number; image_url?: string | null }[]>([]);
+  const [workerStock, setWorkerStock] = useState<Record<string, number>>({});
   
   // Single product quantity entry (like ProductPickerDialog)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
