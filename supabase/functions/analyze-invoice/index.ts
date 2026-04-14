@@ -1,0 +1,139 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+async function callWithRetry(fn: () => Promise<Response>, maxRetries = 2): Promise<Response> {
+  for (let i = 0; i <= maxRetries; i++) {
+    const resp = await fn();
+    if (resp.status === 429 && i < maxRetries) {
+      const retryAfter = parseInt(resp.headers.get('retry-after') || '5', 10);
+      await resp.text(); // consume body
+      await new Promise(r => setTimeout(r, Math.min(retryAfter, 10) * 1000));
+      continue;
+    }
+    return resp;
+  }
+  throw new Error('Max retries exceeded');
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    const { image_base64, payment_method } = await req.json();
+    if (!image_base64) {
+      throw new Error('image_base64 is required');
+    }
+
+    const prompt = `أنت محلل فواتير ووثائق مالية خبير في قراءة خط اليد. قم بتحليل هذه الصورة واستخراج البيانات التالية بدقة عالية:
+
+1. المبلغ الإجمالي (amount) - الرقم فقط بدون عملة
+2. رقم الفاتورة (invoice_number) 
+3. اسم العميل (customer_name)
+4. تاريخ الفاتورة (invoice_date) - بصيغة YYYY-MM-DD
+${payment_method === 'check' ? '5. رقم الشيك (check_number)\n6. اسم البنك (check_bank)\n7. تاريخ الشيك (check_date) - بصيغة YYYY-MM-DD' : ''}
+${payment_method === 'bank_receipt' ? '5. رقم الوصل (receipt_number)' : ''}
+${payment_method === 'bank_transfer' ? '5. مرجع التحويل (transfer_reference)' : ''}
+
+${payment_method === 'check' ? `
+مهم جداً - التحقق من اكتمال معلومات الشيك:
+أضف حقل "validation_warnings" كمصفوفة نصية تحتوي على أي تحذيرات من التالي:
+- إذا كان المبلغ في الشيك مختلفاً عن مبلغ الفاتورة، أضف: "المبلغ في الشيك غير مطابق لمبلغ الفاتورة"
+- إذا لم تجد إمضاء/توقيع على الشيك، أضف: "لا يوجد إمضاء/توقيع على الشيك"
+- إذا لم تجد خاتم على الشيك، أضف: "لا يوجد خاتم على الشيك"  
+- إذا لم يكن تاريخ الشيك واضحاً أو مفقوداً، أضف: "تاريخ الشيك مفقود أو غير واضح"
+- إذا كان اسم العميل/الشركة في الشيك مختلفاً عن الفاتورة، أضف: "اسم العميل في الشيك غير مطابق للفاتورة"
+- إذا لم يكن اسم المستفيد مكتوباً في الشيك، أضف: "اسم المستفيد مفقود من الشيك"
+- إذا كان المبلغ بالأحرف مفقوداً، أضف: "المبلغ بالأحرف مفقود من الشيك"
+إذا لم تجد تحذيرات اترك المصفوفة فارغة [].
+` : ''}
+
+مهم جداً: حاول قراءة كل الأرقام والتواريخ المكتوبة بخط اليد حتى لو كانت غير واضحة تماماً. قدّم أفضل تقدير ممكن.
+
+أجب بتنسيق JSON فقط بدون أي نص إضافي. مثال:
+{"amount": "15000", "invoice_number": "FC-2024-001", "customer_name": "محل الأمانة", "invoice_date": "2025-03-15"${payment_method === 'check' ? ', "check_date": "2025-03-15", "validation_warnings": []' : ''}}
+
+إذا لم تجد قيمة معينة، اتركها فارغة "".`;
+
+    const response = await callWithRetry(() =>
+      fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${image_base64}`
+                  }
+                }
+              ]
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 1024,
+        })
+      })
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('AI Gateway error:', response.status, errText);
+
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ success: false, error: 'تم تجاوز حد الطلبات، حاول مرة أخرى لاحقاً' }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ success: false, error: 'يرجى إضافة رصيد لحساب Lovable AI' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error(`AI Gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const textContent = data.choices?.[0]?.message?.content || '';
+
+    const jsonMatch = textContent.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+      const extracted = JSON.parse(jsonMatch[0]);
+      return new Response(JSON.stringify({ success: true, data: extracted }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: false, raw_text: textContent }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('analyze-invoice error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_invoice2_sale boolean NOT NULL DEFAULT true;

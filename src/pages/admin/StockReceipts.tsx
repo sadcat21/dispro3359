@@ -1,0 +1,910 @@
+import React, { useState, useEffect } from 'react';
+import { boxesToBP } from '@/utils/boxPieceInput';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Plus, Loader2, Camera, Trash2, ClipboardList, Image as ImageIcon, Package, Settings, Truck, ArrowDownToLine, ArrowUpFromLine, BarChart3, XCircle, Printer, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
+import PalletSettingsDialog from '@/components/stock/PalletSettingsDialog';
+import FactoryDeliveryDialog from '@/components/stock/FactoryDeliveryDialog';
+import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
+import EditReceiptForm from '@/components/stock/EditReceiptForm';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useWarehouseStock, StockReceiptItem, StockReceipt } from '@/hooks/useWarehouseStock';
+import { formatDate } from '@/utils/formatters';
+import { useIsElementHidden } from '@/hooks/useUIOverrides';
+import { getProductDisplayName } from '@/utils/productDisplayName';
+import { parseReceiptItemBreakdown, aggregateReceiptItemsForEditing } from '@/utils/stockReceipt';
+import { parseReceiptMeta } from '@/utils/stockReceipt';
+
+interface ReceiptItem {
+  product_id: string;
+  quantity: number;
+}
+
+// Pallet quantity received with this receipt
+
+interface FactoryOrder {
+  id: string;
+  order_type: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  confirmed_at: string | null;
+}
+
+interface FactoryOrderItem {
+  id: string;
+  product_id: string;
+  product_quantity: number;
+  pallet_quantity: number;
+  product?: { name: string };
+}
+
+const StockReceipts: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { activeBranch } = useAuth();
+  const navigate = useNavigate();
+  const { receipts, products, createReceipt, isLoading, branchId, refresh } = useWarehouseStock();
+  const isAddReceiptHidden = useIsElementHidden('button', 'add_stock_receipt');
+
+  const [activeTab, setActiveTab] = useState('receiving');
+  const [showDialog, setShowDialog] = useState(false);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [notes, setNotes] = useState('');
+  const [items, setItems] = useState<ReceiptItem[]>([{ product_id: '', quantity: 1 }]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [invoicePhoto, setInvoicePhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [receiptPallets, setReceiptPallets] = useState(0);
+  const [productPickerIndex, setProductPickerIndex] = useState<number | null>(null);
+
+  // View receipt details
+  const [viewReceipt, setViewReceipt] = useState<StockReceipt | null>(null);
+  const [viewItems, setViewItems] = useState<StockReceiptItem[]>([]);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
+  const [editingReceipt, setEditingReceipt] = useState<StockReceipt | null>(null);
+  const [editingReceiptItems, setEditingReceiptItems] = useState<StockReceiptItem[]>([]);
+  const [showEditReceiptDialog, setShowEditReceiptDialog] = useState(false);
+
+  // Settings & Delivery dialogs
+  const [showPalletSettings, setShowPalletSettings] = useState(false);
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+
+  // Factory sending orders
+  const [sendingOrders, setSendingOrders] = useState<FactoryOrder[]>([]);
+  const [viewSendingOrder, setViewSendingOrder] = useState<FactoryOrder | null>(null);
+  const [sendingItems, setSendingItems] = useState<FactoryOrderItem[]>([]);
+  const [isLoadingSending, setIsLoadingSending] = useState(false);
+
+  const fetchSendingOrders = async () => {
+    if (!branchId) return;
+    const { data } = await supabase
+      .from('factory_orders')
+      .select('*')
+      .eq('branch_id', branchId)
+      .eq('order_type', 'sending')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setSendingOrders(data || []);
+  };
+
+  useEffect(() => {
+    if (branchId) fetchSendingOrders();
+  }, [branchId]);
+
+  const handleViewSendingOrder = async (order: FactoryOrder) => {
+    setViewSendingOrder(order);
+    setIsLoadingSending(true);
+    try {
+      const { data } = await supabase
+        .from('factory_order_items')
+        .select('*, product:products(name)')
+        .eq('factory_order_id', order.id);
+      setSendingItems((data || []) as unknown as FactoryOrderItem[]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingSending(false);
+    }
+  };
+
+  const handleViewReceipt = async (receipt: StockReceipt) => {
+    setViewReceipt(receipt);
+    setIsLoadingDetails(true);
+    try {
+      const { data } = await supabase
+        .from('stock_receipt_items')
+        .select('*, product:products(name, app_name, pieces_per_box, image_url)')
+        .eq('receipt_id', receipt.id)
+        .order('created_at', { ascending: true });
+      setViewItems((data || []) as unknown as StockReceiptItem[]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setInvoicePhoto(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const addItem = () => {
+    setItems(prev => [...prev, { product_id: '', quantity: 1 }]);
+  };
+
+  const removeItem = (index: number) => {
+    if (items.length > 1) {
+      setItems(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateItem = (index: number, field: keyof ReceiptItem, value: string | number) => {
+    setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+  };
+
+  const handleSave = async () => {
+    const validItems = items.filter(i => i.product_id && i.quantity > 0);
+    if (validItems.length === 0) {
+      toast.error(t('stock.add_products'));
+      return;
+    }
+
+    if (!branchId) {
+      toast.error(t('branches.select_branch'));
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      let photoUrl: string | undefined;
+      
+      if (invoicePhoto) {
+        const ext = invoicePhoto.name.split('.').pop();
+        const fileName = `invoice_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('receipts')
+          .upload(fileName, invoicePhoto);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabase.storage
+          .from('receipts')
+          .getPublicUrl(fileName);
+        
+        photoUrl = urlData.publicUrl;
+      }
+
+      await createReceipt(
+        { invoice_number: invoiceNumber, notes, invoice_photo_url: photoUrl },
+        validItems,
+        receiptPallets
+      );
+
+      toast.success(t('stock.receipt_saved'));
+      setShowDialog(false);
+      resetForm();
+    } catch (error: any) {
+      console.error('Error saving receipt:', error);
+      toast.error(error.message || t('common.error'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const resetForm = () => {
+    setInvoiceNumber('');
+    setNotes('');
+    setItems([{ product_id: '', quantity: 1 }]);
+    setInvoicePhoto(null);
+    setPhotoPreview(null);
+    setReceiptPallets(0);
+  };
+
+  // Cancel a confirmed receipt: reverse stock additions
+  const handleCancelReceipt = async (receipt: StockReceipt) => {
+    if (!branchId || !receipt) return;
+    if (!confirm('هل أنت متأكد من إلغاء هذا الاستلام؟ سيتم خصم الكميات من المخزن.')) return;
+    
+    setIsCancelling(true);
+    try {
+      // Get receipt items
+      const { data: rItems } = await supabase
+        .from('stock_receipt_items')
+        .select('*')
+        .eq('receipt_id', receipt.id);
+
+      if (receipt.status === 'confirmed') {
+        // Reverse stock for each item
+        for (const item of (rItems || [])) {
+          const { data: stock } = await supabase
+            .from('warehouse_stock')
+            .select('id, quantity')
+            .eq('branch_id', branchId)
+            .eq('product_id', item.product_id)
+            .maybeSingle();
+
+          if (stock) {
+            await supabase.from('warehouse_stock')
+              .update({ quantity: Math.max(0, stock.quantity - item.quantity) })
+              .eq('id', stock.id);
+          }
+        }
+
+        // Reverse pallet additions
+        const totalPallets = (rItems || []).reduce((sum, i: any) => sum + (Number(i.pallet_quantity) || 0), 0);
+        if (totalPallets > 0) {
+          const { data: bp } = await supabase.from('branch_pallets').select('id, quantity').eq('branch_id', branchId).maybeSingle();
+          if (bp) {
+            await supabase.from('branch_pallets').update({ quantity: Math.max(0, bp.quantity - totalPallets) }).eq('id', bp.id);
+          }
+        }
+      }
+
+      // Mark receipt as cancelled
+      await supabase.from('stock_receipts').update({ status: 'cancelled' }).eq('id', receipt.id);
+
+      toast.success('تم إلغاء الاستلام وعكس الكميات');
+      setViewReceipt(null);
+      refresh();
+    } catch (e: any) {
+      toast.error(e.message || 'خطأ في الإلغاء');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // Cancel a confirmed factory delivery: reverse stock deductions
+  const handleCancelDelivery = async (order: FactoryOrder) => {
+    if (!branchId || !order) return;
+    if (!confirm('هل أنت متأكد من إلغاء هذا التسليم؟ سيتم إعادة الكميات إلى المخزن.')) return;
+
+    setIsCancelling(true);
+    try {
+      const { data: oItems } = await supabase
+        .from('factory_order_items')
+        .select('*')
+        .eq('factory_order_id', order.id);
+
+      if (order.status === 'confirmed') {
+        // Reverse stock deductions for each item
+        for (const item of (oItems || [])) {
+          if (item.product_quantity > 0) {
+            const { data: stock } = await supabase
+              .from('warehouse_stock')
+              .select('id, quantity, damaged_quantity, factory_return_quantity')
+              .eq('branch_id', branchId)
+              .eq('product_id', item.product_id)
+              .maybeSingle();
+
+            if (stock) {
+              const currentQty = Number(stock.quantity) || 0;
+              const currentReturn = Number(stock.factory_return_quantity) || 0;
+              const currentDamaged = Number(stock.damaged_quantity) || 0;
+              await supabase.from('warehouse_stock').update({
+                quantity: currentQty + item.product_quantity,
+                factory_return_quantity: Math.max(0, currentReturn - item.product_quantity),
+                damaged_quantity: currentDamaged + item.product_quantity,
+              }).eq('id', stock.id);
+            }
+          }
+        }
+
+        // Reverse pallet deductions
+        // Check if order has pallet_count
+        const { data: orderData } = await supabase.from('factory_orders').select('*').eq('id', order.id).single();
+        const palletCount = Number((orderData as any)?.pallet_count) || 0;
+        if (palletCount > 0) {
+          const { data: bp } = await supabase.from('branch_pallets').select('id, quantity').eq('branch_id', branchId).maybeSingle();
+          if (bp) {
+            await supabase.from('branch_pallets').update({ quantity: bp.quantity + palletCount }).eq('id', bp.id);
+          }
+        }
+      }
+
+      // Mark as cancelled
+      await supabase.from('factory_orders').update({ status: 'cancelled' }).eq('id', order.id);
+
+      toast.success('تم إلغاء التسليم وإعادة الكميات');
+      setViewSendingOrder(null);
+      fetchSendingOrders();
+      refresh();
+    } catch (e: any) {
+      toast.error(e.message || 'خطأ في الإلغاء');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <ClipboardList className="w-5 h-5 text-primary" />
+          {t('stock_receipts.title')}
+        </h2>
+        <Button size="sm" variant="outline" onClick={() => navigate('/warehouse')}>
+          <BarChart3 className="w-4 h-4 ml-1" />
+          {t('stock_receipts.branch_stock')}
+        </Button>
+      </div>
+
+      {!branchId && (
+        <Card>
+          <CardContent className="py-6 text-center text-muted-foreground">
+            {t('branches.select_branch')}
+          </CardContent>
+        </Card>
+      )}
+
+      {branchId && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="receiving" className="gap-1.5">
+              <ArrowDownToLine className="w-4 h-4" />
+              {t('stock_receipts.receiving')}
+            </TabsTrigger>
+            <TabsTrigger value="sending" className="gap-1.5">
+              <ArrowUpFromLine className="w-4 h-4" />
+              {t('stock_receipts.sending')}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ===== Receiving Tab ===== */}
+          <TabsContent value="receiving" className="space-y-3 mt-3">
+            <div className="flex items-center gap-2">
+              {!isAddReceiptHidden && (
+                <Button size="sm" onClick={() => setShowDialog(true)} className="flex-1">
+                  <Plus className="w-4 h-4 ml-1" />
+                  {t('stock.new_receipt')}
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setShowPalletSettings(true)}>
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {receipts.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  {t('stock.no_receipts')}
+                </CardContent>
+              </Card>
+            ) : (
+              receipts.map(receipt => (
+                <Card key={receipt.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => handleViewReceipt(receipt)}>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">
+                        {receipt.invoice_number ? `${t('stock.invoice_number')}: ${receipt.invoice_number}` : t('stock.receipt_details')}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(receipt.created_at, 'dd/MM/yyyy HH:mm', language)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <span>{receipt.total_items} {t('stock.items')}</span>
+                        {receipt.status === 'cancelled' && (
+                          <Badge variant="destructive" className="text-[10px]">ملغي</Badge>
+                        )}
+                      </div>
+                      {receipt.invoice_photo_url && (
+                        <a href={receipt.invoice_photo_url} target="_blank" rel="noopener noreferrer" className="text-primary flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                          <ImageIcon className="w-3 h-3" />
+                          {t('stock.view_invoice')}
+                        </a>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          {/* ===== Sending Tab ===== */}
+          <TabsContent value="sending" className="space-y-3 mt-3">
+            <Button size="sm" onClick={() => setShowDeliveryDialog(true)} className="w-full" variant="destructive">
+              <Truck className="w-4 h-4 ml-1" />
+              {t('stock_receipts.new_delivery')}
+            </Button>
+
+            {sendingOrders.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  {t('stock_receipts.no_sending')}
+                </CardContent>
+              </Card>
+            ) : (
+              sendingOrders.map(order => (
+                <Card key={order.id} className="cursor-pointer hover:border-destructive/50 transition-colors" onClick={() => handleViewSendingOrder(order)}>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-destructive" />
+                        <span className="text-sm font-medium">{t('stock_receipts.delivery_to_factory')}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(order.created_at, 'dd/MM/yyyy HH:mm', language)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <Badge variant={order.status === 'confirmed' ? 'default' : order.status === 'cancelled' ? 'destructive' : 'secondary'} className="text-[10px]">
+                        {order.status === 'confirmed' ? t('stock_receipts.confirmed') : order.status === 'cancelled' ? 'ملغي' : t('stock_receipts.pending')}
+                      </Badge>
+                      {order.notes && <span className="text-muted-foreground truncate">{order.notes}</span>}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
+
+      {/* View Receipt Details Dialog */}
+      <Dialog open={!!viewReceipt} onOpenChange={(open) => { if (!open) { setViewReceipt(null); setShowPrintView(false); } }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-primary" />
+              {t('stock.receipt_details')}
+            </DialogTitle>
+          </DialogHeader>
+
+          {viewReceipt && (() => {
+            // Parse notes JSON for driver info and source
+            const parsedNotes = parseReceiptMeta(viewReceipt.notes);
+            const receiptSource = parsedNotes.source || 'factory';
+            const notesText = parsedNotes.text || (typeof viewReceipt.notes === 'string' && !viewReceipt.notes.startsWith('{') ? viewReceipt.notes : '');
+
+            return (
+              <div className="space-y-4">
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">المصدر</span>
+                    <Badge variant="secondary">{receiptSource === 'branch' ? '🏢 فرع' : '🏭 مصنع'}</Badge>
+                  </div>
+                  {viewReceipt.invoice_number && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('stock.invoice_number')}</span>
+                      <span className="font-medium">{viewReceipt.invoice_number}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t('common.date')}</span>
+                    <span>{formatDate(viewReceipt.created_at, 'dd/MM/yyyy HH:mm', language)}</span>
+                  </div>
+                  {notesText && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t('common.notes')}</span>
+                      <span>{notesText}</span>
+                    </div>
+                  )}
+                  {viewReceipt.invoice_photo_url && (
+                    <a href={viewReceipt.invoice_photo_url} target="_blank" rel="noopener noreferrer" className="text-primary flex items-center gap-1 text-xs">
+                      <ImageIcon className="w-3 h-3" />
+                      {t('stock.view_invoice')}
+                    </a>
+                  )}
+                </div>
+
+                {/* Driver Info */}
+                {(parsedNotes.driver_name || parsedNotes.driver_phone || parsedNotes.license_plate) && (
+                  <div className="border rounded-lg p-2.5 bg-muted/30 space-y-1 text-xs">
+                    <div className="font-semibold text-sm mb-1">🚛 بيانات السائق</div>
+                    {parsedNotes.driver_name && <div>الاسم: <strong>{parsedNotes.driver_name}</strong></div>}
+                    {parsedNotes.driver_phone && <div>الهاتف: <strong>{parsedNotes.driver_phone}</strong></div>}
+                    {parsedNotes.license_plate && <div>لوحة الترقيم: <strong>{parsedNotes.license_plate}</strong></div>}
+                  </div>
+                )}
+
+                <div className="border-t pt-3">
+                  <Label className="text-sm font-semibold mb-2 block">{t('stock.add_products')}</Label>
+                  {isLoadingDetails ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    </div>
+                  ) : viewItems.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('common.no_results')}</p>
+                  ) : (() => {
+                    // Aggregate items by product for unified table view
+                    const aggregated = aggregateReceiptItemsForEditing(viewItems);
+                    const productMap = new Map(viewItems.map((item: any) => [item.product_id, item.product]));
+
+                    return (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-muted/50">
+                              <th className="text-right p-2 border-b font-semibold">المنتج</th>
+                              <th className="text-center p-2 border-b font-semibold text-blue-700">جديد</th>
+                              <th className="text-center p-2 border-b font-semibold text-red-700">تعويض تلف</th>
+                              <th className="text-center p-2 border-b font-semibold text-amber-700">تعويض عروض</th>
+                              <th className="text-center p-2 border-b font-semibold text-primary">المجموع</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {aggregated.map((agg) => {
+                              const prod = productMap.get(agg.product_id);
+                              const ppb = prod?.pieces_per_box || 20;
+                              const total = agg.new_quantity + agg.compensation_quantity + agg.compensation_offers_quantity;
+                              return (
+                                <tr key={agg.product_id} className="border-b last:border-b-0">
+                                  <td className="p-2 text-right">
+                                    <div className="flex items-center gap-1.5">
+                                      {prod?.image_url ? (
+                                        <img src={prod.image_url} alt="" className="w-7 h-7 rounded object-cover shrink-0 border" />
+                                      ) : (
+                                        <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0"><Package className="w-3 h-3 text-muted-foreground" /></div>
+                                      )}
+                                      <span className="font-medium truncate">{getProductDisplayName(prod) || prod?.name || agg.product_id}</span>
+                                    </div>
+                                  </td>
+                                  <td className="p-2 text-center font-semibold text-blue-700">{agg.new_quantity > 0 ? boxesToBP(agg.new_quantity, ppb) : '-'}</td>
+                                  <td className="p-2 text-center font-semibold text-red-700">{agg.compensation_quantity > 0 ? boxesToBP(agg.compensation_quantity, ppb) : '-'}</td>
+                                  <td className="p-2 text-center font-semibold text-amber-700">{agg.compensation_offers_quantity > 0 ? boxesToBP(agg.compensation_offers_quantity, ppb) : '-'}</td>
+                                  <td className="p-2 text-center font-bold text-primary">{boxesToBP(total, ppb)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Edit Receipt Button */}
+                {viewReceipt.status !== 'cancelled' && (
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => {
+                    const receiptToEdit = viewReceipt;
+                    setViewReceipt(null);
+                    // Open FactoryReceiptQuickDialog in edit mode via state
+                    setEditingReceipt(receiptToEdit);
+                    setEditingReceiptItems(viewItems);
+                    setShowEditReceiptDialog(true);
+                  }}>
+                    <Pencil className="w-4 h-4 ml-1" />
+                    تعديل الاستلام
+                  </Button>
+                )}
+
+                {/* Print Button */}
+                {viewReceipt.status !== 'cancelled' && (
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => setShowPrintView(true)}>
+                    <Printer className="w-4 h-4 ml-1" />
+                    {receiptSource === 'branch' ? 'Bon de Transfert' : 'Bon de Réception'}
+                  </Button>
+                )}
+
+                {/* Cancel Receipt Button */}
+                {viewReceipt.status !== 'cancelled' && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    disabled={isCancelling}
+                    onClick={() => handleCancelReceipt(viewReceipt)}
+                  >
+                    {isCancelling ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <XCircle className="w-4 h-4 ml-1" />}
+                    إلغاء الاستلام وعكس الكميات
+                  </Button>
+                )}
+                {viewReceipt.status === 'cancelled' && (
+                  <Badge variant="destructive" className="w-full justify-center py-1">ملغي</Badge>
+                )}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Sending Order Details */}
+      <Dialog open={!!viewSendingOrder} onOpenChange={(open) => { if (!open) setViewSendingOrder(null); }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-destructive" />
+              {t('stock_receipts.delivery_details')}
+            </DialogTitle>
+          </DialogHeader>
+
+          {viewSendingOrder && (
+            <div className="space-y-4">
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t('common.date')}</span>
+                  <span>{formatDate(viewSendingOrder.created_at, 'dd/MM/yyyy HH:mm', language)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t('common.status')}</span>
+                  <Badge variant={viewSendingOrder.status === 'confirmed' ? 'default' : 'secondary'}>
+                    {viewSendingOrder.status === 'confirmed' ? t('stock_receipts.confirmed') : t('stock_receipts.pending')}
+                  </Badge>
+                </div>
+                {viewSendingOrder.notes && (
+                  <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t('common.notes')}</span>
+                    <span>{viewSendingOrder.notes}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t pt-3">
+                <Label className="text-sm font-semibold mb-2 block">{t('stock_receipts.products_pallets')}</Label>
+                {isLoadingSending ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  </div>
+                ) : sendingItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">{t('stock_receipts.no_items')}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {sendingItems.map((item) => (
+                      <div key={item.id} className="rounded-lg border p-2.5 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-4 h-4 text-destructive" />
+                          <span className="text-sm font-medium">{item.product?.name || item.product_id}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs">
+                          {item.product_quantity > 0 && (
+                            <span className="text-destructive font-medium">{t('stock_receipts.damaged')}: {boxesToBP(Number(item.product_quantity), products.find(p => p.id === item.product_id)?.pieces_per_box || 20)} {t('common.box')}</span>
+                          )}
+                          {item.pallet_quantity > 0 && (
+                            <span className="text-amber-600 font-medium">{t('stock_receipts.pallets')}: {item.pallet_quantity}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Cancel Delivery Button */}
+              {viewSendingOrder.status !== 'cancelled' && (
+                <div className="border-t pt-3">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    disabled={isCancelling}
+                    onClick={() => handleCancelDelivery(viewSendingOrder)}
+                  >
+                    {isCancelling ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <XCircle className="w-4 h-4 ml-1" />}
+                    إلغاء التسليم وإعادة الكميات
+                  </Button>
+                </div>
+              )}
+              {viewSendingOrder.status === 'cancelled' && (
+                <Badge variant="destructive" className="w-full justify-center py-1">ملغي</Badge>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Receipt Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle>{t('stock.new_receipt')}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('stock.invoice_number')} ({t('common.optional')})</Label>
+              <Input
+                value={invoiceNumber}
+                onChange={e => setInvoiceNumber(e.target.value)}
+                placeholder={t('stock.invoice_number')}
+                className="text-right"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('stock.invoice_photo')}</Label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                  <Camera className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{t('stock.take_photo')}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handlePhotoChange}
+                  />
+                </label>
+                {photoPreview && (
+                  <img src={photoPreview} alt="Invoice" className="w-full h-40 object-cover rounded-lg" />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('stock.add_products')}</Label>
+              {items.map((item, index) => (
+                <div key={index} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent transition-colors"
+                      onClick={() => setProductPickerIndex(index)}
+                    >
+                      <Package className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className={item.product_id ? 'text-foreground truncate' : 'text-muted-foreground'}>
+                        {item.product_id ? products.find(p => p.id === item.product_id)?.name || t('stock.product') : t('stock.product')}
+                      </span>
+                    </button>
+                  </div>
+                  <div className="w-24">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={item.quantity}
+                      onChange={e => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                      className="text-center"
+                    />
+                  </div>
+                  {items.length > 1 && (
+                    <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addItem} className="w-full">
+                <Plus className="w-4 h-4 ml-1" />
+                {t('stock.add_products')}
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label>🪵 {t('stock_receipts.pallets_received')}</Label>
+              <Input
+                type="number"
+                min={0}
+                value={receiptPallets}
+                onChange={e => setReceiptPallets(parseInt(e.target.value) || 0)}
+                className="text-center"
+                placeholder="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('common.notes')} ({t('common.optional')})</Label>
+              <Input
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder={t('common.notes')}
+                className="text-right"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleSave} disabled={isSaving} className="w-full">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+              {t('stock.save_receipt')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <SimpleProductPickerDialog
+        open={productPickerIndex !== null}
+        onOpenChange={(open) => { if (!open) setProductPickerIndex(null); }}
+        products={products.map(p => ({ id: p.id, name: p.name, image_url: p.image_url }))}
+        selectedProductId={productPickerIndex !== null ? items[productPickerIndex]?.product_id || '' : ''}
+        onSelect={(productId) => {
+          if (productPickerIndex !== null) {
+            updateItem(productPickerIndex, 'product_id', productId);
+          }
+        }}
+      />
+
+      {branchId && (
+        <>
+           <PalletSettingsDialog
+            open={showPalletSettings}
+            onOpenChange={setShowPalletSettings}
+            branchId={branchId}
+            showLayerField
+          />
+          <FactoryDeliveryDialog
+            open={showDeliveryDialog}
+            onOpenChange={setShowDeliveryDialog}
+            branchId={branchId}
+            products={products}
+            onSuccess={() => { fetchSendingOrders(); refresh(); }}
+          />
+        </>
+      )}
+
+      {/* Receipt Print View */}
+      {viewReceipt && (
+        <ReceiptPrintView
+          open={showPrintView}
+          onOpenChange={setShowPrintView}
+          type={(() => {
+            try { const n = JSON.parse(viewReceipt.notes || '{}'); return n.source === 'branch' ? 'transfer' : 'reception'; } catch { return 'reception'; }
+          })()}
+          invoiceNumber={viewReceipt.invoice_number}
+          date={viewReceipt.created_at}
+          items={(() => {
+            const agg = aggregateReceiptItemsForEditing(viewItems);
+            return agg.map((a: any) => {
+              const prod = viewItems.find((vi: any) => vi.product_id === a.product_id)?.product;
+              return {
+                product_name: prod?.name || a.product_id,
+                new_qty: a.new_quantity,
+                comp_qty: a.compensation_quantity,
+                comp_offers_qty: a.compensation_offers_quantity,
+                pieces_per_box: prod?.pieces_per_box || 20,
+                image_url: prod?.image_url,
+              };
+            });
+          })()}
+          driverInfo={(() => {
+            try { return JSON.parse(viewReceipt.notes || '{}'); } catch { return {}; }
+          })()}
+          notes={(() => {
+            try { const n = JSON.parse(viewReceipt.notes || '{}'); return n.text; } catch { return viewReceipt.notes; }
+          })()}
+        />
+      )}
+
+      {/* Edit Receipt Dialog */}
+      <Dialog open={showEditReceiptDialog} onOpenChange={(open) => { if (!open) { setShowEditReceiptDialog(false); setEditingReceipt(null); } }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-primary" />
+              تعديل الاستلام
+            </DialogTitle>
+          </DialogHeader>
+
+          {editingReceipt && (
+            <EditReceiptForm
+              receipt={editingReceipt}
+              initialItems={editingReceiptItems}
+              products={products}
+              branchId={branchId || ''}
+              onSaved={() => {
+                setShowEditReceiptDialog(false);
+                setEditingReceipt(null);
+                refresh();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default StockReceipts;
