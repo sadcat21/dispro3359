@@ -118,6 +118,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
   const [isCancelling, setIsCancelling] = useState(false);
   const [showResumeConfirm, setShowResumeConfirm] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
+  const [expandedItemIdx, setExpandedItemIdx] = useState<number | null>(null);
   const { data: orderItems = [], isLoading: orderItemsLoading } = useOrderItems(open ? order?.id ?? null : null);
 
   const { data: orderDebt } = useQuery({
