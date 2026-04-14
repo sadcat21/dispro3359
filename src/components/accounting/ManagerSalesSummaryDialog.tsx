@@ -1046,8 +1046,8 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="products" className="mt-0 min-h-0 flex-1">
-              <ScrollArea className="h-full">
+            <TabsContent value="products" className="mt-0 min-h-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full max-h-[calc(100dvh-18rem)]">
                 <div className="grid grid-cols-2 gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:grid-cols-3">
                   {aggregate.items.map((item) => {
                     const displayedWorkerStock = selectedWorkerId !== 'all'
