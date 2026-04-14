@@ -40,6 +40,17 @@ const Branches: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.workersSafe });
   };
 
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<BranchWithAdmin | null>(null);
+  const [branchToDelete, setBranchToDelete] = useState<BranchWithAdmin | null>(null);
+  const [name, setName] = useState('');
+  const [wilaya, setWilaya] = useState(DEFAULT_WILAYA);
+  const [address, setAddress] = useState('');
+  const [adminId, setAdminId] = useState<string>('none');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const resetForm = () => {
     setName('');
     setWilaya(DEFAULT_WILAYA);
