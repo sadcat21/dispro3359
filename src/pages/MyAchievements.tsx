@@ -909,33 +909,42 @@ const MyAchievements: React.FC = () => {
                   ? (visit.order_invoice_method === 'cash' ? 'C' : visit.order_invoice_method === 'check' ? 'Ch' : visit.order_invoice_method === 'transfer' ? 'Vi' : visit.order_invoice_method === 'receipt' ? 'Ve' : null)
                   : null;
 
-                const opColor = OPERATION_COLORS[visit.operation_type] || 'border-border';
                 const hasAmount = visit.orderTotal != null || (visit.operation_type === 'debt_collection' && visit.debtCollectionAmount != null);
                 const displayAmount = visit.orderTotal ?? visit.debtCollectionAmount ?? 0;
+
+                // Border color based on payment state
+                const isCancelled = !!visit.isCancelledOrder;
+                const isFullDebt = visit.isDebtSale && visit.debtStatus !== 'partial';
+                const isPartialDebt = visit.isDebtSale && visit.debtStatus === 'partial';
+                const isFullyPaid = hasAmount && !visit.isDebtSale && !isCancelled;
+
+                let borderClass = 'border-border'; // default
+                if (isCancelled) borderClass = 'border-muted-foreground/40';
+                else if (isFullDebt) borderClass = 'border-destructive/50';
+                else if (isPartialDebt) borderClass = 'border-blue-400/60';
+                else if (isFullyPaid) borderClass = 'border-emerald-400/60';
+
+                const cancelledMute = isCancelled ? 'opacity-50' : '';
 
                 return (
                   <button
                     key={visit.id}
                     type="button"
                     onClick={() => handleOpenAchievement(visit)}
-                    className="w-full rounded-xl border bg-card p-2.5 text-right transition-all hover:shadow-md active:scale-[0.995]"
+                    className={`w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] ${borderClass} ${cancelledMute}`}
                   >
-                    {/* Row 1: Name + date */}
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div className="min-w-0 flex-1">
-                        {visit.operation_type === 'debt_collection' ? (
-                          <p className="font-bold text-sm leading-5 truncate">
-                            {visit.debtCollectionStoreName || getOperationLabel(visit.operation_type as OperationType)}
-                          </p>
-                        ) : (
-                          <>
-                            <p className="font-bold text-sm leading-5 truncate">
-                              {visit.store_name || visit.customer_name || getOperationLabel(visit.operation_type as OperationType)}
-                            </p>
-                            {visit.customer_real_name && visit.customer_real_name !== visit.store_name && (
-                              <p className="text-[11px] text-muted-foreground truncate">{visit.customer_real_name}</p>
-                            )}
-                          </>
+                    {/* Grid: 2 rows */}
+                    {/* ROW 1: store/customer name (right) | date (left) */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1 flex items-baseline gap-1.5">
+                        <p className="font-bold text-[13px] leading-5 truncate">
+                          {visit.operation_type === 'debt_collection'
+                            ? (visit.debtCollectionStoreName || getOperationLabel(visit.operation_type as OperationType))
+                            : (visit.store_name || visit.customer_name || getOperationLabel(visit.operation_type as OperationType))
+                          }
+                        </p>
+                        {!isCancelled && visit.customer_real_name && visit.customer_real_name !== visit.store_name && visit.operation_type !== 'debt_collection' && (
+                          <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{visit.customer_real_name}</span>
                         )}
                       </div>
                       <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums" dir="ltr">
@@ -943,51 +952,38 @@ const MyAchievements: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Row 2: Tags left + Amount right */}
-                    <div className="flex items-center justify-between gap-2">
+                    {/* ROW 2: tags (right) | amount + debt info (left) */}
+                    <div className="flex items-center justify-between gap-2 mt-1">
                       <div className="flex items-center gap-1 flex-wrap min-w-0">
-                        {/* Operation type chip */}
-                        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-medium border ${opColor}`}>
+                        {/* Operation type */}
+                        <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium border ${OPERATION_COLORS[visit.operation_type] || 'border-border'}`}>
                           <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
                           {getOperationLabel(visit.operation_type as OperationType)}
                         </span>
-
-                        {/* Payment type F1/F2 + subtype/method combined */}
+                        {/* F1/F2 combined badge */}
                         {paymentBadge && (
-                          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
-                            {paymentBadge}
-                            {subtypeBadge && <span className="font-medium opacity-80">·{subtypeBadge}</span>}
-                            {invoiceMethodBadge && <span className="font-medium opacity-80">·{invoiceMethodBadge}</span>}
+                          <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
+                            {paymentBadge}{subtypeBadge && `·${subtypeBadge}`}{invoiceMethodBadge && `·${invoiceMethodBadge}`}
                           </span>
                         )}
-
-                        {/* Cancelled */}
-                        {visit.isCancelledOrder && (
-                          <span className="inline-flex items-center rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-bold text-destructive border border-destructive/20">
-                            ملغاة
-                          </span>
+                        {isCancelled && (
+                          <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground border border-muted-foreground/20">ملغاة</span>
                         )}
-
-                        {/* Debt status */}
                         {visit.isDebtSale && (
-                          <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${visit.debtStatus === 'partial' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
-                            {visit.debtStatus === 'partial' ? 'دين جزئي' : 'دين كلي'}
+                          <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${isPartialDebt ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
+                            {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
                           </span>
                         )}
                       </div>
 
-                      {/* Amount */}
                       {hasAmount && (
                         <div className="shrink-0 text-left">
-                          <p className="text-sm font-bold tabular-nums" dir="ltr">
-                            {Number(displayAmount).toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">DA</span>
+                          <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
+                            {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
                           </p>
                           {visit.isDebtSale && visit.debtMoney && (
-                            <p className="text-[10px] text-muted-foreground tabular-nums" dir="ltr">
-                              {visit.debtStatus === 'partial'
-                                ? <>{visit.debtMoney.remainingAmount.toLocaleString()} DA دين</>
-                                : <>{visit.debtMoney.remainingAmount.toLocaleString()} DA دين</>
-                              }
+                            <p className="text-[10px] text-muted-foreground tabular-nums leading-tight" dir="ltr">
+                              دين {visit.debtMoney.remainingAmount.toLocaleString()} DA
                             </p>
                           )}
                         </div>
