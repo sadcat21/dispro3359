@@ -301,7 +301,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         onClick={() => setExpandedItemIdx(expandedItemIdx === idx ? null : idx)}
                       >
                         {productImage ? (
-                          <img src={productImage} alt={n.productName} className="w-full h-full object-cover" loading="lazy" />
+                          <img src={productImage} alt={n.productName} className="w-full h-full object-contain" loading="lazy" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="text-2xl text-muted-foreground/30">📦</span>
