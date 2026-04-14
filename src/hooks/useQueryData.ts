@@ -62,7 +62,7 @@ export function useWorkersSafeQuery(role?: string) {
     queryKey: role ? queryKeys.workersSafeByRole(role) : queryKeys.workersSafe,
     queryFn: async () => {
       let query = supabase.from('workers_safe').select('*');
-      if (role) query = query.eq('role', role);
+      if (role) query = query.eq('role', role as any);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as Worker[];
