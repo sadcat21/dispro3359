@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Worker, Branch } from '@/types/database';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { Building2, Plus, Loader2, Trash2, Pencil, MapPin, User } from 'lucide-r
 import { toast } from 'sonner';
 import { ALGERIAN_WILAYAS, DEFAULT_WILAYA } from '@/data/algerianWilayas';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAllBranchesQuery, useWorkersSafeQuery, queryKeys } from '@/hooks/useQueryData';
 
 interface BranchWithAdmin extends Branch {
   admin?: Worker;
@@ -20,51 +22,34 @@ interface BranchWithAdmin extends Branch {
 
 const Branches: React.FC = () => {
   const { t } = useLanguage();
-  const [branches, setBranches] = useState<BranchWithAdmin[]>([]);
-  const [workers, setWorkers] = useState<Worker[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  
+  const { data: rawBranches = [], isLoading: branchesLoading } = useAllBranchesQuery();
+  const { data: workers = [], isLoading: workersLoading } = useWorkersSafeQuery();
+  const isLoading = branchesLoading || workersLoading;
+
+  // Map admin info to branches
+  const branches: BranchWithAdmin[] = React.useMemo(() => 
+    rawBranches.map(branch => ({
+      ...branch,
+      admin: workers.find(w => w.id === branch.admin_id)
+    })), [rawBranches, workers]);
+
+  const refetchData = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.branches });
+    queryClient.invalidateQueries({ queryKey: queryKeys.workersSafe });
+  };
+
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingBranch, setEditingBranch] = useState<BranchWithAdmin | null>(null);
   const [branchToDelete, setBranchToDelete] = useState<BranchWithAdmin | null>(null);
-  
-  // Form state
   const [name, setName] = useState('');
   const [wilaya, setWilaya] = useState(DEFAULT_WILAYA);
   const [address, setAddress] = useState('');
   const [adminId, setAdminId] = useState<string>('none');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [branchesRes, workersRes] = await Promise.all([
-        supabase.from('branches').select('*').order('created_at', { ascending: false }),
-        supabase.from('workers_safe').select('*').eq('is_active', true).order('full_name')
-      ]);
-
-      if (branchesRes.error) throw branchesRes.error;
-      if (workersRes.error) throw workersRes.error;
-
-      // Map admin info to branches
-      const branchesWithAdmin = (branchesRes.data || []).map(branch => ({
-        ...branch,
-        admin: workersRes.data?.find(w => w.id === branch.admin_id)
-      }));
-
-      setBranches(branchesWithAdmin);
-      setWorkers(workersRes.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(t('common.loading'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const resetForm = () => {
     setName('');
@@ -100,7 +85,7 @@ const Branches: React.FC = () => {
       toast.success(t('common.add') + ' ✓');
       setShowAddDialog(false);
       resetForm();
-      fetchData();
+      refetchData();
     } catch (error: any) {
       console.error('Error adding branch:', error);
       toast.error(error.message);
@@ -140,7 +125,7 @@ const Branches: React.FC = () => {
       setShowEditDialog(false);
       setEditingBranch(null);
       resetForm();
-      fetchData();
+      refetchData();
     } catch (error: any) {
       console.error('Error updating branch:', error);
       toast.error(error.message);
@@ -168,7 +153,7 @@ const Branches: React.FC = () => {
       if (error) throw error;
 
       toast.success(branch.is_active ? t('branches.deactivated') : t('branches.activated'));
-      fetchData();
+      refetchData();
     } catch (error) {
       console.error('Error toggling branch status:', error);
       toast.error(t('common.loading'));
@@ -189,7 +174,7 @@ const Branches: React.FC = () => {
 
       toast.success(t('common.delete') + ' ✓');
       setBranchToDelete(null);
-      fetchData();
+      refetchData();
     } catch (error: any) {
       console.error('Error deleting branch:', error);
       toast.error(error.message);

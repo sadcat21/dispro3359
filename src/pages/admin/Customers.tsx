@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, Branch } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -196,13 +197,48 @@ const Customers: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-    // Fetch all zones for badge display
-    supabase.from('sector_zones').select('*').order('name').then(({ data }) => {
-      setAllZones((data || []) as any);
-    });
-  }, []);
+  const { data: fetchedCustomers = [], data: _c, isLoading: customersQueryLoading, refetch: refetchCustomers } = useQuery({
+    queryKey: ['customers-page'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('customers').select('*').order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: fetchedBranches = [] } = useQuery({
+    queryKey: ['branches-active'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('branches').select('*').eq('is_active', true).order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: fetchedAllZones = [] } = useQuery({
+    queryKey: ['sector-zones-all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('sector_zones').select('*').order('name');
+      return (data || []) as any;
+    },
+  });
+
+  // Sync query data to local state for compatibility
+  React.useEffect(() => {
+    setCustomers(fetchedCustomers as Customer[]);
+  }, [fetchedCustomers]);
+
+  React.useEffect(() => {
+    setBranches(fetchedBranches as Branch[]);
+  }, [fetchedBranches]);
+
+  React.useEffect(() => {
+    setAllZones(fetchedAllZones);
+  }, [fetchedAllZones]);
+
+  React.useEffect(() => {
+    if (!customersQueryLoading) setIsLoading(false);
+  }, [customersQueryLoading]);
 
   // Filter customers by activeBranch
   const filteredByBranch = useMemo(() => {
@@ -319,22 +355,15 @@ const Customers: React.FC = () => {
     return filtered;
   }, [searchQuery, filteredByBranch, sectorFilter, zoneFilter, typeFilter, missingFilter]);
 
-  // Fetch last delivered orders for all customers
-  useEffect(() => {
-    if (customers.length > 0) {
-      fetchLastOrders();
-    }
-  }, [customers]);
-
-  const fetchLastOrders = async () => {
-    try {
-      // Fetch last orders with item count
+  // Fetch last delivered orders using react-query
+  const { data: lastOrdersData } = useQuery({
+    queryKey: ['customers-last-orders'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
         .select('id, customer_id, created_at, total_amount, payment_status, status, order_items(id)')
         .eq('status', 'delivered')
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       const map: Record<string, any> = {};
       for (const order of (data || [])) {
@@ -342,30 +371,19 @@ const Customers: React.FC = () => {
           map[order.customer_id] = { ...order, itemCount: order.order_items?.length || 0 };
         }
       }
-      setLastOrders(map);
-    } catch {
-      // Silent fail
-    }
-  };
+      return map;
+    },
+    enabled: customers.length > 0,
+  });
 
-  const fetchData = async () => {
-    try {
-      const [customersRes, branchesRes] = await Promise.all([
-        supabase.from('customers').select('*').order('name'),
-        supabase.from('branches').select('*').eq('is_active', true).order('name')
-      ]);
+  React.useEffect(() => {
+    if (lastOrdersData) setLastOrders(lastOrdersData);
+  }, [lastOrdersData]);
 
-      if (customersRes.error) throw customersRes.error;
-      if (branchesRes.error) throw branchesRes.error;
-
-      setCustomers(customersRes.data || []);
-      setBranches(branchesRes.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(t('common.loading'));
-    } finally {
-      setIsLoading(false);
-    }
+  const queryClient = useQueryClient();
+  const fetchData = () => {
+    queryClient.invalidateQueries({ queryKey: ['customers-page'] });
+    queryClient.invalidateQueries({ queryKey: ['branches-active'] });
   };
 
   const getBranchName = (branchId: string | null) => {
