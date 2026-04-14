@@ -404,16 +404,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 <X className="h-4 w-4" />
                 إغلاق
               </Button>
-              <Button
-                aria-label="طباعة الوصل"
-                className="h-11 w-11 shrink-0 px-0"
-                title="طباعة الوصل"
-                variant="outline"
-                onClick={() => setShowReceiptDialog(true)}
-                disabled={orderItemsLoading || isDetailsLoading}
-              >
-                <Printer className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </DialogContent>
