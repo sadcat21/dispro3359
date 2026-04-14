@@ -20,6 +20,7 @@ interface OrderDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   order: OrderWithDetails | null;
   hideModifyAction?: boolean;
+  hideFinancialDetails?: boolean;
   onCancelOrder?: (orderId: string) => Promise<void> | void;
   onResumeOrder?: (orderId: string) => Promise<void> | void;
 }
