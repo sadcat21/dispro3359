@@ -5272,6 +5272,160 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_disputes: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          delivery_qty: number
+          delivery_worker_id: string
+          guilty_accepted: boolean | null
+          guilty_accepted_at: string | null
+          guilty_worker_id: string | null
+          id: string
+          notes: string | null
+          product_id: string | null
+          product_name: string | null
+          raised_by: string
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string | null
+          session_type: string
+          status: string
+          updated_at: string
+          warehouse_qty: number
+          warehouse_worker_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          delivery_qty?: number
+          delivery_worker_id: string
+          guilty_accepted?: boolean | null
+          guilty_accepted_at?: string | null
+          guilty_worker_id?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          raised_by: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          session_type?: string
+          status?: string
+          updated_at?: string
+          warehouse_qty?: number
+          warehouse_worker_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          delivery_qty?: number
+          delivery_worker_id?: string
+          guilty_accepted?: boolean | null
+          guilty_accepted_at?: string | null
+          guilty_worker_id?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          raised_by?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          session_type?: string
+          status?: string
+          updated_at?: string
+          warehouse_qty?: number
+          warehouse_worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_disputes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_delivery_worker_id_fkey"
+            columns: ["delivery_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_delivery_worker_id_fkey"
+            columns: ["delivery_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_guilty_worker_id_fkey"
+            columns: ["guilty_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_guilty_worker_id_fkey"
+            columns: ["guilty_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_warehouse_worker_id_fkey"
+            columns: ["warehouse_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_disputes_warehouse_worker_id_fkey"
+            columns: ["warehouse_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           approved_at: string | null
