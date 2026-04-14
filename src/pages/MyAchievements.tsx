@@ -458,7 +458,6 @@ const MyAchievements: React.FC = () => {
       return { visits: enrichedVisits, counts };
     },
     enabled: !!targetWorkerId,
-    staleTime: 60_000,
   });
 
   const visits = data?.visits || [];
