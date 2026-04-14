@@ -952,20 +952,24 @@ const MyAchievements: React.FC = () => {
                     onClick={() => handleOpenAchievement(visit)}
                     className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] overflow-hidden ${borderClass} ${cancelledMute}`}
                   >
-                    {/* Accounting stamp - absolute overlay */}
-                    {visit.isAccounted && (
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 rotate-[-15deg]">
-                        <div className="w-16 h-16 rounded-full border-[2.5px] border-destructive/50 flex items-center justify-center bg-destructive/5">
-                          <div className="w-[52px] h-[52px] rounded-full border-[1.5px] border-dashed border-destructive/40 flex flex-col items-center justify-center">
-                            <span className="text-[7px] font-black text-destructive/65 leading-none select-none">تمت</span>
-                            <span className="text-[6.5px] font-black text-destructive/65 leading-none select-none mt-0.5">المحاسبة</span>
-                            <span className="text-[5.5px] font-bold text-destructive/50 leading-none select-none mt-0.5 tabular-nums" dir="ltr">
-                              {format(new Date(visit.accountedDate), 'dd/MM')}
-                            </span>
+                    {/* Accounting/Approval stamp - absolute overlay */}
+                    {visit.isAccounted && (() => {
+                      const isNonFinancial = ['add_customer', 'update_customer', 'delete_customer'].includes(visit.operation_type);
+                      const stampLabel = isNonFinancial ? 'الموافقة' : 'المحاسبة';
+                      return (
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 rotate-[-15deg]">
+                          <div className="w-[72px] h-[72px] rounded-full border-[2.5px] border-destructive/50 flex items-center justify-center bg-destructive/5">
+                            <div className="w-[58px] h-[58px] rounded-full border-[1.5px] border-dashed border-destructive/40 flex flex-col items-center justify-center gap-[2px]">
+                              <span className="text-[8px] font-black text-destructive/70 leading-none select-none">تمت</span>
+                              <span className="text-[7.5px] font-black text-destructive/70 leading-none select-none">{stampLabel}</span>
+                              <span className="text-[8px] font-bold text-destructive/60 leading-none select-none tabular-nums mt-[1px]" dir="ltr">
+                                {format(new Date(visit.accountedDate), 'dd/MM')}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* ROW 1: store/customer name (right) | date (left) */}
                     <div className="flex items-center justify-between gap-2">
