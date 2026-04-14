@@ -28,6 +28,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   amended: { label: 'معدّل', color: 'bg-orange-500' },
   approved: { label: 'تمت الموافقة', color: 'bg-green-600' },
   rejected: { label: 'مرفوض', color: 'bg-destructive' },
+  disputed: { label: 'خلاف مرفوع', color: 'bg-purple-600' },
 };
 
 const fmtQty = (qty: number): string => {
@@ -477,7 +478,7 @@ const StockConfirmationsPopover: React.FC = () => {
     const source = isWarehouseManager ? (managerHook.confirmations || []) : (workerHook.confirmations || []);
 
     return source
-      .filter(c => c.status === 'approved' || c.status === 'rejected')
+      .filter(c => c.status === 'approved' || c.status === 'disputed' || (!isWarehouseManager && c.status === 'rejected'))
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
 
@@ -495,12 +496,19 @@ const StockConfirmationsPopover: React.FC = () => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
   };
 
-  const handleRaiseDispute = (conf: StockConfirmation) => {
+  const handleRaiseDispute = async (conf: StockConfirmation) => {
     if (!currentWorkerId) return;
+
+    // Mark the confirmation as 'disputed' so it moves to history
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase
+      .from('stock_confirmations')
+      .update({ status: 'disputed' } as any)
+      .eq('id', conf.id);
+
     // Parse mismatches from rejection note to create individual disputes
     const mismatches = parseMismatches(conf.rejection_note);
     if (mismatches.length === 0) {
-      // Generic dispute for the whole confirmation
       createDispute.mutate({
         branch_id: conf.branch_id || activeBranch?.id,
         warehouse_worker_id: conf.manager_id,
@@ -512,7 +520,6 @@ const StockConfirmationsPopover: React.FC = () => {
         notes: conf.rejection_note || 'خلاف على عملية ' + (OPERATION_LABELS[conf.operation_type] || conf.operation_type),
       });
     } else {
-      // Create dispute for first mismatch product (most common case)
       const firstItem = conf.items[0];
       const firstMismatch = mismatches[0];
       createDispute.mutate({
@@ -528,6 +535,10 @@ const StockConfirmationsPopover: React.FC = () => {
         notes: `خلاف على: ${mismatches.map(m => `${m.product}: المخزن=${m.expected} التوصيل=${m.actual}`).join(' | ')}`,
       });
     }
+
+    // Refresh confirmations lists
+    workerHook.refetch();
+    managerHook.refetch();
   };
 
   return (
