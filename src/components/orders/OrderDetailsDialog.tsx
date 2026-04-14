@@ -210,7 +210,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
     Number(orderDebt?.total_amount || 0) > 0 ||
     ['pending', 'payment_pending', 'no_payment', 'credit', 'partial', 'payment_partial'].includes(paymentStatus);
   const paymentMethodLabel = getPaymentMethodLabel(order);
-  const paymentCode = getPaymentCode(order);
+  const paymentCode = getPaymentCode(order, displayItems);
   const debtTagLabel = remainingAmount > 0
     ? (paidAmount > 0 ? 'دين جزئي' : 'دين كلي')
     : null;
