@@ -962,11 +962,11 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
           </DialogContent>
         </Dialog>
 
-        {isLoading && !data?.length ? (
+        {isLoading && !(data && data.length > 0) ? (
           <div className="flex min-h-[320px] items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-red-500" />
           </div>
-        ) : !data?.length ? (
+        ) : !(data && data.length > 0) ? (
           <div className="flex min-h-[280px] flex-col items-center justify-center gap-3 px-4 text-slate-500 sm:min-h-[320px]">
             <ClipboardList className="h-10 w-10 opacity-40" />
             <p className="text-center">
@@ -974,7 +974,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
             </p>
           </div>
         ) : (
-          <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
+          <Tabs defaultValue="overview" className={`flex min-h-0 flex-1 flex-col transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
             <div className="px-3 pt-2 sm:px-4">
               <TabsList className="grid h-11 grid-cols-2 rounded-2xl bg-slate-100 p-1">
                 <TabsTrigger value="overview" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
