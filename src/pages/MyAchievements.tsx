@@ -777,13 +777,7 @@ const MyAchievements: React.FC = () => {
     };
 
     const quickOrder = buildQuickOrder();
-    console.log('[Achievement] Quick order built:', { id: quickOrder.id, status: quickOrder.status, _isAccounted: quickOrder._isAccounted, _hideModifyAction: quickOrder._hideModifyAction });
     setSelectedOrderDetails(quickOrder);
-
-    if (!isOrderLike) {
-      clearLoadingState();
-      return;
-    }
 
     if (entityId) {
       prefetchOrderDialogData(entityId);
