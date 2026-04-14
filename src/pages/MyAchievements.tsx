@@ -1088,12 +1088,12 @@ const MyAchievements: React.FC = () => {
       <OrderDetailsDialog
         open={!!selectedOrderDetails}
         onOpenChange={(isOpen) => {
-          if (!isOpen) setSelectedOrderDetails(null);
+          if (!isOpen) { setSelectedOrderDetails(null); setSelectedIsAccounted(false); }
         }}
         order={selectedOrderDetails}
-        hideModifyAction={Boolean((selectedOrderDetails as any)?._hideModifyAction)}
-        onCancelOrder={handleCancelOrder}
-        onResumeOrder={handleResumeOrder}
+        hideModifyAction={Boolean((selectedOrderDetails as any)?._hideModifyAction) || (selectedIsAccounted && !isAdminRole(role))}
+        onCancelOrder={selectedIsAccounted && !isAdminRole(role) ? undefined : handleCancelOrder}
+        onResumeOrder={selectedIsAccounted && !isAdminRole(role) ? undefined : handleResumeOrder}
       />
 
       <CollectedDebtOperationDialog
