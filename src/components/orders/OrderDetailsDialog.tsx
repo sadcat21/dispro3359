@@ -226,8 +226,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
           <DialogHeader className="p-3 sm:p-4 pb-2 border-b shrink-0 space-y-1">
-            <div className="flex items-start justify-between gap-2">
-              <DialogTitle className="min-w-0 text-sm font-bold leading-snug flex flex-wrap items-center gap-2">
+            <div className="flex items-start justify-between gap-3">
+              <DialogTitle className="min-w-0 flex-1 text-sm font-bold leading-snug flex flex-wrap items-center gap-2">
                 <span>{customer?.store_name || customer?.name || '—'}</span>
                 {customer?.store_name && customer?.name && customer.store_name !== customer.name && (
                   <span className="text-xs font-normal text-muted-foreground">({customer.name})</span>
@@ -236,28 +236,34 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
                 )}
               </DialogTitle>
-              <Button
-                aria-label="طباعة الوصل"
-                className="h-9 w-9 shrink-0 border-0 bg-emerald-600 px-0 text-white hover:bg-emerald-700 hover:text-white"
-                size="icon"
-                title="طباعة الوصل"
-                onClick={() => setShowReceiptDialog(true)}
-                disabled={orderItemsLoading || isDetailsLoading}
-              >
-                <Printer className="h-4 w-4" />
-              </Button>
+              <div className="flex shrink-0 items-center gap-2">
+                {customer?.phone && (
+                  <a
+                    aria-label="الاتصال بالعميل"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                    href={`tel:${customer.phone}`}
+                    title="الاتصال بالعميل"
+                  >
+                    <Phone className="h-4 w-4" />
+                  </a>
+                )}
+                <Button
+                  aria-label="طباعة الوصل"
+                  className="h-9 w-9 shrink-0 border-0 bg-blue-600 px-0 text-white hover:bg-blue-700 hover:text-white"
+                  size="icon"
+                  title="طباعة الوصل"
+                  onClick={() => setShowReceiptDialog(true)}
+                  disabled={orderItemsLoading || isDetailsLoading}
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
               <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
                 {paymentStateLabel}
               </Badge>
-              {customer?.phone && (
-                <span className="inline-flex items-center gap-1 text-muted-foreground">
-                  <Phone className="h-3 w-3" />
-                  {customer.phone}
-                </span>
-              )}
               {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</span>}
             </div>
           </DialogHeader>
