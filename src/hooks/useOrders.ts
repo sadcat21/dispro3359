@@ -343,7 +343,7 @@ export const useCancelOrder = () => {
 
       if (debt && debt.status !== 'paid') {
         mutations.push(
-          supabase.from('customer_debts').update({ status: 'paid', remaining_amount: 0, paid_amount: 0, notes: 'ملغاة - تم إلغاء الطلبية المرتبطة' }).eq('id', debt.id)
+          supabase.from('customer_debts').update({ status: 'cancelled', remaining_amount: 0, paid_amount: 0, notes: 'ملغاة - تم إلغاء الطلبية المرتبطة' }).eq('id', debt.id)
         );
       }
 
