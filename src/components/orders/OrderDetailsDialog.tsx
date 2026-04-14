@@ -306,7 +306,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                       </div>
                       <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1.5">
                         <div dir="ltr" className="flex items-center justify-center rounded-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white">
-                          DA {formatAmountWithMaxFraction(n.unitPrice || 0)}
+                          {formatAmountWithMaxFraction(n.unitPrice || 0)} DA
                         </div>
                         {n.giftQuantity > 0 && (
                           <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
@@ -315,11 +315,11 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         )}
                         {n.catalogUnitPrice > 0 && catalogUnitLabel && (
                           <div dir="ltr" className="flex items-center justify-center rounded-md bg-emerald-600 py-1 text-[10px] font-bold text-white">
-                            DA {formatAmountWithMaxFraction(n.catalogUnitPrice)}/{catalogUnitLabel}
+                            {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/{catalogUnitLabel}
                           </div>
                         )}
                         <div dir="ltr" className="flex items-center justify-center rounded-md bg-destructive py-1 text-[10px] font-bold text-destructive-foreground">
-                          DA {formatAmountWithMaxFraction(n.totalPrice || 0)}
+                          {formatAmountWithMaxFraction(n.totalPrice || 0)} DA
                         </div>
                       </div>
                     </div>
