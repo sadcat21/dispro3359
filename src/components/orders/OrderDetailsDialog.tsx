@@ -281,15 +281,18 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 {displayItems.map((item: any, idx: number) => {
                   const n = normalizeSaleItem(item);
                   const productImage = item?.product?.image_url || item?.image_url || null;
-                  const unitLabel = n.pricingUnit === 'kg' ? 'كغ' : n.pricingUnit === 'unit' ? 'وحدة' : 'صندوق';
+                  const catalogUnitLabel = n.pricingUnit === 'kg' ? 'Kg' : n.pricingUnit === 'unit' ? 'pcs' : '';
                   return (
                     <div
                       key={item.id || idx}
                       className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-border"
                     >
-                      <div className="px-2 py-1.5 border-b text-center bg-muted border-border">
-                        <span className="font-bold text-xs leading-tight block truncate text-foreground">
+                      <div className="px-2 py-1.5 border-b bg-muted border-border flex items-center justify-between gap-1">
+                        <span className="font-bold text-xs leading-tight truncate text-foreground">
                           {n.productName}
+                        </span>
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                          {n.quantity}
                         </span>
                       </div>
                       <div className="w-full aspect-square bg-muted overflow-hidden">
@@ -302,26 +305,21 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         )}
                       </div>
                       <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1.5">
-                        <div className="flex items-center gap-0">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
-                            {n.quantity}
-                          </div>
-                          <div className="flex-1 flex items-center justify-center rounded-e-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white -ms-1">
-                            {formatAmountWithMaxFraction(n.unitPrice || 0)} DA/{unitLabel}
-                          </div>
+                        <div dir="ltr" className="flex items-center justify-center rounded-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white">
+                          DA {formatAmountWithMaxFraction(n.unitPrice || 0)}
                         </div>
                         {n.giftQuantity > 0 && (
                           <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
                             🎁 {n.giftQuantity}
                           </div>
                         )}
-                        {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
-                          <div className="flex items-center justify-center rounded-md bg-emerald-600 py-1 text-[10px] font-bold text-white">
-                            {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/كغ
+                        {n.catalogUnitPrice > 0 && catalogUnitLabel && (
+                          <div dir="ltr" className="flex items-center justify-center rounded-md bg-emerald-600 py-1 text-[10px] font-bold text-white">
+                            DA {formatAmountWithMaxFraction(n.catalogUnitPrice)}/{catalogUnitLabel}
                           </div>
                         )}
-                        <div className="flex items-center justify-center rounded-md bg-destructive py-1 text-[10px] font-bold text-destructive-foreground">
-                          {formatAmountWithMaxFraction(n.totalPrice || 0)} DA
+                        <div dir="ltr" className="flex items-center justify-center rounded-md bg-destructive py-1 text-[10px] font-bold text-destructive-foreground">
+                          DA {formatAmountWithMaxFraction(n.totalPrice || 0)}
                         </div>
                       </div>
                     </div>
