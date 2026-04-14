@@ -55,6 +55,9 @@ type AchievementOrderDetails = OrderWithDetails & {
   _selectionKey?: string;
   _detailsLoading?: boolean;
   _hideModifyAction?: boolean;
+  _isAccounted?: boolean;
+  _accountedDate?: string | null;
+  _operationType?: string;
 };
 
 const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = ({ visit, onClose }) => {
