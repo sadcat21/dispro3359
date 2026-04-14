@@ -200,10 +200,11 @@ const DebtAggregatesDialog: React.FC<{
 };
 
 const MyAchievements: React.FC = () => {
-  const { workerId, user, role, activeBranch } = useAuth();
+  const { workerId, user, role, activeBranch, activeRole } = useAuth();
   const [searchParams] = useSearchParams();
   const today = format(new Date(), 'yyyy-MM-dd');
-  const canInspectSelectedWorker = isAdminRole(role) || role === 'supervisor';
+  const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
+  const canInspectSelectedWorker = isAdminRole(role) || role === 'supervisor' || isWarehouseManager;
   const searchWorker = searchParams.get('worker');
   const searchName = searchParams.get('name');
   const [selectedWorkerId, setSelectedWorkerId] = useState<string>(() => searchWorker || workerId || '');
@@ -865,22 +866,26 @@ const MyAchievements: React.FC = () => {
             placeholder="ابحث باسم العميل أو المحل أو الهاتف"
             className="h-8 rounded-xl text-xs flex-1 min-w-0"
           />
-          <Button
-            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
-            variant="outline"
-            onClick={() => setShowHandoverSummary(true)}
-          >
-            <ClipboardList className="w-3 h-3 ml-0.5" />
-            ملخص التسليم
-          </Button>
-          <Button
-            variant="outline"
-            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
-            onClick={() => setShowSalesSummary(true)}
-          >
-            <Package className="w-3 h-3 ml-0.5" />
-            تجميع المبيعات
-          </Button>
+          {!isWarehouseManager && (
+            <>
+              <Button
+                className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
+                variant="outline"
+                onClick={() => setShowHandoverSummary(true)}
+              >
+                <ClipboardList className="w-3 h-3 ml-0.5" />
+                ملخص التسليم
+              </Button>
+              <Button
+                variant="outline"
+                className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
+                onClick={() => setShowSalesSummary(true)}
+              >
+                <Package className="w-3 h-3 ml-0.5" />
+                تجميع المبيعات
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -1003,7 +1008,7 @@ const MyAchievements: React.FC = () => {
                           <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
                           {getOperationLabel(visit.operation_type as OperationType)}
                         </span>
-                        {paymentBadge && (
+                        {!isWarehouseManager && paymentBadge && (
                           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
                             {paymentBadge}{subtypeBadge && `·${subtypeBadge}`}{invoiceMethodBadge && `·${invoiceMethodBadge}`}
                           </span>
@@ -1011,14 +1016,14 @@ const MyAchievements: React.FC = () => {
                         {isCancelled && (
                           <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground border border-muted-foreground/20">ملغاة</span>
                         )}
-                        {visit.isDebtSale && (
+                        {!isWarehouseManager && visit.isDebtSale && (
                           <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${isPartialDebt ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
                           </span>
                         )}
                       </div>
 
-                      {hasAmount && (
+                      {!isWarehouseManager && hasAmount && (
                         <div className="shrink-0 text-left">
                           <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
@@ -1091,9 +1096,10 @@ const MyAchievements: React.FC = () => {
           if (!isOpen) { setSelectedOrderDetails(null); setSelectedIsAccounted(false); }
         }}
         order={selectedOrderDetails}
-        hideModifyAction={Boolean((selectedOrderDetails as any)?._hideModifyAction) || (selectedIsAccounted && !isAdminRole(role))}
-        onCancelOrder={selectedIsAccounted && !isAdminRole(role) ? undefined : handleCancelOrder}
-        onResumeOrder={selectedIsAccounted && !isAdminRole(role) ? undefined : handleResumeOrder}
+        hideModifyAction={Boolean((selectedOrderDetails as any)?._hideModifyAction) || (selectedIsAccounted && !isAdminRole(role)) || isWarehouseManager}
+        hideFinancialDetails={isWarehouseManager}
+        onCancelOrder={selectedIsAccounted && !isAdminRole(role) || isWarehouseManager ? undefined : handleCancelOrder}
+        onResumeOrder={selectedIsAccounted && !isAdminRole(role) || isWarehouseManager ? undefined : handleResumeOrder}
       />
 
       <CollectedDebtOperationDialog
