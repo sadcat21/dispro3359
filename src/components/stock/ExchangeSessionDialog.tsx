@@ -271,9 +271,9 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
               </div>
             </div>
           ) : (
-            <span className="text-[9px] text-muted-foreground font-medium">
+            <Badge className="bg-destructive text-destructive-foreground text-[9px] px-1.5 py-0 h-4">
               {workerStock[p.id] > 0 ? fmtQty(workerStock[p.id]) : '0'}
-            </span>
+            </Badge>
           )}
         </div>
       </button>
