@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { useStockConfirmations, StockConfirmation, StockConfirmationItem } from '@/hooks/useStockConfirmations';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن',
