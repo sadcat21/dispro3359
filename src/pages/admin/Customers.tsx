@@ -355,22 +355,15 @@ const Customers: React.FC = () => {
     return filtered;
   }, [searchQuery, filteredByBranch, sectorFilter, zoneFilter, typeFilter, missingFilter]);
 
-  // Fetch last delivered orders for all customers
-  useEffect(() => {
-    if (customers.length > 0) {
-      fetchLastOrders();
-    }
-  }, [customers]);
-
-  const fetchLastOrders = async () => {
-    try {
-      // Fetch last orders with item count
+  // Fetch last delivered orders using react-query
+  const { data: lastOrdersData } = useQuery({
+    queryKey: ['customers-last-orders'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
         .select('id, customer_id, created_at, total_amount, payment_status, status, order_items(id)')
         .eq('status', 'delivered')
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       const map: Record<string, any> = {};
       for (const order of (data || [])) {
@@ -378,30 +371,19 @@ const Customers: React.FC = () => {
           map[order.customer_id] = { ...order, itemCount: order.order_items?.length || 0 };
         }
       }
-      setLastOrders(map);
-    } catch {
-      // Silent fail
-    }
-  };
+      return map;
+    },
+    enabled: customers.length > 0,
+  });
 
-  const fetchData = async () => {
-    try {
-      const [customersRes, branchesRes] = await Promise.all([
-        supabase.from('customers').select('*').order('name'),
-        supabase.from('branches').select('*').eq('is_active', true).order('name')
-      ]);
+  React.useEffect(() => {
+    if (lastOrdersData) setLastOrders(lastOrdersData);
+  }, [lastOrdersData]);
 
-      if (customersRes.error) throw customersRes.error;
-      if (branchesRes.error) throw branchesRes.error;
-
-      setCustomers(customersRes.data || []);
-      setBranches(branchesRes.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(t('common.loading'));
-    } finally {
-      setIsLoading(false);
-    }
+  const queryClient = useQueryClient();
+  const fetchData = () => {
+    queryClient.invalidateQueries({ queryKey: ['customers-page'] });
+    queryClient.invalidateQueries({ queryKey: ['branches-active'] });
   };
 
   const getBranchName = (branchId: string | null) => {
