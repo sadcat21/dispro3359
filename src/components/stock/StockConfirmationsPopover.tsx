@@ -438,7 +438,8 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
 const StockConfirmationsPopover: React.FC = () => {
   const workerHook = useStockConfirmations();
   const managerHook = useManagerConfirmations();
-  const { activeRole } = useAuth();
+  const { activeRole, workerId: currentWorkerId, activeBranch } = useAuth();
+  const { createDispute } = useStockDisputes();
   const [open, setOpen] = useState(false);
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
 
