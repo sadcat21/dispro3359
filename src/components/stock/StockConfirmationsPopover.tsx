@@ -238,7 +238,8 @@ const OutgoingTab: React.FC<{
   isLoading: boolean;
   onAmend: (id: string, items: StockConfirmationItem[], note: string) => void;
   isAmending: boolean;
-}> = ({ confirmations, isLoading, onAmend, isAmending }) => {
+  allowAmend?: boolean;
+}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItems, setEditItems] = useState<StockConfirmationItem[]>([]);
@@ -251,7 +252,7 @@ const OutgoingTab: React.FC<{
   };
 
   const handleSaveAmendment = () => {
-    if (!editingId || !editNote.trim()) return;
+    if (!allowAmend || !editingId || !editNote.trim()) return;
     onAmend(editingId, editItems, editNote.trim());
     setEditingId(null);
     setEditItems([]);
@@ -267,7 +268,7 @@ const OutgoingTab: React.FC<{
         const isExpanded = expandedId === conf.id;
         const isEditing = editingId === conf.id;
         const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
-        const canAmend = conf.status === 'pending' || conf.status === 'rejected';
+        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected');
         const mismatches = parseMismatches(conf.rejection_note);
 
         return (
@@ -426,7 +427,9 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
 const StockConfirmationsPopover: React.FC = () => {
   const workerHook = useStockConfirmations();
   const managerHook = useManagerConfirmations();
+  const { activeRole } = useAuth();
   const [open, setOpen] = useState(false);
+  const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
 
   useRealtimeSubscription(
     'stock-confirmations-rt',
@@ -442,41 +445,31 @@ const StockConfirmationsPopover: React.FC = () => {
     !!managerHook.currentWorkerId
   );
 
-  // Incoming: pending/amended confirmations where I'm the worker (need my action)
-  // + rejected confirmations where I'm the manager (worker rejected, I need to fix)
   const incomingConfirmations = useMemo(() => {
-    const workerIncoming = (workerHook.confirmations || []).filter(c => c.status === 'pending' || c.status === 'amended');
-    const managerIncoming = (managerHook.confirmations || []).filter(c => c.status === 'rejected');
-    // Deduplicate by id
-    const map = new Map<string, StockConfirmation>();
-    workerIncoming.forEach(c => map.set(c.id, c));
-    managerIncoming.forEach(c => map.set(c.id, c));
-    return Array.from(map.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [workerHook.confirmations, managerHook.confirmations]);
+    const source = isWarehouseManager
+      ? (managerHook.confirmations || []).filter(c => c.status === 'rejected')
+      : (workerHook.confirmations || []).filter(c => c.status === 'pending' || c.status === 'amended');
 
-  // Outgoing: pending/amended confirmations where I'm the manager (I sent, waiting for worker)
-  // + rejected confirmations where I'm the worker (I rejected, sent back to manager)
+    return [...source].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
+
   const outgoingConfirmations = useMemo(() => {
-    const managerOutgoing = (managerHook.confirmations || []).filter(c => c.status === 'pending' || c.status === 'amended');
-    const workerOutgoing = (workerHook.confirmations || []).filter(c => c.status === 'rejected');
-    const map = new Map<string, StockConfirmation>();
-    managerOutgoing.forEach(c => map.set(c.id, c));
-    workerOutgoing.forEach(c => map.set(c.id, c));
-    return Array.from(map.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [managerHook.confirmations, workerHook.confirmations]);
+    const source = isWarehouseManager
+      ? (managerHook.confirmations || []).filter(c => c.status === 'pending' || c.status === 'amended')
+      : (workerHook.confirmations || []).filter(c => c.status === 'rejected');
 
-  // History: all approved/rejected from both sides
+    return [...source].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
+
   const historyConfirmations = useMemo(() => {
-    const map = new Map<string, StockConfirmation>();
-    [...(workerHook.confirmations || []), ...(managerHook.confirmations || [])].forEach(c => {
-      if (c.status === 'approved' || c.status === 'rejected') {
-        map.set(c.id, c);
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [workerHook.confirmations, managerHook.confirmations]);
+    const source = isWarehouseManager ? (managerHook.confirmations || []) : (workerHook.confirmations || []);
 
-  const totalBadge = workerHook.pendingCount + managerHook.needsAttentionCount;
+    return source
+      .filter(c => c.status === 'approved' || c.status === 'rejected')
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
+
+  const totalBadge = isWarehouseManager ? managerHook.needsAttentionCount : workerHook.pendingCount;
 
   const handleApprove = (id: string) => {
     workerHook.approveConfirmation.mutate(id);
@@ -538,26 +531,37 @@ const StockConfirmationsPopover: React.FC = () => {
 
             <div className="max-h-[55vh] overflow-y-auto mt-2">
               <TabsContent value="incoming" className="mt-0">
-                <IncomingTab
-                  confirmations={incomingConfirmations}
-                  isLoading={workerHook.isLoading || managerHook.isLoading}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
-                  isPending={workerHook.approveConfirmation.isPending || workerHook.rejectConfirmation.isPending}
-                />
+                {isWarehouseManager ? (
+                  <OutgoingTab
+                    confirmations={incomingConfirmations}
+                    isLoading={managerHook.isLoading}
+                    onAmend={handleAmend}
+                    isAmending={managerHook.amendConfirmation.isPending}
+                    allowAmend
+                  />
+                ) : (
+                  <IncomingTab
+                    confirmations={incomingConfirmations}
+                    isLoading={workerHook.isLoading}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    isPending={workerHook.approveConfirmation.isPending || workerHook.rejectConfirmation.isPending}
+                  />
+                )}
               </TabsContent>
               <TabsContent value="outgoing" className="mt-0">
                 <OutgoingTab
                   confirmations={outgoingConfirmations}
-                  isLoading={managerHook.isLoading || workerHook.isLoading}
+                  isLoading={isWarehouseManager ? managerHook.isLoading : workerHook.isLoading}
                   onAmend={handleAmend}
                   isAmending={managerHook.amendConfirmation.isPending}
+                  allowAmend={isWarehouseManager}
                 />
               </TabsContent>
               <TabsContent value="history" className="mt-0">
                 <HistoryTab
                   confirmations={historyConfirmations}
-                  isLoading={workerHook.isLoading || managerHook.isLoading}
+                  isLoading={isWarehouseManager ? managerHook.isLoading : workerHook.isLoading}
                 />
               </TabsContent>
             </div>
