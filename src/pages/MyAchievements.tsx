@@ -1012,16 +1012,6 @@ const MyAchievements: React.FC = () => {
                           )}
                         </div>
                       )}
-                          <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
-                            {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
-                          </p>
-                          {visit.isDebtSale && visit.debtMoney && (
-                            <p className="text-[10px] text-muted-foreground tabular-nums leading-tight" dir="ltr">
-                              دين {visit.debtMoney.remainingAmount.toLocaleString()} DA
-                            </p>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </button>
                 );
