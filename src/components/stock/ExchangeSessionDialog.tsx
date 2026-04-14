@@ -262,10 +262,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
         )}
 
         <div className="flex flex-col items-center gap-0.5 p-0.5 min-h-[22px]">
-          {/* Show worker stock qty */}
-          {workerStock[p.id] > 0 && !isAdded && (
-            <span className="text-[8px] text-muted-foreground">{fmtQty(workerStock[p.id])}</span>
-          )}
           {isAdded ? (
             <div className="flex items-center gap-0.5 w-full">
               <Badge className="bg-orange-500 text-white text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 flex-1 justify-center">
@@ -283,9 +279,9 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
               </div>
             </div>
           ) : (
-            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
-              اضغط للإضافة
-            </Badge>
+            <span className="text-[9px] text-muted-foreground font-medium">
+              {workerStock[p.id] > 0 ? fmtQty(workerStock[p.id]) : '0'}
+            </span>
           )}
         </div>
       </button>
@@ -314,7 +310,7 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
                 <Badge className="bg-orange-500 text-white text-[10px]">{validItems.length} منتج</Badge>
               )}
             </div>
-            <p className="text-[9px] text-muted-foreground text-center">اضغط على المنتج لتحديد كمية التالف</p>
+            
           </div>
 
           <div
