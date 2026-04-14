@@ -182,8 +182,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
     [displayItems],
   );
 
-  if (!order) { console.log('[OrderDetailsDialog] order is null, returning null'); return null; }
-  console.log('[OrderDetailsDialog] Rendering with order:', { id: order.id, status: order.status, _isAccounted: (order as any)?._isAccounted });
+  if (!order) return null;
 
   const customer = order.customer;
   const isOrderRequest = !!(order as any)._isOrderRequest;
