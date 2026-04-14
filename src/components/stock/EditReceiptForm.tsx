@@ -52,17 +52,43 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const [isSaving, setIsSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
-  const [newQtyInput, setNewQtyInput] = useState('0');
-  const [compQtyInput, setCompQtyInput] = useState('0');
-  const [compOffersQtyInput, setCompOffersQtyInput] = useState('0');
+  const [newQtyFields, setNewQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+  const [compQtyFields, setCompQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+  const [compOffersQtyFields, setCompOffersQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
 
   const getProduct = (id: string) => products.find((product) => product.id === id);
   const currentProduct = singleProductId ? getProduct(singleProductId) : null;
   const currentPPB = currentProduct?.pieces_per_box || 1;
-  const parsedNew = parseBP(newQtyInput, currentPPB);
-  const parsedComp = parseBP(compQtyInput, currentPPB);
-  const parsedCompOffers = parseBP(compOffersQtyInput, currentPPB);
-  const toCustomFormat = (value: { boxes: number; pieces: number }) => value.boxes + value.pieces / 100;
+
+  const fieldsToCustomFormat = (fields: BoxPieceFields, ppb: number): number => {
+    const boxes = parseInt(fields.boxes || '0', 10) || 0;
+    const pieces = parseInt(fields.pieces || '0', 10) || 0;
+    const parsed = parseBP(`${boxes}.${pieces}`, ppb);
+    return parsed.boxes + parsed.pieces / 100;
+  };
+
+  const quantityToFields = (qty: number, ppb: number): BoxPieceFields => {
+    const parsed = parseBP(boxesToBP(qty, ppb), ppb);
+    return { boxes: String(parsed.boxes), pieces: String(parsed.pieces).padStart(3, '0') };
+  };
+
+  const sanitizeDigits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max);
+
+  const handleFieldChange = (
+    setter: React.Dispatch<React.SetStateAction<BoxPieceFields>>,
+    field: 'boxes' | 'pieces',
+    value: string
+  ) => {
+    setter(prev => ({ ...prev, [field]: sanitizeDigits(value, field === 'boxes' ? 5 : 3) }));
+  };
+
+  const normalizeFields = (fields: BoxPieceFields, ppb: number): BoxPieceFields => {
+    return quantityToFields(fieldsToCustomFormat(fields, ppb), ppb);
+  };
+
+  const handleBlur = (setter: React.Dispatch<React.SetStateAction<BoxPieceFields>>, ppb: number) => {
+    setter(prev => normalizeFields(prev, ppb));
+  };
 
   const openProductEditor = (productId: string) => {
     const existing = editItems.find((item) => item.product_id === productId);
