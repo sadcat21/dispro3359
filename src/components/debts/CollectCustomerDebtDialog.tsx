@@ -366,6 +366,22 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     () => new Map(debtOrders.map((order) => [order.id, String((order as { status?: string }).status || '')])),
     [debtOrders],
   );
+  const printableDebts = useMemo(
+    () => debts.filter((debt) => {
+      const linkedOrderStatus = debt.order_id ? debtOrderStatusById.get(debt.order_id) : null;
+      return linkedOrderStatus !== 'cancelled';
+    }),
+    [debtOrderStatusById, debts],
+  );
+  const printableDebtTotal = useMemo(
+    () => printableDebts.reduce((sum, debt) => sum + toNumber(debt.total_amount), 0),
+    [printableDebts],
+  );
+  const printableRemainingTotal = useMemo(
+    () => printableDebts.reduce((sum, debt) => sum + toNumber(debt.remaining_amount), 0),
+    [printableDebts],
+  );
+  const printablePaidTotal = Math.max(0, printableDebtTotal - printableRemainingTotal);
 
   const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any), [debtOrderStatusById, debts, payments]);
   const filteredTimeline = useMemo(
@@ -456,11 +472,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     workerPhone: null,
     branchId: debts[0]?.branch_id || null,
     items: [],
-    totalAmount: totalDebt,
+    totalAmount: printableDebtTotal,
     paidAmount: 0,
-    remainingAmount: totalRemaining,
-    debtTotalAmount: totalDebt,
-    debtPaidBefore: totalPaid,
+    remainingAmount: printableRemainingTotal,
+    debtTotalAmount: printableDebtTotal,
+    debtPaidBefore: printablePaidTotal,
     paymentMethod: null,
     notes: null,
     collectorName: user?.full_name || '',
@@ -478,7 +494,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         amount: item.amount,
         note: item.note,
       })),
-  }), [customerId, customerName, customerPhone, debtIds, debts, filteredTimeline, totalDebt, totalPaid, totalRemaining, user?.full_name, workerId]);
+  }), [customerId, customerName, customerPhone, debtIds, debts, filteredTimeline, printableDebtTotal, printablePaidTotal, printableRemainingTotal, user?.full_name, workerId]);
 
   const renderSchedule = () => (
     <div className="rounded-2xl border border-red-200 bg-red-50/40 p-4 space-y-4">
