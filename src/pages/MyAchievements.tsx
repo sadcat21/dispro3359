@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AdaptiveScrollContainer from '@/components/ui/adaptive-scroll-container';
 import { Input } from '@/components/ui/input';
-import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList } from 'lucide-react';
+import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
@@ -776,14 +776,56 @@ const MyAchievements: React.FC = () => {
           <p className="text-sm text-muted-foreground truncate">{targetWorkerName || 'العامل'}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <Button
-            className="h-8 rounded-full px-2.5 text-[10px] sm:text-xs whitespace-nowrap"
-            variant="outline"
-            onClick={() => setShowPeriodDialog(true)}
-          >
-            <CalendarCheck className="w-3 h-3 ml-1" />
-            الرزنامة
-          </Button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              aria-label="اليوم السابق"
+              onClick={() => {
+                const prev = new Date(`${periodFrom}T00:00:00`);
+                prev.setDate(prev.getDate() - 1);
+                const newDate = format(prev, 'yyyy-MM-dd');
+                setPeriodFrom(newDate);
+                setPeriodTo(newDate);
+              }}
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-red-300 bg-red-100 hover:bg-red-200 text-red-600 shrink-0"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              aria-label="اختيار تاريخ"
+              onClick={() => setShowPeriodDialog(true)}
+              className={`flex items-center gap-0.5 px-2 py-1 rounded-full border text-[10px] font-medium whitespace-nowrap transition-colors shrink-0 ${
+                periodFrom !== today || periodTo !== today
+                  ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
+                  : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              <CalendarCheck className="w-3 h-3" />
+              <span dir="ltr">
+                {periodFrom === today && periodTo === today
+                  ? 'اليوم'
+                  : periodFrom === periodTo
+                    ? format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')
+                    : `${format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')} - ${format(new Date(`${periodTo}T00:00:00`), 'MM/dd')}`
+                }
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="اليوم التالي"
+              onClick={() => {
+                const next = new Date(`${periodTo}T00:00:00`);
+                next.setDate(next.getDate() + 1);
+                const newDate = format(next, 'yyyy-MM-dd');
+                setPeriodFrom(newDate);
+                setPeriodTo(newDate);
+              }}
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-green-300 bg-green-100 hover:bg-green-200 text-green-600 shrink-0"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+          </div>
           <Button
             className="h-8 rounded-full px-2.5 text-[10px] sm:text-xs whitespace-nowrap"
             variant="outline"
