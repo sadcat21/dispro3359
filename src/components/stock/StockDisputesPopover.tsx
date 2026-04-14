@@ -31,7 +31,7 @@ const DisputeCard: React.FC<{
   const statusCfg = STATUS_CONFIG[dispute.status] || STATUS_CONFIG.pending;
   const warehouseName = dispute.warehouse_worker?.full_name || 'مسؤول المخزن';
   const deliveryName = dispute.delivery_worker?.full_name || 'عامل التوصيل';
-  const diff = Math.abs(dispute.warehouse_qty - dispute.delivery_qty);
+  const diff = Math.round(Math.abs(dispute.warehouse_qty - dispute.delivery_qty) * 100) / 100;
   const isGuilty = dispute.guilty_worker_id === currentWorkerId;
   const needsAcceptance = dispute.status === 'resolved' && isGuilty && !dispute.guilty_accepted;
 
@@ -162,7 +162,9 @@ const StockDisputesPopover: React.FC = () => {
   const pendingDisputes = useMemo(() =>
     disputes.filter(d => {
       if (isAdmin) return d.status === 'pending';
-      return d.status === 'resolved' && d.guilty_worker_id === workerId && !d.guilty_accepted;
+      // Workers see pending disputes they're involved in + resolved ones awaiting their acceptance
+      return (d.status === 'pending' && (d.warehouse_worker_id === workerId || d.delivery_worker_id === workerId)) ||
+        (d.status === 'resolved' && d.guilty_worker_id === workerId && !d.guilty_accepted);
     }),
     [disputes, isAdmin, workerId]
   );
@@ -184,10 +186,10 @@ const StockDisputesPopover: React.FC = () => {
     <>
       <button
         onClick={() => { setOpen(true); refetch(); }}
-        className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+        className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
         aria-label="خلافات المخزون"
       >
-        <Scale className="w-4 h-4 text-primary" />
+        <Scale className="w-4 h-4 text-white" />
         {pendingCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
             {pendingCount > 9 ? '9+' : pendingCount}
@@ -208,7 +210,7 @@ const StockDisputesPopover: React.FC = () => {
             <TabsList className="grid w-full grid-cols-2 h-9">
               <TabsTrigger value="pending" className="text-xs gap-1">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                {isAdmin ? 'بانتظار الفصل' : 'بانتظار القبول'}
+                {isAdmin ? 'بانتظار الفصل' : 'معلقة'}
                 {pendingDisputes.length > 0 && (
                   <Badge className="bg-destructive text-white text-[9px] px-1 py-0 h-4 min-w-4">{pendingDisputes.length}</Badge>
                 )}

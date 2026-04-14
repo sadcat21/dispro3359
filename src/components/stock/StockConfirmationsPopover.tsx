@@ -534,10 +534,10 @@ const StockConfirmationsPopover: React.FC = () => {
     <>
       <button
         onClick={() => { setOpen(true); workerHook.refetch(); managerHook.refetch(); }}
-        className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+        className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
         aria-label="تأكيد العمليات"
       >
-        <Truck className="w-4 h-4 text-primary" />
+        <Truck className="w-4 h-4 text-white" />
         {totalBadge > 0 && (
           <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
             {totalBadge > 9 ? '9+' : totalBadge}

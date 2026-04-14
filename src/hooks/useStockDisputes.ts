@@ -59,8 +59,9 @@ export const useStockDisputes = () => {
 
   const pendingCount = (disputesQuery.data || []).filter(d => {
     if (isAdmin) return d.status === 'pending';
-    // For workers: show count of resolved disputes awaiting their acceptance
-    return d.status === 'resolved' && d.guilty_worker_id === workerId && !d.guilty_accepted;
+    // For workers: show count of pending disputes they're involved in + resolved disputes awaiting their acceptance
+    return (d.status === 'pending' && (d.warehouse_worker_id === workerId || d.delivery_worker_id === workerId)) ||
+      (d.status === 'resolved' && d.guilty_worker_id === workerId && !d.guilty_accepted);
   }).length;
 
   const createDispute = useMutation({
