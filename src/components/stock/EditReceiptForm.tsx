@@ -19,6 +19,11 @@ interface EditItem {
   compensation_offers_quantity: number;
 }
 
+interface BoxPieceFields {
+  boxes: string;
+  pieces: string;
+}
+
 interface Product {
   id: string;
   name: string;
