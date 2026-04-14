@@ -267,17 +267,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
                 )}
               </DialogTitle>
-              <div className="flex shrink-0 items-center gap-2">
-                {customer?.phone && (
-                  <a
-                    aria-label="الاتصال بالعميل"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
-                    href={`tel:${customer.phone}`}
-                    title="الاتصال بالعميل"
-                  >
-                    <Phone className="h-4 w-4" />
-                  </a>
-                )}
+              <div className="flex shrink-0 flex-col items-center gap-1.5">
                 <Button
                   aria-label="طباعة الوصل"
                   className="h-9 w-9 shrink-0 border-0 bg-blue-600 px-0 text-white hover:bg-blue-700 hover:text-white"
@@ -288,6 +278,16 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 >
                   <Printer className="h-4 w-4" />
                 </Button>
+                {customer?.phone && (
+                  <a
+                    aria-label="الاتصال بالعميل"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                    href={`tel:${customer.phone}`}
+                    title="الاتصال بالعميل"
+                  >
+                    <Phone className="h-4 w-4" />
+                  </a>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -295,8 +295,16 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
                 {paymentStateLabel}
               </Badge>
+              {paymentCode && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-bold">{paymentCode}</Badge>
+              )}
               {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</span>}
             </div>
+            <div className="flex flex-wrap items-center gap-3 text-[11px]">
+              <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
+              {remainingAmount > 0 && (
+                <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+              )}
           </DialogHeader>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
