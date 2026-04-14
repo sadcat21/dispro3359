@@ -616,7 +616,6 @@ const MyAchievements: React.FC = () => {
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
 
   const handleOpenAchievement = async (visit: any) => {
-    console.log('[Achievement] Opening visit:', visit.operation_type, visit.id, { isAccounted: visit.isAccounted, accountedDate: visit.accountedDate, operationId: visit.operation_id });
     if (visit.operation_type === 'debt_collection') {
       const debtId = visit.operation_id || visit.entity_id || visit.reference_id;
       if (debtId) {
@@ -648,9 +647,16 @@ const MyAchievements: React.FC = () => {
       }
     }
 
+    const canUseFullOrderDialog = isAdminRole(role) || role === 'supervisor';
     const orderLinkedTypes = new Set<OperationType>(['order', 'direct_sale', 'delivery']);
     const isOrderLike = orderLinkedTypes.has(visit.operation_type as OperationType);
     const entityId = visit.operation_id || visit.entity_id || visit.order_id || visit.reference_id || '';
+
+    if (!canUseFullOrderDialog || !isOrderLike || !entityId) {
+      setSelectedAchievement(visit);
+      return;
+    }
+
     const selectionKey = `${visit.id}:${entityId || 'fallback'}`;
     const cachedItems = entityId
       ? ((queryClient.getQueryData(['order-items', entityId]) as any[] | undefined) || [])
