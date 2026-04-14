@@ -197,13 +197,48 @@ const Customers: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-    // Fetch all zones for badge display
-    supabase.from('sector_zones').select('*').order('name').then(({ data }) => {
-      setAllZones((data || []) as any);
-    });
-  }, []);
+  const { data: fetchedCustomers = [], data: _c, isLoading: customersQueryLoading, refetch: refetchCustomers } = useQuery({
+    queryKey: ['customers-page'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('customers').select('*').order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: fetchedBranches = [] } = useQuery({
+    queryKey: ['branches-active'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('branches').select('*').eq('is_active', true).order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: fetchedAllZones = [] } = useQuery({
+    queryKey: ['sector-zones-all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('sector_zones').select('*').order('name');
+      return (data || []) as any;
+    },
+  });
+
+  // Sync query data to local state for compatibility
+  React.useEffect(() => {
+    setCustomers(fetchedCustomers as Customer[]);
+  }, [fetchedCustomers]);
+
+  React.useEffect(() => {
+    setBranches(fetchedBranches as Branch[]);
+  }, [fetchedBranches]);
+
+  React.useEffect(() => {
+    setAllZones(fetchedAllZones);
+  }, [fetchedAllZones]);
+
+  React.useEffect(() => {
+    if (!customersQueryLoading) setIsLoading(false);
+  }, [customersQueryLoading]);
 
   // Filter customers by activeBranch
   const filteredByBranch = useMemo(() => {
