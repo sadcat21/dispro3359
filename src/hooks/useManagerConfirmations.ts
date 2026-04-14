@@ -18,7 +18,8 @@ export const useManagerConfirmations = () => {
         .from('user_roles')
         .select('worker_id')
         .eq('user_id', managerId)
-        .single();
+        .limit(1)
+        .maybeSingle();
       return data?.worker_id || null;
     },
     enabled: !!managerId,
