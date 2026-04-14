@@ -26,6 +26,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   workerId?: string;
   workerName?: string;
+  defaultPeriodFrom?: string;
+  defaultPeriodTo?: string;
 }
 
 interface CustomerBreakdown {
@@ -298,11 +300,19 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
   );
 };
 
-const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName }) => {
+const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName, defaultPeriodFrom, defaultPeriodTo }) => {
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('products');
-  const [periodFrom, setPeriodFrom] = useState<string>('');
-  const [periodTo, setPeriodTo] = useState<string>('');
+  const [periodFrom, setPeriodFrom] = useState<string>(defaultPeriodFrom || '');
+  const [periodTo, setPeriodTo] = useState<string>(defaultPeriodTo || '');
+
+  // Sync defaults when dialog opens with new period
+  React.useEffect(() => {
+    if (open) {
+      if (defaultPeriodFrom) setPeriodFrom(defaultPeriodFrom);
+      if (defaultPeriodTo) setPeriodTo(defaultPeriodTo);
+    }
+  }, [open, defaultPeriodFrom, defaultPeriodTo]);
 
   const normalizePeriodRange = (from: string, to: string) => {
     const now = new Date();
