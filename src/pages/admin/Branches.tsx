@@ -85,7 +85,7 @@ const Branches: React.FC = () => {
       toast.success(t('common.add') + ' ✓');
       setShowAddDialog(false);
       resetForm();
-      fetchData();
+      refetchData();
     } catch (error: any) {
       console.error('Error adding branch:', error);
       toast.error(error.message);
@@ -125,7 +125,7 @@ const Branches: React.FC = () => {
       setShowEditDialog(false);
       setEditingBranch(null);
       resetForm();
-      fetchData();
+      refetchData();
     } catch (error: any) {
       console.error('Error updating branch:', error);
       toast.error(error.message);
@@ -153,7 +153,7 @@ const Branches: React.FC = () => {
       if (error) throw error;
 
       toast.success(branch.is_active ? t('branches.deactivated') : t('branches.activated'));
-      fetchData();
+      refetchData();
     } catch (error) {
       console.error('Error toggling branch status:', error);
       toast.error(t('common.loading'));
@@ -174,7 +174,7 @@ const Branches: React.FC = () => {
 
       toast.success(t('common.delete') + ' ✓');
       setBranchToDelete(null);
-      fetchData();
+      refetchData();
     } catch (error: any) {
       console.error('Error deleting branch:', error);
       toast.error(error.message);
