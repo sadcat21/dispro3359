@@ -34,11 +34,12 @@ const normalizeSaleItem = (item: any) => {
   const pricingUnit = product?.pricing_unit || item?.pricing_unit || item?.pricingUnit || 'box';
   // Get the catalog price per pricing unit from product management
   const catalogUnitPrice = toSafeNumber(product?.price_gros ?? product?.price_retail ?? 0);
+  const rawUnitPrice = toSafeNumber(item?.unit_price ?? item?.unitPrice);
   return {
     productId: item?.product_id || item?.productId || product?.id || '',
     productName: product?.app_name || product?.name || item?.product_name || item?.productName || '—',
     quantity: toSafeNumber(item?.quantity),
-    unitPrice: toSafeNumber(item?.unit_price ?? item?.unitPrice),
+    unitPrice: rawUnitPrice > 0 ? rawUnitPrice : catalogUnitPrice,
     totalPrice: toSafeNumber(item?.total_price ?? item?.totalPrice),
     giftQuantity: toSafeNumber(item?.gift_quantity ?? item?.giftQuantity),
     pricingUnit,
