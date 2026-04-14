@@ -223,7 +223,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[100dvh-0.75rem] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
+        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
           <DialogHeader className="p-4 pb-2 border-b shrink-0">
             <DialogTitle className="text-base">
               {dialogTitle}
@@ -238,7 +238,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground px-1">
               {customer?.phone && (
                 <span className="inline-flex items-center gap-1">
