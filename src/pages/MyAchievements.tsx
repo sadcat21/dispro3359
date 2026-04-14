@@ -55,6 +55,9 @@ type AchievementOrderDetails = OrderWithDetails & {
   _selectionKey?: string;
   _detailsLoading?: boolean;
   _hideModifyAction?: boolean;
+  _isAccounted?: boolean;
+  _accountedDate?: string | null;
+  _operationType?: string;
 };
 
 const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = ({ visit, onClose }) => {
@@ -615,7 +618,10 @@ const MyAchievements: React.FC = () => {
       ...(isSaleOperation ? { _forceSold: true } : {}),
       _selectionKey: selectionKey,
       _detailsLoading: isOrderLike && !entityId,
-      _hideModifyAction: !entityId,
+      _hideModifyAction: !entityId || (visit.isAccounted && !isAdminRole(role)),
+      _isAccounted: visit.isAccounted,
+      _accountedDate: visit.accountedDate,
+      _operationType: visit.operation_type,
     });
 
     const normalizeAchievementOrder = (order: OrderWithDetails | null): AchievementOrderDetails | null => {
@@ -630,7 +636,10 @@ const MyAchievements: React.FC = () => {
         ...(isSaleOperation ? { _forceSold: true } : {}),
         _selectionKey: selectionKey,
         _detailsLoading: false,
-        _hideModifyAction: !order.id,
+        _hideModifyAction: !order.id || (visit.isAccounted && !isAdminRole(role)),
+        _isAccounted: visit.isAccounted,
+        _accountedDate: visit.accountedDate,
+        _operationType: visit.operation_type,
       } as AchievementOrderDetails;
     };
 
