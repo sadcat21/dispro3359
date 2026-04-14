@@ -17,7 +17,7 @@ import {
 import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
 import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
-import ManagerConfirmationsPanel from '@/components/stock/ManagerConfirmationsPanel';
+// ManagerConfirmationsPanel merged into StockConfirmationsPopover
 import StockAlertsNotification from '@/components/stock/StockAlertsNotification';
 import TasksPopover from '@/components/tasks/TasksPopover';
 import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
@@ -221,7 +221,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Action icons */}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           <StockConfirmationsPopover />
-          {isAdminRole(role) && <ManagerConfirmationsPanel />}
+          
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
           {!isTodayCustomersHidden && <SectorCustomersPopover />}
