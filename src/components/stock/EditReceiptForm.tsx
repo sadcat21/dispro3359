@@ -93,14 +93,13 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const openProductEditor = (productId: string) => {
     const existing = editItems.find((item) => item.product_id === productId);
     const product = getProduct(productId);
-    const ppb = product?.pieces_per_box || 1;
+    const editorPpb = product?.pieces_per_box || 1;
 
     setSingleProductId(productId);
-    const ppb = product?.pieces_per_box || 1;
     if (existing) {
-      setNewQtyFields(quantityToFields(existing.new_quantity, ppb));
-      setCompQtyFields(quantityToFields(existing.compensation_quantity, ppb));
-      setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, ppb));
+      setNewQtyFields(quantityToFields(existing.new_quantity, editorPpb));
+      setCompQtyFields(quantityToFields(existing.compensation_quantity, editorPpb));
+      setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, editorPpb));
     } else {
       setNewQtyFields({ boxes: '1', pieces: '000' });
       setCompQtyFields({ boxes: '0', pieces: '000' });
@@ -115,9 +114,9 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const confirmProductQuantities = () => {
     if (!singleProductId) return;
 
-    const newQuantity = toCustomFormat(parsedNew);
-    const compensationQuantity = toCustomFormat(parsedComp);
-    const compensationOffersQuantity = toCustomFormat(parsedCompOffers);
+    const newQuantity = fieldsToCustomFormat(newQtyFields, currentPPB);
+    const compensationQuantity = fieldsToCustomFormat(compQtyFields, currentPPB);
+    const compensationOffersQuantity = fieldsToCustomFormat(compOffersQtyFields, currentPPB);
 
     if (newQuantity <= 0 && compensationQuantity <= 0 && compensationOffersQuantity <= 0) {
       removeItem(singleProductId);
