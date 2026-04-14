@@ -46,7 +46,7 @@ interface CollectCustomerDebtDialogProps {
   initialTab?: DialogTab;
 }
 
-type TimelineKind = 'debt' | 'partial' | 'full' | 'visit';
+type TimelineKind = 'debt' | 'partial' | 'full' | 'visit' | 'cancelled_debt';
 
 interface TimelineEvent {
   id: string;
@@ -167,10 +167,11 @@ const buildTimeline = (
   const rawEvents: Array<Omit<TimelineEvent, 'beforeAmount' | 'afterAmount' | 'displayDate'>> = [];
 
   debts.forEach((debt) => {
+    const isCancelled = (debt.status as string) === 'cancelled' || (debt.notes && /ملغاة/.test(debt.notes));
     rawEvents.push({
       id: `debt-${debt.id}`,
       debtId: debt.id,
-      kind: 'debt',
+      kind: isCancelled ? 'cancelled_debt' : 'debt',
       date: debt.created_at,
       workerName: debt.worker?.full_name || debt.worker?.username || '-',
       paymentMethod: 'debt',
@@ -206,6 +207,8 @@ const buildTimeline = (
 
     if (event.kind === 'debt') {
       afterAmount = beforeAmount + event.amount;
+    } else if (event.kind === 'cancelled_debt') {
+      afterAmount = beforeAmount;
     } else if (event.kind === 'visit') {
       afterAmount = beforeAmount;
     } else {
@@ -458,9 +461,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     receiptTitleOverride: 'ETAT DES DETTES',
     hidePaymentDetails: true,
     debtMovementEntries: filteredTimeline
-      .filter((item) => item.kind !== 'visit')
+      .filter((item) => item.kind !== 'visit' && item.kind !== 'cancelled_debt')
       .map((item) => ({
-        kind: item.kind,
+        kind: item.kind as 'debt' | 'full' | 'partial' | 'visit',
         date: item.displayDate,
         workerName: item.workerName,
         paymentMethod: item.kind === 'debt' ? 'debt' : item.paymentMethod,
@@ -712,9 +715,10 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                           {section.items.map((item) => {
                             const isDebt = item.kind === 'debt';
+                            const isCancelledDebt = item.kind === 'cancelled_debt';
                             const isVisit = item.kind === 'visit';
                             const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
-                            const canOpenOrder = isDebt && !!(item.orderId || linkedDebt?.order_id);
+                            const canOpenOrder = (isDebt || isCancelledDebt) && !!(item.orderId || linkedDebt?.order_id);
 
                             return (
                               <button
@@ -725,6 +729,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                 className={`w-full rounded-2xl border p-4 text-right transition ${
                                   isVisit
                                     ? 'border-slate-200 bg-white'
+                                    : isCancelledDebt
+                                      ? 'border-slate-300 bg-slate-100/60 opacity-60'
                                     : isDebt
                                       ? 'border-red-200 bg-red-50/40'
                                       : 'border-emerald-200 bg-emerald-50/40'
@@ -734,16 +740,23 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center justify-end gap-2">
                                       <span className={`text-base font-black ${
-                                        isVisit ? 'text-slate-700' : isDebt ? 'text-destructive' : 'text-emerald-700'
+                                        isVisit ? 'text-slate-700' : isCancelledDebt ? 'text-slate-400 line-through' : isDebt ? 'text-destructive' : 'text-emerald-700'
                                       }`}>
                                         {isVisit
                                           ? 'زيارة بدون تحصيل'
+                                          : isCancelledDebt
+                                            ? 'دين جديد'
                                           : item.kind === 'full'
                                             ? 'تحصيل كلي'
                                             : item.kind === 'partial'
                                               ? 'تحصيل جزئي'
                                               : 'دين جديد'}
                                       </span>
+                                      {isCancelledDebt && (
+                                        <Badge variant="destructive" className="rounded-full text-[10px]">
+                                          ملغاة - تم إلغاء الطلبية المرتبطة
+                                        </Badge>
+                                      )}
                                       <Badge variant="outline" className="rounded-full">
                                         {item.workerName}
                                       </Badge>
@@ -774,14 +787,14 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                                     {item.note ? (
                                       <div className="mt-3 text-xs text-slate-500">
-                                        {item.note}
+                                        {isCancelledDebt ? null : item.note}
                                       </div>
                                     ) : null}
 
                                     {canOpenOrder ? (
                                       <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
                                         <Eye className="h-3.5 w-3.5" />
-                                        اضغط لفتح تفاصيل الطلبية
+                                        {isCancelledDebt ? 'اضغط لفتح تفاصيل الطلبية' : 'اضغط لفتح تفاصيل الطلبية'}
                                       </div>
                                     ) : null}
                                   </div>
