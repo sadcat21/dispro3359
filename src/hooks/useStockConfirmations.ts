@@ -35,27 +35,10 @@ export interface StockConfirmation {
 }
 
 export const useStockConfirmations = () => {
-  const { user } = useAuth();
+  const { workerId, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const queryClient = useQueryClient();
-  const userId = user?.id;
+  const isReady = !isAuthLoading && isAuthenticated && !!workerId;
 
-  // Get current worker_id from user_roles (maps auth uid → workers table id)
-  const { data: workerId } = useQuery({
-    queryKey: ['current-worker-id-for-confirmations', userId],
-    queryFn: async () => {
-      if (!userId) return null;
-      const { data } = await supabase
-        .from('user_roles')
-        .select('worker_id')
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle();
-      return data?.worker_id || null;
-    },
-    enabled: !!userId,
-  });
-
-  // Pending confirmations count for badge
   const pendingCountQuery = useQuery({
     queryKey: ['stock-confirmations-count', workerId],
     queryFn: async () => {
@@ -68,11 +51,10 @@ export const useStockConfirmations = () => {
       if (error) return 0;
       return count || 0;
     },
-    enabled: !!workerId,
+    enabled: isReady,
     refetchInterval: 30000,
   });
 
-  // Full list for the popover (all statuses for tabs)
   const confirmationsQuery = useQuery({
     queryKey: ['stock-confirmations', workerId],
     queryFn: async () => {
@@ -90,32 +72,31 @@ export const useStockConfirmations = () => {
       if (error) throw error;
       return (data || []) as unknown as StockConfirmation[];
     },
-    enabled: !!workerId,
+    enabled: isReady,
   });
 
   const approveConfirmation = useMutation({
     mutationFn: async (confirmationId: string) => {
-      // First get the confirmation details
+      if (!workerId) throw new Error('تعذر تحديد العامل الحالي');
+
       const { data: conf, error: fetchErr } = await supabase
         .from('stock_confirmations')
         .select('*')
         .eq('id', confirmationId)
-        .eq('worker_id', workerId!)
+        .eq('worker_id', workerId)
         .single();
       if (fetchErr || !conf) throw fetchErr || new Error('لم يتم العثور على العملية');
 
       const confirmation = conf as any;
 
-      // For load operations, run the atomic RPC to apply stock changes
       if (confirmation.operation_type === 'load' && confirmation.source_session_id) {
-        const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)(
+        const { error: rpcError } = await (supabase.rpc as any)(
           'confirm_loading_session_atomic',
           { p_session_id: confirmation.source_session_id }
         );
         if (rpcError) throw rpcError;
       }
 
-      // Mark confirmation as approved
       const { error } = await supabase
         .from('stock_confirmations')
         .update({
@@ -123,7 +104,7 @@ export const useStockConfirmations = () => {
           responded_at: new Date().toISOString(),
         } as any)
         .eq('id', confirmationId)
-        .eq('worker_id', workerId!);
+        .eq('worker_id', workerId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -140,6 +121,8 @@ export const useStockConfirmations = () => {
 
   const rejectConfirmation = useMutation({
     mutationFn: async ({ id, note }: { id: string; note: string }) => {
+      if (!workerId) throw new Error('تعذر تحديد العامل الحالي');
+
       const { error } = await supabase
         .from('stock_confirmations')
         .update({
@@ -148,7 +131,7 @@ export const useStockConfirmations = () => {
           responded_at: new Date().toISOString(),
         })
         .eq('id', id)
-        .eq('worker_id', workerId!);
+        .eq('worker_id', workerId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -156,13 +139,13 @@ export const useStockConfirmations = () => {
       queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
       toast.success('تم رفض العملية');
     },
-    onError: () => toast.error('فشل الرفض'),
+    onError: (err: any) => toast.error(err?.message || 'فشل الرفض'),
   });
 
   return {
     pendingCount: pendingCountQuery.data || 0,
     confirmations: confirmationsQuery.data || [],
-    isLoading: confirmationsQuery.isLoading,
+    isLoading: isAuthLoading || confirmationsQuery.isLoading,
     workerId,
     approveConfirmation,
     rejectConfirmation,
