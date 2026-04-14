@@ -436,16 +436,19 @@ const MyAchievements: React.FC = () => {
       const accountingSessions = (accountingSessionsResult.data || []).map((s: any) => ({
         start: new Date(s.period_start).getTime(),
         end: new Date(s.period_end).getTime(),
+        completedAt: s.completed_at || s.period_end,
       }));
 
-      const isWithinAccountingSession = (createdAt: string) => {
+      const getAccountingDate = (createdAt: string): string | null => {
         const t = new Date(createdAt).getTime();
-        return accountingSessions.some(s => t >= s.start && t <= s.end);
+        const match = accountingSessions.find(s => t >= s.start && t <= s.end);
+        return match ? match.completedAt : null;
       };
 
       const enrichedVisits = (visits || []).map((visit) => {
         const customerInfo = visit.customer_id ? customerMap.get(visit.customer_id) : null;
         const orderMeta = visit.operation_id ? orderMetaMap.get(visit.operation_id) : null;
+        const accountedDate = getAccountingDate(visit.created_at);
 
         return {
           ...visit,
@@ -462,7 +465,8 @@ const MyAchievements: React.FC = () => {
           order_price_subtype: orderMeta?.priceSubtype || '',
           order_status: orderMeta?.status || null,
           isCancelledOrder: orderMeta?.isCancelled || false,
-          isAccounted: isWithinAccountingSession(visit.created_at),
+          isAccounted: !!accountedDate,
+          accountedDate,
           debtCollectionAmount: visit.operation_type === 'debt_collection'
             ? debtCollectionAmountMap.get(visit.operation_id || (visit as any).entity_id || (visit as any).reference_id || '') || null
             : null,
