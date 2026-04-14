@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_visit_tracking_worker_date ON public.visit_tracking(worker_id, created_at DESC);
