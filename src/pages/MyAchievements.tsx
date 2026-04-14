@@ -861,35 +861,28 @@ const MyAchievements: React.FC = () => {
 
       <Card className={`rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
         <CardHeader className="px-3 pb-2 pt-2.5">
-          {/* --- Filter chips: scrollable single row --- */}
-          <div className="-mx-1 overflow-x-auto scrollbar-none">
-            <div className="flex items-center gap-1.5 px-1 pb-0.5">
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={() => setActiveFilter(null)}
+              className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-bold border transition-colors ${!activeFilter ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'}`}
+            >
+              الكل <span className="tabular-nums">{visits.length}</span>
+            </button>
+            <button
+              onClick={() => setActiveFilter(activeFilter === 'debt_new' ? null : 'debt_new')}
+              className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === 'debt_new' ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100'}`}
+            >
+              دين <span className="font-bold tabular-nums">{debtNewCount}</span>
+            </button>
+            {Object.entries(counts).map(([type, count]) => (
               <button
-                onClick={() => setActiveFilter(null)}
-                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold border transition-colors ${!activeFilter ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'}`}
+                key={type}
+                onClick={() => setActiveFilter(activeFilter === type ? null : type)}
+                className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === type ? 'bg-primary text-primary-foreground border-primary shadow-sm' : OPERATION_COLORS[type] || 'border-border hover:bg-muted'}`}
               >
-                الكل <span className="tabular-nums">{visits.length}</span>
+                {getOperationLabel(type as OperationType)} <span className="font-bold tabular-nums">{count}</span>
               </button>
-              <button
-                onClick={() => setActiveFilter(activeFilter === 'debt_new' ? null : 'debt_new')}
-                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === 'debt_new' ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100'}`}
-              >
-                <Banknote className="w-3 h-3" />
-                <span>دين</span>
-                <span className="font-bold tabular-nums">{debtNewCount}</span>
-              </button>
-              {Object.entries(counts).map(([type, count]) => (
-                <button
-                  key={type}
-                  onClick={() => setActiveFilter(activeFilter === type ? null : type)}
-                  className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === type ? 'bg-primary text-primary-foreground border-primary shadow-sm' : OPERATION_COLORS[type] || 'border-border hover:bg-muted'}`}
-                >
-                  <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[type]}</span>
-                  <span>{getOperationLabel(type as OperationType)}</span>
-                  <span className="font-bold tabular-nums">{count}</span>
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </CardHeader>
         <CardContent className="p-2 pt-0 flex-1 min-h-0">
