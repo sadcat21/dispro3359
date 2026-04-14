@@ -51,8 +51,15 @@ type FieldKey = typeof FIELDS[number]['key'];
 const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
 
 const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
-  const display = dbBPDisplay(quantity, piecesPerBox);
-  const parsed = parseBP(display, piecesPerBox);
+  const parsed = parseBP(boxesToBP(quantity, piecesPerBox), piecesPerBox);
+  return {
+    boxes: String(parsed.boxes),
+    pieces: String(parsed.pieces).padStart(2, '0'),
+  };
+};
+
+const sourceValueToFields = (value: number, piecesPerBox: number): QuantityFields => {
+  const parsed = parseBP(String(Math.round(value * 100) / 100), piecesPerBox);
   return {
     boxes: String(parsed.boxes),
     pieces: String(parsed.pieces).padStart(2, '0'),
@@ -66,8 +73,11 @@ const fieldsToQuantity = (fields: QuantityFields, piecesPerBox: number): number 
 };
 
 const normalizeFields = (fields: QuantityFields, piecesPerBox: number): QuantityFields => {
-  const qty = fieldsToQuantity(fields, piecesPerBox);
-  return quantityToFields(qty, piecesPerBox);
+  return quantityToFields(fieldsToQuantity(fields, piecesPerBox), piecesPerBox);
+};
+
+const toDbQuantity = (quantity: number, piecesPerBox: number): number => {
+  return piecesPerBox > 1 ? parseFloat(boxesToBP(quantity, piecesPerBox)) : quantity;
 };
 
 const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
@@ -87,7 +97,7 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
     if (open) {
       const newVals: Record<string, QuantityFields> = {};
       for (const f of FIELDS) {
-        newVals[f.key] = quantityToFields((currentValues as any)[f.key] || 0, piecesPerBox);
+        newVals[f.key] = sourceValueToFields((currentValues as any)[f.key] || 0, piecesPerBox);
       }
       setFieldValues(newVals as Record<FieldKey, QuantityFields>);
       setShowHistory(false);
@@ -113,13 +123,11 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Normalize all values first
       const normalized: Record<FieldKey, QuantityFields> = { ...fieldValues };
       for (const f of FIELDS) {
         normalized[f.key] = normalizeFields(fieldValues[f.key], piecesPerBox);
       }
 
-      // Build changes log
       const changes: Record<string, { from: string; to: string }> = {};
       for (const f of FIELDS) {
         const oldDisplay = fmt((currentValues as any)[f.key] || 0);
@@ -135,7 +143,6 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
         return;
       }
 
-      // Update warehouse_stock
       const { data: wsRow } = await supabase
         .from('warehouse_stock')
         .select('id')
@@ -147,15 +154,14 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
         await supabase
           .from('warehouse_stock')
           .update({
-            damaged_quantity: fieldsToQuantity(normalized.damaged, piecesPerBox),
-            factory_return_quantity: fieldsToQuantity(normalized.factoryReturn, piecesPerBox),
-            compensation_quantity: fieldsToQuantity(normalized.compensation, piecesPerBox),
-            quantity: fieldsToQuantity(normalized.remaining, piecesPerBox),
+            damaged_quantity: toDbQuantity(fieldsToQuantity(normalized.damaged, piecesPerBox), piecesPerBox),
+            factory_return_quantity: toDbQuantity(fieldsToQuantity(normalized.factoryReturn, piecesPerBox), piecesPerBox),
+            compensation_quantity: toDbQuantity(fieldsToQuantity(normalized.compensation, piecesPerBox), piecesPerBox),
+            quantity: toDbQuantity(fieldsToQuantity(normalized.remaining, piecesPerBox), piecesPerBox),
           })
           .eq('id', wsRow.id);
       }
 
-      // Update stock_discrepancies
       await supabase
         .from('stock_discrepancies')
         .delete()
@@ -175,7 +181,6 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
         await supabase.from('stock_discrepancies').insert(discrepancyRows);
       }
 
-      // Log changes
       if (workerId) {
         await supabase.from('activity_logs').insert({
           worker_id: workerId,
@@ -222,7 +227,6 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
           <StockEditHistory productId={productId} branchId={branchId} />
         ) : (
           <div className="space-y-2.5">
-            {/* Header */}
             <div className="grid grid-cols-[80px_1fr_1fr_auto] gap-2 items-center px-1">
               <span />
               <span className="text-[10px] text-center font-semibold text-muted-foreground">الصندوق</span>
