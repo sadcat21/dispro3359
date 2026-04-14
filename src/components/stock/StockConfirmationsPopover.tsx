@@ -424,16 +424,15 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
 
 // ─── Main Component ───
 const StockConfirmationsPopover: React.FC = () => {
-  const { user } = useAuth();
   const workerHook = useStockConfirmations();
   const managerHook = useManagerConfirmations();
   const [open, setOpen] = useState(false);
 
   useRealtimeSubscription(
     'stock-confirmations-rt',
-    [{ table: 'stock_confirmations', filter: user?.id ? `worker_id=eq.${user.id}` : undefined }],
+    [{ table: 'stock_confirmations', filter: workerHook.workerId ? `worker_id=eq.${workerHook.workerId}` : undefined }],
     [['stock-confirmations'], ['stock-confirmations-count']],
-    !!user?.id
+    !!workerHook.workerId
   );
 
   useRealtimeSubscription(

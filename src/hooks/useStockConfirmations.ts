@@ -37,7 +37,22 @@ export interface StockConfirmation {
 export const useStockConfirmations = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const workerId = user?.id;
+  const userId = user?.id;
+
+  // Get current worker_id from user_roles (maps auth uid → workers table id)
+  const { data: workerId } = useQuery({
+    queryKey: ['current-worker-id-for-confirmations', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('worker_id')
+        .eq('user_id', userId)
+        .single();
+      return data?.worker_id || null;
+    },
+    enabled: !!userId,
+  });
 
   // Pending confirmations count for badge
   const pendingCountQuery = useQuery({
@@ -147,6 +162,7 @@ export const useStockConfirmations = () => {
     pendingCount: pendingCountQuery.data || 0,
     confirmations: confirmationsQuery.data || [],
     isLoading: confirmationsQuery.isLoading,
+    workerId,
     approveConfirmation,
     rejectConfirmation,
     refetch: () => {
