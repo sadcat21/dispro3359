@@ -138,7 +138,7 @@ const getPaymentCode = (order: any, items?: any[]) => {
   return '';
 };
 
-const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenChange, order, hideModifyAction = false, onCancelOrder, onResumeOrder }) => {
+const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenChange, order, hideModifyAction = false, hideFinancialDetails = false, onCancelOrder, onResumeOrder }) => {
   const { dir } = useLanguage();
   const { user } = useAuth();
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
