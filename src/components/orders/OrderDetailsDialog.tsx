@@ -35,6 +35,8 @@ const normalizeSaleItem = (item: any) => {
   // Get the catalog price per pricing unit from product management
   const catalogUnitPrice = toSafeNumber(product?.price_gros ?? product?.price_retail ?? 0);
   const rawUnitPrice = toSafeNumber(item?.unit_price ?? item?.unitPrice);
+  const piecesPerBox = toSafeNumber(product?.pieces_per_box ?? item?.pieces_per_box ?? item?.piecesPerBox ?? 1) || 1;
+  const giftPieces = toSafeNumber(item?.gift_pieces ?? item?.giftPieces ?? 0);
   return {
     productId: item?.product_id || item?.productId || product?.id || '',
     productName: product?.app_name || product?.name || item?.product_name || item?.productName || '—',
@@ -42,6 +44,8 @@ const normalizeSaleItem = (item: any) => {
     unitPrice: rawUnitPrice > 0 ? rawUnitPrice : catalogUnitPrice,
     totalPrice: toSafeNumber(item?.total_price ?? item?.totalPrice),
     giftQuantity: toSafeNumber(item?.gift_quantity ?? item?.giftQuantity),
+    giftPieces,
+    piecesPerBox,
     pricingUnit,
     catalogUnitPrice,
   };
@@ -324,11 +328,18 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
                           {n.quantity}
                         </span>
-                        {n.giftQuantity > 0 && (
-                          <span className="flex items-center gap-0.5 rounded-full bg-amber-500 text-white px-2 py-1 text-[10px] font-bold">
-                            🎁 {n.giftQuantity}
-                          </span>
-                        )}
+                        {n.giftQuantity > 0 && (() => {
+                          const giftBoxes = n.piecesPerBox > 1 ? Math.floor(n.giftPieces / n.piecesPerBox) : n.giftQuantity;
+                          const giftRemPieces = n.piecesPerBox > 1 ? n.giftPieces % n.piecesPerBox : 0;
+                          const giftLabel = n.piecesPerBox > 1 && n.giftPieces > 0
+                            ? `${giftBoxes}.${giftRemPieces}`
+                            : `${n.giftQuantity}`;
+                          return (
+                            <span className="flex h-8 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-3 text-sm font-bold">
+                              🎁 {giftLabel}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   );
