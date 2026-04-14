@@ -412,7 +412,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               >
                 <Pencil className="h-5 w-5" />
               </Button>
-              {onCancelOrder && !isOrderCancelled && order?.id && (
+              {onCancelOrder && !isOrderCancelled && order?.id && !hideModifyAction && (
                 <Button
                   className="h-11 flex-1 gap-2"
                   variant="destructive"
