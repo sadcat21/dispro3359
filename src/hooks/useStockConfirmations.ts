@@ -1,0 +1,133 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+export interface StockConfirmationItem {
+  product_id: string;
+  product_name: string;
+  product_app_name?: string | null;
+  quantity: number;
+  gift_quantity?: number;
+  gift_unit?: string;
+  pieces_per_box?: number;
+  image_url?: string | null;
+}
+
+export interface StockConfirmation {
+  id: string;
+  operation_type: string;
+  worker_id: string;
+  manager_id: string;
+  branch_id: string | null;
+  status: string;
+  items: StockConfirmationItem[];
+  previous_items: StockConfirmationItem[] | null;
+  source_session_id: string | null;
+  rejection_note: string | null;
+  amendment_note: string | null;
+  parent_confirmation_id: string | null;
+  created_at: string;
+  responded_at: string | null;
+  updated_at: string;
+  manager?: { full_name: string };
+  worker?: { full_name: string };
+}
+
+export const useStockConfirmations = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const workerId = user?.id;
+
+  // Pending confirmations count for badge
+  const pendingCountQuery = useQuery({
+    queryKey: ['stock-confirmations-count', workerId],
+    queryFn: async () => {
+      if (!workerId) return 0;
+      const { count, error } = await supabase
+        .from('stock_confirmations')
+        .select('id', { count: 'exact', head: true })
+        .eq('worker_id', workerId)
+        .eq('status', 'pending');
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!workerId,
+    refetchInterval: 30000,
+  });
+
+  // Full list for the popover
+  const confirmationsQuery = useQuery({
+    queryKey: ['stock-confirmations', workerId],
+    queryFn: async () => {
+      if (!workerId) return [];
+      const { data, error } = await supabase
+        .from('stock_confirmations')
+        .select(`
+          *,
+          manager:workers!stock_confirmations_manager_id_fkey(full_name),
+          worker:workers!stock_confirmations_worker_id_fkey(full_name)
+        `)
+        .eq('worker_id', workerId)
+        .in('status', ['pending', 'amended'])
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data || []) as unknown as StockConfirmation[];
+    },
+    enabled: !!workerId,
+  });
+
+  const approveConfirmation = useMutation({
+    mutationFn: async (confirmationId: string) => {
+      const { error } = await supabase
+        .from('stock_confirmations')
+        .update({
+          status: 'approved',
+          responded_at: new Date().toISOString(),
+        })
+        .eq('id', confirmationId)
+        .eq('worker_id', workerId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
+      toast.success('تمت الموافقة على العملية');
+    },
+    onError: () => toast.error('فشلت الموافقة'),
+  });
+
+  const rejectConfirmation = useMutation({
+    mutationFn: async ({ id, note }: { id: string; note: string }) => {
+      const { error } = await supabase
+        .from('stock_confirmations')
+        .update({
+          status: 'rejected',
+          rejection_note: note,
+          responded_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('worker_id', workerId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
+      toast.success('تم رفض العملية');
+    },
+    onError: () => toast.error('فشل الرفض'),
+  });
+
+  return {
+    pendingCount: pendingCountQuery.data || 0,
+    confirmations: confirmationsQuery.data || [],
+    isLoading: confirmationsQuery.isLoading,
+    approveConfirmation,
+    rejectConfirmation,
+    refetch: () => {
+      confirmationsQuery.refetch();
+      pendingCountQuery.refetch();
+    },
+  };
+};

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
+import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
 import StockAlertsNotification from '@/components/stock/StockAlertsNotification';
 import TasksPopover from '@/components/tasks/TasksPopover';
 import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
@@ -218,6 +219,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
           {/* Action icons */}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
+          <StockConfirmationsPopover />
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
           {!isTodayCustomersHidden && <SectorCustomersPopover />}
