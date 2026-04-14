@@ -431,9 +431,9 @@ const StockConfirmationsPopover: React.FC = () => {
 
   useRealtimeSubscription(
     'stock-confirmations-rt',
-    [{ table: 'stock_confirmations', filter: user?.id ? `worker_id=eq.${user.id}` : undefined }],
+    [{ table: 'stock_confirmations', filter: workerHook.workerId ? `worker_id=eq.${workerHook.workerId}` : undefined }],
     [['stock-confirmations'], ['stock-confirmations-count']],
-    !!user?.id
+    !!workerHook.workerId
   );
 
   useRealtimeSubscription(
