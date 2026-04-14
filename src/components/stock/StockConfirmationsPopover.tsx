@@ -424,7 +424,6 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
 
 // ─── Main Component ───
 const StockConfirmationsPopover: React.FC = () => {
-  const { user } = useAuth();
   const workerHook = useStockConfirmations();
   const managerHook = useManagerConfirmations();
   const [open, setOpen] = useState(false);
