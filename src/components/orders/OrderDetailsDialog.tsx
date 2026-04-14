@@ -382,35 +382,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               </div>
             )}
 
-            <div className="flex items-center justify-between rounded-lg bg-primary/5 p-3">
-              <span className="font-bold">المجموع</span>
-              <span dir="ltr" className="text-lg font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
-            </div>
-
-            <div className="overflow-hidden rounded-lg border">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-muted/30">
-                    <th className="px-2 py-1.5 text-right font-bold text-muted-foreground">الدفع</th>
-                    <th className="px-2 py-1.5 text-center font-bold text-muted-foreground">الحالة</th>
-                    <th className="px-2 py-1.5 text-center font-bold text-muted-foreground">المدفوع</th>
-                    <th className="px-2 py-1.5 text-center font-bold text-muted-foreground">المتبقي</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-2 py-2 font-bold text-right">{paymentMethodLabel}</td>
-                    <td className="px-2 py-2 text-center">
-                      <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
-                        {paymentStateLabel}
-                      </Badge>
-                    </td>
-                    <td dir="ltr" className="px-2 py-2 text-center font-bold text-emerald-600">{formatAmountWithMaxFraction(paidAmount)} DA</td>
-                    <td dir="ltr" className="px-2 py-2 text-center font-bold text-destructive">{formatAmountWithMaxFraction(remainingAmount)} DA</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
 
             {order.notes && (
               <div className="rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
