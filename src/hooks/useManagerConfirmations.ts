@@ -50,7 +50,7 @@ export const useManagerConfirmations = () => {
         .select('*')
         .eq('id', confirmationId)
         .eq('manager_id', currentWorkerId)
-        .single();
+        .maybeSingle();
       if (fetchErr || !original) throw fetchErr || new Error('لم يتم العثور على العملية');
 
       const orig = original as any;
