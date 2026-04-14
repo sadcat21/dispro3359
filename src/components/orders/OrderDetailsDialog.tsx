@@ -348,8 +348,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                           </div>
                         )}
                       </div>
-                      <div className="px-1.5 py-1.5 bg-card flex items-center justify-center gap-1.5 border-t border-border">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      <div className="px-1 py-1 bg-card flex items-center justify-center gap-1 border-t border-border">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
                           {n.quantity}
                         </span>
                         {n.giftQuantity > 0 && (() => {
@@ -359,7 +359,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                             ? `${giftBoxes}.${String(giftRemPieces).padStart(2, '0')}`
                             : `${n.giftQuantity}`;
                           return (
-                            <span className="flex h-8 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-3 text-sm font-bold">
+                            <span className="flex h-6 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-2 text-[10px] font-bold">
                               🎁 {giftLabel}
                             </span>
                           );
