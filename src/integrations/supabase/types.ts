@@ -5112,6 +5112,103 @@ export type Database = {
           },
         ]
       }
+      stock_confirmations: {
+        Row: {
+          amendment_note: string | null
+          branch_id: string | null
+          created_at: string
+          id: string
+          items: Json
+          manager_id: string
+          operation_type: string
+          parent_confirmation_id: string | null
+          previous_items: Json | null
+          rejection_note: string | null
+          responded_at: string | null
+          source_session_id: string | null
+          status: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          amendment_note?: string | null
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          manager_id: string
+          operation_type: string
+          parent_confirmation_id?: string | null
+          previous_items?: Json | null
+          rejection_note?: string | null
+          responded_at?: string | null
+          source_session_id?: string | null
+          status?: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          amendment_note?: string | null
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          manager_id?: string
+          operation_type?: string
+          parent_confirmation_id?: string | null
+          previous_items?: Json | null
+          rejection_note?: string | null
+          responded_at?: string | null
+          source_session_id?: string | null
+          status?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_confirmations_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_parent_confirmation_id_fkey"
+            columns: ["parent_confirmation_id"]
+            isOneToOne: false
+            referencedRelation: "stock_confirmations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_discrepancies: {
         Row: {
           accounting_session_id: string | null
