@@ -495,6 +495,41 @@ const StockConfirmationsPopover: React.FC = () => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
   };
 
+  const handleRaiseDispute = (conf: StockConfirmation) => {
+    if (!currentWorkerId) return;
+    // Parse mismatches from rejection note to create individual disputes
+    const mismatches = parseMismatches(conf.rejection_note);
+    if (mismatches.length === 0) {
+      // Generic dispute for the whole confirmation
+      createDispute.mutate({
+        branch_id: conf.branch_id || activeBranch?.id,
+        warehouse_worker_id: conf.manager_id,
+        delivery_worker_id: conf.worker_id,
+        session_type: conf.operation_type,
+        session_id: conf.source_session_id || undefined,
+        warehouse_qty: conf.items.reduce((s, i) => s + i.quantity, 0),
+        delivery_qty: 0,
+        notes: conf.rejection_note || 'خلاف على عملية ' + (OPERATION_LABELS[conf.operation_type] || conf.operation_type),
+      });
+    } else {
+      // Create dispute for first mismatch product (most common case)
+      const firstItem = conf.items[0];
+      const firstMismatch = mismatches[0];
+      createDispute.mutate({
+        branch_id: conf.branch_id || activeBranch?.id,
+        warehouse_worker_id: conf.manager_id,
+        delivery_worker_id: conf.worker_id,
+        session_type: conf.operation_type,
+        session_id: conf.source_session_id || undefined,
+        product_id: firstItem?.product_id,
+        product_name: firstMismatch.product,
+        warehouse_qty: parseFloat(firstMismatch.expected) || 0,
+        delivery_qty: parseFloat(firstMismatch.actual) || 0,
+        notes: `خلاف على: ${mismatches.map(m => `${m.product}: المخزن=${m.expected} التوصيل=${m.actual}`).join(' | ')}`,
+      });
+    }
+  };
+
   return (
     <>
       <button
