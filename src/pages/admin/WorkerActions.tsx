@@ -128,6 +128,21 @@ const WorkerActions: React.FC = () => {
   const isSupervisorMode = role === 'supervisor';
   const isWarehouseMode = isWarehouseManager && role === 'worker';
 
+  const { data: currentWorkerBranchId } = useQuery({
+    queryKey: ['worker-actions-branch', workerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('workers_safe')
+        .select('branch_id')
+        .eq('id', workerId!)
+        .maybeSingle();
+      return data?.branch_id ?? null;
+    },
+    enabled: !activeBranch?.id && !!workerId,
+  });
+
+  const effectiveBranchId = activeBranch?.id || currentWorkerBranchId || null;
+
   // For supervisors: fetch assigned workers
   const { data: supervisorAssignments = [] } = useQuery({
     queryKey: ['supervisor-workers', workerId],
@@ -171,7 +186,7 @@ const WorkerActions: React.FC = () => {
       { table: 'worker_debt_payments' },
     ],
     [
-      ['workers-for-actions', activeBranch?.id],
+      ['workers-for-actions', effectiveBranchId],
       ['worker-truck-stock', selectedWorker?.id],
       ['worker-last-accounting', selectedWorker?.id],
       ['worker-truck-loaded', selectedWorker?.id],
@@ -186,10 +201,10 @@ const WorkerActions: React.FC = () => {
   );
 
   const { data: workers = [] } = useQuery({
-    queryKey: ['workers-for-actions', activeBranch?.id, isSupervisorMode, isWarehouseMode, supervisorAssignments, managerAssignments],
+    queryKey: ['workers-for-actions', effectiveBranchId, isSupervisorMode, isWarehouseMode, supervisorAssignments, managerAssignments],
     queryFn: async () => {
-      let query = supabase.from('workers').select('*').eq('is_active', true).order('full_name');
-      if (activeBranch?.id && !isSupervisorMode) query = query.eq('branch_id', activeBranch.id);
+      let query = supabase.from('workers').select('*').eq('is_active', true).eq('is_test', false).order('full_name');
+      if (effectiveBranchId && !isSupervisorMode) query = query.eq('branch_id', effectiveBranchId);
       const { data } = await query;
       let result = (data || []) as Worker[];
       // Supervisor: filter to only assigned workers
@@ -202,10 +217,9 @@ const WorkerActions: React.FC = () => {
       if (isWarehouseMode && managerAssignments.length > 0) {
         result = result.filter(w => managerAssignments.includes(w.id));
       }
-      // If no manager_workers assigned, show all branch workers (no filter needed)
       return result;
     },
-    enabled: !isSelfMode,
+    enabled: !isSelfMode && (!isWarehouseMode || !!effectiveBranchId),
   });
 
   // Self-mode: auto-select self as the worker
