@@ -103,11 +103,9 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
     }));
   };
 
-  const handleFieldBlur = (key: FieldKey) => {
-    setFieldValues(prev => ({
-      ...prev,
-      [key]: normalizeFields(prev[key], piecesPerBox),
-    }));
+  const handleFieldBlur = (_key: FieldKey) => {
+    // Don't auto-normalize on blur — allow user to enter any piece count (e.g. 11 pieces)
+    // Normalization happens only on save
   };
 
   const handleSave = async () => {
