@@ -1241,6 +1241,39 @@ const LoadStock: React.FC = () => {
               <History className="w-4 h-4 text-muted-foreground" />
             </Button>
           )}
+          {selectedWorker && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-lg">
+                  <Menu className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64 p-4 pt-10">
+                <div className="space-y-2">
+                  <Button variant="outline" onClick={() => setShowSessionHistory(true)} className="w-full h-11 rounded-xl text-sm justify-start gap-3">
+                    <History className="w-4 h-4" />
+                    السجل
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 rounded-xl text-sm justify-start gap-3 border-primary/30 text-primary"
+                    onClick={() => setShowLoadSheetPrint(true)}
+                  >
+                    <Printer className="w-4 h-4" />
+                    طباعة ورقة الشحن
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 rounded-xl text-sm justify-start gap-3 border-violet-400 text-violet-700"
+                    onClick={() => navigate('/worker-rounds')}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    تتبع الجولات
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
 
         {/* Sub-tabs for session info & stock summary */}
@@ -1455,37 +1488,6 @@ const LoadStock: React.FC = () => {
                     <RefreshCw className="w-4 h-4 me-1" />
                     تغيير
                   </Button>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl shrink-0">
-                        <Menu className="w-5 h-5" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-64 p-4 pt-10">
-                      <div className="space-y-2">
-                        <Button variant="outline" onClick={() => setShowSessionHistory(true)} className="w-full h-11 rounded-xl text-sm justify-start gap-3">
-                          <History className="w-4 h-4" />
-                          السجل
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="w-full h-11 rounded-xl text-sm justify-start gap-3 border-primary/30 text-primary"
-                          onClick={() => setShowLoadSheetPrint(true)}
-                        >
-                          <Printer className="w-4 h-4" />
-                          طباعة ورقة الشحن
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="w-full h-11 rounded-xl text-sm justify-start gap-3 border-violet-400 text-violet-700"
-                          onClick={() => navigate('/worker-rounds')}
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                          تتبع الجولات
-                        </Button>
-                      </div>
-                    </SheetContent>
-                  </Sheet>
                 </div>
               </>
             ) : (
