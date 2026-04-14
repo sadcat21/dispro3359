@@ -71,24 +71,16 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
     const fetchData = async () => {
       const prodRes = await supabase.from('products').select('id, name, app_name, pieces_per_box, image_url').eq('is_active', true).order('name');
       setProducts(prodRes.data || []);
-      // Fetch worker's current loaded stock
-      const { data: sessions } = await supabase
-        .from('loading_sessions')
-        .select('id')
+      // Fetch worker's current truck stock from worker_stock table
+      const { data: stockData } = await supabase
+        .from('worker_stock')
+        .select('product_id, quantity')
         .eq('worker_id', workerId)
-        .in('status', ['loaded', 'in_progress']);
-      const sessionIds = (sessions || []).map((s: any) => s.id);
+        .gt('quantity', 0);
       const stockMap: Record<string, number> = {};
-      if (sessionIds.length > 0) {
-        const { data: stockItems } = await supabase
-          .from('loading_session_items')
-          .select('product_id, quantity')
-          .in('session_id', sessionIds);
-        (stockItems || []).forEach((item: any) => {
-          stockMap[item.product_id] = (stockMap[item.product_id] || 0) + Number(item.quantity || 0);
-        });
-      }
-      setWorkerStock(stockMap);
+      (stockData || []).forEach((item: any) => {
+        stockMap[item.product_id] = Number(item.quantity || 0);
+      });
       setWorkerStock(stockMap);
     };
     fetchData();
