@@ -11,6 +11,7 @@ import { useManagerConfirmations } from '@/hooks/useManagerConfirmations';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useAuth } from '@/contexts/AuthContext';
+import { useStockDisputes } from '@/hooks/useStockDisputes';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
