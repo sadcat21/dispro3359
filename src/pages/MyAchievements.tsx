@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AdaptiveScrollContainer from '@/components/ui/adaptive-scroll-container';
 import { Input } from '@/components/ui/input';
-import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, BadgeCheck } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
@@ -329,7 +329,7 @@ const MyAchievements: React.FC = () => {
       )];
 
       // Run all secondary queries in parallel
-      const [customersResult, ordersResult, orderItemsResult, debtsResult, debtCollectionsResult] = await Promise.all([
+      const [customersResult, ordersResult, orderItemsResult, debtsResult, debtCollectionsResult, accountingSessionsResult] = await Promise.all([
         // 1. Customers
         customerIds.length
           ? supabase.from('customers').select('id, name, store_name, phone').in('id', customerIds)
@@ -350,6 +350,13 @@ const MyAchievements: React.FC = () => {
         debtCollectionDebtIds.length
           ? supabase.from('debt_collections').select(`debt_id, amount_collected, created_at, debt:customer_debts!debt_collections_debt_id_fkey(customer:customers(id, name, store_name))`).in('debt_id', debtCollectionDebtIds).order('created_at', { ascending: false })
           : Promise.resolve({ data: [] as any[] }),
+        // 6. Completed accounting sessions for this worker in this period
+        supabase.from('accounting_sessions')
+          .select('period_start, period_end')
+          .eq('worker_id', targetWorkerId)
+          .eq('status', 'completed')
+          .gte('period_end', `${dateFrom}T00:00:00`)
+          .lte('period_start', `${dateTo}T23:59:59`),
       ]);
 
       // Process customers
@@ -425,6 +432,17 @@ const MyAchievements: React.FC = () => {
         });
       }
 
+      // Build accounting session ranges
+      const accountingSessions = (accountingSessionsResult.data || []).map((s: any) => ({
+        start: new Date(s.period_start).getTime(),
+        end: new Date(s.period_end).getTime(),
+      }));
+
+      const isWithinAccountingSession = (createdAt: string) => {
+        const t = new Date(createdAt).getTime();
+        return accountingSessions.some(s => t >= s.start && t <= s.end);
+      };
+
       const enrichedVisits = (visits || []).map((visit) => {
         const customerInfo = visit.customer_id ? customerMap.get(visit.customer_id) : null;
         const orderMeta = visit.operation_id ? orderMetaMap.get(visit.operation_id) : null;
@@ -444,6 +462,7 @@ const MyAchievements: React.FC = () => {
           order_price_subtype: orderMeta?.priceSubtype || '',
           order_status: orderMeta?.status || null,
           isCancelledOrder: orderMeta?.isCancelled || false,
+          isAccounted: isWithinAccountingSession(visit.created_at),
           debtCollectionAmount: visit.operation_type === 'debt_collection'
             ? debtCollectionAmountMap.get(visit.operation_id || (visit as any).entity_id || (visit as any).reference_id || '') || null
             : null,
@@ -968,6 +987,12 @@ const MyAchievements: React.FC = () => {
                         {visit.isDebtSale && (
                           <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${isPartialDebt ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
+                          </span>
+                        )}
+                        {visit.isAccounted && (
+                          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border border-emerald-300 bg-emerald-50 text-emerald-700">
+                            <BadgeCheck className="w-3 h-3" />
+                            محاسبة
                           </span>
                         )}
                       </div>
