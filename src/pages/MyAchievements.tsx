@@ -298,8 +298,9 @@ const MyAchievements: React.FC = () => {
     });
   }, [queryClient]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo],
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       const { data: visits } = await supabase
@@ -854,7 +855,7 @@ const MyAchievements: React.FC = () => {
         />
       </div>
 
-      <Card className="rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden">
+      <Card className={`rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
         <CardHeader className="pb-2 pt-3">
           <div className="-mx-1 px-1 pb-1">
             <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:items-center">
