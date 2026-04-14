@@ -1422,6 +1422,10 @@ const LoadStock: React.FC = () => {
                   </div>
                 )}
                 <div className="flex gap-2">
+                  <Button onClick={handleStartSession} className="flex-1 h-10 rounded-xl text-xs font-bold shadow-sm" disabled={createSession.isPending || isStartingSession || isConfirmingSession || !hasReviewToday}>
+                    {(createSession.isPending || isStartingSession) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 me-1" />}
+                    بدء شحن
+                  </Button>
                   <Button
                     variant="outline"
                     className={`h-10 rounded-xl text-xs px-3 ${hasReviewToday 
@@ -1434,9 +1438,14 @@ const LoadStock: React.FC = () => {
                     {hasReviewToday ? <CheckCircle className="w-4 h-4 me-1" /> : <Search className="w-4 h-4 me-1" />}
                     {hasReviewToday ? 'مراجعة ✓' : 'مراجعة'}
                   </Button>
-                  <Button onClick={handleStartSession} className="flex-1 h-10 rounded-xl text-xs font-bold shadow-sm" disabled={createSession.isPending || isStartingSession || isConfirmingSession || !hasReviewToday}>
-                    {(createSession.isPending || isStartingSession) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 me-1" />}
-                    بدء شحن
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-xl text-xs px-3 text-destructive border-destructive/30"
+                    onClick={handleEmptyTruckPreview}
+                    disabled={isEmptying || isStartingSession || isConfirmingSession || !hasReviewToday}
+                  >
+                    <PackageX className="w-4 h-4 me-1" />
+                    تفريغ
                   </Button>
                   <Sheet>
                     <SheetTrigger asChild>
@@ -1449,15 +1458,6 @@ const LoadStock: React.FC = () => {
                         <Button variant="outline" onClick={() => setShowSessionHistory(true)} className="w-full h-11 rounded-xl text-sm justify-start gap-3">
                           <History className="w-4 h-4" />
                           السجل
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="w-full h-11 rounded-xl text-sm justify-start gap-3 text-destructive border-destructive/30"
-                          onClick={handleEmptyTruckPreview}
-                          disabled={isEmptying || isStartingSession || isConfirmingSession || !hasReviewToday}
-                        >
-                          <PackageX className="w-4 h-4" />
-                          تفريغ الشاحنة
                         </Button>
                         <Button
                           variant="outline"
