@@ -600,37 +600,39 @@ const StockConfirmationsPopover: React.FC = () => {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-4 pt-4 pb-2">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Truck className="w-5 h-5" />
               تأكيد العمليات
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="incoming" className="w-full" dir="rtl">
-            <TabsList className="grid w-full grid-cols-3 h-9">
-              <TabsTrigger value="incoming" className="text-xs gap-1">
-                <Inbox className="w-3.5 h-3.5" />
-                الوارد
-                {incomingConfirmations.length > 0 && (
-                  <Badge className="bg-destructive text-white text-[9px] px-1 py-0 h-4 min-w-4">{incomingConfirmations.length}</Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="outgoing" className="text-xs gap-1">
-                <Send className="w-3.5 h-3.5" />
-                الصادر
-                {outgoingConfirmations.length > 0 && (
-                  <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 min-w-4">{outgoingConfirmations.length}</Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="history" className="text-xs gap-1">
-                <History className="w-3.5 h-3.5" />
-                السجل
-              </TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="incoming" className="w-full flex flex-col flex-1 min-h-0" dir="rtl">
+            <div className="px-4">
+              <TabsList className="grid w-full grid-cols-3 h-9">
+                <TabsTrigger value="incoming" className="text-xs gap-1">
+                  <Inbox className="w-3.5 h-3.5" />
+                  الوارد
+                  {incomingConfirmations.length > 0 && (
+                    <Badge className="bg-destructive text-white text-[9px] px-1 py-0 h-4 min-w-4">{incomingConfirmations.length}</Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="outgoing" className="text-xs gap-1">
+                  <Send className="w-3.5 h-3.5" />
+                  الصادر
+                  {outgoingConfirmations.length > 0 && (
+                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 min-w-4">{outgoingConfirmations.length}</Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="history" className="text-xs gap-1">
+                  <History className="w-3.5 h-3.5" />
+                  السجل
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <div className="max-h-[55vh] overflow-y-auto mt-2">
+            <div className="flex-1 overflow-y-auto px-4 mt-2 pb-4">
               <TabsContent value="incoming" className="mt-0">
                 {isWarehouseManager ? (
                   <OutgoingTab
