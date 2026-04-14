@@ -238,7 +238,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground px-1">
               {customer?.phone && (
                 <span className="inline-flex items-center gap-1">
