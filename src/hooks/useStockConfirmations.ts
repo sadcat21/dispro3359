@@ -162,6 +162,7 @@ export const useStockConfirmations = () => {
     pendingCount: pendingCountQuery.data || 0,
     confirmations: confirmationsQuery.data || [],
     isLoading: confirmationsQuery.isLoading,
+    workerId,
     approveConfirmation,
     rejectConfirmation,
     refetch: () => {
