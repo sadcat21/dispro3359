@@ -33,7 +33,6 @@ import QuickDayPicker from '@/components/debts/QuickDayPicker';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import { toast } from 'sonner';
-import { CANCELLED_ORDER_DEBT_NOTE } from '@/constants/debts';
 
 type DialogTab = 'collect' | 'visit' | 'history';
 
@@ -154,6 +153,7 @@ const resolveOriginPaymentMethod = (order?: {
 
 const buildTimeline = (
   debts: CustomerDebtWithDetails[],
+  orderStatusById: Map<string, string>,
   payments: Array<{
     id: string;
     debt_id: string;
@@ -168,7 +168,8 @@ const buildTimeline = (
   const rawEvents: Array<Omit<TimelineEvent, 'beforeAmount' | 'afterAmount' | 'displayDate'>> = [];
 
   debts.forEach((debt) => {
-    const isCancelled = (debt.status as string) === 'cancelled' || debt.notes === CANCELLED_ORDER_DEBT_NOTE;
+    const linkedOrderStatus = debt.order_id ? orderStatusById.get(debt.order_id) : null;
+    const isCancelled = linkedOrderStatus ? linkedOrderStatus === 'cancelled' : (debt.status as string) === 'cancelled';
     rawEvents.push({
       id: `debt-${debt.id}`,
       debtId: debt.id,
@@ -361,8 +362,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   );
   const totalPaid = Math.max(0, totalDebt - totalRemaining);
   const numericAmount = Math.max(0, toNumber(amount));
+  const debtOrderStatusById = useMemo(
+    () => new Map(debtOrders.map((order) => [order.id, String((order as { status?: string }).status || '')])),
+    [debtOrders],
+  );
 
-  const timeline = useMemo(() => buildTimeline(debts, payments as any), [debts, payments]);
+  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any), [debtOrderStatusById, debts, payments]);
   const filteredTimeline = useMemo(
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
