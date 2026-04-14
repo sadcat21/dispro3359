@@ -1447,6 +1447,14 @@ const LoadStock: React.FC = () => {
                     <PackageX className="w-4 h-4 me-1" />
                     تفريغ
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-xl text-xs px-3 border-orange-400 text-orange-700 bg-orange-50/50 dark:bg-orange-900/10"
+                    onClick={() => setShowExchangeDialog(true)}
+                  >
+                    <RefreshCw className="w-4 h-4 me-1" />
+                    تغيير
+                  </Button>
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl shrink-0">
@@ -1458,14 +1466,6 @@ const LoadStock: React.FC = () => {
                         <Button variant="outline" onClick={() => setShowSessionHistory(true)} className="w-full h-11 rounded-xl text-sm justify-start gap-3">
                           <History className="w-4 h-4" />
                           السجل
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="w-full h-11 rounded-xl text-sm justify-start gap-3 border-orange-400 text-orange-700"
-                          onClick={() => setShowExchangeDialog(true)}
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                          تغيير المنتجات
                         </Button>
                         <Button
                           variant="outline"
