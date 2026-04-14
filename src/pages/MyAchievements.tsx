@@ -857,33 +857,33 @@ const MyAchievements: React.FC = () => {
       </div>
 
       <Card className={`rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
-        <CardHeader className="pb-2 pt-3">
-          <div className="-mx-1 px-1 pb-1">
-            <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:items-center">
+        <CardHeader className="px-3 pb-2 pt-2.5">
+          {/* --- Filter chips: scrollable single row --- */}
+          <div className="-mx-1 overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1.5 px-1 pb-0.5">
               <button
                 onClick={() => setActiveFilter(null)}
-                className={`inline-flex min-w-0 items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-bold border shrink-0 ${!activeFilter ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/60 text-foreground border-border'}`}
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold border transition-colors ${!activeFilter ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'}`}
               >
-                الكل
-                <span>{visits.length}</span>
+                الكل <span className="tabular-nums">{visits.length}</span>
               </button>
               <button
                 onClick={() => setActiveFilter(activeFilter === 'debt_new' ? null : 'debt_new')}
-                className={`inline-flex min-w-0 items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-medium border shrink-0 ${activeFilter === 'debt_new' ? 'bg-primary text-primary-foreground border-primary' : 'bg-orange-50 text-orange-700 border-orange-200'}`}
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === 'debt_new' ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100'}`}
               >
-                <Banknote className="w-3.5 h-3.5" />
-                <span>دين جديد</span>
-                <span className="font-bold">{debtNewCount}</span>
+                <Banknote className="w-3 h-3" />
+                <span>دين</span>
+                <span className="font-bold tabular-nums">{debtNewCount}</span>
               </button>
               {Object.entries(counts).map(([type, count]) => (
                 <button
                   key={type}
                   onClick={() => setActiveFilter(activeFilter === type ? null : type)}
-                  className={`inline-flex min-w-0 items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-medium border shrink-0 ${activeFilter === type ? 'bg-primary text-primary-foreground border-primary' : OPERATION_COLORS[type] || 'border-border'}`}
+                  className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === type ? 'bg-primary text-primary-foreground border-primary shadow-sm' : OPERATION_COLORS[type] || 'border-border hover:bg-muted'}`}
                 >
-                  <span className="scale-90">{OPERATION_ICONS[type]}</span>
+                  <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[type]}</span>
                   <span>{getOperationLabel(type as OperationType)}</span>
-                  <span className="font-bold">{count}</span>
+                  <span className="font-bold tabular-nums">{count}</span>
                 </button>
               ))}
             </div>
@@ -895,7 +895,7 @@ const MyAchievements: React.FC = () => {
           ) : (
             <AdaptiveScrollContainer
               maxHeightClassName="h-full min-h-0"
-              contentClassName="space-y-2 pe-1"
+              contentClassName="space-y-1.5 pe-1"
             >
               {filteredVisits.map((visit: any) => {
                 const isOrderLike = ['order', 'direct_sale', 'delivery'].includes(visit.operation_type);
@@ -905,97 +905,93 @@ const MyAchievements: React.FC = () => {
                 const subtypeBadge = isOrderLike && visit.order_payment_type === 'without_invoice' && visit.order_price_subtype
                   ? (visit.order_price_subtype === 'super_gros' ? 'SG' : visit.order_price_subtype === 'retail' ? 'D' : 'G')
                   : null;
+                const invoiceMethodBadge = isOrderLike && visit.order_payment_type === 'with_invoice' && visit.order_invoice_method
+                  ? (visit.order_invoice_method === 'cash' ? 'C' : visit.order_invoice_method === 'check' ? 'Ch' : visit.order_invoice_method === 'transfer' ? 'Vi' : visit.order_invoice_method === 'receipt' ? 'Ve' : null)
+                  : null;
+
+                const opColor = OPERATION_COLORS[visit.operation_type] || 'border-border';
+                const hasAmount = visit.orderTotal != null || (visit.operation_type === 'debt_collection' && visit.debtCollectionAmount != null);
+                const displayAmount = visit.orderTotal ?? visit.debtCollectionAmount ?? 0;
 
                 return (
                   <button
                     key={visit.id}
                     type="button"
                     onClick={() => handleOpenAchievement(visit)}
-                    className={`w-full rounded-2xl border p-3 text-right transition-all hover:shadow-sm active:scale-[0.995] ${OPERATION_COLORS[visit.operation_type] || 'border-border'}`}
+                    className="w-full rounded-xl border bg-card p-2.5 text-right transition-all hover:shadow-md active:scale-[0.995]"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 shrink-0 rounded-full bg-background/70 p-1.5 shadow-sm">
-                        {OPERATION_ICONS[visit.operation_type] || <MapPin className="w-4 h-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 space-y-1">
-                            {visit.operation_type === 'debt_collection' ? (
-                              <p className="font-bold leading-5 truncate max-w-[160px]">
-                                {visit.debtCollectionStoreName || getOperationLabel(visit.operation_type as OperationType)}
-                              </p>
-                            ) : (
-                              <>
-                                {visit.store_name ? (
-                                  <p className="font-bold leading-5 truncate max-w-[160px]">{visit.store_name}</p>
-                                ) : (
-                                  <p className="font-bold leading-5 truncate max-w-[160px]">
-                                    {visit.customer_name || getOperationLabel(visit.operation_type as OperationType)}
-                                  </p>
-                                )}
-                                {visit.customer_real_name && visit.customer_real_name !== visit.store_name ? (
-                                  <p className="text-xs text-muted-foreground truncate max-w-[180px]">{visit.customer_real_name}</p>
-                                ) : null}
-                              </>
+                    {/* Row 1: Name + date */}
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="min-w-0 flex-1">
+                        {visit.operation_type === 'debt_collection' ? (
+                          <p className="font-bold text-sm leading-5 truncate">
+                            {visit.debtCollectionStoreName || getOperationLabel(visit.operation_type as OperationType)}
+                          </p>
+                        ) : (
+                          <>
+                            <p className="font-bold text-sm leading-5 truncate">
+                              {visit.store_name || visit.customer_name || getOperationLabel(visit.operation_type as OperationType)}
+                            </p>
+                            {visit.customer_real_name && visit.customer_real_name !== visit.store_name && (
+                              <p className="text-[11px] text-muted-foreground truncate">{visit.customer_real_name}</p>
                             )}
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <Badge variant="outline" className="text-[10px] px-2 py-0.5 shrink-0">
-                                {getOperationLabel(visit.operation_type as OperationType)}
-                              </Badge>
-                              {paymentBadge ? (
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[10px] px-2 py-0.5 shrink-0 ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/20 bg-muted text-muted-foreground'}`}
-                                >
-                                  {paymentBadge}
-                                </Badge>
-                              ) : null}
-                              {subtypeBadge ? (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 shrink-0 border-accent/30 bg-accent/15 text-accent-foreground">
-                                  {subtypeBadge}
-                                </Badge>
-                              ) : null}
-                              {visit.isCancelledOrder && (
-                                <Badge variant="destructive" className="text-[10px] px-2 py-0.5 shrink-0">
-                                  ملغاة
-                                </Badge>
-                              )}
-                              {visit.isDebtSale && (
-                                <Badge
-                                  variant={visit.debtStatus === 'partial' ? 'secondary' : 'destructive'}
-                                  className={`text-[10px] px-2 py-0.5 shrink-0 ${visit.debtStatus === 'partial' ? 'bg-amber-100 text-amber-700 border border-amber-200' : ''}`}
-                                >
-                                  {visit.debtStatus === 'partial' ? 'دين جزئي' : 'دين كلي'}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className="shrink-0 text-[11px] text-muted-foreground text-left" dir="ltr">
-                            {format(new Date(visit.created_at), 'dd/MM/yyyy')}
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-right">
-                          {visit.orderTotal != null ? (
-                            <div className="text-sm font-semibold text-foreground" dir="ltr">
-                              {Number(visit.orderTotal).toLocaleString()} DA
-                            </div>
-                          ) : null}
-                          {visit.operation_type === 'debt_collection' && visit.debtCollectionAmount != null ? (
-                            <div className="text-sm font-semibold text-foreground" dir="ltr">
-                              {Number(visit.debtCollectionAmount).toLocaleString()} DA
-                            </div>
-                          ) : null}
-                          {visit.isDebtSale && visit.debtMoney ? (
-                            <div className="text-[11px] text-muted-foreground" dir="ltr">
-                              {visit.debtStatus === 'partial' ? (
-                                <>كاش {visit.debtMoney.paidAmount.toLocaleString()} DA • دين {visit.debtMoney.remainingAmount.toLocaleString()} DA</>
-                              ) : (
-                                <>دين {visit.debtMoney.remainingAmount.toLocaleString()} DA</>
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
+                          </>
+                        )}
                       </div>
+                      <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums" dir="ltr">
+                        {format(new Date(visit.created_at), 'dd/MM/yyyy')}
+                      </span>
+                    </div>
+
+                    {/* Row 2: Tags left + Amount right */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 flex-wrap min-w-0">
+                        {/* Operation type chip */}
+                        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-medium border ${opColor}`}>
+                          <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
+                          {getOperationLabel(visit.operation_type as OperationType)}
+                        </span>
+
+                        {/* Payment type F1/F2 + subtype/method combined */}
+                        {paymentBadge && (
+                          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
+                            {paymentBadge}
+                            {subtypeBadge && <span className="font-medium opacity-80">·{subtypeBadge}</span>}
+                            {invoiceMethodBadge && <span className="font-medium opacity-80">·{invoiceMethodBadge}</span>}
+                          </span>
+                        )}
+
+                        {/* Cancelled */}
+                        {visit.isCancelledOrder && (
+                          <span className="inline-flex items-center rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-bold text-destructive border border-destructive/20">
+                            ملغاة
+                          </span>
+                        )}
+
+                        {/* Debt status */}
+                        {visit.isDebtSale && (
+                          <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${visit.debtStatus === 'partial' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                            {visit.debtStatus === 'partial' ? 'دين جزئي' : 'دين كلي'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Amount */}
+                      {hasAmount && (
+                        <div className="shrink-0 text-left">
+                          <p className="text-sm font-bold tabular-nums" dir="ltr">
+                            {Number(displayAmount).toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">DA</span>
+                          </p>
+                          {visit.isDebtSale && visit.debtMoney && (
+                            <p className="text-[10px] text-muted-foreground tabular-nums" dir="ltr">
+                              {visit.debtStatus === 'partial'
+                                ? <>{visit.debtMoney.remainingAmount.toLocaleString()} DA دين</>
+                                : <>{visit.debtMoney.remainingAmount.toLocaleString()} DA دين</>
+                              }
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </button>
                 );
