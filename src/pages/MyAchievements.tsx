@@ -55,66 +55,19 @@ type AchievementOrderDetails = OrderWithDetails & {
   _selectionKey?: string;
   _detailsLoading?: boolean;
   _hideModifyAction?: boolean;
-  _isAccounted?: boolean;
-  _accountedDate?: string | null;
-  _operationType?: string;
 };
 
 const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = ({ visit, onClose }) => {
-  const isOrderType = ['order', 'direct_sale', 'delivery'].includes(visit.operation_type);
-  const entityId = visit.operation_id || visit.entity_id;
-  const isNonFinancial = ['add_customer', 'update_customer', 'delete_customer'].includes(visit.operation_type);
-
-  const { data: orderData, isLoading: orderLoading } = useQuery({
-    queryKey: ['achievement-order-detail-inline', entityId],
-    queryFn: async () => {
-      const { data: order, error: orderErr } = await supabase
-        .from('orders')
-        .select('id, total_amount, status, payment_status, invoice_payment_method, created_at, delivery_date')
-        .eq('id', entityId!)
-        .maybeSingle();
-
-      if (orderErr) throw orderErr;
-      if (!order) return null;
-
-      const { data: items, error: itemsErr } = await supabase
-        .from('order_items')
-        .select('id, quantity, unit_price, total_price, product:products(id, name, image_url)')
-        .eq('order_id', entityId!);
-
-      if (itemsErr) throw itemsErr;
-      return { order, items: items || [] };
-    },
-    enabled: isOrderType && !!entityId,
-  });
-
   return (
     <>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           {OPERATION_ICONS[visit.operation_type] || <MapPin className="w-5 h-5" />}
-          تفاصيل الإنجاز
+          {getOperationLabel(visit.operation_type as OperationType)}
         </DialogTitle>
       </DialogHeader>
       <div className="space-y-3 text-sm">
-        {visit.isAccounted && (
-          <div className={`rounded-xl border p-3 ${isNonFinancial ? 'border-blue-500/30 bg-blue-500/5' : 'border-destructive/30 bg-destructive/5'}`}>
-            <div className={`font-black text-sm ${isNonFinancial ? 'text-blue-700' : 'text-destructive'}`}>
-              {isNonFinancial ? 'تمت الموافقة' : 'تمت المحاسبة'}
-            </div>
-            {visit.accountedDate && (
-              <div className={`mt-1 text-xs font-bold tabular-nums ${isNonFinancial ? 'text-blue-600' : 'text-destructive/80'}`} dir="ltr">
-                {format(new Date(visit.accountedDate), 'dd/MM/yyyy')}
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-medium">النوع</span>
-            <span>{getOperationLabel(visit.operation_type as OperationType)}</span>
-          </div>
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium">التاريخ</span>
             <span dir="ltr">{format(new Date(visit.created_at), 'dd/MM/yyyy HH:mm')}</span>
@@ -132,56 +85,6 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
             </div>
           ) : null}
         </div>
-
-        {isOrderType && entityId && (
-          <div className="rounded-xl border p-3 space-y-3">
-            <div className="flex items-center gap-2 font-bold">
-              <Package className="w-4 h-4" />
-              تفاصيل الطلبية
-            </div>
-            {orderLoading ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : orderData ? (
-              <>
-                <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                  <span>الإجمالي: <strong className="text-foreground">{Number(orderData.order.total_amount || 0).toLocaleString()} د.ج</strong></span>
-                  {orderData.order.invoice_payment_method ? (
-                    <Badge variant="outline" className="text-[10px]">
-                      {orderData.order.invoice_payment_method === 'cash' ? 'نقدي' :
-                       orderData.order.invoice_payment_method === 'check' ? 'شيك' :
-                       orderData.order.invoice_payment_method === 'transfer' ? 'تحويل' :
-                       orderData.order.invoice_payment_method === 'receipt' ? 'وصل' : orderData.order.invoice_payment_method}
-                    </Badge>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  {orderData.items.map((item: any) => (
-                    <div key={item.id} className="flex items-center gap-2 rounded-lg border bg-card p-2">
-                      {item.product?.image_url ? (
-                        <img src={item.product.image_url} alt={item.product?.name || 'منتج'} className="w-10 h-10 rounded object-cover shrink-0" loading="lazy" />
-                      ) : (
-                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center shrink-0">
-                          <Package className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium truncate">{item.product?.name || '—'}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {Number(item.quantity || 0)} × {Number(item.unit_price || 0).toLocaleString()} = <strong>{Number(item.total_price || 0).toLocaleString()}</strong>
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="py-2 text-center text-xs text-muted-foreground">لا توجد تفاصيل إضافية</div>
-            )}
-          </div>
-        )}
-
         <Button variant="outline" className="w-full" onClick={onClose}>
           إغلاق
         </Button>
@@ -338,7 +241,6 @@ const MyAchievements: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<AchievementOrderDetails | null>(null);
-  const [selectedAchievement, setSelectedAchievement] = useState<any | null>(null);
   const [selectedDebtCollection, setSelectedDebtCollection] = useState<TodayDebtCollectionOperation | null>(null);
   const [showHandoverSummary, setShowHandoverSummary] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
@@ -647,16 +549,9 @@ const MyAchievements: React.FC = () => {
       }
     }
 
-    const canUseFullOrderDialog = isAdminRole(role) || role === 'supervisor';
     const orderLinkedTypes = new Set<OperationType>(['order', 'direct_sale', 'delivery']);
     const isOrderLike = orderLinkedTypes.has(visit.operation_type as OperationType);
     const entityId = visit.operation_id || visit.entity_id || visit.order_id || visit.reference_id || '';
-
-    if (!canUseFullOrderDialog || !isOrderLike || !entityId) {
-      setSelectedAchievement(visit);
-      return;
-    }
-
     const selectionKey = `${visit.id}:${entityId || 'fallback'}`;
     const cachedItems = entityId
       ? ((queryClient.getQueryData(['order-items', entityId]) as any[] | undefined) || [])
@@ -720,10 +615,7 @@ const MyAchievements: React.FC = () => {
       ...(isSaleOperation ? { _forceSold: true } : {}),
       _selectionKey: selectionKey,
       _detailsLoading: isOrderLike && !entityId,
-      _hideModifyAction: !entityId || (visit.isAccounted && !isAdminRole(role)),
-      _isAccounted: visit.isAccounted,
-      _accountedDate: visit.accountedDate,
-      _operationType: visit.operation_type,
+      _hideModifyAction: !entityId,
     });
 
     const normalizeAchievementOrder = (order: OrderWithDetails | null): AchievementOrderDetails | null => {
@@ -738,10 +630,7 @@ const MyAchievements: React.FC = () => {
         ...(isSaleOperation ? { _forceSold: true } : {}),
         _selectionKey: selectionKey,
         _detailsLoading: false,
-        _hideModifyAction: !order.id || (visit.isAccounted && !isAdminRole(role)),
-        _isAccounted: visit.isAccounted,
-        _accountedDate: visit.accountedDate,
-        _operationType: visit.operation_type,
+        _hideModifyAction: !order.id,
       } as AchievementOrderDetails;
     };
 
@@ -776,8 +665,12 @@ const MyAchievements: React.FC = () => {
       return order as AchievementOrderDetails;
     };
 
-    const quickOrder = buildQuickOrder();
-    setSelectedOrderDetails(quickOrder);
+    setSelectedOrderDetails(buildQuickOrder());
+
+    if (!isOrderLike) {
+      clearLoadingState();
+      return;
+    }
 
     if (entityId) {
       prefetchOrderDialogData(entityId);
@@ -1187,16 +1080,6 @@ const MyAchievements: React.FC = () => {
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!selectedAchievement} onOpenChange={(isOpen) => {
-        if (!isOpen) setSelectedAchievement(null);
-      }}>
-        <DialogContent dir="rtl" className="max-w-md">
-          {selectedAchievement ? (
-            <AchievementDetailContent visit={selectedAchievement} onClose={() => setSelectedAchievement(null)} />
-          ) : null}
         </DialogContent>
       </Dialog>
 

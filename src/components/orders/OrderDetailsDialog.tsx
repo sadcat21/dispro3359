@@ -254,38 +254,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="relative flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm [&>button.absolute]:hidden" dir={dir}>
-          {/* Accounting/Approval stamp overlay */}
-          {(order as any)?._isAccounted && (order as any)?._accountedDate && (
-            <div className="absolute top-14 left-1/2 -translate-x-1/2 pointer-events-none z-20 rotate-[-12deg]">
-              <div className={`w-20 h-20 rounded-full border-[3px] flex items-center justify-center ${
-                ['add_customer', 'update_customer', 'delete_customer'].includes((order as any)?._operationType || '')
-                  ? 'border-blue-500/50 bg-blue-500/5' : 'border-destructive/50 bg-destructive/5'
-              }`}>
-                <div className={`w-16 h-16 rounded-full border-[2px] border-dashed flex flex-col items-center justify-center gap-[2px] ${
-                  ['add_customer', 'update_customer', 'delete_customer'].includes((order as any)?._operationType || '')
-                    ? 'border-blue-500/40' : 'border-destructive/40'
-                }`}>
-                  <span className={`text-[9px] font-black leading-none select-none ${
-                    ['add_customer', 'update_customer', 'delete_customer'].includes((order as any)?._operationType || '')
-                      ? 'text-blue-600/70' : 'text-destructive/70'
-                  }`}>تمت</span>
-                  <span className={`text-[8.5px] font-black leading-none select-none ${
-                    ['add_customer', 'update_customer', 'delete_customer'].includes((order as any)?._operationType || '')
-                      ? 'text-blue-600/70' : 'text-destructive/70'
-                  }`}>
-                    {['add_customer', 'update_customer', 'delete_customer'].includes((order as any)?._operationType || '') ? 'الموافقة' : 'المحاسبة'}
-                  </span>
-                  <span className={`text-[9px] font-bold leading-none select-none tabular-nums mt-[1px] ${
-                    ['add_customer', 'update_customer', 'delete_customer'].includes((order as any)?._operationType || '')
-                      ? 'text-blue-600/60' : 'text-destructive/60'
-                  }`} dir="ltr">
-                    {(() => { try { return format(new Date((order as any)._accountedDate), 'dd/MM'); } catch { return ''; } })()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm [&>button.absolute]:hidden" dir={dir}>
           <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b shrink-0 space-y-1">
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="min-w-0 flex-1 text-sm font-bold leading-snug truncate">
@@ -420,7 +389,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               >
                 <Pencil className="h-5 w-5" />
               </Button>
-              {onCancelOrder && !isOrderCancelled && order?.id && !hideModifyAction && (
+              {onCancelOrder && !isOrderCancelled && order?.id && (
                 <Button
                   className="h-11 flex-1 gap-2"
                   variant="destructive"
