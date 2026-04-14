@@ -293,10 +293,14 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                             </div>
                           )}
                         </div>
-                        <div className="text-center text-[10px] text-muted-foreground">
-                          {formatAmountWithMaxFraction(n.unitPrice || 0)} DA/{unitLabel}
+                        <div className="flex flex-wrap items-center justify-center gap-1">
+                          <div className="inline-flex items-center rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                            {formatAmountWithMaxFraction(n.unitPrice || 0)} DA/{unitLabel}
+                          </div>
                           {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
-                            <div>سعر الكغ: {formatAmountWithMaxFraction(n.catalogUnitPrice)}</div>
+                            <div className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                              {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/كغ
+                            </div>
                           )}
                         </div>
                         <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
