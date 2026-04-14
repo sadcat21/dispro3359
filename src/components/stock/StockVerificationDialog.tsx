@@ -155,48 +155,35 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
         }
       }
 
-      if (discrepancies.length > 0) {
-        // Send a stock_confirmation to the worker for approval (same flow as load/unload)
-        const confirmationItems = verifiedItems.map(item => ({
-          product_id: item.product_id,
-          product_name: item.product_name,
-          product_app_name: null,
-          quantity: Number(item.actual_qty) || 0,
-          gift_quantity: 0,
-          gift_unit: 'piece',
-          pieces_per_box: 20,
-          image_url: null,
-          system_qty: item.system_qty,
-          difference: item.difference,
-          status: item.status,
-          stock_row_id: item.stock_row_id,
-        }));
+      // Always send a stock_confirmation to the worker for approval (same flow as load/unload)
+      const confirmationItems = verifiedItems.map(item => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_app_name: null,
+        quantity: Number(item.actual_qty) || 0,
+        gift_quantity: 0,
+        gift_unit: 'piece',
+        pieces_per_box: 20,
+        image_url: null,
+        system_qty: item.system_qty,
+        difference: item.difference,
+        status: item.status,
+        stock_row_id: item.stock_row_id,
+      }));
 
-        const { error: confError } = await supabase
-          .from('stock_confirmations')
-          .insert({
-            operation_type: 'review',
-            worker_id: workerId,
-            manager_id: currentWorkerId!,
-            branch_id: branchId || null,
-            status: 'pending',
-            items: confirmationItems,
-            source_session_id: session.id,
-          } as any);
+      const { error: confError } = await supabase
+        .from('stock_confirmations')
+        .insert({
+          operation_type: 'review',
+          worker_id: workerId,
+          branch_id: branchId || null,
+          manager_id: currentWorkerId!,
+          status: 'pending',
+          items: confirmationItems,
+          source_session_id: session.id,
+        } as any);
 
-        if (confError) throw confError;
-      } else {
-        // No discrepancies - all matched, sync stock directly
-        await Promise.all(
-          verifiedItems.map(async (item) => {
-            const actualQty = Number(item.actual_qty) || 0;
-            await supabase
-              .from('worker_stock')
-              .update({ quantity: actualQty })
-              .eq('id', item.stock_row_id);
-          })
-        );
-      }
+      if (confError) throw confError;
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] }),
