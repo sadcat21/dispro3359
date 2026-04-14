@@ -347,7 +347,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                             <span className="text-2xl text-muted-foreground/30">📦</span>
                           </div>
                         )}
-                        {expandedItemIdx === idx && (
+                        {!hideFinancialDetails && expandedItemIdx === idx && (
                           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 p-1.5 animate-in fade-in duration-200">
                             <div dir="ltr" className="w-full flex items-center justify-center rounded-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white">
                               {formatAmountWithMaxFraction(n.unitPrice || 0)} DA
