@@ -220,7 +220,7 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
   const selectedProduct = selectedProductId ? products.find(p => p.id === selectedProductId) : null;
 
   const renderProductButton = (p: typeof products[0]) => {
-    const isAdded = !!addedMap[p.product_id ?? p.id];
+    const isAdded = !!addedMap[p.id];
     const addedQty = addedMap[p.id] || 0;
 
     return (
