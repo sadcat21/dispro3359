@@ -56,7 +56,7 @@ export const useStockConfirmations = () => {
     refetchInterval: 30000,
   });
 
-  // Full list for the popover
+  // Full list for the popover (all statuses for tabs)
   const confirmationsQuery = useQuery({
     queryKey: ['stock-confirmations', workerId],
     queryFn: async () => {
@@ -69,9 +69,8 @@ export const useStockConfirmations = () => {
           worker:workers!stock_confirmations_worker_id_fkey(full_name)
         `)
         .eq('worker_id', workerId)
-        .in('status', ['pending', 'amended'])
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
       return (data || []) as unknown as StockConfirmation[];
     },
