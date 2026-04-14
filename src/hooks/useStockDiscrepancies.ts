@@ -76,22 +76,22 @@ export const useCreateDiscrepancy = () => {
       source_session_id?: string | null;
       notes?: string | null;
     }) => {
-      const { data, error } = await supabase
+      const payload = {
+        worker_id: params.worker_id,
+        product_id: params.product_id,
+        branch_id: params.branch_id || null,
+        discrepancy_type: params.discrepancy_type,
+        quantity: params.quantity,
+        remaining_quantity: params.quantity,
+        source_session_id: params.source_session_id || null,
+        notes: params.notes || null,
+      };
+
+      const { error } = await supabase
         .from('stock_discrepancies')
-        .insert({
-          worker_id: params.worker_id,
-          product_id: params.product_id,
-          branch_id: params.branch_id || null,
-          discrepancy_type: params.discrepancy_type,
-          quantity: params.quantity,
-          remaining_quantity: params.quantity,
-          source_session_id: params.source_session_id || null,
-          notes: params.notes || null,
-        })
-        .select()
-        .single();
+        .insert(payload);
       if (error) throw error;
-      return data;
+      return payload;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock-discrepancies'] });
