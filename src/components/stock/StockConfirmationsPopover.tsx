@@ -28,6 +28,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   amended: { label: 'معدّل', color: 'bg-orange-500' },
   approved: { label: 'تمت الموافقة', color: 'bg-green-600' },
   rejected: { label: 'مرفوض', color: 'bg-destructive' },
+  disputed: { label: 'خلاف مرفوع', color: 'bg-purple-600' },
 };
 
 const fmtQty = (qty: number): string => {
@@ -477,7 +478,7 @@ const StockConfirmationsPopover: React.FC = () => {
     const source = isWarehouseManager ? (managerHook.confirmations || []) : (workerHook.confirmations || []);
 
     return source
-      .filter(c => c.status === 'approved' || c.status === 'rejected')
+      .filter(c => c.status === 'approved' || c.status === 'rejected' || c.status === 'disputed')
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
 
