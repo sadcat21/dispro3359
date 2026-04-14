@@ -113,26 +113,25 @@ const getPaymentMethodLabel = (order: any) => {
   return 'كاش';
 };
 
-const getPaymentCode = (order: any) => {
+const getPaymentCode = (order: any, items?: any[]) => {
   const paymentType = order?.payment_type;
-  const invoiceMethod = order?.invoice_payment_method;
-  const priceSubtype = order?.price_subtype || (order as any)?.items?.[0]?.price_subtype;
+  const invoiceMethod = order?.invoice_payment_method || items?.[0]?.invoice_payment_method || items?.[0]?.payment_type;
+  const priceSubtype = order?.price_subtype || items?.[0]?.price_subtype || (order as any)?.items?.[0]?.price_subtype;
 
   if (paymentType === 'with_invoice') {
-    // F1 = facture with cash/check/transfer/receipt
     let code = 'F1';
-    if (invoiceMethod === 'cash') code += ' Cash';
-    else if (invoiceMethod === 'check') code += ' Chèque';
-    else if (invoiceMethod === 'transfer') code += ' Virement';
-    else if (invoiceMethod === 'receipt') code += ' Vers.Doc';
+    if (invoiceMethod === 'cash') code += '·Cash';
+    else if (invoiceMethod === 'check') code += '·Chèque';
+    else if (invoiceMethod === 'transfer') code += '·Vir';
+    else if (invoiceMethod === 'receipt') code += '·Vers';
     return code;
   }
   if (paymentType === 'without_invoice') {
-    // F2 = without invoice
     let code = 'F2';
-    if (priceSubtype === 'retail' || priceSubtype === 'detail') code += ' Détail';
-    else if (priceSubtype === 'wholesale' || priceSubtype === 'gros') code += ' Gros';
-    else if (priceSubtype === 'super_wholesale' || priceSubtype === 'super_gros') code += ' S.Gros';
+    if (priceSubtype === 'retail' || priceSubtype === 'detail') code += '·Dét';
+    else if (priceSubtype === 'wholesale' || priceSubtype === 'gros') code += '·Gros';
+    else if (priceSubtype === 'super_wholesale' || priceSubtype === 'super_gros') code += '·S.Gros';
+    else code += '·Gros';
     return code;
   }
   return '';
