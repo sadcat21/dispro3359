@@ -8,7 +8,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, AlertTriangle, TrendingUp, Package, Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCreateDiscrepancy } from '@/hooks/useStockDiscrepancies';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -34,7 +33,6 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const { workerId: currentWorkerId, activeBranch } = useAuth();
-  const createDiscrepancy = useCreateDiscrepancy();
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -157,44 +155,47 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
         }
       }
 
-      // Sync worker stock with reviewed actual quantities (so deficits/surplus are reflected immediately)
-      const stockSyncResults = await Promise.all(
-        verifiedItems.map(async (item) => {
-          const actualQty = Number(item.actual_qty) || 0;
-          const { data: updatedRow, error } = await supabase
-            .from('worker_stock')
-            .update({ quantity: actualQty })
-            .eq('id', item.stock_row_id)
-            .select('id')
-            .maybeSingle();
-
-          if (error) {
-            throw new Error(`فشل تحديث رصيد المنتج ${item.product_name}: ${error.message}`);
-          }
-
-          if (!updatedRow) {
-            throw new Error(`تعذر تحديث رصيد المنتج ${item.product_name} بعد المراجعة`);
-          }
-
-          return { product_id: item.product_id, quantity: actualQty };
-        })
-      );
-
-      if (stockSyncResults.length !== verifiedItems.length) {
-        throw new Error('فشل في مزامنة أرصدة العامل بعد المراجعة');
-      }
-
-      // Record each discrepancy
-      for (const item of discrepancies) {
-        await createDiscrepancy.mutateAsync({
-          worker_id: workerId,
+      if (discrepancies.length > 0) {
+        // Send a stock_confirmation to the worker for approval (same flow as load/unload)
+        const confirmationItems = verifiedItems.map(item => ({
           product_id: item.product_id,
-          branch_id: branchId || null,
-          discrepancy_type: item.status as 'deficit' | 'surplus',
-          quantity: Math.abs(item.difference),
-          source_session_id: session.id,
-          notes: `جلسة مراجعة - ${item.status === 'deficit' ? 'عجز' : 'فائض'}: ${Math.abs(item.difference)}`,
-        });
+          product_name: item.product_name,
+          product_app_name: null,
+          quantity: Number(item.actual_qty) || 0,
+          gift_quantity: 0,
+          gift_unit: 'piece',
+          pieces_per_box: 20,
+          image_url: null,
+          system_qty: item.system_qty,
+          difference: item.difference,
+          status: item.status,
+          stock_row_id: item.stock_row_id,
+        }));
+
+        const { error: confError } = await supabase
+          .from('stock_confirmations')
+          .insert({
+            operation_type: 'review',
+            worker_id: workerId,
+            manager_id: currentWorkerId!,
+            branch_id: branchId || null,
+            status: 'pending',
+            items: confirmationItems,
+            source_session_id: session.id,
+          } as any);
+
+        if (confError) throw confError;
+      } else {
+        // No discrepancies - all matched, sync stock directly
+        await Promise.all(
+          verifiedItems.map(async (item) => {
+            const actualQty = Number(item.actual_qty) || 0;
+            await supabase
+              .from('worker_stock')
+              .update({ quantity: actualQty })
+              .eq('id', item.stock_row_id);
+          })
+        );
       }
 
       await Promise.all([
@@ -204,10 +205,12 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
         queryClient.invalidateQueries({ queryKey: ['truck-review-section'] }),
         queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] }),
         queryClient.invalidateQueries({ queryKey: ['loading-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] }),
+        queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] }),
       ]);
 
       toast.success(discrepancies.length > 0 
-        ? `تم تأكيد المراجعة - ${discrepancies.length} فارق مسجل`
+        ? `تم إرسال طلب تأكيد المراجعة للعامل - ${discrepancies.length} فارق`
         : 'تم تأكيد المراجعة - جميع المنتجات مطابقة');
       onOpenChange(false);
       await onComplete?.();
