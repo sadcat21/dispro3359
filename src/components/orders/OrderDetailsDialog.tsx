@@ -301,28 +301,26 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                           </div>
                         )}
                       </div>
-                      <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1">
-                        <div className="flex items-center gap-1">
-                          <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-primary/10 text-primary py-1 text-xs font-bold">
+                      <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1.5">
+                        <div className="flex items-center gap-0">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
                             {n.quantity}
                           </div>
-                          {n.giftQuantity > 0 && (
-                            <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
-                              🎁 {n.giftQuantity}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center justify-center gap-1">
-                          <div className="inline-flex items-center rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                          <div className="flex-1 flex items-center justify-center rounded-e-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white -ms-1">
                             {formatAmountWithMaxFraction(n.unitPrice || 0)} DA/{unitLabel}
                           </div>
-                          {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
-                            <div className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                              {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/كغ
-                            </div>
-                          )}
                         </div>
-                        <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
+                        {n.giftQuantity > 0 && (
+                          <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
+                            🎁 {n.giftQuantity}
+                          </div>
+                        )}
+                        {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
+                          <div className="flex items-center justify-center rounded-md bg-emerald-600 py-1 text-[10px] font-bold text-white">
+                            {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/كغ
+                          </div>
+                        )}
+                        <div className="flex items-center justify-center rounded-md bg-destructive py-1 text-[10px] font-bold text-destructive-foreground">
                           {formatAmountWithMaxFraction(n.totalPrice || 0)} DA
                         </div>
                       </div>
