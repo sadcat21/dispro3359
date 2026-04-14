@@ -1454,38 +1454,38 @@ const LoadStock: React.FC = () => {
                     <span>مراجعة مطلوبة أولاً</span>
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <Button onClick={handleStartSession} className="flex-1 h-10 rounded-xl text-xs font-bold shadow-sm" disabled={createSession.isPending || isStartingSession || isConfirmingSession || !hasReviewToday}>
-                    {(createSession.isPending || isStartingSession) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 me-1" />}
-                    بدء شحن
+                <div className="flex gap-1.5 w-full">
+                  <Button onClick={handleStartSession} className="flex-1 min-w-0 h-10 rounded-xl text-[11px] font-bold shadow-sm px-2" disabled={createSession.isPending || isStartingSession || isConfirmingSession || !hasReviewToday}>
+                    {(createSession.isPending || isStartingSession) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-3.5 h-3.5 me-0.5" />}
+                    شحن
                   </Button>
                   <Button
                     variant="outline"
-                    className={`h-10 rounded-xl text-xs px-3 ${hasReviewToday 
+                    className={`flex-1 min-w-0 h-10 rounded-xl text-[11px] px-2 ${hasReviewToday 
                       ? "border-green-400 text-green-700 bg-green-50/50 dark:bg-green-900/10"
                       : "border-blue-400 text-blue-700 bg-blue-50/50 dark:bg-blue-900/10"
                     }`}
                     onClick={() => setShowVerificationDialog(true)}
                     disabled={isEmptying || isStartingSession || isConfirmingSession}
                   >
-                    {hasReviewToday ? <CheckCircle className="w-4 h-4 me-1" /> : <Search className="w-4 h-4 me-1" />}
+                    {hasReviewToday ? <CheckCircle className="w-3.5 h-3.5 me-0.5" /> : <Search className="w-3.5 h-3.5 me-0.5" />}
                     {hasReviewToday ? 'مراجعة ✓' : 'مراجعة'}
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-10 rounded-xl text-xs px-3 text-destructive border-destructive/30"
+                    className="flex-1 min-w-0 h-10 rounded-xl text-[11px] px-2 text-destructive border-destructive/30"
                     onClick={handleEmptyTruckPreview}
                     disabled={isEmptying || isStartingSession || isConfirmingSession || !hasReviewToday}
                   >
-                    <PackageX className="w-4 h-4 me-1" />
+                    <PackageX className="w-3.5 h-3.5 me-0.5" />
                     تفريغ
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-10 rounded-xl text-xs px-3 border-orange-400 text-orange-700 bg-orange-50/50 dark:bg-orange-900/10"
+                    className="flex-1 min-w-0 h-10 rounded-xl text-[11px] px-2 border-orange-400 text-orange-700 bg-orange-50/50 dark:bg-orange-900/10"
                     onClick={() => setShowExchangeDialog(true)}
                   >
-                    <RefreshCw className="w-4 h-4 me-1" />
+                    <RefreshCw className="w-3.5 h-3.5 me-0.5" />
                     تغيير
                   </Button>
                 </div>
