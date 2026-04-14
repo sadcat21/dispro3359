@@ -866,22 +866,26 @@ const MyAchievements: React.FC = () => {
             placeholder="ابحث باسم العميل أو المحل أو الهاتف"
             className="h-8 rounded-xl text-xs flex-1 min-w-0"
           />
-          <Button
-            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
-            variant="outline"
-            onClick={() => setShowHandoverSummary(true)}
-          >
-            <ClipboardList className="w-3 h-3 ml-0.5" />
-            ملخص التسليم
-          </Button>
-          <Button
-            variant="outline"
-            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
-            onClick={() => setShowSalesSummary(true)}
-          >
-            <Package className="w-3 h-3 ml-0.5" />
-            تجميع المبيعات
-          </Button>
+          {!isWarehouseManager && (
+            <>
+              <Button
+                className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
+                variant="outline"
+                onClick={() => setShowHandoverSummary(true)}
+              >
+                <ClipboardList className="w-3 h-3 ml-0.5" />
+                ملخص التسليم
+              </Button>
+              <Button
+                variant="outline"
+                className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
+                onClick={() => setShowSalesSummary(true)}
+              >
+                <Package className="w-3 h-3 ml-0.5" />
+                تجميع المبيعات
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
