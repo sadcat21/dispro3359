@@ -241,6 +241,7 @@ const MyAchievements: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<AchievementOrderDetails | null>(null);
+  const [selectedIsAccounted, setSelectedIsAccounted] = useState(false);
   const [selectedDebtCollection, setSelectedDebtCollection] = useState<TodayDebtCollectionOperation | null>(null);
   const [showHandoverSummary, setShowHandoverSummary] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
@@ -665,6 +666,7 @@ const MyAchievements: React.FC = () => {
       return order as AchievementOrderDetails;
     };
 
+    setSelectedIsAccounted(!!visit.isAccounted);
     setSelectedOrderDetails(buildQuickOrder());
 
     if (!isOrderLike) {
@@ -1086,12 +1088,12 @@ const MyAchievements: React.FC = () => {
       <OrderDetailsDialog
         open={!!selectedOrderDetails}
         onOpenChange={(isOpen) => {
-          if (!isOpen) setSelectedOrderDetails(null);
+          if (!isOpen) { setSelectedOrderDetails(null); setSelectedIsAccounted(false); }
         }}
         order={selectedOrderDetails}
-        hideModifyAction={Boolean((selectedOrderDetails as any)?._hideModifyAction)}
-        onCancelOrder={handleCancelOrder}
-        onResumeOrder={handleResumeOrder}
+        hideModifyAction={Boolean((selectedOrderDetails as any)?._hideModifyAction) || (selectedIsAccounted && !isAdminRole(role))}
+        onCancelOrder={selectedIsAccounted && !isAdminRole(role) ? undefined : handleCancelOrder}
+        onResumeOrder={selectedIsAccounted && !isAdminRole(role) ? undefined : handleResumeOrder}
       />
 
       <CollectedDebtOperationDialog
