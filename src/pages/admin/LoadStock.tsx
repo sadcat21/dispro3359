@@ -1021,7 +1021,7 @@ const LoadStock: React.FC = () => {
         gift_quantity: item.gift_quantity || 0,
         gift_unit: item.gift_unit || 'piece',
         pieces_per_box: item.product?.pieces_per_box || 20,
-        image_url: null,
+        image_url: item.product?.image_url || null,
       }));
 
       // Create a pending stock confirmation instead of directly applying
