@@ -4,6 +4,7 @@ import { Order, OrderItem, OrderWithDetails, OrderStatus } from '@/types/databas
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeSubscription } from './useRealtimeSubscription';
 import { isAdminRole } from '@/lib/utils';
+import { CANCELLED_ORDER_DEBT_NOTE, RESUMED_ORDER_DEBT_NOTE } from '@/constants/debts';
 
 export const useOrders = () => {
   const { workerId, role, activeBranch } = useAuth();
@@ -343,7 +344,7 @@ export const useCancelOrder = () => {
 
       if (debt && debt.status !== 'paid') {
         mutations.push(
-          supabase.from('customer_debts').update({ status: 'cancelled', remaining_amount: 0, paid_amount: 0, notes: 'ملغاة - تم إلغاء الطلبية المرتبطة' }).eq('id', debt.id)
+          supabase.from('customer_debts').update({ status: 'cancelled', remaining_amount: 0, paid_amount: 0, notes: CANCELLED_ORDER_DEBT_NOTE }).eq('id', debt.id)
         );
       }
 
@@ -447,7 +448,7 @@ export const useResumeOrder = () => {
               total_amount: totalAmount,
               paid_amount: paidAmount,
               remaining_amount: debtAmount,
-              notes: 'تم استئناف الطلبية الملغاة',
+              notes: RESUMED_ORDER_DEBT_NOTE,
             }).eq('id', existingDebt.id)
           );
         } else {
@@ -461,7 +462,7 @@ export const useResumeOrder = () => {
               paid_amount: paidAmount,
               remaining_amount: debtAmount,
               status: debtAmount === totalAmount ? 'active' : 'partially_paid',
-              notes: 'تم استئناف الطلبية الملغاة',
+              notes: RESUMED_ORDER_DEBT_NOTE,
             })
           );
         }
