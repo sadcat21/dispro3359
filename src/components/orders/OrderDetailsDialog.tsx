@@ -255,8 +255,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
-          <DialogHeader className="p-3 sm:p-4 pb-2 border-b shrink-0 space-y-1.5">
+        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm [&>button.absolute]:hidden" dir={dir}>
+          <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b shrink-0 space-y-1">
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="min-w-0 flex-1 text-sm font-bold leading-snug truncate">
                 {customer?.store_name || customer?.name || '—'}
@@ -270,34 +270,30 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 )}
                 <button
                   aria-label="إغلاق"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:bg-destructive/90"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:bg-destructive/90"
                   onClick={() => onOpenChange(false)}
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
-              <div className="flex items-center gap-1.5">
-                <span dir="ltr" className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
-                <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[9px] px-1.5 py-0">
-                  {paymentStateLabel}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-1.5 justify-end">
-                {paymentCode && (
-                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-bold">{paymentCode}</Badge>
-                )}
-                {order.created_at && <span className="text-muted-foreground text-[10px]">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
-              </div>
-              <div>
-                <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
-              </div>
-              {remainingAmount > 0 && (
-                <div className="text-end">
-                  <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+            <div className="flex items-center justify-between text-[10px]">
+              <div className="flex flex-col gap-0.5">
+                <span dir="ltr" className="font-bold text-primary text-xs">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
+                  {paymentCode && <Badge variant="outline" className="text-[8px] px-1 py-0 font-bold">{paymentCode}</Badge>}
+                  <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[8px] px-1 py-0">
+                    {paymentStateLabel}
+                  </Badge>
                 </div>
-              )}
+              </div>
+              <div className="flex flex-col items-end gap-0.5 text-[10px]">
+                <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
+                {remainingAmount > 0 && (
+                  <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+                )}
+              </div>
             </div>
           </DialogHeader>
 
