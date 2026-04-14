@@ -134,9 +134,9 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const confirmProductQuantities = () => {
     if (!singleProductId) return;
 
-    const newQuantity = fieldsToCustomFormat(newQtyFields, currentPPB);
-    const compensationQuantity = fieldsToCustomFormat(compQtyFields, currentPPB);
-    const compensationOffersQuantity = fieldsToCustomFormat(compOffersQtyFields, currentPPB);
+    const newQuantity = fieldsToQuantity(newQtyFields, currentPPB);
+    const compensationQuantity = fieldsToQuantity(compQtyFields, currentPPB);
+    const compensationOffersQuantity = fieldsToQuantity(compOffersQtyFields, currentPPB);
 
     if (newQuantity <= 0 && compensationQuantity <= 0 && compensationOffersQuantity <= 0) {
       removeItem(singleProductId);
@@ -175,10 +175,19 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
 
     setIsSaving(true);
     try {
-      const previousItems = aggregateReceiptItemsForEditing(initialItems);
+      const previousItems = convertDbItemsToEditItems(initialItems);
       const previousMap = new Map(previousItems.map((item) => [item.product_id, item]));
       const nextMap = new Map(validItems.map((item) => [item.product_id, item]));
       const affectedProductIds = Array.from(new Set([...previousMap.keys(), ...nextMap.keys()]));
+      const dbValidItems = validItems.map((item) => {
+        const ppb = getProduct(item.product_id)?.pieces_per_box || 1;
+        return {
+          ...item,
+          new_quantity: toDbQuantity(item.new_quantity, ppb),
+          compensation_quantity: toDbQuantity(item.compensation_quantity, ppb),
+          compensation_offers_quantity: toDbQuantity(item.compensation_offers_quantity, ppb),
+        };
+      });
       const metaString = stringifyReceiptMeta({
         text: notesText,
         source: receiptSource,
@@ -199,7 +208,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       const { error: deleteItemsError } = await supabase.from('stock_receipt_items').delete().eq('receipt_id', receipt.id);
       if (deleteItemsError) throw deleteItemsError;
 
-      const receiptRows = buildReceiptItemRows(receipt.id, validItems);
+      const receiptRows = buildReceiptItemRows(receipt.id, dbValidItems);
       const { error: insertItemsError } = await supabase.from('stock_receipt_items').insert(receiptRows);
       if (insertItemsError) throw insertItemsError;
 
@@ -207,6 +216,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
         await supabase.from('stock_movements').delete().eq('receipt_id', receipt.id);
 
         for (const productId of affectedProductIds) {
+          const ppb = getProduct(productId)?.pieces_per_box || 1;
           const before = previousMap.get(productId) || { product_id: productId, new_quantity: 0, compensation_quantity: 0, compensation_offers_quantity: 0 };
           const after = nextMap.get(productId) || { product_id: productId, new_quantity: 0, compensation_quantity: 0, compensation_offers_quantity: 0 };
           const totalDelta = (after.new_quantity + after.compensation_quantity + after.compensation_offers_quantity) - (before.new_quantity + before.compensation_quantity + before.compensation_offers_quantity);
@@ -222,35 +232,37 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
             .maybeSingle();
 
           if (stock) {
-            const nextQuantity = Math.max(0, (Number((stock as any).quantity) || 0) + totalDelta);
-            const nextCompensation = Math.max(0, (Number((stock as any).compensation_quantity) || 0) + compensationDelta);
-            const nextFactoryReturn = Math.max(0, (Number((stock as any).factory_return_quantity) || 0) - compensationDelta);
+            const existingQuantity = fromDbQuantity(Number((stock as any).quantity) || 0, ppb);
+            const existingCompensation = fromDbQuantity(Number((stock as any).compensation_quantity) || 0, ppb);
+            const existingFactoryReturn = fromDbQuantity(Number((stock as any).factory_return_quantity) || 0, ppb);
 
             await supabase.from('warehouse_stock').update({
-              quantity: nextQuantity,
-              compensation_quantity: nextCompensation,
-              factory_return_quantity: nextFactoryReturn,
+              quantity: toDbQuantity(Math.max(0, existingQuantity + totalDelta), ppb),
+              compensation_quantity: toDbQuantity(Math.max(0, existingCompensation + compensationDelta), ppb),
+              factory_return_quantity: toDbQuantity(Math.max(0, existingFactoryReturn - compensationDelta), ppb),
             }).eq('id', stock.id);
           } else if (after.new_quantity + after.compensation_quantity + after.compensation_offers_quantity > 0) {
             await supabase.from('warehouse_stock').insert({
               branch_id: branchId,
               product_id: productId,
-            quantity: after.new_quantity + after.compensation_quantity + after.compensation_offers_quantity,
-              compensation_quantity: after.compensation_quantity,
+              quantity: toDbQuantity(after.new_quantity + after.compensation_quantity + after.compensation_offers_quantity, ppb),
+              compensation_quantity: toDbQuantity(after.compensation_quantity, ppb),
             });
           }
         }
 
         for (const item of validItems) {
+          const ppb = getProduct(item.product_id)?.pieces_per_box || 1;
+          const totalQty = item.new_quantity + item.compensation_quantity + item.compensation_offers_quantity;
           await supabase.from('stock_movements').insert({
             product_id: item.product_id,
             branch_id: branchId,
-            quantity: item.new_quantity + item.compensation_quantity + item.compensation_offers_quantity,
+            quantity: toDbQuantity(totalQty, ppb),
             movement_type: 'receipt',
             status: 'approved',
             created_by: workerId || receipt.created_by,
             receipt_id: receipt.id,
-            notes: `تعديل استلام - جديد: ${item.new_quantity} تعويض تلف: ${item.compensation_quantity} تعويض عروض: ${item.compensation_offers_quantity}`,
+            notes: `تعديل استلام - جديد: ${boxesToBP(item.new_quantity, ppb)} تعويض تلف: ${boxesToBP(item.compensation_quantity, ppb)} تعويض عروض: ${boxesToBP(item.compensation_offers_quantity, ppb)}`,
           });
         }
       }
