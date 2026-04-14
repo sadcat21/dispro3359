@@ -5,25 +5,9 @@ import { toast } from 'sonner';
 import { StockConfirmation, StockConfirmationItem } from './useStockConfirmations';
 
 export const useManagerConfirmations = () => {
-  const { user } = useAuth();
+  const { workerId: currentWorkerId, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const queryClient = useQueryClient();
-  const managerId = user?.id;
-
-  // Get current worker_id from user_roles
-  const { data: currentWorkerId } = useQuery({
-    queryKey: ['current-worker-id', managerId],
-    queryFn: async () => {
-      if (!managerId) return null;
-      const { data } = await supabase
-        .from('user_roles')
-        .select('worker_id')
-        .eq('user_id', managerId)
-        .limit(1)
-        .maybeSingle();
-      return data?.worker_id || null;
-    },
-    enabled: !!managerId,
-  });
+  const isReady = !isAuthLoading && isAuthenticated && !!currentWorkerId;
 
   const confirmationsQuery = useQuery({
     queryKey: ['manager-confirmations', currentWorkerId],
@@ -38,14 +22,13 @@ export const useManagerConfirmations = () => {
         `)
         .eq('manager_id', currentWorkerId)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
       return (data || []) as unknown as StockConfirmation[];
     },
-    enabled: !!currentWorkerId,
+    enabled: isReady,
   });
 
-  // Count pending + rejected (needs attention)
   const needsAttentionCount = (confirmationsQuery.data || []).filter(
     c => c.status === 'rejected'
   ).length;
@@ -60,18 +43,18 @@ export const useManagerConfirmations = () => {
       newItems: StockConfirmationItem[];
       note: string;
     }) => {
-      // Get original confirmation
+      if (!currentWorkerId) throw new Error('تعذر تحديد مسؤول المخزن الحالي');
+
       const { data: original, error: fetchErr } = await supabase
         .from('stock_confirmations')
         .select('*')
         .eq('id', confirmationId)
-        .eq('manager_id', currentWorkerId!)
+        .eq('manager_id', currentWorkerId)
         .single();
       if (fetchErr || !original) throw fetchErr || new Error('لم يتم العثور على العملية');
 
       const orig = original as any;
 
-      // Update the confirmation with new items, save previous
       const { error } = await supabase
         .from('stock_confirmations')
         .update({
@@ -82,7 +65,7 @@ export const useManagerConfirmations = () => {
           responded_at: null,
         } as any)
         .eq('id', confirmationId)
-        .eq('manager_id', currentWorkerId!);
+        .eq('manager_id', currentWorkerId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -96,7 +79,7 @@ export const useManagerConfirmations = () => {
 
   return {
     confirmations: confirmationsQuery.data || [],
-    isLoading: confirmationsQuery.isLoading,
+    isLoading: isAuthLoading || confirmationsQuery.isLoading,
     needsAttentionCount,
     currentWorkerId,
     amendConfirmation,
