@@ -48,7 +48,8 @@ export const useStockConfirmations = () => {
         .from('user_roles')
         .select('worker_id')
         .eq('user_id', userId)
-        .single();
+        .limit(1)
+        .maybeSingle();
       return data?.worker_id || null;
     },
     enabled: !!userId,
