@@ -19,6 +19,11 @@ interface EditItem {
   compensation_offers_quantity: number;
 }
 
+interface BoxPieceFields {
+  boxes: string;
+  pieces: string;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -47,27 +52,59 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const [isSaving, setIsSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
-  const [newQtyInput, setNewQtyInput] = useState('0');
-  const [compQtyInput, setCompQtyInput] = useState('0');
-  const [compOffersQtyInput, setCompOffersQtyInput] = useState('0');
+  const [newQtyFields, setNewQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+  const [compQtyFields, setCompQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+  const [compOffersQtyFields, setCompOffersQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
 
   const getProduct = (id: string) => products.find((product) => product.id === id);
   const currentProduct = singleProductId ? getProduct(singleProductId) : null;
   const currentPPB = currentProduct?.pieces_per_box || 1;
-  const parsedNew = parseBP(newQtyInput, currentPPB);
-  const parsedComp = parseBP(compQtyInput, currentPPB);
-  const parsedCompOffers = parseBP(compOffersQtyInput, currentPPB);
-  const toCustomFormat = (value: { boxes: number; pieces: number }) => value.boxes + value.pieces / 100;
+
+  const fieldsToCustomFormat = (fields: BoxPieceFields, ppb: number): number => {
+    const boxes = parseInt(fields.boxes || '0', 10) || 0;
+    const pieces = parseInt(fields.pieces || '0', 10) || 0;
+    const parsed = parseBP(`${boxes}.${pieces}`, ppb);
+    return parsed.boxes + parsed.pieces / 100;
+  };
+
+  const quantityToFields = (qty: number, ppb: number): BoxPieceFields => {
+    const parsed = parseBP(boxesToBP(qty, ppb), ppb);
+    return { boxes: String(parsed.boxes), pieces: String(parsed.pieces).padStart(3, '0') };
+  };
+
+  const sanitizeDigits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max);
+
+  const handleFieldChange = (
+    setter: React.Dispatch<React.SetStateAction<BoxPieceFields>>,
+    field: 'boxes' | 'pieces',
+    value: string
+  ) => {
+    setter(prev => ({ ...prev, [field]: sanitizeDigits(value, field === 'boxes' ? 5 : 3) }));
+  };
+
+  const normalizeFields = (fields: BoxPieceFields, ppb: number): BoxPieceFields => {
+    return quantityToFields(fieldsToCustomFormat(fields, ppb), ppb);
+  };
+
+  const handleBlur = (setter: React.Dispatch<React.SetStateAction<BoxPieceFields>>, ppb: number) => {
+    setter(prev => normalizeFields(prev, ppb));
+  };
 
   const openProductEditor = (productId: string) => {
     const existing = editItems.find((item) => item.product_id === productId);
     const product = getProduct(productId);
-    const ppb = product?.pieces_per_box || 1;
+    const editorPpb = product?.pieces_per_box || 1;
 
     setSingleProductId(productId);
-    setNewQtyInput(existing ? boxesToBP(existing.new_quantity, ppb) : '1');
-    setCompQtyInput(existing ? boxesToBP(existing.compensation_quantity, ppb) : '0');
-    setCompOffersQtyInput(existing ? boxesToBP(existing.compensation_offers_quantity, ppb) : '0');
+    if (existing) {
+      setNewQtyFields(quantityToFields(existing.new_quantity, editorPpb));
+      setCompQtyFields(quantityToFields(existing.compensation_quantity, editorPpb));
+      setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, editorPpb));
+    } else {
+      setNewQtyFields({ boxes: '1', pieces: '000' });
+      setCompQtyFields({ boxes: '0', pieces: '000' });
+      setCompOffersQtyFields({ boxes: '0', pieces: '000' });
+    }
   };
 
   const removeItem = (productId: string) => {
@@ -77,9 +114,9 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const confirmProductQuantities = () => {
     if (!singleProductId) return;
 
-    const newQuantity = toCustomFormat(parsedNew);
-    const compensationQuantity = toCustomFormat(parsedComp);
-    const compensationOffersQuantity = toCustomFormat(parsedCompOffers);
+    const newQuantity = fieldsToCustomFormat(newQtyFields, currentPPB);
+    const compensationQuantity = fieldsToCustomFormat(compQtyFields, currentPPB);
+    const compensationOffersQuantity = fieldsToCustomFormat(compOffersQtyFields, currentPPB);
 
     if (newQuantity <= 0 && compensationQuantity <= 0 && compensationOffersQuantity <= 0) {
       removeItem(singleProductId);
@@ -361,48 +398,49 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
                 </div>
               </div>
 
+              {currentPPB > 1 && (
+                <p className="text-xs text-muted-foreground text-center">الصندوق = {currentPPB} قطعة</p>
+              )}
+
               <div className="space-y-1 rounded-lg border border-blue-200 bg-blue-50/60 p-2.5 dark:border-blue-900 dark:bg-blue-950/20">
                 <Label className="block text-center text-xs font-semibold text-blue-700">الكمية الجديدة (صندوق.قطع)</Label>
-                <div className="flex items-center justify-center gap-3">
-                  <Button type="button" variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => {
-                    const nextBoxes = Math.max(0, parsedNew.boxes - 1);
-                    setNewQtyInput(boxesToBP(nextBoxes + parsedNew.pieces / currentPPB, currentPPB));
-                  }}><Minus className="w-4 h-4" /></Button>
-                  <Input type="text" inputMode="decimal" value={newQtyInput} onChange={(e) => setNewQtyInput(e.target.value.replace(/[^0-9.]/g, ''))} className="w-20 h-10 text-center text-lg font-bold" />
-                  <Button type="button" variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => {
-                    const nextBoxes = parsedNew.boxes + 1;
-                    setNewQtyInput(boxesToBP(nextBoxes + parsedNew.pieces / currentPPB, currentPPB));
-                  }}><Plus className="w-4 h-4" /></Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">الصندوق</Label>
+                    <Input type="text" inputMode="numeric" dir="ltr" className="h-10 text-center text-lg font-bold" value={newQtyFields.boxes} onChange={(e) => handleFieldChange(setNewQtyFields, 'boxes', e.target.value)} onBlur={() => handleBlur(setNewQtyFields, currentPPB)} placeholder="0" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">القطع</Label>
+                    <Input type="text" inputMode="numeric" dir="ltr" className="h-10 text-center text-lg font-bold" value={newQtyFields.pieces} onChange={(e) => handleFieldChange(setNewQtyFields, 'pieces', e.target.value)} onBlur={() => handleBlur(setNewQtyFields, currentPPB)} placeholder="000" />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-1 rounded-lg border border-red-200 bg-red-50/60 p-2.5 dark:border-red-900 dark:bg-red-950/20">
                 <Label className="block text-center text-xs font-semibold text-red-700">تعويض التلف (صندوق.قطع)</Label>
-                <div className="flex items-center justify-center gap-3">
-                  <Button type="button" variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => {
-                    const nextBoxes = Math.max(0, parsedComp.boxes - 1);
-                    setCompQtyInput(boxesToBP(nextBoxes + parsedComp.pieces / currentPPB, currentPPB));
-                  }}><Minus className="w-4 h-4" /></Button>
-                  <Input type="text" inputMode="decimal" value={compQtyInput} onChange={(e) => setCompQtyInput(e.target.value.replace(/[^0-9.]/g, ''))} className="w-20 h-10 text-center text-lg font-bold" />
-                  <Button type="button" variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => {
-                    const nextBoxes = parsedComp.boxes + 1;
-                    setCompQtyInput(boxesToBP(nextBoxes + parsedComp.pieces / currentPPB, currentPPB));
-                  }}><Plus className="w-4 h-4" /></Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">الصندوق</Label>
+                    <Input type="text" inputMode="numeric" dir="ltr" className="h-10 text-center text-lg font-bold" value={compQtyFields.boxes} onChange={(e) => handleFieldChange(setCompQtyFields, 'boxes', e.target.value)} onBlur={() => handleBlur(setCompQtyFields, currentPPB)} placeholder="0" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">القطع</Label>
+                    <Input type="text" inputMode="numeric" dir="ltr" className="h-10 text-center text-lg font-bold" value={compQtyFields.pieces} onChange={(e) => handleFieldChange(setCompQtyFields, 'pieces', e.target.value)} onBlur={() => handleBlur(setCompQtyFields, currentPPB)} placeholder="000" />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 dark:border-amber-900 dark:bg-amber-950/20">
                 <Label className="block text-center text-xs font-semibold text-amber-700">تعويض العروض (صندوق.قطع)</Label>
-                <div className="flex items-center justify-center gap-3">
-                  <Button type="button" variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => {
-                    const nextBoxes = Math.max(0, parsedCompOffers.boxes - 1);
-                    setCompOffersQtyInput(boxesToBP(nextBoxes + parsedCompOffers.pieces / currentPPB, currentPPB));
-                  }}><Minus className="w-4 h-4" /></Button>
-                  <Input type="text" inputMode="decimal" value={compOffersQtyInput} onChange={(e) => setCompOffersQtyInput(e.target.value.replace(/[^0-9.]/g, ''))} className="w-20 h-10 text-center text-lg font-bold" />
-                  <Button type="button" variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => {
-                    const nextBoxes = parsedCompOffers.boxes + 1;
-                    setCompOffersQtyInput(boxesToBP(nextBoxes + parsedCompOffers.pieces / currentPPB, currentPPB));
-                  }}><Plus className="w-4 h-4" /></Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">الصندوق</Label>
+                    <Input type="text" inputMode="numeric" dir="ltr" className="h-10 text-center text-lg font-bold" value={compOffersQtyFields.boxes} onChange={(e) => handleFieldChange(setCompOffersQtyFields, 'boxes', e.target.value)} onBlur={() => handleBlur(setCompOffersQtyFields, currentPPB)} placeholder="0" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">القطع</Label>
+                    <Input type="text" inputMode="numeric" dir="ltr" className="h-10 text-center text-lg font-bold" value={compOffersQtyFields.pieces} onChange={(e) => handleFieldChange(setCompOffersQtyFields, 'pieces', e.target.value)} onBlur={() => handleBlur(setCompOffersQtyFields, currentPPB)} placeholder="000" />
+                  </div>
                 </div>
               </div>
 
