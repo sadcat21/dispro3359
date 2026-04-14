@@ -946,9 +946,21 @@ const MyAchievements: React.FC = () => {
                     key={visit.id}
                     type="button"
                     onClick={() => handleOpenAchievement(visit)}
-                    className={`w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] ${borderClass} ${cancelledMute}`}
+                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] overflow-hidden ${borderClass} ${cancelledMute}`}
                   >
-                    {/* Grid: 2 rows */}
+                    {/* Accounting stamp overlay */}
+                    {visit.isAccounted && (
+                      <div className="absolute -bottom-5 -left-5 w-16 h-16 pointer-events-none" style={{ transform: 'rotate(-20deg)' }}>
+                        <div className="w-full h-full rounded-full border-[3px] border-emerald-500/50 flex items-center justify-center">
+                          <div className="w-[calc(100%-6px)] h-[calc(100%-6px)] rounded-full border-[1.5px] border-dashed border-emerald-500/40 flex items-center justify-center">
+                            <span className="text-[7px] font-black text-emerald-600/60 leading-none text-center tracking-tight select-none">
+                              تمت<br/>المحاسبة
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* ROW 1: store/customer name (right) | date (left) */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1 flex items-baseline gap-1.5">
@@ -987,12 +999,6 @@ const MyAchievements: React.FC = () => {
                         {visit.isDebtSale && (
                           <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${isPartialDebt ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
-                          </span>
-                        )}
-                        {visit.isAccounted && (
-                          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border border-emerald-300 bg-emerald-50 text-emerald-700">
-                            <BadgeCheck className="w-3 h-3" />
-                            محاسبة
                           </span>
                         )}
                       </div>
