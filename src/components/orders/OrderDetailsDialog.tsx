@@ -113,6 +113,31 @@ const getPaymentMethodLabel = (order: any) => {
   return 'كاش';
 };
 
+const getPaymentCode = (order: any) => {
+  const paymentType = order?.payment_type;
+  const invoiceMethod = order?.invoice_payment_method;
+  const priceSubtype = order?.price_subtype || (order as any)?.items?.[0]?.price_subtype;
+
+  if (paymentType === 'with_invoice') {
+    // F1 = facture with cash/check/transfer/receipt
+    let code = 'F1';
+    if (invoiceMethod === 'cash') code += ' Cash';
+    else if (invoiceMethod === 'check') code += ' Chèque';
+    else if (invoiceMethod === 'transfer') code += ' Virement';
+    else if (invoiceMethod === 'receipt') code += ' Vers.Doc';
+    return code;
+  }
+  if (paymentType === 'without_invoice') {
+    // F2 = without invoice
+    let code = 'F2';
+    if (priceSubtype === 'retail' || priceSubtype === 'detail') code += ' Détail';
+    else if (priceSubtype === 'wholesale' || priceSubtype === 'gros') code += ' Gros';
+    else if (priceSubtype === 'super_wholesale' || priceSubtype === 'super_gros') code += ' S.Gros';
+    return code;
+  }
+  return '';
+};
+
 const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenChange, order, hideModifyAction = false, onCancelOrder, onResumeOrder }) => {
   const { dir } = useLanguage();
   const { user } = useAuth();
