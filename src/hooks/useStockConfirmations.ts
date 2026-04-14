@@ -84,7 +84,7 @@ export const useStockConfirmations = () => {
         .select('*')
         .eq('id', confirmationId)
         .eq('worker_id', workerId)
-        .single();
+        .maybeSingle();
       if (fetchErr || !conf) throw fetchErr || new Error('لم يتم العثور على العملية');
 
       const confirmation = conf as any;
