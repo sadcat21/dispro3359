@@ -96,9 +96,16 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
     const ppb = product?.pieces_per_box || 1;
 
     setSingleProductId(productId);
-    setNewQtyInput(existing ? boxesToBP(existing.new_quantity, ppb) : '1');
-    setCompQtyInput(existing ? boxesToBP(existing.compensation_quantity, ppb) : '0');
-    setCompOffersQtyInput(existing ? boxesToBP(existing.compensation_offers_quantity, ppb) : '0');
+    const ppb = product?.pieces_per_box || 1;
+    if (existing) {
+      setNewQtyFields(quantityToFields(existing.new_quantity, ppb));
+      setCompQtyFields(quantityToFields(existing.compensation_quantity, ppb));
+      setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, ppb));
+    } else {
+      setNewQtyFields({ boxes: '1', pieces: '000' });
+      setCompQtyFields({ boxes: '0', pieces: '000' });
+      setCompOffersQtyFields({ boxes: '0', pieces: '000' });
+    }
   };
 
   const removeItem = (productId: string) => {
