@@ -255,8 +255,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
-          <DialogHeader className="p-3 sm:p-4 pb-2 border-b shrink-0 space-y-1.5">
+        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm [&>button.absolute]:hidden" dir={dir}>
+          <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b shrink-0 space-y-1">
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="min-w-0 flex-1 text-sm font-bold leading-snug truncate">
                 {customer?.store_name || customer?.name || '—'}
@@ -270,34 +270,30 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 )}
                 <button
                   aria-label="إغلاق"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:bg-destructive/90"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:bg-destructive/90"
                   onClick={() => onOpenChange(false)}
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
-              <div className="flex items-center gap-1.5">
-                <span dir="ltr" className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
-                <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[9px] px-1.5 py-0">
-                  {paymentStateLabel}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-1.5 justify-end">
-                {paymentCode && (
-                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-bold">{paymentCode}</Badge>
-                )}
-                {order.created_at && <span className="text-muted-foreground text-[10px]">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
-              </div>
-              <div>
-                <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
-              </div>
-              {remainingAmount > 0 && (
-                <div className="text-end">
-                  <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+            <div className="flex items-center justify-between text-[10px]">
+              <div className="flex flex-col gap-0.5">
+                <span dir="ltr" className="font-bold text-primary text-xs">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
+                  {paymentCode && <Badge variant="outline" className="text-[8px] px-1 py-0 font-bold">{paymentCode}</Badge>}
+                  <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[8px] px-1 py-0">
+                    {paymentStateLabel}
+                  </Badge>
                 </div>
-              )}
+              </div>
+              <div className="flex flex-col items-end gap-0.5 text-[10px]">
+                <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
+                {remainingAmount > 0 && (
+                  <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+                )}
+              </div>
             </div>
           </DialogHeader>
 
@@ -310,7 +306,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
             ) : displayItems.length === 0 ? (
               <div className="py-6 text-center text-sm text-muted-foreground">لا توجد منتجات</div>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {displayItems.map((item: any, idx: number) => {
                   const n = normalizeSaleItem(item);
                   const productImage = item?.product?.image_url || item?.image_url || null;
@@ -318,15 +314,15 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   return (
                     <div
                       key={item.id || idx}
-                      className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-border"
+                      className="flex flex-col rounded-xl overflow-hidden shadow border border-border"
                     >
-                      <div className="px-2 py-1.5 border-b bg-muted border-border">
-                        <span className="font-bold text-xs leading-tight block truncate text-foreground">
+                      <div className="px-1.5 py-1 border-b bg-muted border-border">
+                        <span className="font-bold text-[10px] leading-tight block truncate text-foreground">
                           {n.productName}
                         </span>
                       </div>
                       <div
-                        className="relative w-full aspect-square bg-muted overflow-hidden cursor-pointer"
+                        className="relative w-full aspect-[4/3] bg-muted overflow-hidden cursor-pointer"
                         onClick={() => setExpandedItemIdx(expandedItemIdx === idx ? null : idx)}
                       >
                         {productImage ? (
@@ -352,8 +348,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                           </div>
                         )}
                       </div>
-                      <div className="px-1.5 py-1.5 bg-card flex items-center justify-center gap-1.5 border-t border-border">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      <div className="px-1 py-1 bg-card flex items-center justify-center gap-1 border-t border-border">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
                           {n.quantity}
                         </span>
                         {n.giftQuantity > 0 && (() => {
@@ -363,7 +359,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                             ? `${giftBoxes}.${String(giftRemPieces).padStart(2, '0')}`
                             : `${n.giftQuantity}`;
                           return (
-                            <span className="flex h-8 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-3 text-sm font-bold">
+                            <span className="flex h-6 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-2 text-[10px] font-bold">
                               🎁 {giftLabel}
                             </span>
                           );
@@ -387,12 +383,12 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
           <div className="shrink-0 border-t bg-background px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-4">
             <div className="flex items-center gap-2">
               <Button
-                className="h-11 flex-1 gap-2"
+                className="h-11 w-11 shrink-0 px-0"
+                size="icon"
                 onClick={() => setShowModifyDialog(true)}
                 disabled={hideModifyAction || orderItemsLoading || isDetailsLoading}
               >
-                <Pencil className="h-4 w-4" />
-                تعديل
+                <Pencil className="h-5 w-5" />
               </Button>
               {onCancelOrder && !isOrderCancelled && order?.id && (
                 <Button
