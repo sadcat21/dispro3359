@@ -264,26 +264,45 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   const productImage = item?.product?.image_url || item?.image_url || null;
                   const unitLabel = n.pricingUnit === 'kg' ? 'كغ' : n.pricingUnit === 'unit' ? 'وحدة' : 'صندوق';
                   return (
-                    <div key={item.id || idx} className="rounded-lg border bg-card p-2 space-y-1.5 text-center">
-                      <div className="mx-auto h-12 w-12 overflow-hidden rounded-lg border bg-muted/40">
+                    <div
+                      key={item.id || idx}
+                      className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-border"
+                    >
+                      <div className="px-2 py-1.5 border-b text-center bg-muted border-border">
+                        <span className="font-bold text-xs leading-tight block truncate text-foreground">
+                          {n.productName}
+                        </span>
+                      </div>
+                      <div className="w-full aspect-square bg-muted overflow-hidden">
                         {productImage ? (
-                          <img src={productImage} alt={n.productName} className="h-full w-full object-cover" loading="lazy" />
+                          <img src={productImage} alt={n.productName} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[8px] text-muted-foreground">—</div>
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-2xl text-muted-foreground/30">📦</span>
+                          </div>
                         )}
                       </div>
-                      <div className="text-[11px] font-medium leading-tight line-clamp-2 min-h-[2em]">{n.productName}</div>
-                      <div className="space-y-0.5 text-[10px] text-muted-foreground">
-                        <div>الكمية: <span className="font-bold text-foreground">{n.quantity}</span></div>
-                        <div>{formatAmountWithMaxFraction(n.unitPrice || 0)} DA/{unitLabel}</div>
-                        {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
-                          <div>سعر الكغ: {formatAmountWithMaxFraction(n.catalogUnitPrice)}</div>
-                        )}
+                      <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-primary/10 text-primary py-1 text-xs font-bold">
+                            {n.quantity}
+                          </div>
+                          {n.giftQuantity > 0 && (
+                            <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
+                              🎁 {n.giftQuantity}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-center text-[10px] text-muted-foreground">
+                          {formatAmountWithMaxFraction(n.unitPrice || 0)} DA/{unitLabel}
+                          {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
+                            <div>سعر الكغ: {formatAmountWithMaxFraction(n.catalogUnitPrice)}</div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
+                          {formatAmountWithMaxFraction(n.totalPrice || 0)} DA
+                        </div>
                       </div>
-                      <div className="text-xs font-bold text-primary">{formatAmountWithMaxFraction(n.totalPrice || 0)} DA</div>
-                      {n.giftQuantity > 0 && (
-                        <div className="text-[10px] text-emerald-600 font-medium">هدية: {n.giftQuantity}</div>
-                      )}
                     </div>
                   );
                 })}
