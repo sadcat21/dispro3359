@@ -224,30 +224,32 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-sm" dir={dir}>
-          <DialogHeader className="p-4 pb-2 border-b shrink-0">
-            <DialogTitle className="text-base">
-              {dialogTitle}
-              {(customer?.store_name || customer?.name) && (
-                <span className="text-sm font-normal text-muted-foreground mr-2">
-                  — {customer?.store_name || customer?.name}
-                </span>
+          <DialogHeader className="p-3 sm:p-4 pb-2 border-b shrink-0 space-y-1">
+            <DialogTitle className="text-sm font-bold leading-snug flex flex-wrap items-center gap-2">
+              <span>{customer?.store_name || customer?.name || '—'}</span>
+              {customer?.store_name && customer?.name && customer.store_name !== customer.name && (
+                <span className="text-xs font-normal text-muted-foreground">({customer.name})</span>
               )}
               {isOrderCancelled && (
-                <Badge variant="destructive" className="text-[10px] px-2 py-0.5 mr-2">ملغاة</Badge>
+                <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
               )}
             </DialogTitle>
-          </DialogHeader>
-
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground px-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold text-primary">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+              <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[10px] px-2 py-0.5">
+                {paymentStateLabel}
+              </Badge>
               {customer?.phone && (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
                   <Phone className="h-3 w-3" />
                   {customer.phone}
                 </span>
               )}
-              {order.created_at && <span>• {format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</span>}
+              {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</span>}
             </div>
+          </DialogHeader>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
 
             <div className="overflow-hidden rounded-lg border">
               <div className="border-b bg-muted/30 px-3 py-2 text-xs font-bold">المنتجات</div>
