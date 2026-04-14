@@ -521,6 +521,7 @@ const MyAchievements: React.FC = () => {
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
 
   const handleOpenAchievement = async (visit: any) => {
+    console.log('[Achievement] Opening visit:', visit.operation_type, visit.id, { isAccounted: visit.isAccounted, accountedDate: visit.accountedDate, operationId: visit.operation_id });
     if (visit.operation_type === 'debt_collection') {
       const debtId = visit.operation_id || visit.entity_id || visit.reference_id;
       if (debtId) {
@@ -674,7 +675,9 @@ const MyAchievements: React.FC = () => {
       return order as AchievementOrderDetails;
     };
 
-    setSelectedOrderDetails(buildQuickOrder());
+    const quickOrder = buildQuickOrder();
+    console.log('[Achievement] Quick order built:', { id: quickOrder.id, status: quickOrder.status, _isAccounted: quickOrder._isAccounted, _hideModifyAction: quickOrder._hideModifyAction });
+    setSelectedOrderDetails(quickOrder);
 
     if (!isOrderLike) {
       clearLoadingState();
