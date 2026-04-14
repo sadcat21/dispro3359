@@ -306,7 +306,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
             ) : displayItems.length === 0 ? (
               <div className="py-6 text-center text-sm text-muted-foreground">لا توجد منتجات</div>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {displayItems.map((item: any, idx: number) => {
                   const n = normalizeSaleItem(item);
                   const productImage = item?.product?.image_url || item?.image_url || null;
@@ -388,7 +388,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 disabled={hideModifyAction || orderItemsLoading || isDetailsLoading}
               >
                 <Pencil className="h-4 w-4" />
-                تعديل
               </Button>
               {onCancelOrder && !isOrderCancelled && order?.id && (
                 <Button
