@@ -618,7 +618,10 @@ const MyAchievements: React.FC = () => {
       ...(isSaleOperation ? { _forceSold: true } : {}),
       _selectionKey: selectionKey,
       _detailsLoading: isOrderLike && !entityId,
-      _hideModifyAction: !entityId,
+      _hideModifyAction: !entityId || (visit.isAccounted && !isAdminRole(role)),
+      _isAccounted: visit.isAccounted,
+      _accountedDate: visit.accountedDate,
+      _operationType: visit.operation_type,
     });
 
     const normalizeAchievementOrder = (order: OrderWithDetails | null): AchievementOrderDetails | null => {
