@@ -296,7 +296,10 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                           {n.quantity}
                         </span>
                       </div>
-                      <div className="w-full aspect-square bg-muted overflow-hidden">
+                      <div
+                        className="relative w-full aspect-square bg-muted overflow-hidden cursor-pointer"
+                        onClick={() => setExpandedItemIdx(expandedItemIdx === idx ? null : idx)}
+                      >
                         {productImage ? (
                           <img src={productImage} alt={n.productName} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
@@ -304,24 +307,26 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                             <span className="text-2xl text-muted-foreground/30">📦</span>
                           </div>
                         )}
-                      </div>
-                      <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1.5">
-                        <div dir="ltr" className="flex items-center justify-center rounded-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white">
-                          {formatAmountWithMaxFraction(n.unitPrice || 0)} DA
-                        </div>
-                        {n.giftQuantity > 0 && (
-                          <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
-                            🎁 {n.giftQuantity}
+                        {expandedItemIdx === idx && (
+                          <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 p-1.5 animate-in fade-in duration-200">
+                            <div dir="ltr" className="w-full flex items-center justify-center rounded-md bg-blue-600 py-1 px-1.5 text-[10px] font-bold text-white">
+                              {formatAmountWithMaxFraction(n.unitPrice || 0)} DA
+                            </div>
+                            {n.giftQuantity > 0 && (
+                              <div className="w-full flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
+                                🎁 {n.giftQuantity}
+                              </div>
+                            )}
+                            {n.catalogUnitPrice > 0 && catalogUnitLabel && (
+                              <div dir="ltr" className="w-full flex items-center justify-center rounded-md bg-emerald-600 py-1 text-[10px] font-bold text-white">
+                                {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/{catalogUnitLabel}
+                              </div>
+                            )}
+                            <div dir="ltr" className="w-full flex items-center justify-center rounded-md bg-destructive py-1 text-[10px] font-bold text-destructive-foreground">
+                              {formatAmountWithMaxFraction(n.totalPrice || 0)} DA
+                            </div>
                           </div>
                         )}
-                        {n.catalogUnitPrice > 0 && catalogUnitLabel && (
-                          <div dir="ltr" className="flex items-center justify-center rounded-md bg-emerald-600 py-1 text-[10px] font-bold text-white">
-                            {formatAmountWithMaxFraction(n.catalogUnitPrice)} DA/{catalogUnitLabel}
-                          </div>
-                        )}
-                        <div dir="ltr" className="flex items-center justify-center rounded-md bg-destructive py-1 text-[10px] font-bold text-destructive-foreground">
-                          {formatAmountWithMaxFraction(n.totalPrice || 0)} DA
-                        </div>
                       </div>
                     </div>
                   );
