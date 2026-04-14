@@ -771,89 +771,92 @@ const MyAchievements: React.FC = () => {
   };
 
   return (
-    <div className="p-3 sm:p-4 flex h-[100dvh] flex-col gap-3 overflow-hidden" dir="rtl">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-3xl font-black leading-tight">منجزات اليوم</h1>
-          <p className="text-sm text-muted-foreground truncate">{targetWorkerName || 'العامل'}</p>
+    <div className="p-2 sm:p-3 flex h-[100dvh] flex-col gap-1.5 overflow-hidden" dir="rtl">
+      {/* Hero section – compact grid */}
+      <div className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1">
+        {/* Title + worker name */}
+        <div className="min-w-0 flex items-center gap-2">
+          <h1 className="text-lg font-black leading-tight whitespace-nowrap">منجزات اليوم</h1>
+          <span className="text-xs text-muted-foreground truncate">{targetWorkerName || ''}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              aria-label="اليوم السابق"
-              onClick={() => {
-                const prev = new Date(`${periodFrom}T00:00:00`);
-                prev.setDate(prev.getDate() - 1);
-                const newDate = format(prev, 'yyyy-MM-dd');
-                setPeriodFrom(newDate);
-                setPeriodTo(newDate);
-              }}
-              className="flex items-center justify-center w-7 h-7 rounded-full border border-red-300 bg-red-100 hover:bg-red-200 text-red-600 shrink-0"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              aria-label="اختيار تاريخ"
-              onClick={() => setShowPeriodDialog(true)}
-              className={`flex items-center gap-0.5 px-2 py-1 rounded-full border text-[10px] font-medium whitespace-nowrap transition-colors shrink-0 ${
-                periodFrom !== today || periodTo !== today
-                  ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
-                  : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              <CalendarCheck className="w-3 h-3" />
-              <span dir="ltr">
-                {periodFrom === today && periodTo === today
-                  ? 'اليوم'
-                  : periodFrom === periodTo
-                    ? format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')
-                    : `${format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')} - ${format(new Date(`${periodTo}T00:00:00`), 'MM/dd')}`
-                }
-              </span>
-            </button>
-            <button
-              type="button"
-              aria-label="اليوم التالي"
-              onClick={() => {
-                const next = new Date(`${periodTo}T00:00:00`);
-                next.setDate(next.getDate() + 1);
-                const newDate = format(next, 'yyyy-MM-dd');
-                setPeriodFrom(newDate);
-                setPeriodTo(newDate);
-              }}
-              className="flex items-center justify-center w-7 h-7 rounded-full border border-green-300 bg-green-100 hover:bg-green-200 text-green-600 shrink-0"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-          </div>
+
+        {/* Date navigation */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            aria-label="اليوم السابق"
+            onClick={() => {
+              const prev = new Date(`${periodFrom}T00:00:00`);
+              prev.setDate(prev.getDate() - 1);
+              const newDate = format(prev, 'yyyy-MM-dd');
+              setPeriodFrom(newDate);
+              setPeriodTo(newDate);
+            }}
+            className="flex items-center justify-center w-6 h-6 rounded-full border border-red-300 bg-red-100 hover:bg-red-200 text-red-600"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </button>
+          <button
+            type="button"
+            aria-label="اختيار تاريخ"
+            onClick={() => setShowPeriodDialog(true)}
+            className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full border text-[10px] font-medium whitespace-nowrap transition-colors ${
+              periodFrom !== today || periodTo !== today
+                ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
+                : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            <CalendarCheck className="w-3 h-3" />
+            <span dir="ltr">
+              {periodFrom === today && periodTo === today
+                ? 'اليوم'
+                : periodFrom === periodTo
+                  ? format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')
+                  : `${format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')} - ${format(new Date(`${periodTo}T00:00:00`), 'MM/dd')}`
+              }
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-label="اليوم التالي"
+            onClick={() => {
+              const next = new Date(`${periodTo}T00:00:00`);
+              next.setDate(next.getDate() + 1);
+              const newDate = format(next, 'yyyy-MM-dd');
+              setPeriodFrom(newDate);
+              setPeriodTo(newDate);
+            }}
+            className="flex items-center justify-center w-6 h-6 rounded-full border border-green-300 bg-green-100 hover:bg-green-200 text-green-600"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Search + action buttons in one row */}
+        <div className="col-span-2 flex items-center gap-1.5">
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ابحث باسم العميل أو المحل أو الهاتف"
+            className="h-8 rounded-xl text-xs flex-1 min-w-0"
+          />
           <Button
-            className="h-8 rounded-full px-2.5 text-[10px] sm:text-xs whitespace-nowrap"
+            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
             variant="outline"
             onClick={() => setShowHandoverSummary(true)}
           >
-            <ClipboardList className="w-3 h-3 ml-1" />
+            <ClipboardList className="w-3 h-3 ml-0.5" />
             ملخص التسليم
           </Button>
           <Button
             variant="outline"
-            className="h-8 rounded-full px-2.5 text-[10px] sm:text-xs whitespace-nowrap"
+            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
             onClick={() => setShowSalesSummary(true)}
           >
-            <Package className="w-3 h-3 ml-1" />
+            <Package className="w-3 h-3 ml-0.5" />
             تجميع المبيعات
           </Button>
         </div>
-      </div>
-
-      <div className="px-1">
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="ابحث باسم العميل أو المحل أو الهاتف"
-          className="h-10 rounded-xl"
-        />
       </div>
 
       <Card className={`rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
