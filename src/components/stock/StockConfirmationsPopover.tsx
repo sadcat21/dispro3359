@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Truck, Check, ChevronDown, ChevronUp, Loader2, Package, AlertTriangle, Inbox, Send, History, Edit, Scale } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Truck, Check, ChevronDown, ChevronUp, Loader2, Package, AlertTriangle, Inbox, Send, History, Edit, Scale, CheckCheck, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -39,7 +39,7 @@ const fmtQty = (qty: number): string => {
 };
 
 interface WorkerVerification {
-  [productId: string]: number | '';
+  [productId: string]: { matched: boolean; qty: number | '' };
 }
 
 const parseMismatches = (note: string | null): { product: string; expected: string; actual: string }[] => {
@@ -52,7 +52,7 @@ const parseMismatches = (note: string | null): { product: string; expected: stri
   }).filter(m => m.product);
 };
 
-// ─── Incoming Tab: Items the current user needs to act on ───
+// ─── Incoming Tab: Grid-based product cards with match buttons ───
 const IncomingTab: React.FC<{
   confirmations: StockConfirmation[];
   isLoading: boolean;
@@ -70,21 +70,39 @@ const IncomingTab: React.FC<{
     } else {
       setExpandedId(conf.id);
       const inputs: WorkerVerification = {};
-      conf.items.forEach(item => { inputs[item.product_id] = ''; });
+      conf.items.forEach(item => { inputs[item.product_id] = { matched: false, qty: '' }; });
       setWorkerInputs(inputs);
     }
   };
 
-  const handleVerifyAndSubmit = (conf: StockConfirmation) => {
-    const allFilled = conf.items.every(item => {
-      const val = workerInputs[item.product_id];
-      return val !== '' && val !== undefined;
+  const handleMatchAll = useCallback((conf: StockConfirmation) => {
+    const inputs: WorkerVerification = {};
+    conf.items.forEach(item => { inputs[item.product_id] = { matched: true, qty: item.quantity }; });
+    setWorkerInputs(inputs);
+  }, []);
+
+  const handleToggleMatch = (productId: string, itemQty: number) => {
+    setWorkerInputs(prev => {
+      const current = prev[productId];
+      if (current?.matched) {
+        return { ...prev, [productId]: { matched: false, qty: '' } };
+      }
+      return { ...prev, [productId]: { matched: true, qty: itemQty } };
     });
-    if (!allFilled) return;
+  };
+
+  const handleSubmit = (conf: StockConfirmation) => {
+    const allHandled = conf.items.every(item => {
+      const v = workerInputs[item.product_id];
+      return v?.matched || (v?.qty !== '' && v?.qty !== undefined);
+    });
+    if (!allHandled) return;
 
     const mismatches: { product_name: string; expected: number; actual: number }[] = [];
     conf.items.forEach(item => {
-      const workerQty = Number(workerInputs[item.product_id]) || 0;
+      const v = workerInputs[item.product_id];
+      if (!v) return;
+      const workerQty = v.matched ? item.quantity : Number(v.qty) || 0;
       if (Math.abs(workerQty - item.quantity) > 0.001) {
         mismatches.push({
           product_name: getProductDisplayName({ name: item.product_name, app_name: item.product_app_name }),
@@ -96,16 +114,14 @@ const IncomingTab: React.FC<{
 
     if (mismatches.length === 0) {
       onApprove(conf.id);
-      setExpandedId(null);
-      setWorkerInputs({});
     } else {
       const mismatchDetails = mismatches.map(m =>
         `${m.product_name}: المسؤول=${fmtQty(m.expected)} العامل=${fmtQty(m.actual)}`
       ).join(' | ');
       onReject(conf.id, `عدم تطابق الكميات: ${mismatchDetails}`);
-      setExpandedId(null);
-      setWorkerInputs({});
     }
+    setExpandedId(null);
+    setWorkerInputs({});
   };
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
@@ -116,15 +132,16 @@ const IncomingTab: React.FC<{
       {confirmations.map(conf => {
         const isExpanded = expandedId === conf.id;
         const isAmended = conf.status === 'amended' || !!conf.previous_items;
-        const allFilled = isExpanded && conf.items.every(item => {
-          const val = workerInputs[item.product_id];
-          return val !== '' && val !== undefined;
+        const allHandled = isExpanded && conf.items.every(item => {
+          const v = workerInputs[item.product_id];
+          return v?.matched || (v?.qty !== '' && v?.qty !== undefined);
         });
-        const currentMismatches = isExpanded ? conf.items.filter(item => {
-          const val = workerInputs[item.product_id];
-          if (val === '' || val === undefined) return false;
-          return Math.abs(Number(val) - item.quantity) > 0.001;
-        }) : [];
+        const hasMismatches = isExpanded && conf.items.some(item => {
+          const v = workerInputs[item.product_id];
+          if (!v || (!v.matched && (v.qty === '' || v.qty === undefined))) return false;
+          const workerQty = v.matched ? item.quantity : Number(v.qty) || 0;
+          return Math.abs(workerQty - item.quantity) > 0.001;
+        });
 
         return (
           <div key={conf.id} className="border rounded-lg overflow-hidden">
@@ -145,84 +162,122 @@ const IncomingTab: React.FC<{
                     <span className="font-bold">ملاحظة التعديل:</span> {conf.amendment_note}
                   </div>
                 )}
-                {conf.previous_items && conf.previous_items.length > 0 && (
-                  <div className="bg-muted/30 rounded p-2 text-[10px]">
-                    <span className="font-bold text-muted-foreground">الكميات السابقة:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {conf.previous_items.map((prev, i) => (
-                        <span key={i} className="line-through text-destructive">
-                          {getProductDisplayName({ name: prev.product_name, app_name: prev.product_app_name })}: {fmtQty(prev.quantity)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
-                <div className="border rounded-md overflow-hidden">
-                  <div className="grid grid-cols-[1fr_auto_auto] gap-0 text-[10px] font-bold bg-muted/70 p-1.5">
-                    <span>المنتج</span>
-                    <span className="w-16 text-center">المسؤول</span>
-                    <span className="w-20 text-center">ما لديك</span>
-                  </div>
+                {/* Match All button */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full h-8 text-[11px] font-bold border-green-500 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"
+                  onClick={() => handleMatchAll(conf)}
+                >
+                  <CheckCheck className="w-4 h-4 me-1" />
+                  مطابقة الكل
+                </Button>
+
+                {/* Product Grid - 3 columns */}
+                <div className="grid grid-cols-3 gap-2">
                   {conf.items.map((item, idx) => {
                     const displayName = getProductDisplayName({ name: item.product_name, app_name: item.product_app_name });
-                    const workerVal = workerInputs[item.product_id];
-                    const isFilled = workerVal !== '' && workerVal !== undefined;
-                    const hasMismatch = isFilled && Math.abs(Number(workerVal) - item.quantity) > 0.001;
+                    const v = workerInputs[item.product_id];
+                    const isMatched = v?.matched;
+                    const hasCustomQty = !isMatched && v?.qty !== '' && v?.qty !== undefined;
+                    const hasDiff = hasCustomQty && Math.abs(Number(v.qty) - item.quantity) > 0.001;
+
                     return (
-                      <div key={idx} className={`grid grid-cols-[1fr_auto_auto] gap-0 items-center p-1.5 border-t ${hasMismatch ? 'bg-red-50 dark:bg-red-950/20' : ''}`}>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          {item.image_url ? (
-                            <img src={item.image_url} className="w-7 h-7 rounded object-cover shrink-0" alt="" />
-                          ) : (
-                            <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0">
-                              <Package className="w-3.5 h-3.5 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-bold truncate leading-tight">{displayName}</p>
-                            {(item.gift_quantity || 0) > 0 && <p className="text-[9px] text-green-600">+{item.gift_quantity} هدية</p>}
+                      <div
+                        key={idx}
+                        className={`relative border rounded-lg p-1.5 flex flex-col items-center text-center transition-all ${
+                          isMatched ? 'border-green-500 bg-green-50 dark:bg-green-950/20' :
+                          hasDiff ? 'border-destructive bg-red-50 dark:bg-red-950/20' :
+                          'border-border'
+                        }`}
+                      >
+                        {/* Product Image */}
+                        {item.image_url ? (
+                          <img src={item.image_url} className="w-12 h-12 rounded-lg object-cover mb-1" alt="" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-1">
+                            <Package className="w-6 h-6 text-muted-foreground" />
                           </div>
-                        </div>
-                        <div className="w-16 text-center">
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">{fmtQty(item.quantity)}</Badge>
-                        </div>
-                        <div className="w-20">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={workerVal}
-                            onChange={e => {
-                              const val = e.target.value;
-                              setWorkerInputs(prev => ({ ...prev, [item.product_id]: val === '' ? '' : parseFloat(val) }));
-                            }}
-                            className={`h-7 text-[11px] text-center px-1 ${hasMismatch ? 'border-destructive bg-red-50 dark:bg-red-950/30 text-destructive font-bold' : ''}`}
-                            placeholder="الكمية"
-                          />
-                        </div>
+                        )}
+
+                        {/* Product Name (app_name) */}
+                        <p className="text-[9px] font-bold leading-tight line-clamp-2 mb-1 min-h-[24px]">{displayName}</p>
+
+                        {/* Warehouse Quantity Badge */}
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold mb-1.5">
+                          {fmtQty(item.quantity)}
+                        </Badge>
+                        {(item.gift_quantity || 0) > 0 && (
+                          <span className="text-[8px] text-green-600 font-bold">+{item.gift_quantity} هدية</span>
+                        )}
+
+                        {/* Match/Unmatch Button */}
+                        {!hasCustomQty && (
+                          <button
+                            onClick={() => handleToggleMatch(item.product_id, item.quantity)}
+                            className={`w-full mt-1 rounded-md py-1 text-[10px] font-bold transition-all ${
+                              isMatched
+                                ? 'bg-green-600 text-white'
+                                : 'bg-muted hover:bg-muted/80 text-foreground'
+                            }`}
+                          >
+                            {isMatched ? <><Check className="w-3 h-3 inline me-0.5" />مطابق</> : 'مطابقة'}
+                          </button>
+                        )}
+
+                        {/* Difference Input (shows when not matched) */}
+                        {!isMatched && (
+                          <div className="w-full mt-1">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={v?.qty ?? ''}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setWorkerInputs(prev => ({
+                                  ...prev,
+                                  [item.product_id]: { matched: false, qty: val === '' ? '' : parseFloat(val) }
+                                }));
+                              }}
+                              className={`h-6 text-[10px] text-center px-1 ${hasDiff ? 'border-destructive text-destructive font-bold' : ''}`}
+                              placeholder="الكمية"
+                            />
+                          </div>
+                        )}
+
+                        {/* Matched Checkmark overlay */}
+                        {isMatched && (
+                          <div className="absolute top-1 left-1">
+                            <div className="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center">
+                              <Check className="w-2.5 h-2.5 text-white" />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
 
-                {currentMismatches.length > 0 && (
+                {hasMismatches && (
                   <div className="flex items-start gap-1.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-2 text-[10px] text-destructive">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    <span>يوجد عدم تطابق في {currentMismatches.length} منتج. عند التأكيد سيتم رفض العملية تلقائياً.</span>
+                    <span>يوجد عدم تطابق. عند التأكيد سيتم رفض العملية تلقائياً.</span>
                   </div>
                 )}
 
+                {/* Submit Button */}
                 <Button
                   size="sm"
-                  className={`w-full h-9 text-xs font-bold ${currentMismatches.length > 0 ? 'bg-destructive hover:bg-destructive/90' : 'bg-green-600 hover:bg-green-700'} text-white`}
-                  onClick={() => handleVerifyAndSubmit(conf)}
-                  disabled={!allFilled || isPending}
+                  className={`w-full h-9 text-xs font-bold ${hasMismatches ? 'bg-destructive hover:bg-destructive/90' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                  onClick={() => handleSubmit(conf)}
+                  disabled={!allHandled || isPending}
                 >
-                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : currentMismatches.length > 0 ? (
+                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : hasMismatches ? (
                     <><AlertTriangle className="w-4 h-4 me-1" />تأكيد مع إبلاغ عن عدم التطابق</>
                   ) : (
-                    <><Check className="w-4 h-4 me-1" />تأكيد المطابقة - موافقة</>
+                    <><Check className="w-4 h-4 me-1" />موافقة</>
                   )}
                 </Button>
               </div>
