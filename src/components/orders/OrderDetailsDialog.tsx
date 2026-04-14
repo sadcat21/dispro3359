@@ -120,18 +120,18 @@ const getPaymentCode = (order: any, items?: any[]) => {
 
   if (paymentType === 'with_invoice') {
     let code = 'F1';
-    if (invoiceMethod === 'cash') code += '·Cash';
-    else if (invoiceMethod === 'check') code += '·Chèque';
-    else if (invoiceMethod === 'transfer') code += '·Vir';
-    else if (invoiceMethod === 'receipt') code += '·Vers';
+    if (invoiceMethod === 'cash') code += '·C';
+    else if (invoiceMethod === 'check') code += '·Ch';
+    else if (invoiceMethod === 'transfer') code += '·Vi';
+    else if (invoiceMethod === 'receipt') code += '·Ve';
     return code;
   }
   if (paymentType === 'without_invoice') {
     let code = 'F2';
-    if (priceSubtype === 'retail' || priceSubtype === 'detail') code += '·Dét';
-    else if (priceSubtype === 'wholesale' || priceSubtype === 'gros') code += '·Gros';
-    else if (priceSubtype === 'super_wholesale' || priceSubtype === 'super_gros') code += '·S.Gros';
-    else code += '·Gros';
+    if (priceSubtype === 'retail' || priceSubtype === 'detail') code += '·D';
+    else if (priceSubtype === 'wholesale' || priceSubtype === 'gros') code += '·G';
+    else if (priceSubtype === 'super_wholesale' || priceSubtype === 'super_gros') code += '·SG';
+    else code += '·G';
     return code;
   }
   return '';
