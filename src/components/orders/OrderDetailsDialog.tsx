@@ -268,26 +268,13 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 {isOrderCancelled && (
                   <Badge variant="destructive" className="text-[10px] px-2 py-0.5">ملغاة</Badge>
                 )}
-                <Button
-                  aria-label="طباعة الوصل"
-                  className="h-8 w-8 shrink-0 border-0 bg-blue-600 px-0 text-white hover:bg-blue-700 hover:text-white"
-                  size="icon"
-                  title="طباعة الوصل"
-                  onClick={() => setShowReceiptDialog(true)}
-                  disabled={orderItemsLoading || isDetailsLoading}
+                <button
+                  aria-label="إغلاق"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:bg-destructive/90"
+                  onClick={() => onOpenChange(false)}
                 >
-                  <Printer className="h-4 w-4" />
-                </Button>
-                {customer?.phone && (
-                  <a
-                    aria-label="الاتصال بالعميل"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
-                    href={`tel:${customer.phone}`}
-                    title="الاتصال بالعميل"
-                  >
-                    <Phone className="h-4 w-4" />
-                  </a>
-                )}
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
@@ -430,13 +417,22 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 </Button>
               )}
               <Button
-                className="h-11 gap-2"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
+                aria-label="طباعة الوصل"
+                className="h-11 gap-2 border-0 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
+                onClick={() => setShowReceiptDialog(true)}
+                disabled={orderItemsLoading || isDetailsLoading}
               >
-                <X className="h-4 w-4" />
-                إغلاق
+                <Printer className="h-4 w-4" />
               </Button>
+              {customer?.phone && (
+                <a
+                  aria-label="الاتصال بالعميل"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-white transition-colors hover:bg-emerald-700"
+                  href={`tel:${customer.phone}`}
+                >
+                  <Phone className="h-4 w-4" />
+                </a>
+              )}
             </div>
           </div>
         </DialogContent>
