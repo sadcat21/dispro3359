@@ -274,7 +274,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       if (!orderIds.length) return [];
       const { data, error } = await supabase
         .from('orders')
-        .select('id, payment_type, invoice_payment_method, document_verification')
+        .select('id, status, payment_type, invoice_payment_method, document_verification')
         .in('id', orderIds);
 
       if (error) throw error;
