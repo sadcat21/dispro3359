@@ -962,11 +962,11 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
           </DialogContent>
         </Dialog>
 
-        {isLoading && !(data && data.length > 0) ? (
+        {isLoading && (!data || (data as WorkerSummary[]).length === 0) ? (
           <div className="flex min-h-[320px] items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-red-500" />
           </div>
-        ) : !(data && data.length > 0) ? (
+        ) : (!data || (data as WorkerSummary[]).length === 0) ? (
           <div className="flex min-h-[280px] flex-col items-center justify-center gap-3 px-4 text-slate-500 sm:min-h-[320px]">
             <ClipboardList className="h-10 w-10 opacity-40" />
             <p className="text-center">
