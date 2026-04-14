@@ -956,13 +956,18 @@ const MyAchievements: React.FC = () => {
                     {visit.isAccounted && (() => {
                       const isNonFinancial = ['add_customer', 'update_customer', 'delete_customer'].includes(visit.operation_type);
                       const stampLabel = isNonFinancial ? 'الموافقة' : 'المحاسبة';
+                      const borderColor = isNonFinancial ? 'border-blue-500/50' : 'border-destructive/50';
+                      const borderDash = isNonFinancial ? 'border-blue-500/40' : 'border-destructive/40';
+                      const bgColor = isNonFinancial ? 'bg-blue-500/5' : 'bg-destructive/5';
+                      const textColor = isNonFinancial ? 'text-blue-600/70' : 'text-destructive/70';
+                      const textColorLight = isNonFinancial ? 'text-blue-600/60' : 'text-destructive/60';
                       return (
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 rotate-[-15deg]">
-                          <div className="w-[72px] h-[72px] rounded-full border-[2.5px] border-destructive/50 flex items-center justify-center bg-destructive/5">
-                            <div className="w-[58px] h-[58px] rounded-full border-[1.5px] border-dashed border-destructive/40 flex flex-col items-center justify-center gap-[2px]">
-                              <span className="text-[8px] font-black text-destructive/70 leading-none select-none">تمت</span>
-                              <span className="text-[7.5px] font-black text-destructive/70 leading-none select-none">{stampLabel}</span>
-                              <span className="text-[8px] font-bold text-destructive/60 leading-none select-none tabular-nums mt-[1px]" dir="ltr">
+                          <div className={`w-[72px] h-[72px] rounded-full border-[2.5px] ${borderColor} flex items-center justify-center ${bgColor}`}>
+                            <div className={`w-[58px] h-[58px] rounded-full border-[1.5px] border-dashed ${borderDash} flex flex-col items-center justify-center gap-[2px]`}>
+                              <span className={`text-[8px] font-black ${textColor} leading-none select-none`}>تمت</span>
+                              <span className={`text-[7.5px] font-black ${textColor} leading-none select-none`}>{stampLabel}</span>
+                              <span className={`text-[8px] font-bold ${textColorLight} leading-none select-none tabular-nums mt-[1px]`} dir="ltr">
                                 {format(new Date(visit.accountedDate), 'dd/MM')}
                               </span>
                             </div>
