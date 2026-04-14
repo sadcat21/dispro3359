@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AdaptiveScrollContainer from '@/components/ui/adaptive-scroll-container';
 import { Input } from '@/components/ui/input';
-import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, BadgeCheck } from 'lucide-react';
+import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
