@@ -314,15 +314,15 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   return (
                     <div
                       key={item.id || idx}
-                      className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-border"
+                      className="flex flex-col rounded-xl overflow-hidden shadow border border-border"
                     >
-                      <div className="px-2 py-1.5 border-b bg-muted border-border">
-                        <span className="font-bold text-xs leading-tight block truncate text-foreground">
+                      <div className="px-1.5 py-1 border-b bg-muted border-border">
+                        <span className="font-bold text-[10px] leading-tight block truncate text-foreground">
                           {n.productName}
                         </span>
                       </div>
                       <div
-                        className="relative w-full aspect-square bg-muted overflow-hidden cursor-pointer"
+                        className="relative w-full aspect-[4/3] bg-muted overflow-hidden cursor-pointer"
                         onClick={() => setExpandedItemIdx(expandedItemIdx === idx ? null : idx)}
                       >
                         {productImage ? (
