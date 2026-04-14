@@ -1066,7 +1066,7 @@ const MyAchievements: React.FC = () => {
       />
 
       <WorkerHandoverPreviewDialog open={showHandoverSummary} onOpenChange={setShowHandoverSummary} />
-      <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} />
+      <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
       <WorkerOrdersSummaryDialog open={showOrdersSummary} onOpenChange={setShowOrdersSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} />
       <DebtAggregatesDialog open={showDebtAggregates} onOpenChange={setShowDebtAggregates} workerId={targetWorkerId || undefined} dateFrom={dateFrom} dateTo={dateTo} />
     </div>
