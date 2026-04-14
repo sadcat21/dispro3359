@@ -962,7 +962,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
           </DialogContent>
         </Dialog>
 
-        {isLoading ? (
+        {isLoading && !data?.length ? (
           <div className="flex min-h-[320px] items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-red-500" />
           </div>
