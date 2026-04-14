@@ -619,16 +619,16 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         )}
 
         {!expandedProduct && salesData?.items?.length ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <TabsList className="w-full shrink-0">
               <TabsTrigger value="products" className="flex-1 text-xs">المنتجات</TabsTrigger>
               <TabsTrigger value="pricing" className="flex-1 text-xs">المتابعة السعرية</TabsTrigger>
               <TabsTrigger value="groups" className="flex-1 text-xs">مجموعات التسعير</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="products" className="flex-1 min-h-0 mt-1">
-              <ScrollArea className="h-full min-h-0">
-                <div className="grid grid-cols-3 gap-2 pb-2">
+            <TabsContent value="products" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
+                <div className="grid grid-cols-3 gap-2 pb-4">
                   {salesData.items.map((item) => (
                     <div
                       key={item.productId}
@@ -668,23 +668,23 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </TabsContent>
 
-            <TabsContent value="pricing" className="flex-1 min-h-0 mt-1">
-              <ScrollArea className="h-full min-h-0">
+            <TabsContent value="pricing" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
                 <PriceTrackingTab priceTracking={salesData.priceTracking || []} />
-              </ScrollArea>
+              </div>
             </TabsContent>
 
-            <TabsContent value="groups" className="flex-1 min-h-0 mt-1">
-              <ScrollArea className="h-full min-h-0">
+            <TabsContent value="groups" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
                 <PricingGroupsSummary
                   workerId={workerId!}
                   periodStart={lastAccounting || new Date().toISOString().split('T')[0]}
                   periodEnd={new Date().toISOString()}
                 />
-              </ScrollArea>
+              </div>
             </TabsContent>
           </Tabs>
         ) : (
