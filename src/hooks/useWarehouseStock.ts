@@ -101,9 +101,9 @@ export const useWarehouseStock = () => {
   }, [branchId]);
 
   const fetchWorkers = useCallback(async () => {
-    let query = supabase.from('workers_safe').select('id, full_name, username').eq('is_active', true);
-    if (branchId) query = query.eq('branch_id', branchId);
-    const { data } = await query;
+    // Always filter by branch to prevent mixing test/real workers
+    if (!branchId) { setWorkers([]); return; }
+    const { data } = await supabase.from('workers_safe').select('id, full_name, username').eq('is_active', true).eq('branch_id', branchId);
     setWorkers((data || []).map(w => ({ id: w.id!, full_name: w.full_name!, username: w.username! })));
   }, [branchId]);
 
