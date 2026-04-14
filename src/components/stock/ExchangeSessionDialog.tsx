@@ -1,13 +1,11 @@
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCw, Plus, Trash2, Loader2, Package, Search } from 'lucide-react';
+import { RefreshCw, Package, Trash2, Loader2, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -16,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 interface ExchangeItem {
   product_id: string;
   product_name: string;
-  damaged_pieces: number; // quantity entered in pieces
+  damaged_pieces: number;
   pieces_per_box: number;
 }
 
@@ -59,13 +57,16 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
   const [items, setItems] = useState<ExchangeItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<{ id: string; name: string; pieces_per_box: number; image_url?: string | null }[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showProductPicker, setShowProductPicker] = useState(false);
+  
+  // Single product quantity entry (like ProductPickerDialog)
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [qtyInput, setQtyInput] = useState('');
 
-  // Fetch products
   useEffect(() => {
     if (!open) return;
     setItems([]);
+    setSelectedProductId(null);
+    setQtyInput('');
     const fetch = async () => {
       const { data } = await supabase
         .from('products')
@@ -77,33 +78,45 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
     fetch();
   }, [open]);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
-    const term = searchTerm.toLowerCase();
-    return products.filter(p => p.name.toLowerCase().includes(term));
-  }, [products, searchTerm]);
+  const addedMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    items.forEach(i => { map[i.product_id] = i.damaged_pieces; });
+    return map;
+  }, [items]);
 
-  const addProduct = (product: { id: string; name: string; pieces_per_box: number; image_url?: string | null }) => {
-    if (items.find(i => i.product_id === product.id)) {
-      toast.error('المنتج مضاف مسبقاً');
-      return;
+  const handleProductTap = (p: typeof products[0]) => {
+    const existing = items.find(i => i.product_id === p.id);
+    setSelectedProductId(p.id);
+    setQtyInput(existing ? String(existing.damaged_pieces) : '');
+  };
+
+  const handleConfirmQty = () => {
+    if (!selectedProductId) return;
+    const qty = parseInt(qtyInput || '0', 10);
+    if (qty <= 0) {
+      // Remove if zero
+      setItems(prev => prev.filter(i => i.product_id !== selectedProductId));
+    } else {
+      const product = products.find(p => p.id === selectedProductId);
+      if (!product) return;
+      setItems(prev => {
+        const existing = prev.find(i => i.product_id === selectedProductId);
+        if (existing) {
+          return prev.map(i => i.product_id === selectedProductId ? { ...i, damaged_pieces: qty } : i);
+        }
+        return [...prev, {
+          product_id: selectedProductId,
+          product_name: getProductDisplayName(product),
+          damaged_pieces: qty,
+          pieces_per_box: product.pieces_per_box,
+        }];
+      });
     }
-    setItems(prev => [...prev, {
-      product_id: product.id,
-      product_name: getProductDisplayName(product),
-      damaged_pieces: 0,
-      pieces_per_box: product.pieces_per_box,
-    }]);
-    setShowProductPicker(false);
-    setSearchTerm('');
+    setSelectedProductId(null);
+    setQtyInput('');
   };
 
-  const updateQty = (productId: string, qty: number) => {
-    const safePieces = Number.isFinite(qty) ? Math.max(0, Math.floor(qty)) : 0;
-    setItems(prev => prev.map(i => i.product_id === productId ? { ...i, damaged_pieces: safePieces } : i));
-  };
-
-  const removeItem = (productId: string) => {
+  const handleRemoveProduct = (productId: string) => {
     setItems(prev => prev.filter(i => i.product_id !== productId));
   };
 
@@ -116,7 +129,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
     }
     setIsSubmitting(true);
     try {
-      // 1. Create exchange session
       const { data: session, error: sessionError } = await supabase
         .from('loading_sessions')
         .insert({
@@ -131,11 +143,9 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
         .single();
       if (sessionError) throw sessionError;
 
-      // 2. For each item: deduct from warehouse, add to damaged, record session item
       for (const item of validItems) {
         const exchangeQtyCustom = piecesToCustomQty(item.damaged_pieces, item.pieces_per_box);
 
-        // Save session item
         await supabase.from('loading_session_items').insert({
           session_id: session.id,
           product_id: item.product_id,
@@ -147,7 +157,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
           notes: `استبدال تالف: ${fmtQty(exchangeQtyCustom)}`,
         });
 
-        // Deduct from warehouse stock (good product) and add into damaged stock
         const { data: whStock } = await supabase
           .from('warehouse_stock')
           .select('id, quantity, damaged_quantity')
@@ -158,7 +167,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
         if (whStock) {
           const warehouseQtyPieces = customToTotalPieces(Number(whStock.quantity || 0), item.pieces_per_box);
           const warehouseDamagedPieces = customToTotalPieces(Number(whStock.damaged_quantity || 0), item.pieces_per_box);
-
           const newQtyPieces = Math.max(0, warehouseQtyPieces - item.damaged_pieces);
           const newDamagedPieces = warehouseDamagedPieces + item.damaged_pieces;
 
@@ -170,7 +178,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
             })
             .eq('id', whStock.id);
         } else {
-          // No warehouse stock exists - create with 0 qty and damaged count
           await supabase.from('warehouse_stock').insert({
             branch_id: branchId,
             product_id: item.product_id,
@@ -179,7 +186,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
           });
         }
 
-        // Record stock movement
         await supabase.from('stock_movements').insert({
           product_id: item.product_id,
           branch_id: branchId,
@@ -192,7 +198,6 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
         });
       }
 
-      // 3. Invalidate caches
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['loading-sessions'] }),
         queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] }),
@@ -212,150 +217,205 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90dvh] flex flex-col overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <RefreshCw className="w-5 h-5 text-primary" />
-            جلسة استبدال تالف
-          </DialogTitle>
-          <DialogDescription>
-            استبدال منتجات تالفة بمنتجات سليمة للعامل: <strong>{workerName}</strong>
-          </DialogDescription>
-          <p className="text-xs text-muted-foreground">
-            رصيد الشاحنة لن يتغير — سيتم خصم من مخزون الفرع وإضافة للتالف
-          </p>
-        </DialogHeader>
+  const selectedProduct = selectedProductId ? products.find(p => p.id === selectedProductId) : null;
 
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="space-y-3 p-1">
-            {items.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">اضغط "إضافة منتج" لتحديد المنتجات التالفة</p>
-              </div>
-            ) : items.map(item => (
-              <Card key={item.product_id} className="border">
-                <CardContent className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{item.product_name}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                      onClick={() => removeItem(item.product_id)}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs shrink-0">كمية التالف (بالقطعة):</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={item.damaged_pieces || ''}
-                      onFocus={e => e.target.select()}
-                      onChange={e => updateQty(item.product_id, parseInt(e.target.value || '0', 10))}
-                      className="h-8 text-center flex-1"
-                      placeholder="مثال: 1 أو 20"
-                    />
-                  </div>
-                  {item.damaged_pieces > 0 && (
-                    <div className="text-xs text-muted-foreground bg-orange-50 dark:bg-orange-900/10 rounded px-2 py-1">
-                      سيتم خصم <strong>{item.damaged_pieces}</strong> قطعة ({fmtQty(piecesToCustomQty(item.damaged_pieces, item.pieces_per_box))}) من المخزن وإضافتها كتالف
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+  const renderProductButton = (p: typeof products[0]) => {
+    const isAdded = !!addedMap[p.id];
+    const addedQty = addedMap[p.id] || 0;
 
-        {/* Product picker inline */}
-        {showProductPicker && (
-          <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="بحث عن منتج..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="h-8 text-sm"
-                autoFocus
-              />
-              <Button variant="ghost" size="sm" className="h-8" onClick={() => { setShowProductPicker(false); setSearchTerm(''); }}>
-                إلغاء
-              </Button>
-            </div>
-            <ScrollArea className="max-h-[250px]">
-              <div className="grid grid-cols-3 gap-2">
-                {filteredProducts.slice(0, 30).map(p => {
-                  const isAdded = !!items.find(i => i.product_id === p.id);
-                  return (
-                    <button
-                      key={p.id}
-                      className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow border-2
-                        ${isAdded ? 'border-muted opacity-50 cursor-not-allowed' : 'border-border hover:border-primary/60 hover:shadow-lg active:scale-95'}
-                      `}
-                      onClick={() => !isAdded && addProduct(p)}
-                      disabled={isAdded}
-                    >
-                      <div className="px-1.5 py-1.5 border-b bg-muted/50">
-                        <span className="font-bold leading-tight block text-center truncate text-xs text-foreground">
-                          {p.name}
-                        </span>
-                      </div>
-                      {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="w-full aspect-square object-cover" loading="lazy" />
-                      ) : (
-                        <div className="w-full aspect-square bg-muted/30 flex items-center justify-center">
-                          <Package className="w-8 h-8 text-primary/40" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </ScrollArea>
+    return (
+      <button
+        key={p.id}
+        className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow-sm border cursor-pointer active:scale-95
+          ${isAdded ? 'border-orange-500 ring-2 ring-orange-500/40' : 'border-border/50'}
+        `}
+        onClick={() => handleProductTap(p)}
+      >
+        <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
+          ${isAdded ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-foreground'}
+        `}>
+          {getProductDisplayName(p)}
+        </div>
+
+        {p.image_url ? (
+          <img src={p.image_url} alt={getProductDisplayName(p)} className="w-full aspect-square object-cover" loading="lazy" />
+        ) : (
+          <div className="w-full aspect-square flex items-center justify-center bg-muted/20">
+            <Package className="w-6 h-6 text-muted-foreground/30" />
           </div>
         )}
 
-        {/* Summary */}
-        {validItems.length > 0 && (
-          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-lg p-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-orange-700 dark:text-orange-400">إجمالي الاستبدال</span>
-              <Badge className="bg-orange-500 text-white">{validItems.length} منتج</Badge>
+        <div className="flex items-center justify-center gap-0.5 p-0.5 flex-wrap min-h-[22px]">
+          {isAdded ? (
+            <div className="flex items-center gap-0.5 w-full">
+              <Badge className="bg-orange-500 text-white text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 flex-1 justify-center">
+                <RefreshCw className="w-2.5 h-2.5" />
+                {addedQty} قطعة
+              </Badge>
+              <div
+                className="flex items-center justify-center bg-destructive text-destructive-foreground rounded h-4 w-5 cursor-pointer shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveProduct(p.id);
+                }}
+              >
+                <Trash2 className="w-2.5 h-2.5" />
+              </div>
             </div>
-          </div>
-        )}
-
-        <DialogFooter className="gap-2 sm:gap-0 flex-col sm:flex-col">
-          {!showProductPicker && (
-            <Button variant="outline" onClick={() => setShowProductPicker(true)} className="w-full">
-              <Plus className="w-4 h-4 me-1" />
-              إضافة منتج
-            </Button>
+          ) : (
+            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+              اضغط للإضافة
+            </Badge>
           )}
-          <div className="flex gap-2 w-full">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+        </div>
+      </button>
+    );
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden" dir="rtl">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            aria-label="إغلاق"
+            className="absolute start-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-white shadow-sm transition-colors hover:bg-destructive/90"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="px-3 pt-3 pb-1 shrink-0">
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <RefreshCw className="w-5 h-5 text-orange-500" />
+              استبدال تالف
+              {validItems.length > 0 && (
+                <Badge className="bg-orange-500 text-white text-[10px]">{validItems.length} منتج</Badge>
+              )}
+            </div>
+            <div className="text-sm font-bold text-center text-orange-600 truncate mt-1">{workerName}</div>
+            <p className="text-[9px] text-muted-foreground text-center">اضغط على المنتج لتحديد كمية التالف</p>
+          </div>
+
+          <div
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-1 touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            <div className="grid grid-cols-4 gap-1.5">
+              {products.map(renderProductButton)}
+            </div>
+            {products.length === 0 && (
+              <div className="text-center text-sm text-muted-foreground py-4">لا توجد منتجات</div>
+            )}
+          </div>
+
+          <div className="px-3 py-2 border-t shrink-0 flex gap-2">
+            <Button variant="outline" className="h-10 px-4 text-xs font-semibold" onClick={() => onOpenChange(false)}>
               إلغاء
             </Button>
             <Button
+              className="flex-1 h-10 text-sm font-bold bg-orange-600 hover:bg-orange-700 text-white"
               onClick={handleConfirm}
               disabled={isSubmitting || validItems.length === 0}
-              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin me-2" />}
-              <RefreshCw className="w-4 h-4 me-1" />
-              تأكيد الاستبدال
+              <Check className="w-4 h-4 me-1" />
+              {validItems.length > 0 ? `تأكيد الاستبدال (${validItems.length})` : 'تأكيد الاستبدال'}
             </Button>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quantity entry dialog */}
+      <Dialog
+        open={!!selectedProduct}
+        onOpenChange={(v) => {
+          if (!v) { setSelectedProductId(null); setQtyInput(''); }
+        }}
+      >
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <RefreshCw className="w-4 h-4 text-orange-500" />
+              كمية التالف
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedProduct && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
+                {selectedProduct.image_url ? (
+                  <img src={selectedProduct.image_url} alt={getProductDisplayName(selectedProduct)} className="w-14 h-14 rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <Package className="w-6 h-6 text-muted-foreground/40" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-extrabold text-base text-orange-600 truncate">{getProductDisplayName(selectedProduct)}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">الصندوق = {selectedProduct.pieces_per_box} قطعة</p>
+                  {addedMap[selectedProduct.id] > 0 && (
+                    <p className="text-xs text-orange-600 mt-0.5">الكمية الحالية: <strong>{addedMap[selectedProduct.id]}</strong> قطعة</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1 border rounded-lg p-2.5 bg-muted/40">
+                <Label className="text-xs font-semibold">عدد القطع التالفة</Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={1}
+                  value={qtyInput}
+                  onChange={e => setQtyInput(e.target.value)}
+                  onFocus={e => e.target.select()}
+                  className="h-11 text-center text-lg font-bold"
+                  placeholder="0"
+                  autoFocus
+                />
+                {parseInt(qtyInput || '0') > 0 && (
+                  <div className="text-center text-[11px] text-muted-foreground">
+                    = {fmtQty(piecesToCustomQty(parseInt(qtyInput), selectedProduct.pieces_per_box))} (صندوق.قطعة)
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  onClick={handleConfirmQty}
+                  disabled={!qtyInput || parseInt(qtyInput) <= 0}
+                  className="w-full h-11 text-sm font-bold bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  {addedMap[selectedProduct.id] > 0 ? 'تعديل الكمية' : 'إضافة كتالف'}
+                </Button>
+                {addedMap[selectedProduct.id] > 0 && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-9 text-xs text-destructive border-destructive/30"
+                    onClick={() => {
+                      handleRemoveProduct(selectedProduct.id);
+                      setSelectedProductId(null);
+                      setQtyInput('');
+                    }}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 me-1" />
+                    إزالة المنتج
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full h-9 text-xs"
+                  onClick={() => { setSelectedProductId(null); setQtyInput(''); }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
