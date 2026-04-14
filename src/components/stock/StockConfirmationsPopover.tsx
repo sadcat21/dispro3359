@@ -240,7 +240,8 @@ const OutgoingTab: React.FC<{
   onAmend: (id: string, items: StockConfirmationItem[], note: string) => void;
   isAmending: boolean;
   allowAmend?: boolean;
-}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true }) => {
+  onRaiseDispute?: (conf: StockConfirmation) => void;
+}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItems, setEditItems] = useState<StockConfirmationItem[]>([]);
