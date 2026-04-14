@@ -298,8 +298,9 @@ const MyAchievements: React.FC = () => {
     });
   }, [queryClient]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo],
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       const { data: visits } = await supabase
