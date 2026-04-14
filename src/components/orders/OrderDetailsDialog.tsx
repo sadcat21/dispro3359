@@ -279,7 +279,12 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
             </div>
             <div className="flex items-center justify-between text-[10px]">
               <div className="flex flex-col gap-0.5">
-                <span dir="ltr" className="font-bold text-primary text-xs">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+                <div className="flex items-center gap-1.5">
+                  <span dir="ltr" className="font-bold text-primary text-sm">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+                  {order.notes && (
+                    <span title={order.notes} className="text-muted-foreground cursor-help">📝</span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1 flex-wrap">
                   {order.created_at && <span className="text-muted-foreground">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
                   {paymentCode && <Badge variant="outline" className="text-[8px] px-1 py-0 font-bold">{paymentCode}</Badge>}
@@ -372,11 +377,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
             )}
 
 
-            {order.notes && (
-              <div className="rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
-                ملاحظات: {order.notes}
-              </div>
-            )}
           </div>
 
           {/* Fixed bottom buttons */}
