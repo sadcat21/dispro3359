@@ -950,8 +950,23 @@ const MyAchievements: React.FC = () => {
                     key={visit.id}
                     type="button"
                     onClick={() => handleOpenAchievement(visit)}
-                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] ${borderClass} ${cancelledMute}`}
+                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] overflow-hidden ${borderClass} ${cancelledMute}`}
                   >
+                    {/* Accounting stamp - absolute overlay */}
+                    {visit.isAccounted && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 rotate-[-15deg]">
+                        <div className="w-16 h-16 rounded-full border-[2.5px] border-destructive/50 flex items-center justify-center bg-destructive/5">
+                          <div className="w-[52px] h-[52px] rounded-full border-[1.5px] border-dashed border-destructive/40 flex flex-col items-center justify-center">
+                            <span className="text-[7px] font-black text-destructive/65 leading-none select-none">تمت</span>
+                            <span className="text-[6.5px] font-black text-destructive/65 leading-none select-none mt-0.5">المحاسبة</span>
+                            <span className="text-[5.5px] font-bold text-destructive/50 leading-none select-none mt-0.5 tabular-nums" dir="ltr">
+                              {format(new Date(visit.accountedDate), 'dd/MM')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* ROW 1: store/customer name (right) | date (left) */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1 flex items-baseline gap-1.5">
@@ -970,9 +985,9 @@ const MyAchievements: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* ROW 2: tags (left) | accounting stamp (center) | amount (right) */}
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center gap-1 flex-wrap min-w-0 flex-1">
+                    {/* ROW 2: tags (right) | amount (left) */}
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <div className="flex items-center gap-1 flex-wrap min-w-0">
                         <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium border ${OPERATION_COLORS[visit.operation_type] || 'border-border'}`}>
                           <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
                           {getOperationLabel(visit.operation_type as OperationType)}
@@ -992,20 +1007,8 @@ const MyAchievements: React.FC = () => {
                         )}
                       </div>
 
-                      {visit.isAccounted && (
-                        <div className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full border-2 border-destructive/55 bg-destructive/5 rotate-[18deg]">
-                          <div className="flex items-center justify-center w-11 h-11 rounded-full border border-dashed border-destructive/50">
-                            <span className="text-[7px] font-black leading-[0.9] text-destructive/70 text-center select-none tracking-tight">
-                              تمت
-                              <br />
-                              المحاسبة
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
                       {hasAmount && (
-                        <div className="shrink-0 text-left min-w-[78px]">
+                        <div className="shrink-0 text-left">
                           <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
                           </p>
