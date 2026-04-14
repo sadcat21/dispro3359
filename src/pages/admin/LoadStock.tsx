@@ -1011,26 +1011,46 @@ const LoadStock: React.FC = () => {
         toast.error(t('stock.add_products'));
         return;
       }
-      const { data: confirmationResult, error: confirmationError } = await (supabase.rpc as any)(
-        'confirm_loading_session_atomic',
-        { p_session_id: sessionToComplete }
-      );
 
-      if (confirmationError) throw confirmationError;
+      // Build confirmation items with product details
+      const confirmationItems = itemsToApply.map((item: any) => ({
+        product_id: item.product_id,
+        product_name: item.product?.name || '',
+        product_app_name: item.product?.app_name || null,
+        quantity: item.quantity,
+        gift_quantity: item.gift_quantity || 0,
+        gift_unit: item.gift_unit || 'piece',
+        pieces_per_box: item.product?.pieces_per_box || 20,
+        image_url: null,
+      }));
 
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] });
-      queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
-      queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+      // Create a pending stock confirmation instead of directly applying
+      const { error: confError } = await supabase
+        .from('stock_confirmations')
+        .insert({
+          operation_type: 'load',
+          worker_id: selectedWorker!,
+          manager_id: currentWorkerId!,
+          branch_id: branchId,
+          status: 'pending',
+          items: confirmationItems,
+          source_session_id: sessionToComplete,
+        } as any);
+
+      if (confError) throw confError;
+
+      // Mark session as pending confirmation (not completed yet)
+      await supabase
+        .from('loading_sessions')
+        .update({ status: 'pending_confirmation' })
+        .eq('id', sessionToComplete);
+
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
       await refresh();
 
-      const alreadyProcessed = !!(confirmationResult as any)?.already_processed;
-      if (alreadyProcessed) {
-        toast.success('تم تأكيد الشحن مسبقًا');
-      } else {
-        toast.success(t('load_stock.session_confirmed'));
-      }
+      toast.success('تم إرسال طلب تأكيد الشحن للعامل');
       setActiveSessionId(null);
       setSessionItems([]);
     } catch (err: any) { toast.error(err.message); }
