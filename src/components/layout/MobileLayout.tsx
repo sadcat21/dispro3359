@@ -222,6 +222,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Action icons */}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           <StockConfirmationsPopover />
+          <StockDisputesPopover />
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
