@@ -24,7 +24,29 @@ export const useManagerConfirmations = () => {
         .order('created_at', { ascending: false })
         .limit(100);
       if (error) throw error;
-      return (data || []) as unknown as StockConfirmation[];
+
+      const confirmations = (data || []) as unknown as StockConfirmation[];
+      const productIds = [...new Set(confirmations.flatMap(c => (c.items || []).map(i => i.product_id)))];
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, app_name, image_url')
+          .in('id', productIds);
+        if (products) {
+          const productMap = new Map(products.map(p => [p.id, p]));
+          confirmations.forEach(c => {
+            c.items = (c.items || []).map(item => {
+              const prod = productMap.get(item.product_id);
+              if (prod) {
+                item.product_app_name = item.product_app_name || prod.app_name;
+                item.image_url = item.image_url || prod.image_url;
+              }
+              return item;
+            });
+          });
+        }
+      }
+      return confirmations;
     },
     enabled: isReady,
   });
