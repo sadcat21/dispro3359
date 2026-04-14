@@ -989,6 +989,12 @@ const MyAchievements: React.FC = () => {
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
                           </span>
                         )}
+                        {visit.isAccounted && (
+                          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border border-emerald-300 bg-emerald-50 text-emerald-700">
+                            <BadgeCheck className="w-3 h-3" />
+                            محاسبة
+                          </span>
+                        )}
                       </div>
 
                       {hasAmount && (
