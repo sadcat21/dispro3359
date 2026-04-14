@@ -946,21 +946,8 @@ const MyAchievements: React.FC = () => {
                     key={visit.id}
                     type="button"
                     onClick={() => handleOpenAchievement(visit)}
-                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] overflow-hidden ${borderClass} ${cancelledMute}`}
+                    className={`relative w-full rounded-xl border-2 bg-card px-3 py-2 text-right transition-all hover:shadow-md active:scale-[0.995] ${borderClass} ${cancelledMute}`}
                   >
-                    {/* Accounting stamp overlay */}
-                    {visit.isAccounted && (
-                      <div className="absolute -bottom-5 -left-5 w-16 h-16 pointer-events-none" style={{ transform: 'rotate(-20deg)' }}>
-                        <div className="w-full h-full rounded-full border-[3px] border-emerald-500/50 flex items-center justify-center">
-                          <div className="w-[calc(100%-6px)] h-[calc(100%-6px)] rounded-full border-[1.5px] border-dashed border-emerald-500/40 flex items-center justify-center">
-                            <span className="text-[7px] font-black text-emerald-600/60 leading-none text-center tracking-tight select-none">
-                              تمت<br/>المحاسبة
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
                     {/* ROW 1: store/customer name (right) | date (left) */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1 flex items-baseline gap-1.5">
@@ -979,15 +966,13 @@ const MyAchievements: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* ROW 2: tags (right) | amount + debt info (left) */}
-                    <div className="flex items-center justify-between gap-2 mt-1">
-                      <div className="flex items-center gap-1 flex-wrap min-w-0">
-                        {/* Operation type */}
+                    {/* ROW 2: tags (left) | accounting stamp (center) | amount (right) */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-1 flex-wrap min-w-0 flex-1">
                         <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium border ${OPERATION_COLORS[visit.operation_type] || 'border-border'}`}>
                           <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
                           {getOperationLabel(visit.operation_type as OperationType)}
                         </span>
-                        {/* F1/F2 combined badge */}
                         {paymentBadge && (
                           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
                             {paymentBadge}{subtypeBadge && `·${subtypeBadge}`}{invoiceMethodBadge && `·${invoiceMethodBadge}`}
@@ -1003,8 +988,30 @@ const MyAchievements: React.FC = () => {
                         )}
                       </div>
 
+                      {visit.isAccounted && (
+                        <div className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full border-2 border-destructive/55 bg-destructive/5 rotate-[18deg]">
+                          <div className="flex items-center justify-center w-11 h-11 rounded-full border border-dashed border-destructive/50">
+                            <span className="text-[7px] font-black leading-[0.9] text-destructive/70 text-center select-none tracking-tight">
+                              تمت
+                              <br />
+                              المحاسبة
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       {hasAmount && (
-                        <div className="shrink-0 text-left">
+                        <div className="shrink-0 text-left min-w-[78px]">
+                          <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
+                            {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
+                          </p>
+                          {visit.isDebtSale && visit.debtMoney && (
+                            <p className="text-[10px] text-muted-foreground tabular-nums leading-tight" dir="ltr">
+                              دين {visit.debtMoney.remainingAmount.toLocaleString()} DA
+                            </p>
+                          )}
+                        </div>
+                      )}
                           <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
                           </p>
