@@ -252,63 +252,65 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
 
             <div className="overflow-hidden rounded-lg border">
-              <div className="border-b bg-muted/30 px-3 py-2 text-xs font-bold">المنتجات</div>
-
-              {orderItemsLoading || isDetailsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                </div>
-              ) : displayItems.length === 0 ? (
-                <div className="px-3 py-6 text-center text-sm text-muted-foreground">لا توجد منتجات</div>
-              ) : (
-                <div className="divide-y">
-                  {displayItems.map((item: any, idx: number) => {
-                    const normalizedItem = normalizeSaleItem(item);
-                    const productImage = item?.product?.image_url || item?.image_url || null;
-
-                    return (
-                      <div key={item.id || idx} className="px-3 py-2">
-                        <div className="flex items-start gap-3">
-                          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border bg-muted/40">
-                            {productImage ? (
-                              <img
-                                src={productImage}
-                                alt={normalizedItem.productName}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
-                                لا صورة
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-muted/30 border-b">
+                    <th className="px-2 py-1.5 text-right font-bold text-muted-foreground">المنتج</th>
+                    <th className="px-1.5 py-1.5 text-center font-bold text-muted-foreground">الكمية</th>
+                    <th className="px-1.5 py-1.5 text-center font-bold text-muted-foreground">سعر الوحدة</th>
+                    <th className="px-2 py-1.5 text-left font-bold text-muted-foreground">المجموع</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderItemsLoading || isDetailsLoading ? (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />
+                      </td>
+                    </tr>
+                  ) : displayItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-6 text-center text-sm text-muted-foreground">لا توجد منتجات</td>
+                    </tr>
+                  ) : (
+                    displayItems.map((item: any, idx: number) => {
+                      const n = normalizeSaleItem(item);
+                      const productImage = item?.product?.image_url || item?.image_url || null;
+                      const unitLabel = n.pricingUnit === 'kg' ? 'كغ' : n.pricingUnit === 'unit' ? 'وحدة' : 'صندوق';
+                      return (
+                        <tr key={item.id || idx} className="border-b last:border-b-0">
+                          <td className="px-2 py-2">
+                            <div className="flex items-center gap-2">
+                              <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border bg-muted/40">
+                                {productImage ? (
+                                  <img src={productImage} alt={n.productName} className="h-full w-full object-cover" loading="lazy" />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-[8px] text-muted-foreground">—</div>
+                                )}
                               </div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-xs leading-tight truncate max-w-[120px]">{n.productName}</div>
+                                {n.giftQuantity > 0 && (
+                                  <span className="text-[10px] text-emerald-600">هدية: {n.giftQuantity}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-1.5 py-2 text-center font-medium">{n.quantity}</td>
+                          <td className="px-1.5 py-2 text-center">
+                            <div>{formatAmountWithMaxFraction(n.unitPrice || 0)}</div>
+                            <div className="text-[10px] text-muted-foreground">DA/{unitLabel}</div>
+                            {n.catalogUnitPrice > 0 && n.pricingUnit === 'kg' && (
+                              <div className="text-[10px] text-muted-foreground">سعر الكغ: {formatAmountWithMaxFraction(n.catalogUnitPrice)}</div>
                             )}
-                          </div>
-
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="text-sm font-medium leading-5">{normalizedItem.productName}</span>
-                              <span className="whitespace-nowrap text-sm font-bold">
-                                {formatAmountWithMaxFraction(normalizedItem.totalPrice || 0)} DA
-                              </span>
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                              <span>الكمية: {normalizedItem.quantity}</span>
-                              <span>السعر: {formatAmountWithMaxFraction(normalizedItem.unitPrice || 0)} DA/{normalizedItem.pricingUnit === 'kg' ? 'كغ' : normalizedItem.pricingUnit === 'unit' ? 'وحدة' : 'صندوق'}</span>
-                              {normalizedItem.catalogUnitPrice > 0 && normalizedItem.pricingUnit === 'kg' && (
-                                <span>سعر الكغ: {formatAmountWithMaxFraction(normalizedItem.catalogUnitPrice)} DA</span>
-                              )}
-                              {normalizedItem.giftQuantity > 0 && (
-                                <span className="text-emerald-600">هدية: {normalizedItem.giftQuantity}</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                          </td>
+                          <td className="px-2 py-2 text-left font-bold">{formatAmountWithMaxFraction(n.totalPrice || 0)} DA</td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
 
             <div className="flex items-center justify-between rounded-lg bg-primary/5 p-3">
