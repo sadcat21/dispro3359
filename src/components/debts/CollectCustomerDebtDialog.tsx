@@ -167,7 +167,7 @@ const buildTimeline = (
   const rawEvents: Array<Omit<TimelineEvent, 'beforeAmount' | 'afterAmount' | 'displayDate'>> = [];
 
   debts.forEach((debt) => {
-    const isCancelled = debt.status === 'cancelled' || (debt.notes && /ملغاة/.test(debt.notes));
+    const isCancelled = (debt.status as string) === 'cancelled' || (debt.notes && /ملغاة/.test(debt.notes));
     rawEvents.push({
       id: `debt-${debt.id}`,
       debtId: debt.id,
@@ -461,9 +461,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     receiptTitleOverride: 'ETAT DES DETTES',
     hidePaymentDetails: true,
     debtMovementEntries: filteredTimeline
-      .filter((item) => item.kind !== 'visit')
+      .filter((item) => item.kind !== 'visit' && item.kind !== 'cancelled_debt')
       .map((item) => ({
-        kind: item.kind,
+        kind: item.kind as 'debt' | 'full' | 'partial' | 'visit',
         date: item.displayDate,
         workerName: item.workerName,
         paymentMethod: item.kind === 'debt' ? 'debt' : item.paymentMethod,
