@@ -278,27 +278,37 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               </div>
             </div>
             <div className="flex items-start justify-between text-xs">
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span dir="ltr" className="font-bold text-primary text-base">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
-                  {order.notes && (
-                    <span title={order.notes} className="cursor-help">📝</span>
+              {!hideFinancialDetails && (
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span dir="ltr" className="font-bold text-primary text-base">{formatAmountWithMaxFraction(effectiveTotalAmount || 0)} DA</span>
+                    {order.notes && (
+                      <span title={order.notes} className="cursor-help">📝</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {order.created_at && <span className="text-muted-foreground text-xs">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
+                    {paymentCode && <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-bold">{paymentCode}</Badge>}
+                    <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[9px] px-1.5 py-0">
+                      {paymentStateLabel}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+              {hideFinancialDetails && (
+                <div className="flex flex-col gap-0.5">
+                  {order.created_at && <span className="text-muted-foreground text-xs">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
+                  {order.notes && <span title={order.notes} className="cursor-help">📝</span>}
+                </div>
+              )}
+              {!hideFinancialDetails && (
+                <div className="flex flex-col items-end gap-0.5 text-xs">
+                  <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
+                  {remainingAmount > 0 && (
+                    <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
                   )}
                 </div>
-                <div className="flex items-center gap-1 flex-wrap">
-                  {order.created_at && <span className="text-muted-foreground text-xs">{format(new Date(order.created_at), 'dd/MM HH:mm')}</span>}
-                  {paymentCode && <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-bold">{paymentCode}</Badge>}
-                  <Badge variant={paymentState === 'full' ? 'default' : paymentState === 'partial' ? 'secondary' : 'destructive'} className="text-[9px] px-1.5 py-0">
-                    {paymentStateLabel}
-                  </Badge>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-0.5 text-xs">
-                <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
-                {remainingAmount > 0 && (
-                  <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
-                )}
-              </div>
+              )}
             </div>
           </DialogHeader>
 
