@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Worker, Branch } from '@/types/database';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { Building2, Plus, Loader2, Trash2, Pencil, MapPin, User } from 'lucide-r
 import { toast } from 'sonner';
 import { ALGERIAN_WILAYAS, DEFAULT_WILAYA } from '@/data/algerianWilayas';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAllBranchesQuery, useWorkersSafeQuery, queryKeys } from '@/hooks/useQueryData';
 
 interface BranchWithAdmin extends Branch {
   admin?: Worker;
