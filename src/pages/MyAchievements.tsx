@@ -666,6 +666,7 @@ const MyAchievements: React.FC = () => {
       return order as AchievementOrderDetails;
     };
 
+    setSelectedIsAccounted(!!visit.isAccounted);
     setSelectedOrderDetails(buildQuickOrder());
 
     if (!isOrderLike) {
