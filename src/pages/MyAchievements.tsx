@@ -902,7 +902,7 @@ const MyAchievements: React.FC = () => {
                   ? (visit.order_price_subtype === 'super_gros' ? 'SG' : visit.order_price_subtype === 'retail' ? 'D' : 'G')
                   : null;
                 const invoiceMethodBadge = isOrderLike && visit.order_payment_type === 'with_invoice' && visit.order_invoice_method
-                  ? (visit.order_invoice_method === 'cash' ? 'C' : visit.order_invoice_method === 'check' ? 'Ch' : visit.order_invoice_method === 'transfer' ? 'Vi' : visit.order_invoice_method === 'receipt' ? 'Ve' : null)
+                  ? (visit.order_invoice_method === 'cash' ? 'Cash' : visit.order_invoice_method === 'check' ? 'Cheq' : visit.order_invoice_method === 'transfer' ? 'Vrsm' : visit.order_invoice_method === 'receipt' ? 'Perm' : null)
                   : null;
 
                 const hasAmount = visit.orderTotal != null || (visit.operation_type === 'debt_collection' && visit.debtCollectionAmount != null);
