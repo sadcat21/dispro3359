@@ -617,9 +617,10 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
     return { start, end };
   };
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['manager-sales-summary-dialog', branchId, workers.map((worker) => worker.id).join(','), periodFrom, periodTo],
     enabled: true,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       let availableWorkers = workers;
 
