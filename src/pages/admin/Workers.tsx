@@ -38,11 +38,8 @@ interface WorkerWithRoles extends Worker {
 const Workers: React.FC = () => {
   const { t } = useLanguage();
   const { activeBranch, role } = useAuth();
-  const [workers, setWorkers] = useState<WorkerWithRoles[]>([]);
+  const queryClient = useQueryClient();
   const [deleteWorker, setDeleteWorker] = useState<WorkerWithRoles | null>(null);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showRolesDialog, setShowRolesDialog] = useState(false);
   const [showEditProfileDialog, setShowEditProfileDialog] = useState(false);
@@ -69,25 +66,10 @@ const Workers: React.FC = () => {
 
   const ALL_ROLES: AppRole[] = ['worker', 'branch_admin', 'supervisor', 'admin'];
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Filter workers by activeBranch
-  const filteredWorkers = useMemo(() => {
-    // Exclude test workers from main list
-    let result = workers.filter(w => !(w as any).is_test);
-    if (isAdminRole(role) && activeBranch) {
-      result = result.filter(w => 
-        w.branch_id === activeBranch.id || 
-        w.worker_roles.some(wr => wr.branch_id === activeBranch.id)
-      );
-    }
-    return result;
-  }, [workers, activeBranch, role]);
-
-  const fetchData = async () => {
-    try {
+  // Use react-query for data fetching
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ['workers-page-data'],
+    queryFn: async () => {
       const [workersRes, branchesRes, workerRolesRes, customRolesRes] = await Promise.all([
         supabase.from('workers').select('*').order('created_at', { ascending: false }),
         supabase.from('branches').select('*').eq('is_active', true).order('name'),
@@ -100,7 +82,6 @@ const Workers: React.FC = () => {
       if (workerRolesRes.error) throw workerRolesRes.error;
       if (customRolesRes.error) throw customRolesRes.error;
 
-      // Group worker roles by worker_id and branch_id to combine custom roles
       const workerRolesMap = new Map<string, Map<string, { role: AppRole; branch_id: string | null; branch_name: string | null; custom_role_ids: string[]; custom_role_names: string[] }>>();
       
       (workerRolesRes.data || []).forEach(wr => {
@@ -133,29 +114,41 @@ const Workers: React.FC = () => {
         }
       });
 
-      // Map worker roles to workers
       const workersWithRoles: WorkerWithRoles[] = (workersRes.data || []).map(worker => {
         const workerMap = workerRolesMap.get(worker.id);
         const roles: WorkerRoleEntry[] = workerMap 
           ? Array.from(workerMap.values())
           : [];
-        
-        return {
-          ...worker,
-          worker_roles: roles
-        };
+        return { ...worker, worker_roles: roles };
       });
 
-      setWorkers(workersWithRoles);
-      setBranches(branchesRes.data || []);
-      setCustomRoles(customRolesRes.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(t('common.loading'));
-    } finally {
-      setIsLoading(false);
-    }
+      return {
+        workers: workersWithRoles,
+        branches: branchesRes.data || [],
+        customRoles: customRolesRes.data || [],
+      };
+    },
+  });
+
+  const workers = queryData?.workers || [];
+  const branches = queryData?.branches || [];
+  const customRoles = queryData?.customRoles || [];
+
+  const fetchData = () => {
+    queryClient.invalidateQueries({ queryKey: ['workers-page-data'] });
   };
+
+  // Filter workers by activeBranch
+  const filteredWorkers = useMemo(() => {
+    let result = workers.filter(w => !(w as any).is_test);
+    if (isAdminRole(role) && activeBranch) {
+      result = result.filter(w => 
+        w.branch_id === activeBranch.id || 
+        w.worker_roles.some(wr => wr.branch_id === activeBranch.id)
+      );
+    }
+    return result;
+  }, [workers, activeBranch, role]);
 
   const getBranchName = (branchId: string | null) => {
     if (!branchId) return null;
