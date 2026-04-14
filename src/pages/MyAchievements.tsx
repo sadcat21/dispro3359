@@ -1004,7 +1004,7 @@ const MyAchievements: React.FC = () => {
                           <span className="[&_svg]:w-3 [&_svg]:h-3">{OPERATION_ICONS[visit.operation_type]}</span>
                           {getOperationLabel(visit.operation_type as OperationType)}
                         </span>
-                        {paymentBadge && (
+                        {!isWarehouseManager && paymentBadge && (
                           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
                             {paymentBadge}{subtypeBadge && `·${subtypeBadge}`}{invoiceMethodBadge && `·${invoiceMethodBadge}`}
                           </span>
@@ -1012,14 +1012,14 @@ const MyAchievements: React.FC = () => {
                         {isCancelled && (
                           <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground border border-muted-foreground/20">ملغاة</span>
                         )}
-                        {visit.isDebtSale && (
+                        {!isWarehouseManager && visit.isDebtSale && (
                           <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${isPartialDebt ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
                           </span>
                         )}
                       </div>
 
-                      {hasAmount && (
+                      {!isWarehouseManager && hasAmount && (
                         <div className="shrink-0 text-left">
                           <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
