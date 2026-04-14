@@ -200,10 +200,11 @@ const DebtAggregatesDialog: React.FC<{
 };
 
 const MyAchievements: React.FC = () => {
-  const { workerId, user, role, activeBranch } = useAuth();
+  const { workerId, user, role, activeBranch, activeRole } = useAuth();
   const [searchParams] = useSearchParams();
   const today = format(new Date(), 'yyyy-MM-dd');
-  const canInspectSelectedWorker = isAdminRole(role) || role === 'supervisor';
+  const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
+  const canInspectSelectedWorker = isAdminRole(role) || role === 'supervisor' || isWarehouseManager;
   const searchWorker = searchParams.get('worker');
   const searchName = searchParams.get('name');
   const [selectedWorkerId, setSelectedWorkerId] = useState<string>(() => searchWorker || workerId || '');
