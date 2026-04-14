@@ -857,6 +857,15 @@ const WorkerActions: React.FC = () => {
               const branchAdminHidden = ['permissions', 'worker_profile'];
               if (branchAdminHidden.includes(action.key)) return false;
             }
+            // Warehouse manager: only show stock, achievements, orders (tracking), today_customers
+            if (isWarehouseMode) {
+              const warehouseAllowed = new Set([
+                'load_stock', 'unload_truck', 'truck_stock', 'stock_review', 'session_history',
+                'exchange_damaged', 'achievements', 'orders', 'today_customers', 'tracking',
+                'attendance_log', 'sector_schedule', 'sector_coverage',
+              ]);
+              return warehouseAllowed.has(action.key);
+            }
             // Only super-admin (admin + project_manager) sees all; branch_admin respects overrides
             if (isSuperAdminRole(role)) return true;
             const overrideKey = `wa_${action.key}`;
