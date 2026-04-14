@@ -22,50 +22,22 @@ interface BranchWithAdmin extends Branch {
 
 const Branches: React.FC = () => {
   const { t } = useLanguage();
-  const [branches, setBranches] = useState<BranchWithAdmin[]>([]);
-  const [workers, setWorkers] = useState<Worker[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingBranch, setEditingBranch] = useState<BranchWithAdmin | null>(null);
-  const [branchToDelete, setBranchToDelete] = useState<BranchWithAdmin | null>(null);
+  const queryClient = useQueryClient();
   
-  // Form state
-  const [name, setName] = useState('');
-  const [wilaya, setWilaya] = useState(DEFAULT_WILAYA);
-  const [address, setAddress] = useState('');
-  const [adminId, setAdminId] = useState<string>('none');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const { data: rawBranches = [], isLoading: branchesLoading } = useAllBranchesQuery();
+  const { data: workers = [], isLoading: workersLoading } = useWorkersSafeQuery();
+  const isLoading = branchesLoading || workersLoading;
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Map admin info to branches
+  const branches: BranchWithAdmin[] = React.useMemo(() => 
+    rawBranches.map(branch => ({
+      ...branch,
+      admin: workers.find(w => w.id === branch.admin_id)
+    })), [rawBranches, workers]);
 
-  const fetchData = async () => {
-    try {
-      const [branchesRes, workersRes] = await Promise.all([
-        supabase.from('branches').select('*').order('created_at', { ascending: false }),
-        supabase.from('workers_safe').select('*').eq('is_active', true).order('full_name')
-      ]);
-
-      if (branchesRes.error) throw branchesRes.error;
-      if (workersRes.error) throw workersRes.error;
-
-      // Map admin info to branches
-      const branchesWithAdmin = (branchesRes.data || []).map(branch => ({
-        ...branch,
-        admin: workersRes.data?.find(w => w.id === branch.admin_id)
-      }));
-
-      setBranches(branchesWithAdmin);
-      setWorkers(workersRes.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(t('common.loading'));
-    } finally {
-      setIsLoading(false);
-    }
+  const refetchData = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.branches });
+    queryClient.invalidateQueries({ queryKey: queryKeys.workersSafe });
   };
 
   const resetForm = () => {
