@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { isAdminRole } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
