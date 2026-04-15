@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, User, AlertTriangle, CheckCircle } from 'lucide-react';
+import { User, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WorkerOption {
@@ -52,12 +51,6 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
   stockAlerts = [],
 }) => {
   const { t } = useLanguage();
-  const [search, setSearch] = useState('');
-
-  const filtered = workers.filter(w =>
-    w.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    w.username.toLowerCase().includes(search.toLowerCase())
-  );
 
   const getWorkerDeficit = (workerId: string) => {
     return stockAlerts
@@ -74,18 +67,9 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
             {t('stock.select_worker')}
           </DialogTitle>
         </DialogHeader>
-        <div className="relative">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={t('common.search')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="ps-9"
-          />
-        </div>
         <div className="max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {filtered.map(w => {
+            {workers.map(w => {
               const deficit = getWorkerDeficit(w.id);
               const isSelected = w.id === selectedWorkerId;
               const colorClass = AVATAR_COLORS[getColorIndex(w.id)];
@@ -101,7 +85,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
                   onClick={() => {
                     onSelect(w.id);
                     onOpenChange(false);
-                    setSearch('');
+                    
                   }}
                 >
                   {isSelected && (
@@ -128,7 +112,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
               );
             })}
           </div>
-          {filtered.length === 0 && (
+          {workers.length === 0 && (
             <div className="text-center text-sm text-muted-foreground py-4">
               {t('common.no_results')}
             </div>
