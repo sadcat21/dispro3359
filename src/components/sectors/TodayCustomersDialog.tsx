@@ -3029,14 +3029,16 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       />
 
       {/* Print View (hidden, only shown when printing) */}
-      <OrdersPrintView
-        orders={filteredOrdersForPrint}
-        orderItems={allOrderItems}
-        products={allProducts as any}
-        title={printWorkerName ? `طلبيات - ${printWorkerName}` : 'ورقة التوصيل'}
-        isVisible={isPrintReady}
-        columnConfig={printColumnConfig}
-      />
+      {isPrintReady && (
+        <OrdersPrintView
+          orders={filteredOrdersForPrint}
+          orderItems={allOrderItems}
+          products={allProducts as any}
+          title={printWorkerName ? `طلبيات - ${printWorkerName}` : 'ورقة التوصيل'}
+          isVisible={isPrintReady}
+          columnConfig={printColumnConfig}
+        />
+      )}
     </>
   );
 };
