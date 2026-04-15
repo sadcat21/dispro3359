@@ -245,7 +245,7 @@ const MyStock: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3">
           {sortedItems.map(item => {
             const isZero = item.quantity === 0;
             const stats = movementStats[item.product_id];
@@ -258,48 +258,53 @@ const MyStock: React.FC = () => {
             const productImage = (item as any).product?.image_url;
             const productName = (item as any).product?.name;
             return (
-              <Card key={item.id} className={`overflow-hidden ${isZero ? 'bg-destructive/10 border-destructive/30 opacity-60' : ''}`}>
-                <CardContent className="p-3">
-                  <div className="flex items-start gap-3">
-                    <div className={`text-2xl font-bold ${isZero ? 'text-destructive' : 'text-primary'}`}>
+              <div key={item.id} className={`flex flex-col overflow-hidden rounded-2xl border-2 shadow-lg transition-all ${isZero ? 'border-destructive/30 opacity-60' : 'border-border bg-card hover:border-primary/40'}`}>
+                <div className="border-b border-border bg-muted/50 px-2.5 py-2 text-center">
+                  <span className="block truncate text-xs font-bold text-foreground sm:text-sm">
+                    {productName}
+                  </span>
+                </div>
+                <div className="aspect-square w-full overflow-hidden bg-muted/30">
+                  {productImage ? (
+                    <img src={productImage} alt={productName} className="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <Package className="h-12 w-12 text-muted-foreground/40" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 bg-card px-2.5 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs font-bold sm:text-sm ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                      <Package className="h-3.5 w-3.5" />
                       {item.quantity}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm leading-tight">{productName}</p>
-                    </div>
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted/30 flex-shrink-0 flex items-center justify-center">
-                      {productImage ? (
-                        <img src={productImage} alt={productName} className="w-full h-full object-cover" />
-                      ) : (
-                        <Package className="w-7 h-7 text-muted-foreground/40" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 mt-2 text-[11px]">
-                    <span className="flex items-center gap-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-semibold">
-                      <Package className="w-3 h-3" />
-                      {t('stock.balance')}: {totalLoad}
-                    </span>
-                    <span className="flex items-center gap-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
-                      <TrendingUp className="w-3 h-3" />
-                      {t('stock.loaded')}: {loaded}
-                    </span>
-                    <span className="flex items-center gap-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
-                      <TrendingDown className="w-3 h-3" />
-                      {t('stock.sold_label')}: {sold}
-                    </span>
                     {giftQty > 0 && (
-                      <span className="flex items-center gap-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded">
-                        <Gift className="w-3 h-3" />
-                        {t('stock.gifts_label')}: {giftQty} {giftUnit}
-                      </span>
+                      <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
+                        🎁 {giftQty} {giftUnit}
+                      </div>
                     )}
-                    <span className="font-bold bg-muted px-1.5 py-0.5 rounded">
-                      {t('stock.remaining_label')}: {item.quantity}
-                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="rounded-lg border border-purple-100 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30 px-2 py-1.5 text-center">
+                      <div className="text-[9px] font-medium text-purple-600 dark:text-purple-300">{t('stock.balance')}</div>
+                      <div className="text-sm font-bold text-purple-800 dark:text-purple-200">{totalLoad}</div>
+                    </div>
+                    <div className="rounded-lg border border-blue-100 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30 px-2 py-1.5 text-center">
+                      <div className="text-[9px] font-medium text-blue-600 dark:text-blue-300">{t('stock.loaded')}</div>
+                      <div className="text-sm font-bold text-blue-800 dark:text-blue-200">{loaded}</div>
+                    </div>
+                    <div className="rounded-lg border border-green-100 bg-green-50 dark:border-green-800 dark:bg-green-900/30 px-2 py-1.5 text-center">
+                      <div className="text-[9px] font-medium text-green-600 dark:text-green-300">{t('stock.sold_label')}</div>
+                      <div className="text-sm font-bold text-green-800 dark:text-green-200">{sold}</div>
+                    </div>
+                    <div className={`rounded-lg border px-2 py-1.5 text-center ${isZero ? 'border-destructive/30 bg-destructive/10' : 'border-muted bg-muted/50'}`}>
+                      <div className="text-[9px] font-medium text-muted-foreground">{t('stock.remaining_label')}</div>
+                      <div className={`text-sm font-bold ${isZero ? 'text-destructive' : 'text-foreground'}`}>{item.quantity}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
