@@ -443,6 +443,11 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                               <>
                                 {unitPrice > 0 && (
                                   <div style={{ fontSize: '6pt', opacity: 0.6, borderTop: '1px dotted #ccc', marginTop: '1px', paddingTop: '1px' }}>
+                                    {unitPrice.toLocaleString()}
+                                  </div>
+                                )}
+                                {unitPrice > 0 && (
+                                  <div style={{ fontSize: '6pt', opacity: 0.6, borderTop: '1px dotted #ccc', marginTop: '1px', paddingTop: '1px' }}>
                                     {(unitPrice * qty).toLocaleString()}
                                   </div>
                                 )}
