@@ -1308,110 +1308,49 @@ const LoadStock: React.FC = () => {
               {!suggestionsLoading && suggestions.length > 0 ? (
                 <AdaptiveScrollContainer
                   maxHeightClassName="flex-1"
-                  contentClassName="grid gap-1"
+                  contentClassName="grid grid-cols-2 sm:grid-cols-3 gap-2"
                 >
                   {suggestions.map(s => {
                     const sessionLoad = sessionItems.filter(si => si.product_id === s.product_id);
                     const loadedBoxes = sessionLoad.reduce((sum: number, si: any) => sum + (si.quantity || 0), 0);
-                    const newGiftQty = sessionLoad.reduce((sum: number, si: any) => sum + (si.gift_quantity || 0), 0);
-                    const newGiftUnit = sessionLoad[0]?.gift_unit || 'piece';
-                    const product = products.find(p => p.id === s.product_id);
-                    const piecesPerBox = product?.pieces_per_box || 20;
-                    const giftInCustom = newGiftUnit === 'box' ? newGiftQty : totalPiecesToCustom(newGiftQty, piecesPerBox);
-                    const totalNewLoaded = newGiftQty > 0 ? addCustomQty(loadedBoxes, giftInCustom, piecesPerBox) : loadedBoxes;
-                    const oldStock = totalNewLoaded > 0 ? subtractCustomQty(s.current_stock, totalNewLoaded, piecesPerBox) : s.current_stock;
-                    const surplus = Math.max(0, s.current_stock - s.pending_orders_quantity);
-                    const newGiftInCustom = newGiftUnit === 'box' ? newGiftQty : totalPiecesToCustom(newGiftQty, piecesPerBox);
-                    const totalGiftsCustom = newGiftInCustom;
-                    const hasGifts = totalGiftsCustom > 0;
+                    const productData = allProductOptions.find(p => p.id === s.product_id);
+                    const imgUrl = productData?.image_url;
                     return (
-                      <Collapsible key={s.product_id}>
-                        {(() => {
-                          const productData = allProductOptions.find(p => p.id === s.product_id);
-                          const imgUrl = productData?.image_url;
-                          return (
-                            <div className="rounded-xl ring-1 ring-border/30 bg-card shadow-sm overflow-hidden">
-                              {/* Header: image + name + current stock */}
-                              <CollapsibleTrigger asChild>
-                                <button className="w-full p-2.5 text-start transition-all active:scale-[0.99] hover:shadow-md">
-                                  <div className="flex items-start gap-3 mb-2">
-                                    <div className="w-11 h-11 rounded-xl border bg-muted/40 overflow-hidden shrink-0 flex items-center justify-center">
-                                      {imgUrl ? (
-                                        <img src={imgUrl} alt="" className="w-full h-full object-cover" />
-                                      ) : (
-                                        <Package className="w-5 h-5 text-muted-foreground/40" />
-                                      )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-start justify-between gap-2">
-                                        <span className="font-medium text-sm truncate">{s.product_name}</span>
-                                        <span className={`font-bold text-lg leading-none ${s.current_stock === 0 ? 'text-destructive' : 'text-primary'}`}>
-                                          {fmtQty(s.current_stock)}
-                                        </span>
-                                      </div>
-                                      <p className="mt-0.5 text-[10px] text-muted-foreground flex items-center gap-1">
-                                        <ChevronDown className="w-3 h-3 transition-transform [[data-state=open]_&]:rotate-180" />
-                                        انقر لعرض التفاصيل
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {/* Colored badges - always visible */}
-                                  <div className="flex flex-wrap items-center gap-1.5 border-t border-border/20 pt-2 text-[10px]">
-                                    {s.suggested_load > 0 && (
-                                      <span className="flex items-center gap-1 bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full font-bold">
-                                        <AlertTriangle className="w-3 h-3" />
-                                        عجز +{fmtQty(s.suggested_load)}
-                                      </span>
-                                    )}
-                                    <span className="flex items-center gap-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-semibold">
-                                      <Package className="w-3 h-3" />
-                                      الكلي {fmtQty(s.current_stock)}
-                                    </span>
-                                    {loadedBoxes > 0 && (
-                                      <span className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full font-semibold">
-                                        <Plus className="w-3 h-3" />
-                                        جديد +{fmtQty(loadedBoxes)}
-                                      </span>
-                                    )}
-                                    <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full font-semibold">
-                                      بدون محاسبة {fmtQty((workerLoadedSinceAccounting || {})[s.product_id] || 0)}
-                                    </span>
-                                    {s.pending_orders_quantity > 0 && (
-                                      <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-semibold">
-                                        <ShoppingCart className="w-3 h-3" />
-                                        طلبات {fmtQty(s.pending_orders_quantity)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </button>
-                              </CollapsibleTrigger>
-
-                              {/* Expandable details */}
-                              <CollapsibleContent>
-                                <div className="border-t border-border/30 px-3 py-2 bg-muted/10">
-                                  <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                                    <span className="flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded-full font-semibold">
-                                      المتبقي {fmtQty(oldStock)}
-                                    </span>
-                                    <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-full font-semibold">
-                                      شحن {fmtQty((workerLoadedData || {})[s.product_id] || 0)}
-                                    </span>
-                                    <span className="flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded-full font-semibold">
-                                      فائض {fmtQty(surplus)}
-                                    </span>
-                                    {hasGifts && (
-                                      <span className="flex items-center gap-1 bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full font-semibold">
-                                        <Gift className="w-3 h-3" />
-                                        هدايا {fmtQty(totalGiftsCustom)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </CollapsibleContent>
-                            </div>
-                          );
-                        })()}
-                      </Collapsible>
+                      <div key={s.product_id} className="rounded-xl ring-1 ring-border/30 bg-card shadow-sm overflow-hidden flex flex-col">
+                        {/* Image */}
+                        <div className="w-full aspect-square bg-muted/30 flex items-center justify-center overflow-hidden">
+                          {imgUrl ? (
+                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <Package className="w-8 h-8 text-muted-foreground/30" />
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="p-2 flex flex-col gap-1.5">
+                          <div className="flex items-start justify-between gap-1">
+                            <span className="font-medium text-[11px] leading-tight truncate flex-1">{s.product_name}</span>
+                            <span className={`font-bold text-base leading-none shrink-0 ${s.current_stock === 0 ? 'text-destructive' : 'text-primary'}`}>
+                              {fmtQty(s.current_stock)}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 text-[9px]">
+                            {s.suggested_load > 0 && (
+                              <span className="flex items-center gap-0.5 bg-destructive/10 text-destructive px-1 py-0.5 rounded-full font-bold">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                +{fmtQty(s.suggested_load)}
+                              </span>
+                            )}
+                            <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1 py-0.5 rounded-full font-semibold">
+                              بدون محاسبة {fmtQty((workerLoadedSinceAccounting || {})[s.product_id] || 0)}
+                            </span>
+                            {loadedBoxes > 0 && (
+                              <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1 py-0.5 rounded-full font-semibold">
+                                +{fmtQty(loadedBoxes)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </AdaptiveScrollContainer>
