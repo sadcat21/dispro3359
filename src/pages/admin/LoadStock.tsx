@@ -1424,8 +1424,8 @@ const LoadStock: React.FC = () => {
                   لا توجد بيانات مخزون
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         )}
 
         {/* Worker Load Request Banner */}
