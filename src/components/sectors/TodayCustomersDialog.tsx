@@ -2201,14 +2201,18 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const selectedDateCaption = selectedCustomDate ? format(selectedCustomDate, 'dd/MM/yyyy') : null;
   const titleDayPart = `${dayLabel}${selectedDateCaption ? ` (${selectedDateCaption})` : ''}`;
   const calendarButtonLabel = format(new Date(selectedDayBounds.dateKey), 'dd/MM');
-  const sectorSuffix = todaySectorNames ? ` — ${todaySectorNames}` : '';
-  const title = effectiveWorkerName
-    ? `عملاء اليوم — ${dayLabel} — ${effectiveWorkerName}${sectorSuffix}`
+  const sectorPart = todaySectorNames || '';
+  const workerPart = effectiveWorkerName
+    ? effectiveWorkerName
     : selectedAdminWorkerId && isAdmin
-    ? `عملاء اليوم — ${dayLabel} — ${workersList.find(w => w.id === selectedAdminWorkerId)?.full_name || ''}${sectorSuffix}`
-    : `عملاء اليوم — ${dayLabel}${sectorSuffix}`;
+    ? workersList.find(w => w.id === selectedAdminWorkerId)?.full_name || ''
+    : '';
 
-  const displayTitle = selectedDateCaption ? title.replace(dayLabel, titleDayPart) : title;
+  // العنوان: اليوم — اسم السيكتور (بدون "عملاء اليوم")
+  const titleParts = [titleDayPart];
+  if (sectorPart) titleParts.push(sectorPart);
+  if (workerPart) titleParts.push(workerPart);
+  const displayTitle = titleParts.join(' — ');
 
   return (
     <>
