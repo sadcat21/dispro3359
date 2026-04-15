@@ -110,11 +110,16 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
 
     useEffect(() => {
       if (!usePortal) return;
+      // Remove any existing print-portal to avoid duplicate tables during print
+      const existing = document.getElementById('print-portal');
+      if (existing) existing.remove();
       const div = document.createElement('div');
       div.id = 'print-portal';
       document.body.appendChild(div);
       setContainer(div);
-      return () => { document.body.removeChild(div); };
+      return () => { 
+        if (div.parentNode) div.parentNode.removeChild(div); 
+      };
     }, [usePortal]);
 
     // Fetch active customer debts + pending documents
