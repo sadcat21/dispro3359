@@ -3641,16 +3641,21 @@ const CollectedDebtOperationList: React.FC<{
       });
     }
 
-    const byCustomer = new Map<string, { operations: TodayDebtCollectionOperation[]; totalCollected: number; totalRemaining: number; customer: any; latestAt: string }>();
+    const byCustomer = new Map<string, { operations: TodayDebtCollectionOperation[]; totalCollected: number; seenDebtIds: Set<string>; totalRemaining: number; customer: any; latestAt: string }>();
     for (const op of list) {
       const custId = op.debt?.customer_id || (op.debt?.customer as any)?.id || op.id;
+      const debtId = op.debt_id || op.id;
       const existing = byCustomer.get(custId);
       const collected = Number(op.amount_collected || 0);
       const remaining = Number(op.debt?.remaining_amount || 0);
       if (existing) {
         existing.operations.push(op);
         existing.totalCollected += collected;
-        existing.totalRemaining += remaining;
+        // Only count remaining once per unique debt
+        if (!existing.seenDebtIds.has(debtId)) {
+          existing.seenDebtIds.add(debtId);
+          existing.totalRemaining += remaining;
+        }
         if (op.created_at > existing.latestAt) {
           existing.latestAt = op.created_at;
           existing.customer = op.debt?.customer || existing.customer;
@@ -3659,6 +3664,7 @@ const CollectedDebtOperationList: React.FC<{
         byCustomer.set(custId, {
           operations: [op],
           totalCollected: collected,
+          seenDebtIds: new Set([debtId]),
           totalRemaining: remaining,
           customer: op.debt?.customer,
           latestAt: op.created_at,
