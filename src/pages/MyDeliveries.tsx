@@ -1429,15 +1429,17 @@ const MyDeliveries: React.FC = () => {
       )}
 
       {/* Print View (hidden, for window.print) */}
-      <OrdersPrintView
-        ref={printRef}
-        orders={filteredOrdersForPrint.length > 0 ? filteredOrdersForPrint : (orders || [])}
-        orderItems={toMap(allOrderItems)}
-        products={products}
-        title={printWorkerName ? `${t('deliveries.my_deliveries_title')} - ${printWorkerName}` : t('deliveries.delivery_list')}
-        isVisible={isPrintReady}
-        columnConfig={printColumnConfig}
-      />
+      {isPrintReady && (
+        <OrdersPrintView
+          ref={printRef}
+          orders={filteredOrdersForPrint.length > 0 ? filteredOrdersForPrint : (orders || [])}
+          orderItems={toMap(allOrderItems)}
+          products={products}
+          title={printWorkerName ? `${t('deliveries.my_deliveries_title')} - ${printWorkerName}` : t('deliveries.delivery_list')}
+          isVisible={isPrintReady}
+          columnConfig={printColumnConfig}
+        />
+      )}
 
       {/* Print Dialog */}
       <PrintOrdersDialog

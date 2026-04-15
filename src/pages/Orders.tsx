@@ -547,15 +547,17 @@ const OrdersContent: React.FC = () => {
   return (
     <div className="p-4 pb-24 space-y-4 touch-pan-y">
       {/* Print View */}
-      <OrdersPrintView
-        ref={printRef}
-        orders={filteredOrdersForPrint.length > 0 ? filteredOrdersForPrint : orders}
-        orderItems={allOrderItems}
-        products={products}
-        title={printWorkerName ? `${tp('print.orders_for')} - ${printWorkerName}` : tp('print.order_list')}
-        isVisible={isPrintReady}
-        columnConfig={printColumnConfig}
-      />
+      {isPrintReady && (
+        <OrdersPrintView
+          ref={printRef}
+          orders={filteredOrdersForPrint.length > 0 ? filteredOrdersForPrint : orders}
+          orderItems={allOrderItems}
+          products={products}
+          title={printWorkerName ? `${tp('print.orders_for')} - ${printWorkerName}` : tp('print.order_list')}
+          isVisible={isPrintReady}
+          columnConfig={printColumnConfig}
+        />
+      )}
 
       {/* Print Dialog */}
       <PrintOrdersDialog
