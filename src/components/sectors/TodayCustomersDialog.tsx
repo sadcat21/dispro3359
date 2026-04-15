@@ -3659,30 +3659,25 @@ const CollectedDebtOperationList: React.FC<{
 
         return (
           <Card key={operation.id} className="overflow-hidden">
-            <button className="w-full p-2.5 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(operation)}>
-              <div className="grid grid-cols-[1fr_auto] grid-rows-2 gap-x-3 gap-y-1 items-center">
-                {/* Top-left: Store/Customer name */}
-                <div className="min-w-0">
-                  <span className="text-sm font-bold text-foreground truncate block">{customer?.store_name || customer?.name || '—'}</span>
-                  {customer?.store_name && customer?.name && (
-                    <span className="text-[11px] text-muted-foreground truncate block">{customer.name}</span>
-                  )}
-                </div>
-                {/* Top-right: Amounts */}
-                <div className="text-left" dir="ltr">
+            <button className="w-full px-3 py-2 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(operation)}>
+              <div className="grid grid-cols-2 grid-rows-2 gap-x-3 items-center">
+                {/* Top-right (col2 row1): المبلغ المدفوع */}
+                <div className="text-left row-start-1 col-start-2" dir="ltr">
                   <span className="text-sm font-black text-green-600">{collectedAmount.toLocaleString()} DA</span>
+                </div>
+                {/* Top-left (col1 row1): اسم المحل */}
+                <div className="min-w-0 row-start-1 col-start-1">
+                  <span className="text-sm font-bold text-foreground truncate block">{customer?.store_name || customer?.name || '—'}</span>
+                </div>
+                {/* Bottom-right (col2 row2): المتبقي */}
+                <div className="text-left row-start-2 col-start-2" dir="ltr">
                   {remainingAmount > 0 && (
-                    <span className="block text-xs font-bold text-red-500">{remainingAmount.toLocaleString()} DA</span>
+                    <span className="text-xs font-bold text-red-500">{remainingAmount.toLocaleString()} DA</span>
                   )}
                 </div>
-                {/* Bottom-left & right: Badges */}
-                <div className="col-span-2 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold">{collectorName}</span>
-                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{operation.payment_method || 'cash'}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground mr-auto">
-                    <Clock className="w-3 h-3" />
-                    {format(new Date(operation.created_at), 'dd/MM HH:mm')}
-                  </span>
+                {/* Bottom-left (col1 row2): اسم العميل */}
+                <div className="min-w-0 row-start-2 col-start-1">
+                  <span className="text-xs text-muted-foreground truncate block">{customer?.name || '—'}</span>
                 </div>
               </div>
             </button>
