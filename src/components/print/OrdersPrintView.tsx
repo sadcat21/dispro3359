@@ -1,4 +1,5 @@
 import React, { forwardRef, useEffect, useState } from 'react';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 import { createPortal } from 'react-dom';
 import { OrderWithDetails, Product } from '@/types/database';
 import { format } from 'date-fns';
@@ -342,7 +343,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                 const boxLabel = getProductBoxLabel(product);
                 return (
                   <th key={product.id} style={{ width: '55px', fontSize: '8pt', lineHeight: '1.2' }}>
-                    <div>{product.name}</div>
+                    <div>{getProductDisplayName(product)}</div>
                     {boxLabel && <div style={{ fontSize: '6pt', fontWeight: 'normal', opacity: 0.7 }}>{boxLabel}</div>}
                   </th>
                 );
@@ -437,21 +438,9 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                               <>
                                 {unitPrice > 0 && (
                                   <div style={{ fontSize: '6pt', opacity: 0.6, borderTop: '1px dotted #ccc', marginTop: '1px', paddingTop: '1px' }}>
-                                    {unitPrice.toLocaleString()}
+                                    {(unitPrice * qty).toLocaleString()}
                                   </div>
                                 )}
-                                {(() => {
-                                  const basePrice = getBaseUnitPrice(order, product);
-                                  const multiplier = getBoxMultiplier(product);
-                                  if (multiplier > 1 && basePrice > 0) {
-                                    return (
-                                      <div style={{ fontSize: '5.5pt', opacity: 0.45, borderTop: '1px dotted #ddd', marginTop: '1px', paddingTop: '1px' }}>
-                                        {basePrice.toLocaleString()}
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                })()}
                               </>
                             )}
                           </>
