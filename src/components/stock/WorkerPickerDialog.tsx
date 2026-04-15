@@ -51,12 +51,6 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
   stockAlerts = [],
 }) => {
   const { t } = useLanguage();
-  const [search, setSearch] = useState('');
-
-  const filtered = workers.filter(w =>
-    w.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    w.username.toLowerCase().includes(search.toLowerCase())
-  );
 
   const getWorkerDeficit = (workerId: string) => {
     return stockAlerts
@@ -73,18 +67,9 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
             {t('stock.select_worker')}
           </DialogTitle>
         </DialogHeader>
-        <div className="relative">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={t('common.search')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="ps-9"
-          />
-        </div>
         <div className="max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {filtered.map(w => {
+            {workers.map(w => {
               const deficit = getWorkerDeficit(w.id);
               const isSelected = w.id === selectedWorkerId;
               const colorClass = AVATAR_COLORS[getColorIndex(w.id)];
