@@ -373,7 +373,7 @@ const CustomerDebts: React.FC = () => {
             {t('debts.title')}
           </h2>
           {isAdmin && (
-            <Button size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" onClick={() => setAddDebtOpen(true)}>
+            <Button size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" onClick={() => setAddDebtPickerOpen(true)}>
               <Plus className="w-4 h-4" />
               <span>دين جديد</span>
             </Button>
