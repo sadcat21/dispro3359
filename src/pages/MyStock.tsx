@@ -245,7 +245,7 @@ const MyStock: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:grid-cols-4">
           {sortedItems.map(item => {
             const isZero = item.quantity === 0;
             const stats = movementStats[item.product_id];
@@ -258,45 +258,39 @@ const MyStock: React.FC = () => {
             const productImage = (item as any).product?.image_url;
             const productName = (item as any).product?.name;
             return (
-              <div key={item.id} className={`flex flex-col overflow-hidden rounded-2xl border-2 shadow-lg transition-all ${isZero ? 'border-destructive/30 opacity-60' : 'border-border bg-card hover:border-primary/40'}`}>
-                <div className="border-b border-border bg-muted/50 px-2.5 py-2 text-center">
-                  <span className="block truncate text-xs font-bold text-foreground sm:text-sm">
+              <div key={item.id} className={`flex flex-col overflow-hidden rounded-xl border shadow-sm transition-all ${isZero ? 'border-destructive/30 opacity-60' : 'border-border bg-card hover:border-primary/40'}`}>
+                <div className="border-b border-border bg-muted/50 px-1.5 py-1 text-center">
+                  <span className="block truncate text-[10px] font-bold text-foreground sm:text-xs">
                     {productName}
                   </span>
                 </div>
-                <div className="aspect-square w-full overflow-hidden bg-muted/30">
+                <div className="aspect-[4/3] w-full overflow-hidden bg-muted/30">
                   {productImage ? (
                     <img src={productImage} alt={productName} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground/40" />
+                      <Package className="h-8 w-8 text-muted-foreground/40" />
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 bg-card px-2.5 py-2.5">
-                  {/* Main quantity badge — matches sales summary style */}
-                  <div className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-base font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-                    <Package className="h-4 w-4" />
+                <div className="flex flex-col gap-1 bg-card px-1.5 py-1.5">
+                  <div className={`flex items-center justify-center gap-1 rounded-lg py-1 text-xs font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                    <Package className="h-3 w-3" />
                     {item.quantity}
                   </div>
-
-                  {/* Stats row */}
-                  <div className="flex items-center justify-between gap-1 text-[10px]">
-                    <span className="rounded-md bg-purple-50 px-1.5 py-1 font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                      {t('stock.balance')} {totalLoad}
+                  <div className="flex flex-wrap items-center justify-center gap-1 text-[9px]">
+                    <span className="rounded bg-purple-50 px-1 py-0.5 font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                      {totalLoad}
                     </span>
-                    <span className="rounded-md bg-green-50 px-1.5 py-1 font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                      {t('stock.sold_label')} {sold}
+                    <span className="rounded bg-green-50 px-1 py-0.5 font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                      {sold}
                     </span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-1 text-[10px]">
-                    <span className="rounded-md bg-blue-50 px-1.5 py-1 font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                      {t('stock.loaded')} {loaded}
+                    <span className="rounded bg-blue-50 px-1 py-0.5 font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                      {loaded}
                     </span>
                     {giftQty > 0 && (
-                      <span className="rounded-md bg-orange-50 px-1.5 py-1 font-semibold text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-                        🎁 {giftQty} {giftUnit}
+                      <span className="rounded bg-orange-50 px-1 py-0.5 font-semibold text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                        🎁{giftQty}
                       </span>
                     )}
                   </div>
