@@ -1308,47 +1308,49 @@ const LoadStock: React.FC = () => {
               {!suggestionsLoading && suggestions.length > 0 ? (
                 <AdaptiveScrollContainer
                   maxHeightClassName="flex-1"
-                  contentClassName="grid grid-cols-2 sm:grid-cols-3 gap-2"
+                  contentClassName="grid grid-cols-4 gap-2"
                 >
                   {suggestions.map(s => {
                     const sessionLoad = sessionItems.filter(si => si.product_id === s.product_id);
                     const loadedBoxes = sessionLoad.reduce((sum: number, si: any) => sum + (si.quantity || 0), 0);
                     const productData = allProductOptions.find(p => p.id === s.product_id);
                     const imgUrl = productData?.image_url;
+                    const isZero = s.current_stock === 0;
                     return (
-                      <div key={s.product_id} className="rounded-xl ring-1 ring-border/30 bg-card shadow-sm overflow-hidden flex flex-col">
-                        {/* Image */}
-                        <div className="w-full aspect-square bg-muted/30 flex items-center justify-center overflow-hidden">
+                      <div key={s.product_id} className={`flex flex-col overflow-hidden rounded-lg border transition-all ${isZero ? 'border-destructive/30 opacity-50' : 'border-border bg-card'}`}>
+                        <div className="px-1 py-0.5 text-center">
+                          <span className="block truncate text-[9px] font-bold text-foreground sm:text-[10px]">
+                            {s.product_name}
+                          </span>
+                        </div>
+                        <div className="aspect-square w-full overflow-hidden bg-muted/20">
                           {imgUrl ? (
-                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                            <img src={imgUrl} alt="" className="h-full w-full object-contain p-1" loading="lazy" />
                           ) : (
-                            <Package className="w-8 h-8 text-muted-foreground/30" />
+                            <Package className="mx-auto my-auto h-8 w-8 text-muted-foreground/30" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}} />
                           )}
                         </div>
-                        {/* Info */}
-                        <div className="p-2 flex flex-col gap-1.5">
-                          <div className="flex items-start justify-between gap-1">
-                            <span className="font-medium text-[11px] leading-tight truncate flex-1">{s.product_name}</span>
-                            <span className={`font-bold text-base leading-none shrink-0 ${s.current_stock === 0 ? 'text-destructive' : 'text-primary'}`}>
-                              {fmtQty(s.current_stock)}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-1 text-[9px]">
+                        <div className={`flex items-center justify-center gap-1 py-1 text-xs font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                          {fmtQty(s.current_stock)} <Package className="h-3 w-3" />
+                        </div>
+                        {(s.suggested_load > 0 || loadedBoxes > 0) && (
+                          <div className="flex flex-wrap items-center justify-center gap-1 px-1 py-0.5 text-[8px]">
                             {s.suggested_load > 0 && (
-                              <span className="flex items-center gap-0.5 bg-destructive/10 text-destructive px-1 py-0.5 rounded-full font-bold">
-                                <AlertTriangle className="w-2.5 h-2.5" />
+                              <span className="rounded bg-destructive/10 px-1 py-0.5 font-bold text-destructive">
                                 +{fmtQty(s.suggested_load)}
                               </span>
                             )}
-                            <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1 py-0.5 rounded-full font-semibold">
-                              بدون محاسبة {fmtQty((workerLoadedSinceAccounting || {})[s.product_id] || 0)}
-                            </span>
                             {loadedBoxes > 0 && (
-                              <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1 py-0.5 rounded-full font-semibold">
+                              <span className="rounded bg-green-100 px-1 py-0.5 font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
                                 +{fmtQty(loadedBoxes)}
                               </span>
                             )}
                           </div>
+                        )}
+                        <div className="px-1 pb-1 text-center">
+                          <span className="text-[8px] font-semibold text-orange-600 dark:text-orange-400">
+                            بدون محاسبة {fmtQty((workerLoadedSinceAccounting || {})[s.product_id] || 0)}
+                          </span>
                         </div>
                       </div>
                     );
