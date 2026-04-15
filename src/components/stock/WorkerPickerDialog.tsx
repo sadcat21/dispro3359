@@ -85,7 +85,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
                   onClick={() => {
                     onSelect(w.id);
                     onOpenChange(false);
-                    setSearch('');
+                    
                   }}
                 >
                   {isSelected && (
@@ -112,7 +112,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
               );
             })}
           </div>
-          {filtered.length === 0 && (
+          {workers.length === 0 && (
             <div className="text-center text-sm text-muted-foreground py-4">
               {t('common.no_results')}
             </div>
