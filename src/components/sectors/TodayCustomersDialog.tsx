@@ -3770,9 +3770,19 @@ const DebtList: React.FC<{ debts: DueDebt[]; onCollect: (d: DueDebt) => void; on
                     wilaya: (debt.customer as any)?.wilaya,
                   }}
                   compact
-                  hideBadges
                   showAvatar={false}
                   showMeta={false}
+                  badges={
+                    <ClientTrustBadge
+                      trust={computeClientTrustScore({
+                        totalDebt: Number(debt.total_amount || 0),
+                        paidAmount: Number(debt.paid_amount || 0),
+                        noCollectionVisits: 0,
+                        paymentVisitNumber: 1,
+                      })}
+                      compact
+                    />
+                  }
                 />
                 {isDocumentBased && <Badge className="text-[8px] px-1 h-3.5 bg-purple-100 text-purple-700 border-0 shrink-0"><FileText className="w-2.5 h-2.5 mr-0.5" />مستند</Badge>}
                 {isCashBased && <Badge className="text-[8px] px-1 h-3.5 bg-emerald-100 text-emerald-700 border-0 shrink-0"><Banknote className="w-2.5 h-2.5 mr-0.5" />كاش</Badge>}
