@@ -43,6 +43,8 @@ import TodayPrintSettingsDialog from '@/components/sectors/TodayPrintSettingsDia
 import OrdersPrintView from '@/components/print/OrdersPrintView';
 import { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
 import { isAdminRole } from '@/lib/utils';
+import ClientTrustBadge from '@/components/customers/ClientTrustBadge';
+import { computeClientTrustScore } from '@/utils/clientTrustScore';
 
 const DAY_NAMES: Record<string, string> = {
   saturday: 'السبت', sunday: 'الأحد', monday: 'الإثنين',
@@ -3641,16 +3643,21 @@ const CollectedDebtOperationList: React.FC<{
       });
     }
 
-    const byCustomer = new Map<string, { operations: TodayDebtCollectionOperation[]; totalCollected: number; totalRemaining: number; customer: any; latestAt: string }>();
+    const byCustomer = new Map<string, { operations: TodayDebtCollectionOperation[]; totalCollected: number; seenDebtIds: Set<string>; totalRemaining: number; customer: any; latestAt: string }>();
     for (const op of list) {
       const custId = op.debt?.customer_id || (op.debt?.customer as any)?.id || op.id;
+      const debtId = op.debt_id || op.id;
       const existing = byCustomer.get(custId);
       const collected = Number(op.amount_collected || 0);
       const remaining = Number(op.debt?.remaining_amount || 0);
       if (existing) {
         existing.operations.push(op);
         existing.totalCollected += collected;
-        existing.totalRemaining += remaining;
+        // Only count remaining once per unique debt
+        if (!existing.seenDebtIds.has(debtId)) {
+          existing.seenDebtIds.add(debtId);
+          existing.totalRemaining += remaining;
+        }
         if (op.created_at > existing.latestAt) {
           existing.latestAt = op.created_at;
           existing.customer = op.debt?.customer || existing.customer;
@@ -3659,6 +3666,7 @@ const CollectedDebtOperationList: React.FC<{
         byCustomer.set(custId, {
           operations: [op],
           totalCollected: collected,
+          seenDebtIds: new Set([debtId]),
           totalRemaining: remaining,
           customer: op.debt?.customer,
           latestAt: op.created_at,
@@ -3707,7 +3715,7 @@ const CollectedDebtOperationList: React.FC<{
 };
 
 // Reusable DebtList component
-const DebtList: React.FC<{ debts: DueDebt[]; onCollect: (d: DueDebt) => void; onVisitNoPayment: (d: DueDebt) => void; onClosed: (d: DueDebt) => void; onUnavailable: (d: DueDebt) => void; onDebtRefused?: (d: DueDebt) => void; emptyMessage: string; searchQuery?: string; timeMap?: Map<string, string> }> = ({ debts, onCollect, onVisitNoPayment, onClosed, onUnavailable, onDebtRefused, emptyMessage, searchQuery, timeMap }) => {
+const DebtList: React.FC<{ debts: DueDebt[]; onCollect: (d: DueDebt) => void; onVisitNoPayment: (d: DueDebt) => void; onClosed: (d: DueDebt) => void; onUnavailable: (d: DueDebt) => void; onDebtRefused?: (d: DueDebt) => void; emptyMessage: string; searchQuery?: string; timeMap?: Map<string, string>; allDebts?: DueDebt[]; allCollections?: any[] }> = ({ debts, onCollect, onVisitNoPayment, onClosed, onUnavailable, onDebtRefused, emptyMessage, searchQuery, timeMap, allDebts, allCollections }) => {
   const filtered = useMemo(() => {
     let list = debts;
     if (searchQuery?.trim()) {
@@ -3762,9 +3770,19 @@ const DebtList: React.FC<{ debts: DueDebt[]; onCollect: (d: DueDebt) => void; on
                     wilaya: (debt.customer as any)?.wilaya,
                   }}
                   compact
-                  hideBadges
                   showAvatar={false}
                   showMeta={false}
+                  badges={
+                    <ClientTrustBadge
+                      trust={computeClientTrustScore({
+                        totalDebt: Number(debt.total_amount || 0),
+                        paidAmount: Number(debt.paid_amount || 0),
+                        noCollectionVisits: 0,
+                        paymentVisitNumber: 1,
+                      })}
+                      compact
+                    />
+                  }
                 />
                 {isDocumentBased && <Badge className="text-[8px] px-1 h-3.5 bg-purple-100 text-purple-700 border-0 shrink-0"><FileText className="w-2.5 h-2.5 mr-0.5" />مستند</Badge>}
                 {isCashBased && <Badge className="text-[8px] px-1 h-3.5 bg-emerald-100 text-emerald-700 border-0 shrink-0"><Banknote className="w-2.5 h-2.5 mr-0.5" />كاش</Badge>}
