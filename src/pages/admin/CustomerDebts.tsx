@@ -583,6 +583,22 @@ const CustomerDebts: React.FC = () => {
           />
         )}
 
+        <CustomerPickerDialog
+          open={addDebtPickerOpen}
+          onOpenChange={(open) => {
+            setAddDebtPickerOpen(open);
+            if (!open && !newDebtCustomerId) resetNewDebtForm();
+          }}
+          customers={customers || []}
+          sectors={sectors}
+          selectedCustomerId={newDebtCustomerId}
+          onSelect={(customer) => {
+            setNewDebtCustomerId(customer.id);
+            setAddDebtPickerOpen(false);
+            setAddDebtOpen(true);
+          }}
+        />
+
         <Dialog
           open={addDebtOpen}
           onOpenChange={(open) => {
@@ -596,34 +612,21 @@ const CustomerDebts: React.FC = () => {
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اختيار العميل</label>
-                <Input
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  placeholder="ابحث باسم العميل أو الهاتف"
-                />
-                <Select value={newDebtCustomerId} onValueChange={setNewDebtCustomerId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر العميل" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredCustomers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name}
-                        {customer.store_name ? ` - ${customer.store_name}` : ''}
-                        {customer.phone ? ` - ${customer.phone}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedDebtCustomer && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedDebtCustomer.name}
-                    {selectedDebtCustomer.store_name ? ` - ${selectedDebtCustomer.store_name}` : ''}
-                  </p>
-                )}
-              </div>
+              {selectedDebtCustomer && (
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <CustomerSummary
+                    customer={{
+                      name: selectedDebtCustomer.name,
+                      store_name: selectedDebtCustomer.store_name,
+                      customer_type: selectedDebtCustomer.customer_type,
+                      phone: selectedDebtCustomer.phone,
+                      wilaya: selectedDebtCustomer.wilaya,
+                    }}
+                    compact
+                    showAvatar={false}
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">مبلغ الدين</label>
