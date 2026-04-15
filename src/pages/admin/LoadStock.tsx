@@ -1296,38 +1296,15 @@ const LoadStock: React.FC = () => {
           )}
         </div>
 
-        {/* Sub-tabs for session info & stock summary */}
+        {/* Stock summary (session tab removed) */}
         {selectedWorker && (
-          <Tabs defaultValue="session" className="flex min-h-0 flex-1 flex-col w-full">
-            <TabsList className="w-full h-7 p-0.5 bg-muted/60 shrink-0">
-              <TabsTrigger value="session" className="flex-1 h-6 text-[10px] data-[state=active]:shadow-sm">
-                <Package className="w-3 h-3 me-1" />
-                {t('load_stock.session_tab')}
-                {activeSessionId && <Badge variant="secondary" className="text-[8px] px-1 py-0 rounded-full h-3.5 ms-1">{sessionItems.length}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="stock" className="flex-1 h-6 text-[10px] data-[state=active]:shadow-sm">
-                {hasDeficit ? <AlertTriangle className="w-3 h-3 me-1 text-destructive" /> : <CheckCircle className="w-3 h-3 me-1 text-green-600" />}
-                {t('load_stock.stock_tab')}
-                {hasDeficit && <Badge variant="destructive" className="text-[8px] px-1 py-0 rounded-full h-3.5 ms-1">{totalDeficit}</Badge>}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="session" className="mt-1 shrink-0">
-              {activeSessionId ? (
-                <div className="flex items-center gap-1.5 bg-primary/5 ring-1 ring-primary/20 rounded-lg px-2.5 py-1.5">
-                  <Package className="w-3.5 h-3.5 text-primary" />
-                  <span className="font-medium text-[11px]">{t('load_stock.active_session')}</span>
-                  <Badge variant="secondary" className="text-[9px] rounded-full h-4">{sessionItems.length} {t('load_stock.product_count')}</Badge>
-                  {totalSessionQty > 0 && <Badge className="text-[9px] rounded-full h-4">{totalSessionQty} {t('load_stock.box_count')}</Badge>}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground text-[11px] py-1.5">
-                  {t('load_stock.no_active_session')}
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="stock" className="mt-1 min-h-0 flex-1 data-[state=active]:flex data-[state=active]:flex-col">
+          <div className="flex min-h-0 flex-1 flex-col w-full">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 shrink-0">
+              {hasDeficit ? <AlertTriangle className="w-3 h-3 text-destructive" /> : <CheckCircle className="w-3 h-3 text-green-600" />}
+              <span className="font-medium text-[11px]">{t('load_stock.stock_tab')}</span>
+              {hasDeficit && <Badge variant="destructive" className="text-[8px] px-1 py-0 rounded-full h-3.5 ms-1">{totalDeficit}</Badge>}
+            </div>
+            <div className="mt-1 min-h-0 flex-1 flex flex-col">
               {!suggestionsLoading && suggestions.length > 0 ? (
                 <AdaptiveScrollContainer
                   maxHeightClassName="flex-1"
@@ -1447,8 +1424,8 @@ const LoadStock: React.FC = () => {
                   لا توجد بيانات مخزون
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         )}
 
         {/* Worker Load Request Banner */}
