@@ -259,16 +259,9 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     };
 
     const getItemUnitPrice = (order: OrderWithDetails, productId: string): number => {
-      const items = orderItems.get(order.id);
-      if (items) {
-        const item = items.find(i => i.product_id === productId);
-        if (item?.unit_price && item.unit_price > 0) return item.unit_price;
-      }
       const product = products.find(p => p.id === productId);
       if (!product) return 0;
-      const basePrice = getBaseUnitPrice(order, product);
-      const multiplier = getBoxMultiplier(product);
-      return basePrice * multiplier;
+      return getBaseUnitPrice(order, product);
     };
 
     const grandTotal = orders.reduce((sum, order) => {
