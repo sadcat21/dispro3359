@@ -628,6 +628,19 @@ const WorkerHome: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Worker Picker for Load Stock */}
+      <WorkerPickerDialog
+        open={showLoadWorkerPicker}
+        onOpenChange={setShowLoadWorkerPicker}
+        workers={loadWorkersList}
+        selectedWorkerId=""
+        onSelect={(wId) => {
+          setShowLoadWorkerPicker(false);
+          setContextWorker(wId);
+          navigate('/load-stock');
+        }}
+      />
     </div>
   );
 };
