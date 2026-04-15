@@ -3659,30 +3659,31 @@ const CollectedDebtOperationList: React.FC<{
 
         return (
           <Card key={operation.id} className="overflow-hidden">
-            <button className="w-full p-3 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(operation)}>
-              {/* Row 1: Names + Amounts */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  {customer?.store_name && (
-                    <div className="text-sm font-bold text-foreground truncate">{customer.store_name}</div>
+            <button className="w-full p-2.5 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(operation)}>
+              <div className="grid grid-cols-[1fr_auto] grid-rows-2 gap-x-3 gap-y-1 items-center">
+                {/* Top-left: Store/Customer name */}
+                <div className="min-w-0">
+                  <span className="text-sm font-bold text-foreground truncate block">{customer?.store_name || customer?.name || '—'}</span>
+                  {customer?.store_name && customer?.name && (
+                    <span className="text-[11px] text-muted-foreground truncate block">{customer.name}</span>
                   )}
-                  <div className="text-xs text-muted-foreground truncate">{customer?.name || '—'}</div>
                 </div>
-                <div className="text-left shrink-0" dir="ltr">
-                  <div className="text-sm font-black text-green-600">{collectedAmount.toLocaleString()} DA</div>
+                {/* Top-right: Amounts */}
+                <div className="text-left" dir="ltr">
+                  <span className="text-sm font-black text-green-600">{collectedAmount.toLocaleString()} DA</span>
                   {remainingAmount > 0 && (
-                    <div className="text-xs font-bold text-red-500 mt-0.5">{remainingAmount.toLocaleString()} DA</div>
+                    <span className="block text-xs font-bold text-red-500">{remainingAmount.toLocaleString()} DA</span>
                   )}
                 </div>
-              </div>
-              {/* Row 2: Badges & meta */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold">{collectorName}</span>
-                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{operation.payment_method || 'cash'}</span>
-                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <Clock className="w-3 h-3" />
-                  {format(new Date(operation.created_at), 'dd/MM HH:mm')}
-                </span>
+                {/* Bottom-left & right: Badges */}
+                <div className="col-span-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold">{collectorName}</span>
+                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{operation.payment_method || 'cash'}</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground mr-auto">
+                    <Clock className="w-3 h-3" />
+                    {format(new Date(operation.created_at), 'dd/MM HH:mm')}
+                  </span>
+                </div>
               </div>
             </button>
           </Card>
