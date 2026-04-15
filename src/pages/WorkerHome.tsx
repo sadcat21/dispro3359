@@ -242,6 +242,19 @@ const WorkerHome: React.FC = () => {
     return t('common.welcome');
   };
 
+  // Workers for load-stock picker (warehouse manager)
+  const { data: loadWorkersList = [] } = useQuery({
+    queryKey: ['wh-load-workers', effectiveBranchId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('workers')
+        .select('id, full_name, username, role, is_active, branch_id')
+        .eq('is_active', true)
+        .order('full_name');
+      return (data || []).filter(w => w.id !== workerId);
+    },
+    enabled: isWarehouseManager && !!effectiveBranchId,
+  });
 
 
   // Loading skeleton for permissions
