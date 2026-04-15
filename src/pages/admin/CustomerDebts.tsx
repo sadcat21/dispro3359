@@ -16,6 +16,7 @@ import { useCreateDebt, useCustomerDebts } from '@/hooks/useCustomerDebts';
 import { CustomerDebtWithDetails } from '@/types/accounting';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import CollectCustomerDebtDialog from '@/components/debts/CollectCustomerDebtDialog';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import PendingDocumentsSection from '@/components/debts/PendingDocumentsSection';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { isAdminRole } from '@/lib/utils';
