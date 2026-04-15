@@ -37,6 +37,7 @@ const WorkerHome: React.FC = () => {
   const { user, workerId, role, activeRole, activeBranch } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { setSelectedWorker: setContextWorker } = useSelectedWorker();
   const { data: permissions = [], isLoading: permissionsLoading } = useWorkerPermissions();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
