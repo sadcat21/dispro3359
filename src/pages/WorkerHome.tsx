@@ -250,6 +250,7 @@ const WorkerHome: React.FC = () => {
         .from('workers')
         .select('id, full_name, username, role, is_active, branch_id')
         .eq('is_active', true)
+        .eq('branch_id', effectiveBranchId!)
         .order('full_name');
       return (data || []).filter(w => w.id !== workerId);
     },
