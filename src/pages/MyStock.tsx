@@ -245,55 +245,29 @@ const MyStock: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:grid-cols-4">
+        <div className="grid grid-cols-4 gap-2 sm:gap-2.5">
           {sortedItems.map(item => {
             const isZero = item.quantity === 0;
-            const stats = movementStats[item.product_id];
-            const loaded = stats?.loaded || 0;
-            const totalLoad = stats?.totalLoad || reviewQuantities[item.product_id] || item.quantity;
-            const sold = stats?.sold || 0;
-            const gifts = giftStats[item.product_id];
-            const giftQty = gifts?.totalGifts || 0;
-            const giftUnit = gifts?.unit === 'piece' ? t('stock.piece') : gifts?.unit === 'box' ? t('stock.box') : gifts?.unit === 'kg' ? 'kg' : t('stock.piece');
             const productImage = (item as any).product?.image_url;
             const productName = (item as any).product?.name;
             return (
-              <div key={item.id} className={`flex flex-col overflow-hidden rounded-xl border shadow-sm transition-all ${isZero ? 'border-destructive/30 opacity-60' : 'border-border bg-card hover:border-primary/40'}`}>
-                <div className="border-b border-border bg-muted/50 px-1.5 py-1 text-center">
-                  <span className="block truncate text-[10px] font-bold text-foreground sm:text-xs">
+              <div key={item.id} className={`flex flex-col overflow-hidden rounded-lg border transition-all ${isZero ? 'border-destructive/30 opacity-50' : 'border-border bg-card'}`}>
+                <div className="px-1 py-0.5 text-center">
+                  <span className="block truncate text-[9px] font-bold text-foreground sm:text-[10px]">
                     {productName}
                   </span>
                 </div>
-                <div className="aspect-[4/3] w-full overflow-hidden bg-muted/30">
+                <div className="aspect-square w-full overflow-hidden bg-muted/20">
                   {productImage ? (
-                    <img src={productImage} alt={productName} className="h-full w-full object-cover" loading="lazy" />
+                    <img src={productImage} alt={productName} className="h-full w-full object-contain p-1" loading="lazy" />
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <Package className="h-8 w-8 text-muted-foreground/40" />
+                      <Package className="h-8 w-8 text-muted-foreground/30" />
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-1 bg-card px-1.5 py-1.5">
-                  <div className={`flex items-center justify-center gap-1 rounded-lg py-1 text-xs font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-                    <Package className="h-3 w-3" />
-                    {item.quantity}
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-1 text-[9px]">
-                    <span className="rounded bg-purple-50 px-1 py-0.5 font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                      {totalLoad}
-                    </span>
-                    <span className="rounded bg-green-50 px-1 py-0.5 font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                      {sold}
-                    </span>
-                    <span className="rounded bg-blue-50 px-1 py-0.5 font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                      {loaded}
-                    </span>
-                    {giftQty > 0 && (
-                      <span className="rounded bg-orange-50 px-1 py-0.5 font-semibold text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-                        🎁{giftQty}
-                      </span>
-                    )}
-                  </div>
+                <div className={`flex items-center justify-center gap-1 py-1 text-xs font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                  {item.quantity} <Package className="h-3 w-3" />
                 </div>
               </div>
             );
