@@ -39,7 +39,7 @@ import ModifyOrderDialog from '@/components/orders/ModifyOrderDialog';
 import { useOrderItems } from '@/hooks/useOrders';
 import WorkerOrdersSummaryDialog from '@/components/accounting/WorkerOrdersSummaryDialog';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
-import PrintOrdersDialog from '@/components/orders/PrintOrdersDialog';
+import TodayPrintSettingsDialog from '@/components/sectors/TodayPrintSettingsDialog';
 import OrdersPrintView from '@/components/print/OrdersPrintView';
 import { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
 import { isAdminRole } from '@/lib/utils';
@@ -192,7 +192,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [selectedAdminWorkerId, setSelectedAdminWorkerId] = useState<string | null>(targetWorkerId || null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showBulkPostpone, setShowBulkPostpone] = useState(false);
-  const [showRequiredShipment, setShowRequiredShipment] = useState(false);
+  
   const [postponeCustomer, setPostponeCustomer] = useState<any>(null);
   const [postponeWorkerId, setPostponeWorkerId] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
@@ -2432,19 +2432,11 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-2 text-blue-700 border-blue-300 hover:bg-blue-50"
-                        onClick={() => setShowRequiredShipment(true)}
-                      >
-                        <Package className="w-4 h-4" />
-                        الشحنة المطلوبة
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                        className="flex-1 gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50"
                         onClick={() => setShowPrintOrdersDialog(true)}
                       >
                         <Printer className="w-4 h-4" />
+                        طباعة الشحنة
                       </Button>
                     </div>
                   )}
@@ -2918,75 +2910,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           receiptData={printReceiptData}
         />
       )}
-      {/* Required Shipment Dialog */}
-      <Dialog open={showRequiredShipment} onOpenChange={setShowRequiredShipment}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-blue-600" />
-              الشحنة المطلوبة
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">الكميات المطلوب توصيلها مقارنة برصيد الشاحنة:</p>
-          <div className="space-y-2">
-            {(() => {
-              const productNeeds: Record<string, { name: string; needed: number; image?: string }> = {};
-              assignedOrders
-                .filter(o => ['pending', 'assigned', 'in_progress', 'confirmed', 'processing', 'in_transit', 'ready'].includes(o.status))
-                .forEach(o => {
-                  (o.items || []).forEach((item: any) => {
-                    const pid = item.product_id || item.product?.id;
-                    const pname = item.product?.name || item.product_name || '—';
-                    const qty = Number(item.quantity || 0);
-                    if (!productNeeds[pid]) productNeeds[pid] = { name: pname, needed: 0, image: item.product?.image_url };
-                    productNeeds[pid].needed += qty;
-                  });
-                });
-              const stockMap = new Map<string, number>();
-              workerStock.forEach((ws: any) => {
-                stockMap.set(ws.product_id, Number(ws.quantity || 0));
-              });
-              const products = Object.entries(productNeeds).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ar'));
-              if (products.length === 0) return <p className="text-center text-muted-foreground py-4">لا توجد طلبيات</p>;
-              return products.map(([pid, info]) => {
-                const stock = stockMap.get(pid) || 0;
-                const diff = stock - info.needed;
-                const isDeficit = diff < 0;
-                const isSurplus = diff > 0;
-                return (
-                  <Card key={pid} className={`p-3 ${isDeficit ? 'border-red-300 bg-red-50/50' : isSurplus ? 'border-green-300 bg-green-50/50' : 'border-blue-300 bg-blue-50/50'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border bg-muted/40">
-                        {info.image ? (
-                          <img src={info.image} alt={info.name} className="h-full w-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[9px] text-muted-foreground">📦</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{info.name}</p>
-                        <div className="flex items-center gap-3 text-xs mt-0.5">
-                          <span className="text-blue-700">مطلوب: <strong>{info.needed}</strong></span>
-                          <span className="text-muted-foreground">رصيد: <strong>{stock}</strong></span>
-                          <span className={`font-bold ${isDeficit ? 'text-red-600' : isSurplus ? 'text-green-600' : 'text-blue-600'}`}>
-                            {isDeficit ? (
-                              <span className="flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> عجز {Math.abs(diff)}</span>
-                            ) : isSurplus ? (
-                              `فائض ${diff}`
-                            ) : (
-                              'متطابق ✓'
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              });
-            })()}
-          </div>
-        </DialogContent>
-      </Dialog>
       {/* Single Customer Postpone Dialog */}
       <Dialog open={!!postponeCustomer} onOpenChange={(open) => { if (!open) { setPostponeCustomer(null); setPostponeWorkerId(null); } }}>
         <DialogContent className="max-w-xs" dir="rtl">
@@ -3047,19 +2970,19 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         />
       )}
 
-      {/* Print Orders Dialog (same as orders aggregation) */}
-      <PrintOrdersDialog
+      {/* Unified Print Settings Dialog */}
+      <TodayPrintSettingsDialog
         open={showPrintOrdersDialog}
         onOpenChange={setShowPrintOrdersDialog}
-        workers={workersList.length > 0 ? workersList as any : []}
         orders={assignedOrders.filter(o => ['pending', 'assigned', 'in_progress', 'confirmed', 'processing', 'in_transit', 'ready'].includes(o.status))}
         products={allProducts as any}
-        onPrint={async (filterWorkerId, printPerWorker, filteredOrders, groupCustomers, groupProducts, columnConfig) => {
-          if (!filteredOrders || filteredOrders.length === 0) {
+        workerStock={workerStock as any}
+        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts) => {
+          if (!selectedOrders || selectedOrders.length === 0) {
             toast.info('لا توجد طلبيات للطباعة');
             return;
           }
-          const orderIds = filteredOrders.map(o => o.id);
+          const orderIds = selectedOrders.map(o => o.id);
           const { data: items } = await supabase
             .from('order_items')
             .select('*, product:products(*)')
@@ -3071,7 +2994,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             itemsMap.set(item.order_id, existing);
           });
           setAllOrderItems(itemsMap);
-          setFilteredOrdersForPrint(filteredOrders);
+          setFilteredOrdersForPrint(selectedOrders);
           setPrintColumnConfig(columnConfig);
           setPrintWorkerName(effectiveWorkerName || null);
           setIsPrintReady(true);
@@ -3082,7 +3005,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             setPrintWorkerName(null);
           }, 500);
         }}
-        onExportCSV={() => {}}
       />
 
       {/* Print View (hidden, only shown when printing) */}
