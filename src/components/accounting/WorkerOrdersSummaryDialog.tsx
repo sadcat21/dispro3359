@@ -209,7 +209,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const [customersSaving, setCustomersSaving] = useState(false);
   const [loadedFromDb, setLoadedFromDb] = useState(false);
 
-  const { activeBranch } = useAuth();
+  const { activeBranch, role, activeRole } = useAuth();
+  const canSeeCashVan = isAdminRole(role) || role === 'supervisor' || activeRole?.custom_role_code === 'warehouse_manager';
   const { columns: columnConfig, saveColumns } = usePrintColumnsConfig();
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
 
