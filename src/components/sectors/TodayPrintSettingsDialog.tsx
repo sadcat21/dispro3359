@@ -321,111 +321,155 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Shipment Summary Popup */}
+      {/* Shipment Summary Popup - Grid View */}
       <Dialog open={showShipmentSummary} onOpenChange={setShowShipmentSummary}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md p-4" dir={dir}>
-          <DialogHeader className="pb-2">
+        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] gap-0 flex flex-col overflow-hidden p-0" dir={dir}>
+          <DialogHeader className="px-3 pt-3 pb-2 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Package className="w-4 h-4 text-blue-600" />
+              <Package className="w-5 h-5 text-blue-600" />
               الشحنة المطلوبة
+              {shipmentSummary.some(s => s.diff < 0) && (
+                <Badge variant="destructive" className="text-[10px] rounded-full">
+                  <AlertTriangle className="w-3 h-3 me-0.5" />
+                  يوجد عجز
+                </Badge>
+              )}
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[65vh]">
-            <div className="space-y-1.5 p-1">
+          <div
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-1 touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            <div className="grid grid-cols-4 gap-1.5 pb-3">
               {shipmentSummary.map(item => {
                 const isDeficit = item.diff < 0;
                 const isSurplus = item.diff > 0;
                 return (
-                  <Card key={item.pid} className={`p-2 ${isDeficit ? 'border-red-300 bg-red-50/50' : isSurplus ? 'border-green-300 bg-green-50/50' : 'border-blue-300 bg-blue-50/50'}`}>
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded border bg-muted/40">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[8px]">📦</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-xs truncate">{item.name}</p>
-                        <div className="flex items-center gap-2 text-[10px] mt-0.5">
-                          <span className="text-blue-700">مطلوب: <strong>{item.needed}</strong></span>
-                          <span className="text-muted-foreground">رصيد: <strong>{item.stock}</strong></span>
-                          <span className={`font-bold ${isDeficit ? 'text-red-600' : isSurplus ? 'text-green-600' : 'text-blue-600'}`}>
-                            {isDeficit ? (
-                              <span className="flex items-center gap-0.5"><AlertTriangle className="w-2.5 h-2.5" /> عجز {Math.abs(item.diff)}</span>
-                            ) : isSurplus ? `فائض ${item.diff}` : 'متطابق ✓'}
-                          </span>
-                        </div>
-                      </div>
+                  <div
+                    key={item.pid}
+                    className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border
+                      ${isDeficit ? 'border-red-400 ring-1 ring-red-300/50' : isSurplus ? 'border-green-400 ring-1 ring-green-300/50' : 'border-blue-300'}
+                    `}
+                  >
+                    {/* Product name */}
+                    <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
+                      ${isDeficit ? 'bg-red-500/10 text-red-700' : isSurplus ? 'bg-green-500/10 text-green-700' : 'bg-blue-500/10 text-blue-700'}
+                    `}>
+                      {item.name}
                     </div>
-                  </Card>
+
+                    {/* Image */}
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full aspect-square object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full aspect-square flex items-center justify-center bg-muted/20">
+                        <Package className="w-6 h-6 text-muted-foreground/30" />
+                      </div>
+                    )}
+
+                    {/* Info badges */}
+                    <div className="flex flex-col items-center gap-0.5 p-0.5 min-h-[28px]">
+                      <div className="flex items-center gap-0.5 flex-wrap justify-center">
+                        <Badge variant="secondary" className="text-[8px] px-0.5 py-0 h-3.5">
+                          مطلوب: {item.needed}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[8px] px-0.5 py-0 h-3.5">
+                          رصيد: {item.stock}
+                        </Badge>
+                      </div>
+                      <Badge
+                        className={`text-[8px] px-1 py-0 h-3.5 ${
+                          isDeficit ? 'bg-red-500 text-white' : isSurplus ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
+                        }`}
+                      >
+                        {isDeficit ? (
+                          <span className="flex items-center gap-0.5"><AlertTriangle className="w-2 h-2" /> عجز {Math.abs(item.diff)}</span>
+                        ) : isSurplus ? `فائض ${item.diff}` : 'متطابق ✓'}
+                      </Badge>
+                    </div>
+                  </div>
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
 
-      {/* Cash Van Popup */}
+      {/* Cash Van Popup - Grid View */}
       <Dialog open={showCashVan} onOpenChange={setShowCashVan}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md p-4" dir={dir}>
-          <DialogHeader className="pb-2">
+        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] gap-0 flex flex-col overflow-hidden p-0" dir={dir}>
+          <DialogHeader className="px-3 pt-3 pb-2 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <ShoppingCart className="w-4 h-4 text-orange-600" />
               كاش فان — المنتجات الاحتياطية
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground mb-2">
-            الكميات المتبقية بعد حذف المطلوب للعملاء المحددين من المخزون المحمل
+          <p className="text-xs text-muted-foreground px-3 pb-1">
+            الكميات المتبقية بعد حذف المطلوب للعملاء المحددين
           </p>
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-1.5 p-1">
+          <div
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-1 touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            <div className="grid grid-cols-4 gap-1.5 pb-3">
               {workerStock.filter(ws => ws.quantity > 0).map(ws => {
                 const product = ws.product || products.find(p => p.id === ws.product_id);
                 const productName = product?.name || ws.product_id;
                 const currentQty = cashVanQuantities[ws.product_id] || 0;
+                const hasReserve = currentQty > 0;
                 return (
-                  <Card key={ws.product_id} className="p-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded border bg-muted/40">
-                        {(product as any)?.image_url ? (
-                          <img src={(product as any).image_url} alt={productName} className="h-full w-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[8px]">📦</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-xs truncate">{productName}</p>
-                        <div className="flex items-center gap-2 text-[10px] mt-0.5 text-muted-foreground">
-                          <span>محمل: {ws.quantity}</span>
-                          <span>مطلوب: {Math.max(0, ws.quantity - currentQty)}</span>
-                        </div>
-                      </div>
-                      <div className="w-16">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={ws.quantity}
-                          value={currentQty}
-                          onChange={(e) => {
-                            const val = Math.max(0, Math.min(ws.quantity, parseInt(e.target.value) || 0));
-                            setCashVanQuantities(prev => ({ ...prev, [ws.product_id]: val }));
-                          }}
-                          className="h-8 text-center text-sm px-1"
-                        />
-                      </div>
+                  <div
+                    key={ws.product_id}
+                    className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border
+                      ${hasReserve ? 'border-orange-400 ring-1 ring-orange-300/50' : 'border-border/50'}
+                    `}
+                  >
+                    {/* Product name */}
+                    <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
+                      ${hasReserve ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-foreground'}
+                    `}>
+                      {productName}
                     </div>
-                  </Card>
+
+                    {/* Image */}
+                    {(product as any)?.image_url ? (
+                      <img src={(product as any).image_url} alt={productName} className="w-full aspect-square object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full aspect-square flex items-center justify-center bg-muted/20">
+                        <Package className="w-6 h-6 text-muted-foreground/30" />
+                      </div>
+                    )}
+
+                    {/* Info + input */}
+                    <div className="flex flex-col items-center gap-0.5 p-1 min-h-[32px]">
+                      <div className="flex items-center gap-0.5 text-[8px] text-muted-foreground">
+                        <span>محمل: {ws.quantity}</span>
+                      </div>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={ws.quantity}
+                        value={currentQty}
+                        onChange={(e) => {
+                          const val = Math.max(0, Math.min(ws.quantity, parseInt(e.target.value) || 0));
+                          setCashVanQuantities(prev => ({ ...prev, [ws.product_id]: val }));
+                        }}
+                        className="h-6 w-14 text-center text-[11px] font-bold px-0.5"
+                      />
+                    </div>
+                  </div>
                 );
               })}
               {workerStock.filter(ws => ws.quantity > 0).length === 0 && (
-                <p className="text-center text-xs text-muted-foreground py-4">لا توجد منتجات محملة</p>
+                <p className="col-span-4 text-center text-xs text-muted-foreground py-4">لا توجد منتجات محملة</p>
               )}
             </div>
-          </ScrollArea>
-          <Button className="w-full mt-2" onClick={() => setShowCashVan(false)}>
-            تأكيد
-          </Button>
+          </div>
+          <div className="px-3 pb-3 pt-2 border-t shrink-0">
+            <Button className="w-full" onClick={() => setShowCashVan(false)}>
+              تأكيد
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
