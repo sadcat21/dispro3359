@@ -43,6 +43,8 @@ import TodayPrintSettingsDialog from '@/components/sectors/TodayPrintSettingsDia
 import OrdersPrintView from '@/components/print/OrdersPrintView';
 import { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
 import { isAdminRole } from '@/lib/utils';
+import ClientTrustBadge from '@/components/customers/ClientTrustBadge';
+import { computeClientTrustScore } from '@/utils/clientTrustScore';
 
 const DAY_NAMES: Record<string, string> = {
   saturday: 'السبت', sunday: 'الأحد', monday: 'الإثنين',
