@@ -2977,7 +2977,9 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         orders={assignedOrders.filter(o => ['pending', 'assigned', 'in_progress', 'confirmed', 'processing', 'in_transit', 'ready'].includes(o.status))}
         products={allProducts as any}
         workerStock={workerStock as any}
-        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts) => {
+        sectors={sectors}
+        zones={allZones}
+        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities) => {
           if (!selectedOrders || selectedOrders.length === 0) {
             toast.info('لا توجد طلبيات للطباعة');
             return;
@@ -2993,8 +2995,27 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             existing.push(item);
             itemsMap.set(item.order_id, existing);
           });
+
+          // Enrich orders with sector/zone objects for print
+          const sectorMap = new Map(sectors.map(s => [s.id, s]));
+          const zoneMap = new Map(allZones.map(z => [z.id, z]));
+          const enrichedOrders = selectedOrders.map(o => {
+            const customer = o.customer as any;
+            if (customer) {
+              const enrichedCustomer = { ...customer };
+              if (customer.sector_id && !customer.sector) {
+                enrichedCustomer.sector = sectorMap.get(customer.sector_id) || null;
+              }
+              if (customer.zone_id && !customer.zone) {
+                enrichedCustomer.zone = zoneMap.get(customer.zone_id) || null;
+              }
+              return { ...o, customer: enrichedCustomer };
+            }
+            return o;
+          });
+
           setAllOrderItems(itemsMap);
-          setFilteredOrdersForPrint(selectedOrders);
+          setFilteredOrdersForPrint(enrichedOrders);
           setPrintColumnConfig(columnConfig);
           setPrintWorkerName(effectiveWorkerName || null);
           setIsPrintReady(true);
