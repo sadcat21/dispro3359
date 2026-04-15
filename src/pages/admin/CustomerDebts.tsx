@@ -16,6 +16,7 @@ import { useCreateDebt, useCustomerDebts } from '@/hooks/useCustomerDebts';
 import { CustomerDebtWithDetails } from '@/types/accounting';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import CollectCustomerDebtDialog from '@/components/debts/CollectCustomerDebtDialog';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import PendingDocumentsSection from '@/components/debts/PendingDocumentsSection';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { isAdminRole } from '@/lib/utils';
@@ -94,7 +95,7 @@ const CustomerDebts: React.FC = () => {
   const [workerFilter, setWorkerFilter] = useState('all');
   const [quickCustomerAction, setQuickCustomerAction] = useState<{ id: string; name: string; debts: CustomerDebtWithDetails[]; initialTab: 'collect' | 'visit' | 'history' } | null>(null);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [addDebtPickerOpen, setAddDebtPickerOpen] = useState(false);
   const [newDebtCustomerId, setNewDebtCustomerId] = useState('');
   const [newDebtAmount, setNewDebtAmount] = useState('');
   const [newDebtDueDate, setNewDebtDueDate] = useState('');
@@ -108,7 +109,7 @@ const CustomerDebts: React.FC = () => {
     queryFn: async () => {
       let query = supabase
         .from('customers')
-        .select('id, name, store_name, phone')
+        .select('id, name, store_name, phone, customer_type, wilaya, address, branch_id, latitude, longitude, sector_id, zone_id, status')
         .order('name');
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
@@ -308,17 +309,6 @@ const CustomerDebts: React.FC = () => {
 
   const totalActiveDebts = customerGroups.reduce((sum, group) => sum + group.totalRemaining, 0);
 
-  const filteredCustomers = useMemo(() => {
-    const term = customerSearch.trim().toLowerCase();
-    if (!customers) return [];
-    if (!term) return customers;
-    return customers.filter((customer) =>
-      (customer.name || '').toLowerCase().includes(term) ||
-      (customer.store_name || '').toLowerCase().includes(term) ||
-      (customer.phone || '').includes(term)
-    );
-  }, [customerSearch, customers]);
-
   const selectedDebtCustomer = customers?.find((customer) => customer.id === newDebtCustomerId) || null;
 
   const resetNewDebtForm = () => {
@@ -326,7 +316,6 @@ const CustomerDebts: React.FC = () => {
     setNewDebtAmount('');
     setNewDebtDueDate('');
     setNewDebtNotes('');
-    setCustomerSearch('');
   };
 
   const handleCreateDebt = async () => {
@@ -384,7 +373,7 @@ const CustomerDebts: React.FC = () => {
             {t('debts.title')}
           </h2>
           {isAdmin && (
-            <Button size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" onClick={() => setAddDebtOpen(true)}>
+            <Button size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" onClick={() => setAddDebtPickerOpen(true)}>
               <Plus className="w-4 h-4" />
               <span>دين جديد</span>
             </Button>
@@ -594,6 +583,22 @@ const CustomerDebts: React.FC = () => {
           />
         )}
 
+        <CustomerPickerDialog
+          open={addDebtPickerOpen}
+          onOpenChange={(open) => {
+            setAddDebtPickerOpen(open);
+            if (!open && !newDebtCustomerId) resetNewDebtForm();
+          }}
+          customers={(customers || []) as any}
+          sectors={sectors}
+          selectedCustomerId={newDebtCustomerId}
+          onSelect={(customer) => {
+            setNewDebtCustomerId(customer.id);
+            setAddDebtPickerOpen(false);
+            setAddDebtOpen(true);
+          }}
+        />
+
         <Dialog
           open={addDebtOpen}
           onOpenChange={(open) => {
@@ -607,34 +612,21 @@ const CustomerDebts: React.FC = () => {
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اختيار العميل</label>
-                <Input
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  placeholder="ابحث باسم العميل أو الهاتف"
-                />
-                <Select value={newDebtCustomerId} onValueChange={setNewDebtCustomerId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر العميل" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredCustomers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name}
-                        {customer.store_name ? ` - ${customer.store_name}` : ''}
-                        {customer.phone ? ` - ${customer.phone}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedDebtCustomer && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedDebtCustomer.name}
-                    {selectedDebtCustomer.store_name ? ` - ${selectedDebtCustomer.store_name}` : ''}
-                  </p>
-                )}
-              </div>
+              {selectedDebtCustomer && (
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <CustomerSummary
+                    customer={{
+                      name: selectedDebtCustomer.name,
+                      store_name: selectedDebtCustomer.store_name,
+                      customer_type: selectedDebtCustomer.customer_type,
+                      phone: selectedDebtCustomer.phone,
+                      wilaya: selectedDebtCustomer.wilaya,
+                    }}
+                    compact
+                    showAvatar={false}
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">مبلغ الدين</label>
