@@ -18,6 +18,8 @@ import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Users, Wallet, ClipboardList, MapPin, Trophy, MessageCircle, HardHat, CalendarCheck, ArrowDownToLine, Warehouse, ClipboardCheck } from 'lucide-react';
+import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
+import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -35,6 +37,7 @@ const WorkerHome: React.FC = () => {
   const { user, workerId, role, activeRole, activeBranch } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { setSelectedWorker: setContextWorker } = useSelectedWorker();
   const { data: permissions = [], isLoading: permissionsLoading } = useWorkerPermissions();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +56,7 @@ const WorkerHome: React.FC = () => {
   const [showFactoryReceipt, setShowFactoryReceipt] = useState(false);
   const [showFactoryDelivery, setShowFactoryDelivery] = useState(false);
   const [showStockManagement, setShowStockManagement] = useState(false);
+  const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
 
   const { trackVisit } = useTrackVisit();
@@ -238,6 +242,19 @@ const WorkerHome: React.FC = () => {
     return t('common.welcome');
   };
 
+  // Workers for load-stock picker (warehouse manager)
+  const { data: loadWorkersList = [] } = useQuery({
+    queryKey: ['wh-load-workers', effectiveBranchId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('workers')
+        .select('id, full_name, username, role, is_active, branch_id')
+        .eq('is_active', true)
+        .order('full_name');
+      return (data || []).filter(w => w.id !== workerId);
+    },
+    enabled: isWarehouseManager && !!effectiveBranchId,
+  });
 
 
   // Loading skeleton for permissions
@@ -394,6 +411,7 @@ const WorkerHome: React.FC = () => {
           // Stock management hub for warehouse manager
           if (isWarehouseManager) {
             quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: 'إدارة المخزن', onClick: () => setShowStockManagement(true) });
+            quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: 'شحن العامل', onClick: () => setShowLoadWorkerPicker(true) });
           }
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
             quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock') });
@@ -446,6 +464,7 @@ const WorkerHome: React.FC = () => {
             rewards: { bg: 'bg-amber-50', icon: 'text-amber-600', border: 'border-amber-200' },
             'worker-actions': { bg: 'bg-indigo-50', icon: 'text-indigo-600', border: 'border-indigo-200' },
             'stock-management': { bg: 'bg-teal-50', icon: 'text-teal-600', border: 'border-teal-200' },
+            'load-worker': { bg: 'bg-orange-50', icon: 'text-orange-600', border: 'border-orange-200' },
             'warehouse-stock': { bg: 'bg-emerald-50', icon: 'text-emerald-600', border: 'border-emerald-200' },
             'factory-receipt': { bg: 'bg-lime-50', icon: 'text-lime-600', border: 'border-lime-200' },
             'daily-receipts': { bg: 'bg-teal-50', icon: 'text-teal-600', border: 'border-teal-200' },
@@ -609,6 +628,19 @@ const WorkerHome: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Worker Picker for Load Stock */}
+      <WorkerPickerDialog
+        open={showLoadWorkerPicker}
+        onOpenChange={setShowLoadWorkerPicker}
+        workers={loadWorkersList}
+        selectedWorkerId=""
+        onSelect={(wId) => {
+          setShowLoadWorkerPicker(false);
+          setContextWorker(wId);
+          navigate('/load-stock');
+        }}
+      />
     </div>
   );
 };
