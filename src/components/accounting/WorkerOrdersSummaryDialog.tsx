@@ -22,6 +22,7 @@ import { useWorkerPrintInfo } from '@/hooks/useWorkerPrintInfo';
 import GiftsPrintView from '@/components/accounting/GiftsPrintView';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { isAdminRole } from '@/lib/utils';
 
 interface Props {
   open: boolean;
