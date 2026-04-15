@@ -1581,8 +1581,11 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       if (!c.sector_id || !preventeSectorIds.has(c.sector_id)) return false;
       if (todaySalesSectorIds.has(c.sector_id)) return false;
       if (deliveryCustomerIdsWithOrders.has(c.id) || deliveryOnlyCustomerIds.has(c.id)) return false;
+      // Include customers the sales rep visited (but didn't order for),
+      // AND customers the sales rep didn't visit at all (not_visited / no status)
       const repStatus = salesRepStatusMap.get(c.id);
-      return repStatus === 'visited' || repStatus === 'closed' || repStatus === 'unavailable';
+      if (repStatus === 'ordered') return false; // already has a delivery order from sales rep
+      return true;
     });
     
     const combined = new Map<string, typeof customers[0]>();
