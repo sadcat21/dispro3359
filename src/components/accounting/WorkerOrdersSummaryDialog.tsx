@@ -730,20 +730,22 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             </div>
           </div>
 
-          {/* Cash Van Button */}
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={() => setShowCashVanDialog(true)}
-          >
-            <Truck className="w-4 h-4" />
-            CASH VAN - منتجات احتياطية
-            {Object.values(cashVanProducts).some(q => q > 0) && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
-                {Object.values(cashVanProducts).filter(q => q > 0).length} منتج
-              </Badge>
-            )}
-          </Button>
+          {/* Cash Van Button - only for admins and warehouse managers */}
+          {canSeeCashVan && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => setShowCashVanDialog(true)}
+            >
+              <Truck className="w-4 h-4" />
+              CASH VAN - منتجات احتياطية
+              {Object.values(cashVanProducts).some(q => q > 0) && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
+                  {Object.values(cashVanProducts).filter(q => q > 0).length} منتج
+                </Badge>
+              )}
+            </Button>
+          )}
 
           {/* Column Config Button */}
           <Button variant="outline" className="w-full gap-2" onClick={() => setShowColumnsConfig(true)}>
