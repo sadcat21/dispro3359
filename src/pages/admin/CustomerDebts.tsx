@@ -589,7 +589,7 @@ const CustomerDebts: React.FC = () => {
             setAddDebtPickerOpen(open);
             if (!open && !newDebtCustomerId) resetNewDebtForm();
           }}
-          customers={customers || []}
+          customers={(customers || []) as any}
           sectors={sectors}
           selectedCustomerId={newDebtCustomerId}
           onSelect={(customer) => {
