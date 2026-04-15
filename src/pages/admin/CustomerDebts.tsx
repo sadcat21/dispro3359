@@ -309,17 +309,6 @@ const CustomerDebts: React.FC = () => {
 
   const totalActiveDebts = customerGroups.reduce((sum, group) => sum + group.totalRemaining, 0);
 
-  const filteredCustomers = useMemo(() => {
-    const term = customerSearch.trim().toLowerCase();
-    if (!customers) return [];
-    if (!term) return customers;
-    return customers.filter((customer) =>
-      (customer.name || '').toLowerCase().includes(term) ||
-      (customer.store_name || '').toLowerCase().includes(term) ||
-      (customer.phone || '').includes(term)
-    );
-  }, [customerSearch, customers]);
-
   const selectedDebtCustomer = customers?.find((customer) => customer.id === newDebtCustomerId) || null;
 
   const resetNewDebtForm = () => {
@@ -327,7 +316,6 @@ const CustomerDebts: React.FC = () => {
     setNewDebtAmount('');
     setNewDebtDueDate('');
     setNewDebtNotes('');
-    setCustomerSearch('');
   };
 
   const handleCreateDebt = async () => {
