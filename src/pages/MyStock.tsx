@@ -274,34 +274,31 @@ const MyStock: React.FC = () => {
                   )}
                 </div>
                 <div className="flex flex-col gap-2 bg-card px-2.5 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className={`flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs font-bold sm:text-sm ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-                      <Package className="h-3.5 w-3.5" />
-                      {item.quantity}
-                    </div>
-                    {giftQty > 0 && (
-                      <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
-                        🎁 {giftQty} {giftUnit}
-                      </div>
-                    )}
+                  {/* Main quantity badge — matches sales summary style */}
+                  <div className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-base font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                    <Package className="h-4 w-4" />
+                    {item.quantity}
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="rounded-lg border border-purple-100 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/30 px-2 py-1.5 text-center">
-                      <div className="text-[9px] font-medium text-purple-600 dark:text-purple-300">{t('stock.balance')}</div>
-                      <div className="text-sm font-bold text-purple-800 dark:text-purple-200">{totalLoad}</div>
-                    </div>
-                    <div className="rounded-lg border border-blue-100 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30 px-2 py-1.5 text-center">
-                      <div className="text-[9px] font-medium text-blue-600 dark:text-blue-300">{t('stock.loaded')}</div>
-                      <div className="text-sm font-bold text-blue-800 dark:text-blue-200">{loaded}</div>
-                    </div>
-                    <div className="rounded-lg border border-green-100 bg-green-50 dark:border-green-800 dark:bg-green-900/30 px-2 py-1.5 text-center">
-                      <div className="text-[9px] font-medium text-green-600 dark:text-green-300">{t('stock.sold_label')}</div>
-                      <div className="text-sm font-bold text-green-800 dark:text-green-200">{sold}</div>
-                    </div>
-                    <div className={`rounded-lg border px-2 py-1.5 text-center ${isZero ? 'border-destructive/30 bg-destructive/10' : 'border-muted bg-muted/50'}`}>
-                      <div className="text-[9px] font-medium text-muted-foreground">{t('stock.remaining_label')}</div>
-                      <div className={`text-sm font-bold ${isZero ? 'text-destructive' : 'text-foreground'}`}>{item.quantity}</div>
-                    </div>
+
+                  {/* Stats row */}
+                  <div className="flex items-center justify-between gap-1 text-[10px]">
+                    <span className="rounded-md bg-purple-50 px-1.5 py-1 font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                      {t('stock.balance')} {totalLoad}
+                    </span>
+                    <span className="rounded-md bg-green-50 px-1.5 py-1 font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                      {t('stock.sold_label')} {sold}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-1 text-[10px]">
+                    <span className="rounded-md bg-blue-50 px-1.5 py-1 font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                      {t('stock.loaded')} {loaded}
+                    </span>
+                    {giftQty > 0 && (
+                      <span className="rounded-md bg-orange-50 px-1.5 py-1 font-semibold text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                        🎁 {giftQty} {giftUnit}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
