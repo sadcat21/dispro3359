@@ -3655,53 +3655,35 @@ const CollectedDebtOperationList: React.FC<{
         const sector = (customer as any)?.sector_id ? sectors?.find((s) => s.id === (customer as any).sector_id) : null;
         const zone = (customer as any)?.zone_id ? allZones?.find((z) => z.id === (customer as any).zone_id) : null;
 
+        const remainingAmount = Number(operation.debt?.remaining_amount || 0);
+
         return (
           <Card key={operation.id} className="overflow-hidden">
             <button className="w-full p-3 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(operation)}>
+              {/* Row 1: Names + Amounts */}
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 space-y-1">
-                  <CustomerSummary
-                    customer={{
-                      name: customer?.name,
-                      store_name: customer?.store_name,
-                      customer_type: customer?.customer_type,
-                      sector_name: sector ? getLocalizedName(sector, language) : undefined,
-                      zone_name: zone ? getLocalizedName(zone, language) : undefined,
-                      phone: customer?.phone,
-                      wilaya: (customer as any)?.wilaya,
-                    }}
-                    compact
-                    showAvatar={false}
-                    showMeta={false}
-                  />
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {format(new Date(operation.created_at), 'dd/MM/yyyy HH:mm')}
-                    </span>
-                    {customer?.phone && <span>• {customer.phone}</span>}
-                    <span className="rounded-full bg-muted px-2 py-0.5">{operation.payment_method || 'cash'}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    <span>عامل التحصيل: <span className="font-semibold text-foreground">{collectorName}</span></span>
-                    <span>•</span>
-                    <span>منشئ الدين: <span className="font-semibold text-foreground">{debtCreatorName}</span></span>
-                    <span>•</span>
-                    <span>
-                      الموعد القادم:{' '}
-                      <span className="font-semibold text-foreground">
-                        {operation.next_due_date ? format(new Date(operation.next_due_date), 'dd/MM/yyyy HH:mm') : 'غير محدد'}
-                      </span>
-                    </span>
-                  </div>
+                <div className="min-w-0 flex-1">
+                  {customer?.store_name && (
+                    <div className="text-sm font-bold text-foreground truncate">{customer.store_name}</div>
+                  )}
+                  <div className="text-xs text-muted-foreground truncate">{customer?.name || '—'}</div>
                 </div>
-                <div className="rounded-2xl border border-green-100 bg-green-50/80 px-3 py-2 text-left" dir="ltr">
-                  <div className="text-[11px] font-medium text-green-600">المحصل</div>
-                  <div className="mt-1 text-base font-black text-green-700">{collectedAmount.toLocaleString()} DA</div>
+                <div className="text-left shrink-0" dir="ltr">
+                  <div className="text-sm font-black text-green-600">{collectedAmount.toLocaleString()} DA</div>
+                  {remainingAmount > 0 && (
+                    <div className="text-xs font-bold text-red-500 mt-0.5">{remainingAmount.toLocaleString()} DA</div>
+                  )}
                 </div>
               </div>
-
-              
+              {/* Row 2: Badges & meta */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold">{collectorName}</span>
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{operation.payment_method || 'cash'}</span>
+                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  {format(new Date(operation.created_at), 'dd/MM HH:mm')}
+                </span>
+              </div>
             </button>
           </Card>
         );
