@@ -423,6 +423,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                   {isColVisible('products') && productsWithOrders.map((product) => {
                     const qty = getQuantity(order.id, product.id);
                     const unitPrice = getItemUnitPrice(order, product.id);
+                    const boxPrice = unitPrice * getBoxMultiplier(product);
                     return (
                       <td key={product.id} className="center" style={{ padding: '2px 1px' }}>
                         {qty > 0 && (
@@ -439,9 +440,9 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                                     {unitPrice.toLocaleString()}
                                   </div>
                                 )}
-                                {unitPrice > 0 && (
+                                {boxPrice > 0 && (
                                   <div style={{ fontSize: '6pt', color: '#c00', fontWeight: 'bold', borderTop: '1px dotted #ccc', marginTop: '1px', paddingTop: '1px' }}>
-                                    {(unitPrice * qty).toLocaleString()}
+                                    {(boxPrice * qty).toLocaleString()}
                                   </div>
                                 )}
                               </>
