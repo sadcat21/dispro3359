@@ -1,4 +1,5 @@
 import React, { forwardRef, useEffect, useState } from 'react';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 import { createPortal } from 'react-dom';
 import { OrderWithDetails, Product } from '@/types/database';
 import { format } from 'date-fns';
