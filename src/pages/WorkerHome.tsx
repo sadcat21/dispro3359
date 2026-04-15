@@ -464,6 +464,7 @@ const WorkerHome: React.FC = () => {
             rewards: { bg: 'bg-amber-50', icon: 'text-amber-600', border: 'border-amber-200' },
             'worker-actions': { bg: 'bg-indigo-50', icon: 'text-indigo-600', border: 'border-indigo-200' },
             'stock-management': { bg: 'bg-teal-50', icon: 'text-teal-600', border: 'border-teal-200' },
+            'load-worker': { bg: 'bg-orange-50', icon: 'text-orange-600', border: 'border-orange-200' },
             'warehouse-stock': { bg: 'bg-emerald-50', icon: 'text-emerald-600', border: 'border-emerald-200' },
             'factory-receipt': { bg: 'bg-lime-50', icon: 'text-lime-600', border: 'border-lime-200' },
             'daily-receipts': { bg: 'bg-teal-50', icon: 'text-teal-600', border: 'border-teal-200' },
