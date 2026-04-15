@@ -3627,7 +3627,9 @@ const CollectedDebtOperationList: React.FC<{
   allZones?: any[];
 }> = ({ operations, emptyMessage, searchQuery, onOpenDetails, sectors, allZones }) => {
   const { language } = useLanguage();
-  const filtered = useMemo(() => {
+
+  // Group operations by customer_id so multiple debt collections for same customer appear as one card
+  const grouped = useMemo(() => {
     let list = operations;
     if (searchQuery?.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -3638,44 +3640,60 @@ const CollectedDebtOperationList: React.FC<{
           (customer?.phone || '').includes(q);
       });
     }
-    return [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const byCustomer = new Map<string, { operations: TodayDebtCollectionOperation[]; totalCollected: number; totalRemaining: number; customer: any; latestAt: string }>();
+    for (const op of list) {
+      const custId = op.debt?.customer_id || (op.debt?.customer as any)?.id || op.id;
+      const existing = byCustomer.get(custId);
+      const collected = Number(op.amount_collected || 0);
+      const remaining = Number(op.debt?.remaining_amount || 0);
+      if (existing) {
+        existing.operations.push(op);
+        existing.totalCollected += collected;
+        existing.totalRemaining += remaining;
+        if (op.created_at > existing.latestAt) {
+          existing.latestAt = op.created_at;
+          existing.customer = op.debt?.customer || existing.customer;
+        }
+      } else {
+        byCustomer.set(custId, {
+          operations: [op],
+          totalCollected: collected,
+          totalRemaining: remaining,
+          customer: op.debt?.customer,
+          latestAt: op.created_at,
+        });
+      }
+    }
+
+    return Array.from(byCustomer.values()).sort((a, b) => new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime());
   }, [operations, searchQuery]);
 
-  if (filtered.length === 0) {
+  if (grouped.length === 0) {
     return <div className="p-6 text-center text-sm text-muted-foreground">{searchQuery?.trim() ? 'لا توجد نتائج' : emptyMessage}</div>;
   }
 
   return (
     <div className="space-y-2 p-2">
-      {filtered.map((operation) => {
-        const customer = operation.debt?.customer;
-        const collectorName = operation.worker?.full_name || operation.worker?.username || '—';
-        const debtCreatorName = operation.debt?.worker?.full_name || operation.debt?.worker?.username || '—';
-        const collectedAmount = Number(operation.amount_collected || 0);
-        const sector = (customer as any)?.sector_id ? sectors?.find((s) => s.id === (customer as any).sector_id) : null;
-        const zone = (customer as any)?.zone_id ? allZones?.find((z) => z.id === (customer as any).zone_id) : null;
-
-        const remainingAmount = Number(operation.debt?.remaining_amount || 0);
+      {grouped.map((group, idx) => {
+        const customer = group.customer;
+        const primaryOp = group.operations[0];
 
         return (
-          <Card key={operation.id} className="overflow-hidden">
-            <button className="w-full px-3 py-2 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(operation)}>
+          <Card key={primaryOp.id} className="overflow-hidden">
+            <button className="w-full px-3 py-2 text-right hover:bg-muted/20 transition-colors" onClick={() => onOpenDetails(primaryOp)}>
               <div className="grid grid-cols-2 grid-rows-2 gap-x-3 items-center">
-                {/* Top-right (col2 row1): المبلغ المدفوع */}
                 <div className="text-left row-start-1 col-start-2" dir="ltr">
-                  <span className="text-sm font-black text-green-600">{collectedAmount.toLocaleString()} DA</span>
+                  <span className="text-sm font-black text-green-600">{group.totalCollected.toLocaleString()} DA</span>
                 </div>
-                {/* Top-left (col1 row1): اسم المحل */}
                 <div className="min-w-0 row-start-1 col-start-1">
                   <span className="text-sm font-bold text-foreground truncate block">{customer?.store_name || customer?.name || '—'}</span>
                 </div>
-                {/* Bottom-right (col2 row2): المتبقي */}
                 <div className="text-left row-start-2 col-start-2" dir="ltr">
-                  {remainingAmount > 0 && (
-                    <span className="text-xs font-bold text-red-500">{remainingAmount.toLocaleString()} DA</span>
+                  {group.totalRemaining > 0 && (
+                    <span className="text-xs font-bold text-red-500">{group.totalRemaining.toLocaleString()} DA</span>
                   )}
                 </div>
-                {/* Bottom-left (col1 row2): اسم العميل */}
                 <div className="min-w-0 row-start-2 col-start-1">
                   <span className="text-xs text-muted-foreground truncate block">{customer?.name || '—'}</span>
                 </div>
