@@ -43,6 +43,8 @@ interface TodayPrintSettingsDialogProps {
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPrint,
 }) => {
+  const { role, activeRole } = useAuth();
+  const canSeeCashVan = isAdminRole(role) || role === 'supervisor' || activeRole?.custom_role_code === 'warehouse_manager';
   const { dir } = useLanguage();
   const { columns: dbColumns, saveColumns } = usePrintColumnsConfig();
   const [showColumnsConfig, setShowColumnsConfig] = useState(false);
