@@ -39,7 +39,7 @@ import ModifyOrderDialog from '@/components/orders/ModifyOrderDialog';
 import { useOrderItems } from '@/hooks/useOrders';
 import WorkerOrdersSummaryDialog from '@/components/accounting/WorkerOrdersSummaryDialog';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
-import PrintOrdersDialog from '@/components/orders/PrintOrdersDialog';
+import TodayPrintSettingsDialog from '@/components/sectors/TodayPrintSettingsDialog';
 import OrdersPrintView from '@/components/print/OrdersPrintView';
 import { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
 import { isAdminRole } from '@/lib/utils';
