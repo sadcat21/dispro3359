@@ -53,6 +53,7 @@ const WorkerHome: React.FC = () => {
   const [showFactoryReceipt, setShowFactoryReceipt] = useState(false);
   const [showFactoryDelivery, setShowFactoryDelivery] = useState(false);
   const [showStockManagement, setShowStockManagement] = useState(false);
+  const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
 
   const { trackVisit } = useTrackVisit();
