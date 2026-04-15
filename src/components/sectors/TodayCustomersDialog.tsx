@@ -3047,19 +3047,19 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         />
       )}
 
-      {/* Print Orders Dialog (same as orders aggregation) */}
-      <PrintOrdersDialog
+      {/* Unified Print Settings Dialog */}
+      <TodayPrintSettingsDialog
         open={showPrintOrdersDialog}
         onOpenChange={setShowPrintOrdersDialog}
-        workers={workersList.length > 0 ? workersList as any : []}
         orders={assignedOrders.filter(o => ['pending', 'assigned', 'in_progress', 'confirmed', 'processing', 'in_transit', 'ready'].includes(o.status))}
         products={allProducts as any}
-        onPrint={async (filterWorkerId, printPerWorker, filteredOrders, groupCustomers, groupProducts, columnConfig) => {
-          if (!filteredOrders || filteredOrders.length === 0) {
+        workerStock={workerStock as any}
+        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts) => {
+          if (!selectedOrders || selectedOrders.length === 0) {
             toast.info('لا توجد طلبيات للطباعة');
             return;
           }
-          const orderIds = filteredOrders.map(o => o.id);
+          const orderIds = selectedOrders.map(o => o.id);
           const { data: items } = await supabase
             .from('order_items')
             .select('*, product:products(*)')
@@ -3071,7 +3071,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             itemsMap.set(item.order_id, existing);
           });
           setAllOrderItems(itemsMap);
-          setFilteredOrdersForPrint(filteredOrders);
+          setFilteredOrdersForPrint(selectedOrders);
           setPrintColumnConfig(columnConfig);
           setPrintWorkerName(effectiveWorkerName || null);
           setIsPrintReady(true);
@@ -3082,7 +3082,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             setPrintWorkerName(null);
           }, 500);
         }}
-        onExportCSV={() => {}}
       />
 
       {/* Print View (hidden, only shown when printing) */}
