@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart } from 'lucide-react';
@@ -18,6 +17,14 @@ interface WorkerStockItem {
   product_id: string;
   quantity: number;
   product?: Product | null;
+}
+
+interface ShipmentProductCustomerDetail {
+  orderId: string;
+  customerId: string;
+  customerName: string;
+  storeName: string;
+  quantity: number;
 }
 
 interface TodayPrintSettingsDialogProps {
@@ -40,6 +47,7 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   const [showCustomerSelection, setShowCustomerSelection] = useState(false);
   const [showShipmentSummary, setShowShipmentSummary] = useState(false);
   const [showCashVan, setShowCashVan] = useState(false);
+  const [selectedShipmentProductId, setSelectedShipmentProductId] = useState<string | null>(null);
   const [columnConfig, setColumnConfig] = useState<PrintColumnConfig[]>(dbColumns);
   const [groupCustomers, setGroupCustomers] = useState(true);
   const [groupProducts, setGroupProducts] = useState(true);
@@ -49,7 +57,6 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
 
   useEffect(() => { setColumnConfig(dbColumns); }, [dbColumns]);
 
-  // Build unique customers from orders
   const customerList = useMemo(() => {
     const map = new Map<string, { id: string; name: string; storeName: string; orderCount: number }>();
     orders.forEach(o => {
@@ -69,11 +76,11 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
     return Array.from(map.values());
   }, [orders]);
 
-  // Select all customers by default when dialog opens
   useEffect(() => {
     if (open) {
       setSelectedCustomerIds(new Set(customerList.map(c => c.id)));
       setCashVanQuantities({});
+      setSelectedShipmentProductId(null);
     }
   }, [open, customerList]);
 
@@ -93,37 +100,65 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
     return orders.filter(o => o.customer_id && selectedCustomerIds.has(o.customer_id));
   }, [orders, selectedCustomerIds]);
 
-  // Required shipment summary
   const shipmentSummary = useMemo(() => {
-    const productNeeds: Record<string, { name: string; needed: number; image?: string }> = {};
+    const productNeeds: Record<string, { name: string; needed: number; image?: string; details: ShipmentProductCustomerDetail[] }> = {};
+
     selectedOrders.forEach(o => {
+      const customerName = (o.customer as any)?.name || '—';
+      const storeName = (o.customer as any)?.store_name || customerName;
+
       (o.items || []).forEach((item: any) => {
         const pid = item.product_id || item.product?.id;
+        if (!pid) return;
+
         const pname = item.product?.name || item.product_name || '—';
         const qty = Number(item.quantity || 0);
-        if (!productNeeds[pid]) productNeeds[pid] = { name: pname, needed: 0, image: item.product?.image_url };
+
+        if (!productNeeds[pid]) {
+          productNeeds[pid] = {
+            name: pname,
+            needed: 0,
+            image: item.product?.image_url,
+            details: [],
+          };
+        }
+
         productNeeds[pid].needed += qty;
+        productNeeds[pid].details.push({
+          orderId: o.id,
+          customerId: o.customer_id || '—',
+          customerName,
+          storeName,
+          quantity: qty,
+        });
       });
     });
+
     const stockMap = new Map<string, number>();
     workerStock.forEach(ws => stockMap.set(ws.product_id, Number(ws.quantity || 0)));
+
     return Object.entries(productNeeds)
       .map(([pid, info]) => {
         const stock = stockMap.get(pid) || 0;
-        return { pid, ...info, stock, diff: stock - info.needed };
+        return {
+          pid,
+          ...info,
+          stock,
+          diff: stock - info.needed,
+        };
       })
       .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
   }, [selectedOrders, workerStock]);
 
-  // Auto-calculate cash van quantities when customer selection changes
   useEffect(() => {
     const stockMap = new Map<string, number>();
     workerStock.forEach(ws => stockMap.set(ws.product_id, Number(ws.quantity || 0)));
-    
+
     const neededMap: Record<string, number> = {};
     selectedOrders.forEach(o => {
       (o.items || []).forEach((item: any) => {
         const pid = item.product_id || item.product?.id;
+        if (!pid) return;
         const qty = Number(item.quantity || 0);
         neededMap[pid] = (neededMap[pid] || 0) + qty;
       });
@@ -149,6 +184,7 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   };
 
   const cashVanTotal = Object.values(cashVanQuantities).reduce((s, q) => s + q, 0);
+  const selectedShipmentProduct = shipmentSummary.find(item => item.pid === selectedShipmentProductId) || null;
 
   return (
     <>
@@ -162,7 +198,6 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
           </DialogHeader>
 
           <div className="space-y-3 py-2">
-            {/* Action Buttons Row */}
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -201,7 +236,6 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
               </Button>
             </div>
 
-            {/* Shipment Summary Button */}
             {shipmentSummary.length > 0 && (
               <Button
                 variant="outline"
@@ -220,7 +254,6 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
               </Button>
             )}
 
-            {/* Grouping Options */}
             <div className="bg-muted/50 p-3 rounded-lg space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <Label htmlFor="groupCustomers" className="flex items-center gap-2 cursor-pointer flex-1">
@@ -254,13 +287,11 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
               </div>
             </div>
 
-            {/* Summary */}
             <div className="bg-primary/10 p-3 rounded-lg text-center">
               <p className="text-base font-bold">{selectedOrders.length}</p>
               <p className="text-xs text-muted-foreground">طلبية للطباعة</p>
             </div>
 
-            {/* Print Button */}
             <Button onClick={handlePrint} disabled={selectedOrders.length === 0} className="w-full h-10">
               <Printer className="w-4 h-4 ms-2" />
               طباعة
@@ -269,7 +300,6 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Customer Selection Popup */}
       <Dialog open={showCustomerSelection} onOpenChange={setShowCustomerSelection}>
         <DialogContent className="max-w-[95vw] sm:max-w-md p-4" dir={dir}>
           <DialogHeader className="pb-2">
@@ -321,12 +351,11 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Shipment Summary Popup - Grid View */}
       <Dialog open={showShipmentSummary} onOpenChange={setShowShipmentSummary}>
         <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] gap-0 flex flex-col overflow-hidden p-0" dir={dir}>
           <DialogHeader className="px-3 pt-3 pb-2 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Package className="w-5 h-5 text-blue-600" />
+              <Package className="w-5 h-5 text-primary" />
               الشحنة المطلوبة
               {shipmentSummary.some(s => s.diff < 0) && (
                 <Badge variant="destructive" className="text-[10px] rounded-full">
@@ -345,20 +374,20 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
                 const isDeficit = item.diff < 0;
                 const isSurplus = item.diff > 0;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={item.pid}
-                    className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border
-                      ${isDeficit ? 'border-red-400 ring-1 ring-red-300/50' : isSurplus ? 'border-green-400 ring-1 ring-green-300/50' : 'border-blue-300'}
+                    onClick={() => setSelectedShipmentProductId(item.pid)}
+                    className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border transition-all active:scale-[0.98]
+                      ${isDeficit ? 'border-destructive/60 ring-1 ring-destructive/20' : isSurplus ? 'border-primary/40 ring-1 ring-primary/15' : 'border-border'}
                     `}
                   >
-                    {/* Product name */}
                     <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
-                      ${isDeficit ? 'bg-red-500/10 text-red-700' : isSurplus ? 'bg-green-500/10 text-green-700' : 'bg-blue-500/10 text-blue-700'}
+                      ${isDeficit ? 'bg-destructive/10 text-destructive' : isSurplus ? 'bg-primary/10 text-primary' : 'bg-muted/30 text-foreground'}
                     `}>
                       {item.name}
                     </div>
 
-                    {/* Image */}
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="w-full aspect-square object-cover" loading="lazy" />
                     ) : (
@@ -367,27 +396,23 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
                       </div>
                     )}
 
-                    {/* Info badges */}
-                    <div className="flex flex-col items-center gap-0.5 p-0.5 min-h-[28px]">
-                      <div className="flex items-center gap-0.5 flex-wrap justify-center">
-                        <Badge variant="secondary" className="text-[8px] px-0.5 py-0 h-3.5">
-                          مطلوب: {item.needed}
-                        </Badge>
-                        <Badge variant="secondary" className="text-[8px] px-0.5 py-0 h-3.5">
-                          رصيد: {item.stock}
-                        </Badge>
+                    <div className="px-1 py-1 bg-card flex flex-col gap-1">
+                      <div className="flex items-center gap-1">
+                        <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-primary/10 text-primary py-1 text-[10px] font-bold">
+                          <Package className="w-3 h-3" />
+                          مطلوب {item.needed}
+                        </div>
+                        <div className="flex items-center justify-center gap-0.5 rounded-md bg-muted py-1 px-1 text-[9px] font-semibold text-muted-foreground">
+                          رصيد {item.stock}
+                        </div>
                       </div>
-                      <Badge
-                        className={`text-[8px] px-1 py-0 h-3.5 ${
-                          isDeficit ? 'bg-red-500 text-white' : isSurplus ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
-                        }`}
-                      >
-                        {isDeficit ? (
-                          <span className="flex items-center gap-0.5"><AlertTriangle className="w-2 h-2" /> عجز {Math.abs(item.diff)}</span>
-                        ) : isSurplus ? `فائض ${item.diff}` : 'متطابق ✓'}
-                      </Badge>
+                      <div className={`flex items-center justify-center rounded-md py-1 text-[9px] font-semibold ${
+                        isDeficit ? 'bg-destructive/10 text-destructive' : isSurplus ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {isDeficit ? `عجز ${Math.abs(item.diff)}` : isSurplus ? `فائض ${item.diff}` : 'متطابق'}
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -395,7 +420,57 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Cash Van Popup - Grid View */}
+      <Dialog open={!!selectedShipmentProduct} onOpenChange={(value) => !value && setSelectedShipmentProductId(null)}>
+        <DialogContent className="max-w-md p-0 overflow-hidden" dir={dir}>
+          {selectedShipmentProduct && (
+            <>
+              <DialogHeader className="px-4 pt-4 pb-3 border-b">
+                <DialogTitle className="flex items-center gap-3 text-base">
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border bg-muted/40">
+                    {selectedShipmentProduct.image ? (
+                      <img src={selectedShipmentProduct.image} alt={selectedShipmentProduct.name} className="h-full w-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Package className="w-5 h-5 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold truncate">{selectedShipmentProduct.name}</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
+                      <Badge variant="secondary">مطلوب {selectedShipmentProduct.needed}</Badge>
+                      <Badge variant="secondary">رصيد {selectedShipmentProduct.stock}</Badge>
+                      <Badge variant={selectedShipmentProduct.diff < 0 ? 'destructive' : 'secondary'}>
+                        {selectedShipmentProduct.diff < 0 ? `عجز ${Math.abs(selectedShipmentProduct.diff)}` : selectedShipmentProduct.diff > 0 ? `فائض ${selectedShipmentProduct.diff}` : 'متطابق'}
+                      </Badge>
+                    </div>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="max-h-[60dvh] overflow-y-auto px-3 py-3 space-y-2">
+                {selectedShipmentProduct.details.map((detail, index) => (
+                  <div key={`${detail.orderId}-${detail.customerId}-${index}`} className="rounded-xl border bg-card p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-bold truncate">{detail.storeName || detail.customerName}</div>
+                        <div className="text-xs text-muted-foreground truncate">{detail.customerName}</div>
+                      </div>
+                      <div className="rounded-md bg-primary/10 px-2 py-1 text-xs font-bold text-primary shrink-0">
+                        {detail.quantity}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {selectedShipmentProduct.details.length === 0 && (
+                  <div className="py-6 text-center text-sm text-muted-foreground">لا توجد تفاصيل لهذا المنتج</div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showCashVan} onOpenChange={setShowCashVan}>
         <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] gap-0 flex flex-col overflow-hidden p-0" dir={dir}>
           <DialogHeader className="px-3 pt-3 pb-2 shrink-0">
@@ -424,14 +499,12 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
                       ${hasReserve ? 'border-orange-400 ring-1 ring-orange-300/50' : 'border-border/50'}
                     `}
                   >
-                    {/* Product name */}
                     <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
                       ${hasReserve ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-foreground'}
                     `}>
                       {productName}
                     </div>
 
-                    {/* Image */}
                     {(product as any)?.image_url ? (
                       <img src={(product as any).image_url} alt={productName} className="w-full aspect-square object-cover" loading="lazy" />
                     ) : (
@@ -440,7 +513,6 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
                       </div>
                     )}
 
-                    {/* Info + input */}
                     <div className="flex flex-col items-center gap-0.5 p-1 min-h-[32px]">
                       <div className="flex items-center gap-0.5 text-[8px] text-muted-foreground">
                         <span>محمل: {ws.quantity}</span>
