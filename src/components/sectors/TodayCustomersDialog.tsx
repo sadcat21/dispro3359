@@ -192,7 +192,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [selectedAdminWorkerId, setSelectedAdminWorkerId] = useState<string | null>(targetWorkerId || null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showBulkPostpone, setShowBulkPostpone] = useState(false);
-  const [showRequiredShipment, setShowRequiredShipment] = useState(false);
+  
   const [postponeCustomer, setPostponeCustomer] = useState<any>(null);
   const [postponeWorkerId, setPostponeWorkerId] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
