@@ -2432,19 +2432,11 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-2 text-blue-700 border-blue-300 hover:bg-blue-50"
-                        onClick={() => setShowRequiredShipment(true)}
-                      >
-                        <Package className="w-4 h-4" />
-                        الشحنة المطلوبة
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                        className="flex-1 gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50"
                         onClick={() => setShowPrintOrdersDialog(true)}
                       >
                         <Printer className="w-4 h-4" />
+                        طباعة الشحنة
                       </Button>
                     </div>
                   )}
