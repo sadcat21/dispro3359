@@ -95,7 +95,7 @@ const CustomerDebts: React.FC = () => {
   const [workerFilter, setWorkerFilter] = useState('all');
   const [quickCustomerAction, setQuickCustomerAction] = useState<{ id: string; name: string; debts: CustomerDebtWithDetails[]; initialTab: 'collect' | 'visit' | 'history' } | null>(null);
   const [addDebtOpen, setAddDebtOpen] = useState(false);
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [addDebtPickerOpen, setAddDebtPickerOpen] = useState(false);
   const [newDebtCustomerId, setNewDebtCustomerId] = useState('');
   const [newDebtAmount, setNewDebtAmount] = useState('');
   const [newDebtDueDate, setNewDebtDueDate] = useState('');
