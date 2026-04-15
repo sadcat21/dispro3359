@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { isAdminRole } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -41,6 +43,8 @@ interface TodayPrintSettingsDialogProps {
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPrint,
 }) => {
+  const { role, activeRole } = useAuth();
+  const canSeeCashVan = isAdminRole(role) || role === 'supervisor' || activeRole?.custom_role_code === 'warehouse_manager';
   const { dir } = useLanguage();
   const { columns: dbColumns, saveColumns } = usePrintColumnsConfig();
   const [showColumnsConfig, setShowColumnsConfig] = useState(false);
@@ -211,20 +215,22 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
                   {selectedCustomerIds.size}/{customerList.length}
                 </Badge>
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 min-w-[100px] h-10 gap-1.5"
-                onClick={() => setShowCashVan(true)}
-              >
-                <ShoppingCart className="w-4 h-4 text-orange-600" />
-                <span className="text-xs">كاش فان</span>
-                {cashVanTotal > 0 && (
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ms-1 bg-orange-100 text-orange-700">
-                    {cashVanTotal}
-                  </Badge>
-                )}
-              </Button>
+              {canSeeCashVan && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 min-w-[100px] h-10 gap-1.5"
+                  onClick={() => setShowCashVan(true)}
+                >
+                  <ShoppingCart className="w-4 h-4 text-orange-600" />
+                  <span className="text-xs">كاش فان</span>
+                  {cashVanTotal > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ms-1 bg-orange-100 text-orange-700">
+                      {cashVanTotal}
+                    </Badge>
+                  )}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
