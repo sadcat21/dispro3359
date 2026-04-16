@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import OperationalGapsSection from '@/components/landing/OperationalGapsSection';
+import AdvancedFeaturesSection from '@/components/landing/AdvancedFeaturesSection';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
@@ -282,6 +283,7 @@ const Landing: React.FC = () => {
       </section>
 
       <OperationalGapsSection />
+      <AdvancedFeaturesSection />
 
       {/* Security Section */}
       <section className="bg-accent/5 px-4 py-16">
