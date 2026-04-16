@@ -4,100 +4,39 @@ import {
   Share2, FileSpreadsheet, Bell, Layers, TrendingUp, Building2,
   Timer, Star, Receipt, Banknote, UserCog, Map, ClipboardList, Repeat
 } from 'lucide-react';
-
-const managerControlFeatures = [
-  {
-    icon: BarChart3,
-    title: 'لوحة بيانات المدير',
-    desc: 'ملخص لحظي لكل ما يحدث: إجمالي المبيعات، الطلبيات النشطة، التحصيلات، أداء كل عامل — في شاشة واحدة.',
-  },
-  {
-    icon: CalendarClock,
-    title: 'مراجعة يومية شاملة',
-    desc: 'جلسات محاسبة يومية لكل عامل مع مراجعة النقد، الديون، المرتجعات، والمصاريف قبل اعتمادها.',
-  },
-  {
-    icon: Banknote,
-    title: 'خزينة المدير',
-    desc: 'تتبع كل المبالغ المستلمة والمُسلّمة مع سجل كامل لحركات الخزينة وتسليمات الأمانات.',
-  },
-  {
-    icon: UserCog,
-    title: 'صلاحيات دقيقة لكل مستخدم',
-    desc: 'تحكم في ما يراه ويفعله كل عامل — مدير، مشرف، سائق، أمين مخزن — بصلاحيات مخصصة لكل دور.',
-  },
-];
-
-const fieldOpsFeatures = [
-  {
-    icon: Route,
-    title: 'مسارات توزيع ذكية',
-    desc: 'تقسيم المناطق إلى قطاعات ومسارات مع تعيين كل مسار لعامل محدد لتغطية كل العملاء بكفاءة.',
-  },
-  {
-    icon: Map,
-    title: 'جولات العمال',
-    desc: 'متابعة جولات كل عامل يومياً — كم عميل زار، كم طلبية نفّذ، وما نسبة التغطية لمنطقته.',
-  },
-  {
-    icon: Timer,
-    title: 'تسجيل الحضور والانصراف',
-    desc: 'تسجيل دخول وخروج العمال مع تحقق GPS — تعرف من بدأ يومه ومتى انتهى وأين كان.',
-  },
-  {
-    icon: Bell,
-    title: 'تتبع الطلبيات لحظياً',
-    desc: 'حالة كل طلبية واضحة: قيد التحضير، في الطريق، مُسلّمة، مرتجعة — مع أوقات دقيقة لكل مرحلة.',
-  },
-];
-
-const smartFeatures = [
-  {
-    icon: Megaphone,
-    title: 'نظام عروض وترويج متقدم',
-    desc: 'إنشاء عروض بأنواع مختلفة (خصم، هدية، كمية إضافية) مع تطبيق تلقائي عند إنشاء الطلبيات. تقسيم العروض بين العمال بعدالة.',
-  },
-  {
-    icon: Star,
-    title: 'نظام مكافآت وإنجازات',
-    desc: 'نقاط تلقائية للعمال بناءً على أدائهم — مبيعات، تحصيلات، زيارات. لوحة إنجازات تحفيزية لكل عامل تُعزز المنافسة الإيجابية.',
-  },
-  {
-    icon: Receipt,
-    title: 'فواتير مشتركة وتقارير فورية',
-    desc: 'إنشاء فواتير احترافية ومشاركتها مباشرة مع العملاء. تقارير يومية وشهرية جاهزة لكل عامل وكل منطقة.',
-  },
-  {
-    icon: Repeat,
-    title: 'إدارة المرتجعات والأرصدة',
-    desc: 'تسجيل المرتجعات بأسباب واضحة، أرصدة العملاء (credit) تُخصم تلقائياً من الطلبيات القادمة بموافقة المدير.',
-  },
-];
-
-const growthFeatures = [
-  {
-    icon: Building2,
-    title: 'إدارة فروع متعددة',
-    desc: 'أضف فروعاً جديدة بسهولة. كل فرع له مخزونه وعماله وعملاؤه. التقارير تعمل على مستوى الفرع أو الشركة كاملة.',
-  },
-  {
-    icon: FileSpreadsheet,
-    title: 'نسخ احتياطي إلى Google Sheets',
-    desc: 'تصدير كل بياناتك إلى جداول Google بضغطة واحدة. نسخ احتياطي يومي تلقائي لراحة بالك.',
-  },
-  {
-    icon: Share2,
-    title: 'مشاركة سريعة',
-    desc: 'مشاركة الفواتير والتقارير والإحصائيات مباشرة عبر WhatsApp أو أي تطبيق — بدون طباعة أو تحويل.',
-  },
-  {
-    icon: GraduationCap,
-    title: 'دليل استخدام وتدريب مدمج',
-    desc: 'دليل تفاعلي داخل التطبيق يشرح كل ميزة خطوة بخطوة. العمال الجدد يتعلمون بأنفسهم في دقائق.',
-  },
-];
+import { useLandingLang } from '@/contexts/LandingLanguageContext';
 
 const AdvancedFeaturesSection: React.FC = () => {
+  const { t } = useLandingLang();
+
+  const managerControlFeatures = [
+    { icon: BarChart3, title: t('mgr_dashboard_title'), desc: t('mgr_dashboard_desc') },
+    { icon: CalendarClock, title: t('mgr_review_title'), desc: t('mgr_review_desc') },
+    { icon: Banknote, title: t('mgr_treasury_title'), desc: t('mgr_treasury_desc') },
+    { icon: UserCog, title: t('mgr_permissions_title'), desc: t('mgr_permissions_desc') },
+  ];
+
+  const fieldOpsFeatures = [
+    { icon: Route, title: t('fld_routes_title'), desc: t('fld_routes_desc') },
+    { icon: Map, title: t('fld_tours_title'), desc: t('fld_tours_desc') },
+    { icon: Timer, title: t('fld_attendance_title'), desc: t('fld_attendance_desc') },
+    { icon: Bell, title: t('fld_tracking_title'), desc: t('fld_tracking_desc') },
+  ];
+
+  const smartFeatures = [
+    { icon: Megaphone, title: t('smt_promos_title'), desc: t('smt_promos_desc') },
+    { icon: Star, title: t('smt_rewards_title'), desc: t('smt_rewards_desc') },
+    { icon: Receipt, title: t('smt_invoices_title'), desc: t('smt_invoices_desc') },
+    { icon: Repeat, title: t('smt_returns_title'), desc: t('smt_returns_desc') },
+  ];
+
+  const growthFeatures = [
+    { icon: Building2, title: t('grw_branches_title'), desc: t('grw_branches_desc') },
+    { icon: FileSpreadsheet, title: t('grw_backup_title'), desc: t('grw_backup_desc') },
+    { icon: Share2, title: t('grw_share_title'), desc: t('grw_share_desc') },
+    { icon: GraduationCap, title: t('grw_training_title'), desc: t('grw_training_desc') },
+  ];
+
   return (
     <>
       {/* Manager Control */}
@@ -106,10 +45,10 @@ const AdvancedFeaturesSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
               <Layers className="h-4 w-4" />
-              تحكّم كامل للمدير
+              {t('manager_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">كل شيء تحت سيطرتك</h2>
-            <p className="text-muted-foreground">أدوات مخصصة لك كمدير — تراقب، تراجع، وتتخذ قرارات بثقة</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('manager_title')}</h2>
+            <p className="text-muted-foreground">{t('manager_subtitle')}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {managerControlFeatures.map((f, i) => (
@@ -133,10 +72,10 @@ const AdvancedFeaturesSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
               <Rocket className="h-4 w-4" />
-              عمليات ميدانية متقدمة
+              {t('field_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">تعرف ماذا يحدث في الميدان — لحظة بلحظة</h2>
-            <p className="text-muted-foreground">أدوات تتبع ومراقبة تمنحك رؤية كاملة لما يجري خارج المكتب</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('field_title')}</h2>
+            <p className="text-muted-foreground">{t('field_subtitle')}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {fieldOpsFeatures.map((f, i) => (
@@ -160,10 +99,10 @@ const AdvancedFeaturesSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
               <TrendingUp className="h-4 w-4" />
-              ميزات ذكية تزيد أرباحك
+              {t('smart_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">أدوات مصممة لزيادة المبيعات وتقليل الخسائر</h2>
-            <p className="text-muted-foreground">ليس فقط إدارة — بل أدوات تساعدك تبيع أكثر وتخسر أقل</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('smart_title')}</h2>
+            <p className="text-muted-foreground">{t('smart_subtitle')}</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             {smartFeatures.map((f, i) => (
@@ -185,10 +124,10 @@ const AdvancedFeaturesSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
               <Building2 className="h-4 w-4" />
-              جاهز للنمو معك
+              {t('growth_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">نظام ينمو مع نمو شركتك</h2>
-            <p className="text-muted-foreground">سواء كنت تدير فرعاً واحداً أو عشرة — النظام مصمم للتوسع</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('growth_title')}</h2>
+            <p className="text-muted-foreground">{t('growth_subtitle')}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {growthFeatures.map((f, i) => (

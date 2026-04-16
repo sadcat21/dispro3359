@@ -4,120 +4,35 @@ import {
   MessageCircleOff, Users, ClipboardCheck, Lock, ChevronDown, ChevronUp,
   UserCheck, PackageCheck, FileCheck, Smartphone, ScanLine
 } from 'lucide-react';
-
-interface GapItem {
-  icon: React.ElementType;
-  threat: string;
-  title: string;
-  desc: string;
-  solution: string;
-}
-
-const dualAuthFeatures = [
-  {
-    icon: PackageCheck,
-    title: 'المصادقة الثنائية على الشحن',
-    desc: 'عند شحن البضاعة، يجب أن يوافق كل من أمين المخزن وعامل التوصيل على الكميات. لا يمكن لطرف واحد تسجيل العملية بمفرده.',
-    benefit: 'يمنع أي تلاعب في كميات الشحن — الطرفان يتحملان المسؤولية معاً.',
-  },
-  {
-    icon: ClipboardCheck,
-    title: 'المصادقة الثنائية على التفريغ',
-    desc: 'عند إرجاع البضاعة المتبقية، يجب موافقة الطرفين على الكميات المُعادة. أي فرق يُسجّل تلقائياً.',
-    benefit: 'يكشف أي نقص أو فائض فوراً ويُحدد المسؤول عنه.',
-  },
-  {
-    icon: FileCheck,
-    title: 'المصادقة على جلسات المحاسبة',
-    desc: 'جلسة المحاسبة تتطلب مراجعة وموافقة المدير على كل بند — النقد، الديون، المصاريف، والفائض/العجز.',
-    benefit: 'لا يمكن للعامل إخفاء أي مبلغ أو تعديل الأرقام بعد التسجيل.',
-  },
-];
-
-const selfServiceFeatures = [
-  {
-    icon: Smartphone,
-    title: 'تجميع المبيعات والطلبات',
-    desc: 'كل عامل يرى مبيعاته وطلباته وإنجازاته اليومية مباشرة من هاتفه — بدون الحاجة لسؤال أي شخص.',
-  },
-  {
-    icon: Gift,
-    title: 'العروض والمكافآت',
-    desc: 'العامل يطّلع على العروض الحالية ونقاطه ومكافآته تلقائياً — لا حاجة للتواصل مع الإدارة.',
-  },
-  {
-    icon: Users,
-    title: 'المنجزات اليومية',
-    desc: 'ملخص يومي شامل لكل عامل: عدد الزيارات، الطلبات المنفذة، التحصيلات، والمرتجعات.',
-  },
-  {
-    icon: ScanLine,
-    title: 'مخزون العامل اللحظي',
-    desc: 'كل عامل يرى مخزونه الحالي بالتفصيل — لا يحتاج للاتصال بالمستودع للاستفسار.',
-  },
-];
-
-const fraudGaps: GapItem[] = [
-  {
-    icon: MapPin,
-    threat: 'ماذا لو ادّعى مندوب المبيعات أنه زار العميل وهو لم يفعل؟',
-    title: 'تزوير الزيارات الميدانية',
-    desc: 'المندوب لا يمكنه تسجيل أي حالة للعميل (مغلق، غير متاح، لم يطلب) إلا إذا كان فعلياً في موقع العميل عبر GPS.',
-    solution: 'النظام يتحقق من إحداثيات الموقع قبل السماح بأي تسجيل — أي محاولة من خارج النطاق تُرفض تلقائياً.',
-  },
-  {
-    icon: MapPin,
-    threat: 'ماذا لو ادّعى عامل التوصيل أنه وصل للعميل دون أن يذهب فعلاً؟',
-    title: 'تزوير التسليم',
-    desc: 'عامل التوصيل لا يمكنه تأكيد تسليم طلبية أو تسجيل حالة العميل إلا من موقع العميل الجغرافي.',
-    solution: 'التحقق الجغرافي إلزامي لكل عملية تسليم — لا يمكن التلاعب بحالة الطلبية عن بُعد.',
-  },
-  {
-    icon: Gift,
-    threat: 'ماذا لو اختلس عامل التوصيل الهدايا والعينات المخصصة للعملاء؟',
-    title: 'اختلاس الهدايا',
-    desc: 'كل هدية مسجلة في النظام مرتبطة بعميل محدد وطلبية محددة. عند التفريغ، أي نقص في الهدايا يظهر فوراً.',
-    solution: 'المصادقة الثنائية عند التفريغ + تسجيل الهدايا لكل طلبية = أي هدية ناقصة تُكتشف تلقائياً.',
-  },
-  {
-    icon: DollarSign,
-    threat: 'ماذا لو باع العامل بسعر أعلى وأعطى المدير حساباً بسعر أقل؟',
-    title: 'التلاعب بالأسعار',
-    desc: 'الأسعار محددة مسبقاً في النظام لكل منتج ولكل عميل. العامل لا يمكنه تغيير السعر — الفاتورة تُنشأ تلقائياً.',
-    solution: 'أسعار ثابتة + أسعار خاصة للعملاء مُعتمدة من المدير + فواتير تلقائية = لا مجال للتلاعب.',
-  },
-  {
-    icon: Eye,
-    threat: 'ماذا لو أخفى العامل جزءاً من التحصيلات النقدية؟',
-    title: 'إخفاء التحصيلات',
-    desc: 'كل تحصيل مرتبط بطلبية أو دين محدد. جلسة المحاسبة تقارن المبلغ المتوقع بالمبلغ الفعلي تلقائياً.',
-    solution: 'محاسبة تلقائية + كشف العجز الفوري + سجل لا يمكن تعديله = أي فرق يظهر مباشرة.',
-  },
-  {
-    icon: ShieldAlert,
-    threat: 'ماذا لو سجّل العامل مصاريف وهمية ليحتفظ بالفرق؟',
-    title: 'مصاريف وهمية',
-    desc: 'كل مصروف يتطلب تصنيف وصورة إيصال ويمر بمراجعة المدير قبل اعتماده. لا يُحسب تلقائياً.',
-    solution: 'نظام موافقة على المصاريف + إيصالات مطلوبة + مراجعة المدير = لا مصاريف بدون إثبات.',
-  },
-  {
-    icon: UserCheck,
-    threat: 'ماذا لو أضاف العامل عملاء وهميين لتسجيل مبيعات مزيفة؟',
-    title: 'عملاء وهميون',
-    desc: 'إضافة عملاء جدد تحتاج موافقة المدير. لا يمكن للعامل إنشاء عميل والبيع له مباشرة.',
-    solution: 'نظام موافقة على العملاء الجدد + ربط العميل بموقع جغرافي = لا عملاء وهميين.',
-  },
-  {
-    icon: Lock,
-    threat: 'ماذا لو عدّل العامل بيانات طلبية بعد تسليمها؟',
-    title: 'تعديل الطلبيات بأثر رجعي',
-    desc: 'الطلبيات المكتملة لا يمكن تعديلها. كل تغيير يُسجّل في سجل النشاطات مع الوقت والمسؤول.',
-    solution: 'سجل نشاطات غير قابل للتعديل + قفل الطلبيات المكتملة = شفافية كاملة.',
-  },
-];
+import { useLandingLang } from '@/contexts/LandingLanguageContext';
 
 const OperationalGapsSection: React.FC = () => {
+  const { t } = useLandingLang();
   const [expandedGap, setExpandedGap] = useState<number | null>(null);
+
+  const selfServiceFeatures = [
+    { icon: Smartphone, title: t('ss_sales_title'), desc: t('ss_sales_desc') },
+    { icon: Gift, title: t('ss_promos_title'), desc: t('ss_promos_desc') },
+    { icon: Users, title: t('ss_achievements_title'), desc: t('ss_achievements_desc') },
+    { icon: ScanLine, title: t('ss_stock_title'), desc: t('ss_stock_desc') },
+  ];
+
+  const dualAuthFeatures = [
+    { icon: PackageCheck, title: t('da_loading_title'), desc: t('da_loading_desc'), benefit: t('da_loading_benefit') },
+    { icon: ClipboardCheck, title: t('da_unloading_title'), desc: t('da_unloading_desc'), benefit: t('da_unloading_benefit') },
+    { icon: FileCheck, title: t('da_accounting_title'), desc: t('da_accounting_desc'), benefit: t('da_accounting_benefit') },
+  ];
+
+  const fraudGaps = [
+    { icon: MapPin, threat: t('fraud_visit_threat'), title: t('fraud_visit_title'), desc: t('fraud_visit_desc'), solution: t('fraud_visit_solution') },
+    { icon: MapPin, threat: t('fraud_delivery_threat'), title: t('fraud_delivery_title'), desc: t('fraud_delivery_desc'), solution: t('fraud_delivery_solution') },
+    { icon: Gift, threat: t('fraud_gift_threat'), title: t('fraud_gift_title'), desc: t('fraud_gift_desc'), solution: t('fraud_gift_solution') },
+    { icon: DollarSign, threat: t('fraud_price_threat'), title: t('fraud_price_title'), desc: t('fraud_price_desc'), solution: t('fraud_price_solution') },
+    { icon: Eye, threat: t('fraud_collection_threat'), title: t('fraud_collection_title'), desc: t('fraud_collection_desc'), solution: t('fraud_collection_solution') },
+    { icon: ShieldAlert, threat: t('fraud_expense_threat'), title: t('fraud_expense_title'), desc: t('fraud_expense_desc'), solution: t('fraud_expense_solution') },
+    { icon: UserCheck, threat: t('fraud_fake_customer_threat'), title: t('fraud_fake_customer_title'), desc: t('fraud_fake_customer_desc'), solution: t('fraud_fake_customer_solution') },
+    { icon: Lock, threat: t('fraud_retroactive_threat'), title: t('fraud_retroactive_title'), desc: t('fraud_retroactive_desc'), solution: t('fraud_retroactive_solution') },
+  ];
 
   return (
     <>
@@ -127,10 +42,10 @@ const OperationalGapsSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
               <MessageCircleOff className="h-4 w-4" />
-              تقليل التواصل المباشر
+              {t('selfservice_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">كل عامل يجد ما يحتاجه بنفسه</h2>
-            <p className="text-muted-foreground">لا حاجة للاتصال بالمدير أو بزملاء العمل — كل البيانات متاحة لحظياً</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('selfservice_title')}</h2>
+            <p className="text-muted-foreground">{t('selfservice_subtitle')}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {selfServiceFeatures.map((f, i) => (
@@ -154,10 +69,10 @@ const OperationalGapsSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
               <HandshakeIcon className="h-4 w-4" />
-              المصادقة الثنائية على العمليات
+              {t('dualauth_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">لا عملية تمر بطرف واحد</h2>
-            <p className="text-muted-foreground">كل عملية حساسة تتطلب موافقة طرفين — لضمان الشفافية ومنع التلاعب</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('dualauth_title')}</h2>
+            <p className="text-muted-foreground">{t('dualauth_subtitle')}</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-3">
             {dualAuthFeatures.map((f, i) => (
@@ -182,22 +97,22 @@ const OperationalGapsSection: React.FC = () => {
           <div className="mb-10 text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-destructive/20 bg-destructive/5 px-4 py-1.5 text-sm font-medium text-destructive">
               <ShieldAlert className="h-4 w-4" />
-              إغلاق ثغرات التحايل
+              {t('fraud_badge')}
             </div>
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">ماذا يمكن أن يفعل العامل؟ وكيف أغلقنا الثغرة؟</h2>
-            <p className="text-muted-foreground">حللنا كل سيناريو تحايل ممكن وبنينا حماية مدمجة لكل واحد منها</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">{t('fraud_title')}</h2>
+            <p className="text-muted-foreground">{t('fraud_subtitle')}</p>
           </div>
           <div className="space-y-3">
             {fraudGaps.map((g, i) => (
               <div key={i} className="overflow-hidden rounded-xl border border-destructive/20 bg-card shadow-sm">
                 <button
                   onClick={() => setExpandedGap(expandedGap === i ? null : i)}
-                  className="flex w-full items-center gap-3 p-4 text-right"
+                  className="flex w-full items-center gap-3 p-4"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
                     <g.icon className="h-4 w-4 text-destructive" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 text-start">
                     <p className="text-sm font-bold text-destructive">{g.threat}</p>
                   </div>
                   {expandedGap === i
@@ -208,11 +123,11 @@ const OperationalGapsSection: React.FC = () => {
                 {expandedGap === i && (
                   <div className="border-t px-4 pb-4 pt-3 space-y-3">
                     <div>
-                      <span className="text-xs font-bold text-destructive">⚠ الثغرة:</span>
+                      <span className="text-xs font-bold text-destructive">{t('gap_label')}</span>
                       <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{g.desc}</p>
                     </div>
                     <div className="rounded-lg bg-emerald-500/10 p-3">
-                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">✓ كيف أغلقناها:</span>
+                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">{t('gap_solution_label')}</span>
                       <p className="mt-1 text-sm leading-relaxed text-emerald-700 dark:text-emerald-400">{g.solution}</p>
                     </div>
                   </div>
