@@ -283,6 +283,7 @@ const Landing: React.FC = () => {
       </section>
 
       <OperationalGapsSection />
+      <AdvancedFeaturesSection />
 
       {/* Security Section */}
       <section className="bg-accent/5 px-4 py-16">
