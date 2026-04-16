@@ -214,6 +214,8 @@ const getQuickWorkerGroupKey = (worker: QuickWorker) => {
 const LoginForm: React.FC = () => {
   const { login, selectRole, selectBranch, showRoleSelection, showBranchSelection, availableRoles } = useAuth();
   const { t, dir } = useLanguage();
+  const navigate = useNavigate();
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -524,6 +526,25 @@ const LoginForm: React.FC = () => {
               className="w-full bg-red-600 text-white hover:bg-red-700" 
               size="lg"
               disabled={isLoading}
+              onTouchStart={() => {
+                longPressTimer.current = setTimeout(() => {
+                  navigate('/landing');
+                }, 1000);
+              }}
+              onTouchEnd={() => {
+                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+              }}
+              onMouseDown={() => {
+                longPressTimer.current = setTimeout(() => {
+                  navigate('/landing');
+                }, 1000);
+              }}
+              onMouseUp={() => {
+                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+              }}
+              onMouseLeave={() => {
+                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+              }}
             >
               {isLoading ? (
                 <>
