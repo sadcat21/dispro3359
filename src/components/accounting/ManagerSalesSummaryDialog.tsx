@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchSessionCalculations, SessionCalculations } from '@/hooks/useSessionCalculations';
-import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBag, TrendingDown, Wallet } from 'lucide-react';
+import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBag, Tag, TrendingDown, Wallet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import PromoTrackingSummary from './PromoTrackingSummary';
 
 interface Props {
   open: boolean;
