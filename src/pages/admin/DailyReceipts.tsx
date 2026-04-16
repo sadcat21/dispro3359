@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
