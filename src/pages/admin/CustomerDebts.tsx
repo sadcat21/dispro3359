@@ -278,7 +278,7 @@ const CustomerDebts: React.FC = () => {
         return matchesSearch && matchesDate && matchesWorker;
       })
       .sort((a, b) => (b.lastEventAt || '').localeCompare(a.lastEventAt || ''));
-  }, [allZones, debtCollectionAmounts, debtEvents, debts, eventDateFilter, language, search, sectors, workerFilter]);
+  }, [allZones, debtCollectionAmounts, debtEvents, debts, eventDateFilter, language, search, sectors, workerFilter, invoiceMode]);
 
   const customerSections = useMemo(() => {
     const sections: { day: string; label: string; items: CustomerGroup[] }[] = [];
