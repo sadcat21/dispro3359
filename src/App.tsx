@@ -9,6 +9,7 @@ import { isAdminRole } from "@/lib/utils";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";
 import { SelectedWorkerProvider } from "@/contexts/SelectedWorkerContext";
+import { InvoiceFilterProvider } from "@/contexts/InvoiceFilterContext";
 import MobileLayout from "@/components/layout/MobileLayout";
 import GpsGuard from "@/components/auth/GpsGuard";
 import VersionGuard from "@/components/VersionGuard";
@@ -491,14 +492,16 @@ const App = () => (
           <TooltipProvider>
             <VersionGuard>
               <AuthProvider>
-                <SelectedWorkerProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <ScrollToTop />
-                    <AppRoutes />
-                  </BrowserRouter>
-                </SelectedWorkerProvider>
+                <InvoiceFilterProvider>
+                  <SelectedWorkerProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <ScrollToTop />
+                      <AppRoutes />
+                    </BrowserRouter>
+                  </SelectedWorkerProvider>
+                </InvoiceFilterProvider>
               </AuthProvider>
             </VersionGuard>
           </TooltipProvider>
