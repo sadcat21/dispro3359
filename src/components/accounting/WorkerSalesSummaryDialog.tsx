@@ -8,11 +8,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp } from 'lucide-react';
+import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag } from 'lucide-react';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
 import { buildPricingGroups } from './PricingGroupsSummary';
 import PricingGroupsSummary from './PricingGroupsSummary';
+import PromoTrackingSummary from './PromoTrackingSummary';
+import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 /** Format quantity as boxes.pieces (e.g. 1.05 = 1 box + 5 pieces) */
 const formatBoxPieces = (qty: number, piecesPerBox: number | null): string => {
   if (!piecesPerBox || piecesPerBox <= 0) return String(qty);
@@ -74,9 +76,7 @@ const ExpandedCarousel: React.FC<{
 
   return (
     <div className="flex flex-col gap-2 pb-2">
-      {/* Navigation with thumbnails */}
       <div className="flex items-center justify-between px-1 py-1.5 gap-2">
-        {/* Previous thumbnail */}
         {currentIdx > 0 ? (
           <button onClick={goPrev} className="w-10 h-10 rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors shrink-0">
             {items[currentIdx - 1].imageUrl ? (
@@ -95,7 +95,6 @@ const ExpandedCarousel: React.FC<{
           {currentIdx + 1} / {items.length}
         </span>
 
-        {/* Next thumbnail */}
         {currentIdx < items.length - 1 ? (
           <button onClick={goNext} className="w-10 h-10 rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors shrink-0">
             {items[currentIdx + 1].imageUrl ? (
@@ -111,19 +110,16 @@ const ExpandedCarousel: React.FC<{
         )}
       </div>
 
-      {/* Product card */}
       <div
         className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-primary ring-2 ring-primary/30 cursor-pointer"
         onClick={onClose}
       >
-        {/* Product name */}
         <div className="px-3 py-2 text-center bg-primary">
           <span className="font-bold text-sm block truncate text-primary-foreground">
             {item.name}
           </span>
         </div>
 
-        {/* Image area with guaranteed height + customer overlay */}
         <div className="relative w-full overflow-hidden bg-muted h-[38vh] min-h-[200px] max-h-[400px]">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
@@ -174,7 +170,6 @@ const ExpandedCarousel: React.FC<{
           )}
         </div>
 
-        {/* Footer buttons */}
         <div className="px-2 py-2 bg-card flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5">
             <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-primary/10 text-primary py-1.5 text-sm font-bold">
@@ -306,7 +301,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
   const [periodFrom, setPeriodFrom] = useState<string>(defaultPeriodFrom || '');
   const [periodTo, setPeriodTo] = useState<string>(defaultPeriodTo || '');
 
-  // Sync defaults when dialog opens with new period
   React.useEffect(() => {
     if (open) {
       if (defaultPeriodFrom) setPeriodFrom(defaultPeriodFrom);
@@ -346,8 +340,9 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
     [
       { table: 'orders' },
       { table: 'order_items' },
+      { table: 'promos' },
     ],
-    [['worker-sales-summary', workerId, periodFrom, periodTo], ['worker-last-accounting-sales', workerId]],
+    [['worker-sales-summary', workerId, periodFrom, periodTo], ['worker-sales-promo-summary', workerId, periodFrom, periodTo], ['worker-last-accounting-sales', workerId]],
     open && !!workerId
   );
 
@@ -385,7 +380,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       const { data: orders, error } = await ordersQuery;
       if (error) throw error;
-      if (!orders || orders.length === 0) return { items: [], orderCount: 0, firstOrderTime: null, lastOrderTime: null };
+      if (!orders || orders.length === 0) return { items: [], orderCount: 0, firstOrderTime: null, lastOrderTime: null, priceTracking: [] };
 
       const orderIds = orders.map(o => o.id);
       const orderCustomerMap = new Map(orders.map(o => [o.id, o.customer_id]));
@@ -474,7 +469,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       const firstOrderTime = createdTimes.length ? new Date(Math.min(...createdTimes)).toISOString() : null;
       const lastOrderTime = updatedTimes.length ? new Date(Math.max(...updatedTimes)).toISOString() : null;
 
-      // Build price tracking data
       const priceMap: Record<string, PriceTrackedProduct> = {};
 
       for (const item of (items || [])) {
@@ -542,6 +536,26 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
     refetchOnWindowFocus: true,
   });
 
+  const { data: promoData } = useQuery({
+    queryKey: ['worker-sales-promo-summary', workerId, periodFrom, periodTo, lastAccounting],
+    queryFn: async () => {
+      if (!workerId) return null;
+
+      const normalized = normalizePeriodRange(periodFrom, periodTo);
+      const fallbackStart = lastAccounting ? new Date(lastAccounting).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+      const fallbackEnd = new Date().toISOString().slice(0, 10);
+
+      return fetchSessionCalculations({
+        workerId,
+        periodStart: normalized ? normalized.start.toISOString() : fallbackStart,
+        periodEnd: normalized ? normalized.end.toISOString() : fallbackEnd,
+      });
+    },
+    enabled: open && !!workerId,
+    refetchInterval: open ? 15000 : false,
+    refetchOnWindowFocus: true,
+  });
+
   const totalAmount = useMemo(() => {
     return (salesData?.items || []).reduce((s, i) => s + i.totalAmount, 0);
   }, [salesData]);
@@ -553,7 +567,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
   const firstTime = salesData?.firstOrderTime ? new Date(salesData.firstOrderTime) : null;
   const lastTime = salesData?.lastOrderTime ? new Date(salesData.lastOrderTime) : null;
   const todayDate = new Date().toLocaleDateString('ar-DZ', { year: 'numeric', month: 'long', day: 'numeric' });
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -608,6 +621,11 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             <Badge className="text-xs bg-primary/10 text-primary border-0">
               {totalAmount.toLocaleString('ar-DZ')} د.ج
             </Badge>
+            {promoData && promoData.promoTracking.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {promoData.promoTracking.length} عروض
+              </Badge>
+            )}
             {lastAccounting && (
               <Badge variant="outline" className="text-[10px] text-muted-foreground">
                 منذ آخر محاسبة
@@ -630,10 +648,18 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && salesData?.items?.length ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <TabsList className="w-full shrink-0">
-              <TabsTrigger value="products" className="flex-1 text-xs">المنتجات</TabsTrigger>
-              <TabsTrigger value="pricing" className="flex-1 text-xs">المتابعة السعرية</TabsTrigger>
-              <TabsTrigger value="groups" className="flex-1 text-xs">مجموعات التسعير</TabsTrigger>
+            <TabsList className="w-full shrink-0 grid grid-cols-4">
+              <TabsTrigger value="products" className="text-xs">المنتجات</TabsTrigger>
+              <TabsTrigger value="promos" className="text-xs">
+                العروض
+                {promoData?.promoTracking?.length ? (
+                  <Badge variant="secondary" className="ms-1 h-4 min-w-4 rounded-full px-1 text-[9px]">
+                    {promoData.promoTracking.length}
+                  </Badge>
+                ) : null}
+              </TabsTrigger>
+              <TabsTrigger value="pricing" className="text-xs">المتابعة السعرية</TabsTrigger>
+              <TabsTrigger value="groups" className="text-xs">مجموعات التسعير</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -681,6 +707,23 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               </div>
             </TabsContent>
 
+            <TabsContent value="promos" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
+                {promoData?.promoTracking?.length ? (
+                  <PromoTrackingSummary
+                    items={promoData.promoTracking}
+                    totalGiftValue={promoData.giftOfferValue}
+                    workerName={workerName}
+                  />
+                ) : (
+                  <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-muted-foreground">
+                    <Tag className="h-8 w-8 opacity-40" />
+                    <p className="text-sm">لا توجد عروض مطبقة في هذه الفترة</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="pricing" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
                 <PriceTrackingTab priceTracking={salesData.priceTracking || []} />
@@ -725,3 +768,4 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 };
 
 export default WorkerSalesSummaryDialog;
+
