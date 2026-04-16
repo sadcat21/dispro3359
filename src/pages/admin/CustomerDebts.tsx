@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Banknote, Calendar, Clock3, FileCheck, Loader2, MapPin, Plus, Search, Users } from 'lucide-react';
@@ -182,8 +183,16 @@ const CustomerDebts: React.FC = () => {
     enabled: debtIds.length > 0,
   });
 
+  const { getPaymentTypeFilter, mode: invoiceMode } = useInvoiceFilter();
+
   const customerGroups = useMemo(() => {
     if (!debts) return [] as CustomerGroup[];
+
+    // Apply invoice filter
+    const paymentFilter = getPaymentTypeFilter();
+    const filteredDebts = paymentFilter
+      ? debts.filter((debt: any) => debt.order?.payment_type === paymentFilter)
+      : debts;
 
     const eventsByDebtId = debtEvents.reduce((acc: Record<string, { created_at: string; worker_id: string | null }[]>, event: any) => {
       if (!acc[event.debt_id]) acc[event.debt_id] = [];
@@ -199,7 +208,7 @@ const CustomerDebts: React.FC = () => {
 
     const groups: Record<string, CustomerGroup> = {};
 
-    debts.forEach((debt) => {
+    filteredDebts.forEach((debt) => {
       const customerId = debt.customer_id;
       const sector = debt.customer?.sector_id ? sectors.find((item) => item.id === debt.customer?.sector_id) : null;
       const zone = (debt.customer as any)?.zone_id ? allZones.find((item: any) => item.id === (debt.customer as any)?.zone_id) : null;
@@ -269,7 +278,7 @@ const CustomerDebts: React.FC = () => {
         return matchesSearch && matchesDate && matchesWorker;
       })
       .sort((a, b) => (b.lastEventAt || '').localeCompare(a.lastEventAt || ''));
-  }, [allZones, debtCollectionAmounts, debtEvents, debts, eventDateFilter, language, search, sectors, workerFilter]);
+  }, [allZones, debtCollectionAmounts, debtEvents, debts, eventDateFilter, language, search, sectors, workerFilter, invoiceMode]);
 
   const customerSections = useMemo(() => {
     const sections: { day: string; label: string; items: CustomerGroup[] }[] = [];

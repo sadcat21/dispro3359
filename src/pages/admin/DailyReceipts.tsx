@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ const DailyReceipts: React.FC = () => {
   const isAdmin = isAdminRole(role) || role === 'supervisor';
   const { isConnected, printReceipt } = useBluetoothPrinter();
   const updatePrintCount = useUpdateReceiptPrintCount();
+  const { getPaymentTypeFilter, mode: invoiceMode } = useInvoiceFilter();
 
   const today = new Date().toISOString().split('T')[0];
   const [dateFrom, setDateFrom] = useState(today);
@@ -66,7 +68,7 @@ const DailyReceipts: React.FC = () => {
 
   // Also fetch delivered orders that may not have receipts
   const { data: deliveredOrders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['daily-delivered-orders', dateFrom, dateTo, filterWorkerId, filterType],
+    queryKey: ['daily-delivered-orders', dateFrom, dateTo, filterWorkerId, filterType, invoiceMode],
     queryFn: async () => {
       // Skip if filtering by non-delivery type
       if (filterType && filterType !== 'all' && filterType !== 'delivery') return [];
@@ -91,6 +93,11 @@ const DailyReceipts: React.FC = () => {
       const effectiveWorkerId = isAdmin ? (filterWorkerId !== 'all' ? filterWorkerId : undefined) : workerId || undefined;
       if (effectiveWorkerId) {
         query = query.eq('assigned_worker_id', effectiveWorkerId);
+      }
+
+      const paymentFilter = getPaymentTypeFilter();
+      if (paymentFilter) {
+        query = query.eq('payment_type', paymentFilter);
       }
 
       const { data, error } = await query.limit(500);
