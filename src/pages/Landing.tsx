@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import OperationalGapsSection from '@/components/landing/OperationalGapsSection';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
@@ -279,6 +280,8 @@ const Landing: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <OperationalGapsSection />
 
       {/* Security Section */}
       <section className="bg-accent/5 px-4 py-16">
