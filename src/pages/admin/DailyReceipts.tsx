@@ -27,6 +27,7 @@ const DailyReceipts: React.FC = () => {
   const isAdmin = isAdminRole(role) || role === 'supervisor';
   const { isConnected, printReceipt } = useBluetoothPrinter();
   const updatePrintCount = useUpdateReceiptPrintCount();
+  const { getPaymentTypeFilter, mode: invoiceMode } = useInvoiceFilter();
 
   const today = new Date().toISOString().split('T')[0];
   const [dateFrom, setDateFrom] = useState(today);
