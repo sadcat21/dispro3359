@@ -208,7 +208,7 @@ const CustomerDebts: React.FC = () => {
 
     const groups: Record<string, CustomerGroup> = {};
 
-    debts.forEach((debt) => {
+    filteredDebts.forEach((debt) => {
       const customerId = debt.customer_id;
       const sector = debt.customer?.sector_id ? sectors.find((item) => item.id === debt.customer?.sector_id) : null;
       const zone = (debt.customer as any)?.zone_id ? allZones.find((item: any) => item.id === (debt.customer as any)?.zone_id) : null;
