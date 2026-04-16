@@ -977,9 +977,12 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
         ) : (
           <Tabs defaultValue="overview" className={`flex min-h-0 flex-1 flex-col overflow-hidden transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
             <div className="shrink-0 px-3 pt-2 sm:px-4">
-              <TabsList className="grid h-11 grid-cols-2 rounded-2xl bg-slate-100 p-1">
+              <TabsList className="grid h-11 grid-cols-3 rounded-2xl bg-slate-100 p-1">
                 <TabsTrigger value="overview" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   {labels.overview}
+                </TabsTrigger>
+                <TabsTrigger value="promos" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  العروض {aggregate.calc.promoTracking.length > 0 && <Badge variant="secondary" className="ms-1 h-5 min-w-5 rounded-full px-1.5 text-[10px]">{aggregate.calc.promoTracking.length}</Badge>}
                 </TabsTrigger>
                 <TabsTrigger value="products" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   {labels.products}
