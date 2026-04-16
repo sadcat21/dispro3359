@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
+import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -490,8 +491,21 @@ const MyAchievements: React.FC = () => {
   const isDebtNewAchievement = (visit: any) =>
     !!visit.isDebtSale || !!visit.debtStatus;
 
+  const { mode: invoiceMode, getPaymentTypeFilter } = useInvoiceFilter();
+
   const filteredVisits = useMemo(() => {
     let result = visits;
+
+    // Apply global invoice filter
+    const paymentFilter = getPaymentTypeFilter();
+    if (paymentFilter) {
+      result = result.filter((visit: any) => {
+        // Only filter order-related operations
+        const orderLinked = ['order', 'direct_sale', 'delivery', 'delivery_visit'].includes(visit.operation_type);
+        if (!orderLinked) return true; // Keep non-order visits
+        return visit.order_payment_type === paymentFilter;
+      });
+    }
 
     if (activeFilter) {
       result = activeFilter === 'debt_new'
@@ -515,7 +529,7 @@ const MyAchievements: React.FC = () => {
     }
 
     return result;
-  }, [visits, activeFilter, searchQuery]);
+  }, [visits, activeFilter, searchQuery, invoiceMode]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
 
