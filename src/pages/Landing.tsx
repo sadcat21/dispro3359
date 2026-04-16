@@ -173,26 +173,26 @@ const Landing: React.FC = () => {
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
             <Sparkles className="h-4 w-4" />
-            الحل الأمثل لشركات التوزيع
+            نظامك المخصص لإدارة التوزيع
           </div>
           <h1 className="mb-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-            أدِر شركة التوزيع بالكامل
+            بنينا لك نظاماً يفهم
             <br />
             <span className="bg-gradient-to-l from-primary to-primary/70 bg-clip-text text-transparent">
-              من شاشة واحدة
+              تفاصيل عملك بالكامل
             </span>
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            نظام متكامل يجمع المخزون، المبيعات، المحاسبة، تتبع السائقين، وإدارة الديون في مكان واحد. وداعاً للدفاتر والفوضى.
+            هذا النظام صُمّم خصيصاً لاحتياجاتك — المخزون، المبيعات، المحاسبة، تتبع السائقين، وإدارة الديون. كل شيء في مكان واحد، بدون فوضى ولا دفاتر.
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button size="lg" className="w-full gap-2 text-base sm:w-auto" onClick={() => navigate('/login')}>
-              ابدأ تجربتك المجانية
+              ادخل إلى نظامك
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" className="w-full gap-2 text-base sm:w-auto" asChild>
               <a href="#features">
-                اكتشف الميزات
+                اكتشف ما أعددناه لك
                 <ChevronDown className="h-5 w-5" />
               </a>
             </Button>
@@ -204,8 +204,8 @@ const Landing: React.FC = () => {
       <section className="bg-destructive/5 px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <div className="mb-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">هل تعاني من هذه المشاكل؟</h2>
-            <p className="text-muted-foreground">مشاكل يومية تكلّفك أموالاً ووقتاً بدون أن تشعر</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">نعرف التحديات التي تواجهها يومياً</h2>
+            <p className="text-muted-foreground">هذه المشاكل التي كنت تعاني منها — وبنينا الحل لكل واحدة منها</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {problems.map((p, i) => (
@@ -227,8 +227,8 @@ const Landing: React.FC = () => {
       <section id="features" className="px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <div className="mb-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">الحلول التي نقدمها لك</h2>
-            <p className="text-muted-foreground">كل أداة تحتاجها لإدارة التوزيع باحترافية</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">ما أعددناه لك في النظام</h2>
+            <p className="text-muted-foreground">كل أداة تحتاجها موجودة ومجهّزة — فقط ابدأ باستخدامها</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {solutions.map((s, i) => (
@@ -248,8 +248,8 @@ const Landing: React.FC = () => {
       <section className="bg-primary/5 px-4 py-16">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">النتائج التي ستحققها</h2>
-            <p className="text-muted-foreground">أرقام حقيقية من عملاء يستخدمون النظام يومياً</p>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">النتائج التي ستلاحظها مباشرة</h2>
+            <p className="text-muted-foreground">هذا ما سيتغيّر في عملك من أول أسبوع استخدام</p>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {results.map((r, i) => (
@@ -267,7 +267,7 @@ const Landing: React.FC = () => {
       <section className="px-4 py-16">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">+16 أداة في نظام واحد</h2>
+            <h2 className="mb-3 text-2xl font-bold sm:text-3xl">+16 أداة جاهزة لك في نظامك</h2>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {features.map((f, i) => (
@@ -337,18 +337,14 @@ const Landing: React.FC = () => {
       {/* CTA Section */}
       <section className="bg-gradient-to-bl from-primary to-primary/80 px-4 py-16 text-primary-foreground">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="mb-4 text-2xl font-extrabold sm:text-3xl">جاهز لتحويل إدارة التوزيع؟</h2>
+          <h2 className="mb-4 text-2xl font-extrabold sm:text-3xl">نظامك جاهز — ابدأ الآن</h2>
           <p className="mb-8 text-lg opacity-90">
-            انضم للشركات التي حوّلت فوضى التوزيع إلى نظام محكم. ابدأ مجاناً اليوم.
+            كل شيء مُعدّ ومجهّز لك. ادخل وابدأ بإدارة التوزيع بطريقة جديدة كلياً.
           </p>
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <div className="flex justify-center">
             <Button size="lg" variant="secondary" className="w-full gap-2 text-base sm:w-auto" onClick={() => navigate('/login')}>
-              ابدأ الآن مجاناً
+              ادخل إلى نظامك الآن
               <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="w-full gap-2 border-primary-foreground/30 text-base text-primary-foreground hover:bg-primary-foreground/10 sm:w-auto">
-              <Phone className="h-5 w-5" />
-              تواصل معنا
             </Button>
           </div>
         </div>
