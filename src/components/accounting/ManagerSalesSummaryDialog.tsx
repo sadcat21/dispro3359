@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchSessionCalculations, SessionCalculations } from '@/hooks/useSessionCalculations';
-import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBag, TrendingDown, Wallet } from 'lucide-react';
+import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBag, Tag, TrendingDown, Wallet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import PromoTrackingSummary from './PromoTrackingSummary';
 
 interface Props {
   open: boolean;
@@ -976,9 +977,12 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
         ) : (
           <Tabs defaultValue="overview" className={`flex min-h-0 flex-1 flex-col overflow-hidden transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
             <div className="shrink-0 px-3 pt-2 sm:px-4">
-              <TabsList className="grid h-11 grid-cols-2 rounded-2xl bg-slate-100 p-1">
+              <TabsList className="grid h-11 grid-cols-3 rounded-2xl bg-slate-100 p-1">
                 <TabsTrigger value="overview" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   {labels.overview}
+                </TabsTrigger>
+                <TabsTrigger value="promos" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  العروض {aggregate.calc.promoTracking.length > 0 && <Badge variant="secondary" className="ms-1 h-5 min-w-5 rounded-full px-1.5 text-[10px]">{aggregate.calc.promoTracking.length}</Badge>}
                 </TabsTrigger>
                 <TabsTrigger value="products" className="rounded-2xl text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   {labels.products}
@@ -1042,6 +1046,25 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                       <BreakdownRow label="فائض العملاء" value={aggregate.calc.customerSurplusCash} />
                     </TabsContent>
                   </Tabs>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="promos" className="mt-0 min-h-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full max-h-[calc(100dvh-18rem)]">
+                <div className="px-3 py-3 sm:px-4 sm:py-4">
+                  {aggregate.calc.promoTracking.length > 0 ? (
+                    <PromoTrackingSummary
+                      items={aggregate.calc.promoTracking}
+                      totalGiftValue={aggregate.calc.giftOfferValue}
+                      workerName={selectedWorkerId !== 'all' ? workerButtons.find(w => w.id === selectedWorkerId)?.full_name : undefined}
+                    />
+                  ) : (
+                    <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 text-slate-400">
+                      <Tag className="h-8 w-8 opacity-40" />
+                      <p className="text-sm">لا توجد عروض مطبقة في هذه الفترة</p>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </TabsContent>
