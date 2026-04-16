@@ -68,7 +68,7 @@ const DailyReceipts: React.FC = () => {
 
   // Also fetch delivered orders that may not have receipts
   const { data: deliveredOrders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['daily-delivered-orders', dateFrom, dateTo, filterWorkerId, filterType],
+    queryKey: ['daily-delivered-orders', dateFrom, dateTo, filterWorkerId, filterType, invoiceMode],
     queryFn: async () => {
       // Skip if filtering by non-delivery type
       if (filterType && filterType !== 'all' && filterType !== 'delivery') return [];
