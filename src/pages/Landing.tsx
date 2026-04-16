@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import OperationalGapsSection from '@/components/landing/OperationalGapsSection';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
