@@ -1050,6 +1050,25 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
               </ScrollArea>
             </TabsContent>
 
+            <TabsContent value="promos" className="mt-0 min-h-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full max-h-[calc(100dvh-18rem)]">
+                <div className="px-3 py-3 sm:px-4 sm:py-4">
+                  {aggregate.calc.promoTracking.length > 0 ? (
+                    <PromoTrackingSummary
+                      items={aggregate.calc.promoTracking}
+                      totalGiftValue={aggregate.calc.giftOfferValue}
+                      workerName={selectedWorkerId !== 'all' ? workerButtons.find(w => w.id === selectedWorkerId)?.full_name : undefined}
+                    />
+                  ) : (
+                    <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 text-slate-400">
+                      <Tag className="h-8 w-8 opacity-40" />
+                      <p className="text-sm">لا توجد عروض مطبقة في هذه الفترة</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
             <TabsContent value="products" className="mt-0 min-h-0 flex-1 overflow-hidden">
               <ScrollArea className="h-full max-h-[calc(100dvh-18rem)]">
                 <div className="grid grid-cols-2 gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:grid-cols-3">
