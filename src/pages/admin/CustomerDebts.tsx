@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Banknote, Calendar, Clock3, FileCheck, Loader2, MapPin, Plus, Search, Users } from 'lucide-react';
@@ -182,8 +183,16 @@ const CustomerDebts: React.FC = () => {
     enabled: debtIds.length > 0,
   });
 
+  const { getPaymentTypeFilter, mode: invoiceMode } = useInvoiceFilter();
+
   const customerGroups = useMemo(() => {
     if (!debts) return [] as CustomerGroup[];
+
+    // Apply invoice filter
+    const paymentFilter = getPaymentTypeFilter();
+    const filteredDebts = paymentFilter
+      ? debts.filter((debt: any) => debt.order?.payment_type === paymentFilter)
+      : debts;
 
     const eventsByDebtId = debtEvents.reduce((acc: Record<string, { created_at: string; worker_id: string | null }[]>, event: any) => {
       if (!acc[event.debt_id]) acc[event.debt_id] = [];
