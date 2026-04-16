@@ -95,6 +95,11 @@ const DailyReceipts: React.FC = () => {
         query = query.eq('assigned_worker_id', effectiveWorkerId);
       }
 
+      const paymentFilter = getPaymentTypeFilter();
+      if (paymentFilter) {
+        query = query.eq('payment_type', paymentFilter);
+      }
+
       const { data, error } = await query.limit(500);
       if (error) throw error;
       return data || [];
