@@ -57,6 +57,7 @@ import WorkerRewards from "./pages/WorkerRewards";
 import MyAchievements from "./pages/MyAchievements";
 import PromoSplits from "./pages/admin/PromoSplits";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 import Chat from "./pages/Chat";
 import Attendance from "./pages/admin/Attendance";
 import OrderTracking from "./pages/admin/OrderTracking";
@@ -469,6 +470,9 @@ const AppRoutes = () => {
           <Chat />
         </ProtectedRoute>
       } />
+
+      {/* Landing Page */}
+      <Route path="/landing" element={<Landing />} />
 
       {/* Share Target */}
       <Route path="/share" element={<ShareTarget />} />
