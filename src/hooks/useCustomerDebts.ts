@@ -64,7 +64,8 @@ export const useCustomerDebts = (filters?: {
         .select(`
           *,
           customer:customers(id, name, store_name, phone, wilaya, latitude, longitude, customer_type, sector_id, zone_id, internal_name),
-          worker:workers!customer_debts_worker_id_fkey(id, full_name, username)
+          worker:workers!customer_debts_worker_id_fkey(id, full_name, username),
+          order:orders!customer_debts_order_id_fkey(payment_type)
         `)
         .order('created_at', { ascending: false });
 
