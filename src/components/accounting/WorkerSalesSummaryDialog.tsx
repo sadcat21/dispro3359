@@ -718,7 +718,9 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                 ) : (
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-muted-foreground">
                     <Tag className="h-8 w-8 opacity-40" />
-                    <p className="text-sm">لا توجد عروض مطبقة في هذه الفترة</p>
+                    <p className="text-center text-sm">
+                      لا توجد عروض مطبقة{workerName ? ` للعامل ${workerName}` : ''} في هذه الفترة
+                    </p>
                   </div>
                 )}
               </div>
