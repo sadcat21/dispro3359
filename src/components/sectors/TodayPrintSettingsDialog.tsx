@@ -370,9 +370,9 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
               <p className="text-xs text-muted-foreground">طلبية للطباعة</p>
             </div>
 
-            <Button onClick={handlePrint} disabled={selectedOrders.length === 0} className="w-full h-10">
-              <Printer className="w-4 h-4 ms-2" />
-              طباعة
+            <Button onClick={handlePreview} disabled={selectedOrders.length === 0} className="w-full h-10">
+              <Eye className="w-4 h-4 ms-2" />
+              معاينة الطباعة
             </Button>
           </div>
         </DialogContent>
