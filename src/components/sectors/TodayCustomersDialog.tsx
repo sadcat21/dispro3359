@@ -338,6 +338,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [printColumnConfig, setPrintColumnConfig] = useState<PrintColumnConfig[]>([]);
   const [printWorkerName, setPrintWorkerName] = useState<string | null>(null);
   const [printDeliveryDate, setPrintDeliveryDate] = useState<string | null>(null);
+  const [printExtraRows, setPrintExtraRows] = useState<{ label: string; productQuantities: Record<string, number>; style?: 'highlight' | 'normal' }[]>([]);
 
   // Data queries
   const { data: sectors = [] } = useQuery({
@@ -3022,6 +3023,18 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           setPrintColumnConfig(columnConfig);
           setPrintWorkerName(effectiveWorkerName || null);
           setPrintDeliveryDate(deliveryDate || null);
+
+          // Build extra rows for cash van / loaded reserve products
+          const extras: { label: string; productQuantities: Record<string, number>; style?: 'highlight' | 'normal' }[] = [];
+          if (includeLoadedProducts && cashVanQuantities && Object.values(cashVanQuantities).some((q: any) => Number(q) > 0)) {
+            extras.push({
+              label: 'CASH VAN',
+              productQuantities: cashVanQuantities as Record<string, number>,
+              style: 'highlight',
+            });
+          }
+          setPrintExtraRows(extras);
+
           setIsPrintReady(true);
           setShowPrintOrdersDialog(false);
           setTimeout(() => {
@@ -3029,6 +3042,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             setIsPrintReady(false);
             setPrintWorkerName(null);
             setPrintDeliveryDate(null);
+            setPrintExtraRows([]);
           }, 500);
         }}
       />
@@ -3043,6 +3057,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           dateRange={printDeliveryDate || undefined}
           isVisible={isPrintReady}
           columnConfig={printColumnConfig}
+          extraRows={printExtraRows}
         />
       )}
     </>
