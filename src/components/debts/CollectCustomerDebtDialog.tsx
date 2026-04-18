@@ -768,93 +768,141 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
                             const canOpenOrder = (isDebt || isCancelledDebt) && !!(item.orderId || linkedDebt?.order_id);
 
+                            const itemKind: 'debt' | 'payment' | null =
+                              isDebt ? 'debt' : (item.kind === 'partial' || item.kind === 'full') ? 'payment' : null;
+                            const underlyingId = item.id.startsWith('debt-')
+                              ? item.id.slice(5)
+                              : item.id.startsWith('payment-')
+                                ? item.id.slice(8)
+                                : null;
+                            const canModify = isAdmin && itemKind && underlyingId && !isCancelledDebt;
+
                             return (
-                              <button
-                                key={item.id}
-                                type="button"
-                                disabled={!canOpenOrder}
-                                onClick={() => canOpenOrder && openDebtOrderDetails(item)}
-                                className={`w-full rounded-2xl border p-4 text-right transition ${
-                                  isVisit
-                                    ? 'border-slate-200 bg-white'
-                                    : isCancelledDebt
-                                      ? 'border-slate-300 bg-slate-100/60 opacity-60'
-                                    : isDebt
-                                      ? 'border-red-200 bg-red-50/40'
-                                      : 'border-emerald-200 bg-emerald-50/40'
-                                } ${canOpenOrder ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center justify-end gap-2">
-                                      <span className={`text-base font-black ${
-                                        isVisit ? 'text-slate-700' : isCancelledDebt ? 'text-slate-400 line-through' : isDebt ? 'text-destructive' : 'text-emerald-700'
-                                      }`}>
-                                        {isVisit
-                                          ? 'زيارة بدون تحصيل'
-                                          : isCancelledDebt
-                                            ? 'دين جديد'
-                                          : item.kind === 'full'
-                                            ? 'تحصيل كلي'
-                                            : item.kind === 'partial'
-                                              ? 'تحصيل جزئي'
-                                              : 'دين جديد'}
-                                      </span>
-                                      {isCancelledDebt && (
-                                        <Badge variant="destructive" className="rounded-full text-[10px]">
-                                          ملغاة - تم إلغاء الطلبية المرتبطة
+                              <div key={item.id} className="relative">
+                                <button
+                                  type="button"
+                                  disabled={!canOpenOrder}
+                                  onClick={() => canOpenOrder && openDebtOrderDetails(item)}
+                                  className={`w-full rounded-2xl border p-4 text-right transition ${
+                                    isVisit
+                                      ? 'border-slate-200 bg-white'
+                                      : isCancelledDebt
+                                        ? 'border-slate-300 bg-slate-100/60 opacity-60'
+                                      : isDebt
+                                        ? 'border-red-200 bg-red-50/40'
+                                        : 'border-emerald-200 bg-emerald-50/40'
+                                  } ${canOpenOrder ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex flex-wrap items-center justify-end gap-2">
+                                        <span className={`text-base font-black ${
+                                          isVisit ? 'text-slate-700' : isCancelledDebt ? 'text-slate-400 line-through' : isDebt ? 'text-destructive' : 'text-emerald-700'
+                                        }`}>
+                                          {isVisit
+                                            ? 'زيارة بدون تحصيل'
+                                            : isCancelledDebt
+                                              ? 'دين جديد'
+                                            : item.kind === 'full'
+                                              ? 'تحصيل كلي'
+                                              : item.kind === 'partial'
+                                                ? 'تحصيل جزئي'
+                                                : 'دين جديد'}
+                                        </span>
+                                        {isCancelledDebt && (
+                                          <Badge variant="destructive" className="rounded-full text-[10px]">
+                                            ملغاة - تم إلغاء الطلبية المرتبطة
+                                          </Badge>
+                                        )}
+                                        <Badge variant="outline" className="rounded-full">
+                                          {item.workerName}
                                         </Badge>
-                                      )}
-                                      <Badge variant="outline" className="rounded-full">
-                                        {item.workerName}
-                                      </Badge>
+                                      </div>
+
+                                      <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+                                        <div className="rounded-xl bg-white/80 px-3 py-2">
+                                          <div className="text-[11px] text-slate-500">القيمة</div>
+                                          <div className={`mt-1 text-sm font-black ${
+                                            isVisit ? 'text-slate-700' : isDebt ? 'text-destructive' : 'text-emerald-700'
+                                          }`} dir="ltr">
+                                            {formatMoney(item.amount)}
+                                          </div>
+                                        </div>
+                                        <div className="rounded-xl bg-white/80 px-3 py-2">
+                                          <div className="text-[11px] text-slate-500">الدين الجديد</div>
+                                          <div className="mt-1 text-sm font-black text-slate-900" dir="ltr">
+                                            {formatMoney(item.afterAmount)}
+                                          </div>
+                                        </div>
+                                        <div className="rounded-xl bg-white/80 px-3 py-2">
+                                          <div className="text-[11px] text-slate-500">الطريقة</div>
+                                          <div className="mt-1 text-sm font-black text-slate-900">
+                                            {paymentMethodLabel(item.paymentMethod)}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {item.note ? (
+                                        <div className="mt-3 text-xs text-slate-500">
+                                          {isCancelledDebt ? null : item.note}
+                                        </div>
+                                      ) : null}
+
+                                      {canOpenOrder ? (
+                                        <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
+                                          <Eye className="h-3.5 w-3.5" />
+                                          {isCancelledDebt ? 'اضغط لفتح تفاصيل الطلبية' : 'اضغط لفتح تفاصيل الطلبية'}
+                                        </div>
+                                      ) : null}
                                     </div>
 
-                                    <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-                                      <div className="rounded-xl bg-white/80 px-3 py-2">
-                                        <div className="text-[11px] text-slate-500">القيمة</div>
-                                        <div className={`mt-1 text-sm font-black ${
-                                          isVisit ? 'text-slate-700' : isDebt ? 'text-destructive' : 'text-emerald-700'
-                                        }`} dir="ltr">
-                                          {formatMoney(item.amount)}
-                                        </div>
+                                    <div className="shrink-0 text-left">
+                                      <div className="flex items-center gap-1 text-xs text-slate-500" dir="ltr">
+                                        {isVisit ? <MapPin className="h-3.5 w-3.5" /> : isDebt ? <ArrowDownCircle className="h-3.5 w-3.5" /> : <ArrowUpCircle className="h-3.5 w-3.5" />}
+                                        {item.displayDate}
                                       </div>
-                                      <div className="rounded-xl bg-white/80 px-3 py-2">
-                                        <div className="text-[11px] text-slate-500">الدين الجديد</div>
-                                        <div className="mt-1 text-sm font-black text-slate-900" dir="ltr">
-                                          {formatMoney(item.afterAmount)}
-                                        </div>
-                                      </div>
-                                      <div className="rounded-xl bg-white/80 px-3 py-2">
-                                        <div className="text-[11px] text-slate-500">الطريقة</div>
-                                        <div className="mt-1 text-sm font-black text-slate-900">
-                                          {paymentMethodLabel(item.paymentMethod)}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {item.note ? (
-                                      <div className="mt-3 text-xs text-slate-500">
-                                        {isCancelledDebt ? null : item.note}
-                                      </div>
-                                    ) : null}
-
-                                    {canOpenOrder ? (
-                                      <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
-                                        <Eye className="h-3.5 w-3.5" />
-                                        {isCancelledDebt ? 'اضغط لفتح تفاصيل الطلبية' : 'اضغط لفتح تفاصيل الطلبية'}
-                                      </div>
-                                    ) : null}
-                                  </div>
-
-                                  <div className="shrink-0 text-left">
-                                    <div className="flex items-center gap-1 text-xs text-slate-500" dir="ltr">
-                                      {isVisit ? <MapPin className="h-3.5 w-3.5" /> : isDebt ? <ArrowDownCircle className="h-3.5 w-3.5" /> : <ArrowUpCircle className="h-3.5 w-3.5" />}
-                                      {item.displayDate}
                                     </div>
                                   </div>
-                                </div>
-                              </button>
+                                </button>
+
+                                {canModify && (
+                                  <div className="absolute top-2 left-2 flex gap-1 z-10">
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-7 w-7 rounded-full bg-white/90 shadow-sm hover:bg-white"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditTarget({
+                                          kind: itemKind!,
+                                          id: underlyingId!,
+                                          currentAmount: item.amount,
+                                        });
+                                        setEditAmountInput(String(item.amount));
+                                      }}
+                                    >
+                                      <Pencil className="h-3.5 w-3.5 text-slate-600" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-7 w-7 rounded-full bg-white/90 shadow-sm hover:bg-destructive/10"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteTarget({
+                                          kind: itemKind!,
+                                          id: underlyingId!,
+                                          label: itemKind === 'debt' ? 'الدين' : 'التحصيل',
+                                        });
+                                      }}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
                             );
                           })}
                         </div>
