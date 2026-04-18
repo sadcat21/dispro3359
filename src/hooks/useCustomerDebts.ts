@@ -521,3 +521,163 @@ export const useUpdateCustomerDebtGroupSchedule = () => {
     },
   });
 };
+
+const invalidateAllDebtKeys = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ['customer-debts'] });
+  queryClient.invalidateQueries({ queryKey: ['customer-debt-summary'] });
+  queryClient.invalidateQueries({ queryKey: ['customer-debts-summary-all'] });
+  queryClient.invalidateQueries({ queryKey: ['debt-payments'] });
+  queryClient.invalidateQueries({ queryKey: ['debt-payments-group'] });
+  queryClient.invalidateQueries({ queryKey: ['due-debts'] });
+  queryClient.invalidateQueries({ queryKey: ['pending-collections'] });
+  queryClient.invalidateQueries({ queryKey: ['today-debt-collections-dialog'] });
+  queryClient.invalidateQueries({ queryKey: ['customer-journey-debts'] });
+  queryClient.invalidateQueries({ queryKey: ['customer-journey-collections'] });
+};
+
+const computeStatus = (totalAmount: number, paidAmount: number) => {
+  if (paidAmount >= totalAmount) return 'paid';
+  if (paidAmount > 0) return 'partially_paid';
+  return 'active';
+};
+
+// Edit a debt's total_amount and/or notes/due_date — recomputes status from new total vs current paid.
+export const useEditCustomerDebt = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      debtId: string;
+      total_amount?: number;
+      notes?: string | null;
+      due_date?: string | null;
+    }) => {
+      const { data: debt, error: fetchErr } = await supabase
+        .from('customer_debts')
+        .select('total_amount, paid_amount')
+        .eq('id', params.debtId)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const newTotal = params.total_amount !== undefined ? params.total_amount : Number(debt.total_amount);
+      const paid = Number(debt.paid_amount || 0);
+
+      if (newTotal < paid) {
+        throw new Error(`المبلغ الجديد (${newTotal}) أقل من المسدّد (${paid})`);
+      }
+
+      const updatePayload: Record<string, any> = {
+        total_amount: newTotal,
+        status: computeStatus(newTotal, paid),
+      };
+      if (params.notes !== undefined) updatePayload.notes = params.notes;
+      if (params.due_date !== undefined) updatePayload.due_date = params.due_date;
+
+      const { error: updErr } = await supabase
+        .from('customer_debts')
+        .update(updatePayload)
+        .eq('id', params.debtId);
+      if (updErr) throw updErr;
+    },
+    onSuccess: () => invalidateAllDebtKeys(queryClient),
+  });
+};
+
+// Edit a payment's amount — adjusts customer_debts.paid_amount by the delta.
+export const useEditDebtPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      paymentId: string;
+      newAmount: number;
+      newPaymentMethod?: string;
+      newNotes?: string | null;
+    }) => {
+      const { data: payment, error: fetchErr } = await supabase
+        .from('debt_payments')
+        .select('amount, debt_id')
+        .eq('id', params.paymentId)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const oldAmount = Number(payment.amount || 0);
+      const delta = params.newAmount - oldAmount;
+
+      const { data: debt, error: debtErr } = await supabase
+        .from('customer_debts')
+        .select('total_amount, paid_amount')
+        .eq('id', payment.debt_id)
+        .single();
+      if (debtErr) throw debtErr;
+
+      const newPaid = Math.max(0, Number(debt.paid_amount || 0) + delta);
+      const total = Number(debt.total_amount || 0);
+      if (newPaid > total) {
+        throw new Error(`المبلغ يتجاوز إجمالي الدين (${total})`);
+      }
+
+      // Update the payment first
+      const paymentUpdate: Record<string, any> = { amount: params.newAmount };
+      if (params.newPaymentMethod !== undefined) paymentUpdate.payment_method = params.newPaymentMethod;
+      if (params.newNotes !== undefined) paymentUpdate.notes = params.newNotes;
+
+      const { error: payUpdErr } = await supabase
+        .from('debt_payments')
+        .update(paymentUpdate)
+        .eq('id', params.paymentId);
+      if (payUpdErr) throw payUpdErr;
+
+      // Update the debt balance
+      const { error: debtUpdErr } = await supabase
+        .from('customer_debts')
+        .update({ paid_amount: newPaid, status: computeStatus(total, newPaid) })
+        .eq('id', payment.debt_id);
+      if (debtUpdErr) throw debtUpdErr;
+    },
+    onSuccess: () => invalidateAllDebtKeys(queryClient),
+  });
+};
+
+// Cancel/delete a payment — reverses the paid amount on customer_debts.
+export const useDeleteDebtPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (paymentId: string) => {
+      const { data: payment, error: fetchErr } = await supabase
+        .from('debt_payments')
+        .select('amount, debt_id')
+        .eq('id', paymentId)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const amount = Number(payment.amount || 0);
+
+      const { error: delErr } = await supabase
+        .from('debt_payments')
+        .delete()
+        .eq('id', paymentId);
+      if (delErr) throw delErr;
+
+      if (amount > 0) {
+        const { data: debt, error: debtErr } = await supabase
+          .from('customer_debts')
+          .select('total_amount, paid_amount')
+          .eq('id', payment.debt_id)
+          .single();
+        if (debtErr) throw debtErr;
+
+        const newPaid = Math.max(0, Number(debt.paid_amount || 0) - amount);
+        const total = Number(debt.total_amount || 0);
+
+        const { error: debtUpdErr } = await supabase
+          .from('customer_debts')
+          .update({ paid_amount: newPaid, status: computeStatus(total, newPaid) })
+          .eq('id', payment.debt_id);
+        if (debtUpdErr) throw debtUpdErr;
+      }
+    },
+    onSuccess: () => invalidateAllDebtKeys(queryClient),
+  });
+};
