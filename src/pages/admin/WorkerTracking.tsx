@@ -30,7 +30,10 @@ const WorkerTracking: React.FC = () => {
   const selectedWorkerStops: WorkerStopRecord[] = useMemo(() => {
     if (!highlightWorkerId || !workers) return [];
     const w = workers.find(w => w.worker_id === highlightWorkerId);
-    return (w?.stops || []) as WorkerStopRecord[];
+    const raw = w?.stops;
+    if (Array.isArray(raw)) return raw as WorkerStopRecord[];
+    if (raw && typeof raw === 'object') return Object.values(raw) as WorkerStopRecord[];
+    return [];
   }, [highlightWorkerId, workers]);
 
   const selectWorker = (workerId: string) => {
@@ -156,7 +159,7 @@ const WorkerTracking: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-1.5">
-              {selectedWorkerStops
+              {[...selectedWorkerStops]
                 .sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime())
                 .map((stop, idx) => (
                   <div
