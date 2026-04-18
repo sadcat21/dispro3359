@@ -472,6 +472,14 @@
     break-inside: avoid;
   }
 
+@media screen {
+  .print-container.print-page {
+    background: hsl(var(--background));
+    box-shadow: 0 0 0 1px hsl(var(--border)), 0 18px 45px hsl(var(--foreground) / 0.08);
+    margin: 0 auto 24px;
+  }
+}
+
   .print-page + .print-page {
     page-break-before: always;
     break-before: page;

@@ -758,6 +758,7 @@ export const translations: Translations = {
   'print.unit.kg': { ar: 'كغ', fr: 'kg', en: 'kg' },
   'print.unit.pc': { ar: 'ق', fr: 'pcs', en: 'pcs' },
   'print.header.total': { ar: 'المجموع', fr: 'Total', en: 'Total' },
+  'print.header.grand_total': { ar: 'المجموع الكلي', fr: 'Total général', en: 'Grand Total' },
   'print.header.total_amount': { ar: 'المبلغ', fr: 'Montant', en: 'Amount' },
   'print.header.stamp': { ar: 'ط', fr: 'T', en: 'S' },
   'print.header.debt': { ar: 'دين', fr: 'Dette', en: 'Debt' },
