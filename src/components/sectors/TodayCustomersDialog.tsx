@@ -332,6 +332,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [showOrdersSummary, setShowOrdersSummary] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showPrintOrdersDialog, setShowPrintOrdersDialog] = useState(false);
+  const [showPrintPreviewDialog, setShowPrintPreviewDialog] = useState(false);
   const [isPrintReady, setIsPrintReady] = useState(false);
   const [filteredOrdersForPrint, setFilteredOrdersForPrint] = useState<OrderWithDetails[]>([]);
   const [allOrderItems, setAllOrderItems] = useState<Map<string, any[]>>(new Map());
@@ -2983,7 +2984,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         workerStock={workerStock as any}
         sectors={sectors}
         zones={allZones}
-        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate) => {
+        onPreview={async (selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate) => {
           if (!selectedOrders || selectedOrders.length === 0) {
             toast.info('لا توجد طلبيات للطباعة');
             return;
@@ -3035,17 +3036,55 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           }
           setPrintExtraRows(extras);
 
-          setIsPrintReady(true);
           setShowPrintOrdersDialog(false);
-          setTimeout(() => {
-            window.print();
-            setIsPrintReady(false);
-            setPrintWorkerName(null);
-            setPrintDeliveryDate(null);
-            setPrintExtraRows([]);
-          }, 500);
+          setShowPrintPreviewDialog(true);
         }}
       />
+
+      <Dialog open={showPrintPreviewDialog} onOpenChange={setShowPrintPreviewDialog}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] p-0 overflow-hidden" dir="rtl">
+          <DialogHeader className="p-4 pb-2 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              معاينة ورقة التوصيل
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-auto max-h-[calc(90vh-8rem)] p-2 bg-muted/30">
+            <div className="transform scale-[0.6] origin-top-left" style={{ width: '166%' }}>
+              <OrdersPrintView
+                orders={filteredOrdersForPrint}
+                orderItems={allOrderItems}
+                products={allProducts as any}
+                title={printWorkerName ? `ورقة التوصيل - ${printWorkerName}` : 'ورقة التوصيل'}
+                dateRange={printDeliveryDate || undefined}
+                isVisible={true}
+                columnConfig={printColumnConfig}
+                extraRows={printExtraRows}
+                usePortal={false}
+              />
+            </div>
+          </div>
+          <div className="p-3 border-t flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowPrintPreviewDialog(false)}>
+              إغلاق
+            </Button>
+            <Button onClick={() => {
+              setShowPrintPreviewDialog(false);
+              setIsPrintReady(true);
+              setTimeout(() => {
+                window.print();
+                setIsPrintReady(false);
+                setPrintWorkerName(null);
+                setPrintDeliveryDate(null);
+                setPrintExtraRows([]);
+              }, 500);
+            }}>
+              <Printer className="w-4 h-4 ms-2" />
+              طباعة
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Print View (hidden, only shown when printing) */}
       {isPrintReady && (
