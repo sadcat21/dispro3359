@@ -338,6 +338,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [printColumnConfig, setPrintColumnConfig] = useState<PrintColumnConfig[]>([]);
   const [printWorkerName, setPrintWorkerName] = useState<string | null>(null);
   const [printDeliveryDate, setPrintDeliveryDate] = useState<string | null>(null);
+  const [printExtraRows, setPrintExtraRows] = useState<{ label: string; productQuantities: Record<string, number>; style?: 'highlight' | 'normal' }[]>([]);
 
   // Data queries
   const { data: sectors = [] } = useQuery({
