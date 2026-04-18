@@ -249,10 +249,15 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   debts,
   initialTab = 'collect',
 }) => {
-  const { workerId, user } = useAuth();
+  const { workerId, user, role } = useAuth();
+  const isAdmin = isAdminRole(role);
   const collectMutation = useCollectCustomerDebtGroup();
   const visitMutation = useRecordCustomerDebtGroupVisit();
   const scheduleMutation = useUpdateCustomerDebtGroupSchedule();
+  const editDebtMutation = useEditCustomerDebt();
+  const deleteDebtMutation = useDeleteCustomerDebt();
+  const editPaymentMutation = useEditDebtPayment();
+  const deletePaymentMutation = useDeleteDebtPayment();
   const [activeTab, setActiveTab] = useState<DialogTab>(initialTab);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -267,6 +272,19 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   const [showVisitsInTimeline, setShowVisitsInTimeline] = useState(false);
   const [showHistoryReceipt, setShowHistoryReceipt] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  // Edit/cancel state for timeline items
+  const [editTarget, setEditTarget] = useState<{
+    kind: 'debt' | 'payment';
+    id: string;
+    currentAmount: number;
+  } | null>(null);
+  const [editAmountInput, setEditAmountInput] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{
+    kind: 'debt' | 'payment';
+    id: string;
+    label: string;
+  } | null>(null);
 
   const debtIds = useMemo(() => debts.map((debt) => debt.id), [debts]);
   const debtsById = useMemo(() => new Map(debts.map((debt) => [debt.id, debt])), [debts]);
