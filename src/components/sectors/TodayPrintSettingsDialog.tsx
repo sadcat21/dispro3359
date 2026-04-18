@@ -232,6 +232,48 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
           </DialogHeader>
 
           <div className="space-y-3 py-2">
+            {/* Delivery date filter */}
+            <div className="bg-muted/40 rounded-lg p-2 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                <span>تاريخ التوصيل</span>
+                {deliveryDate && (
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ms-auto">
+                    {deliveryDate}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {dateButtons.map(b => (
+                  <Button
+                    key={b.value}
+                    type="button"
+                    size="sm"
+                    variant={deliveryDate === b.value ? 'default' : 'outline'}
+                    className="h-8 px-2.5 text-xs"
+                    onClick={() => setDeliveryDate(deliveryDate === b.value ? '' : b.value)}
+                  >
+                    {b.label}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={!deliveryDate ? 'default' : 'outline'}
+                  className="h-8 px-2.5 text-xs"
+                  onClick={() => setDeliveryDate('')}
+                >
+                  الكل
+                </Button>
+                <Input
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  className="h-8 text-xs flex-1 min-w-[130px]"
+                />
+              </div>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
