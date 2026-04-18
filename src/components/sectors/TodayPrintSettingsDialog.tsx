@@ -556,31 +556,48 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
                   {list.map(item => {
                     const currentQty = cashVanQuantities[item.id] || 0;
                     const hasReserve = currentQty > 0;
+                    const hasOrders = item.needed > 0;
                     return (
                       <div
                         key={item.id}
-                        className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border
-                          ${hasReserve ? 'border-orange-400 ring-1 ring-orange-300/50' : 'border-border/50'}
+                        className={`flex flex-col rounded-xl overflow-hidden text-center relative shadow-sm border-2 transition-all
+                          ${hasOrders
+                            ? 'bg-primary/5 border-primary ring-2 ring-primary/30 shadow-md'
+                            : hasReserve
+                              ? 'bg-card border-orange-400 ring-1 ring-orange-300/50'
+                              : 'bg-card/60 border-border/40 opacity-80'}
                         `}
                       >
+                        {hasOrders && (
+                          <div className="absolute top-1 left-1 z-10 flex items-center gap-0.5 rounded-full bg-primary text-primary-foreground px-1.5 py-0.5 text-[10px] font-extrabold shadow">
+                            {item.needed}
+                          </div>
+                        )}
                         <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
-                          ${hasReserve ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-foreground'}
+                          ${hasOrders ? 'bg-primary/10 text-primary' : hasReserve ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-muted-foreground'}
                         `}>
                           {item.name}
                         </div>
 
                         {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full aspect-square object-cover" loading="lazy" />
+                          <img src={item.image} alt={item.name} className={`w-full aspect-square object-cover ${!hasOrders && !hasReserve ? 'opacity-70' : ''}`} loading="lazy" />
                         ) : (
                           <div className="w-full aspect-square flex items-center justify-center bg-muted/20">
                             <Package className="w-6 h-6 text-muted-foreground/30" />
                           </div>
                         )}
 
-                        <div className="flex flex-col items-center gap-0.5 p-1 min-h-[40px]">
-                          <div className="flex items-center justify-center gap-1 text-[8px] leading-tight">
-                            <span className="text-muted-foreground">محمل: {item.stock}</span>
-                            <span className="text-primary font-semibold">طلبيات: {item.needed}</span>
+                        <div className="flex flex-col items-center gap-0.5 p-1 min-h-[44px]">
+                          {hasOrders ? (
+                            <div className="flex items-center justify-center gap-1 w-full rounded-md bg-primary/15 text-primary py-0.5 text-[10px] font-bold">
+                              <span>طلبيات</span>
+                              <span className="text-[12px]">{item.needed}</span>
+                            </div>
+                          ) : (
+                            <span className="text-[8px] text-muted-foreground">لا طلبيات</span>
+                          )}
+                          <div className="flex items-center justify-center text-[8px] text-muted-foreground leading-none">
+                            محمل: {item.stock}
                           </div>
                           <Input
                             type="number"
