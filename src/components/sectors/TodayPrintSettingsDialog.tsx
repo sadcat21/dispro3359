@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart } from 'lucide-react';
+import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart, Calendar } from 'lucide-react';
 import { OrderWithDetails, Product } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
 import PrintColumnsConfigDialog, { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
@@ -37,8 +37,19 @@ interface TodayPrintSettingsDialogProps {
   workerStock: WorkerStockItem[];
   sectors?: any[];
   zones?: any[];
-  onPrint: (selectedOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[], includeLoadedProducts: boolean, cashVanQuantities?: Record<string, number>) => void;
+  onPrint: (selectedOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[], includeLoadedProducts: boolean, cashVanQuantities?: Record<string, number>, deliveryDate?: string | null) => void;
 }
+
+// Helpers for quick date buttons
+const toDateStr = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const todayStr = () => toDateStr(new Date());
+const tomorrowStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); return toDateStr(d); };
+const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return toDateStr(d); };
 
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPrint,
