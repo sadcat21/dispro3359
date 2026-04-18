@@ -8,7 +8,9 @@ import {
   Eye,
   Loader2,
   MapPin,
+  Pencil,
   Printer,
+  Trash2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,11 +18,16 @@ import { CustomerDebtWithDetails } from '@/types/accounting';
 import { OrderWithDetails } from '@/types/database';
 import {
   useCollectCustomerDebtGroup,
+  useDeleteCustomerDebt,
+  useDeleteDebtPayment,
+  useEditCustomerDebt,
+  useEditDebtPayment,
   useRecordCustomerDebtGroupVisit,
   useUpdateCustomerDebtGroupSchedule,
 } from '@/hooks/useCustomerDebts';
 import { useDebtPaymentsGroup } from '@/hooks/useDebtPayments';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +39,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import QuickDayPicker from '@/components/debts/QuickDayPicker';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import { isAdminRole } from '@/lib/utils';
 import { toast } from 'sonner';
 
 type DialogTab = 'collect' | 'visit' | 'history';
@@ -241,10 +249,15 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   debts,
   initialTab = 'collect',
 }) => {
-  const { workerId, user } = useAuth();
+  const { workerId, user, role } = useAuth();
+  const isAdmin = isAdminRole(role);
   const collectMutation = useCollectCustomerDebtGroup();
   const visitMutation = useRecordCustomerDebtGroupVisit();
   const scheduleMutation = useUpdateCustomerDebtGroupSchedule();
+  const editDebtMutation = useEditCustomerDebt();
+  const deleteDebtMutation = useDeleteCustomerDebt();
+  const editPaymentMutation = useEditDebtPayment();
+  const deletePaymentMutation = useDeleteDebtPayment();
   const [activeTab, setActiveTab] = useState<DialogTab>(initialTab);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -259,6 +272,19 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   const [showVisitsInTimeline, setShowVisitsInTimeline] = useState(false);
   const [showHistoryReceipt, setShowHistoryReceipt] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  // Edit/cancel state for timeline items
+  const [editTarget, setEditTarget] = useState<{
+    kind: 'debt' | 'payment';
+    id: string;
+    currentAmount: number;
+  } | null>(null);
+  const [editAmountInput, setEditAmountInput] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{
+    kind: 'debt' | 'payment';
+    id: string;
+    label: string;
+  } | null>(null);
 
   const debtIds = useMemo(() => debts.map((debt) => debt.id), [debts]);
   const debtsById = useMemo(() => new Map(debts.map((debt) => [debt.id, debt])), [debts]);
@@ -742,93 +768,141 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
                             const canOpenOrder = (isDebt || isCancelledDebt) && !!(item.orderId || linkedDebt?.order_id);
 
+                            const itemKind: 'debt' | 'payment' | null =
+                              isDebt ? 'debt' : (item.kind === 'partial' || item.kind === 'full') ? 'payment' : null;
+                            const underlyingId = item.id.startsWith('debt-')
+                              ? item.id.slice(5)
+                              : item.id.startsWith('payment-')
+                                ? item.id.slice(8)
+                                : null;
+                            const canModify = isAdmin && itemKind && underlyingId && !isCancelledDebt;
+
                             return (
-                              <button
-                                key={item.id}
-                                type="button"
-                                disabled={!canOpenOrder}
-                                onClick={() => canOpenOrder && openDebtOrderDetails(item)}
-                                className={`w-full rounded-2xl border p-4 text-right transition ${
-                                  isVisit
-                                    ? 'border-slate-200 bg-white'
-                                    : isCancelledDebt
-                                      ? 'border-slate-300 bg-slate-100/60 opacity-60'
-                                    : isDebt
-                                      ? 'border-red-200 bg-red-50/40'
-                                      : 'border-emerald-200 bg-emerald-50/40'
-                                } ${canOpenOrder ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center justify-end gap-2">
-                                      <span className={`text-base font-black ${
-                                        isVisit ? 'text-slate-700' : isCancelledDebt ? 'text-slate-400 line-through' : isDebt ? 'text-destructive' : 'text-emerald-700'
-                                      }`}>
-                                        {isVisit
-                                          ? 'زيارة بدون تحصيل'
-                                          : isCancelledDebt
-                                            ? 'دين جديد'
-                                          : item.kind === 'full'
-                                            ? 'تحصيل كلي'
-                                            : item.kind === 'partial'
-                                              ? 'تحصيل جزئي'
-                                              : 'دين جديد'}
-                                      </span>
-                                      {isCancelledDebt && (
-                                        <Badge variant="destructive" className="rounded-full text-[10px]">
-                                          ملغاة - تم إلغاء الطلبية المرتبطة
+                              <div key={item.id} className="relative">
+                                <button
+                                  type="button"
+                                  disabled={!canOpenOrder}
+                                  onClick={() => canOpenOrder && openDebtOrderDetails(item)}
+                                  className={`w-full rounded-2xl border p-4 text-right transition ${
+                                    isVisit
+                                      ? 'border-slate-200 bg-white'
+                                      : isCancelledDebt
+                                        ? 'border-slate-300 bg-slate-100/60 opacity-60'
+                                      : isDebt
+                                        ? 'border-red-200 bg-red-50/40'
+                                        : 'border-emerald-200 bg-emerald-50/40'
+                                  } ${canOpenOrder ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex flex-wrap items-center justify-end gap-2">
+                                        <span className={`text-base font-black ${
+                                          isVisit ? 'text-slate-700' : isCancelledDebt ? 'text-slate-400 line-through' : isDebt ? 'text-destructive' : 'text-emerald-700'
+                                        }`}>
+                                          {isVisit
+                                            ? 'زيارة بدون تحصيل'
+                                            : isCancelledDebt
+                                              ? 'دين جديد'
+                                            : item.kind === 'full'
+                                              ? 'تحصيل كلي'
+                                              : item.kind === 'partial'
+                                                ? 'تحصيل جزئي'
+                                                : 'دين جديد'}
+                                        </span>
+                                        {isCancelledDebt && (
+                                          <Badge variant="destructive" className="rounded-full text-[10px]">
+                                            ملغاة - تم إلغاء الطلبية المرتبطة
+                                          </Badge>
+                                        )}
+                                        <Badge variant="outline" className="rounded-full">
+                                          {item.workerName}
                                         </Badge>
-                                      )}
-                                      <Badge variant="outline" className="rounded-full">
-                                        {item.workerName}
-                                      </Badge>
+                                      </div>
+
+                                      <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+                                        <div className="rounded-xl bg-white/80 px-3 py-2">
+                                          <div className="text-[11px] text-slate-500">القيمة</div>
+                                          <div className={`mt-1 text-sm font-black ${
+                                            isVisit ? 'text-slate-700' : isDebt ? 'text-destructive' : 'text-emerald-700'
+                                          }`} dir="ltr">
+                                            {formatMoney(item.amount)}
+                                          </div>
+                                        </div>
+                                        <div className="rounded-xl bg-white/80 px-3 py-2">
+                                          <div className="text-[11px] text-slate-500">الدين الجديد</div>
+                                          <div className="mt-1 text-sm font-black text-slate-900" dir="ltr">
+                                            {formatMoney(item.afterAmount)}
+                                          </div>
+                                        </div>
+                                        <div className="rounded-xl bg-white/80 px-3 py-2">
+                                          <div className="text-[11px] text-slate-500">الطريقة</div>
+                                          <div className="mt-1 text-sm font-black text-slate-900">
+                                            {paymentMethodLabel(item.paymentMethod)}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {item.note ? (
+                                        <div className="mt-3 text-xs text-slate-500">
+                                          {isCancelledDebt ? null : item.note}
+                                        </div>
+                                      ) : null}
+
+                                      {canOpenOrder ? (
+                                        <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
+                                          <Eye className="h-3.5 w-3.5" />
+                                          {isCancelledDebt ? 'اضغط لفتح تفاصيل الطلبية' : 'اضغط لفتح تفاصيل الطلبية'}
+                                        </div>
+                                      ) : null}
                                     </div>
 
-                                    <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-                                      <div className="rounded-xl bg-white/80 px-3 py-2">
-                                        <div className="text-[11px] text-slate-500">القيمة</div>
-                                        <div className={`mt-1 text-sm font-black ${
-                                          isVisit ? 'text-slate-700' : isDebt ? 'text-destructive' : 'text-emerald-700'
-                                        }`} dir="ltr">
-                                          {formatMoney(item.amount)}
-                                        </div>
+                                    <div className="shrink-0 text-left">
+                                      <div className="flex items-center gap-1 text-xs text-slate-500" dir="ltr">
+                                        {isVisit ? <MapPin className="h-3.5 w-3.5" /> : isDebt ? <ArrowDownCircle className="h-3.5 w-3.5" /> : <ArrowUpCircle className="h-3.5 w-3.5" />}
+                                        {item.displayDate}
                                       </div>
-                                      <div className="rounded-xl bg-white/80 px-3 py-2">
-                                        <div className="text-[11px] text-slate-500">الدين الجديد</div>
-                                        <div className="mt-1 text-sm font-black text-slate-900" dir="ltr">
-                                          {formatMoney(item.afterAmount)}
-                                        </div>
-                                      </div>
-                                      <div className="rounded-xl bg-white/80 px-3 py-2">
-                                        <div className="text-[11px] text-slate-500">الطريقة</div>
-                                        <div className="mt-1 text-sm font-black text-slate-900">
-                                          {paymentMethodLabel(item.paymentMethod)}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {item.note ? (
-                                      <div className="mt-3 text-xs text-slate-500">
-                                        {isCancelledDebt ? null : item.note}
-                                      </div>
-                                    ) : null}
-
-                                    {canOpenOrder ? (
-                                      <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
-                                        <Eye className="h-3.5 w-3.5" />
-                                        {isCancelledDebt ? 'اضغط لفتح تفاصيل الطلبية' : 'اضغط لفتح تفاصيل الطلبية'}
-                                      </div>
-                                    ) : null}
-                                  </div>
-
-                                  <div className="shrink-0 text-left">
-                                    <div className="flex items-center gap-1 text-xs text-slate-500" dir="ltr">
-                                      {isVisit ? <MapPin className="h-3.5 w-3.5" /> : isDebt ? <ArrowDownCircle className="h-3.5 w-3.5" /> : <ArrowUpCircle className="h-3.5 w-3.5" />}
-                                      {item.displayDate}
                                     </div>
                                   </div>
-                                </div>
-                              </button>
+                                </button>
+
+                                {canModify && (
+                                  <div className="absolute top-2 left-2 flex gap-1 z-10">
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-7 w-7 rounded-full bg-white/90 shadow-sm hover:bg-white"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditTarget({
+                                          kind: itemKind!,
+                                          id: underlyingId!,
+                                          currentAmount: item.amount,
+                                        });
+                                        setEditAmountInput(String(item.amount));
+                                      }}
+                                    >
+                                      <Pencil className="h-3.5 w-3.5 text-slate-600" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-7 w-7 rounded-full bg-white/90 shadow-sm hover:bg-destructive/10"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteTarget({
+                                          kind: itemKind!,
+                                          id: underlyingId!,
+                                          label: itemKind === 'debt' ? 'الدين' : 'التحصيل',
+                                        });
+                                      }}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
                             );
                           })}
                         </div>
@@ -855,7 +929,98 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         }}
         order={orderLoading ? null : selectedOrder || null}
       />
+
+      {/* Edit amount dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {editTarget?.kind === 'debt' ? 'تعديل مبلغ الدين' : 'تعديل مبلغ التحصيل'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label>المبلغ الجديد</Label>
+            <Input
+              type="number"
+              min="0"
+              value={editAmountInput}
+              onChange={(e) => setEditAmountInput(e.target.value)}
+            />
+            <p className="text-xs text-slate-500">
+              سيتم تحديث رصيد دين العميل تلقائياً.
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditTarget(null)}>إلغاء</Button>
+            <Button
+              disabled={editDebtMutation.isPending || editPaymentMutation.isPending}
+              onClick={async () => {
+                if (!editTarget) return;
+                const newAmount = Number(editAmountInput || 0);
+                if (newAmount < 0 || !Number.isFinite(newAmount)) {
+                  toast.error('أدخل مبلغاً صحيحاً');
+                  return;
+                }
+                try {
+                  if (editTarget.kind === 'debt') {
+                    await editDebtMutation.mutateAsync({
+                      debtId: editTarget.id,
+                      total_amount: newAmount,
+                    });
+                  } else {
+                    await editPaymentMutation.mutateAsync({
+                      paymentId: editTarget.id,
+                      newAmount,
+                    });
+                  }
+                  toast.success('تم التعديل وتحديث الرصيد');
+                  setEditTarget(null);
+                } catch (err: any) {
+                  toast.error(err?.message || 'تعذر التعديل');
+                }
+              }}
+            >
+              {(editDebtMutation.isPending || editPaymentMutation.isPending) ? 'جارٍ الحفظ...' : 'حفظ'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>إلغاء {deleteTarget?.label}</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل تريد حقاً إلغاء هذا السجل؟ سيتم تحديث رصيد دين العميل تلقائياً.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>تراجع</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deleteTarget) return;
+                try {
+                  if (deleteTarget.kind === 'debt') {
+                    await deleteDebtMutation.mutateAsync(deleteTarget.id);
+                  } else {
+                    await deletePaymentMutation.mutateAsync(deleteTarget.id);
+                  }
+                  toast.success('تم الإلغاء وتحديث الرصيد');
+                  setDeleteTarget(null);
+                } catch (err: any) {
+                  toast.error(err?.message || 'تعذر الإلغاء');
+                }
+              }}
+            >
+              تأكيد الإلغاء
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+
   );
 };
 
