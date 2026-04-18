@@ -337,6 +337,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [allOrderItems, setAllOrderItems] = useState<Map<string, any[]>>(new Map());
   const [printColumnConfig, setPrintColumnConfig] = useState<PrintColumnConfig[]>([]);
   const [printWorkerName, setPrintWorkerName] = useState<string | null>(null);
+  const [printDeliveryDate, setPrintDeliveryDate] = useState<string | null>(null);
 
   // Data queries
   const { data: sectors = [] } = useQuery({
@@ -2981,7 +2982,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         workerStock={workerStock as any}
         sectors={sectors}
         zones={allZones}
-        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities) => {
+        onPrint={async (selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate) => {
           if (!selectedOrders || selectedOrders.length === 0) {
             toast.info('لا توجد طلبيات للطباعة');
             return;
@@ -3020,12 +3021,14 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           setFilteredOrdersForPrint(enrichedOrders);
           setPrintColumnConfig(columnConfig);
           setPrintWorkerName(effectiveWorkerName || null);
+          setPrintDeliveryDate(deliveryDate || null);
           setIsPrintReady(true);
           setShowPrintOrdersDialog(false);
           setTimeout(() => {
             window.print();
             setIsPrintReady(false);
             setPrintWorkerName(null);
+            setPrintDeliveryDate(null);
           }, 500);
         }}
       />
@@ -3036,7 +3039,8 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           orders={filteredOrdersForPrint}
           orderItems={allOrderItems}
           products={allProducts as any}
-          title={printWorkerName ? `طلبيات - ${printWorkerName}` : 'ورقة التوصيل'}
+          title={printWorkerName ? `ورقة التوصيل - ${printWorkerName}` : 'ورقة التوصيل'}
+          dateRange={printDeliveryDate || undefined}
           isVisible={isPrintReady}
           columnConfig={printColumnConfig}
         />

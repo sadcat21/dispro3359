@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart } from 'lucide-react';
+import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart, Calendar } from 'lucide-react';
 import { OrderWithDetails, Product } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
 import PrintColumnsConfigDialog, { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
@@ -37,8 +37,19 @@ interface TodayPrintSettingsDialogProps {
   workerStock: WorkerStockItem[];
   sectors?: any[];
   zones?: any[];
-  onPrint: (selectedOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[], includeLoadedProducts: boolean, cashVanQuantities?: Record<string, number>) => void;
+  onPrint: (selectedOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[], includeLoadedProducts: boolean, cashVanQuantities?: Record<string, number>, deliveryDate?: string | null) => void;
 }
+
+// Helpers for quick date buttons
+const toDateStr = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const todayStr = () => toDateStr(new Date());
+const tomorrowStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); return toDateStr(d); };
+const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return toDateStr(d); };
 
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPrint,
@@ -58,12 +69,25 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   const [includeLoadedProducts, setIncludeLoadedProducts] = useState(false);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
   const [cashVanQuantities, setCashVanQuantities] = useState<Record<string, number>>({});
+  const [deliveryDate, setDeliveryDate] = useState<string>(''); // '' = all dates, otherwise YYYY-MM-DD
 
   useEffect(() => { setColumnConfig(dbColumns); }, [dbColumns]);
 
+  // Apply delivery_date filter (when user selects a specific date)
+  const dateFilteredOrders = useMemo(() => {
+    if (!deliveryDate) return orders;
+    return orders.filter(o => {
+      const dd = (o as any).delivery_date as string | null | undefined;
+      if (dd) return dd.startsWith(deliveryDate);
+      // Fallback: if no delivery_date, match by created_at date
+      const created = (o as any).created_at as string | undefined;
+      return created ? created.startsWith(deliveryDate) : false;
+    });
+  }, [orders, deliveryDate]);
+
   const customerList = useMemo(() => {
     const map = new Map<string, { id: string; name: string; storeName: string; orderCount: number }>();
-    orders.forEach(o => {
+    dateFilteredOrders.forEach(o => {
       if (!o.customer_id) return;
       const existing = map.get(o.customer_id);
       if (existing) {
@@ -78,7 +102,7 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
       }
     });
     return Array.from(map.values());
-  }, [orders]);
+  }, [dateFilteredOrders]);
 
   useEffect(() => {
     if (open) {
@@ -101,8 +125,8 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   };
 
   const selectedOrders = useMemo(() => {
-    return orders.filter(o => o.customer_id && selectedCustomerIds.has(o.customer_id));
-  }, [orders, selectedCustomerIds]);
+    return dateFilteredOrders.filter(o => o.customer_id && selectedCustomerIds.has(o.customer_id));
+  }, [dateFilteredOrders, selectedCustomerIds]);
 
   const shipmentSummary = useMemo(() => {
     const productNeeds: Record<string, { name: string; needed: number; image?: string; details: ShipmentProductCustomerDetail[] }> = {};
@@ -183,9 +207,15 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   };
 
   const handlePrint = () => {
-    onPrint(selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities);
+    onPrint(selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate || null);
     onOpenChange(false);
   };
+
+  const dateButtons: { label: string; value: string }[] = [
+    { label: 'أمس', value: yesterdayStr() },
+    { label: 'اليوم', value: todayStr() },
+    { label: 'غداً', value: tomorrowStr() },
+  ];
 
   const cashVanTotal = Object.values(cashVanQuantities).reduce((s, q) => s + q, 0);
   const selectedShipmentProduct = shipmentSummary.find(item => item.pid === selectedShipmentProductId) || null;
@@ -202,6 +232,48 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
           </DialogHeader>
 
           <div className="space-y-3 py-2">
+            {/* Delivery date filter */}
+            <div className="bg-muted/40 rounded-lg p-2 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                <span>تاريخ التوصيل</span>
+                {deliveryDate && (
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ms-auto">
+                    {deliveryDate}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {dateButtons.map(b => (
+                  <Button
+                    key={b.value}
+                    type="button"
+                    size="sm"
+                    variant={deliveryDate === b.value ? 'default' : 'outline'}
+                    className="h-8 px-2.5 text-xs"
+                    onClick={() => setDeliveryDate(deliveryDate === b.value ? '' : b.value)}
+                  >
+                    {b.label}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={!deliveryDate ? 'default' : 'outline'}
+                  className="h-8 px-2.5 text-xs"
+                  onClick={() => setDeliveryDate('')}
+                >
+                  الكل
+                </Button>
+                <Input
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  className="h-8 text-xs flex-1 min-w-[130px]"
+                />
+              </div>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
