@@ -402,15 +402,51 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
     return Array.from(map.values());
   }, [currentData]);
 
-  // Aggregated product quantities for cash van reference
+  // Fetch all active products for the cash van picker (so user can add products not in orders)
+  const { data: allProducts } = useQuery({
+    queryKey: ['cashvan-all-products', activeBranch?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, image_url')
+        .eq('is_active', true)
+        .order('name');
+      return data || [];
+    },
+    enabled: open && !!workerId,
+  });
+
+  // Aggregated product quantities for cash van reference (orders + all available products)
   const aggregatedProducts = useMemo(() => {
-    return currentData.map(p => ({
-      productId: p.productId,
-      name: p.name,
-      imageUrl: p.imageUrl,
-      totalQuantity: p.quantity,
-    })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [currentData]);
+    const map = new Map<string, { productId: string; name: string; imageUrl: string | null; totalQuantity: number }>();
+    // Products from orders (with quantities)
+    for (const p of currentData) {
+      map.set(p.productId, {
+        productId: p.productId,
+        name: p.name,
+        imageUrl: p.imageUrl,
+        totalQuantity: p.quantity,
+      });
+    }
+    // Add other available products (not in orders) with 0 quantity
+    for (const p of (allProducts || [])) {
+      if (!map.has(p.id)) {
+        map.set(p.id, {
+          productId: p.id,
+          name: p.name,
+          imageUrl: (p as any).image_url || null,
+          totalQuantity: 0,
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      // Products in orders first, then the rest
+      if ((a.totalQuantity > 0) !== (b.totalQuantity > 0)) {
+        return a.totalQuantity > 0 ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name, 'ar');
+    });
+  }, [currentData, allProducts]);
 
   // Open print settings dialog instead of printing directly
   const handlePrintClick = () => {

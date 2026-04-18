@@ -492,56 +492,113 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
             className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-1 touch-pan-y"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            <div className="grid grid-cols-4 gap-1.5 pb-3">
-              {workerStock.filter(ws => ws.quantity > 0).map(ws => {
-                const product = ws.product || products.find(p => p.id === ws.product_id);
-                const productName = product?.name || ws.product_id;
-                const currentQty = cashVanQuantities[ws.product_id] || 0;
-                const hasReserve = currentQty > 0;
-                return (
-                  <div
-                    key={ws.product_id}
-                    className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border
-                      ${hasReserve ? 'border-orange-400 ring-1 ring-orange-300/50' : 'border-border/50'}
-                    `}
-                  >
-                    <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
-                      ${hasReserve ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-foreground'}
-                    `}>
-                      {productName}
-                    </div>
+            {(() => {
+              // Build needed map from selected orders
+              const neededMap: Record<string, number> = {};
+              selectedOrders.forEach(o => {
+                (o.items || []).forEach((item: any) => {
+                  const pid = item.product_id || item.product?.id;
+                  if (!pid) return;
+                  neededMap[pid] = (neededMap[pid] || 0) + Number(item.quantity || 0);
+                });
+              });
 
-                    {(product as any)?.image_url ? (
-                      <img src={(product as any).image_url} alt={productName} className="w-full aspect-square object-cover" loading="lazy" />
-                    ) : (
-                      <div className="w-full aspect-square flex items-center justify-center bg-muted/20">
-                        <Package className="w-6 h-6 text-muted-foreground/30" />
-                      </div>
-                    )}
+              // Union of: loaded stock products + products in orders + all products (so user can add any)
+              const productMap = new Map<string, { id: string; name: string; image?: string; stock: number; needed: number }>();
+              workerStock.forEach(ws => {
+                const p = ws.product || products.find(pp => pp.id === ws.product_id);
+                productMap.set(ws.product_id, {
+                  id: ws.product_id,
+                  name: p?.name || ws.product_id,
+                  image: (p as any)?.image_url,
+                  stock: Number(ws.quantity || 0),
+                  needed: neededMap[ws.product_id] || 0,
+                });
+              });
+              Object.keys(neededMap).forEach(pid => {
+                if (!productMap.has(pid)) {
+                  const p = products.find(pp => pp.id === pid);
+                  productMap.set(pid, {
+                    id: pid,
+                    name: p?.name || pid,
+                    image: (p as any)?.image_url,
+                    stock: 0,
+                    needed: neededMap[pid],
+                  });
+                }
+              });
+              products.forEach(p => {
+                if (!productMap.has(p.id)) {
+                  productMap.set(p.id, {
+                    id: p.id,
+                    name: p.name,
+                    image: (p as any).image_url,
+                    stock: 0,
+                    needed: 0,
+                  });
+                }
+              });
 
-                    <div className="flex flex-col items-center gap-0.5 p-1 min-h-[32px]">
-                      <div className="flex items-center gap-0.5 text-[8px] text-muted-foreground">
-                        <span>محمل: {ws.quantity}</span>
+              const list = Array.from(productMap.values()).sort((a, b) => {
+                // Show items with stock or orders first, then the rest
+                const aActive = (a.stock > 0 || a.needed > 0) ? 0 : 1;
+                const bActive = (b.stock > 0 || b.needed > 0) ? 0 : 1;
+                if (aActive !== bActive) return aActive - bActive;
+                return a.name.localeCompare(b.name, 'ar');
+              });
+
+              if (list.length === 0) {
+                return <p className="text-center text-xs text-muted-foreground py-4">لا توجد منتجات</p>;
+              }
+
+              return (
+                <div className="grid grid-cols-4 gap-1.5 pb-3">
+                  {list.map(item => {
+                    const currentQty = cashVanQuantities[item.id] || 0;
+                    const hasReserve = currentQty > 0;
+                    return (
+                      <div
+                        key={item.id}
+                        className={`flex flex-col rounded-xl overflow-hidden text-center relative bg-card shadow-sm border
+                          ${hasReserve ? 'border-orange-400 ring-1 ring-orange-300/50' : 'border-border/50'}
+                        `}
+                      >
+                        <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
+                          ${hasReserve ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30 text-foreground'}
+                        `}>
+                          {item.name}
+                        </div>
+
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full aspect-square object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full aspect-square flex items-center justify-center bg-muted/20">
+                            <Package className="w-6 h-6 text-muted-foreground/30" />
+                          </div>
+                        )}
+
+                        <div className="flex flex-col items-center gap-0.5 p-1 min-h-[40px]">
+                          <div className="flex items-center justify-center gap-1 text-[8px] leading-tight">
+                            <span className="text-muted-foreground">محمل: {item.stock}</span>
+                            <span className="text-primary font-semibold">طلبيات: {item.needed}</span>
+                          </div>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={currentQty}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value) || 0);
+                              setCashVanQuantities(prev => ({ ...prev, [item.id]: val }));
+                            }}
+                            className="h-6 w-14 text-center text-[11px] font-bold px-0.5"
+                          />
+                        </div>
                       </div>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={ws.quantity}
-                        value={currentQty}
-                        onChange={(e) => {
-                          const val = Math.max(0, Math.min(ws.quantity, parseInt(e.target.value) || 0));
-                          setCashVanQuantities(prev => ({ ...prev, [ws.product_id]: val }));
-                        }}
-                        className="h-6 w-14 text-center text-[11px] font-bold px-0.5"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              {workerStock.filter(ws => ws.quantity > 0).length === 0 && (
-                <p className="col-span-4 text-center text-xs text-muted-foreground py-4">لا توجد منتجات محملة</p>
-              )}
-            </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
           <div className="px-3 pb-3 pt-2 border-t shrink-0">
             <Button className="w-full" onClick={() => setShowCashVan(false)}>
