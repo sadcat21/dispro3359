@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart, Calendar } from 'lucide-react';
+import { Printer, Package, Layers, Settings2, AlertTriangle, CheckSquare, Square, Truck, Users, ShoppingCart, Calendar, Eye } from 'lucide-react';
 import { OrderWithDetails, Product } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
 import PrintColumnsConfigDialog, { PrintColumnConfig } from '@/components/print/PrintColumnsConfigDialog';
@@ -37,7 +37,7 @@ interface TodayPrintSettingsDialogProps {
   workerStock: WorkerStockItem[];
   sectors?: any[];
   zones?: any[];
-  onPrint: (selectedOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[], includeLoadedProducts: boolean, cashVanQuantities?: Record<string, number>, deliveryDate?: string | null) => void;
+  onPreview: (selectedOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[], includeLoadedProducts: boolean, cashVanQuantities?: Record<string, number>, deliveryDate?: string | null) => void;
 }
 
 // Helpers for quick date buttons
@@ -52,7 +52,7 @@ const tomorrowStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); re
 const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return toDateStr(d); };
 
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
-  open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPrint,
+  open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPreview,
 }) => {
   const { role, activeRole } = useAuth();
   const canSeeCashVan = isAdminRole(role) || role === 'supervisor' || activeRole?.custom_role_code === 'warehouse_manager';
@@ -66,7 +66,7 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   const [columnConfig, setColumnConfig] = useState<PrintColumnConfig[]>(dbColumns);
   const [groupCustomers, setGroupCustomers] = useState(true);
   const [groupProducts, setGroupProducts] = useState(true);
-  const [includeLoadedProducts, setIncludeLoadedProducts] = useState(false);
+  const [includeLoadedProducts, setIncludeLoadedProducts] = useState(true);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
   const [cashVanQuantities, setCashVanQuantities] = useState<Record<string, number>>({});
   const [deliveryDate, setDeliveryDate] = useState<string>(''); // '' = all dates, otherwise YYYY-MM-DD
@@ -206,8 +206,8 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
     saveColumns(cols);
   };
 
-  const handlePrint = () => {
-    onPrint(selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate || null);
+  const handlePreview = () => {
+    onPreview(selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate || null);
     onOpenChange(false);
   };
 
