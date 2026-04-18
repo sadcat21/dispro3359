@@ -73,9 +73,21 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
 
   useEffect(() => { setColumnConfig(dbColumns); }, [dbColumns]);
 
+  // Apply delivery_date filter (when user selects a specific date)
+  const dateFilteredOrders = useMemo(() => {
+    if (!deliveryDate) return orders;
+    return orders.filter(o => {
+      const dd = (o as any).delivery_date as string | null | undefined;
+      if (dd) return dd.startsWith(deliveryDate);
+      // Fallback: if no delivery_date, match by created_at date
+      const created = (o as any).created_at as string | undefined;
+      return created ? created.startsWith(deliveryDate) : false;
+    });
+  }, [orders, deliveryDate]);
+
   const customerList = useMemo(() => {
     const map = new Map<string, { id: string; name: string; storeName: string; orderCount: number }>();
-    orders.forEach(o => {
+    dateFilteredOrders.forEach(o => {
       if (!o.customer_id) return;
       const existing = map.get(o.customer_id);
       if (existing) {
@@ -90,7 +102,7 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
       }
     });
     return Array.from(map.values());
-  }, [orders]);
+  }, [dateFilteredOrders]);
 
   useEffect(() => {
     if (open) {
