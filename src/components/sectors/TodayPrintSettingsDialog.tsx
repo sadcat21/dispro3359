@@ -69,6 +69,7 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   const [includeLoadedProducts, setIncludeLoadedProducts] = useState(false);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
   const [cashVanQuantities, setCashVanQuantities] = useState<Record<string, number>>({});
+  const [deliveryDate, setDeliveryDate] = useState<string>(''); // '' = all dates, otherwise YYYY-MM-DD
 
   useEffect(() => { setColumnConfig(dbColumns); }, [dbColumns]);
 
