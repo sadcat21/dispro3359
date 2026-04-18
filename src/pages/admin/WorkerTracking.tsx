@@ -159,7 +159,7 @@ const WorkerTracking: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-1.5">
-              {selectedWorkerStops
+              {[...selectedWorkerStops]
                 .sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime())
                 .map((stop, idx) => (
                   <div
