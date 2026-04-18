@@ -351,14 +351,21 @@ const WorkerTrackingMap: React.FC<WorkerTrackingMapProps> = ({ highlightWorkerId
     });
 
     // Fit bounds only on first data load and if user hasn't interacted
-    if (locations.length > 0 && !hasFittedBoundsRef.current && !userInteractedRef.current) {
-      hasFittedBoundsRef.current = true;
+    if (!hasFittedBoundsRef.current && !userInteractedRef.current) {
+      const validLocations = locations.filter(l => l.has_location !== false);
       const allPoints: [number, number][] = [
         [WAREHOUSE_LOCATION.lat, WAREHOUSE_LOCATION.lng],
-        ...locations.map(l => [l.latitude, l.longitude] as [number, number]),
+        ...validLocations.map(l => [l.latitude, l.longitude] as [number, number]),
       ];
-      const bounds = L.latLngBounds(allPoints);
-      mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+      if (allPoints.length > 0) {
+        hasFittedBoundsRef.current = true;
+        if (allPoints.length === 1) {
+          mapRef.current.setView(allPoints[0], 13);
+        } else {
+          const bounds = L.latLngBounds(allPoints);
+          mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+        }
+      }
     }
   }, [locations, t, dir, highlightWorkerId]);
   // Switch tile layer when mapStyle changes
