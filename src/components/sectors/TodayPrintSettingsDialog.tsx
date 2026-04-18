@@ -207,9 +207,15 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   };
 
   const handlePrint = () => {
-    onPrint(selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities);
+    onPrint(selectedOrders, columnConfig, includeLoadedProducts, cashVanQuantities, deliveryDate || null);
     onOpenChange(false);
   };
+
+  const dateButtons: { label: string; value: string }[] = [
+    { label: 'أمس', value: yesterdayStr() },
+    { label: 'اليوم', value: todayStr() },
+    { label: 'غداً', value: tomorrowStr() },
+  ];
 
   const cashVanTotal = Object.values(cashVanQuantities).reduce((s, q) => s + q, 0);
   const selectedShipmentProduct = shipmentSummary.find(item => item.pid === selectedShipmentProductId) || null;
