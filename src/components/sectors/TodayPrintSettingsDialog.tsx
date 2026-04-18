@@ -125,8 +125,8 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   };
 
   const selectedOrders = useMemo(() => {
-    return orders.filter(o => o.customer_id && selectedCustomerIds.has(o.customer_id));
-  }, [orders, selectedCustomerIds]);
+    return dateFilteredOrders.filter(o => o.customer_id && selectedCustomerIds.has(o.customer_id));
+  }, [dateFilteredOrders, selectedCustomerIds]);
 
   const shipmentSummary = useMemo(() => {
     const productNeeds: Record<string, { name: string; needed: number; image?: string; details: ShipmentProductCustomerDetail[] }> = {};
