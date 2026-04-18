@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useMemo, useState } from 'react';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { createPortal } from 'react-dom';
 import { OrderWithDetails, Product } from '@/types/database';
@@ -218,9 +218,11 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
       return item?.quantity || 0;
     };
 
-    const productsWithOrders = products.filter(product => {
-      return orders.some(order => getQuantity(order.id, product.id) > 0);
-    });
+    const productsWithOrders = useMemo(() => products.filter(product => {
+      const hasOrderQty = orders.some(order => getQuantity(order.id, product.id) > 0);
+      const hasExtraQty = extraRows.some(row => (row.productQuantities?.[product.id] || 0) > 0);
+      return hasOrderQty || hasExtraQty;
+    }), [products, orders, orderItems, extraRows]);
 
     const productTotals = productsWithOrders.reduce((acc, product) => {
       acc[product.id] = orders.reduce((sum, order) => sum + getQuantity(order.id, product.id), 0);
@@ -292,7 +294,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     const content = (
       <div 
         ref={ref} 
-        className="print-container" 
+        className="print-container print-page" 
         dir={printDir} 
         style={{ display: isVisible ? 'block' : 'none', position: 'relative' }}
       >
@@ -471,7 +473,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
 
             {/* Orders Total row (red) */}
             {extraRows.length > 0 && extraRows.some(r => productsWithOrders.some(p => (r.productQuantities[p.id] || 0) > 0)) ? (
-              <tr style={{ backgroundColor: '#fee2e2', fontWeight: 'bold' }}>
+              <tr style={{ backgroundColor: '#fee2e2', fontWeight: 'bold', breakInside: 'avoid-page', pageBreakInside: 'avoid' }}>
                 <td colSpan={visibleStaticCols} className="center" style={{ fontSize: '9pt', color: '#b91c1c' }}>
                   {tp('print.header.total') || 'Total'} ({tp('print.header.orders_count') || 'Commandes'})
                 </td>
@@ -493,8 +495,8 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
               const hasAny = productsWithOrders.some(p => (row.productQuantities[p.id] || 0) > 0);
               if (!hasAny) return null;
               return (
-                <tr key={`extra-${idx}`} style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>
-                  <td colSpan={visibleStaticCols} className="center" style={{ fontSize: '9pt', color: '#92400e' }}>{row.label}</td>
+                <tr key={`extra-${idx}`} style={{ backgroundColor: '#fde68a', fontWeight: 'bold', breakInside: 'avoid-page', pageBreakInside: 'avoid' }}>
+                  <td colSpan={visibleStaticCols} className="center" style={{ fontSize: '9pt', color: '#92400e' }}>{row.label === 'CASH VAN' ? 'CASH VAN / المنتجات المحملة' : row.label}</td>
                   {isColVisible('products') && productsWithOrders.map((product) => {
                     const qty = row.productQuantities[product.id] || 0;
                     return (
@@ -518,7 +520,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
               return (
                 <tr className="totals-row" style={hasExtras ? { backgroundColor: '#fecaca' } : {}}>
                   <td colSpan={visibleStaticCols} className="totals-label" style={hasExtras ? { color: '#b91c1c' } : {}}>
-                    {hasExtras ? (tp('print.header.grand_total') || 'Total Général') : tp('print.header.total')}
+                    {hasExtras ? (tp('print.header.grand_total') || 'المجموع الكلي') : tp('print.header.total')}
                   </td>
                   {isColVisible('products') && productsWithOrders.map((product) => {
                     const orderQty = productTotals[product.id] || 0;
