@@ -575,7 +575,7 @@ export const useEditCustomerDebt = () => {
 
       const { error: updErr } = await supabase
         .from('customer_debts')
-        .update(updatePayload)
+        .update(updatePayload as any)
         .eq('id', params.debtId);
       if (updErr) throw updErr;
     },
@@ -624,7 +624,7 @@ export const useEditDebtPayment = () => {
 
       const { error: payUpdErr } = await supabase
         .from('debt_payments')
-        .update(paymentUpdate)
+        .update(paymentUpdate as any)
         .eq('id', params.paymentId);
       if (payUpdErr) throw payUpdErr;
 
