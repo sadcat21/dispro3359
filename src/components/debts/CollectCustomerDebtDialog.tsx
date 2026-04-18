@@ -8,7 +8,9 @@ import {
   Eye,
   Loader2,
   MapPin,
+  Pencil,
   Printer,
+  Trash2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,11 +18,16 @@ import { CustomerDebtWithDetails } from '@/types/accounting';
 import { OrderWithDetails } from '@/types/database';
 import {
   useCollectCustomerDebtGroup,
+  useDeleteCustomerDebt,
+  useDeleteDebtPayment,
+  useEditCustomerDebt,
+  useEditDebtPayment,
   useRecordCustomerDebtGroupVisit,
   useUpdateCustomerDebtGroupSchedule,
 } from '@/hooks/useCustomerDebts';
 import { useDebtPaymentsGroup } from '@/hooks/useDebtPayments';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +39,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import QuickDayPicker from '@/components/debts/QuickDayPicker';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import { isAdminRole } from '@/lib/utils';
 import { toast } from 'sonner';
 
 type DialogTab = 'collect' | 'visit' | 'history';
