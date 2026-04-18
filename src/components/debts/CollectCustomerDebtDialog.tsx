@@ -929,7 +929,98 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         }}
         order={orderLoading ? null : selectedOrder || null}
       />
+
+      {/* Edit amount dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {editTarget?.kind === 'debt' ? 'تعديل مبلغ الدين' : 'تعديل مبلغ التحصيل'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label>المبلغ الجديد</Label>
+            <Input
+              type="number"
+              min="0"
+              value={editAmountInput}
+              onChange={(e) => setEditAmountInput(e.target.value)}
+            />
+            <p className="text-xs text-slate-500">
+              سيتم تحديث رصيد دين العميل تلقائياً.
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditTarget(null)}>إلغاء</Button>
+            <Button
+              disabled={editDebtMutation.isPending || editPaymentMutation.isPending}
+              onClick={async () => {
+                if (!editTarget) return;
+                const newAmount = Number(editAmountInput || 0);
+                if (newAmount < 0 || !Number.isFinite(newAmount)) {
+                  toast.error('أدخل مبلغاً صحيحاً');
+                  return;
+                }
+                try {
+                  if (editTarget.kind === 'debt') {
+                    await editDebtMutation.mutateAsync({
+                      debtId: editTarget.id,
+                      total_amount: newAmount,
+                    });
+                  } else {
+                    await editPaymentMutation.mutateAsync({
+                      paymentId: editTarget.id,
+                      newAmount,
+                    });
+                  }
+                  toast.success('تم التعديل وتحديث الرصيد');
+                  setEditTarget(null);
+                } catch (err: any) {
+                  toast.error(err?.message || 'تعذر التعديل');
+                }
+              }}
+            >
+              {(editDebtMutation.isPending || editPaymentMutation.isPending) ? 'جارٍ الحفظ...' : 'حفظ'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>إلغاء {deleteTarget?.label}</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل تريد حقاً إلغاء هذا السجل؟ سيتم تحديث رصيد دين العميل تلقائياً.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>تراجع</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deleteTarget) return;
+                try {
+                  if (deleteTarget.kind === 'debt') {
+                    await deleteDebtMutation.mutateAsync(deleteTarget.id);
+                  } else {
+                    await deletePaymentMutation.mutateAsync(deleteTarget.id);
+                  }
+                  toast.success('تم الإلغاء وتحديث الرصيد');
+                  setDeleteTarget(null);
+                } catch (err: any) {
+                  toast.error(err?.message || 'تعذر الإلغاء');
+                }
+              }}
+            >
+              تأكيد الإلغاء
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+
   );
 };
 
