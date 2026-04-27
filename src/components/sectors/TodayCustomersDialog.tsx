@@ -2559,7 +2559,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                   </Tabs>
                 </TabsContent>
                 <TabsContent value="with-orders" className="m-0 flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ maxHeight: '60vh' }}>
-                  {isAdmin && effectiveWorkerId && (
+                  {effectiveWorkerId && (
                     <div className="p-2 border-b">
                       <Button variant="outline" size="sm" className="w-full gap-2 text-blue-700 border-blue-300 hover:bg-blue-50" onClick={() => setShowOrdersSummary(true)}>
                         <ClipboardList className="w-4 h-4" />
