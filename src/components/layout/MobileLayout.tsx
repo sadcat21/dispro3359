@@ -394,6 +394,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </Link>
             );
           })}
+
+          {isFieldWorker && !isTodayCustomersHidden && (
+            <button
+              onClick={() => setTodayCustomersOpen(true)}
+              className="relative -mt-7 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-destructive text-destructive-foreground shadow-xl transition-transform active:scale-95"
+              title="عملاء اليوم"
+              aria-label="عملاء اليوم"
+            >
+              <CalendarCheck className="h-7 w-7 text-destructive-foreground" />
+            </button>
+          )}
           
           {/* Invoice Request Button */}
           {showInvoiceButton && (
