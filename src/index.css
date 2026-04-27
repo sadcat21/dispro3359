@@ -242,10 +242,10 @@
   }
 }
 
-/* Print Styles for A4 Landscape - Word-like Table */
+/* Print Styles for print preview and paper-size selection */
 @media print {
   @page {
-    size: A4 landscape;
+    size: auto;
     margin: 0;
   }
 

@@ -134,14 +134,22 @@ const OrdersContent: React.FC = () => {
   useEffect(() => {
     if (!isPrintReady || !pendingPrint) return;
 
+    let timeoutId: number | null = null;
     const rafId = requestAnimationFrame(() => {
-      window.print();
-      setIsPrintReady(false);
-      setPrintWorkerName(null);
-      setPendingPrint(false);
+      timeoutId = window.setTimeout(() => {
+        window.print();
+        setIsPrintReady(false);
+        setPrintWorkerName(null);
+        setPendingPrint(false);
+      }, 120);
     });
 
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
   }, [isPrintReady, pendingPrint]);
 
   const contextWorkerCutoff = useMemo(() => {
