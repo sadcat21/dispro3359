@@ -163,11 +163,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
   // Start worker GPS broadcast globally (not only in deliveries page)
   useEffect(() => {
-    const isFieldWorker = role === 'worker' || role === 'supervisor';
     if (isFieldWorker) {
       startTracking();
     }
-  }, [role, startTracking]);
+  }, [isFieldWorker, startTracking]);
 
   // Get role display text
   const getRoleDisplayText = () => {
@@ -242,7 +241,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
-          {!isTodayCustomersHidden && <SectorCustomersPopover />}
+          {!isTodayCustomersHidden && (isFieldWorker ? <DebtCollectionsPopover /> : <SectorCustomersPopover />)}
           {!isReceiptModsHidden && <ReceiptModificationsNotification />}
           {!isStockAlertsHidden && <StockAlertsNotification />}
           {!isOffersHidden && <OffersNotification />}
