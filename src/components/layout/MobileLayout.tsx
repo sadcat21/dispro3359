@@ -95,6 +95,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const isLoadStockPage = location.pathname === '/load-stock';
   const { isConnected, deviceName, scanAndConnect, disconnect, status: printerStatus } = useBluetoothPrinter();
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
+  const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const showInvoiceButton = isAdminRole(role);
   const { totalUnread } = useChat();
@@ -108,6 +109,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const isReceiptModsHidden = useIsElementHidden('notification', 'notif_receipt_modifications');
   const isDocCollectionsHidden = useIsElementHidden('notification', 'notif_document_collections');
   const isAttendanceHidden = useIsElementHidden('notification', 'notif_attendance');
+  const isFieldWorker = role === 'worker' || role === 'supervisor';
 
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
