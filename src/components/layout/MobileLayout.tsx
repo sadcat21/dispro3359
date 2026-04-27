@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, CalendarCheck } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -24,6 +24,8 @@ import TasksPopover from '@/components/tasks/TasksPopover';
 import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
 // DebtCollectionsPopover moved into SectorCustomersPopover
 import SectorCustomersPopover from '@/components/sectors/SectorCustomersPopover';
+import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
+import DebtCollectionsPopover from '@/components/debts/DebtCollectionsPopover';
 import DocumentCollectionsPopover from '@/components/documents/DocumentCollectionsPopover';
 import ReceiptModificationsNotification from '@/components/printing/ReceiptModificationsNotification';
 import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
@@ -93,6 +95,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const isLoadStockPage = location.pathname === '/load-stock';
   const { isConnected, deviceName, scanAndConnect, disconnect, status: printerStatus } = useBluetoothPrinter();
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
+  const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const showInvoiceButton = isAdminRole(role);
   const { totalUnread } = useChat();
@@ -106,6 +109,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const isReceiptModsHidden = useIsElementHidden('notification', 'notif_receipt_modifications');
   const isDocCollectionsHidden = useIsElementHidden('notification', 'notif_document_collections');
   const isAttendanceHidden = useIsElementHidden('notification', 'notif_attendance');
+  const isFieldWorker = role === 'worker' || role === 'supervisor';
 
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
@@ -159,11 +163,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
   // Start worker GPS broadcast globally (not only in deliveries page)
   useEffect(() => {
-    const isFieldWorker = role === 'worker' || role === 'supervisor';
     if (isFieldWorker) {
       startTracking();
     }
-  }, [role, startTracking]);
+  }, [isFieldWorker, startTracking]);
 
   // Get role display text
   const getRoleDisplayText = () => {
@@ -238,7 +241,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
-          {!isTodayCustomersHidden && <SectorCustomersPopover />}
+          {!isTodayCustomersHidden && (isFieldWorker ? <DebtCollectionsPopover /> : <SectorCustomersPopover />)}
           {!isReceiptModsHidden && <ReceiptModificationsNotification />}
           {!isStockAlertsHidden && <StockAlertsNotification />}
           {!isOffersHidden && <OffersNotification />}
@@ -371,7 +374,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className={cn("fixed bottom-0 left-0 right-0 border-t border-border safe-bottom z-50", isTestBranch ? "bg-green-900" : "bg-purple-900")}>
+      <nav className={cn("fixed bottom-0 left-0 right-0 border-t border-border safe-bottom z-50 relative", isTestBranch ? "bg-green-900" : "bg-purple-900")}>
         <div className="flex items-center justify-around py-1.5">
           {mainNavItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -391,6 +394,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </Link>
             );
           })}
+
+          {isFieldWorker && !isTodayCustomersHidden && (
+            <button
+              onClick={() => setTodayCustomersOpen(true)}
+              className="absolute left-1/2 bottom-3 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-4 border-destructive bg-background text-destructive shadow-xl shadow-destructive/25 transition-transform active:scale-95"
+              title="عملاء اليوم"
+              aria-label="عملاء اليوم"
+            >
+              <CalendarCheck className="h-7 w-7 text-destructive" />
+            </button>
+          )}
           
           {/* Invoice Request Button */}
           {showInvoiceButton && (
@@ -480,6 +494,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       
       {showInvoiceButton && (
         <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />
+      )}
+
+      {isFieldWorker && !isTodayCustomersHidden && (
+        <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />
       )}
     </div>
   );
