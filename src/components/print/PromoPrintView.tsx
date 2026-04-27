@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PromoWithDetails } from '@/types/database';
 import { format } from 'date-fns';
@@ -17,6 +17,7 @@ interface PromoPrintViewProps {
 const PromoPrintView = forwardRef<HTMLDivElement, PromoPrintViewProps>(
   ({ promos, title, workerName, dateRange, productName, isVisible = false }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const { tp, printDir } = useLanguage();
     
     // Use translated title if not provided
@@ -29,15 +30,19 @@ const PromoPrintView = forwardRef<HTMLDivElement, PromoPrintViewProps>(
     const minRows = 20;
     const emptyRowsCount = Math.max(0, minRows - promos.length);
 
-    useEffect(() => {
-      // Create container directly in body for printing
+    useLayoutEffect(() => {
+      if (typeof document === 'undefined') return;
+      const existing = document.getElementById('print-portal');
+      if (existing) existing.remove();
       const div = document.createElement('div');
       div.id = 'print-portal';
       document.body.appendChild(div);
+      containerRef.current = div;
       setContainer(div);
-      
+
       return () => {
-        document.body.removeChild(div);
+        if (div.parentNode) div.parentNode.removeChild(div);
+        containerRef.current = null;
       };
     }, []);
 
@@ -170,8 +175,8 @@ const PromoPrintView = forwardRef<HTMLDivElement, PromoPrintViewProps>(
     );
 
     // Render directly into body using portal
-    if (!container) return null;
-    return createPortal(content, container);
+    if (!container && !containerRef.current) return null;
+    return createPortal(content, container || containerRef.current!);
   }
 );
 

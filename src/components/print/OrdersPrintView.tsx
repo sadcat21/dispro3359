@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { createPortal } from 'react-dom';
 import { OrderWithDetails, Product } from '@/types/database';
@@ -49,6 +49,7 @@ interface OrdersPrintViewProps {
 const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
   ({ orders, orderItems, products, title, dateRange, isVisible = false, columnConfig = [], usePortal = true, extraRows = [] }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const [customerDebts, setCustomerDebts] = useState<Record<string, { amount: number; docType?: string }>>({});
     const [shortageProductIds, setShortageProductIds] = useState<Set<string>>(new Set());
     const [stampTiers, setStampTiers] = useState<StampPriceTier[]>([]);
@@ -108,17 +109,19 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
       return customer.store_name || '';
     };
 
-    useEffect(() => {
-      if (!usePortal) return;
+    useLayoutEffect(() => {
+      if (!usePortal || typeof document === 'undefined') return;
       // Remove any existing print-portal to avoid duplicate tables during print
       const existing = document.getElementById('print-portal');
       if (existing) existing.remove();
       const div = document.createElement('div');
       div.id = 'print-portal';
       document.body.appendChild(div);
+      containerRef.current = div;
       setContainer(div);
-      return () => { 
-        if (div.parentNode) div.parentNode.removeChild(div); 
+      return () => {
+        if (div.parentNode) div.parentNode.removeChild(div);
+        containerRef.current = null;
       };
     }, [usePortal]);
 
@@ -547,8 +550,8 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     );
 
     if (!usePortal) return content;
-    if (!container) return null;
-    return createPortal(content, container);
+    if (!container && !containerRef.current) return null;
+    return createPortal(content, container || containerRef.current!);
   }
 );
 

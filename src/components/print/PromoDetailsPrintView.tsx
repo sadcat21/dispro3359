@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import logoImage from '@/assets/logo.png';
@@ -29,6 +29,7 @@ const formatGiftLabel = (giftPieces: number, _piecesPerBox: number): string => {
 const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewProps>(
   ({ productName, workerName, piecesPerBox, customerDetails, isVisible = false }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const { tp, printDir } = useLanguage();
 
     const totalSold = customerDetails.reduce((sum, cd) => sum + cd.quantitySold, 0);
@@ -37,12 +38,19 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
     const minRows = 20;
     const emptyRowsCount = Math.max(0, minRows - customerDetails.length);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+      if (typeof document === 'undefined') return;
+      const existing = document.getElementById('print-portal-promo-details');
+      if (existing) existing.remove();
       const div = document.createElement('div');
       div.id = 'print-portal-promo-details';
       document.body.appendChild(div);
+      containerRef.current = div;
       setContainer(div);
-      return () => { document.body.removeChild(div); };
+      return () => {
+        if (div.parentNode) div.parentNode.removeChild(div);
+        containerRef.current = null;
+      };
     }, []);
 
     const content = (
@@ -160,8 +168,8 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
       </div>
     );
 
-    if (!container) return null;
-    return createPortal(content, container);
+    if (!container && !containerRef.current) return null;
+    return createPortal(content, container || containerRef.current!);
   }
 );
 

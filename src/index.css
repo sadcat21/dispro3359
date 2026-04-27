@@ -262,7 +262,7 @@
   }
 
   /* Portal containers that hold printable content */
-  body > *:not(#print-portal):not(#gifts-print-portal) {
+  body > *:not(#print-portal):not(#gifts-print-portal):not(#loadsheet-print-portal):not(#print-portal-promo-details):not(#session-print-portal) {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
@@ -272,7 +272,9 @@
 
   #print-portal,
   #gifts-print-portal,
-  #loadsheet-print-portal {
+  #loadsheet-print-portal,
+  #print-portal-promo-details,
+  #session-print-portal {
     display: block !important;
     visibility: visible !important;
     height: auto !important;
