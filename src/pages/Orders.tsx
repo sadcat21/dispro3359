@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { flushSync } from 'react-dom';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,7 +97,6 @@ const OrdersContent: React.FC = () => {
 
   // Print state
   const [isPrintReady, setIsPrintReady] = useState(false);
-  const [pendingPrint, setPendingPrint] = useState(false);
   const [allOrderItems, setAllOrderItems] = useState<Map<string, any[]>>(new Map());
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [filteredOrdersForPrint, setFilteredOrdersForPrint] = useState<OrderWithDetails[]>([]);
@@ -132,7 +132,7 @@ const OrdersContent: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!isPrintReady || !pendingPrint) return;
+    if (!isPrintReady) return;
 
     let timeoutId: number | null = null;
     const rafId = requestAnimationFrame(() => {
@@ -140,7 +140,6 @@ const OrdersContent: React.FC = () => {
         window.print();
         setIsPrintReady(false);
         setPrintWorkerName(null);
-        setPendingPrint(false);
       }, 120);
     });
 
@@ -150,7 +149,7 @@ const OrdersContent: React.FC = () => {
         window.clearTimeout(timeoutId);
       }
     };
-  }, [isPrintReady, pendingPrint]);
+  }, [isPrintReady]);
 
   const contextWorkerCutoff = useMemo(() => {
     if (!contextWorkerLastSession) return null;
@@ -477,10 +476,11 @@ const OrdersContent: React.FC = () => {
           workerName = workers.find(w => w.id === filterWorkerId)?.full_name || null;
         }
 
-        setFilteredOrdersForPrint(ordersForPrint);
-        setPrintWorkerName(workerName);
-        setIsPrintReady(true);
-        setPendingPrint(true);
+        flushSync(() => {
+          setFilteredOrdersForPrint(ordersForPrint);
+          setPrintWorkerName(workerName);
+          setIsPrintReady(true);
+        });
       }
     } catch (error: any) {
       toast.error(t('print.print_error'));
