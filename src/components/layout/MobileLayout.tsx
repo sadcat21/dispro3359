@@ -374,7 +374,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className={cn("fixed bottom-0 left-0 right-0 border-t border-border safe-bottom z-50", isTestBranch ? "bg-green-900" : "bg-purple-900")}>
+      <nav className={cn("fixed bottom-0 left-0 right-0 border-t border-border safe-bottom z-50 relative", isTestBranch ? "bg-green-900" : "bg-purple-900")}>
         <div className="flex items-center justify-around py-1.5">
           {mainNavItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -398,11 +398,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {isFieldWorker && !isTodayCustomersHidden && (
             <button
               onClick={() => setTodayCustomersOpen(true)}
-              className="relative -mt-7 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-destructive text-destructive-foreground shadow-xl transition-transform active:scale-95"
+              className="absolute left-1/2 bottom-3 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-4 border-destructive bg-background text-destructive shadow-xl shadow-destructive/25 transition-transform active:scale-95"
               title="عملاء اليوم"
               aria-label="عملاء اليوم"
             >
-              <CalendarCheck className="h-7 w-7 text-destructive-foreground" />
+              <CalendarCheck className="h-7 w-7 text-destructive" />
             </button>
           )}
           
