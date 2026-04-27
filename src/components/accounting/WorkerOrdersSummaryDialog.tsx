@@ -180,7 +180,7 @@ const OrdersCarousel: React.FC<{
 };
 
 const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName }) => {
-  const [activeTab, setActiveTab] = useState<'created' | 'assigned'>('assigned');
+  const [activeTab, setActiveTab] = useState<'created' | 'assigned'>('created');
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [isPrintReady, setIsPrintReady] = useState(false);
@@ -575,7 +575,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       )}
 
     <Dialog open={open} onOpenChange={(v) => { if (isPrintingRef.current) return; onOpenChange(v); }}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[92dvh] flex flex-col overflow-hidden p-0 gap-0 rounded-2xl" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-md h-[92dvh] max-h-[92dvh] flex flex-col overflow-hidden p-0 gap-0 rounded-2xl" dir="rtl">
         {/* Header */}
         <div className="bg-primary/5 border-b px-4 pt-4 pb-3 shrink-0">
           <DialogHeader className="p-0 space-y-1">
@@ -584,15 +584,6 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
                 <ClipboardList className="w-5 h-5 text-primary" />
               </div>
               <span className="flex-1">تجميع الطلبيات {workerName ? `- ${workerName}` : ''}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={handlePrintClick}
-                disabled={isPrintLoading || currentData.length === 0}
-              >
-                {isPrintLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
-              </Button>
             </DialogTitle>
           </DialogHeader>
 
@@ -612,7 +603,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setExpandedProduct(null); }} className="flex-1 min-h-0 flex flex-col">
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setExpandedProduct(null); }} className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <div className="px-3 pt-2 shrink-0">
             <TabsList className="grid grid-cols-2 h-9 bg-muted/60 rounded-lg p-0.5">
              <TabsTrigger value="assigned" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
@@ -643,7 +634,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             </div>
           )}
 
-          <TabsContent value={activeTab} className="flex-1 min-h-0 mt-0">
+          <TabsContent value={activeTab} className="flex-1 min-h-0 mt-0 overflow-hidden">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-7 h-7 animate-spin text-primary" />
@@ -697,6 +688,19 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             )}
           </TabsContent>
         </Tabs>
+
+        <div className="shrink-0 border-t bg-background/95 p-3">
+          <Button
+            variant="destructive"
+            size="lg"
+            className="w-full gap-2 font-bold shadow-lg"
+            onClick={handlePrintClick}
+            disabled={isPrintLoading || currentData.length === 0}
+          >
+            {isPrintLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
+            طباعة
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
 
