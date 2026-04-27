@@ -96,6 +96,7 @@ const OrdersContent: React.FC = () => {
 
   // Print state
   const [isPrintReady, setIsPrintReady] = useState(false);
+  const [pendingPrint, setPendingPrint] = useState(false);
   const [allOrderItems, setAllOrderItems] = useState<Map<string, any[]>>(new Map());
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [filteredOrdersForPrint, setFilteredOrdersForPrint] = useState<OrderWithDetails[]>([]);
@@ -129,6 +130,19 @@ const OrdersContent: React.FC = () => {
     },
     enabled: !!cutoffWorkerId,
   });
+
+  useEffect(() => {
+    if (!isPrintReady || !pendingPrint) return;
+
+    const rafId = requestAnimationFrame(() => {
+      window.print();
+      setIsPrintReady(false);
+      setPrintWorkerName(null);
+      setPendingPrint(false);
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [isPrintReady, pendingPrint]);
 
   const contextWorkerCutoff = useMemo(() => {
     if (!contextWorkerLastSession) return null;
@@ -439,7 +453,7 @@ const OrdersContent: React.FC = () => {
           setPrintWorkerName(worker.full_name);
           setIsPrintReady(true);
 
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => requestAnimationFrame(resolve));
           window.print();
           await new Promise(resolve => setTimeout(resolve, 500));
         }
@@ -458,12 +472,7 @@ const OrdersContent: React.FC = () => {
         setFilteredOrdersForPrint(ordersForPrint);
         setPrintWorkerName(workerName);
         setIsPrintReady(true);
-
-        setTimeout(() => {
-          window.print();
-          setIsPrintReady(false);
-          setPrintWorkerName(null);
-        }, 500);
+        setPendingPrint(true);
       }
     } catch (error: any) {
       toast.error(t('print.print_error'));
