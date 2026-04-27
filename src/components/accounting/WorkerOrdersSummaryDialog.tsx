@@ -714,8 +714,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           </DialogTitle>
         </DialogHeader>
         <AdaptiveScrollContainer
-          maxHeightClassName="max-h-[calc(85dvh-4rem)]"
-          contentClassName="space-y-3 pe-1"
+          maxHeightClassName="max-h-[calc(85dvh-7rem)]"
+          contentClassName="space-y-3 pe-1 pb-2"
         >
           {/* Summary */}
           <div className="bg-primary/10 p-3 rounded-lg text-center">
@@ -793,17 +793,16 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             إعدادات الأعمدة
           </Button>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2">
-            <Button onClick={handlePrint} disabled={selectedCustomerIds.size === 0} className="gap-2">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button variant="outline" onClick={() => setShowPrintSettings(false)}>
-              إلغاء
-            </Button>
-          </div>
         </AdaptiveScrollContainer>
+        <div className="grid grid-cols-2 gap-2 border-t bg-background pt-3 mt-3">
+          <Button variant="destructive" size="lg" onClick={handlePrint} disabled={selectedCustomerIds.size === 0 || isPrintLoading} className="gap-2 font-bold shadow-md">
+            {isPrintLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+            طباعة
+          </Button>
+          <Button size="lg" variant="outline" onClick={() => setShowPrintSettings(false)}>
+            إلغاء
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
 
