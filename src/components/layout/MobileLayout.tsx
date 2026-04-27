@@ -495,6 +495,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       {showInvoiceButton && (
         <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />
       )}
+
+      {isFieldWorker && !isTodayCustomersHidden && (
+        <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />
+      )}
     </div>
   );
 };
