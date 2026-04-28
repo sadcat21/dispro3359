@@ -402,7 +402,7 @@ const WorkerHome: React.FC = () => {
             quickActions.push({
               key: 'direct-sale',
               icon: <ShoppingBag className="w-6 h-6" />,
-              label: isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : t('stock.direct_sale'),
+              label: isWarehouseManager ? `${t('worker_home.depot_sale')} - Vente Dépôt` : t('stock.direct_sale'),
               onClick: () => {
                 setSalesHubTab('direct');
                 setShowActionDialog(true);
@@ -411,9 +411,9 @@ const WorkerHome: React.FC = () => {
           }
           // Stock management hub for warehouse manager
           if (isWarehouseManager) {
-            quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: 'إدارة المخزن', onClick: () => setShowStockManagement(true) });
-            quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: 'شحن العامل', onClick: () => setShowLoadWorkerPicker(true) });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: 'تتبع الطلبات', onClick: () => navigate('/order-tracking') });
+            quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true) });
+            quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true) });
+            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking') });
           }
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
             quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock') });
@@ -421,7 +421,7 @@ const WorkerHome: React.FC = () => {
           if (hasOrdersAccess && !isWarehouseManager && !isOrdersPageHidden && !isCreateOrderHidden) {
             quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true) });
             quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: 'تتبع طلباتي', onClick: () => navigate('/my-order-tracking') });
+            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking') });
           }
           if (hasOrdersAccess && !hasDeliveryAccess && !isWarehouseManager && !isMyPromosPageHidden) {
             quickActions.push({ key: 'promos', icon: <Gift className="w-6 h-6" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos') });
@@ -439,7 +439,7 @@ const WorkerHome: React.FC = () => {
           if (!isTodayCustomersHidden) {
             quickActions.push({ key: 'today-customers', icon: <MapPin className="w-6 h-6" />, label: todayCustomersLabel, onClick: () => setShowTodayCustomers(true) });
           }
-          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: 'منجزات اليوم', onClick: () => navigate('/my-achievements') });
+          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements') });
           // Rewards page
           if (!isRewardsHidden && !isRewardsPageHidden) {
             quickActions.push({ key: 'rewards', icon: <Trophy className="w-6 h-6" />, label: t('worker.rewards'), onClick: () => navigate('/my-rewards') });
@@ -586,27 +586,27 @@ const WorkerHome: React.FC = () => {
       {showStockManagement && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" onClick={() => setShowStockManagement(false)}>
           <div className="bg-background rounded-t-2xl w-full max-w-lg p-5 pb-8 space-y-3 animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-center mb-4">إدارة المخزن</h3>
+            <h3 className="text-lg font-bold text-center mb-4">{t('worker_home.stock_management')}</h3>
             <button
               onClick={() => { setShowStockManagement(false); navigate('/warehouse'); }}
               className="w-full flex items-center gap-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors"
             >
               <Package className="w-6 h-6 text-primary" />
-              <span className="font-semibold">مخزون الفرع</span>
+              <span className="font-semibold">{t('worker_home.branch_stock')}</span>
             </button>
             <button
               onClick={() => { setShowStockManagement(false); setShowFactoryReceipt(true); }}
               className="w-full flex items-center gap-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors"
             >
               <ArrowDownToLine className="w-6 h-6 text-emerald-600" />
-              <span className="font-semibold">استلام من المصنع</span>
+              <span className="font-semibold">{t('worker_home.factory_receipt')}</span>
             </button>
             <button
               onClick={() => { setShowStockManagement(false); setShowFactoryDelivery(true); }}
               className="w-full flex items-center gap-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors"
             >
               <Truck className="w-6 h-6 text-orange-600" />
-              <span className="font-semibold">تسليم للمصنع</span>
+              <span className="font-semibold">{t('worker_home.factory_delivery')}</span>
             </button>
             {/* Stock Review - scheduled Sun, Tue, Thu but always accessible */}
             {(() => {
@@ -619,9 +619,9 @@ const WorkerHome: React.FC = () => {
                 >
                   <ClipboardCheck className={`w-6 h-6 ${isReviewDay ? 'text-blue-600' : 'text-primary'}`} />
                   <div className="text-right">
-                    <span className="font-semibold block">مراجعة المخزون</span>
+                    <span className="font-semibold block">{t('worker_home.stock_review')}</span>
                     <span className="text-[10px] text-muted-foreground">
-                      أيام المراجعة: الأحد، الثلاثاء، الخميس {isReviewDay ? '✅ اليوم يوم مراجعة' : ''}
+                      {t('worker_home.review_days')} {isReviewDay ? t('worker_home.today_is_review') : ''}
                     </span>
                   </div>
                 </button>

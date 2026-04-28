@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
 import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
@@ -556,41 +557,53 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   if (!representative) return null;
                   const isHomeGroup = group.items.length === 1 && representative.path === '/';
                   const hasActive = group.items.some((it) => location.pathname === it.path);
+                  const repMeta = SIDEBAR_GROUP_META[group.title];
+                  const repLabel = repMeta ? t(repMeta.i18n) : group.title;
                   if (isHomeGroup) {
                     return (
-                      <Link
-                        key={group.title}
-                        to={representative.path}
-                        title={representative.label}
-                        className={cn(
-                          'flex h-11 items-center justify-center rounded-lg transition-colors',
-                          hasActive
-                            ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                        )}
-                      >
-                        <representative.icon className="h-5 w-5 shrink-0" />
-                      </Link>
+                      <Tooltip key={group.title} delayDuration={150}>
+                        <TooltipTrigger asChild>
+                          <Link
+                            to={representative.path}
+                            className={cn(
+                              'flex h-11 items-center justify-center rounded-lg transition-colors',
+                              hasActive
+                                ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                                : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                            )}
+                          >
+                            <representative.icon className="h-5 w-5 shrink-0" />
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side={dir === 'rtl' ? 'left' : 'right'} className="bg-sidebar text-sidebar-foreground border-sidebar-border font-medium">
+                          {representative.label}
+                        </TooltipContent>
+                      </Tooltip>
                     );
                   }
                   return (
-                    <button
-                      key={group.title}
-                      type="button"
-                      title={group.title}
-                      onClick={() => {
-                        setSidebarCollapsed(false);
-                        setOpenGroup(group.title);
-                      }}
-                      className={cn(
-                        'flex h-11 w-full items-center justify-center rounded-lg transition-colors',
-                        hasActive
-                          ? 'bg-sidebar-primary/30 text-sidebar-primary-foreground'
-                          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                      )}
-                    >
-                      <representative.icon className="h-5 w-5 shrink-0" />
-                    </button>
+                    <Tooltip key={group.title} delayDuration={150}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSidebarCollapsed(false);
+                            setOpenGroup(group.title);
+                          }}
+                          className={cn(
+                            'flex h-11 w-full items-center justify-center rounded-lg transition-colors',
+                            hasActive
+                              ? 'bg-sidebar-primary/30 text-sidebar-primary-foreground'
+                              : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                          )}
+                        >
+                          <representative.icon className="h-5 w-5 shrink-0" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side={dir === 'rtl' ? 'left' : 'right'} className="bg-sidebar text-sidebar-foreground border-sidebar-border font-medium">
+                        {repLabel}
+                      </TooltipContent>
+                    </Tooltip>
                   );
                 })}
               </div>

@@ -40,6 +40,7 @@ interface GroupItem {
 
 interface FunctionalGroup {
   title: string;
+  tKey?: string;
   color: { bg: string; border: string; title: string; iconDefault: string };
   branchColor?: { bg: string; border: string; title: string; iconDefault: string };
   items: GroupItem[];
@@ -256,28 +257,28 @@ const AdminHome: React.FC = () => {
   const managerSummaryCards = [
     {
       key: 'branches',
-      label: 'الفروع النشطة',
+      label: t('admin_home.active_branches'),
       value: operationalSnapshot?.branchesCount || 0,
       icon: Building2,
       tone: 'from-slate-50 to-white border-slate-200 text-slate-700',
     },
     {
       key: 'workers',
-      label: 'العمال النشطون',
+      label: t('admin_home.active_workers'),
       value: operationalSnapshot?.workersCount || 0,
       icon: Users,
       tone: 'from-fuchsia-50 to-white border-fuchsia-200 text-fuchsia-700',
     },
     {
       key: 'orders',
-      label: 'الطلبات المفتوحة',
+      label: t('admin_home.open_orders'),
       value: operationalSnapshot?.activeOrdersCount || 0,
       icon: ShoppingCart,
       tone: 'from-blue-50 to-white border-blue-200 text-blue-700',
     },
     {
       key: 'tasks',
-      label: 'المتابعات المفتوحة',
+      label: t('admin_home.open_followups'),
       value: incompleteTasks.length + incompleteRequests.length,
       icon: ListTodo,
       tone: 'from-amber-50 to-white border-amber-200 text-amber-700',
@@ -285,12 +286,12 @@ const AdminHome: React.FC = () => {
   ];
 
   const managerQuickActions = [
-    { key: 'new-task', label: 'إسناد مهمة', icon: CheckSquare, onClick: () => setTaskDialogType('task') },
-    { key: 'new-request', label: 'إضافة طلب', icon: MessageSquareMore, onClick: () => setTaskDialogType('request') },
-    { key: 'branches', label: 'إدارة الفروع', icon: Building2, onClick: () => navigate('/branches') },
-    { key: 'permissions', label: 'الصلاحيات', icon: Shield, onClick: () => navigate('/permissions') },
-    { key: 'stats', label: 'التقارير', icon: BarChart3, onClick: () => navigate('/stats') },
-    { key: 'logs', label: 'سجل النشاط', icon: Activity, onClick: () => navigate('/activity-logs') },
+    { key: 'new-task', label: t('admin_home.assign_task'), icon: CheckSquare, onClick: () => setTaskDialogType('task') },
+    { key: 'new-request', label: t('admin_home.add_request'), icon: MessageSquareMore, onClick: () => setTaskDialogType('request') },
+    { key: 'branches', label: t('admin_home.manage_branches'), icon: Building2, onClick: () => navigate('/branches') },
+    { key: 'permissions', label: t('admin_home.permissions'), icon: Shield, onClick: () => navigate('/permissions') },
+    { key: 'stats', label: t('admin_home.reports'), icon: BarChart3, onClick: () => navigate('/stats') },
+    { key: 'logs', label: t('admin_home.activity_log'), icon: Activity, onClick: () => navigate('/activity-logs') },
   ];
 
   // ─── Build Functional Groups ───
@@ -299,32 +300,34 @@ const AdminHome: React.FC = () => {
     // 1. المحاسبة والمالية
     {
       title: 'المحاسبة والمالية',
+      tKey: 'sidebar.group.accounting',
       color: { bg: 'bg-amber-500/10', border: 'border-amber-300', title: 'text-amber-800', iconDefault: 'text-amber-600' },
       branchColor: { bg: 'bg-teal-500/10', border: 'border-teal-300', title: 'text-teal-800', iconDefault: 'text-teal-600' },
       items: [
         ...(!isAccountingHidden ? [{ path: '/accounting', icon: Calculator, label: t('accounting.title') }] : []),
-        ...(isAdminRole(role) ? [{ path: '/manager-accounting-review', icon: ClipboardCheck, label: 'مراجعة حسابات المدير' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/manager-accounting-review', icon: ClipboardCheck, label: t('admin_home.item.manager_accounting_review') }] : []),
         ...(!isDebtsHidden ? [{ path: '/customer-debts', icon: Banknote, label: t('debts.title') }] : []),
-        { path: '/surplus-deficit', icon: Scale, label: 'الفائض والعجز' },
+        { path: '/surplus-deficit', icon: Scale, label: t('admin_home.item.surplus_deficit') },
         { path: '/expenses', icon: Wallet, label: t('expenses.my_expenses') },
         { path: '/expenses-management', icon: Wallet, label: t('expenses.title') },
         { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
         ...(!isBranchAdmin ? [{ path: '/daily-receipts', icon: FileText, label: t('nav.daily_receipts') }] : []),
-        { path: '/shared-invoices', icon: FolderOpen, label: 'الفواتير المشاركة' },
+        { path: '/shared-invoices', icon: FolderOpen, label: t('admin_home.item.shared_invoices') },
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
-        ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: 'تجميع مبيعات العمال' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
       ],
     },
     // 2. الطلبات والتوصيل
     {
       title: 'الطلبات والتوصيل',
+      tKey: 'sidebar.group.orders',
       color: { bg: 'bg-blue-500/10', border: 'border-blue-300', title: 'text-blue-800', iconDefault: 'text-blue-600' },
       branchColor: { bg: 'bg-cyan-500/10', border: 'border-cyan-300', title: 'text-cyan-800', iconDefault: 'text-cyan-600' },
       items: [
         { path: '/create-order', icon: ShoppingCart, label: t('orders.create_order'), action: () => setShowCreateOrder(true) },
         { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
-        { path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' },
-        { path: '/order-modifications', icon: Pencil, label: 'سجل التعديلات' },
+        { path: '/order-tracking', icon: Radar, label: t('admin_home.item.order_tracking') },
+        { path: '/order-modifications', icon: Pencil, label: t('admin_home.item.order_modifications') },
         ...(!isBranchAdmin ? [{ path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') }] : []),
         ...(showInvoiceButton ? [{ path: '/invoice-request', icon: Receipt, label: t('admin.invoice_request'), action: () => setInvoiceRequestOpen(true) }] : []),
       ],
@@ -332,21 +335,23 @@ const AdminHome: React.FC = () => {
     // 3. المخزون والمستودع - hidden for branch_admin
     ...(!isBranchAdmin ? [{
       title: 'المخزون والمستودع',
+      tKey: 'sidebar.group.warehouse',
       color: { bg: 'bg-emerald-500/10', border: 'border-emerald-300', title: 'text-emerald-800', iconDefault: 'text-emerald-600' },
       branchColor: { bg: 'bg-green-500/10', border: 'border-green-300', title: 'text-green-800', iconDefault: 'text-green-600' },
       items: [
         { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
-        { path: '/warehouse-review', icon: ClipboardCheck, label: 'مراجعة المخزون' },
+        { path: '/warehouse-review', icon: ClipboardCheck, label: t('admin_home.item.warehouse_review') },
         { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
         { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
-        { path: '/factory-receipt', icon: ArrowDownToLine, label: 'استلام من المصنع', action: () => setFactoryReceiptOpen(true) },
-        { path: '/factory-delivery', icon: Truck, label: 'تسليم للمصنع', action: () => setFactoryDeliveryOpen(true) },
-        ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: 'بيع مباشر للمخزن', action: () => setWarehouseDirectSaleOpen(true) }] : []),
+        { path: '/factory-receipt', icon: ArrowDownToLine, label: t('admin_home.item.factory_receipt'), action: () => setFactoryReceiptOpen(true) },
+        { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
+        ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
       ],
     }] : []),
     // 4. العملاء
     {
       title: 'العملاء',
+      tKey: 'sidebar.group.customers',
       color: { bg: 'bg-sky-500/10', border: 'border-sky-300', title: 'text-sky-800', iconDefault: 'text-sky-600' },
       items: [
         { path: '/customers', icon: UserCheck, label: t('nav.customers') },
@@ -358,13 +363,14 @@ const AdminHome: React.FC = () => {
     // 5. العروض والترويج
     {
       title: 'العروض والترويج',
+      tKey: 'sidebar.group.promotions',
       color: { bg: 'bg-orange-500/10', border: 'border-orange-300', title: 'text-orange-800', iconDefault: 'text-orange-600' },
       branchColor: { bg: 'bg-amber-500/10', border: 'border-amber-300', title: 'text-amber-800', iconDefault: 'text-amber-600' },
       items: [
         { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
         { path: '/product-offers', icon: Gift, label: t('nav.product_offers') },
         { path: '/my-promos', icon: BarChart3, label: t('nav.my_promos') },
-        { path: '/promo-splits', icon: Split, label: 'تجزئة العروض' },
+        { path: '/promo-splits', icon: Split, label: t('admin_home.item.promo_splits') },
         { path: '/manual-promo', icon: Gift, label: t('admin.manual_promo'), action: () => setManualPromoOpen(true) },
         ...(isSuperAdminRole(role) ? [{ path: '/gifts-tracking', icon: Gift, label: t('admin.promo_tracking'), action: () => { setGiftsWorkerIdx(0); setGiftsOpen(true); } }] : []),
       ],
@@ -372,19 +378,21 @@ const AdminHome: React.FC = () => {
     // 6. الموارد البشرية
     {
       title: 'الموارد البشرية',
+      tKey: 'sidebar.group.hr',
       color: { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-300', title: 'text-fuchsia-800', iconDefault: 'text-fuchsia-600' },
       branchColor: { bg: 'bg-purple-500/10', border: 'border-purple-300', title: 'text-purple-800', iconDefault: 'text-purple-600' },
       items: [
         ...(!isBranchAdmin ? [{ path: '/workers', icon: Users, label: t('nav.workers') }] : []),
         ...(!isWorkerActionsHidden ? [{ path: '/worker-actions', icon: Users, label: t('nav.worker_actions') }] : []),
         { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
-        { path: '/attendance', icon: CalendarDays, label: 'المداومة' },
-        { path: '/rewards', icon: Trophy, label: 'المكافآت والعقوبات' },
+        { path: '/attendance', icon: CalendarDays, label: t('admin_home.item.attendance') },
+        { path: '/rewards', icon: Trophy, label: t('admin_home.item.rewards_penalties') },
       ],
     },
     // 7. الإدارة والتقارير - hidden for branch_admin
     ...(!isBranchAdmin ? [{
       title: 'الإدارة والتقارير',
+      tKey: 'sidebar.group.admin',
       color: { bg: 'bg-slate-500/10', border: 'border-slate-300', title: 'text-slate-800', iconDefault: 'text-slate-600' },
       items: [
         { path: '/products', icon: Package, label: t('nav.products') },
@@ -396,10 +404,10 @@ const AdminHome: React.FC = () => {
           { path: '/permissions', icon: Shield, label: t('nav.permissions') },
         ] : []),
         { path: '/settings', icon: Settings, label: t('nav.settings') },
-        { path: '/backup', icon: Database, label: 'النسخ الاحتياطي' },
+        { path: '/backup', icon: Database, label: t('admin_home.item.backup') },
         { path: '/guide', icon: BookOpen, label: t('nav.guide') },
-        { path: '/training', icon: BookOpen, label: 'التدريب على التطبيق' },
-        { path: '/components-reference', icon: ClipboardList, label: 'مرجع النوافذ' },
+        { path: '/training', icon: BookOpen, label: t('admin_home.item.training') },
+        { path: '/components-reference', icon: ClipboardList, label: t('admin_home.item.components_reference') },
       ],
     }] : []),
   ];
@@ -419,10 +427,10 @@ const AdminHome: React.FC = () => {
           <div className="relative space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
-                <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/10">مدير المشروع</Badge>
-                <h2 className="text-2xl font-bold">لوحة متابعة المشروع</h2>
+                <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/10">{t('admin_home.project_manager')}</Badge>
+                <h2 className="text-2xl font-bold">{t('admin_home.project_dashboard')}</h2>
                 <p className="text-sm text-slate-200">
-                  {activeBranch?.name ? `الفرع المحدد: ${activeBranch.name}` : 'أنت تراجع جميع الفروع من مكان واحد'}
+                  {activeBranch?.name ? `${t('admin_home.selected_branch')}: ${activeBranch.name}` : t('admin_home.review_all_branches')}
                 </p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
@@ -448,15 +456,15 @@ const AdminHome: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">طلبات تحتاج توزيع</p>
+                <p className="text-[11px] text-slate-300">{t('admin_home.orders_need_dispatch')}</p>
                 <p className="mt-1 text-lg font-bold">{operationalSnapshot?.pendingOrdersCount || 0}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">طلبات قيد التنفيذ</p>
+                <p className="text-[11px] text-slate-300">{t('admin_home.orders_in_progress')}</p>
                 <p className="mt-1 text-lg font-bold">{operationalSnapshot?.inProgressOrdersCount || 0}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">متابعات متأخرة</p>
+                <p className="text-[11px] text-slate-300">{t('admin_home.overdue_followups')}</p>
                 <p className="mt-1 text-lg font-bold">{overdueTasksCount}</p>
               </div>
             </div>
@@ -473,8 +481,8 @@ const AdminHome: React.FC = () => {
               <Building2 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <p className="text-teal-100 text-xs font-medium">مدير الفرع</p>
-              <h2 className="text-xl font-bold">{activeBranch?.name || 'الفرع'}</h2>
+              <p className="text-teal-100 text-xs font-medium">{t('admin_home.branch_manager')}</p>
+              <h2 className="text-xl font-bold">{activeBranch?.name || t('admin_home.branch')}</h2>
             </div>
           </div>
         </div>
@@ -486,12 +494,12 @@ const AdminHome: React.FC = () => {
         <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-foreground">أوامر سريعة</h3>
-              <p className="text-xs text-muted-foreground">اختصارات يومية لمتابعة التشغيل والفرق والصلاحيات</p>
+              <h3 className="text-sm font-bold text-foreground">{t('admin_home.quick_actions')}</h3>
+              <p className="text-xs text-muted-foreground">{t('admin_home.quick_actions_desc')}</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => navigate('/orders')}>
               <ShoppingCart className="me-1 h-4 w-4" />
-              الطلبات
+              {t('nav.orders')}
             </Button>
           </div>
 
@@ -515,28 +523,28 @@ const AdminHome: React.FC = () => {
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
               <div className="flex items-center gap-2 text-amber-700">
                 <TimerReset className="h-4 w-4" />
-                <span className="text-xs font-semibold">مهام متأخرة</span>
+                <span className="text-xs font-semibold">{t('admin_home.overdue_tasks')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-amber-900">{overdueTasksCount}</p>
             </div>
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
               <div className="flex items-center gap-2 text-emerald-700">
                 <UserCheck className="h-4 w-4" />
-                <span className="text-xs font-semibold">حسابات بانتظار المراجعة</span>
+                <span className="text-xs font-semibold">{t('admin_home.accounts_pending_review')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-emerald-900">{operationalSnapshot?.pendingAccountsCount || 0}</p>
             </div>
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3">
               <div className="flex items-center gap-2 text-rose-700">
                 <Banknote className="h-4 w-4" />
-                <span className="text-xs font-semibold">ديون نشطة</span>
+                <span className="text-xs font-semibold">{t('admin_home.active_debts')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-rose-900">{activeDebts?.count || 0}</p>
             </div>
             <div className="rounded-2xl border border-violet-200 bg-violet-50 p-3">
               <div className="flex items-center gap-2 text-violet-700">
                 <Calculator className="h-4 w-4" />
-                <span className="text-xs font-semibold">جلسات محاسبة مفتوحة</span>
+                <span className="text-xs font-semibold">{t('admin_home.open_accounting_sessions')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-violet-900">{openSessions || 0}</p>
             </div>
@@ -554,7 +562,7 @@ const AdminHome: React.FC = () => {
           const gColor = isBranchAdmin && group.branchColor ? group.branchColor : group.color;
           return (
             <div key={group.title} className={`rounded-xl border ${gColor.border} ${gColor.bg} p-3 space-y-2`}>
-              <h3 className={`text-xs font-bold ${gColor.title} px-1`}>{group.title}</h3>
+              <h3 className={`text-xs font-bold ${gColor.title} px-1`}>{group.tKey ? t(group.tKey) : group.title}</h3>
               <div className={`grid ${cols} gap-2`}>
                 {group.items.map((item) => {
                   const ic = itemColors[item.path] || defaultItemColor;
@@ -586,10 +594,10 @@ const AdminHome: React.FC = () => {
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold text-foreground">Laser Food</h2>
           <p className="text-sm text-muted-foreground">
-            استخدم الشريط الجانبي للتنقل بين الأقسام
+            {t('admin_home.use_sidebar_hint')}
           </p>
           {activeBranch?.name && (
-            <p className="text-xs text-muted-foreground">الفرع الحالي: {activeBranch.name}</p>
+            <p className="text-xs text-muted-foreground">{t('admin_home.current_branch')}: {activeBranch.name}</p>
           )}
         </div>
       </div>
