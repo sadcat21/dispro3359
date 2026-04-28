@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
-import { Truck, ChevronDown, ChevronUp, Package, Edit, Loader2, Send, AlertTriangle, CheckCircle2, Lock, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Truck, ChevronDown, ChevronUp, Package, Edit, Loader2, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useManagerConfirmations } from '@/hooks/useManagerConfirmations';
 import { StockConfirmation, StockConfirmationItem } from '@/hooks/useStockConfirmations';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { useWarehouseStock } from '@/hooks/useWarehouseStock';
+import ProductPickerDialog from './ProductPickerDialog';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
