@@ -523,28 +523,28 @@ const AdminHome: React.FC = () => {
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
               <div className="flex items-center gap-2 text-amber-700">
                 <TimerReset className="h-4 w-4" />
-                <span className="text-xs font-semibold">مهام متأخرة</span>
+                <span className="text-xs font-semibold">{t('admin_home.overdue_tasks')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-amber-900">{overdueTasksCount}</p>
             </div>
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
               <div className="flex items-center gap-2 text-emerald-700">
                 <UserCheck className="h-4 w-4" />
-                <span className="text-xs font-semibold">حسابات بانتظار المراجعة</span>
+                <span className="text-xs font-semibold">{t('admin_home.accounts_pending_review')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-emerald-900">{operationalSnapshot?.pendingAccountsCount || 0}</p>
             </div>
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3">
               <div className="flex items-center gap-2 text-rose-700">
                 <Banknote className="h-4 w-4" />
-                <span className="text-xs font-semibold">ديون نشطة</span>
+                <span className="text-xs font-semibold">{t('admin_home.active_debts')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-rose-900">{activeDebts?.count || 0}</p>
             </div>
             <div className="rounded-2xl border border-violet-200 bg-violet-50 p-3">
               <div className="flex items-center gap-2 text-violet-700">
                 <Calculator className="h-4 w-4" />
-                <span className="text-xs font-semibold">جلسات محاسبة مفتوحة</span>
+                <span className="text-xs font-semibold">{t('admin_home.open_accounting_sessions')}</span>
               </div>
               <p className="mt-2 text-lg font-bold text-violet-900">{openSessions || 0}</p>
             </div>
