@@ -439,7 +439,7 @@ const Branches: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('customers.confirm_delete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('branches.confirm_delete')} "{branchToDelete?.name}"؟
+              {t('branches.confirm_delete_q')} "{branchToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2">

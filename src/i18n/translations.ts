@@ -1909,4 +1909,52 @@ export const translations: Translations = {
   'tooltip.today_customers': { ar: 'عملاء اليوم', fr: 'Clients du jour', en: "Today's customers" },
   'tooltip.invoice_request': { ar: 'طلب فاتورة', fr: 'Demande de facture', en: 'Invoice request' },
   'tooltip.back': { ar: 'رجوع', fr: 'Retour', en: 'Back' },
+
+  // ==================== Settings Tabs ====================
+  'settings.tab.general': { ar: 'عام', fr: 'Général', en: 'General' },
+  'settings.tab.tools': { ar: 'أدوات', fr: 'Outils', en: 'Tools' },
+  'settings.tab.advanced': { ar: 'متقدم', fr: 'Avancé', en: 'Advanced' },
+  'settings.tab.data': { ar: 'البيانات', fr: 'Données', en: 'Data' },
+  'settings.tab.info': { ar: 'حول', fr: 'À propos', en: 'About' },
+
+  // ==================== Workers extras ====================
+  'workers.warehouse_manager': { ar: 'مسؤول المخزن', fr: 'Responsable entrepôt', en: 'Warehouse Manager' },
+  'workers.quick_role_setup': { ar: 'إعداد سريع للأدوار', fr: 'Configuration rapide des rôles', en: 'Quick role setup' },
+  'workers.role.warehouse_manager': { ar: 'مسؤول المخزن', fr: 'Responsable entrepôt', en: 'Warehouse Manager' },
+  'workers.role.sales_rep': { ar: '💼 مندوب مبيعات', fr: '💼 Commercial', en: '💼 Sales Rep' },
+  'workers.role.delivery_rep': { ar: '🚚 مندوب توصيل', fr: '🚚 Livreur', en: '🚚 Delivery Rep' },
+  'workers.login_credentials': { ar: 'بيانات الدخول', fr: 'Identifiants de connexion', en: 'Login Credentials' },
+  'workers.field.role_type': { ar: 'الصفة', fr: 'Type', en: 'Role Type' },
+  'workers.field.custom_role': { ar: 'الدور المخصص', fr: 'Rôle personnalisé', en: 'Custom Role' },
+  'workers.field.branch': { ar: 'الفرع', fr: 'Succursale', en: 'Branch' },
+
+  // ==================== Accounting extras ====================
+  
+  'accounting.my_review': { ar: 'مراجعتي', fr: 'Ma révision', en: 'My Review' },
+  'accounting.financial_summary': { ar: 'ملخص مالي', fr: 'Résumé financier', en: 'Financial Summary' },
+  'accounting.surplus': { ar: 'فائض', fr: 'Surplus', en: 'Surplus' },
+  'accounting.deficit': { ar: 'عجز', fr: 'Déficit', en: 'Deficit' },
+  'accounting.currency_dzd': { ar: 'د.ج', fr: 'DA', en: 'DZD' },
+
+  // ==================== Customer Debts ====================
+  'debts.no_date': { ar: 'بدون تاريخ', fr: 'Sans date', en: 'No date' },
+  'debts.select_customer_required': { ar: 'يرجى اختيار العميل', fr: 'Veuillez sélectionner le client', en: 'Please select a customer' },
+  'debts.user_not_identified': { ar: 'تعذر تحديد المستخدم الحالي', fr: "Impossible d'identifier l'utilisateur actuel", en: 'Unable to identify current user' },
+  'debts.amount_required': { ar: 'يرجى إدخال مبلغ صحيح', fr: 'Veuillez saisir un montant valide', en: 'Please enter a valid amount' },
+  'debts.default_note': { ar: 'دين سابق مضاف يدويًا', fr: 'Ancienne dette ajoutée manuellement', en: 'Previous debt manually added' },
+  'debts.added_success': { ar: 'تمت إضافة الدين بنجاح', fr: 'Dette ajoutée avec succès', en: 'Debt added successfully' },
+  'debts.add_failed': { ar: 'تعذر إضافة الدين', fr: "Impossible d'ajouter la dette", en: 'Failed to add debt' },
+  'debts.new_debt': { ar: 'دين جديد', fr: 'Nouvelle dette', en: 'New Debt' },
+  'debts.search_placeholder': { ar: 'ابحث بالاسم أو المحل أو الهاتف أو المنطقة...', fr: 'Rechercher par nom, magasin, téléphone ou zone...', en: 'Search by name, store, phone or area...' },
+  'debts.all_workers': { ar: 'كل العمال', fr: 'Tous les employés', en: 'All Workers' },
+  'debts.add_previous_debt': { ar: 'إضافة دين سابق', fr: 'Ajouter une ancienne dette', en: 'Add Previous Debt' },
+  'debts.amount_label': { ar: 'مبلغ الدين', fr: 'Montant de la dette', en: 'Debt Amount' },
+  'debts.due_date_label': { ar: 'تاريخ الاستحقاق', fr: "Date d'échéance", en: 'Due Date' },
+  'debts.notes_label': { ar: 'ملاحظات', fr: 'Notes', en: 'Notes' },
+  'debts.notes_placeholder': { ar: 'دين سابق بدون تفاصيل منتجات أو كميات', fr: 'Ancienne dette sans détails de produits ou quantités', en: 'Previous debt without product or quantity details' },
+  'debts.adding': { ar: 'جارٍ الإضافة...', fr: 'Ajout en cours...', en: 'Adding...' },
+  'debts.save_debt': { ar: 'حفظ الدين', fr: 'Enregistrer la dette', en: 'Save Debt' },
+
+  // ==================== Branches extras ====================
+  'branches.confirm_delete_q': { ar: 'هل أنت متأكد من حذف الفرع', fr: 'Êtes-vous sûr de vouloir supprimer la succursale', en: 'Are you sure you want to delete branch' },
 };

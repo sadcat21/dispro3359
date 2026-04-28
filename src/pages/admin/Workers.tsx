@@ -61,7 +61,7 @@ const Workers: React.FC = () => {
     project_manager: t('workers.project_manager'),
     accountant: t('workers.accountant'),
     admin_assistant: t('workers.admin_assistant'),
-    warehouse_manager: t('workers.warehouse_manager') || 'مسؤول المخزن',
+    warehouse_manager: t('workers.warehouse_manager'),
   };
 
   const ALL_ROLES: AppRole[] = ['worker', 'branch_admin', 'supervisor', 'admin'];
@@ -610,7 +610,7 @@ const Workers: React.FC = () => {
               
               {/* Quick role presets */}
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">إعداد سريع للأدوار</Label>
+                <Label className="text-xs text-muted-foreground">{t('workers.quick_role_setup')}</Label>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -625,7 +625,7 @@ const Workers: React.FC = () => {
                     }}
                   >
                     <Warehouse className="w-4 h-4 ml-1" />
-                    مسؤول المخزن
+                    {t('workers.role.warehouse_manager')}
                   </Button>
                   <Button
                     type="button"
@@ -639,7 +639,7 @@ const Workers: React.FC = () => {
                       }
                     }}
                   >
-                    💼 مندوب مبيعات
+                    {t('workers.role.sales_rep')}
                   </Button>
                   <Button
                     type="button"
@@ -653,7 +653,7 @@ const Workers: React.FC = () => {
                       }
                     }}
                   >
-                    🚚 مندوب توصيل
+                    {t('workers.role.delivery_rep')}
                   </Button>
                 </div>
               </div>
@@ -755,7 +755,7 @@ const Workers: React.FC = () => {
                     onClick={() => openEditProfileDialog(worker)}
                   >
                     <KeyRound className="w-4 h-4 ml-2" />
-                    بيانات الدخول
+                    {t('workers.login_credentials')}
                   </Button>
                 </div>
                 <div className="flex flex-col items-end gap-2">
