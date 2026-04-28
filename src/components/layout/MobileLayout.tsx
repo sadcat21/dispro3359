@@ -455,7 +455,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   title="تلقائي"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'system' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
-                  <Monitor className="w-3.5 h-3.5" />
+                  <SunMoon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setForceMobileView((v) => !v)}
