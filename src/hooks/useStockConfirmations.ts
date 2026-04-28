@@ -27,6 +27,8 @@ export interface StockConfirmation {
   rejection_note: string | null;
   amendment_note: string | null;
   parent_confirmation_id: string | null;
+  frozen_at: string | null;
+  frozen_by: string | null;
   created_at: string;
   responded_at: string | null;
   updated_at: string;
