@@ -1167,8 +1167,8 @@ const LoadStock: React.FC = () => {
       if (sessionError) throw sessionError;
 
       const sessionItemRows: any[] = [];
-      const workerStockUpdates: Promise<any>[] = [];
-      const warehouseUpserts: Promise<any>[] = [];
+      const workerStockUpdates: any[] = [];
+      const warehouseUpserts: any[] = [];
       const movementRows: any[] = [];
 
       for (const item of itemsToReturn) {
