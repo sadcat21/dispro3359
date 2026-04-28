@@ -9,6 +9,7 @@ import {
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
   CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database
 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -574,50 +575,23 @@ const AdminHome: React.FC = () => {
         })}
       </div>
 
-      {/* Desktop: Collapsible accordion list — group title is the header, items appear inside */}
-      <div className="hidden md:block">
-        <Accordion
-          type="multiple"
-          defaultValue={groups.map((g) => g.title)}
-          className="space-y-2"
-        >
-          {groups.map((group) => {
-            if (group.items.length === 0) return null;
-            const gColor = isBranchAdmin && group.branchColor ? group.branchColor : group.color;
-            return (
-              <AccordionItem
-                key={group.title}
-                value={group.title}
-                className={`rounded-xl border ${gColor.border} ${gColor.bg} px-3`}
-              >
-                <AccordionTrigger className={`text-sm font-bold ${gColor.title} hover:no-underline py-3`}>
-                  {group.title}
-                  <span className="ms-auto me-2 text-xs font-normal opacity-70">
-                    {group.items.length} عنصر
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="pb-3">
-                  <div className="flex flex-col gap-1">
-                    {group.items.map((item) => {
-                      const ic = itemColors[item.path] || defaultItemColor;
-                      return (
-                        <button
-                          key={item.path}
-                          type="button"
-                          onClick={() => item.action ? item.action() : navigate(item.path)}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg border bg-card ${ic.border} hover:shadow-sm hover:bg-accent/50 transition-all text-start`}
-                        >
-                          <item.icon className={`w-4 h-4 shrink-0 ${ic.icon}`} />
-                          <span className="text-sm font-medium text-foreground">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            );
-          })}
-        </Accordion>
+      {/* Desktop: Sidebar already shows the navigation — fill space with brand logo */}
+      <div className="hidden md:flex flex-col items-center justify-center min-h-[60vh] gap-6 select-none">
+        <img
+          src={logo}
+          alt="Laser Food Logo"
+          className="w-72 h-72 object-contain drop-shadow-xl"
+          draggable={false}
+        />
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold text-foreground">Laser Food</h2>
+          <p className="text-sm text-muted-foreground">
+            استخدم الشريط الجانبي للتنقل بين الأقسام
+          </p>
+          {activeBranch?.name && (
+            <p className="text-xs text-muted-foreground">الفرع الحالي: {activeBranch.name}</p>
+          )}
+        </div>
       </div>
 
       {/* Dialogs */}
