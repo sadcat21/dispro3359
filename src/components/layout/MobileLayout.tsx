@@ -238,15 +238,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       .map((title) => ({ title, items: buckets.get(title)! }));
   }, [desktopNavItems]);
 
-  // Track which groups are open; default: open the group containing the active route
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  // Track which group is open (only one at a time, accordion behavior)
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   useEffect(() => {
     const activeGroup = sidebarGroups.find((g) =>
       g.items.some((item) => location.pathname === item.path)
     )?.title;
-    if (activeGroup) {
-      setOpenGroups((prev) => (prev[activeGroup] ? prev : { ...prev, [activeGroup]: true }));
-    }
+    if (activeGroup) setOpenGroup(activeGroup);
   }, [location.pathname, sidebarGroups]);
 
   // Close more sheet on route change
