@@ -147,6 +147,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const [forceMobileView, setForceMobileView] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('force_mobile_view') === '1';
+  });
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('force-mobile-view', forceMobileView);
+    localStorage.setItem('force_mobile_view', forceMobileView ? '1' : '0');
+  }, [forceMobileView]);
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
