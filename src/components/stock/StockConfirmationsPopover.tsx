@@ -668,7 +668,9 @@ const StockConfirmationsPopover: React.FC = () => {
                     isLoading={workerHook.isLoading}
                     onApprove={handleApprove}
                     onReject={handleReject}
+                    onToggleFreeze={(id, freeze) => workerHook.setFreeze.mutate({ id, freeze })}
                     isPending={workerHook.approveConfirmation.isPending || workerHook.rejectConfirmation.isPending}
+                    isFreezing={workerHook.setFreeze.isPending}
                   />
                 )}
               </TabsContent>
