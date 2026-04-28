@@ -19,6 +19,8 @@ export interface SectorCoverage {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  approval_status?: 'pending_manager' | 'pending_system' | 'approved' | 'rejected';
+  approval_notes?: string | null;
 }
 
 export const useSectorCoverage = () => {
@@ -84,7 +86,7 @@ export const useSectorCoverage = () => {
       setCoverages(activeCoverages);
 
       const coveragesToReconcile = activeCoverages.filter((coverage) =>
-        isAdminRole(role) || coverage.absent_worker_id === workerId
+        (coverage.approval_status || 'approved') === 'approved' && (isAdminRole(role) || coverage.absent_worker_id === workerId)
       );
 
       await Promise.all(
