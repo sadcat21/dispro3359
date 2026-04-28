@@ -151,10 +151,9 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
         .single();
       if (sessionError) throw sessionError;
 
-      for (const item of validItems) {
+      const sessionItems = validItems.map((item) => {
         const exchangeQtyCustom = piecesToCustomQty(item.damaged_pieces, item.pieces_per_box);
-
-        await supabase.from('loading_session_items').insert({
+        return {
           session_id: session.id,
           product_id: item.product_id,
           quantity: exchangeQtyCustom,
@@ -163,48 +162,32 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
           surplus_quantity: 0,
           is_custom_load: false,
           notes: `استبدال تالف: ${fmtQty(exchangeQtyCustom)}`,
-        });
+        };
+      });
+      const { error: itemsError } = await supabase.from('loading_session_items').insert(sessionItems);
+      if (itemsError) throw itemsError;
 
-        const { data: whStock } = await supabase
-          .from('warehouse_stock')
-          .select('id, quantity, damaged_quantity')
-          .eq('branch_id', branchId)
-          .eq('product_id', item.product_id)
-          .maybeSingle();
+      const confirmationItems = validItems.map((item) => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        quantity: piecesToCustomQty(item.damaged_pieces, item.pieces_per_box),
+        gift_quantity: 0,
+        gift_unit: 'piece',
+        pieces_per_box: item.pieces_per_box,
+      }));
 
-        if (whStock) {
-          const warehouseQtyPieces = customToTotalPieces(Number(whStock.quantity || 0), item.pieces_per_box);
-          const warehouseDamagedPieces = customToTotalPieces(Number(whStock.damaged_quantity || 0), item.pieces_per_box);
-          const newQtyPieces = Math.max(0, warehouseQtyPieces - item.damaged_pieces);
-          const newDamagedPieces = warehouseDamagedPieces + item.damaged_pieces;
+      const { error: confError } = await supabase.from('stock_confirmations').insert({
+        operation_type: 'exchange',
+        worker_id: workerId,
+        manager_id: currentWorkerId!,
+        branch_id: branchId,
+        status: 'pending',
+        items: confirmationItems,
+        source_session_id: session.id,
+      } as any);
+      if (confError) throw confError;
 
-          await supabase
-            .from('warehouse_stock')
-            .update({
-              quantity: totalPiecesToCustom(newQtyPieces, item.pieces_per_box),
-              damaged_quantity: totalPiecesToCustom(newDamagedPieces, item.pieces_per_box),
-            })
-            .eq('id', whStock.id);
-        } else {
-          await supabase.from('warehouse_stock').insert({
-            branch_id: branchId,
-            product_id: item.product_id,
-            quantity: 0,
-            damaged_quantity: exchangeQtyCustom,
-          });
-        }
-
-        await supabase.from('stock_movements').insert({
-          product_id: item.product_id,
-          branch_id: branchId,
-          quantity: exchangeQtyCustom,
-          movement_type: 'exchange',
-          status: 'approved',
-          created_by: currentWorkerId,
-          worker_id: workerId,
-          notes: `استبدال تالف - ${item.product_name}`,
-        });
-      }
+      await supabase.from('loading_sessions').update({ status: 'pending_confirmation' }).eq('id', session.id);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['loading-sessions'] }),
@@ -215,7 +198,7 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
         queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] }),
       ]);
 
-      toast.success(`تم تسجيل استبدال ${validItems.length} منتج تالف بنجاح`);
+      toast.success(`تم إرسال طلب استبدال ${validItems.length} منتج تالف وهو قيد انتظار موافقة ${workerName}`);
       onOpenChange(false);
       await onComplete?.();
     } catch (err: any) {
