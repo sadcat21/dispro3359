@@ -87,6 +87,8 @@ const WorkerHome: React.FC = () => {
   const isWarehouseStockButtonHidden = useIsElementHidden('button', 'home_warehouse_stock');
   const isTodayCustomersHidden = useIsElementHidden('button', 'home_today_customers');
   const isSupervisor = role === 'supervisor';
+  const isSalesRole = activeRole?.custom_role_code === 'sales_rep';
+  const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
 
   const JS_DAY_TO_NAME: Record<number, string> = {
@@ -189,8 +191,9 @@ const WorkerHome: React.FC = () => {
     ['view_orders', 'create_orders', 'page_orders'].includes(p.permission_code)
   );
   const hasDeliveryAccess = permissions.some(p =>
-    ['view_assigned_orders', 'update_order_status'].includes(p.permission_code)
-  );
+    ['page_my_deliveries', 'update_order_status'].includes(p.permission_code)
+    || (isDeliveryRole && p.permission_code === 'view_assigned_orders')
+  ) && !isSalesRole;
   const hasDebtAccess = permissions.some(p =>
     ['page_customer_debts', 'view_customer_debts', 'collect_debts'].includes(p.permission_code)
   );

@@ -18,6 +18,8 @@ export const useNavigation = () => {
   const { data: uiOverrides } = useMyUIOverrides();
   const { data: roleOverrides } = useMyRoleOverrides();
   const { t } = useLanguage();
+  const isSalesRole = activeRole?.custom_role_code === 'sales_rep';
+  const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
 
   const isPageHidden = (path: string) => {
     if (uiOverrides?.some(o => o.element_type === 'page' && o.element_key === path && o.is_hidden)) return true;
@@ -183,7 +185,7 @@ export const useNavigation = () => {
     }
 
     // My Deliveries page - for delivery workers
-    if (hasPermission('view_assigned_orders') || hasPermission('update_order_status')) {
+    if (!isSalesRole && (hasPermission('page_my_deliveries') || hasPermission('update_order_status') || (isDeliveryRole && hasPermission('view_assigned_orders')))) {
       mainItems.push({ path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') });
       moreItems.push({ path: '/my-stock', icon: Package, label: t('stock.my_stock') });
     }
@@ -199,7 +201,7 @@ export const useNavigation = () => {
     }
 
     // Order tracking - for workers with order permissions
-    if (hasPermission('view_orders') || hasPermission('create_orders') || hasPermission('page_orders') || hasPermission('view_assigned_orders')) {
+    if (hasPermission('view_orders') || hasPermission('create_orders') || hasPermission('page_orders') || (!isSalesRole && hasPermission('view_assigned_orders'))) {
       moreItems.push({ path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') });
     }
 
@@ -218,7 +220,7 @@ export const useNavigation = () => {
     moreItems.push({ path: '/guide', icon: BookOpen, label: t('nav.guide') });
 
     return { main: mainItems, more: moreItems };
-  }, [role, activeRole?.custom_role_code, permissions, t]);
+  }, [role, activeRole?.custom_role_code, permissions, t, isSalesRole, isDeliveryRole]);
 
   // Apply UI overrides to filter hidden pages
   const filteredNavItems = useMemo(() => {
