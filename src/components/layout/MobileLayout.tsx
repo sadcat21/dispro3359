@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -147,6 +147,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const [forceMobileView, setForceMobileView] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('force_mobile_view') === '1';
+  });
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('force-mobile-view', forceMobileView);
+    localStorage.setItem('force_mobile_view', forceMobileView ? '1' : '0');
+  }, [forceMobileView]);
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
@@ -429,21 +438,31 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <div className="px-2 py-1.5 flex items-center gap-1">
                 <button
                   onClick={() => setTheme('light')}
+                  title="فاتح"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'light' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Sun className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setTheme('dark')}
+                  title="داكن"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'dark' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Moon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setTheme('system')}
+                  title="تلقائي"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'system' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Monitor className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setForceMobileView((v) => !v)}
+                  title={forceMobileView ? 'عرض الحاسوب' : 'عرض الهاتف'}
+                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors border-l border-border', forceMobileView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                >
+                  {forceMobileView ? <Monitor className="w-3.5 h-3.5" /> : <Smartphone className="w-3.5 h-3.5" />}
                 </button>
               </div>
               <DropdownMenuItem

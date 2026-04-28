@@ -688,3 +688,11 @@
     transform: translateX(50%);
   }
 }
+
+/* Force Mobile View on desktop screens */
+body.force-mobile-view .md\:hidden { display: revert !important; }
+body.force-mobile-view .hidden.md\:flex { display: none !important; }
+body.force-mobile-view .hidden.md\:block { display: none !important; }
+body.force-mobile-view .hidden.md\:grid { display: none !important; }
+body.force-mobile-view .hidden.md\:inline-flex { display: none !important; }
+body.force-mobile-view aside.hidden.md\:flex { display: none !important; }
