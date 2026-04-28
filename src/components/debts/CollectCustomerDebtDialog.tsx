@@ -938,11 +938,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         <DialogContent dir="rtl" className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {editTarget?.kind === 'debt' ? 'تعديل مبلغ الدين' : 'تعديل مبلغ التحصيل'}
+              {editTarget?.kind === 'debt' ? t('debt_collect.edit_debt_amount') : t('debt_collect.edit_collection_amount')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Label>المبلغ الجديد</Label>
+            <Label>{t('debt_collect.new_amount')}</Label>
             <Input
               type="number"
               min="0"
@@ -950,18 +950,18 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
               onChange={(e) => setEditAmountInput(e.target.value)}
             />
             <p className="text-xs text-slate-500">
-              سيتم تحديث رصيد دين العميل تلقائياً.
+              {t('debt_collect.balance_auto_update')}
             </p>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEditTarget(null)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>{t('debt_collect.cancel')}</Button>
             <Button
               disabled={editDebtMutation.isPending || editPaymentMutation.isPending}
               onClick={async () => {
                 if (!editTarget) return;
                 const newAmount = Number(editAmountInput || 0);
                 if (newAmount < 0 || !Number.isFinite(newAmount)) {
-                  toast.error('أدخل مبلغاً صحيحاً');
+                  toast.error(t('debt_collect.invalid_amount_short'));
                   return;
                 }
                 try {
@@ -976,14 +976,14 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       newAmount,
                     });
                   }
-                  toast.success('تم التعديل وتحديث الرصيد');
+                  toast.success(t('debt_collect.edited_success'));
                   setEditTarget(null);
                 } catch (err: any) {
-                  toast.error(err?.message || 'تعذر التعديل');
+                  toast.error(err?.message || t('debt_collect.edit_failed'));
                 }
               }}
             >
-              {(editDebtMutation.isPending || editPaymentMutation.isPending) ? 'جارٍ الحفظ...' : 'حفظ'}
+              {(editDebtMutation.isPending || editPaymentMutation.isPending) ? t('debt_collect.saving') : t('debt_collect.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -993,13 +993,13 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>إلغاء {deleteTarget?.label}</AlertDialogTitle>
+            <AlertDialogTitle>{t('debt_collect.cancel_label')} {deleteTarget?.label}</AlertDialogTitle>
             <AlertDialogDescription>
-              هل تريد حقاً إلغاء هذا السجل؟ سيتم تحديث رصيد دين العميل تلقائياً.
+              {t('debt_collect.confirm_cancel_q')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>تراجع</AlertDialogCancel>
+            <AlertDialogCancel>{t('debt_collect.go_back')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
               onClick={async () => {
@@ -1010,14 +1010,14 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   } else {
                     await deletePaymentMutation.mutateAsync(deleteTarget.id);
                   }
-                  toast.success('تم الإلغاء وتحديث الرصيد');
+                  toast.success(t('debt_collect.cancelled_success'));
                   setDeleteTarget(null);
                 } catch (err: any) {
-                  toast.error(err?.message || 'تعذر الإلغاء');
+                  toast.error(err?.message || t('debt_collect.cancel_failed'));
                 }
               }}
             >
-              تأكيد الإلغاء
+              {t('debt_collect.confirm_cancel')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
