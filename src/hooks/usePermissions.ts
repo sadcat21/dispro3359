@@ -88,17 +88,30 @@ export const useRolesWithPermissions = () => {
 };
 
 export const useWorkerPermissions = () => {
-  const { workerId } = useAuth();
+  const { workerId, activeRole, role } = useAuth();
+  const customRoleCode = activeRole?.custom_role_code || null;
+  const baseRole = activeRole?.role || role || null;
 
   return useQuery({
-    queryKey: ['worker-permissions', workerId],
+    queryKey: ['worker-permissions', workerId, customRoleCode, baseRole],
     queryFn: async () => {
       if (!workerId) return [];
+
+      // إذا كان هناك دور نشط محدد، نجلب صلاحيات هذا الدور فقط
+      // وإلا نعود إلى السلوك القديم (كل الصلاحيات)
+      if (customRoleCode || baseRole) {
+        const { data, error } = await (supabase.rpc as any)('get_worker_permissions_for_role', {
+          p_worker_id: workerId,
+          p_custom_role_code: customRoleCode,
+          p_base_role: baseRole,
+        });
+        if (error) throw error;
+        return data as { permission_code: string; permission_name: string; category: string; resource: string }[];
+      }
 
       const { data, error } = await supabase.rpc('get_worker_permissions', {
         p_worker_id: workerId,
       });
-
       if (error) throw error;
       return data as { permission_code: string; permission_name: string; category: string; resource: string }[];
     },
