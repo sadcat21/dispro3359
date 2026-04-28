@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { CustomerDebtWithDetails } from '@/types/accounting';
 import { OrderWithDetails } from '@/types/database';
 import {
@@ -78,30 +79,31 @@ const toNumber = (value: unknown) => {
 
 const formatMoney = (value: number) => `${value.toLocaleString()} DA`;
 
-const formatDateOnly = (value?: string | null) => {
-  if (!value) return 'بدون تاريخ';
+const formatDateOnly = (value?: string | null, t?: (k: string) => string) => {
+  if (!value) return t ? t('debt_collect.no_date') : 'No date';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
   return date.toLocaleDateString('fr-FR');
 };
 
-const paymentMethodLabel = (value?: string | null) => {
+const paymentMethodLabel = (value?: string | null, t?: (k: string) => string) => {
+  const tr = t || ((k: string) => k);
   switch (String(value || '').toLowerCase()) {
     case 'cash':
     case 'versement_cash':
-      return 'كاش';
+      return tr('debt_collect.method_cash');
     case 'check':
-      return 'شيك';
+      return tr('debt_collect.method_check');
     case 'transfer':
     case 'virement':
-      return 'فيرمو';
+      return tr('debt_collect.method_transfer');
     case 'receipt':
     case 'versement_doc':
       return 'Versement Doc';
     case 'visit':
-      return 'زيارة';
+      return tr('debt_collect.method_visit');
     default:
-      return 'دين';
+      return tr('debt_collect.method_debt');
   }
 };
 
@@ -124,10 +126,10 @@ const paymentMethodFrench = (value?: string | null) => {
   }
 };
 
-const sectionTitle = (tab: DialogTab) => {
-  if (tab === 'visit') return 'زيارة بدون تحصيل';
-  if (tab === 'history') return 'سجل حركة الدين';
-  return 'تحصيل رصيد العميل';
+const sectionTitle = (tab: DialogTab, t: (k: string) => string) => {
+  if (tab === 'visit') return t('debt_collect.title_visit');
+  if (tab === 'history') return t('debt_collect.title_history');
+  return t('debt_collect.title_collect');
 };
 
 const resolveOriginPaymentMethod = (order?: {
@@ -172,6 +174,7 @@ const buildTimeline = (
     created_at?: string | null;
     worker?: { full_name?: string | null } | null;
   }>,
+  t?: (k: string) => string,
 ) => {
   const rawEvents: Array<Omit<TimelineEvent, 'beforeAmount' | 'afterAmount' | 'displayDate'>> = [];
 
@@ -233,7 +236,7 @@ const buildTimeline = (
       kind,
       beforeAmount,
       afterAmount,
-      displayDate: formatDateOnly(event.date),
+      displayDate: formatDateOnly(event.date, t),
     };
   });
 
@@ -250,6 +253,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   initialTab = 'collect',
 }) => {
   const { workerId, user, role } = useAuth();
+  const { t } = useLanguage();
   const isAdmin = isAdminRole(role);
   const collectMutation = useCollectCustomerDebtGroup();
   const visitMutation = useRecordCustomerDebtGroupVisit();
@@ -371,7 +375,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     const linkedOrderId = item.orderId || linkedDebt?.order_id || null;
 
     if (!linkedOrderId) {
-      toast.error('لا توجد طلبية مرتبطة بهذا الدين');
+      toast.error(t('debt_collect.no_order_linked'));
       return;
     }
 
@@ -409,7 +413,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   );
   const printablePaidTotal = Math.max(0, printableDebtTotal - printableRemainingTotal);
 
-  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any), [debtOrderStatusById, debts, payments]);
+  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any, t), [debtOrderStatusById, debts, payments, t]);
   const filteredTimeline = useMemo(
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
@@ -427,12 +431,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
   const handleCollect = async () => {
     if (!workerId) {
-      toast.error('تعذر تحديد العامل الحالي');
+      toast.error(t('debt_collect.worker_not_identified'));
       return;
     }
 
     if (numericAmount <= 0) {
-      toast.error('أدخل مبلغ تحصيل صحيح');
+      toast.error(t('debt_collect.invalid_amount'));
       return;
     }
 
@@ -445,16 +449,16 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         notes: notes || undefined,
         nextDueDate: nextDueDate || undefined,
       });
-      toast.success('تم تسجيل التحصيل');
+      toast.success(t('debt_collect.collected_success'));
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر تسجيل التحصيل');
+      toast.error(error?.message || t('debt_collect.collect_failed'));
     }
   };
 
   const handleVisit = async () => {
     if (!workerId) {
-      toast.error('تعذر تحديد العامل الحالي');
+      toast.error(t('debt_collect.worker_not_identified'));
       return;
     }
 
@@ -466,10 +470,10 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         nextDueDate: visitNextDueDate || undefined,
         visitType,
       });
-      toast.success('تم تسجيل الزيارة');
+      toast.success(t('debt_collect.visit_recorded'));
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر تسجيل الزيارة');
+      toast.error(error?.message || t('debt_collect.visit_failed'));
     }
   };
 
@@ -481,9 +485,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         collectionAmount: collectionAmount ? toNumber(collectionAmount) : null,
         collectionDays,
       });
-      toast.success('تم تحديث جدول التحصيل');
+      toast.success(t('debt_collect.schedule_updated'));
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر تحديث الجدول');
+      toast.error(error?.message || t('debt_collect.schedule_failed'));
     }
   };
 
@@ -526,7 +530,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     <div className="rounded-2xl border border-red-200 bg-red-50/40 p-4 space-y-4">
       <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
         <CalendarClock className="h-4 w-4 text-red-500" />
-        جدول التحصيل
+        {t('debt_collect.schedule_title')}
       </div>
 
       <Select value={collectionType} onValueChange={(value) => setCollectionType(value as 'none' | 'daily' | 'weekly')}>
@@ -534,9 +538,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="none">بدون جدولة</SelectItem>
-          <SelectItem value="daily">تحصيل يومي</SelectItem>
-          <SelectItem value="weekly">تحصيل أسبوعي</SelectItem>
+          <SelectItem value="none">{t('debt_collect.no_schedule')}</SelectItem>
+          <SelectItem value="daily">{t('debt_collect.daily')}</SelectItem>
+          <SelectItem value="weekly">{t('debt_collect.weekly')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -545,7 +549,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         min="0"
         value={collectionAmount}
         onChange={(e) => setCollectionAmount(e.target.value)}
-        placeholder="مبلغ التحصيل الدوري"
+        placeholder={t('debt_collect.periodic_amount')}
       />
 
       {collectionType === 'weekly' && (
@@ -564,7 +568,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         onClick={handleSaveSchedule}
         disabled={scheduleMutation.isPending}
       >
-        {scheduleMutation.isPending ? 'جارٍ الحفظ...' : 'حفظ جدول التحصيل'}
+        {scheduleMutation.isPending ? t('debt_collect.saving') : t('debt_collect.save_schedule')}
       </Button>
     </div>
   );
@@ -576,7 +580,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
           dir="rtl"
           className="max-w-[96vw] sm:max-w-xl p-0 overflow-hidden [&>button]:hidden"
         >
-          <DialogTitle className="sr-only">{sectionTitle(activeTab)}</DialogTitle>
+          <DialogTitle className="sr-only">{sectionTitle(activeTab, t)}</DialogTitle>
 
           <div className="relative border-b border-red-100 bg-white px-5 pb-4 pt-5">
             <Button
@@ -591,7 +595,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
             <div className="pr-10 text-right">
               <p className="text-lg font-black text-slate-900">{customerName}</p>
-              <p className="mt-1 text-sm text-slate-500">{sectionTitle(activeTab)}</p>
+              <p className="mt-1 text-sm text-slate-500">{sectionTitle(activeTab, t)}</p>
               <p className="mt-2 text-3xl font-black text-destructive" dir="ltr">
                 {formatMoney(totalRemaining)}
               </p>
@@ -604,11 +608,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-2xl border bg-white p-4 text-center">
-                      <div className="text-xs text-slate-500">إجمالي الدين</div>
+                      <div className="text-xs text-slate-500">{t('debt_collect.total_debt')}</div>
                       <div className="mt-2 text-xl font-black" dir="ltr">{formatMoney(totalDebt)}</div>
                     </div>
                     <div className="rounded-2xl border bg-white p-4 text-center">
-                      <div className="text-xs text-slate-500">المتبقي بعد التحصيل</div>
+                      <div className="text-xs text-slate-500">{t('debt_collect.remaining_after')}</div>
                       <div className="mt-2 text-xl font-black text-emerald-600" dir="ltr">
                         {formatMoney(Math.max(0, totalRemaining - numericAmount))}
                       </div>
@@ -617,7 +621,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                   <div className="space-y-3 rounded-2xl border bg-white p-4">
                     <div className="space-y-2">
-                      <Label>المبلغ المحصل</Label>
+                      <Label>{t('debt_collect.collected_amount')}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -629,33 +633,33 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                     <div className="grid grid-cols-2 gap-2">
                       <Button type="button" variant="outline" onClick={() => setAmount(String(totalRemaining))}>
-                        دفع كامل
+                        {t('debt_collect.full_payment')}
                       </Button>
                       <Button type="button" variant="outline" onClick={() => setAmount(String(Math.round(totalRemaining / 2)))}>
-                        نصف المبلغ
+                        {t('debt_collect.half_payment')}
                       </Button>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>طريقة الدفع</Label>
+                      <Label>{t('debt_collect.payment_method')}</Label>
                       <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">كاش</SelectItem>
-                          <SelectItem value="check">شيك</SelectItem>
+                          <SelectItem value="cash">{t('debt_collect.method_cash')}</SelectItem>
+                          <SelectItem value="check">{t('debt_collect.method_check')}</SelectItem>
                           <SelectItem value="receipt">Versement Doc</SelectItem>
-                          <SelectItem value="transfer">فيرمو</SelectItem>
+                          <SelectItem value="transfer">{t('debt_collect.method_transfer')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-slate-500">
-                        الطريقة الأصلية المرتبطة بالدين: {paymentMethodLabel(paymentMethod)}
+                        {t('debt_collect.original_method')}: {paymentMethodLabel(paymentMethod, t)}
                       </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>الموعد القادم للتحصيل</Label>
+                      <Label>{t('debt_collect.next_collect_date')}</Label>
                       <Input
                         type="date"
                         value={nextDueDate}
@@ -664,12 +668,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>ملاحظات</Label>
+                      <Label>{t('debt_collect.notes')}</Label>
                       <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
                     </div>
 
                     <Button className="w-full" onClick={handleCollect} disabled={collectMutation.isPending}>
-                      {collectMutation.isPending ? 'جارٍ التأكيد...' : 'تأكيد التحصيل'}
+                      {collectMutation.isPending ? t('debt_collect.confirming') : t('debt_collect.confirm_collection')}
                     </Button>
                   </div>
 
@@ -681,20 +685,20 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                 <>
                   <div className="space-y-3 rounded-2xl border bg-white p-4">
                     <div className="space-y-2">
-                      <Label>نوع الزيارة</Label>
+                      <Label>{t('debt_collect.visit_type')}</Label>
                       <Select value={visitType} onValueChange={(value) => setVisitType(value as 'in_person' | 'phone')}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="in_person">زيارة ميدانية</SelectItem>
-                          <SelectItem value="phone">اتصال هاتفي</SelectItem>
+                          <SelectItem value="in_person">{t('debt_collect.visit_in_person')}</SelectItem>
+                          <SelectItem value="phone">{t('debt_collect.visit_phone')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>الموعد القادم للتحصيل</Label>
+                      <Label>{t('debt_collect.next_collect_date')}</Label>
                       <Input
                         type="date"
                         value={visitNextDueDate}
@@ -703,12 +707,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>ملاحظات الزيارة</Label>
+                      <Label>{t('debt_collect.visit_notes')}</Label>
                       <Textarea value={visitNotes} onChange={(e) => setVisitNotes(e.target.value)} />
                     </div>
 
                     <Button className="w-full" onClick={handleVisit} disabled={visitMutation.isPending}>
-                      {visitMutation.isPending ? 'جارٍ التسجيل...' : 'تسجيل زيارة بدون تحصيل'}
+                      {visitMutation.isPending ? t('debt_collect.recording') : t('debt_collect.record_visit')}
                     </Button>
                   </div>
 
@@ -730,13 +734,13 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                         <Printer className="h-4 w-4" />
                       </Button>
                       <div className="text-right">
-                        <div className="text-sm font-bold">حركة الدين</div>
-                        <div className="text-xs text-slate-500">تاريخ الحركة فقط</div>
+                        <div className="text-sm font-bold">{t('debt_collect.movement')}</div>
+                        <div className="text-xs text-slate-500">{t('debt_collect.date_only')}</div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="show-visits" className="text-sm">إظهار الزيارات</Label>
+                      <Label htmlFor="show-visits" className="text-sm">{t('debt_collect.show_visits')}</Label>
                       <Switch
                         id="show-visits"
                         checked={showVisitsInTimeline}
@@ -751,7 +755,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </div>
                   ) : timelineSections.length === 0 ? (
                     <div className="rounded-2xl border bg-white p-8 text-center text-sm text-slate-500">
-                      لا توجد حركات دين لهذا العميل
+                      {t('debt_collect.no_movements')}
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -800,18 +804,18 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                           isVisit ? 'text-slate-700' : isCancelledDebt ? 'text-slate-400 line-through' : isDebt ? 'text-destructive' : 'text-emerald-700'
                                         }`}>
                                           {isVisit
-                                            ? 'زيارة بدون تحصيل'
+                                            ? t('debt_collect.visit_no_collect')
                                             : isCancelledDebt
-                                              ? 'دين جديد'
+                                              ? t('debt_collect.new_debt')
                                             : item.kind === 'full'
-                                              ? 'تحصيل كلي'
+                                              ? t('debt_collect.full_collect')
                                               : item.kind === 'partial'
-                                                ? 'تحصيل جزئي'
-                                                : 'دين جديد'}
+                                                ? t('debt_collect.partial_collect')
+                                                : t('debt_collect.new_debt')}
                                         </span>
                                         {isCancelledDebt && (
                                           <Badge variant="destructive" className="rounded-full text-[10px]">
-                                            ملغاة - تم إلغاء الطلبية المرتبطة
+                                            {t('debt_collect.cancelled_order')}
                                           </Badge>
                                         )}
                                         <Badge variant="outline" className="rounded-full">
@@ -821,7 +825,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                                       <div className="mt-3 grid grid-cols-3 gap-3 text-center">
                                         <div className="rounded-xl bg-white/80 px-3 py-2">
-                                          <div className="text-[11px] text-slate-500">القيمة</div>
+                                          <div className="text-[11px] text-slate-500">{t('debt_collect.value')}</div>
                                           <div className={`mt-1 text-sm font-black ${
                                             isVisit ? 'text-slate-700' : isDebt ? 'text-destructive' : 'text-emerald-700'
                                           }`} dir="ltr">
@@ -829,15 +833,15 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                           </div>
                                         </div>
                                         <div className="rounded-xl bg-white/80 px-3 py-2">
-                                          <div className="text-[11px] text-slate-500">الدين الجديد</div>
+                                          <div className="text-[11px] text-slate-500">{t('debt_collect.new_debt_amount')}</div>
                                           <div className="mt-1 text-sm font-black text-slate-900" dir="ltr">
                                             {formatMoney(item.afterAmount)}
                                           </div>
                                         </div>
                                         <div className="rounded-xl bg-white/80 px-3 py-2">
-                                          <div className="text-[11px] text-slate-500">الطريقة</div>
+                                          <div className="text-[11px] text-slate-500">{t('debt_collect.method')}</div>
                                           <div className="mt-1 text-sm font-black text-slate-900">
-                                            {paymentMethodLabel(item.paymentMethod)}
+                                            {paymentMethodLabel(item.paymentMethod, t)}
                                           </div>
                                         </div>
                                       </div>
@@ -851,7 +855,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                       {canOpenOrder ? (
                                         <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
                                           <Eye className="h-3.5 w-3.5" />
-                                          {isCancelledDebt ? 'اضغط لفتح تفاصيل الطلبية' : 'اضغط لفتح تفاصيل الطلبية'}
+                                          {t('debt_collect.click_open_order')}
                                         </div>
                                       ) : null}
                                     </div>
@@ -894,7 +898,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                         setDeleteTarget({
                                           kind: itemKind!,
                                           id: underlyingId!,
-                                          label: itemKind === 'debt' ? 'الدين' : 'التحصيل',
+                                          label: itemKind === 'debt' ? t('debt_collect.label_debt') : t('debt_collect.label_collection'),
                                         });
                                       }}
                                     >
@@ -935,11 +939,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         <DialogContent dir="rtl" className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {editTarget?.kind === 'debt' ? 'تعديل مبلغ الدين' : 'تعديل مبلغ التحصيل'}
+              {editTarget?.kind === 'debt' ? t('debt_collect.edit_debt_amount') : t('debt_collect.edit_collection_amount')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Label>المبلغ الجديد</Label>
+            <Label>{t('debt_collect.new_amount')}</Label>
             <Input
               type="number"
               min="0"
@@ -947,18 +951,18 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
               onChange={(e) => setEditAmountInput(e.target.value)}
             />
             <p className="text-xs text-slate-500">
-              سيتم تحديث رصيد دين العميل تلقائياً.
+              {t('debt_collect.balance_auto_update')}
             </p>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEditTarget(null)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>{t('debt_collect.cancel')}</Button>
             <Button
               disabled={editDebtMutation.isPending || editPaymentMutation.isPending}
               onClick={async () => {
                 if (!editTarget) return;
                 const newAmount = Number(editAmountInput || 0);
                 if (newAmount < 0 || !Number.isFinite(newAmount)) {
-                  toast.error('أدخل مبلغاً صحيحاً');
+                  toast.error(t('debt_collect.invalid_amount_short'));
                   return;
                 }
                 try {
@@ -973,14 +977,14 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       newAmount,
                     });
                   }
-                  toast.success('تم التعديل وتحديث الرصيد');
+                  toast.success(t('debt_collect.edited_success'));
                   setEditTarget(null);
                 } catch (err: any) {
-                  toast.error(err?.message || 'تعذر التعديل');
+                  toast.error(err?.message || t('debt_collect.edit_failed'));
                 }
               }}
             >
-              {(editDebtMutation.isPending || editPaymentMutation.isPending) ? 'جارٍ الحفظ...' : 'حفظ'}
+              {(editDebtMutation.isPending || editPaymentMutation.isPending) ? t('debt_collect.saving') : t('debt_collect.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -990,13 +994,13 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>إلغاء {deleteTarget?.label}</AlertDialogTitle>
+            <AlertDialogTitle>{t('debt_collect.cancel_label')} {deleteTarget?.label}</AlertDialogTitle>
             <AlertDialogDescription>
-              هل تريد حقاً إلغاء هذا السجل؟ سيتم تحديث رصيد دين العميل تلقائياً.
+              {t('debt_collect.confirm_cancel_q')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>تراجع</AlertDialogCancel>
+            <AlertDialogCancel>{t('debt_collect.go_back')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
               onClick={async () => {
@@ -1007,14 +1011,14 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   } else {
                     await deletePaymentMutation.mutateAsync(deleteTarget.id);
                   }
-                  toast.success('تم الإلغاء وتحديث الرصيد');
+                  toast.success(t('debt_collect.cancelled_success'));
                   setDeleteTarget(null);
                 } catch (err: any) {
-                  toast.error(err?.message || 'تعذر الإلغاء');
+                  toast.error(err?.message || t('debt_collect.cancel_failed'));
                 }
               }}
             >
-              تأكيد الإلغاء
+              {t('debt_collect.confirm_cancel')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
