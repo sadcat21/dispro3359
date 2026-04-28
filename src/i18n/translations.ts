@@ -2100,4 +2100,18 @@ export const translations: Translations = {
   'admin_home.item.backup': { ar: 'النسخ الاحتياطي', fr: 'Sauvegarde', en: 'Backup' },
   'admin_home.item.training': { ar: 'التدريب على التطبيق', fr: 'Formation à l\'application', en: 'App training' },
   'admin_home.item.components_reference': { ar: 'مرجع النوافذ', fr: 'Référence des fenêtres', en: 'Components reference' },
+
+  // ==================== Worker Home ====================
+  'worker_home.depot_sale': { ar: 'بيع مخزن', fr: 'Vente Dépôt', en: 'Depot Sale' },
+  'worker_home.stock_management': { ar: 'إدارة المخزن', fr: 'Gestion du stock', en: 'Stock Management' },
+  'worker_home.load_worker': { ar: 'شحن العامل', fr: 'Charger employé', en: 'Load worker' },
+  'worker_home.order_tracking': { ar: 'تتبع الطلبات', fr: 'Suivi des commandes', en: 'Order tracking' },
+  'worker_home.my_order_tracking': { ar: 'تتبع طلباتي', fr: 'Suivi de mes commandes', en: 'My orders tracking' },
+  'worker_home.today_achievements': { ar: 'منجزات اليوم', fr: 'Réalisations du jour', en: 'Today\'s achievements' },
+  'worker_home.branch_stock': { ar: 'مخزون الفرع', fr: 'Stock de la filiale', en: 'Branch stock' },
+  'worker_home.factory_receipt': { ar: 'استلام من المصنع', fr: 'Réception de l\'usine', en: 'Factory receipt' },
+  'worker_home.factory_delivery': { ar: 'تسليم للمصنع', fr: 'Livraison à l\'usine', en: 'Factory delivery' },
+  'worker_home.stock_review': { ar: 'مراجعة المخزون', fr: 'Révision du stock', en: 'Stock review' },
+  'worker_home.review_days': { ar: 'أيام المراجعة: الأحد، الثلاثاء، الخميس', fr: 'Jours de révision : Dimanche, Mardi, Jeudi', en: 'Review days: Sunday, Tuesday, Thursday' },
+  'worker_home.today_is_review': { ar: '✅ اليوم يوم مراجعة', fr: '✅ Aujourd\'hui est un jour de révision', en: '✅ Today is review day' },
 };
