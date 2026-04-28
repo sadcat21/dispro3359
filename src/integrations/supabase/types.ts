@@ -5135,6 +5135,8 @@ export type Database = {
           amendment_note: string | null
           branch_id: string | null
           created_at: string
+          frozen_at: string | null
+          frozen_by: string | null
           id: string
           items: Json
           manager_id: string
@@ -5152,6 +5154,8 @@ export type Database = {
           amendment_note?: string | null
           branch_id?: string | null
           created_at?: string
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           items?: Json
           manager_id: string
@@ -5169,6 +5173,8 @@ export type Database = {
           amendment_note?: string | null
           branch_id?: string | null
           created_at?: string
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           items?: Json
           manager_id?: string
@@ -5188,6 +5194,20 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_frozen_by_fkey"
+            columns: ["frozen_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_frozen_by_fkey"
+            columns: ["frozen_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
             referencedColumns: ["id"]
           },
           {
