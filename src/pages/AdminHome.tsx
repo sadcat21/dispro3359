@@ -9,6 +9,7 @@ import {
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
   CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database
 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
