@@ -15,6 +15,9 @@ interface WorkerRole {
   role: AppRole;
   branch_id: string | null;
   branch_name: string | null;
+  custom_role_id?: string | null;
+  custom_role_code?: string | null;
+  custom_role_name?: string | null;
 }
 
 interface RoleSelectionDialogProps {
