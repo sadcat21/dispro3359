@@ -168,6 +168,12 @@ const ManagerConfirmationsPanel: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                {isFrozen && (conf.status === 'pending' || conf.status === 'amended') && (
+                  <div className="flex items-start gap-1.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded p-2 text-[10px] text-blue-700 dark:text-blue-300">
+                    <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>العملية مجمّدة من طرف عامل التوصيل. لا يمكن التعديل حتى يقوم بفك التجميد.</span>
+                  </div>
+                )}
                 {canAmend && (
                   <Button
                     size="sm"
