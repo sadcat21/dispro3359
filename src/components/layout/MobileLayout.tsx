@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, SunMoon, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -147,15 +147,27 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const [forceMobileView, setForceMobileView] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('force_mobile_view') === '1';
+  type ViewMode = 'desktop' | 'mobile' | 'auto';
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'auto';
+    const v = localStorage.getItem('view_mode') as ViewMode | null;
+    return v && ['desktop', 'mobile', 'auto'].includes(v) ? v : 'auto';
   });
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    document.body.classList.toggle('force-mobile-view', forceMobileView);
-    localStorage.setItem('force_mobile_view', forceMobileView ? '1' : '0');
-  }, [forceMobileView]);
+    localStorage.setItem('view_mode', viewMode);
+    const apply = () => {
+      let force = false;
+      if (viewMode === 'mobile') force = true;
+      else if (viewMode === 'auto') force = window.matchMedia('(max-width: 767px)').matches;
+      document.body.classList.toggle('force-mobile-view', force);
+    };
+    apply();
+    if (viewMode !== 'auto') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [viewMode]);
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
@@ -457,23 +469,30 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   title="تلقائي"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'system' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
-                  <SunMoon className="w-3.5 h-3.5" />
+                  <Sparkles className="w-3.5 h-3.5" />
                 </button>
               </div>
               <div className="px-2 py-1.5 flex items-center gap-1">
                 <button
-                  onClick={() => setForceMobileView(false)}
+                  onClick={() => setViewMode('desktop')}
                   title="عرض الحاسوب"
-                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', !forceMobileView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', viewMode === 'desktop' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Monitor className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => setForceMobileView(true)}
+                  onClick={() => setViewMode('mobile')}
                   title="عرض الهاتف"
-                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', forceMobileView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', viewMode === 'mobile' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Smartphone className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('auto')}
+                  title="تلقائي حسب الشاشة"
+                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', viewMode === 'auto' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                >
+                  <Wand2 className="w-3.5 h-3.5" />
                 </button>
               </div>
               <DropdownMenuItem
