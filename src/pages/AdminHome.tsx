@@ -290,7 +290,7 @@ const AdminHome: React.FC = () => {
     { key: 'new-request', label: t('admin_home.add_request'), icon: MessageSquareMore, onClick: () => setTaskDialogType('request') },
     { key: 'branches', label: t('admin_home.manage_branches'), icon: Building2, onClick: () => navigate('/branches') },
     { key: 'permissions', label: t('admin_home.permissions'), icon: Shield, onClick: () => navigate('/permissions') },
-    { key: 'worker-roles-mgmt', label: 'إدارة أدوار العمال', icon: Shield, onClick: () => navigate('/worker-roles-management') },
+    { key: 'worker-roles-mgmt', label: t('nav.worker_roles_management'), icon: Shield, onClick: () => navigate('/worker-roles-management') },
     { key: 'stats', label: t('admin_home.reports'), icon: BarChart3, onClick: () => navigate('/stats') },
     { key: 'logs', label: t('admin_home.activity_log'), icon: Activity, onClick: () => navigate('/activity-logs') },
   ];
@@ -384,7 +384,7 @@ const AdminHome: React.FC = () => {
       branchColor: { bg: 'bg-purple-500/10', border: 'border-purple-300', title: 'text-purple-800', iconDefault: 'text-purple-600' },
       items: [
         ...(!isBranchAdmin ? [{ path: '/workers', icon: Users, label: t('nav.workers') }] : []),
-        ...(isAdminRole(role) ? [{ path: '/worker-roles-management', icon: Shield, label: 'إدارة أدوار العمال' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/worker-roles-management', icon: Shield, label: t('nav.worker_roles_management') }] : []),
         ...(!isWorkerActionsHidden ? [{ path: '/worker-actions', icon: Users, label: t('nav.worker_actions') }] : []),
         { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
         { path: '/attendance', icon: CalendarDays, label: t('admin_home.item.attendance') },
