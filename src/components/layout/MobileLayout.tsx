@@ -371,7 +371,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             <button
               onClick={() => navigate(-1)}
               className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label="رجوع"
+              aria-label={t("tooltip.back")}
             >
               {dir === 'rtl' ? (
                 <ArrowRight className="w-4 h-4 text-white" />
@@ -482,21 +482,21 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <div className="px-2 py-1.5 flex items-center gap-1">
                 <button
                   onClick={() => setTheme('light')}
-                  title="فاتح"
+                  title={t("tooltip.theme_light")}
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'light' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Sun className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setTheme('dark')}
-                  title="داكن"
+                  title={t("tooltip.theme_dark")}
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'dark' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Moon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setTheme('system')}
-                  title="تلقائي"
+                  title={t("tooltip.theme_auto")}
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'system' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
@@ -505,21 +505,21 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <div className="px-2 py-1.5 flex items-center gap-1">
                 <button
                   onClick={() => setViewMode('desktop')}
-                  title="عرض الحاسوب"
+                  title={t("tooltip.view_desktop")}
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', viewMode === 'desktop' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Monitor className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setViewMode('mobile')}
-                  title="عرض الهاتف"
+                  title={t("tooltip.view_mobile")}
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', viewMode === 'mobile' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Smartphone className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setViewMode('auto')}
-                  title="تلقائي حسب الشاشة"
+                  title={t("tooltip.view_auto")}
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', viewMode === 'auto' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Wand2 className="w-3.5 h-3.5" />
@@ -725,8 +725,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             <button
               onClick={() => setTodayCustomersOpen(true)}
               className="absolute left-1/2 bottom-3 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-4 border-destructive bg-background text-destructive shadow-xl shadow-destructive/25 transition-transform active:scale-95"
-              title="عملاء اليوم"
-              aria-label="عملاء اليوم"
+              title={t("tooltip.today_customers")}
+              aria-label={t("tooltip.today_customers")}
             >
               <CalendarCheck className="h-7 w-7 text-destructive" />
             </button>
@@ -740,7 +740,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 'relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors',
                 'text-secondary-foreground hover:text-primary'
               )}
-              title="طلب فاتورة"
+              title={t("tooltip.invoice_request")}
             >
               <Receipt className="w-5 h-5" />
               {(pendingInvoiceCount || 0) > 0 && (
