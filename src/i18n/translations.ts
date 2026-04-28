@@ -68,8 +68,6 @@ export const translations: Translations = {
   'worker_roles.delete_failed': { ar: 'فشل الحذف', fr: 'Échec de la suppression', en: 'Delete failed' },
   'worker_roles.select_worker_and_role': { ar: 'اختر عاملاً ودوراً', fr: 'Choisissez un employé et un rôle', en: 'Select a worker and a role' },
   'worker_roles.invalid_role': { ar: 'دور غير صالح', fr: 'Rôle invalide', en: 'Invalid role' },
-  'common.cancel': { ar: 'إلغاء', fr: 'Annuler', en: 'Cancel' },
-  'common.add': { ar: 'إضافة', fr: 'Ajouter', en: 'Add' },
   'nav.activity_logs': { ar: 'سجل النشاط', fr: 'Journal d\'activité', en: 'Activity Logs' },
   'nav.nearby_stores': { ar: 'المتاجر القريبة', fr: 'Magasins à proximité', en: 'Nearby Stores' },
   'nav.customer_accounts': { ar: 'حسابات التجار', fr: 'Comptes clients', en: 'Customer Accounts' },
