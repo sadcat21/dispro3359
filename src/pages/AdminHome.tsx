@@ -562,7 +562,7 @@ const AdminHome: React.FC = () => {
           const gColor = isBranchAdmin && group.branchColor ? group.branchColor : group.color;
           return (
             <div key={group.title} className={`rounded-xl border ${gColor.border} ${gColor.bg} p-3 space-y-2`}>
-              <h3 className={`text-xs font-bold ${gColor.title} px-1`}>{group.title}</h3>
+              <h3 className={`text-xs font-bold ${gColor.title} px-1`}>{group.tKey ? t(group.tKey) : group.title}</h3>
               <div className={`grid ${cols} gap-2`}>
                 {group.items.map((item) => {
                   const ic = itemColors[item.path] || defaultItemColor;
