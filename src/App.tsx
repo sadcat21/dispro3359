@@ -214,6 +214,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/worker-roles-management" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
+          <WorkerRolesManagement />
+        </ProtectedRoute>
+      } />
+
       <Route path="/activity-logs" element={
         <ProtectedRoute adminOnly>
           <ActivityLogs />
