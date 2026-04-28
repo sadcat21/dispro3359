@@ -44,7 +44,7 @@ const DAY_NAMES: Record<string, string> = {
 const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpenChange }) => {
   const { workerId, activeBranch, role } = useAuth();
   const { language } = useLanguage();
-  const { coverages, createCoverage, cancelCoverage, isLoading: coverageLoading } = useSectorCoverage();
+  const { coverages, createCoverage, cancelCoverage, approveCoverage, isLoading: coverageLoading } = useSectorCoverage();
   const { schedules } = useSectorSchedules();
 
   const [tab, setTab] = useState<'create' | 'active'>('active');
@@ -205,7 +205,10 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
           branch_id: activeBranch?.id || undefined,
         });
       }
-      toast.success(`تم إنشاء ${entries.length} تعويض(ات) بنجاح - ${mode === 'merge' ? 'دمج المهام' : 'استبدال المهام'}`);
+      toast.success(role === 'worker'
+        ? `تم إرسال طلب التعويض وهو قيد انتظار موافقة المدير ثم مدير النظام`
+        : `تم إنشاء ${entries.length} تعويض(ات) بنجاح - ${mode === 'merge' ? 'دمج المهام' : 'استبدال المهام'}`
+      );
       setAssignments({});
       setAbsentWorkerId('');
       setReason('');
