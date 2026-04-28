@@ -13,7 +13,7 @@ export interface NavItem {
 }
 
 export const useNavigation = () => {
-  const { role } = useAuth();
+  const { role, activeRole } = useAuth();
   const { data: permissions, isLoading } = useWorkerPermissions();
   const { data: uiOverrides } = useMyUIOverrides();
   const { data: roleOverrides } = useMyRoleOverrides();
@@ -149,6 +149,22 @@ export const useNavigation = () => {
       };
     }
 
+    if (role === 'worker' && activeRole?.custom_role_code === 'warehouse_manager') {
+      return {
+        main: [
+          { path: '/', icon: Home, label: t('nav.home') },
+          { path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' },
+          { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
+        ],
+        more: [
+          { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
+          { path: '/warehouse-review', icon: ClipboardCheck, label: 'مراجعة مخزون الفرع' },
+          { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
+          { path: '/guide', icon: BookOpen, label: t('nav.guide') },
+        ],
+      };
+    }
+
     // Worker - build navigation based on permissions
     const mainItems: NavItem[] = [];
     const moreItems: NavItem[] = [];
@@ -202,7 +218,7 @@ export const useNavigation = () => {
     moreItems.push({ path: '/guide', icon: BookOpen, label: t('nav.guide') });
 
     return { main: mainItems, more: moreItems };
-  }, [role, permissions, t]);
+  }, [role, activeRole?.custom_role_code, permissions, t]);
 
   // Apply UI overrides to filter hidden pages
   const filteredNavItems = useMemo(() => {
