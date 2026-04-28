@@ -157,6 +157,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   }
 
   const isMoreActive = moreNavItems.some(item => location.pathname === item.path);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const desktopNavItems = useMemo(() => {
+    const seen = new Set<string>();
+    return [...mainNavItems, ...moreNavItems].filter((item) => {
+      if (seen.has(item.path)) return false;
+      seen.add(item.path);
+      return true;
+    });
+  }, [mainNavItems, moreNavItems]);
 
   // Close more sheet on route change
   useEffect(() => { setMoreOpen(false); }, [location.pathname]);
@@ -202,7 +211,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   return (
     <div className="h-[100dvh] min-h-[100dvh] bg-background flex flex-col overflow-hidden" dir={dir}>
       {/* Header */}
-      <header className={cn("sticky top-0 z-50 safe-top text-white", isTestBranch ? "bg-green-900" : "bg-purple-900")}>
+      <header className="sticky top-0 z-50 safe-top bg-sidebar text-sidebar-foreground">
         <div className="flex items-center gap-2 px-3 py-2 overflow-x-auto scrollbar-hide">
           {/* Branding icon only */}
           <button
@@ -362,19 +371,82 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main
-        className={cn(
-          'flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y',
-          isLoadStockPage ? 'pb-0' : 'pb-20'
-        )}
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        {children}
-      </main>
+      <div className={cn('flex flex-1 min-h-0 overflow-hidden', dir === 'rtl' ? 'md:flex-row-reverse' : 'md:flex-row')}>
+        {/* Desktop Sidebar */}
+        <aside
+          className={cn(
+            'hidden md:flex shrink-0 flex-col border-border bg-sidebar text-sidebar-foreground transition-all duration-200',
+            dir === 'rtl' ? 'border-l' : 'border-r',
+            sidebarCollapsed ? 'w-16' : 'w-64'
+          )}
+        >
+          <div className="flex items-center gap-2 border-b border-sidebar-border p-3">
+            <button
+              onClick={cycleMode}
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent p-1 transition-colors hover:bg-sidebar-accent/80"
+              title={modeLabel}
+            >
+              <img src={icon} alt="Laser Food" className="h-full w-full object-contain" />
+              <span className={cn('absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-primary-foreground shadow-lg', badgeColorClass)}>
+                {badgeNumber}
+              </span>
+            </button>
+            {!sidebarCollapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold">{user?.full_name || 'Laser Food'}</p>
+                {getRoleDisplayText() && <p className="truncate text-xs text-sidebar-foreground/70">{getRoleDisplayText()}</p>}
+              </div>
+            )}
+            <button
+              onClick={() => setSidebarCollapsed((value) => !value)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent transition-colors hover:bg-sidebar-accent/80"
+              aria-label={sidebarCollapsed ? 'فتح الشريط الجانبي' : 'طي الشريط الجانبي'}
+              title={sidebarCollapsed ? 'فتح الشريط الجانبي' : 'طي الشريط الجانبي'}
+            >
+              {sidebarCollapsed ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto p-2">
+            <div className="space-y-1">
+              {desktopNavItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    title={item.label}
+                    className={cn(
+                      'flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
+                      sidebarCollapsed && 'justify-center px-0',
+                      isActive
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                        : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main
+          className={cn(
+            'flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y',
+            isLoadStockPage ? 'pb-0' : 'pb-20 md:pb-0'
+          )}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          {children}
+        </main>
+      </div>
 
       {/* Bottom Navigation */}
-      <nav className={cn("fixed bottom-0 left-0 right-0 border-t border-border safe-bottom z-50 relative", isTestBranch ? "bg-green-900" : "bg-purple-900")}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-sidebar text-sidebar-foreground safe-bottom md:hidden">
         <div className="flex items-center justify-around py-1.5">
           {mainNavItems.map((item) => {
             const isActive = location.pathname === item.path;
