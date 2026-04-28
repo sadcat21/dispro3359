@@ -132,6 +132,7 @@ const IncomingTab: React.FC<{
   if (confirmations.length === 0) return <div className="text-center py-8 text-muted-foreground text-sm">لا توجد عمليات واردة</div>;
 
   return (
+    <>
     <div className="space-y-2">
       {confirmations.map(conf => {
         const isExpanded = expandedId === conf.id;
@@ -440,69 +441,57 @@ const OutgoingTab: React.FC<{
                   </div>
                 )}
 
-                {!isEditing ? (
-                  <>
-                    <div className="space-y-1.5">
-                      {conf.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
-                          {item.image_url ? (
-                            <img src={item.image_url} className="w-8 h-8 rounded object-cover" alt="" />
-                          ) : (
-                            <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                              <Package className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
-                            <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
-                            {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {canAmend && (
-                      <Button size="sm" variant="outline" className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
-                        <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
-                      </Button>
-                    )}
-                    {conf.status === 'rejected' && onRaiseDispute && (
-                      <Button size="sm" variant="outline" className="w-full h-8 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => onRaiseDispute(conf)}>
-                        <Scale className="w-3.5 h-3.5 me-1" />رفع خلاف للمدير
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-muted-foreground">عدّل الكميات ثم أرسل:</p>
-                    {editItems.map((item, idx) => (
+                <>
+                  <div className="space-y-1.5">
+                    {conf.items.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
+                        {item.image_url ? (
+                          <img src={item.image_url} className="w-8 h-8 rounded object-cover" alt="" />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                            <Package className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
+                          <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
+                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>}
                         </div>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={item.quantity}
-                          onChange={e => setEditItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it))}
-                          className="w-20 h-7 text-xs text-center"
-                        />
                       </div>
                     ))}
-                    <Textarea value={editNote} onChange={e => setEditNote(e.target.value)} placeholder="سبب التعديل (اختياري)..." className="text-xs min-h-[50px]" />
-                    <div className="flex gap-2">
-                      <Button size="sm" className="flex-1 h-8 text-xs bg-primary" onClick={handleSaveAmendment} disabled={!hasEditedChanges || isAmending}>
-                        {isAmending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 me-1" />}إرسال التعديل
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setEditingId(null); setEditItems([]); setEditNote(''); }}>إلغاء</Button>
-                    </div>
                   </div>
-                )}
+                  {canAmend && (
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
+                      <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
+                    </Button>
+                  )}
+                  {conf.status === 'rejected' && onRaiseDispute && (
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => onRaiseDispute(conf)}>
+                      <Scale className="w-3.5 h-3.5 me-1" />رفع خلاف للمدير
+                    </Button>
+                  )}
+                </>
               </div>
             )}
           </div>
         );
       })}
     </div>
+    <ProductPickerDialog
+      open={!!editingId}
+      onOpenChange={(isOpen) => { if (!isOpen) { setEditingId(null); setEditItems([]); } }}
+      products={productOptions}
+      selectedProductIds={editItems.map(item => item.product_id)}
+      loadedQtyMap={loadedQtyMap}
+      giftQtyMap={giftQtyMap}
+      onAddProducts={handleAddProducts}
+      onEditProduct={handleEditProduct}
+      onRemoveProduct={handleRemoveProduct}
+      onConfirmLoading={handleSaveAmendment}
+      workerName={editingOriginal?.worker?.full_name || editingOriginal?.manager?.full_name || ''}
+      showCloseButton
+    />
+    </>
   );
 };
 
