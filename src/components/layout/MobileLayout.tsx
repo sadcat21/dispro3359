@@ -438,21 +438,31 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <div className="px-2 py-1.5 flex items-center gap-1">
                 <button
                   onClick={() => setTheme('light')}
+                  title="فاتح"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'light' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Sun className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setTheme('dark')}
+                  title="داكن"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'dark' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Moon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setTheme('system')}
+                  title="تلقائي"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'system' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
                   <Monitor className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setForceMobileView((v) => !v)}
+                  title={forceMobileView ? 'عرض الحاسوب' : 'عرض الهاتف'}
+                  className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors border-l border-border', forceMobileView ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
+                >
+                  {forceMobileView ? <Monitor className="w-3.5 h-3.5" /> : <Smartphone className="w-3.5 h-3.5" />}
                 </button>
               </div>
               <DropdownMenuItem
