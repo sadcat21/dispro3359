@@ -384,7 +384,7 @@ const AdminHome: React.FC = () => {
       branchColor: { bg: 'bg-purple-500/10', border: 'border-purple-300', title: 'text-purple-800', iconDefault: 'text-purple-600' },
       items: [
         ...(!isBranchAdmin ? [{ path: '/workers', icon: Users, label: t('nav.workers') }] : []),
-        ...(isAdminRole(role) ? [{ path: '/worker-roles-management', icon: Shield, label: 'إدارة أدوار العمال' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/worker-roles-management', icon: Shield, label: t('nav.worker_roles_management') }] : []),
         ...(!isWorkerActionsHidden ? [{ path: '/worker-actions', icon: Users, label: t('nav.worker_actions') }] : []),
         { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
         { path: '/attendance', icon: CalendarDays, label: t('admin_home.item.attendance') },
