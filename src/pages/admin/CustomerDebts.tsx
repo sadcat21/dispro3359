@@ -287,7 +287,7 @@ const CustomerDebts: React.FC = () => {
       const day = group.lastEventAt?.slice(0, 10) || 'unknown';
       const label = group.lastEventAt
         ? formatDate(new Date(group.lastEventAt), 'EEEE dd/MM/yyyy', language)
-        : 'بدون تاريخ';
+        : t('debts.no_date');
       const existing = sections.find((section) => section.day === day);
       if (existing) {
         existing.items.push(group);
@@ -331,17 +331,17 @@ const CustomerDebts: React.FC = () => {
     const amount = Number(newDebtAmount || 0);
 
     if (!newDebtCustomerId) {
-      toast.error('يرجى اختيار العميل');
+      toast.error(t('debts.select_customer_required'));
       return;
     }
 
     if (!workerId) {
-      toast.error('تعذر تحديد المستخدم الحالي');
+      toast.error(t('debts.user_not_identified'));
       return;
     }
 
     if (amount <= 0) {
-      toast.error('يرجى إدخال مبلغ صحيح');
+      toast.error(t('debts.amount_required'));
       return;
     }
 
@@ -354,14 +354,14 @@ const CustomerDebts: React.FC = () => {
         paid_amount: 0,
         collection_type: 'none',
         due_date: newDebtDueDate || undefined,
-        notes: newDebtNotes || 'دين سابق مضاف يدويًا',
+        notes: newDebtNotes || t('debts.default_note'),
       });
 
-      toast.success('تمت إضافة الدين بنجاح');
+      toast.success(t('debts.added_success'));
       setAddDebtOpen(false);
       resetNewDebtForm();
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر إضافة الدين');
+      toast.error(error?.message || t('debts.add_failed'));
     }
   };
 
@@ -384,7 +384,7 @@ const CustomerDebts: React.FC = () => {
           {isAdmin && (
             <Button size="sm" className="h-9 rounded-full px-3 text-xs sm:text-sm" onClick={() => setAddDebtPickerOpen(true)}>
               <Plus className="w-4 h-4" />
-              <span>دين جديد</span>
+              <span>{t('debts.new_debt')}</span>
             </Button>
           )}
         </div>
@@ -428,7 +428,7 @@ const CustomerDebts: React.FC = () => {
                   <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="ابحث بالاسم أو المحل أو الهاتف أو المنطقة..."
+                    placeholder={t('debts.search_placeholder')}
                     className="pr-9"
                   />
                 </div>
@@ -454,10 +454,10 @@ const CustomerDebts: React.FC = () => {
                   />
                   <Select value={workerFilter} onValueChange={setWorkerFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="كل العمال" />
+                      <SelectValue placeholder={t('debts.all_workers')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">كل العمال</SelectItem>
+                      <SelectItem value="all">{t('debts.all_workers')}</SelectItem>
                       {branchWorkers.map((worker) => (
                         <SelectItem key={worker.id} value={worker.id}>
                           {worker.full_name || worker.username}
@@ -614,7 +614,7 @@ const CustomerDebts: React.FC = () => {
         >
           <DialogContent dir="rtl" className="max-w-md">
             <DialogHeader>
-              <DialogTitle>إضافة دين سابق</DialogTitle>
+              <DialogTitle>{t('debts.add_previous_debt')}</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
@@ -635,27 +635,27 @@ const CustomerDebts: React.FC = () => {
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">مبلغ الدين</label>
+                <label className="text-sm font-medium">{t('debts.amount_label')}</label>
                 <Input type="number" min="0" value={newDebtAmount} onChange={(e) => setNewDebtAmount(e.target.value)} placeholder="0" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">تاريخ الاستحقاق</label>
+                <label className="text-sm font-medium">{t('debts.due_date_label')}</label>
                 <Input type="date" value={newDebtDueDate} onChange={(e) => setNewDebtDueDate(e.target.value)} />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">ملاحظات</label>
+                <label className="text-sm font-medium">{t('debts.notes_label')}</label>
                 <Textarea
                   value={newDebtNotes}
                   onChange={(e) => setNewDebtNotes(e.target.value)}
-                  placeholder="دين سابق بدون تفاصيل منتجات أو كميات"
+                  placeholder={t('debts.notes_placeholder')}
                   className="min-h-[96px]"
                 />
               </div>
 
               <Button className="w-full" onClick={handleCreateDebt} disabled={createDebt.isPending}>
-                {createDebt.isPending ? 'جارٍ الإضافة...' : 'حفظ الدين'}
+                {createDebt.isPending ? t('debts.adding') : t('debts.save_debt')}
               </Button>
             </div>
           </DialogContent>
