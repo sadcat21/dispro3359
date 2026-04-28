@@ -198,27 +198,27 @@ export const useSectorCoverage = () => {
 
   // Get active coverages for a specific date
   const getActiveCoveragesForDate = useCallback((date: string) => {
-    return coverages.filter(c => c.start_date <= date && c.end_date >= date && c.is_active);
+    return coverages.filter(c => c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved');
   }, [coverages]);
 
   // Get substitute worker for a sector on a date
   const getSubstituteForSector = useCallback((sectorId: string, scheduleType: 'sales' | 'delivery', date: string) => {
     return coverages.filter(
-      c => c.sector_id === sectorId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active
+      c => c.sector_id === sectorId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved'
     );
   }, [coverages]);
 
   // Get all sectors a substitute worker is covering on a date
   const getCoveredSectorsForWorker = useCallback((workerId: string, scheduleType: 'sales' | 'delivery', date: string) => {
     return coverages.filter(
-      c => c.substitute_worker_id === workerId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active
+      c => c.substitute_worker_id === workerId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved'
     );
   }, [coverages]);
 
   // Check if a worker is absent (has coverage records as absent_worker)
   const isWorkerAbsent = useCallback((workerId: string, date: string) => {
     return coverages.some(
-      c => c.absent_worker_id === workerId && c.start_date <= date && c.end_date >= date && c.is_active
+      c => c.absent_worker_id === workerId && c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved'
     );
   }, [coverages]);
 
@@ -227,6 +227,7 @@ export const useSectorCoverage = () => {
     isLoading,
     fetchCoverages,
     createCoverage,
+    approveCoverage,
     cancelCoverage,
     getActiveCoveragesForDate,
     getSubstituteForSector,
