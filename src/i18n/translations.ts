@@ -1900,4 +1900,13 @@ export const translations: Translations = {
   'nav.surplus_deficit': { ar: 'خزينة الفائض والعجز', fr: 'Trésorerie excédent/déficit', en: 'Surplus/Deficit Treasury' },
   'nav.rewards': { ar: 'المكافآت والعقوبات', fr: 'Récompenses et sanctions', en: 'Rewards & Penalties' },
   'nav.attendance': { ar: 'المداومة', fr: 'Présence', en: 'Attendance' },
+  'tooltip.theme_light': { ar: 'فاتح', fr: 'Clair', en: 'Light' },
+  'tooltip.theme_dark': { ar: 'داكن', fr: 'Sombre', en: 'Dark' },
+  'tooltip.theme_auto': { ar: 'تلقائي', fr: 'Automatique', en: 'Auto' },
+  'tooltip.view_desktop': { ar: 'عرض الحاسوب', fr: 'Vue ordinateur', en: 'Desktop view' },
+  'tooltip.view_mobile': { ar: 'عرض الهاتف', fr: 'Vue mobile', en: 'Mobile view' },
+  'tooltip.view_auto': { ar: 'تلقائي حسب الشاشة', fr: 'Auto selon écran', en: 'Auto by screen' },
+  'tooltip.today_customers': { ar: 'عملاء اليوم', fr: 'Clients du jour', en: "Today's customers" },
+  'tooltip.invoice_request': { ar: 'طلب فاتورة', fr: 'Demande de facture', en: 'Invoice request' },
+  'tooltip.back': { ar: 'رجوع', fr: 'Retour', en: 'Back' },
 };
