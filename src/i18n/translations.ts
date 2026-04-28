@@ -2034,4 +2034,23 @@ export const translations: Translations = {
 
   // ==================== Delivery Payment Dialog ====================
   'delivery_pay.invalid_amount': { ar: 'أدخل مبلغاً صحيحاً', fr: 'Saisissez un montant valide', en: 'Enter a valid amount' },
+  'delivery_pay.remaining_after_prepaid': { ar: 'المبلغ المتبقي بعد خصم الدفع المسبق:', fr: 'Restant après acompte:', en: 'Remaining after prepayment:' },
+  'delivery_pay.prepaid_amount': { ar: 'تم دفع {amount} {currency} مسبقاً', fr: '{amount} {currency} déjà payé', en: '{amount} {currency} already paid' },
+  'delivery_pay.method_cash': { ar: 'كاش', fr: 'Espèces', en: 'Cash' },
+  'delivery_pay.no_payment': { ar: 'بدون دفع', fr: 'Sans paiement', en: 'No payment' },
+  'delivery_pay.surplus': { ar: 'فائض مالي', fr: 'Surplus financier', en: 'Financial surplus' },
+  'delivery_pay.return_diff': { ar: 'إرجاع الفرق', fr: 'Rendre la différence', en: 'Return difference' },
+  'delivery_pay.customer_credit': { ar: 'رصيد العميل', fr: 'Crédit client', en: 'Customer credit' },
+  'delivery_pay.deduct_debt': { ar: 'خصم من الدين', fr: 'Déduire de la dette', en: 'Deduct from debt' },
+  'delivery_pay.total_debt': { ar: 'إجمالي الدين:', fr: 'Total dette:', en: 'Total debt:' },
+  'delivery_pay.surplus_to_deduct': { ar: 'الفائض للخصم:', fr: 'Surplus à déduire:', en: 'Surplus to deduct:' },
+  'delivery_pay.remaining_after_deduct': { ar: 'المتبقي بعد الخصم:', fr: 'Restant après déduction:', en: 'Remaining after deduction:' },
+  'delivery_pay.choose_surplus_action': { ar: 'يرجى اختيار ما سيتم فعله بالفائض', fr: 'Choisissez quoi faire du surplus', en: 'Choose what to do with the surplus' },
+  'delivery_pay.full_as_debt': { ar: 'سيتم تسجيل كامل المبلغ كدين', fr: 'Le montant total sera enregistré comme dette', en: 'Full amount will be recorded as debt' },
+  'delivery_pay.confirm_no_payment': { ar: 'تأكيد بدون دفع (تسجيل دين)', fr: 'Confirmer sans paiement (dette)', en: 'Confirm without payment (debt)' },
+  'delivery_pay.confirm_with_surplus': { ar: 'تأكيد الدفع (فائض {amount})', fr: 'Confirmer paiement (surplus {amount})', en: 'Confirm payment (surplus {amount})' },
+
+  // ==================== Expense Categories Defaults ====================
+  'expense_categories.other': { ar: 'أخرى', fr: 'Autre', en: 'Other' },
+  'expense_categories.fuel_keyword': { ar: 'وقود', fr: 'carburant', en: 'fuel' },
 };
