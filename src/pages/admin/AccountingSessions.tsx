@@ -88,7 +88,7 @@ const AccountingSessions: React.FC = () => {
     if (!previewWorker) return;
     const { id, name } = previewWorker;
     if (openSessions.some(s => s.workerId === id)) {
-      toast(t('accounting.session_already_open') || 'جلسة هذا العامل مفتوحة بالفعل');
+      toast(t('accounting.session_already_open'));
       return;
     }
     setOpenSessions(prev => [...prev, { workerId: id, workerName: name }]);
@@ -172,7 +172,7 @@ const AccountingSessions: React.FC = () => {
             onClick={() => navigate('/manager-accounting-review')}
           >
             <ClipboardList className="w-3.5 h-3.5" />
-            مراجعتي
+            {t('accounting.my_review')}
           </Button>
         )}
       </div>
@@ -210,7 +210,7 @@ const AccountingSessions: React.FC = () => {
                   <div className="flex flex-col items-start gap-0.5">
                     <span className="text-sm font-semibold text-wrap text-start">{worker.full_name}</span>
                     {hasLiability && (
-                      <span className="text-[11px] font-bold text-white/90">{fmt(liability.totalLiability)} د.ج</span>
+                      <span className="text-[11px] font-bold text-white/90">{fmt(liability.totalLiability)} {t('accounting.currency_dzd')}</span>
                     )}
                   </div>
                 </Button>
@@ -313,7 +313,7 @@ const AccountingSessions: React.FC = () => {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ChevronDown className="w-3.5 h-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
-                          <span className="font-medium">{t('accounting.financial_summary') || 'ملخص مالي'}</span>
+                          <span className="font-medium">{t('accounting.financial_summary')}</span>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <div className="grid grid-cols-3 gap-2 pt-2.5">
@@ -325,7 +325,7 @@ const AccountingSessions: React.FC = () => {
                             <div className={`rounded-lg p-2 text-center ${cashDiff >= 0 ? 'bg-green-50 dark:bg-green-900/10' : 'bg-destructive/10'}`}>
                               <p className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5">
                                 <AlertTriangle className="w-2.5 h-2.5" />
-                                {cashDiff >= 0 ? t('accounting.surplus') || 'فائض' : t('accounting.deficit') || 'عجز'}
+                                {cashDiff >= 0 ? t('accounting.surplus') : t('accounting.deficit')}
                               </p>
                               <p className={`text-xs font-bold ${cashDiff >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                                 {cashDiff >= 0 ? '+' : ''}{fmt(cashDiff)}
