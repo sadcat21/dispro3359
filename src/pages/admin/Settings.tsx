@@ -50,16 +50,16 @@ const Settings: React.FC = () => {
 
   // Build available tabs based on role
   const tabs: { value: string; label: string; icon: React.ReactNode }[] = [
-    { value: 'general', label: 'عام', icon: <Settings2 className="w-4 h-4" /> },
+    { value: 'general', label: t('settings.tab.general'), icon: <Settings2 className="w-4 h-4" /> },
   ];
   if (isAdminRole(role)) {
-    tabs.push({ value: 'admin', label: 'أدوات', icon: <Wrench className="w-4 h-4" /> });
+    tabs.push({ value: 'admin', label: t('settings.tab.tools'), icon: <Wrench className="w-4 h-4" /> });
   }
   if (isSuperAdminRole(role)) {
-    tabs.push({ value: 'advanced', label: 'متقدم', icon: <Building2 className="w-4 h-4" /> });
-    tabs.push({ value: 'data', label: 'البيانات', icon: <Database className="w-4 h-4" /> });
+    tabs.push({ value: 'advanced', label: t('settings.tab.advanced'), icon: <Building2 className="w-4 h-4" /> });
+    tabs.push({ value: 'data', label: t('settings.tab.data'), icon: <Database className="w-4 h-4" /> });
   }
-  tabs.push({ value: 'info', label: 'حول', icon: <Info className="w-4 h-4" /> });
+  tabs.push({ value: 'info', label: t('settings.tab.info'), icon: <Info className="w-4 h-4" /> });
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
