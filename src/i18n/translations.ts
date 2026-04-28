@@ -1893,4 +1893,11 @@ export const translations: Translations = {
   'sidebar.group.hr': { ar: 'الموارد البشرية', fr: 'Ressources Humaines', en: 'Human Resources' },
   'sidebar.group.admin': { ar: 'الإدارة والتقارير', fr: 'Administration & Rapports', en: 'Admin & Reports' },
   'sidebar.group.other': { ar: 'أخرى', fr: 'Autres', en: 'Other' },
+  'nav.order_tracking': { ar: 'تتبع الطلبات', fr: 'Suivi des commandes', en: 'Order Tracking' },
+  'nav.promo_splits': { ar: 'تجزئة العروض', fr: 'Fractionnement des promotions', en: 'Promo Splits' },
+  'nav.warehouse_review': { ar: 'مراجعة مخزون الفرع', fr: 'Révision du stock de la succursale', en: 'Branch Stock Review' },
+  'nav.shared_invoices': { ar: 'الفواتير المشاركة', fr: 'Factures partagées', en: 'Shared Invoices' },
+  'nav.surplus_deficit': { ar: 'خزينة الفائض والعجز', fr: 'Trésorerie excédent/déficit', en: 'Surplus/Deficit Treasury' },
+  'nav.rewards': { ar: 'المكافآت والعقوبات', fr: 'Récompenses et sanctions', en: 'Rewards & Penalties' },
+  'nav.attendance': { ar: 'المداومة', fr: 'Présence', en: 'Attendance' },
 };
