@@ -344,8 +344,18 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
                             <Badge variant={c.coverage_mode === 'replace' ? 'destructive' : 'default'} className="text-[10px]">
                               {c.coverage_mode === 'replace' ? 'استبدال' : 'دمج'}
                             </Badge>
+                            {(c.approval_status || 'approved') !== 'approved' && (
+                              <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
+                                {c.approval_status === 'pending_system' ? 'بانتظار مدير النظام' : 'بانتظار المدير'}
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex items-center gap-1">
+                            {((role === 'admin' || role === 'project_manager' || role === 'branch_admin') && (c.approval_status || 'approved') !== 'approved') && (
+                              <Button variant="outline" size="sm" onClick={() => approveCoverage(c)}>
+                                موافقة
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => {
                               if (isEditing) {
                                 setEditingId(null);
