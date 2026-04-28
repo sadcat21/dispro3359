@@ -374,7 +374,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     const linkedOrderId = item.orderId || linkedDebt?.order_id || null;
 
     if (!linkedOrderId) {
-      toast.error('لا توجد طلبية مرتبطة بهذا الدين');
+      toast.error(t('debt_collect.no_order_linked'));
       return;
     }
 
@@ -430,12 +430,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
   const handleCollect = async () => {
     if (!workerId) {
-      toast.error('تعذر تحديد العامل الحالي');
+      toast.error(t('debt_collect.worker_not_identified'));
       return;
     }
 
     if (numericAmount <= 0) {
-      toast.error('أدخل مبلغ تحصيل صحيح');
+      toast.error(t('debt_collect.invalid_amount'));
       return;
     }
 
@@ -448,16 +448,16 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         notes: notes || undefined,
         nextDueDate: nextDueDate || undefined,
       });
-      toast.success('تم تسجيل التحصيل');
+      toast.success(t('debt_collect.collected_success'));
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر تسجيل التحصيل');
+      toast.error(error?.message || t('debt_collect.collect_failed'));
     }
   };
 
   const handleVisit = async () => {
     if (!workerId) {
-      toast.error('تعذر تحديد العامل الحالي');
+      toast.error(t('debt_collect.worker_not_identified'));
       return;
     }
 
@@ -469,10 +469,10 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         nextDueDate: visitNextDueDate || undefined,
         visitType,
       });
-      toast.success('تم تسجيل الزيارة');
+      toast.success(t('debt_collect.visit_recorded'));
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر تسجيل الزيارة');
+      toast.error(error?.message || t('debt_collect.visit_failed'));
     }
   };
 
@@ -484,9 +484,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         collectionAmount: collectionAmount ? toNumber(collectionAmount) : null,
         collectionDays,
       });
-      toast.success('تم تحديث جدول التحصيل');
+      toast.success(t('debt_collect.schedule_updated'));
     } catch (error: any) {
-      toast.error(error?.message || 'تعذر تحديث الجدول');
+      toast.error(error?.message || t('debt_collect.schedule_failed'));
     }
   };
 
@@ -529,7 +529,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     <div className="rounded-2xl border border-red-200 bg-red-50/40 p-4 space-y-4">
       <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
         <CalendarClock className="h-4 w-4 text-red-500" />
-        جدول التحصيل
+        {t('debt_collect.schedule_title')}
       </div>
 
       <Select value={collectionType} onValueChange={(value) => setCollectionType(value as 'none' | 'daily' | 'weekly')}>
@@ -537,9 +537,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="none">بدون جدولة</SelectItem>
-          <SelectItem value="daily">تحصيل يومي</SelectItem>
-          <SelectItem value="weekly">تحصيل أسبوعي</SelectItem>
+          <SelectItem value="none">{t('debt_collect.no_schedule')}</SelectItem>
+          <SelectItem value="daily">{t('debt_collect.daily')}</SelectItem>
+          <SelectItem value="weekly">{t('debt_collect.weekly')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -548,7 +548,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         min="0"
         value={collectionAmount}
         onChange={(e) => setCollectionAmount(e.target.value)}
-        placeholder="مبلغ التحصيل الدوري"
+        placeholder={t('debt_collect.periodic_amount')}
       />
 
       {collectionType === 'weekly' && (
@@ -567,7 +567,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         onClick={handleSaveSchedule}
         disabled={scheduleMutation.isPending}
       >
-        {scheduleMutation.isPending ? 'جارٍ الحفظ...' : 'حفظ جدول التحصيل'}
+        {scheduleMutation.isPending ? t('debt_collect.saving') : t('debt_collect.save_schedule')}
       </Button>
     </div>
   );
