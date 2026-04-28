@@ -546,31 +546,79 @@ const AdminHome: React.FC = () => {
 
 
 
-      {/* Functional Groups */}
-      {groups.map((group) => {
-        if (group.items.length === 0) return null;
-        const gColor = isBranchAdmin && group.branchColor ? group.branchColor : group.color;
-        return (
-          <div key={group.title} className={`rounded-xl border ${gColor.border} ${gColor.bg} p-3 space-y-2`}>
-            <h3 className={`text-xs font-bold ${gColor.title} px-1`}>{group.title}</h3>
-            <div className={`grid ${cols} gap-2`}>
-              {group.items.map((item) => {
-                const ic = itemColors[item.path] || defaultItemColor;
-                return (
-                  <div
-                    key={item.path}
-                    className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-card ${ic.border} hover:shadow-md`}
-                    onClick={() => item.action ? item.action() : navigate(item.path)}
-                  >
-                    <item.icon className={`w-5 h-5 ${ic.icon}`} />
-                    <span className="text-[10px] font-medium text-center leading-tight text-foreground">{item.label}</span>
-                  </div>
-                );
-              })}
+      {/* Functional Groups - Mobile: grid cards, Desktop: collapsible accordion */}
+      <div className="md:hidden space-y-4">
+        {groups.map((group) => {
+          if (group.items.length === 0) return null;
+          const gColor = isBranchAdmin && group.branchColor ? group.branchColor : group.color;
+          return (
+            <div key={group.title} className={`rounded-xl border ${gColor.border} ${gColor.bg} p-3 space-y-2`}>
+              <h3 className={`text-xs font-bold ${gColor.title} px-1`}>{group.title}</h3>
+              <div className={`grid ${cols} gap-2`}>
+                {group.items.map((item) => {
+                  const ic = itemColors[item.path] || defaultItemColor;
+                  return (
+                    <div
+                      key={item.path}
+                      className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-card ${ic.border} hover:shadow-md`}
+                      onClick={() => item.action ? item.action() : navigate(item.path)}
+                    >
+                      <item.icon className={`w-5 h-5 ${ic.icon}`} />
+                      <span className="text-[10px] font-medium text-center leading-tight text-foreground">{item.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* Desktop: Collapsible accordion list — group title is the header, items appear inside */}
+      <div className="hidden md:block">
+        <Accordion
+          type="multiple"
+          defaultValue={groups.map((g) => g.title)}
+          className="space-y-2"
+        >
+          {groups.map((group) => {
+            if (group.items.length === 0) return null;
+            const gColor = isBranchAdmin && group.branchColor ? group.branchColor : group.color;
+            return (
+              <AccordionItem
+                key={group.title}
+                value={group.title}
+                className={`rounded-xl border ${gColor.border} ${gColor.bg} px-3`}
+              >
+                <AccordionTrigger className={`text-sm font-bold ${gColor.title} hover:no-underline py-3`}>
+                  {group.title}
+                  <span className="ms-auto me-2 text-xs font-normal opacity-70">
+                    {group.items.length} عنصر
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  <div className="flex flex-col gap-1">
+                    {group.items.map((item) => {
+                      const ic = itemColors[item.path] || defaultItemColor;
+                      return (
+                        <button
+                          key={item.path}
+                          type="button"
+                          onClick={() => item.action ? item.action() : navigate(item.path)}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-lg border bg-card ${ic.border} hover:shadow-sm hover:bg-accent/50 transition-all text-start`}
+                        >
+                          <item.icon className={`w-4 h-4 shrink-0 ${ic.icon}`} />
+                          <span className="text-sm font-medium text-foreground">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </div>
 
       {/* Dialogs */}
       <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />
