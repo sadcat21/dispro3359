@@ -6912,27 +6912,42 @@ export type Database = {
       }
       worker_roles: {
         Row: {
+          assigned_by: string | null
           branch_id: string | null
           created_at: string
           custom_role_id: string | null
           id: string
+          is_active: boolean
+          notes: string | null
           role: Database["public"]["Enums"]["app_role"]
+          valid_from: string | null
+          valid_until: string | null
           worker_id: string
         }
         Insert: {
+          assigned_by?: string | null
           branch_id?: string | null
           created_at?: string
           custom_role_id?: string | null
           id?: string
+          is_active?: boolean
+          notes?: string | null
           role: Database["public"]["Enums"]["app_role"]
+          valid_from?: string | null
+          valid_until?: string | null
           worker_id: string
         }
         Update: {
+          assigned_by?: string | null
           branch_id?: string | null
           created_at?: string
           custom_role_id?: string | null
           id?: string
+          is_active?: boolean
+          notes?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          valid_from?: string | null
+          valid_until?: string | null
           worker_id?: string
         }
         Relationships: [
@@ -7336,6 +7351,14 @@ export type Database = {
         Returns: boolean
       }
       is_worker: { Args: never; Returns: boolean }
+      is_worker_role_active: {
+        Args: {
+          p_is_active: boolean
+          p_valid_from: string
+          p_valid_until: string
+        }
+        Returns: boolean
+      }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
