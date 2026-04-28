@@ -236,7 +236,25 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   }
 
   const isMoreActive = moreNavItems.some(item => location.pathname === item.path);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+
+  const collapseSidebar = () => {
+    setSidebarCollapsed(true);
+    setOpenGroup(null);
+  };
+
+  // إغلاق الشريط الجانبي عند النقر خارجه
+  useEffect(() => {
+    if (sidebarCollapsed) return;
+    const handler = (e: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        collapseSidebar();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [sidebarCollapsed]);
   const desktopNavItems = useMemo(() => {
     const seen = new Set<string>();
     return [...mainNavItems, ...moreNavItems].filter((item) => {
