@@ -7246,6 +7246,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_insert_stock_confirmation: {
+        Args: {
+          _branch_id: string
+          _manager_id: string
+          _source_session_id: string
+          _worker_id: string
+        }
+        Returns: boolean
+      }
       can_manage_product_offers: {
         Args: { p_worker_id: string }
         Returns: boolean
@@ -7339,6 +7348,10 @@ export type Database = {
           updated_at: string
           username: string
         }[]
+      }
+      worker_has_custom_role: {
+        Args: { p_role_code: string; p_worker_id: string }
+        Returns: boolean
       }
       worker_has_permission: {
         Args: { p_permission_code: string; p_worker_id: string }
