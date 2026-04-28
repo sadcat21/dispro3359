@@ -142,6 +142,18 @@ const SIDEBAR_GROUP_ORDER = [
   'أخرى',
 ];
 
+const SIDEBAR_GROUP_META: Record<string, { i18n: string; icon: React.ComponentType<{ className?: string }> }> = {
+  'الرئيسية': { i18n: 'sidebar.group.home', icon: Home },
+  'المحاسبة والمالية': { i18n: 'sidebar.group.accounting', icon: Wallet },
+  'الطلبات والتوصيل': { i18n: 'sidebar.group.orders', icon: Truck },
+  'المخزون والمستودع': { i18n: 'sidebar.group.warehouse', icon: Package },
+  'العملاء': { i18n: 'sidebar.group.customers', icon: Users },
+  'العروض والترويج': { i18n: 'sidebar.group.promotions', icon: Tag },
+  'الموارد البشرية': { i18n: 'sidebar.group.hr', icon: UserCog },
+  'الإدارة والتقارير': { i18n: 'sidebar.group.admin', icon: SettingsIcon },
+  'أخرى': { i18n: 'sidebar.group.other', icon: LayoutGrid },
+};
+
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole } = useAuth();
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
