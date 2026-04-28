@@ -7302,6 +7302,19 @@ export type Database = {
           resource: string
         }[]
       }
+      get_worker_permissions_for_role: {
+        Args: {
+          p_base_role?: Database["public"]["Enums"]["app_role"]
+          p_custom_role_code?: string
+          p_worker_id: string
+        }
+        Returns: {
+          category: string
+          permission_code: string
+          permission_name: string
+          resource: string
+        }[]
+      }
       get_worker_roles: {
         Args: { p_worker_id: string }
         Returns: {
