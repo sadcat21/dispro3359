@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Trash2, Calendar, ShieldCheck, ShieldOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { AppRole } from '@/types/database';
 
 interface WorkerRow {
@@ -43,6 +44,7 @@ interface WorkerRoleRow {
 
 const WorkerRolesManagement: React.FC = () => {
   const { role } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -95,10 +97,10 @@ const WorkerRolesManagement: React.FC = () => {
   const addMutation = useMutation({
     mutationFn: async () => {
       if (!selectedWorkerId || !newCustomRoleId) {
-        throw new Error('اختر عاملاً ودوراً');
+        throw new Error(t('worker_roles.select_worker_and_role'));
       }
       const cr = customRoles?.find(c => c.id === newCustomRoleId);
-      if (!cr) throw new Error('دور غير صالح');
+      if (!cr) throw new Error(t('worker_roles.invalid_role'));
 
       // map custom role code to base app_role when possible (fallback: 'worker')
       const baseRoleMap: Record<string, AppRole> = {
@@ -124,7 +126,7 @@ const WorkerRolesManagement: React.FC = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('تم إضافة الدور بنجاح');
+      toast.success(t('worker_roles.add_success'));
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
       setAddOpen(false);
       setNewCustomRoleId('');
@@ -132,7 +134,7 @@ const WorkerRolesManagement: React.FC = () => {
       setNewValidUntil('');
       setNewNotes('');
     },
-    onError: (e: any) => toast.error(e.message || 'فشل إضافة الدور'),
+    onError: (e: any) => toast.error(e.message || t('worker_roles.add_failed')),
   });
 
   const toggleMutation = useMutation({
@@ -145,9 +147,9 @@ const WorkerRolesManagement: React.FC = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
-      toast.success('تم تحديث الحالة');
+      toast.success(t('worker_roles.status_updated'));
     },
-    onError: (e: any) => toast.error(e.message || 'فشل التحديث'),
+    onError: (e: any) => toast.error(e.message || t('worker_roles.update_failed')),
   });
 
   const updateDatesMutation = useMutation({
@@ -160,9 +162,9 @@ const WorkerRolesManagement: React.FC = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
-      toast.success('تم تحديث الفترة');
+      toast.success(t('worker_roles.period_updated'));
     },
-    onError: (e: any) => toast.error(e.message || 'فشل التحديث'),
+    onError: (e: any) => toast.error(e.message || t('worker_roles.update_failed')),
   });
 
   const deleteMutation = useMutation({
@@ -172,15 +174,15 @@ const WorkerRolesManagement: React.FC = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
-      toast.success('تم حذف الدور');
+      toast.success(t('worker_roles.delete_success'));
     },
-    onError: (e: any) => toast.error(e.message || 'فشل الحذف'),
+    onError: (e: any) => toast.error(e.message || t('worker_roles.delete_failed')),
   });
 
   if (!isAdmin) {
     return (
       <div className="p-6 text-center text-muted-foreground">
-        هذه الصفحة مخصصة لمدير النظام فقط
+        {t('worker_roles.admin_only')}
       </div>
     );
   }
@@ -203,12 +205,12 @@ const WorkerRolesManagement: React.FC = () => {
   return (
     <div className="container mx-auto p-4 space-y-4" dir="rtl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">إدارة أدوار العمال</h1>
+        <h1 className="text-2xl font-bold">{t('worker_roles.title')}</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>اختر عاملاً</CardTitle>
+          <CardTitle>{t('worker_roles.select_worker')}</CardTitle>
         </CardHeader>
         <CardContent>
           {workersLoading ? (
@@ -216,7 +218,7 @@ const WorkerRolesManagement: React.FC = () => {
           ) : (
             <Select value={selectedWorkerId || ''} onValueChange={setSelectedWorkerId}>
               <SelectTrigger>
-                <SelectValue placeholder="اختر العامل..." />
+                <SelectValue placeholder={t('worker_roles.select_worker_placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {workers?.map(w => (
@@ -233,17 +235,17 @@ const WorkerRolesManagement: React.FC = () => {
       {selectedWorkerId && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>الأدوار المُسندة</CardTitle>
+            <CardTitle>{t('worker_roles.assigned_roles')}</CardTitle>
             <Button onClick={() => setAddOpen(true)} size="sm">
               <Plus className="w-4 h-4 ml-1" />
-              إضافة دور
+              {t('worker_roles.add_role')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {rolesLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : workerRoles?.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">لا توجد أدوار مُسندة</p>
+              <p className="text-muted-foreground text-center py-4">{t('worker_roles.no_roles')}</p>
             ) : (
               workerRoles?.map(r => {
                 const effective = isRoleEffective(r);
@@ -256,13 +258,13 @@ const WorkerRolesManagement: React.FC = () => {
                           {effective ? <ShieldCheck className="w-3 h-3 ml-1" /> : <ShieldOff className="w-3 h-3 ml-1" />}
                           {roleName}
                         </Badge>
-                        {!r.is_active && <Badge variant="outline">معطّل يدوياً</Badge>}
+                        {!r.is_active && <Badge variant="outline">{t('worker_roles.disabled_manually')}</Badge>}
                         {r.valid_until && new Date(r.valid_until) < new Date() && (
-                          <Badge variant="destructive">منتهي</Badge>
+                          <Badge variant="destructive">{t('worker_roles.expired')}</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Label className="text-xs">مفعّل</Label>
+                        <Label className="text-xs">{t('worker_roles.enabled')}</Label>
                         <Switch
                           checked={r.is_active}
                           onCheckedChange={(checked) => toggleMutation.mutate({ id: r.id, is_active: checked })}
@@ -271,7 +273,7 @@ const WorkerRolesManagement: React.FC = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            if (confirm('حذف هذا الدور؟')) deleteMutation.mutate(r.id);
+                            if (confirm(t('worker_roles.confirm_delete'))) deleteMutation.mutate(r.id);
                           }}
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
@@ -282,7 +284,7 @@ const WorkerRolesManagement: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <Label className="text-xs flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> من تاريخ
+                          <Calendar className="w-3 h-3" /> {t('worker_roles.from_date')}
                         </Label>
                         <Input
                           type="datetime-local"
@@ -298,7 +300,7 @@ const WorkerRolesManagement: React.FC = () => {
                       </div>
                       <div>
                         <Label className="text-xs flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> إلى تاريخ
+                          <Calendar className="w-3 h-3" /> {t('worker_roles.to_date')}
                         </Label>
                         <Input
                           type="datetime-local"
@@ -326,14 +328,14 @@ const WorkerRolesManagement: React.FC = () => {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent dir="rtl">
           <DialogHeader>
-            <DialogTitle>إضافة دور جديد</DialogTitle>
+            <DialogTitle>{t('worker_roles.add_role_title')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label>الدور</Label>
+              <Label>{t('worker_roles.role')}</Label>
               <Select value={newCustomRoleId} onValueChange={setNewCustomRoleId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الدور..." />
+                  <SelectValue placeholder={t('worker_roles.role_placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {customRoles?.map(cr => (
@@ -345,23 +347,23 @@ const WorkerRolesManagement: React.FC = () => {
               </Select>
             </div>
             <div>
-              <Label>من تاريخ (اختياري)</Label>
+              <Label>{t('worker_roles.from_date_optional')}</Label>
               <Input type="datetime-local" value={newValidFrom} onChange={(e) => setNewValidFrom(e.target.value)} />
             </div>
             <div>
-              <Label>إلى تاريخ (اختياري)</Label>
+              <Label>{t('worker_roles.to_date_optional')}</Label>
               <Input type="datetime-local" value={newValidUntil} onChange={(e) => setNewValidUntil(e.target.value)} />
             </div>
             <div>
-              <Label>ملاحظات</Label>
-              <Input value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder="اختياري" />
+              <Label>{t('worker_roles.notes')}</Label>
+              <Input value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder={t('worker_roles.notes_placeholder')} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending || !newCustomRoleId}>
               {addMutation.isPending && <Loader2 className="w-4 h-4 animate-spin ml-1" />}
-              إضافة
+              {t('common.add')}
             </Button>
           </DialogFooter>
         </DialogContent>
