@@ -121,6 +121,7 @@ const SIDEBAR_GROUP_BY_PATH: Record<string, string> = {
   '/worker-tracking': 'الموارد البشرية',
   '/attendance': 'الموارد البشرية',
   '/rewards': 'الموارد البشرية',
+  '/worker-roles-management': 'الموارد البشرية',
   '/products': 'الإدارة والتقارير',
   '/stats': 'الإدارة والتقارير',
   '/geo-operations': 'الإدارة والتقارير',
