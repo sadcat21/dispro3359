@@ -203,35 +203,82 @@ const WorkerRolesManagement: React.FC = () => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
+  const WORKER_CARD_COLORS = [
+    { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800', icon: 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400', accent: 'text-blue-600 dark:text-blue-400' },
+    { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', icon: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400', accent: 'text-emerald-600 dark:text-emerald-400' },
+    { bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200 dark:border-amber-800', icon: 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400', accent: 'text-amber-600 dark:text-amber-400' },
+    { bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200 dark:border-violet-800', icon: 'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400', accent: 'text-violet-600 dark:text-violet-400' },
+    { bg: 'bg-rose-50 dark:bg-rose-950/30', border: 'border-rose-200 dark:border-rose-800', icon: 'bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400', accent: 'text-rose-600 dark:text-rose-400' },
+    { bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200 dark:border-cyan-800', icon: 'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400', accent: 'text-cyan-600 dark:text-cyan-400' },
+    { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', icon: 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400', accent: 'text-orange-600 dark:text-orange-400' },
+    { bg: 'bg-teal-50 dark:bg-teal-950/30', border: 'border-teal-200 dark:border-teal-800', icon: 'bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400', accent: 'text-teal-600 dark:text-teal-400' },
+    { bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-200 dark:border-indigo-800', icon: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400', accent: 'text-indigo-600 dark:text-indigo-400' },
+    { bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-800', icon: 'bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400', accent: 'text-pink-600 dark:text-pink-400' },
+  ];
+
+  const selectedWorker = workers?.find(w => w.id === selectedWorkerId) || null;
+  const q = searchQuery.trim().toLowerCase();
+  const filteredWorkers = (workers || []).filter(w =>
+    !q || w.full_name.toLowerCase().includes(q) || w.username.toLowerCase().includes(q)
+  );
+
   return (
     <div className="container mx-auto p-4 space-y-4" dir="rtl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('worker_roles.title')}</h1>
+      <div className="flex items-center gap-2">
+        {selectedWorkerId && (
+          <button
+            onClick={() => setSelectedWorkerId(null)}
+            className="p-1.5 rounded-lg hover:bg-muted"
+            aria-label={t('common.back')}
+          >
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+        <h1 className="text-2xl font-bold">
+          {selectedWorker ? selectedWorker.full_name : t('worker_roles.title')}
+        </h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('worker_roles.select_worker')}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {!selectedWorkerId && (
+        <>
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('worker_roles.search_worker')}
+              className="pr-9"
+            />
+          </div>
+
           {workersLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="flex justify-center py-10">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+          ) : filteredWorkers.length === 0 ? (
+            <p className="text-center text-muted-foreground py-10">{t('worker_roles.no_workers')}</p>
           ) : (
-            <Select value={selectedWorkerId || ''} onValueChange={setSelectedWorkerId}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('worker_roles.select_worker_placeholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {workers?.map(w => (
-                  <SelectItem key={w.id} value={w.id}>
-                    {w.full_name} ({w.username})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {filteredWorkers.map((w, index) => {
+                const colorSet = WORKER_CARD_COLORS[index % WORKER_CARD_COLORS.length];
+                return (
+                  <div
+                    key={w.id}
+                    className={`flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 cursor-pointer active:scale-95 transition-all hover:shadow-lg ${colorSet.bg} ${colorSet.border}`}
+                    onClick={() => setSelectedWorkerId(w.id)}
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${colorSet.icon}`}>
+                      <HardHat className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-center leading-tight text-foreground">{w.full_name}</span>
+                    <span className={`text-[10px] font-medium ${colorSet.accent}`}>{w.username}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      )}
 
       {selectedWorkerId && (
         <Card>
