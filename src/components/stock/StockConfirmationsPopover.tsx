@@ -132,7 +132,6 @@ const IncomingTab: React.FC<{
   if (confirmations.length === 0) return <div className="text-center py-8 text-muted-foreground text-sm">لا توجد عمليات واردة</div>;
 
   return (
-    <>
     <div className="space-y-2">
       {confirmations.map(conf => {
         const isExpanded = expandedId === conf.id;
