@@ -132,7 +132,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
             <p className="text-sm text-muted-foreground">{customerName}</p>
             {prepaidAmount > 0 && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">المبلغ المتبقي بعد خصم الدفع المسبق:</span>
+                <span className="text-muted-foreground">{t('delivery_pay.remaining_after_prepaid')}</span>
               </div>
             )}
             <p className="text-2xl font-bold">
@@ -141,7 +141,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
             {prepaidAmount > 0 && (
               <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
                 <CheckCircle className="w-3 h-3 me-1" />
-                تم دفع {formatNumber(prepaidAmount, language)} {t('common.currency')} مسبقاً
+                {t('delivery_pay.prepaid_amount').replace('{amount}', String(formatNumber(prepaidAmount, language))).replace('{currency}', t('common.currency'))}
               </Badge>
             )}
             {frozenPaymentType && (
@@ -151,7 +151,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
                 </Badge>
                 {frozenPaymentType === 'with_invoice' && frozenInvoiceMethod && (
                   <Badge variant="outline" className="text-xs">
-                    {frozenInvoiceMethod === 'cash' ? 'كاش' : 
+                    {frozenInvoiceMethod === 'cash' ? t('delivery_pay.method_cash') :
                      frozenInvoiceMethod === 'check' ? 'Chèque' :
                      frozenInvoiceMethod === 'receipt' ? 'Versement' :
                      frozenInvoiceMethod === 'transfer' ? 'Virement' : frozenInvoiceMethod}
@@ -188,7 +188,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
               onClick={() => { setPaymentMode('no_payment'); setOverpaymentAction(null); }}
             >
               <AlertTriangle className="w-4 h-4 me-1" />
-              بدون دفع
+              {t('delivery_pay.no_payment')}
             </Button>
           </div>
 
@@ -213,7 +213,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-emerald-600" />
                     <div>
-                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">فائض مالي</p>
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{t('delivery_pay.surplus')}</p>
                       <p className="text-lg font-bold text-emerald-600">
                         {formatNumber(overpaymentAmount, language)} {t('common.currency')}
                       </p>
@@ -228,7 +228,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
                       onClick={() => setOverpaymentAction('refund')}
                     >
                       <Undo2 className="w-3.5 h-3.5 me-1" />
-                      إرجاع الفرق
+                      {t('delivery_pay.return_diff')}
                     </Button>
                     <Button
                       type="button"
@@ -238,7 +238,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
                       onClick={() => setOverpaymentAction('credit')}
                     >
                       <Wallet className="w-3.5 h-3.5 me-1" />
-                      رصيد العميل
+                      {t('delivery_pay.customer_credit')}
                     </Button>
                     {hasActiveDebt && (
                       <Button
@@ -249,30 +249,30 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
                         onClick={() => setOverpaymentAction('deduct_debt')}
                       >
                         <MinusCircle className="w-3.5 h-3.5 me-1" />
-                        خصم من الدين
+                        {t('delivery_pay.deduct_debt')}
                       </Button>
                     )}
                   </div>
                   {overpaymentAction === 'deduct_debt' && hasActiveDebt && (
                     <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2 text-sm space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">إجمالي الدين:</span>
+                        <span className="text-muted-foreground">{t('delivery_pay.total_debt')}</span>
                         <span className="font-bold">{formatNumber(debtSummary!.totalDebt, language)} {t('common.currency')}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">الفائض للخصم:</span>
+                        <span className="text-muted-foreground">{t('delivery_pay.surplus_to_deduct')}</span>
                         <span className="font-bold text-emerald-600">{formatNumber(Math.min(overpaymentAmount, debtSummary!.totalDebt), language)} {t('common.currency')}</span>
                       </div>
                       {overpaymentAmount > debtSummary!.totalDebt && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">المتبقي بعد الخصم:</span>
+                          <span className="text-muted-foreground">{t('delivery_pay.remaining_after_deduct')}</span>
                           <span className="font-bold text-orange-600">{formatNumber(overpaymentAmount - debtSummary!.totalDebt, language)} {t('common.currency')}</span>
                         </div>
                       )}
                     </div>
                   )}
                   {!overpaymentAction && (
-                    <p className="text-xs text-muted-foreground text-center">يرجى اختيار ما سيتم فعله بالفائض</p>
+                    <p className="text-xs text-muted-foreground text-center">{t('delivery_pay.choose_surplus_action')}</p>
                   )}
                 </div>
               )}
@@ -299,7 +299,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
               <div>
-                <p className="text-sm font-medium text-destructive">سيتم تسجيل كامل المبلغ كدين</p>
+                <p className="text-sm font-medium text-destructive">{t('delivery_pay.full_as_debt')}</p>
                 <p className="text-lg font-bold text-destructive">
                   {orderTotal.toLocaleString()} {t('common.currency')}
                 </p>
@@ -331,9 +331,9 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
                 {paymentMode === 'full'
                   ? t('debts.confirm_full_payment')
                   : paymentMode === 'no_payment'
-                  ? 'تأكيد بدون دفع (تسجيل دين)'
+                  ? t('delivery_pay.confirm_no_payment')
                   : isOverpayment
-                  ? `تأكيد الدفع (فائض ${formatNumber(overpaymentAmount, language)})`
+                  ? t('delivery_pay.confirm_with_surplus').replace('{amount}', String(formatNumber(overpaymentAmount, language)))
                   : t('debts.confirm_and_record_debt')}
               </>
             )}
