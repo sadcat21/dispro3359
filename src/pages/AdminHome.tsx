@@ -300,32 +300,34 @@ const AdminHome: React.FC = () => {
     // 1. المحاسبة والمالية
     {
       title: 'المحاسبة والمالية',
+      tKey: 'sidebar.group.accounting',
       color: { bg: 'bg-amber-500/10', border: 'border-amber-300', title: 'text-amber-800', iconDefault: 'text-amber-600' },
       branchColor: { bg: 'bg-teal-500/10', border: 'border-teal-300', title: 'text-teal-800', iconDefault: 'text-teal-600' },
       items: [
         ...(!isAccountingHidden ? [{ path: '/accounting', icon: Calculator, label: t('accounting.title') }] : []),
-        ...(isAdminRole(role) ? [{ path: '/manager-accounting-review', icon: ClipboardCheck, label: 'مراجعة حسابات المدير' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/manager-accounting-review', icon: ClipboardCheck, label: t('admin_home.item.manager_accounting_review') }] : []),
         ...(!isDebtsHidden ? [{ path: '/customer-debts', icon: Banknote, label: t('debts.title') }] : []),
-        { path: '/surplus-deficit', icon: Scale, label: 'الفائض والعجز' },
+        { path: '/surplus-deficit', icon: Scale, label: t('admin_home.item.surplus_deficit') },
         { path: '/expenses', icon: Wallet, label: t('expenses.my_expenses') },
         { path: '/expenses-management', icon: Wallet, label: t('expenses.title') },
         { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
         ...(!isBranchAdmin ? [{ path: '/daily-receipts', icon: FileText, label: t('nav.daily_receipts') }] : []),
-        { path: '/shared-invoices', icon: FolderOpen, label: 'الفواتير المشاركة' },
+        { path: '/shared-invoices', icon: FolderOpen, label: t('admin_home.item.shared_invoices') },
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
-        ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: 'تجميع مبيعات العمال' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
       ],
     },
     // 2. الطلبات والتوصيل
     {
       title: 'الطلبات والتوصيل',
+      tKey: 'sidebar.group.orders',
       color: { bg: 'bg-blue-500/10', border: 'border-blue-300', title: 'text-blue-800', iconDefault: 'text-blue-600' },
       branchColor: { bg: 'bg-cyan-500/10', border: 'border-cyan-300', title: 'text-cyan-800', iconDefault: 'text-cyan-600' },
       items: [
         { path: '/create-order', icon: ShoppingCart, label: t('orders.create_order'), action: () => setShowCreateOrder(true) },
         { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
-        { path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' },
-        { path: '/order-modifications', icon: Pencil, label: 'سجل التعديلات' },
+        { path: '/order-tracking', icon: Radar, label: t('admin_home.item.order_tracking') },
+        { path: '/order-modifications', icon: Pencil, label: t('admin_home.item.order_modifications') },
         ...(!isBranchAdmin ? [{ path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') }] : []),
         ...(showInvoiceButton ? [{ path: '/invoice-request', icon: Receipt, label: t('admin.invoice_request'), action: () => setInvoiceRequestOpen(true) }] : []),
       ],
@@ -333,21 +335,23 @@ const AdminHome: React.FC = () => {
     // 3. المخزون والمستودع - hidden for branch_admin
     ...(!isBranchAdmin ? [{
       title: 'المخزون والمستودع',
+      tKey: 'sidebar.group.warehouse',
       color: { bg: 'bg-emerald-500/10', border: 'border-emerald-300', title: 'text-emerald-800', iconDefault: 'text-emerald-600' },
       branchColor: { bg: 'bg-green-500/10', border: 'border-green-300', title: 'text-green-800', iconDefault: 'text-green-600' },
       items: [
         { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
-        { path: '/warehouse-review', icon: ClipboardCheck, label: 'مراجعة المخزون' },
+        { path: '/warehouse-review', icon: ClipboardCheck, label: t('admin_home.item.warehouse_review') },
         { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
         { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
-        { path: '/factory-receipt', icon: ArrowDownToLine, label: 'استلام من المصنع', action: () => setFactoryReceiptOpen(true) },
-        { path: '/factory-delivery', icon: Truck, label: 'تسليم للمصنع', action: () => setFactoryDeliveryOpen(true) },
-        ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: 'بيع مباشر للمخزن', action: () => setWarehouseDirectSaleOpen(true) }] : []),
+        { path: '/factory-receipt', icon: ArrowDownToLine, label: t('admin_home.item.factory_receipt'), action: () => setFactoryReceiptOpen(true) },
+        { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
+        ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
       ],
     }] : []),
     // 4. العملاء
     {
       title: 'العملاء',
+      tKey: 'sidebar.group.customers',
       color: { bg: 'bg-sky-500/10', border: 'border-sky-300', title: 'text-sky-800', iconDefault: 'text-sky-600' },
       items: [
         { path: '/customers', icon: UserCheck, label: t('nav.customers') },
@@ -359,13 +363,14 @@ const AdminHome: React.FC = () => {
     // 5. العروض والترويج
     {
       title: 'العروض والترويج',
+      tKey: 'sidebar.group.promotions',
       color: { bg: 'bg-orange-500/10', border: 'border-orange-300', title: 'text-orange-800', iconDefault: 'text-orange-600' },
       branchColor: { bg: 'bg-amber-500/10', border: 'border-amber-300', title: 'text-amber-800', iconDefault: 'text-amber-600' },
       items: [
         { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
         { path: '/product-offers', icon: Gift, label: t('nav.product_offers') },
         { path: '/my-promos', icon: BarChart3, label: t('nav.my_promos') },
-        { path: '/promo-splits', icon: Split, label: 'تجزئة العروض' },
+        { path: '/promo-splits', icon: Split, label: t('admin_home.item.promo_splits') },
         { path: '/manual-promo', icon: Gift, label: t('admin.manual_promo'), action: () => setManualPromoOpen(true) },
         ...(isSuperAdminRole(role) ? [{ path: '/gifts-tracking', icon: Gift, label: t('admin.promo_tracking'), action: () => { setGiftsWorkerIdx(0); setGiftsOpen(true); } }] : []),
       ],
@@ -373,19 +378,21 @@ const AdminHome: React.FC = () => {
     // 6. الموارد البشرية
     {
       title: 'الموارد البشرية',
+      tKey: 'sidebar.group.hr',
       color: { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-300', title: 'text-fuchsia-800', iconDefault: 'text-fuchsia-600' },
       branchColor: { bg: 'bg-purple-500/10', border: 'border-purple-300', title: 'text-purple-800', iconDefault: 'text-purple-600' },
       items: [
         ...(!isBranchAdmin ? [{ path: '/workers', icon: Users, label: t('nav.workers') }] : []),
         ...(!isWorkerActionsHidden ? [{ path: '/worker-actions', icon: Users, label: t('nav.worker_actions') }] : []),
         { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
-        { path: '/attendance', icon: CalendarDays, label: 'المداومة' },
-        { path: '/rewards', icon: Trophy, label: 'المكافآت والعقوبات' },
+        { path: '/attendance', icon: CalendarDays, label: t('admin_home.item.attendance') },
+        { path: '/rewards', icon: Trophy, label: t('admin_home.item.rewards_penalties') },
       ],
     },
     // 7. الإدارة والتقارير - hidden for branch_admin
     ...(!isBranchAdmin ? [{
       title: 'الإدارة والتقارير',
+      tKey: 'sidebar.group.admin',
       color: { bg: 'bg-slate-500/10', border: 'border-slate-300', title: 'text-slate-800', iconDefault: 'text-slate-600' },
       items: [
         { path: '/products', icon: Package, label: t('nav.products') },
@@ -397,10 +404,10 @@ const AdminHome: React.FC = () => {
           { path: '/permissions', icon: Shield, label: t('nav.permissions') },
         ] : []),
         { path: '/settings', icon: Settings, label: t('nav.settings') },
-        { path: '/backup', icon: Database, label: 'النسخ الاحتياطي' },
+        { path: '/backup', icon: Database, label: t('admin_home.item.backup') },
         { path: '/guide', icon: BookOpen, label: t('nav.guide') },
-        { path: '/training', icon: BookOpen, label: 'التدريب على التطبيق' },
-        { path: '/components-reference', icon: ClipboardList, label: 'مرجع النوافذ' },
+        { path: '/training', icon: BookOpen, label: t('admin_home.item.training') },
+        { path: '/components-reference', icon: ClipboardList, label: t('admin_home.item.components_reference') },
       ],
     }] : []),
   ];
