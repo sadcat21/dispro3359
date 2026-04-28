@@ -1929,7 +1929,7 @@ export const translations: Translations = {
   'workers.field.branch': { ar: 'الفرع', fr: 'Succursale', en: 'Branch' },
 
   // ==================== Accounting extras ====================
-  'accounting.session_already_open': { ar: 'جلسة هذا العامل مفتوحة بالفعل', fr: 'La session de cet employé est déjà ouverte', en: "This worker's session is already open" },
+  
   'accounting.my_review': { ar: 'مراجعتي', fr: 'Ma révision', en: 'My Review' },
   'accounting.financial_summary': { ar: 'ملخص مالي', fr: 'Résumé financier', en: 'Financial Summary' },
   'accounting.surplus': { ar: 'فائض', fr: 'Surplus', en: 'Surplus' },
