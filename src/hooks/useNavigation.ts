@@ -48,15 +48,15 @@ export const useNavigation = () => {
         ],
         more: [
           { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
-          { path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' },
+          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
           { path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') },
           { path: '/my-promos', icon: BarChart3, label: t('nav.my_promos') },
           { path: '/product-offers', icon: Gift, label: t('nav.product_offers') },
-          { path: '/promo-splits', icon: Split, label: 'تجزئة العروض' },
+          { path: '/promo-splits', icon: Split, label: t('nav.promo_splits') },
           { path: '/customer-accounts', icon: UserCog, label: t('nav.customer_accounts') },
           { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
           { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
-          { path: '/warehouse-review', icon: ClipboardCheck, label: 'مراجعة مخزون الفرع' },
+          { path: '/warehouse-review', icon: ClipboardCheck, label: t('nav.warehouse_review') },
           { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
           { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
           { path: '/expenses', icon: Wallet, label: t('expenses.my_expenses') },
@@ -65,12 +65,12 @@ export const useNavigation = () => {
           { path: '/customer-debts', icon: Banknote, label: t('debts.title') },
           { path: '/accounting', icon: Calculator, label: t('accounting.title') },
           { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
-          { path: '/shared-invoices', icon: FolderOpen, label: 'الفواتير المشاركة' },
-          { path: '/surplus-deficit', icon: Scale, label: 'خزينة الفائض والعجز' },
-          { path: '/rewards', icon: Trophy, label: 'المكافآت والعقوبات' },
+          { path: '/shared-invoices', icon: FolderOpen, label: t('nav.shared_invoices') },
+          { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
+          { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
           { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
           { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
-          { path: '/attendance', icon: CalendarDays, label: 'المداومة' },
+          { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
           { path: '/geo-operations', icon: Navigation, label: t('nav.geo_operations') },
           { path: '/activity-logs', icon: Activity, label: t('nav.activity_logs') },
           { path: '/nearby-stores', icon: Store, label: t('nav.nearby_stores') },
@@ -112,15 +112,15 @@ export const useNavigation = () => {
         ],
         more: [
           { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
-          { path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' },
+          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
           { path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') },
           { path: '/my-promos', icon: BarChart3, label: t('nav.my_promos') },
           { path: '/product-offers', icon: Gift, label: t('nav.product_offers') },
-          { path: '/promo-splits', icon: Split, label: 'تجزئة العروض' },
+          { path: '/promo-splits', icon: Split, label: t('nav.promo_splits') },
           { path: '/customer-accounts', icon: UserCog, label: t('nav.customer_accounts') },
           { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
           { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
-          { path: '/warehouse-review', icon: ClipboardCheck, label: 'مراجعة مخزون الفرع' },
+          { path: '/warehouse-review', icon: ClipboardCheck, label: t('nav.warehouse_review') },
           { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
           { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
           { path: '/expenses', icon: Wallet, label: t('expenses.my_expenses') },
@@ -129,12 +129,12 @@ export const useNavigation = () => {
           { path: '/customer-debts', icon: Banknote, label: t('debts.title') },
           { path: '/accounting', icon: Calculator, label: t('accounting.title') },
           { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
-          { path: '/shared-invoices', icon: FolderOpen, label: 'الفواتير المشاركة' },
-          { path: '/surplus-deficit', icon: Scale, label: 'خزينة الفائض والعجز' },
-          { path: '/rewards', icon: Trophy, label: 'المكافآت والعقوبات' },
+          { path: '/shared-invoices', icon: FolderOpen, label: t('nav.shared_invoices') },
+          { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
+          { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
           { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
           { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
-          { path: '/attendance', icon: CalendarDays, label: 'المداومة' },
+          { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
           { path: '/geo-operations', icon: Navigation, label: t('nav.geo_operations') },
           { path: '/activity-logs', icon: Activity, label: t('nav.activity_logs') },
           { path: '/nearby-stores', icon: Store, label: t('nav.nearby_stores') },
@@ -153,12 +153,12 @@ export const useNavigation = () => {
       return {
         main: [
           { path: '/', icon: Home, label: t('nav.home') },
-          { path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' },
+          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
           { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
         ],
         more: [
           { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
-          { path: '/warehouse-review', icon: ClipboardCheck, label: 'مراجعة مخزون الفرع' },
+          { path: '/warehouse-review', icon: ClipboardCheck, label: t('nav.warehouse_review') },
           { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
           { path: '/guide', icon: BookOpen, label: t('nav.guide') },
         ],
@@ -200,7 +200,7 @@ export const useNavigation = () => {
 
     // Order tracking - for workers with order permissions
     if (hasPermission('view_orders') || hasPermission('create_orders') || hasPermission('page_orders') || hasPermission('view_assigned_orders')) {
-      moreItems.push({ path: '/order-tracking', icon: Radar, label: 'تتبع الطلبات' });
+      moreItems.push({ path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') });
     }
 
     // Customer debts - for workers with debt collection permission
