@@ -47,11 +47,11 @@ const parseMismatches = (note: string | null): { product: string; expected: stri
 
 const ManagerConfirmationsPanel: React.FC = () => {
   const { confirmations, isLoading, needsAttentionCount, currentWorkerId, amendConfirmation, refetch } = useManagerConfirmations();
+  const { warehouseStock } = useWarehouseStock();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItems, setEditItems] = useState<StockConfirmationItem[]>([]);
-  const [editNote, setEditNote] = useState('');
 
   useRealtimeSubscription(
     'manager-confirmations-rt',
@@ -63,20 +63,92 @@ const ManagerConfirmationsPanel: React.FC = () => {
   const startEditing = (conf: StockConfirmation) => {
     setEditingId(conf.id);
     setEditItems(conf.items.map(i => ({ ...i })));
-    setEditNote('');
   };
 
-  const handleSaveAmendment = () => {
+  const handleSaveAmendment = (items: StockConfirmationItem[]) => {
     if (!editingId) return;
     amendConfirmation.mutate(
-      { confirmationId: editingId, newItems: editItems, note: editNote.trim() || 'تعديل الكميات' },
-      { onSuccess: () => { setEditingId(null); setEditItems([]); setEditNote(''); } }
+      { confirmationId: editingId, newItems: items, note: 'تعديل الكميات' },
+      { onSuccess: () => { setEditingId(null); setEditItems([]); } }
     );
   };
 
-  const updateItemQuantity = (idx: number, newQty: number) => {
-    setEditItems(prev => prev.map((item, i) => i === idx ? { ...item, quantity: newQty } : item));
+  // Build product options for ProductPickerDialog: include all warehouse products
+  // and ensure currently-loaded items appear even if their warehouse stock is 0.
+  const productOptions = useMemo(() => {
+    const map = new Map<string, any>();
+    warehouseStock.forEach((s: any) => {
+      if (s.product) {
+        map.set(s.product_id, {
+          id: s.product_id,
+          name: getProductDisplayName({ name: s.product.name, app_name: s.product.app_name }),
+          warehouseQty: s.quantity || 0,
+          image_url: s.product.image_url,
+          pieces_per_box: s.product.pieces_per_box || 20,
+        });
+      }
+    });
+    editItems.forEach(it => {
+      if (!map.has(it.product_id)) {
+        map.set(it.product_id, {
+          id: it.product_id,
+          name: getProductDisplayName({ name: it.product_name, app_name: it.product_app_name }),
+          warehouseQty: 0,
+          image_url: it.image_url,
+          pieces_per_box: 20,
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [warehouseStock, editItems]);
+
+  const loadedQtyMap = useMemo(
+    () => Object.fromEntries(editItems.map(i => [i.product_id, i.quantity])),
+    [editItems]
+  );
+  const giftQtyMap = useMemo(
+    () => Object.fromEntries(editItems.map(i => [i.product_id, i.gift_quantity || 0])),
+    [editItems]
+  );
+
+  const handleAddProducts = (
+    items: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }[]
+  ) => {
+    setEditItems(prev => {
+      const next = [...prev];
+      items.forEach(({ productId, quantity, giftQuantity, giftUnit }) => {
+        const idx = next.findIndex(i => i.product_id === productId);
+        const opt = productOptions.find(p => p.id === productId);
+        if (idx >= 0) {
+          next[idx] = { ...next[idx], quantity, gift_quantity: giftQuantity, gift_unit: giftUnit };
+        } else if (opt) {
+          next.push({
+            product_id: productId,
+            product_name: opt.name,
+            product_app_name: opt.name,
+            image_url: opt.image_url,
+            quantity,
+            gift_quantity: giftQuantity || 0,
+            gift_unit: giftUnit || 'piece',
+          } as StockConfirmationItem);
+        }
+      });
+      return next;
+    });
   };
+
+  const handleEditProduct = (item: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }) => {
+    setEditItems(prev => prev.map(i =>
+      i.product_id === item.productId
+        ? { ...i, quantity: item.quantity, gift_quantity: item.giftQuantity, gift_unit: item.giftUnit }
+        : i
+    ));
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+    setEditItems(prev => prev.filter(i => i.product_id !== productId));
+  };
+
 
   const renderConfirmation = (conf: StockConfirmation) => {
     const isExpanded = expandedId === conf.id;
