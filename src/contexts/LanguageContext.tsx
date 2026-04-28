@@ -28,7 +28,7 @@ export const useLanguage = () => {
 const LANGUAGE_KEY = 'laser_food_language';
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>('ar');
+  const [language, setLanguageState] = useState<Language>('fr');
   const [printLanguage, setPrintLanguageState] = useState<Language>('fr');
 
   useEffect(() => {
@@ -37,7 +37,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLanguageState(stored);
       updateDocumentDirection(stored);
     } else {
-      updateDocumentDirection('ar');
+      // Default to French when no user preference stored
+      updateDocumentDirection('fr');
     }
   }, []);
 
