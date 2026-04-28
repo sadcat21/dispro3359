@@ -38,6 +38,7 @@ export const translations: Translations = {
   'nav.orders': { ar: 'الطلبيات', fr: 'Commandes', en: 'Orders' },
   'nav.my_deliveries': { ar: 'التوصيلات', fr: 'Livraisons', en: 'Deliveries' },
   'nav.permissions': { ar: 'الصلاحيات', fr: 'Permissions', en: 'Permissions' },
+  'nav.worker_roles_management': { ar: 'إدارة أدوار العمال', fr: 'Gestion des rôles des employés', en: 'Worker Roles Management' },
   'nav.activity_logs': { ar: 'سجل النشاط', fr: 'Journal d\'activité', en: 'Activity Logs' },
   'nav.nearby_stores': { ar: 'المتاجر القريبة', fr: 'Magasins à proximité', en: 'Nearby Stores' },
   'nav.customer_accounts': { ar: 'حسابات التجار', fr: 'Comptes clients', en: 'Customer Accounts' },
