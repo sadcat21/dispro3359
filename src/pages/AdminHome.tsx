@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AddTaskDialog from '@/components/tasks/AddTaskDialog';
 import { useTasks } from '@/hooks/useTasks';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 // ─── Functional Group Definitions ───
 
