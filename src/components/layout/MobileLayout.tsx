@@ -39,6 +39,7 @@ import { useLocationBroadcast } from '@/hooks/useWorkerLocation';
 import AttendanceButton from '@/components/attendance/AttendanceButton';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
+import RefreshButton from '@/components/layout/RefreshButton';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -383,6 +384,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           )}
 
           {/* Action icons */}
+          <RefreshButton />
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           <StockConfirmationsPopover />
           <StockDisputesPopover />
