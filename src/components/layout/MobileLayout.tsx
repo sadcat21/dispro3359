@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -141,6 +141,18 @@ const SIDEBAR_GROUP_ORDER = [
   'الإدارة والتقارير',
   'أخرى',
 ];
+
+const SIDEBAR_GROUP_META: Record<string, { i18n: string; icon: React.ComponentType<{ className?: string }> }> = {
+  'الرئيسية': { i18n: 'sidebar.group.home', icon: Home },
+  'المحاسبة والمالية': { i18n: 'sidebar.group.accounting', icon: Wallet },
+  'الطلبات والتوصيل': { i18n: 'sidebar.group.orders', icon: Truck },
+  'المخزون والمستودع': { i18n: 'sidebar.group.warehouse', icon: Package },
+  'العملاء': { i18n: 'sidebar.group.customers', icon: Users },
+  'العروض والترويج': { i18n: 'sidebar.group.promotions', icon: Tag },
+  'الموارد البشرية': { i18n: 'sidebar.group.hr', icon: UserCog },
+  'الإدارة والتقارير': { i18n: 'sidebar.group.admin', icon: SettingsIcon },
+  'أخرى': { i18n: 'sidebar.group.other', icon: LayoutGrid },
+};
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole } = useAuth();
@@ -609,6 +621,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
                   const isOpen = openGroup === group.title;
                   const hasActive = group.items.some((it) => location.pathname === it.path);
+                  const meta = SIDEBAR_GROUP_META[group.title];
+                  const GroupIcon = meta?.icon ?? LayoutGrid;
+                  const groupLabel = meta ? t(meta.i18n) : group.title;
                   return (
                     <div key={group.title}>
                       <button
@@ -618,19 +633,29 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                         }
                         className={cn(
                           'flex w-full h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold transition-colors',
-                          hasActive
-                            ? 'text-sidebar-primary-foreground bg-sidebar-primary/20'
-                            : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                          isOpen
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                            : hasActive
+                              ? 'text-sidebar-primary-foreground bg-sidebar-primary/20'
+                              : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                         )}
                       >
+                        <GroupIcon
+                          className={cn(
+                            'h-5 w-5 shrink-0 transition-transform',
+                            isOpen ? 'scale-110 opacity-100' : 'opacity-80'
+                          )}
+                          {...(isOpen ? { strokeWidth: 2.5, fill: 'currentColor', fillOpacity: 0.18 } as any : {})}
+                        />
+                        <span className="flex-1 truncate text-start">{groupLabel}</span>
+                        <span className="text-[10px] font-normal opacity-60">{group.items.length}</span>
                         {isOpen ? (
                           <ChevronDown className="h-4 w-4 shrink-0 opacity-70" />
                         ) : (
                           <ChevronRight className={cn('h-4 w-4 shrink-0 opacity-70', dir === 'rtl' && 'rotate-180')} />
                         )}
-                        <span className="flex-1 truncate text-start">{group.title}</span>
-                        <span className="text-[10px] font-normal opacity-60">{group.items.length}</span>
                       </button>
+
                       {isOpen && (
                         <div className={cn('mt-1 space-y-0.5', dir === 'rtl' ? 'pr-4' : 'pl-4')}>
                           {group.items.map((item) => {

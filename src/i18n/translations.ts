@@ -1884,4 +1884,13 @@ export const translations: Translations = {
   'load_stock.orders_label': { ar: 'طلبات', fr: 'Commandes', en: 'Orders' },
   'load_stock.skipped': { ar: 'تم تخطيه', fr: 'Ignoré', en: 'Skipped' },
   'load_stock.products_loaded': { ar: 'تم شحن من الطلبيات بنجاح', fr: 'Chargé depuis les commandes avec succès', en: 'Loaded from orders successfully' },
+  'sidebar.group.home': { ar: 'الرئيسية', fr: 'Accueil', en: 'Home' },
+  'sidebar.group.accounting': { ar: 'المحاسبة والمالية', fr: 'Comptabilité & Finance', en: 'Accounting & Finance' },
+  'sidebar.group.orders': { ar: 'الطلبات والتوصيل', fr: 'Commandes & Livraison', en: 'Orders & Delivery' },
+  'sidebar.group.warehouse': { ar: 'المخزون والمستودع', fr: 'Stock & Entrepôt', en: 'Stock & Warehouse' },
+  'sidebar.group.customers': { ar: 'العملاء', fr: 'Clients', en: 'Customers' },
+  'sidebar.group.promotions': { ar: 'العروض والترويج', fr: 'Promotions', en: 'Promotions' },
+  'sidebar.group.hr': { ar: 'الموارد البشرية', fr: 'Ressources Humaines', en: 'Human Resources' },
+  'sidebar.group.admin': { ar: 'الإدارة والتقارير', fr: 'Administration & Rapports', en: 'Admin & Reports' },
+  'sidebar.group.other': { ar: 'أخرى', fr: 'Autres', en: 'Other' },
 };
