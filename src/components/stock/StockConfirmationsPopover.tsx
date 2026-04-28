@@ -58,8 +58,10 @@ const IncomingTab: React.FC<{
   isLoading: boolean;
   onApprove: (id: string) => void;
   onReject: (id: string, note: string) => void;
+  onToggleFreeze: (id: string, freeze: boolean) => void;
   isPending: boolean;
-}> = ({ confirmations, isLoading, onApprove, onReject, isPending }) => {
+  isFreezing: boolean;
+}> = ({ confirmations, isLoading, onApprove, onReject, onToggleFreeze, isPending, isFreezing }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [workerInputs, setWorkerInputs] = useState<WorkerVerification>({});
 
