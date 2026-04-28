@@ -490,28 +490,105 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           </div>
 
           <nav className="flex-1 overflow-y-auto p-2">
-            <div className="space-y-1">
-              {desktopNavItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    title={item.label}
-                    className={cn(
-                      'flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
-                      sidebarCollapsed && 'justify-center px-0',
-                      isActive
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                        : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                    )}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-                  </Link>
-                );
-              })}
-            </div>
+            {sidebarCollapsed ? (
+              // Collapsed: flat icon list
+              <div className="space-y-1">
+                {desktopNavItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      title={item.label}
+                      className={cn(
+                        'flex h-11 items-center justify-center rounded-lg transition-colors',
+                        isActive
+                          ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      )}
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              // Expanded: collapsible groups
+              <div className="space-y-1">
+                {sidebarGroups.map((group) => {
+                  // Single-item groups (like Home) render as a direct link
+                  if (group.items.length === 1 && group.items[0].path === '/') {
+                    const item = group.items[0];
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={group.title}
+                        to={item.path}
+                        className={cn(
+                          'flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        )}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    );
+                  }
+
+                  const isOpen = !!openGroups[group.title];
+                  const hasActive = group.items.some((it) => location.pathname === it.path);
+                  return (
+                    <div key={group.title}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenGroups((prev) => ({ ...prev, [group.title]: !prev[group.title] }))
+                        }
+                        className={cn(
+                          'flex w-full h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold transition-colors',
+                          hasActive
+                            ? 'text-sidebar-primary-foreground bg-sidebar-primary/20'
+                            : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        )}
+                      >
+                        {isOpen ? (
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-70" />
+                        ) : (
+                          <ChevronRight className={cn('h-4 w-4 shrink-0 opacity-70', dir === 'rtl' && 'rotate-180')} />
+                        )}
+                        <span className="flex-1 truncate text-start">{group.title}</span>
+                        <span className="text-[10px] font-normal opacity-60">{group.items.length}</span>
+                      </button>
+                      {isOpen && (
+                        <div className={cn('mt-1 space-y-0.5', dir === 'rtl' ? 'pr-4' : 'pl-4')}>
+                          {group.items.map((item) => {
+                            const isActive = location.pathname === item.path;
+                            return (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                title={item.label}
+                                className={cn(
+                                  'flex h-9 items-center gap-3 rounded-lg px-3 text-sm transition-colors',
+                                  isActive
+                                    ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold'
+                                    : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                                )}
+                              >
+                                <item.icon className="h-4 w-4 shrink-0" />
+                                <span className="truncate">{item.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </nav>
         </aside>
 
