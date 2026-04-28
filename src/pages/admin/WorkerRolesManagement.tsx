@@ -43,7 +43,7 @@ interface WorkerRoleRow {
 }
 
 const WorkerRolesManagement: React.FC = () => {
-  const { role } = useAuth();
+  const { role, activeBranch } = useAuth();
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
@@ -57,13 +57,17 @@ const WorkerRolesManagement: React.FC = () => {
   const isAdmin = role === 'admin' || role === 'project_manager';
 
   const { data: workers, isLoading: workersLoading } = useQuery({
-    queryKey: ['workers-list-roles-mgmt'],
+    queryKey: ['workers-list-roles-mgmt', activeBranch?.id ?? 'all'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('workers')
-        .select('id, full_name, username, role')
+        .select('id, full_name, username, role, branch_id')
         .eq('is_active', true)
         .order('full_name');
+      if (activeBranch?.id) {
+        query = query.eq('branch_id', activeBranch.id);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as WorkerRow[];
     },
