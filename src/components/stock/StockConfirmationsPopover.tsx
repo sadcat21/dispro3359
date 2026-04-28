@@ -5,13 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useStockConfirmations, StockConfirmation, StockConfirmationItem } from '@/hooks/useStockConfirmations';
 import { useManagerConfirmations } from '@/hooks/useManagerConfirmations';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStockDisputes } from '@/hooks/useStockDisputes';
+import { useWarehouseStock, WarehouseStockItem } from '@/hooks/useWarehouseStock';
+import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
+
+type ProductPickerOption = {
+  id: string;
+  name: string;
+  warehouseQty: number;
+  image_url?: string | null;
+  pieces_per_box?: number;
+};
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
@@ -305,39 +314,97 @@ const OutgoingTab: React.FC<{
   allowAmend?: boolean;
   onRaiseDispute?: (conf: StockConfirmation) => void;
 }> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute }) => {
+  const { warehouseStock } = useWarehouseStock();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItems, setEditItems] = useState<StockConfirmationItem[]>([]);
-  const [editNote, setEditNote] = useState('');
   const editingOriginal = editingId ? confirmations.find(conf => conf.id === editingId) : null;
-  const hasEditedChanges = editingOriginal
-    ? editingOriginal.items.some((originalItem, idx) => Math.abs((editItems[idx]?.quantity ?? originalItem.quantity) - originalItem.quantity) > 0.001)
-    : false;
+
+  const productOptions = useMemo(() => {
+    const map = new Map<string, ProductPickerOption>();
+    warehouseStock.forEach((s: WarehouseStockItem) => {
+      if (!s.product) return;
+      map.set(s.product_id, {
+        id: s.product_id,
+        name: getProductDisplayName({ name: s.product.name, app_name: s.product.app_name }),
+        warehouseQty: s.quantity || 0,
+        image_url: s.product.image_url,
+        pieces_per_box: s.product.pieces_per_box || 20,
+      });
+    });
+    editItems.forEach(item => {
+      if (map.has(item.product_id)) return;
+      map.set(item.product_id, {
+        id: item.product_id,
+        name: getProductDisplayName({ name: item.product_name, app_name: item.product_app_name }),
+        warehouseQty: 0,
+        image_url: item.image_url,
+        pieces_per_box: 20,
+      });
+    });
+    return Array.from(map.values());
+  }, [warehouseStock, editItems]);
+
+  const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.quantity])), [editItems]);
+  const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.gift_quantity || 0])), [editItems]);
 
   const startEditing = (conf: StockConfirmation) => {
     setEditingId(conf.id);
     setEditItems(conf.items.map(i => ({ ...i })));
-    setEditNote('');
   };
 
   const handleSaveAmendment = () => {
-    if (!allowAmend || !editingId || !hasEditedChanges) return;
-    onAmend(editingId, editItems, editNote.trim() || 'تم تعديل الكميات بعد رفض العامل');
+    if (!allowAmend || !editingId || editItems.length === 0) return;
+    onAmend(editingId, editItems, 'تعديل الكميات');
     setEditingId(null);
     setEditItems([]);
-    setEditNote('');
+  };
+
+  const handleAddProducts = (items: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }[]) => {
+    setEditItems(prev => {
+      const next = [...prev];
+      items.forEach(({ productId, quantity, giftQuantity, giftUnit }) => {
+        const idx = next.findIndex(item => item.product_id === productId);
+        const product = productOptions.find(item => item.id === productId);
+        if (idx >= 0) {
+          next[idx] = { ...next[idx], quantity, gift_quantity: giftQuantity || 0, gift_unit: giftUnit || 'piece' };
+        } else if (product) {
+          next.push({
+            product_id: productId,
+            product_name: product.name,
+            product_app_name: product.name,
+            image_url: product.image_url,
+            quantity,
+            gift_quantity: giftQuantity || 0,
+            gift_unit: giftUnit || 'piece',
+          } as StockConfirmationItem);
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleEditProduct = (item: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }) => {
+    setEditItems(prev => prev.map(existing => existing.product_id === item.productId
+      ? { ...existing, quantity: item.quantity, gift_quantity: item.giftQuantity || 0, gift_unit: item.giftUnit || 'piece' }
+      : existing
+    ));
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+    setEditItems(prev => prev.filter(item => item.product_id !== productId));
   };
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
   if (confirmations.length === 0) return <div className="text-center py-8 text-muted-foreground text-sm">لا توجد عمليات صادرة</div>;
 
   return (
+    <>
     <div className="space-y-2">
       {confirmations.map(conf => {
         const isExpanded = expandedId === conf.id;
-        const isEditing = editingId === conf.id;
         const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
-        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected');
+        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected') && !conf.frozen_at;
         const mismatches = parseMismatches(conf.rejection_note);
 
         return (
@@ -381,69 +448,57 @@ const OutgoingTab: React.FC<{
                   </div>
                 )}
 
-                {!isEditing ? (
-                  <>
-                    <div className="space-y-1.5">
-                      {conf.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
-                          {item.image_url ? (
-                            <img src={item.image_url} className="w-8 h-8 rounded object-cover" alt="" />
-                          ) : (
-                            <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                              <Package className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
-                            <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
-                            {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {canAmend && (
-                      <Button size="sm" variant="outline" className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
-                        <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
-                      </Button>
-                    )}
-                    {conf.status === 'rejected' && onRaiseDispute && (
-                      <Button size="sm" variant="outline" className="w-full h-8 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => onRaiseDispute(conf)}>
-                        <Scale className="w-3.5 h-3.5 me-1" />رفع خلاف للمدير
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-muted-foreground">عدّل الكميات ثم أرسل:</p>
-                    {editItems.map((item, idx) => (
+                <>
+                  <div className="space-y-1.5">
+                    {conf.items.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
+                        {item.image_url ? (
+                          <img src={item.image_url} className="w-8 h-8 rounded object-cover" alt="" />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                            <Package className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
+                          <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
+                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>}
                         </div>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={item.quantity}
-                          onChange={e => setEditItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it))}
-                          className="w-20 h-7 text-xs text-center"
-                        />
                       </div>
                     ))}
-                    <Textarea value={editNote} onChange={e => setEditNote(e.target.value)} placeholder="سبب التعديل (اختياري)..." className="text-xs min-h-[50px]" />
-                    <div className="flex gap-2">
-                      <Button size="sm" className="flex-1 h-8 text-xs bg-primary" onClick={handleSaveAmendment} disabled={!hasEditedChanges || isAmending}>
-                        {isAmending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 me-1" />}إرسال التعديل
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setEditingId(null); setEditItems([]); setEditNote(''); }}>إلغاء</Button>
-                    </div>
                   </div>
-                )}
+                  {canAmend && (
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
+                      <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
+                    </Button>
+                  )}
+                  {conf.status === 'rejected' && onRaiseDispute && (
+                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => onRaiseDispute(conf)}>
+                      <Scale className="w-3.5 h-3.5 me-1" />رفع خلاف للمدير
+                    </Button>
+                  )}
+                </>
               </div>
             )}
           </div>
         );
       })}
     </div>
+    <ProductPickerDialog
+      open={!!editingId}
+      onOpenChange={(isOpen) => { if (!isOpen) { setEditingId(null); setEditItems([]); } }}
+      products={productOptions}
+      selectedProductIds={editItems.map(item => item.product_id)}
+      loadedQtyMap={loadedQtyMap}
+      giftQtyMap={giftQtyMap}
+      onAddProducts={handleAddProducts}
+      onEditProduct={handleEditProduct}
+      onRemoveProduct={handleRemoveProduct}
+      onConfirmLoading={handleSaveAmendment}
+      workerName={editingOriginal?.worker?.full_name || editingOriginal?.manager?.full_name || ''}
+      showCloseButton
+    />
+    </>
   );
 };
 
@@ -565,7 +620,7 @@ const StockConfirmationsPopover: React.FC = () => {
     const { supabase } = await import('@/integrations/supabase/client');
     await supabase
       .from('stock_confirmations')
-      .update({ status: 'disputed' } as any)
+      .update({ status: 'disputed' })
       .eq('id', conf.id);
 
     // Parse mismatches from rejection note to create individual disputes
