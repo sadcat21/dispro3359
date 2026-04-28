@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, CalendarCheck } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -83,6 +83,64 @@ const moreItemColors: Record<string, { bg: string; icon: string; border: string 
   '/promo-table': { bg: 'bg-orange-50 dark:bg-orange-950/30', icon: 'text-orange-600 dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800' },
   '/stats': { bg: 'bg-indigo-50 dark:bg-indigo-950/30', icon: 'text-indigo-600 dark:text-indigo-400', border: 'border-indigo-200 dark:border-indigo-800' },
 };
+
+// Map each route path to a sidebar group title (mirrors AdminHome groups)
+const SIDEBAR_GROUP_BY_PATH: Record<string, string> = {
+  '/accounting': 'المحاسبة والمالية',
+  '/manager-accounting-review': 'المحاسبة والمالية',
+  '/customer-debts': 'المحاسبة والمالية',
+  '/surplus-deficit': 'المحاسبة والمالية',
+  '/expenses': 'المحاسبة والمالية',
+  '/expenses-management': 'المحاسبة والمالية',
+  '/manager-treasury': 'المحاسبة والمالية',
+  '/daily-receipts': 'المحاسبة والمالية',
+  '/shared-invoices': 'المحاسبة والمالية',
+  '/worker-debts': 'المحاسبة والمالية',
+  '/manager-sales-summary': 'المحاسبة والمالية',
+  '/orders': 'الطلبات والتوصيل',
+  '/order-tracking': 'الطلبات والتوصيل',
+  '/order-modifications': 'الطلبات والتوصيل',
+  '/my-deliveries': 'الطلبات والتوصيل',
+  '/warehouse': 'المخزون والمستودع',
+  '/warehouse-review': 'المخزون والمستودع',
+  '/stock-receipts': 'المخزون والمستودع',
+  '/load-stock': 'المخزون والمستودع',
+  '/my-stock': 'المخزون والمستودع',
+  '/customers': 'العملاء',
+  '/customer-accounts': 'العملاء',
+  '/customer-journey': 'العملاء',
+  '/nearby-stores': 'العملاء',
+  '/promo-table': 'العروض والترويج',
+  '/product-offers': 'العروض والترويج',
+  '/my-promos': 'العروض والترويج',
+  '/promo-splits': 'العروض والترويج',
+  '/workers': 'الموارد البشرية',
+  '/worker-actions': 'الموارد البشرية',
+  '/worker-tracking': 'الموارد البشرية',
+  '/attendance': 'الموارد البشرية',
+  '/rewards': 'الموارد البشرية',
+  '/products': 'الإدارة والتقارير',
+  '/stats': 'الإدارة والتقارير',
+  '/geo-operations': 'الإدارة والتقارير',
+  '/activity-logs': 'الإدارة والتقارير',
+  '/branches': 'الإدارة والتقارير',
+  '/permissions': 'الإدارة والتقارير',
+  '/settings': 'الإدارة والتقارير',
+  '/guide': 'الإدارة والتقارير',
+  '/training': 'الإدارة والتقارير',
+};
+
+const SIDEBAR_GROUP_ORDER = [
+  'الرئيسية',
+  'المحاسبة والمالية',
+  'الطلبات والتوصيل',
+  'المخزون والمستودع',
+  'العملاء',
+  'العروض والترويج',
+  'الموارد البشرية',
+  'الإدارة والتقارير',
+  'أخرى',
+];
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole } = useAuth();
@@ -166,6 +224,30 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       return true;
     });
   }, [mainNavItems, moreNavItems]);
+
+  // Group desktop nav items into collapsible sections (mirrors AdminHome groups)
+  const sidebarGroups = useMemo(() => {
+    const buckets = new Map<string, typeof desktopNavItems>();
+    for (const item of desktopNavItems) {
+      const title = item.path === '/' ? 'الرئيسية' : (SIDEBAR_GROUP_BY_PATH[item.path] || 'أخرى');
+      if (!buckets.has(title)) buckets.set(title, []);
+      buckets.get(title)!.push(item);
+    }
+    return SIDEBAR_GROUP_ORDER
+      .filter((title) => buckets.has(title))
+      .map((title) => ({ title, items: buckets.get(title)! }));
+  }, [desktopNavItems]);
+
+  // Track which groups are open; default: open the group containing the active route
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const activeGroup = sidebarGroups.find((g) =>
+      g.items.some((item) => location.pathname === item.path)
+    )?.title;
+    if (activeGroup) {
+      setOpenGroups((prev) => (prev[activeGroup] ? prev : { ...prev, [activeGroup]: true }));
+    }
+  }, [location.pathname, sidebarGroups]);
 
   // Close more sheet on route change
   useEffect(() => { setMoreOpen(false); }, [location.pathname]);
@@ -408,28 +490,105 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           </div>
 
           <nav className="flex-1 overflow-y-auto p-2">
-            <div className="space-y-1">
-              {desktopNavItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    title={item.label}
-                    className={cn(
-                      'flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
-                      sidebarCollapsed && 'justify-center px-0',
-                      isActive
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                        : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                    )}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-                  </Link>
-                );
-              })}
-            </div>
+            {sidebarCollapsed ? (
+              // Collapsed: flat icon list
+              <div className="space-y-1">
+                {desktopNavItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      title={item.label}
+                      className={cn(
+                        'flex h-11 items-center justify-center rounded-lg transition-colors',
+                        isActive
+                          ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      )}
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              // Expanded: collapsible groups
+              <div className="space-y-1">
+                {sidebarGroups.map((group) => {
+                  // Single-item groups (like Home) render as a direct link
+                  if (group.items.length === 1 && group.items[0].path === '/') {
+                    const item = group.items[0];
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={group.title}
+                        to={item.path}
+                        className={cn(
+                          'flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        )}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    );
+                  }
+
+                  const isOpen = !!openGroups[group.title];
+                  const hasActive = group.items.some((it) => location.pathname === it.path);
+                  return (
+                    <div key={group.title}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenGroups((prev) => ({ ...prev, [group.title]: !prev[group.title] }))
+                        }
+                        className={cn(
+                          'flex w-full h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold transition-colors',
+                          hasActive
+                            ? 'text-sidebar-primary-foreground bg-sidebar-primary/20'
+                            : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        )}
+                      >
+                        {isOpen ? (
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-70" />
+                        ) : (
+                          <ChevronRight className={cn('h-4 w-4 shrink-0 opacity-70', dir === 'rtl' && 'rotate-180')} />
+                        )}
+                        <span className="flex-1 truncate text-start">{group.title}</span>
+                        <span className="text-[10px] font-normal opacity-60">{group.items.length}</span>
+                      </button>
+                      {isOpen && (
+                        <div className={cn('mt-1 space-y-0.5', dir === 'rtl' ? 'pr-4' : 'pl-4')}>
+                          {group.items.map((item) => {
+                            const isActive = location.pathname === item.path;
+                            return (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                title={item.label}
+                                className={cn(
+                                  'flex h-9 items-center gap-3 rounded-lg px-3 text-sm transition-colors',
+                                  isActive
+                                    ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold'
+                                    : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                                )}
+                              >
+                                <item.icon className="h-4 w-4 shrink-0" />
+                                <span className="truncate">{item.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </nav>
         </aside>
 
