@@ -494,12 +494,12 @@ const AdminHome: React.FC = () => {
         <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-foreground">أوامر سريعة</h3>
-              <p className="text-xs text-muted-foreground">اختصارات يومية لمتابعة التشغيل والفرق والصلاحيات</p>
+              <h3 className="text-sm font-bold text-foreground">{t('admin_home.quick_actions')}</h3>
+              <p className="text-xs text-muted-foreground">{t('admin_home.quick_actions_desc')}</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => navigate('/orders')}>
               <ShoppingCart className="me-1 h-4 w-4" />
-              الطلبات
+              {t('nav.orders')}
             </Button>
           </div>
 
