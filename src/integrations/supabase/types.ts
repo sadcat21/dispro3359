@@ -7237,6 +7237,15 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
+      can_create_stock_confirmation_for_session: {
+        Args: {
+          _branch_id: string
+          _manager_id: string
+          _source_session_id: string
+          _worker_id: string
+        }
+        Returns: boolean
+      }
       can_manage_product_offers: {
         Args: { p_worker_id: string }
         Returns: boolean
