@@ -413,11 +413,12 @@ const WorkerHome: React.FC = () => {
           if (isWarehouseManager) {
             quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: 'إدارة المخزن', onClick: () => setShowStockManagement(true) });
             quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: 'شحن العامل', onClick: () => setShowLoadWorkerPicker(true) });
+            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: 'تتبع الطلبات', onClick: () => navigate('/order-tracking') });
           }
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
             quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock') });
           }
-          if (hasOrdersAccess && !isOrdersPageHidden && !isCreateOrderHidden) {
+          if (hasOrdersAccess && !isWarehouseManager && !isOrdersPageHidden && !isCreateOrderHidden) {
             quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true) });
             quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
             quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: 'تتبع طلباتي', onClick: () => navigate('/my-order-tracking') });
@@ -444,7 +445,7 @@ const WorkerHome: React.FC = () => {
             quickActions.push({ key: 'rewards', icon: <Trophy className="w-6 h-6" />, label: t('worker.rewards'), onClick: () => navigate('/my-rewards') });
           }
           // Worker Actions for supervisor or warehouse_manager
-          if ((isSupervisor || activeRole?.custom_role_code === 'warehouse_manager') && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
+          if (isSupervisor && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
             quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-6 h-6" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions') });
           }
           // Worker Actions for regular workers (self-view) — removed per user request

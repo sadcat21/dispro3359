@@ -49,8 +49,8 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
   const { workerId } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [includeDamaged, setIncludeDamaged] = useState(false);
-  const [includePallets, setIncludePallets] = useState(false);
+  const [includeDamaged, setIncludeDamaged] = useState(true);
+  const [includePallets, setIncludePallets] = useState(true);
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -154,7 +154,9 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
     return { matched, surplus, deficit, unverified, total: items.length };
   }, [items]);
 
-  const canSave = stats.unverified === 0;
+  const damagedComplete = !includeDamaged || damagedItems.every(d => damagedActuals[d.productId] !== undefined);
+  const palletsComplete = !includePallets || palletActual.trim() !== '';
+  const canSave = stats.unverified === 0 && damagedComplete && palletsComplete;
 
   const handleSave = async () => {
     if (!workerId || !canSave) return;
@@ -359,12 +361,12 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
         <div className="shrink-0 space-y-3">
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <Switch id="include-damaged" checked={includeDamaged} onCheckedChange={setIncludeDamaged} />
-              <Label htmlFor="include-damaged" className="text-xs">مراجعة التالف</Label>
+              <Switch id="include-damaged" checked={includeDamaged} onCheckedChange={setIncludeDamaged} disabled />
+              <Label htmlFor="include-damaged" className="text-xs">مراجعة التالف إلزامية</Label>
             </div>
             <div className="flex items-center gap-2">
-              <Switch id="include-pallets" checked={includePallets} onCheckedChange={setIncludePallets} />
-              <Label htmlFor="include-pallets" className="text-xs">مراجعة الباليطات</Label>
+              <Switch id="include-pallets" checked={includePallets} onCheckedChange={setIncludePallets} disabled />
+              <Label htmlFor="include-pallets" className="text-xs">كمية الباليط إلزامية</Label>
             </div>
             <Button size="sm" variant="ghost" className="text-xs ms-auto" onClick={markAllMatched}>
               <CheckCircle className="w-3.5 h-3.5 me-1" />
@@ -482,7 +484,7 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
         <DialogFooter className="shrink-0 flex-col gap-2">
           {!canSave && (
             <p className="text-xs text-muted-foreground text-center">
-              يرجى إدخال الكمية الفعلية لجميع المنتجات ({stats.unverified} متبقي)
+              يرجى إدخال الكمية الفعلية لجميع المنتجات والتالف والباليط ({stats.unverified} منتج متبقي)
             </p>
           )}
           <Button onClick={handleSave} disabled={isSaving || !canSave} className="w-full gap-2">

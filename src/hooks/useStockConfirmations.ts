@@ -120,6 +120,58 @@ export const useStockConfirmations = () => {
         if (rpcError) throw rpcError;
       }
 
+      if (confirmation.operation_type === 'exchange') {
+        for (const item of (confirmation.items || []) as any[]) {
+          const piecesPerBox = item.pieces_per_box || 20;
+          const exchangeQty = Number(item.quantity || 0);
+          const { data: whStock } = await supabase
+            .from('warehouse_stock')
+            .select('id, quantity, damaged_quantity')
+            .eq('branch_id', confirmation.branch_id)
+            .eq('product_id', item.product_id)
+            .maybeSingle();
+
+          const toPieces = (qty: number) => {
+            const rounded = Math.round(qty * 100) / 100;
+            const boxes = Math.floor(rounded);
+            const pieces = Math.round((rounded - boxes) * 100);
+            return boxes * piecesPerBox + pieces;
+          };
+          const toBoxPiece = (pieces: number) => Math.floor(pieces / piecesPerBox) + (pieces % piecesPerBox) / 100;
+          const exchangePieces = toPieces(exchangeQty);
+
+          if (whStock) {
+            const qtyPieces = toPieces(Number(whStock.quantity || 0));
+            const damagedPieces = toPieces(Number(whStock.damaged_quantity || 0));
+            await supabase.from('warehouse_stock').update({
+              quantity: toBoxPiece(Math.max(0, qtyPieces - exchangePieces)),
+              damaged_quantity: toBoxPiece(damagedPieces + exchangePieces),
+            }).eq('id', whStock.id);
+          } else {
+            await supabase.from('warehouse_stock').insert({
+              branch_id: confirmation.branch_id,
+              product_id: item.product_id,
+              quantity: 0,
+              damaged_quantity: exchangeQty,
+            });
+          }
+
+          await supabase.from('stock_movements').insert({
+            product_id: item.product_id,
+            branch_id: confirmation.branch_id,
+            quantity: exchangeQty,
+            movement_type: 'exchange',
+            status: 'approved',
+            created_by: confirmation.manager_id,
+            worker_id: confirmation.worker_id,
+            notes: `استبدال تالف - ${item.product_name}`,
+          });
+        }
+        if (confirmation.source_session_id) {
+          await supabase.from('loading_sessions').update({ status: 'exchange', completed_at: new Date().toISOString() }).eq('id', confirmation.source_session_id);
+        }
+      }
+
       // Handle review confirmation: sync stock + create discrepancies
       if (confirmation.operation_type === 'review') {
         const reviewItems = (confirmation.items || []) as any[];
