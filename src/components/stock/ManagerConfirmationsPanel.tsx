@@ -303,85 +303,21 @@ const ManagerConfirmationsPanel: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* نافذة شحن المنتجات - تعديل الكميات وإعادة الإرسال */}
-      <Dialog
+      {/* نافذة شحن المنتجات الكاملة - تعديل الكميات وإعادة الإرسال */}
+      <ProductPickerDialog
         open={!!editingId}
-        onOpenChange={(o) => { if (!o) { setEditingId(null); setEditItems([]); setEditNote(''); } }}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <Truck className="w-5 h-5 text-primary" />
-              شحن المنتجات - تعديل الكميات
-            </DialogTitle>
-            {editingConf && (
-              <p className="text-xs text-muted-foreground">
-                إلى: <span className="font-bold">{editingConf.worker?.full_name || 'عامل'}</span>
-              </p>
-            )}
-          </DialogHeader>
-
-          <ScrollArea className="max-h-[55vh] pe-2">
-            <div className="space-y-2">
-              {editItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-muted/40 rounded-lg p-2.5 border">
-                  {item.image_url ? (
-                    <img src={item.image_url} className="w-10 h-10 rounded object-cover" alt="" />
-                  ) : (
-                    <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                      <Package className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">
-                      {getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}
-                    </p>
-                    <span className="text-[10px] text-muted-foreground">صناديق</span>
-                  </div>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={item.quantity}
-                    onChange={e => updateItemQuantity(idx, parseFloat(e.target.value) || 0)}
-                    className="w-24 h-9 text-sm text-center font-bold"
-                  />
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-
-          <Textarea
-            value={editNote}
-            onChange={e => setEditNote(e.target.value)}
-            placeholder="سبب التعديل (اختياري)..."
-            className="text-xs min-h-[60px]"
-          />
-
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { setEditingId(null); setEditItems([]); setEditNote(''); }}
-            >
-              <X className="w-4 h-4 me-1" />
-              إلغاء
-            </Button>
-            <Button
-              size="sm"
-              className="bg-primary"
-              onClick={handleSaveAmendment}
-              disabled={amendConfirmation.isPending}
-            >
-              {amendConfirmation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin me-1" />
-              ) : (
-                <Send className="w-4 h-4 me-1" />
-              )}
-              إرسال التعديل
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={(o) => { if (!o) { setEditingId(null); setEditItems([]); } }}
+        products={productOptions}
+        selectedProductIds={editItems.map(i => i.product_id)}
+        loadedQtyMap={loadedQtyMap}
+        giftQtyMap={giftQtyMap}
+        onAddProducts={handleAddProducts}
+        onEditProduct={handleEditProduct}
+        onRemoveProduct={handleRemoveProduct}
+        onConfirmLoading={() => handleSaveAmendment(editItems)}
+        workerName={editingConf?.worker?.full_name || ''}
+        showCloseButton
+      />
     </>
   );
 };
