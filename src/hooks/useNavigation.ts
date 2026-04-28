@@ -82,7 +82,7 @@ export const useNavigation = () => {
           { path: '/worker-actions', icon: Users, label: t('nav.worker_actions') },
           { path: '/products', icon: Package, label: t('nav.products') },
           { path: '/permissions', icon: Shield, label: t('nav.permissions') },
-          { path: '/worker-roles-management', icon: Shield, label: 'إدارة أدوار العمال' },
+          { path: '/worker-roles-management', icon: Shield, label: t('nav.worker_roles_management') },
           { path: '/settings', icon: Settings, label: t('nav.settings') },
           { path: '/guide', icon: BookOpen, label: t('nav.guide') },
         ],
