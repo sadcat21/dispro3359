@@ -68,9 +68,9 @@ const ManagerConfirmationsPanel: React.FC = () => {
   };
 
   const handleSaveAmendment = () => {
-    if (!editingId || !editNote.trim()) return;
+    if (!editingId) return;
     amendConfirmation.mutate(
-      { confirmationId: editingId, newItems: editItems, note: editNote.trim() },
+      { confirmationId: editingId, newItems: editItems, note: editNote.trim() || 'تعديل الكميات' },
       { onSuccess: () => { setEditingId(null); setEditItems([]); setEditNote(''); } }
     );
   };
