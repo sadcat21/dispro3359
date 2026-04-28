@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, SunMoon, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -455,7 +455,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   title="تلقائي"
                   className={cn('flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors', theme === 'system' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}
                 >
-                  <Monitor className="w-3.5 h-3.5" />
+                  <SunMoon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setForceMobileView((v) => !v)}
