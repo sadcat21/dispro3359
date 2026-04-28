@@ -84,6 +84,64 @@ const moreItemColors: Record<string, { bg: string; icon: string; border: string 
   '/stats': { bg: 'bg-indigo-50 dark:bg-indigo-950/30', icon: 'text-indigo-600 dark:text-indigo-400', border: 'border-indigo-200 dark:border-indigo-800' },
 };
 
+// Map each route path to a sidebar group title (mirrors AdminHome groups)
+const SIDEBAR_GROUP_BY_PATH: Record<string, string> = {
+  '/accounting': 'المحاسبة والمالية',
+  '/manager-accounting-review': 'المحاسبة والمالية',
+  '/customer-debts': 'المحاسبة والمالية',
+  '/surplus-deficit': 'المحاسبة والمالية',
+  '/expenses': 'المحاسبة والمالية',
+  '/expenses-management': 'المحاسبة والمالية',
+  '/manager-treasury': 'المحاسبة والمالية',
+  '/daily-receipts': 'المحاسبة والمالية',
+  '/shared-invoices': 'المحاسبة والمالية',
+  '/worker-debts': 'المحاسبة والمالية',
+  '/manager-sales-summary': 'المحاسبة والمالية',
+  '/orders': 'الطلبات والتوصيل',
+  '/order-tracking': 'الطلبات والتوصيل',
+  '/order-modifications': 'الطلبات والتوصيل',
+  '/my-deliveries': 'الطلبات والتوصيل',
+  '/warehouse': 'المخزون والمستودع',
+  '/warehouse-review': 'المخزون والمستودع',
+  '/stock-receipts': 'المخزون والمستودع',
+  '/load-stock': 'المخزون والمستودع',
+  '/my-stock': 'المخزون والمستودع',
+  '/customers': 'العملاء',
+  '/customer-accounts': 'العملاء',
+  '/customer-journey': 'العملاء',
+  '/nearby-stores': 'العملاء',
+  '/promo-table': 'العروض والترويج',
+  '/product-offers': 'العروض والترويج',
+  '/my-promos': 'العروض والترويج',
+  '/promo-splits': 'العروض والترويج',
+  '/workers': 'الموارد البشرية',
+  '/worker-actions': 'الموارد البشرية',
+  '/worker-tracking': 'الموارد البشرية',
+  '/attendance': 'الموارد البشرية',
+  '/rewards': 'الموارد البشرية',
+  '/products': 'الإدارة والتقارير',
+  '/stats': 'الإدارة والتقارير',
+  '/geo-operations': 'الإدارة والتقارير',
+  '/activity-logs': 'الإدارة والتقارير',
+  '/branches': 'الإدارة والتقارير',
+  '/permissions': 'الإدارة والتقارير',
+  '/settings': 'الإدارة والتقارير',
+  '/guide': 'الإدارة والتقارير',
+  '/training': 'الإدارة والتقارير',
+};
+
+const SIDEBAR_GROUP_ORDER = [
+  'الرئيسية',
+  'المحاسبة والمالية',
+  'الطلبات والتوصيل',
+  'المخزون والمستودع',
+  'العملاء',
+  'العروض والترويج',
+  'الموارد البشرية',
+  'الإدارة والتقارير',
+  'أخرى',
+];
+
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole } = useAuth();
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
