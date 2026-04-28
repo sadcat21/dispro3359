@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Trash2, Calendar, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Loader2, Plus, Trash2, Calendar, ShieldCheck, ShieldOff, ArrowRight, HardHat, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -48,6 +48,7 @@ const WorkerRolesManagement: React.FC = () => {
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newCustomRoleId, setNewCustomRoleId] = useState<string>('');
   const [newValidFrom, setNewValidFrom] = useState<string>('');
   const [newValidUntil, setNewValidUntil] = useState<string>('');
