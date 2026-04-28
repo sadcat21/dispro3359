@@ -1050,7 +1050,8 @@ const LoadStock: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
       await refresh();
 
-      toast.success('تم إرسال طلب تأكيد الشحن للعامل');
+      const workerName = workers.find((w: any) => w.id === selectedWorker)?.full_name || 'العامل المحدد';
+      toast.success(`تم إرسال الشحنة، وهي الآن قيد انتظار موافقة عامل التوصيل ${workerName}`);
       setActiveSessionId(null);
       setSessionItems([]);
     } catch (err: any) { toast.error(err.message); }
@@ -1127,6 +1128,7 @@ const LoadStock: React.FC = () => {
     if (!branchId || !currentWorkerId || !selectedWorker) return;
     setIsEmptying(true);
     setShowEmptyDialog(false);
+    toast.loading('جاري التفريغ... سيتم تفريغ كل المنتجات المحددة دفعة واحدة', { id: 'empty-truck-batch' });
     try {
       const itemsToReturn = emptyTruckItems.filter(item => item.returnQty > 0);
       if (itemsToReturn.length === 0) {
@@ -1164,12 +1166,17 @@ const LoadStock: React.FC = () => {
 
       if (sessionError) throw sessionError;
 
+      const sessionItemRows: any[] = [];
+      const workerStockUpdates: Promise<any>[] = [];
+      const warehouseUpserts: Promise<any>[] = [];
+      const movementRows: any[] = [];
+
       for (const item of itemsToReturn) {
         const ppb = item.piecesPerBox;
         const returnQty = item.returnQty;
         const newWorkerQty = subtractCustomQty(item.quantity, returnQty, ppb);
 
-        await supabase.from('loading_session_items').insert({
+        sessionItemRows.push({
           session_id: unloadSession.id,
           product_id: item.product_id,
           quantity: returnQty,
@@ -1179,21 +1186,21 @@ const LoadStock: React.FC = () => {
           notes: `تفريغ ${fmtQty(returnQty)} من ${fmtQty(item.quantity)} - متبقي: ${fmtQty(newWorkerQty)}`,
         });
 
-        await supabase.from('worker_stock').update({ quantity: newWorkerQty }).eq('id', item.id);
+        workerStockUpdates.push(supabase.from('worker_stock').update({ quantity: newWorkerQty }).eq('id', item.id));
 
         const existingWarehouse = warehouseStock.find(s => s.product_id === item.product_id);
         if (existingWarehouse) {
           const newWhQty = addCustomQty(existingWarehouse.quantity, returnQty, ppb);
-          await supabase.from('warehouse_stock').update({ quantity: newWhQty }).eq('id', existingWarehouse.id);
+          warehouseUpserts.push(supabase.from('warehouse_stock').update({ quantity: newWhQty }).eq('id', existingWarehouse.id));
         } else {
-          await supabase.from('warehouse_stock').insert({
+          warehouseUpserts.push(supabase.from('warehouse_stock').insert({
             branch_id: branchId,
             product_id: item.product_id,
             quantity: returnQty,
-          });
+          }));
         }
 
-        await supabase.from('stock_movements').insert({
+        movementRows.push({
           product_id: item.product_id,
           branch_id: branchId,
           quantity: returnQty,
@@ -1205,6 +1212,16 @@ const LoadStock: React.FC = () => {
         });
       }
 
+      const [{ error: itemsError }, ...stockResults] = await Promise.all([
+        supabase.from('loading_session_items').insert(sessionItemRows),
+        ...workerStockUpdates,
+        ...warehouseUpserts,
+        supabase.from('stock_movements').insert(movementRows),
+      ] as any[]);
+      if (itemsError) throw itemsError;
+      const failed = stockResults.find((res: any) => res?.error);
+      if (failed?.error) throw failed.error;
+
       setSessionItems([]);
       setActiveSessionId(null);
       await refresh();
@@ -1215,8 +1232,9 @@ const LoadStock: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['stock-discrepancies'] });
       queryClient.invalidateQueries({ queryKey: ['stock-discrepancies-pending'] });
-      toast.success(t('stock.empty_truck_success'));
+      toast.success(t('stock.empty_truck_success'), { id: 'empty-truck-batch' });
     } catch (error: any) {
+      toast.dismiss('empty-truck-batch');
       toast.error(error.message);
     } finally {
       setIsEmptying(false);
