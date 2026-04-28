@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, CalendarCheck, ChevronDown, ChevronRight } from 'lucide-react';
@@ -238,16 +238,21 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       .map((title) => ({ title, items: buckets.get(title)! }));
   }, [desktopNavItems]);
 
-  // Track which group is open (only one at a time, accordion behavior).
-  // Initial value: the group containing the current route. Do NOT auto-reopen
-  // on subsequent renders — let the user freely toggle.
-  const [openGroup, setOpenGroup] = useState<string | null>(() => {
-    const path = location.pathname;
-    for (const [p, title] of Object.entries(SIDEBAR_GROUP_BY_PATH)) {
-      if (p === path) return title;
+  const getGroupTitleForPath = (path: string) => {
+    if (path === '/') return 'الرئيسية';
+    return SIDEBAR_GROUP_BY_PATH[path] || null;
+  };
+
+  // نحافظ على حالة الطي يدوياً، ونقوم بالمزامنة فقط عند تغيّر المسار نفسه.
+  const [openGroup, setOpenGroup] = useState<string | null>(() => getGroupTitleForPath(location.pathname));
+  const previousPathRef = useRef(location.pathname);
+
+  useEffect(() => {
+    if (previousPathRef.current !== location.pathname) {
+      previousPathRef.current = location.pathname;
+      setOpenGroup(getGroupTitleForPath(location.pathname));
     }
-    return null;
-  });
+  }, [location.pathname]);
 
   // Close more sheet on route change
   useEffect(() => { setMoreOpen(false); }, [location.pathname]);
