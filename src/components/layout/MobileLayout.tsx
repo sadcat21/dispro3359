@@ -535,14 +535,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                     );
                   }
 
-                  const isOpen = !!openGroups[group.title];
+                  const isOpen = openGroup === group.title;
                   const hasActive = group.items.some((it) => location.pathname === it.path);
                   return (
                     <div key={group.title}>
                       <button
                         type="button"
                         onClick={() =>
-                          setOpenGroups((prev) => ({ ...prev, [group.title]: !prev[group.title] }))
+                          setOpenGroup((prev) => (prev === group.title ? null : group.title))
                         }
                         className={cn(
                           'flex w-full h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold transition-colors',
