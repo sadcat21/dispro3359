@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Truck, Check, ChevronDown, ChevronUp, Loader2, Package, AlertTriangle, Inbox, Send, History, Edit, Scale, CheckCheck, X } from 'lucide-react';
+import { Truck, Check, ChevronDown, ChevronUp, Loader2, Package, AlertTriangle, Inbox, Send, History, Edit, Scale, CheckCheck, X, Lock, Unlock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -58,8 +58,10 @@ const IncomingTab: React.FC<{
   isLoading: boolean;
   onApprove: (id: string) => void;
   onReject: (id: string, note: string) => void;
+  onToggleFreeze: (id: string, freeze: boolean) => void;
   isPending: boolean;
-}> = ({ confirmations, isLoading, onApprove, onReject, isPending }) => {
+  isFreezing: boolean;
+}> = ({ confirmations, isLoading, onApprove, onReject, onToggleFreeze, isPending, isFreezing }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [workerInputs, setWorkerInputs] = useState<WorkerVerification>({});
 
@@ -145,15 +147,32 @@ const IncomingTab: React.FC<{
 
         return (
           <div key={conf.id} className="border rounded-lg overflow-hidden">
-            <button className="w-full flex items-center gap-2 p-2.5 text-start" onClick={() => handleExpand(conf)}>
-              <Badge className={`${OPERATION_COLORS[conf.operation_type] || 'bg-gray-600'} text-white text-[10px] px-1.5 py-0`}>
-                {OPERATION_LABELS[conf.operation_type] || conf.operation_type}
-              </Badge>
-              {isAmended && <Badge variant="outline" className="text-[9px] border-amber-500 text-amber-600">معدّل</Badge>}
-              <span className="text-[10px] text-muted-foreground flex-1 truncate">{conf.manager?.full_name || 'مسؤول المخزن'}</span>
-              <span className="text-[9px] text-muted-foreground">{new Date(conf.created_at).toLocaleDateString('ar-DZ')}</span>
-              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
+            <div className="w-full flex items-center gap-2 p-2.5">
+              <button className="flex items-center gap-2 flex-1 min-w-0 text-start" onClick={() => handleExpand(conf)}>
+                <Badge className={`${OPERATION_COLORS[conf.operation_type] || 'bg-gray-600'} text-white text-[10px] px-1.5 py-0`}>
+                  {OPERATION_LABELS[conf.operation_type] || conf.operation_type}
+                </Badge>
+                {isAmended && <Badge variant="outline" className="text-[9px] border-amber-500 text-amber-600">معدّل</Badge>}
+                {conf.frozen_at && (
+                  <Badge className="bg-blue-600 text-white text-[9px] px-1.5 py-0 flex items-center gap-0.5">
+                    <Lock className="w-2.5 h-2.5" />مجمّد
+                  </Badge>
+                )}
+                <span className="text-[10px] text-muted-foreground flex-1 truncate">{conf.manager?.full_name || 'مسؤول المخزن'}</span>
+                <span className="text-[9px] text-muted-foreground">{new Date(conf.created_at).toLocaleDateString('ar-DZ')}</span>
+                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`h-7 px-2 text-[10px] shrink-0 ${conf.frozen_at ? 'border-blue-500 text-blue-700 hover:bg-blue-50' : 'border-amber-500 text-amber-700 hover:bg-amber-50'}`}
+                onClick={(e) => { e.stopPropagation(); onToggleFreeze(conf.id, !conf.frozen_at); }}
+                disabled={isFreezing}
+                title={conf.frozen_at ? 'فك التجميد للسماح للمسؤول بالتعديل' : 'تجميد العملية لمنع التعديل'}
+              >
+                {conf.frozen_at ? <><Unlock className="w-3 h-3 me-0.5" />فك</> : <><Lock className="w-3 h-3 me-0.5" />تجميد</>}
+              </Button>
+            </div>
 
             {isExpanded && (
               <div className="flex flex-col">
@@ -649,7 +668,9 @@ const StockConfirmationsPopover: React.FC = () => {
                     isLoading={workerHook.isLoading}
                     onApprove={handleApprove}
                     onReject={handleReject}
+                    onToggleFreeze={(id, freeze) => workerHook.setFreeze.mutate({ id, freeze })}
                     isPending={workerHook.approveConfirmation.isPending || workerHook.rejectConfirmation.isPending}
+                    isFreezing={workerHook.setFreeze.isPending}
                   />
                 )}
               </TabsContent>

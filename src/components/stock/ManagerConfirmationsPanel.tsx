@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Truck, ChevronDown, ChevronUp, Package, Edit, Loader2, Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Truck, ChevronDown, ChevronUp, Package, Edit, Loader2, Send, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -82,7 +82,8 @@ const ManagerConfirmationsPanel: React.FC = () => {
     const isExpanded = expandedId === conf.id;
     const isEditing = editingId === conf.id;
     const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
-    const canAmend = conf.status === 'pending' || conf.status === 'rejected';
+    const isFrozen = !!conf.frozen_at;
+    const canAmend = (conf.status === 'pending' || conf.status === 'rejected') && !isFrozen;
     const mismatches = parseMismatches(conf.rejection_note);
 
     return (
@@ -98,6 +99,12 @@ const ManagerConfirmationsPanel: React.FC = () => {
             {statusInfo.icon}
             {statusInfo.label}
           </Badge>
+          {isFrozen && (conf.status === 'pending' || conf.status === 'amended') && (
+            <Badge className="bg-blue-600 text-white text-[9px] px-1.5 py-0 flex items-center gap-0.5">
+              <Lock className="w-3 h-3" />
+              مجمّد
+            </Badge>
+          )}
           <span className="text-[10px] flex-1 truncate font-semibold">
             {conf.worker?.full_name || 'عامل'}
           </span>
@@ -161,6 +168,12 @@ const ManagerConfirmationsPanel: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                {isFrozen && (conf.status === 'pending' || conf.status === 'amended') && (
+                  <div className="flex items-start gap-1.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded p-2 text-[10px] text-blue-700 dark:text-blue-300">
+                    <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>العملية مجمّدة من طرف عامل التوصيل. لا يمكن التعديل حتى يقوم بفك التجميد.</span>
+                  </div>
+                )}
                 {canAmend && (
                   <Button
                     size="sm"

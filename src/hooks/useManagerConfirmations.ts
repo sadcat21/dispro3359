@@ -77,6 +77,10 @@ export const useManagerConfirmations = () => {
 
       const orig = original as any;
 
+      if (orig.frozen_at) {
+        throw new Error('العملية مجمّدة من طرف عامل التوصيل — اطلب منه فك التجميد أولاً');
+      }
+
       const { error } = await supabase
         .from('stock_confirmations')
         .update({

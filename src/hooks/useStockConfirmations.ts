@@ -27,6 +27,8 @@ export interface StockConfirmation {
   rejection_note: string | null;
   amendment_note: string | null;
   parent_confirmation_id: string | null;
+  frozen_at: string | null;
+  frozen_by: string | null;
   created_at: string;
   responded_at: string | null;
   updated_at: string;
@@ -253,6 +255,28 @@ export const useStockConfirmations = () => {
     onError: (err: any) => toast.error(err?.message || 'فشل الرفض'),
   });
 
+  const setFreeze = useMutation({
+    mutationFn: async ({ id, freeze }: { id: string; freeze: boolean }) => {
+      if (!workerId) throw new Error('تعذر تحديد العامل الحالي');
+      const payload: Record<string, any> = freeze
+        ? { frozen_at: new Date().toISOString(), frozen_by: workerId }
+        : { frozen_at: null, frozen_by: null };
+      const { error } = await supabase
+        .from('stock_confirmations')
+        .update(payload as any)
+        .eq('id', id)
+        .eq('worker_id', workerId)
+        .in('status', ['pending', 'amended']);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-confirmations'] });
+      toast.success(vars.freeze ? 'تم تجميد العملية' : 'تم فك التجميد — يمكن للمسؤول التعديل الآن');
+    },
+    onError: (err: any) => toast.error(err?.message || 'فشلت العملية'),
+  });
+
   return {
     pendingCount: pendingCountQuery.data || 0,
     confirmations: confirmationsQuery.data || [],
@@ -260,6 +284,7 @@ export const useStockConfirmations = () => {
     workerId,
     approveConfirmation,
     rejectConfirmation,
+    setFreeze,
     refetch: () => {
       confirmationsQuery.refetch();
       pendingCountQuery.refetch();
