@@ -7246,15 +7246,26 @@ export type Database = {
         }
         Returns: boolean
       }
-      can_insert_stock_confirmation: {
-        Args: {
-          _branch_id: string
-          _manager_id: string
-          _source_session_id: string
-          _worker_id: string
-        }
-        Returns: boolean
-      }
+      can_insert_stock_confirmation:
+        | {
+            Args: {
+              _branch_id: string
+              _manager_id: string
+              _source_session_id: string
+              _worker_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _branch_id: string
+              _manager_id: string
+              _operation_type?: string
+              _source_session_id: string
+              _worker_id: string
+            }
+            Returns: boolean
+          }
       can_manage_product_offers: {
         Args: { p_worker_id: string }
         Returns: boolean
