@@ -99,6 +99,12 @@ const ManagerConfirmationsPanel: React.FC = () => {
             {statusInfo.icon}
             {statusInfo.label}
           </Badge>
+          {isFrozen && (conf.status === 'pending' || conf.status === 'amended') && (
+            <Badge className="bg-blue-600 text-white text-[9px] px-1.5 py-0 flex items-center gap-0.5">
+              <Lock className="w-3 h-3" />
+              مجمّد
+            </Badge>
+          )}
           <span className="text-[10px] flex-1 truncate font-semibold">
             {conf.worker?.full_name || 'عامل'}
           </span>
