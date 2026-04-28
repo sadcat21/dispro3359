@@ -456,15 +456,15 @@ const AdminHome: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">طلبات تحتاج توزيع</p>
+                <p className="text-[11px] text-slate-300">{t('admin_home.orders_need_dispatch')}</p>
                 <p className="mt-1 text-lg font-bold">{operationalSnapshot?.pendingOrdersCount || 0}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">طلبات قيد التنفيذ</p>
+                <p className="text-[11px] text-slate-300">{t('admin_home.orders_in_progress')}</p>
                 <p className="mt-1 text-lg font-bold">{operationalSnapshot?.inProgressOrdersCount || 0}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">متابعات متأخرة</p>
+                <p className="text-[11px] text-slate-300">{t('admin_home.overdue_followups')}</p>
                 <p className="mt-1 text-lg font-bold">{overdueTasksCount}</p>
               </div>
             </div>
