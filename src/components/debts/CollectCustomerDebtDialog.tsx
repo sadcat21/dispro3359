@@ -252,6 +252,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   initialTab = 'collect',
 }) => {
   const { workerId, user, role } = useAuth();
+  const { t } = useLanguage();
   const isAdmin = isAdminRole(role);
   const collectMutation = useCollectCustomerDebtGroup();
   const visitMutation = useRecordCustomerDebtGroupVisit();
@@ -578,7 +579,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
           dir="rtl"
           className="max-w-[96vw] sm:max-w-xl p-0 overflow-hidden [&>button]:hidden"
         >
-          <DialogTitle className="sr-only">{sectionTitle(activeTab)}</DialogTitle>
+          <DialogTitle className="sr-only">{sectionTitle(activeTab, t)}</DialogTitle>
 
           <div className="relative border-b border-red-100 bg-white px-5 pb-4 pt-5">
             <Button
@@ -593,7 +594,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
             <div className="pr-10 text-right">
               <p className="text-lg font-black text-slate-900">{customerName}</p>
-              <p className="mt-1 text-sm text-slate-500">{sectionTitle(activeTab)}</p>
+              <p className="mt-1 text-sm text-slate-500">{sectionTitle(activeTab, t)}</p>
               <p className="mt-2 text-3xl font-black text-destructive" dir="ltr">
                 {formatMoney(totalRemaining)}
               </p>
