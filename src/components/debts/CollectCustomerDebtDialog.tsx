@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { CustomerDebtWithDetails } from '@/types/accounting';
 import { OrderWithDetails } from '@/types/database';
 import {
@@ -78,30 +79,31 @@ const toNumber = (value: unknown) => {
 
 const formatMoney = (value: number) => `${value.toLocaleString()} DA`;
 
-const formatDateOnly = (value?: string | null) => {
-  if (!value) return 'بدون تاريخ';
+const formatDateOnly = (value?: string | null, t?: (k: string) => string) => {
+  if (!value) return t ? t('debt_collect.no_date') : 'No date';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
   return date.toLocaleDateString('fr-FR');
 };
 
-const paymentMethodLabel = (value?: string | null) => {
+const paymentMethodLabel = (value?: string | null, t?: (k: string) => string) => {
+  const tr = t || ((k: string) => k);
   switch (String(value || '').toLowerCase()) {
     case 'cash':
     case 'versement_cash':
-      return 'كاش';
+      return tr('debt_collect.method_cash');
     case 'check':
-      return 'شيك';
+      return tr('debt_collect.method_check');
     case 'transfer':
     case 'virement':
-      return 'فيرمو';
+      return tr('debt_collect.method_transfer');
     case 'receipt':
     case 'versement_doc':
       return 'Versement Doc';
     case 'visit':
-      return 'زيارة';
+      return tr('debt_collect.method_visit');
     default:
-      return 'دين';
+      return tr('debt_collect.method_debt');
   }
 };
 
@@ -124,10 +126,10 @@ const paymentMethodFrench = (value?: string | null) => {
   }
 };
 
-const sectionTitle = (tab: DialogTab) => {
-  if (tab === 'visit') return 'زيارة بدون تحصيل';
-  if (tab === 'history') return 'سجل حركة الدين';
-  return 'تحصيل رصيد العميل';
+const sectionTitle = (tab: DialogTab, t: (k: string) => string) => {
+  if (tab === 'visit') return t('debt_collect.title_visit');
+  if (tab === 'history') return t('debt_collect.title_history');
+  return t('debt_collect.title_collect');
 };
 
 const resolveOriginPaymentMethod = (order?: {
