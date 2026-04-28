@@ -93,6 +93,24 @@ export const useManagerConfirmations = () => {
         .eq('id', confirmationId)
         .eq('manager_id', currentWorkerId);
       if (error) throw error;
+
+      // Sync the underlying loading_session_items so that the worker's
+      // approval (which reads from loading_session_items via RPC) reflects
+      // the amended quantities — not the original ones.
+      if (orig.operation_type === 'load' && orig.source_session_id) {
+        for (const it of newItems as any[]) {
+          const { error: updErr } = await supabase
+            .from('loading_session_items')
+            .update({
+              quantity: it.quantity,
+              gift_quantity: it.gift_quantity ?? 0,
+              gift_unit: it.gift_unit ?? 'piece',
+            })
+            .eq('session_id', orig.source_session_id)
+            .eq('product_id', it.product_id);
+          if (updErr) throw updErr;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manager-confirmations'] });
