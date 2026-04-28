@@ -40,6 +40,7 @@ interface GroupItem {
 
 interface FunctionalGroup {
   title: string;
+  tKey?: string;
   color: { bg: string; border: string; title: string; iconDefault: string };
   branchColor?: { bg: string; border: string; title: string; iconDefault: string };
   items: GroupItem[];
