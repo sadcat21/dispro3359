@@ -174,6 +174,7 @@ const buildTimeline = (
     created_at?: string | null;
     worker?: { full_name?: string | null } | null;
   }>,
+  t?: (k: string) => string,
 ) => {
   const rawEvents: Array<Omit<TimelineEvent, 'beforeAmount' | 'afterAmount' | 'displayDate'>> = [];
 
@@ -235,7 +236,7 @@ const buildTimeline = (
       kind,
       beforeAmount,
       afterAmount,
-      displayDate: formatDateOnly(event.date),
+      displayDate: formatDateOnly(event.date, t),
     };
   });
 
@@ -412,7 +413,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   );
   const printablePaidTotal = Math.max(0, printableDebtTotal - printableRemainingTotal);
 
-  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any), [debtOrderStatusById, debts, payments]);
+  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any, t), [debtOrderStatusById, debts, payments, t]);
   const filteredTimeline = useMemo(
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
