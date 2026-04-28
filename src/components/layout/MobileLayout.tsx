@@ -382,19 +382,21 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   <p className="text-[11px] text-primary font-semibold truncate">{getRoleDisplayText()}</p>
                 )}
               </div>
-              {LANGUAGES.map((lang) => (
-                <DropdownMenuItem
-                  key={lang.code}
-                  onClick={() => setLanguage(lang.code)}
-                  className={cn(
-                    'flex items-center gap-2 cursor-pointer',
-                    language === lang.code && 'bg-primary/10 text-primary font-semibold'
-                  )}
-                >
-                  <span>{lang.flag}</span>
-                  <span className="text-sm">{lang.label}</span>
-                </DropdownMenuItem>
-              ))}
+              <div className="px-2 py-1.5 flex items-center gap-1">
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    title={lang.label}
+                    className={cn(
+                      'flex-1 flex items-center justify-center rounded-md px-2 py-1.5 text-xs font-bold uppercase transition-colors',
+                      language === lang.code ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                    )}
+                  >
+                    {lang.code}
+                  </button>
+                ))}
+              </div>
               <DropdownMenuSeparator />
               {isConnected ? (
                 <>
