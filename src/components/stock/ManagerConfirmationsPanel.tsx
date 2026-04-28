@@ -82,7 +82,8 @@ const ManagerConfirmationsPanel: React.FC = () => {
     const isExpanded = expandedId === conf.id;
     const isEditing = editingId === conf.id;
     const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
-    const canAmend = conf.status === 'pending' || conf.status === 'rejected';
+    const isFrozen = !!conf.frozen_at;
+    const canAmend = (conf.status === 'pending' || conf.status === 'rejected') && !isFrozen;
     const mismatches = parseMismatches(conf.rejection_note);
 
     return (
