@@ -145,99 +145,52 @@ const ManagerConfirmationsPanel: React.FC = () => {
               </div>
             )}
 
-            {!isEditing ? (
-              <>
-                <div className="space-y-1.5">
-                  {conf.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
-                      {item.image_url ? (
-                        <img src={item.image_url} className="w-8 h-8 rounded object-cover" alt="" />
-                      ) : (
-                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                          <Package className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">
-                          {getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}
-                        </p>
-                        <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
-                        {(item.gift_quantity || 0) > 0 && (
-                          <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>
-                        )}
-                      </div>
+            <div className="space-y-1.5">
+              {conf.items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
+                  {item.image_url ? (
+                    <img src={item.image_url} className="w-8 h-8 rounded object-cover" alt="" />
+                  ) : (
+                    <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                      <Package className="w-4 h-4 text-muted-foreground" />
                     </div>
-                  ))}
-                </div>
-                {isFrozen && (conf.status === 'pending' || conf.status === 'amended') && (
-                  <div className="flex items-start gap-1.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded p-2 text-[10px] text-blue-700 dark:text-blue-300">
-                    <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    <span>العملية مجمّدة من طرف عامل التوصيل. لا يمكن التعديل حتى يقوم بفك التجميد.</span>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold truncate">
+                      {getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}
+                    </p>
+                    <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
+                    {(item.gift_quantity || 0) > 0 && (
+                      <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>
+                    )}
                   </div>
-                )}
-                {canAmend && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
-                    onClick={() => startEditing(conf)}
-                  >
-                    <Edit className="w-3.5 h-3.5 me-1" />
-                    تعديل الكميات وإعادة إرسال
-                  </Button>
-                )}
-              </>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold text-muted-foreground">عدّل الكميات ثم أرسل:</p>
-                {editItems.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold truncate">
-                        {getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}
-                      </p>
-                    </div>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={item.quantity}
-                      onChange={e => updateItemQuantity(idx, parseFloat(e.target.value) || 0)}
-                      className="w-20 h-7 text-xs text-center"
-                    />
-                  </div>
-                ))}
-                <Textarea
-                  value={editNote}
-                  onChange={e => setEditNote(e.target.value)}
-                  placeholder="سبب التعديل..."
-                  className="text-xs min-h-[50px]"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className="flex-1 h-8 text-xs bg-primary"
-                    onClick={handleSaveAmendment}
-                    disabled={!editNote.trim() || amendConfirmation.isPending}
-                  >
-                    {amendConfirmation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 me-1" />}
-                    إرسال التعديل
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 text-xs"
-                    onClick={() => { setEditingId(null); setEditItems([]); setEditNote(''); }}
-                  >
-                    إلغاء
-                  </Button>
                 </div>
+              ))}
+            </div>
+            {isFrozen && (conf.status === 'pending' || conf.status === 'amended') && (
+              <div className="flex items-start gap-1.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded p-2 text-[10px] text-blue-700 dark:text-blue-300">
+                <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>العملية مجمّدة من طرف عامل التوصيل. لا يمكن التعديل حتى يقوم بفك التجميد.</span>
               </div>
+            )}
+            {canAmend && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
+                onClick={() => startEditing(conf)}
+              >
+                <Edit className="w-3.5 h-3.5 me-1" />
+                تعديل الكميات وإعادة إرسال
+              </Button>
             )}
           </div>
         )}
       </div>
     );
   };
+
+  const editingConf = editingId ? confirmations.find(c => c.id === editingId) : null;
 
   return (
     <>
