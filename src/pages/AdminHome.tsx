@@ -290,6 +290,7 @@ const AdminHome: React.FC = () => {
     { key: 'new-request', label: t('admin_home.add_request'), icon: MessageSquareMore, onClick: () => setTaskDialogType('request') },
     { key: 'branches', label: t('admin_home.manage_branches'), icon: Building2, onClick: () => navigate('/branches') },
     { key: 'permissions', label: t('admin_home.permissions'), icon: Shield, onClick: () => navigate('/permissions') },
+    { key: 'worker-roles-mgmt', label: 'إدارة أدوار العمال', icon: Shield, onClick: () => navigate('/worker-roles-management') },
     { key: 'stats', label: t('admin_home.reports'), icon: BarChart3, onClick: () => navigate('/stats') },
     { key: 'logs', label: t('admin_home.activity_log'), icon: Activity, onClick: () => navigate('/activity-logs') },
   ];
