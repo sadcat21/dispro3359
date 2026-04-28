@@ -607,11 +607,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-2xl border bg-white p-4 text-center">
-                      <div className="text-xs text-slate-500">إجمالي الدين</div>
+                      <div className="text-xs text-slate-500">{t('debt_collect.total_debt')}</div>
                       <div className="mt-2 text-xl font-black" dir="ltr">{formatMoney(totalDebt)}</div>
                     </div>
                     <div className="rounded-2xl border bg-white p-4 text-center">
-                      <div className="text-xs text-slate-500">المتبقي بعد التحصيل</div>
+                      <div className="text-xs text-slate-500">{t('debt_collect.remaining_after')}</div>
                       <div className="mt-2 text-xl font-black text-emerald-600" dir="ltr">
                         {formatMoney(Math.max(0, totalRemaining - numericAmount))}
                       </div>
@@ -620,7 +620,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                   <div className="space-y-3 rounded-2xl border bg-white p-4">
                     <div className="space-y-2">
-                      <Label>المبلغ المحصل</Label>
+                      <Label>{t('debt_collect.collected_amount')}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -632,33 +632,33 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
                     <div className="grid grid-cols-2 gap-2">
                       <Button type="button" variant="outline" onClick={() => setAmount(String(totalRemaining))}>
-                        دفع كامل
+                        {t('debt_collect.full_payment')}
                       </Button>
                       <Button type="button" variant="outline" onClick={() => setAmount(String(Math.round(totalRemaining / 2)))}>
-                        نصف المبلغ
+                        {t('debt_collect.half_payment')}
                       </Button>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>طريقة الدفع</Label>
+                      <Label>{t('debt_collect.payment_method')}</Label>
                       <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">كاش</SelectItem>
-                          <SelectItem value="check">شيك</SelectItem>
+                          <SelectItem value="cash">{t('debt_collect.method_cash')}</SelectItem>
+                          <SelectItem value="check">{t('debt_collect.method_check')}</SelectItem>
                           <SelectItem value="receipt">Versement Doc</SelectItem>
-                          <SelectItem value="transfer">فيرمو</SelectItem>
+                          <SelectItem value="transfer">{t('debt_collect.method_transfer')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-slate-500">
-                        الطريقة الأصلية المرتبطة بالدين: {paymentMethodLabel(paymentMethod)}
+                        {t('debt_collect.original_method')}: {paymentMethodLabel(paymentMethod, t)}
                       </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>الموعد القادم للتحصيل</Label>
+                      <Label>{t('debt_collect.next_collect_date')}</Label>
                       <Input
                         type="date"
                         value={nextDueDate}
@@ -667,12 +667,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>ملاحظات</Label>
+                      <Label>{t('debt_collect.notes')}</Label>
                       <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
                     </div>
 
                     <Button className="w-full" onClick={handleCollect} disabled={collectMutation.isPending}>
-                      {collectMutation.isPending ? 'جارٍ التأكيد...' : 'تأكيد التحصيل'}
+                      {collectMutation.isPending ? t('debt_collect.confirming') : t('debt_collect.confirm_collection')}
                     </Button>
                   </div>
 
@@ -684,20 +684,20 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                 <>
                   <div className="space-y-3 rounded-2xl border bg-white p-4">
                     <div className="space-y-2">
-                      <Label>نوع الزيارة</Label>
+                      <Label>{t('debt_collect.visit_type')}</Label>
                       <Select value={visitType} onValueChange={(value) => setVisitType(value as 'in_person' | 'phone')}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="in_person">زيارة ميدانية</SelectItem>
-                          <SelectItem value="phone">اتصال هاتفي</SelectItem>
+                          <SelectItem value="in_person">{t('debt_collect.visit_in_person')}</SelectItem>
+                          <SelectItem value="phone">{t('debt_collect.visit_phone')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>الموعد القادم للتحصيل</Label>
+                      <Label>{t('debt_collect.next_collect_date')}</Label>
                       <Input
                         type="date"
                         value={visitNextDueDate}
@@ -706,12 +706,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>ملاحظات الزيارة</Label>
+                      <Label>{t('debt_collect.visit_notes')}</Label>
                       <Textarea value={visitNotes} onChange={(e) => setVisitNotes(e.target.value)} />
                     </div>
 
                     <Button className="w-full" onClick={handleVisit} disabled={visitMutation.isPending}>
-                      {visitMutation.isPending ? 'جارٍ التسجيل...' : 'تسجيل زيارة بدون تحصيل'}
+                      {visitMutation.isPending ? t('debt_collect.recording') : t('debt_collect.record_visit')}
                     </Button>
                   </div>
 
