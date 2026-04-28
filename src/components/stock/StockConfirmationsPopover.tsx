@@ -12,6 +12,8 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStockDisputes } from '@/hooks/useStockDisputes';
+import { useWarehouseStock } from '@/hooks/useWarehouseStock';
+import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
@@ -305,27 +307,85 @@ const OutgoingTab: React.FC<{
   allowAmend?: boolean;
   onRaiseDispute?: (conf: StockConfirmation) => void;
 }> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute }) => {
+  const { warehouseStock } = useWarehouseStock();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItems, setEditItems] = useState<StockConfirmationItem[]>([]);
-  const [editNote, setEditNote] = useState('');
   const editingOriginal = editingId ? confirmations.find(conf => conf.id === editingId) : null;
-  const hasEditedChanges = editingOriginal
-    ? editingOriginal.items.some((originalItem, idx) => Math.abs((editItems[idx]?.quantity ?? originalItem.quantity) - originalItem.quantity) > 0.001)
-    : false;
+
+  const productOptions = useMemo(() => {
+    const map = new Map<string, any>();
+    warehouseStock.forEach((s: any) => {
+      if (!s.product) return;
+      map.set(s.product_id, {
+        id: s.product_id,
+        name: getProductDisplayName({ name: s.product.name, app_name: s.product.app_name }),
+        warehouseQty: s.quantity || 0,
+        image_url: s.product.image_url,
+        pieces_per_box: s.product.pieces_per_box || 20,
+      });
+    });
+    editItems.forEach(item => {
+      if (map.has(item.product_id)) return;
+      map.set(item.product_id, {
+        id: item.product_id,
+        name: getProductDisplayName({ name: item.product_name, app_name: item.product_app_name }),
+        warehouseQty: 0,
+        image_url: item.image_url,
+        pieces_per_box: 20,
+      });
+    });
+    return Array.from(map.values());
+  }, [warehouseStock, editItems]);
+
+  const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.quantity])), [editItems]);
+  const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.gift_quantity || 0])), [editItems]);
 
   const startEditing = (conf: StockConfirmation) => {
     setEditingId(conf.id);
     setEditItems(conf.items.map(i => ({ ...i })));
-    setEditNote('');
   };
 
   const handleSaveAmendment = () => {
-    if (!allowAmend || !editingId || !hasEditedChanges) return;
-    onAmend(editingId, editItems, editNote.trim() || 'تم تعديل الكميات بعد رفض العامل');
+    if (!allowAmend || !editingId || editItems.length === 0) return;
+    onAmend(editingId, editItems, 'تعديل الكميات');
     setEditingId(null);
     setEditItems([]);
-    setEditNote('');
+  };
+
+  const handleAddProducts = (items: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }[]) => {
+    setEditItems(prev => {
+      const next = [...prev];
+      items.forEach(({ productId, quantity, giftQuantity, giftUnit }) => {
+        const idx = next.findIndex(item => item.product_id === productId);
+        const product = productOptions.find(item => item.id === productId);
+        if (idx >= 0) {
+          next[idx] = { ...next[idx], quantity, gift_quantity: giftQuantity || 0, gift_unit: giftUnit || 'piece' };
+        } else if (product) {
+          next.push({
+            product_id: productId,
+            product_name: product.name,
+            product_app_name: product.name,
+            image_url: product.image_url,
+            quantity,
+            gift_quantity: giftQuantity || 0,
+            gift_unit: giftUnit || 'piece',
+          } as StockConfirmationItem);
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleEditProduct = (item: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }) => {
+    setEditItems(prev => prev.map(existing => existing.product_id === item.productId
+      ? { ...existing, quantity: item.quantity, gift_quantity: item.giftQuantity || 0, gift_unit: item.giftUnit || 'piece' }
+      : existing
+    ));
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+    setEditItems(prev => prev.filter(item => item.product_id !== productId));
   };
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
@@ -335,9 +395,8 @@ const OutgoingTab: React.FC<{
     <div className="space-y-2">
       {confirmations.map(conf => {
         const isExpanded = expandedId === conf.id;
-        const isEditing = editingId === conf.id;
         const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
-        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected');
+        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected') && !conf.frozen_at;
         const mismatches = parseMismatches(conf.rejection_note);
 
         return (
