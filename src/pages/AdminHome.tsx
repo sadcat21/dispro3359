@@ -427,10 +427,10 @@ const AdminHome: React.FC = () => {
           <div className="relative space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
-                <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/10">مدير المشروع</Badge>
-                <h2 className="text-2xl font-bold">لوحة متابعة المشروع</h2>
+                <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/10">{t('admin_home.project_manager')}</Badge>
+                <h2 className="text-2xl font-bold">{t('admin_home.project_dashboard')}</h2>
                 <p className="text-sm text-slate-200">
-                  {activeBranch?.name ? `الفرع المحدد: ${activeBranch.name}` : 'أنت تراجع جميع الفروع من مكان واحد'}
+                  {activeBranch?.name ? `${t('admin_home.selected_branch')}: ${activeBranch.name}` : t('admin_home.review_all_branches')}
                 </p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
