@@ -147,15 +147,27 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const [forceMobileView, setForceMobileView] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('force_mobile_view') === '1';
+  type ViewMode = 'desktop' | 'mobile' | 'auto';
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'auto';
+    const v = localStorage.getItem('view_mode') as ViewMode | null;
+    return v && ['desktop', 'mobile', 'auto'].includes(v) ? v : 'auto';
   });
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    document.body.classList.toggle('force-mobile-view', forceMobileView);
-    localStorage.setItem('force_mobile_view', forceMobileView ? '1' : '0');
-  }, [forceMobileView]);
+    localStorage.setItem('view_mode', viewMode);
+    const apply = () => {
+      let force = false;
+      if (viewMode === 'mobile') force = true;
+      else if (viewMode === 'auto') force = window.matchMedia('(max-width: 767px)').matches;
+      document.body.classList.toggle('force-mobile-view', force);
+    };
+    apply();
+    if (viewMode !== 'auto') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [viewMode]);
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
