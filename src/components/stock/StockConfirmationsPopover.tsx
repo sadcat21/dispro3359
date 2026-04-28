@@ -11,8 +11,16 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStockDisputes } from '@/hooks/useStockDisputes';
-import { useWarehouseStock } from '@/hooks/useWarehouseStock';
+import { useWarehouseStock, WarehouseStockItem } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
+
+type ProductPickerOption = {
+  id: string;
+  name: string;
+  warehouseQty: number;
+  image_url?: string | null;
+  pieces_per_box?: number;
+};
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
@@ -313,8 +321,8 @@ const OutgoingTab: React.FC<{
   const editingOriginal = editingId ? confirmations.find(conf => conf.id === editingId) : null;
 
   const productOptions = useMemo(() => {
-    const map = new Map<string, any>();
-    warehouseStock.forEach((s: any) => {
+    const map = new Map<string, ProductPickerOption>();
+    warehouseStock.forEach((s: WarehouseStockItem) => {
       if (!s.product) return;
       map.set(s.product_id, {
         id: s.product_id,
@@ -612,7 +620,7 @@ const StockConfirmationsPopover: React.FC = () => {
     const { supabase } = await import('@/integrations/supabase/client');
     await supabase
       .from('stock_confirmations')
-      .update({ status: 'disputed' } as any)
+      .update({ status: 'disputed' })
       .eq('id', conf.id);
 
     // Parse mismatches from rejection note to create individual disputes
