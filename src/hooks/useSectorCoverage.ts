@@ -143,6 +143,7 @@ export const useSectorCoverage = () => {
     created_by?: string;
     branch_id?: string;
   }) => {
+    const approvalStatus = isAdminRole(role) ? 'approved' : 'pending_manager';
     const { error } = await supabase.from('sector_coverage').insert({
       sector_id: data.sector_id,
       absent_worker_id: data.absent_worker_id,
@@ -155,19 +156,34 @@ export const useSectorCoverage = () => {
       reason: data.reason || null,
       created_by: data.created_by || null,
       branch_id: data.branch_id || null,
+      approval_status: approvalStatus,
     } as any);
     if (error) throw error;
 
-    const movedOrdersCount = await transferOrdersFromAbsentToSubstitute(
-      data.absent_worker_id,
-      data.substitute_worker_id,
-      data.sector_id
-    );
-
-    if (movedOrdersCount > 0) {
-      console.log(`تم نقل ${movedOrdersCount} طلبية من العامل الغائب إلى العامل البديل`);
+    if (approvalStatus === 'approved') {
+      const movedOrdersCount = await transferOrdersFromAbsentToSubstitute(
+        data.absent_worker_id,
+        data.substitute_worker_id,
+        data.sector_id
+      );
+      if (movedOrdersCount > 0) {
+        console.log(`تم نقل ${movedOrdersCount} طلبية من العامل الغائب إلى العامل البديل`);
+      }
     }
 
+    await fetchCoverages();
+  };
+
+  const approveCoverage = async (coverage: SectorCoverage) => {
+    const nextStatus = role === 'project_manager' || role === 'admin' ? 'approved' : 'pending_system';
+    const updatePayload: any = nextStatus === 'approved'
+      ? { approval_status: 'approved', system_approved_by: workerId, system_approved_at: new Date().toISOString() }
+      : { approval_status: 'pending_system', manager_approved_by: workerId, manager_approved_at: new Date().toISOString() };
+    const { error } = await supabase.from('sector_coverage').update(updatePayload).eq('id', coverage.id);
+    if (error) throw error;
+    if (nextStatus === 'approved') {
+      await transferOrdersFromAbsentToSubstitute(coverage.absent_worker_id, coverage.substitute_worker_id, coverage.sector_id);
+    }
     await fetchCoverages();
   };
 
