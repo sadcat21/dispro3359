@@ -594,10 +594,10 @@ const AdminHome: React.FC = () => {
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold text-foreground">Laser Food</h2>
           <p className="text-sm text-muted-foreground">
-            استخدم الشريط الجانبي للتنقل بين الأقسام
+            {t('admin_home.use_sidebar_hint')}
           </p>
           {activeBranch?.name && (
-            <p className="text-xs text-muted-foreground">الفرع الحالي: {activeBranch.name}</p>
+            <p className="text-xs text-muted-foreground">{t('admin_home.current_branch')}: {activeBranch.name}</p>
           )}
         </div>
       </div>
