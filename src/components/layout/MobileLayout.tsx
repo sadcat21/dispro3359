@@ -238,14 +238,16 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       .map((title) => ({ title, items: buckets.get(title)! }));
   }, [desktopNavItems]);
 
-  // Track which group is open (only one at a time, accordion behavior)
-  const [openGroup, setOpenGroup] = useState<string | null>(null);
-  useEffect(() => {
-    const activeGroup = sidebarGroups.find((g) =>
-      g.items.some((item) => location.pathname === item.path)
-    )?.title;
-    if (activeGroup) setOpenGroup(activeGroup);
-  }, [location.pathname, sidebarGroups]);
+  // Track which group is open (only one at a time, accordion behavior).
+  // Initial value: the group containing the current route. Do NOT auto-reopen
+  // on subsequent renders — let the user freely toggle.
+  const [openGroup, setOpenGroup] = useState<string | null>(() => {
+    const path = location.pathname;
+    for (const [p, title] of Object.entries(SIDEBAR_GROUP_BY_PATH)) {
+      if (p === path) return title;
+    }
+    return null;
+  });
 
   // Close more sheet on route change
   useEffect(() => { setMoreOpen(false); }, [location.pathname]);
