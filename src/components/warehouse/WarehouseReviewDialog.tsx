@@ -49,8 +49,8 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
   const { workerId } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [includeDamaged, setIncludeDamaged] = useState(false);
-  const [includePallets, setIncludePallets] = useState(false);
+  const [includeDamaged, setIncludeDamaged] = useState(true);
+  const [includePallets, setIncludePallets] = useState(true);
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -154,7 +154,9 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
     return { matched, surplus, deficit, unverified, total: items.length };
   }, [items]);
 
-  const canSave = stats.unverified === 0;
+  const damagedComplete = !includeDamaged || damagedItems.every(d => damagedActuals[d.productId] !== undefined);
+  const palletsComplete = !includePallets || palletActual.trim() !== '';
+  const canSave = stats.unverified === 0 && damagedComplete && palletsComplete;
 
   const handleSave = async () => {
     if (!workerId || !canSave) return;
