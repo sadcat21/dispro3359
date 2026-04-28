@@ -528,59 +528,57 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       <div className={cn('flex flex-1 min-h-0 overflow-hidden', dir === 'rtl' ? 'md:flex-row-reverse' : 'md:flex-row')}>
         {/* Desktop Sidebar */}
         <aside
+          ref={sidebarRef as React.RefObject<HTMLElement>}
           className={cn(
             'hidden md:flex shrink-0 flex-col border-border bg-sidebar text-sidebar-foreground transition-all duration-200',
             dir === 'rtl' ? 'border-l' : 'border-r',
             sidebarCollapsed ? 'w-16' : 'w-64'
           )}
         >
-          <div className="flex items-center gap-2 border-b border-sidebar-border p-3">
-            <button
-              onClick={cycleMode}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent p-1 transition-colors hover:bg-sidebar-accent/80"
-              title={modeLabel}
-            >
-              <img src={icon} alt="Laser Food" className="h-full w-full object-contain" />
-              <span className={cn('absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-primary-foreground shadow-lg', badgeColorClass)}>
-                {badgeNumber}
-              </span>
-            </button>
-            {!sidebarCollapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold">{user?.full_name || 'Laser Food'}</p>
-                {getRoleDisplayText() && <p className="truncate text-xs text-sidebar-foreground/70">{getRoleDisplayText()}</p>}
-              </div>
-            )}
-            <button
-              onClick={() => setSidebarCollapsed((value) => !value)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent transition-colors hover:bg-sidebar-accent/80"
-              aria-label={sidebarCollapsed ? 'فتح الشريط الجانبي' : 'طي الشريط الجانبي'}
-              title={sidebarCollapsed ? 'فتح الشريط الجانبي' : 'طي الشريط الجانبي'}
-            >
-              {sidebarCollapsed ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-            </button>
-          </div>
-
-          <nav className="flex-1 overflow-y-auto p-2">
+          <nav className="flex-1 overflow-y-auto no-scrollbar p-2">
             {sidebarCollapsed ? (
-              // Collapsed: flat icon list
+              // Collapsed: show one icon per group (representative section icon)
               <div className="space-y-1">
-                {desktopNavItems.map((item) => {
-                  const isActive = location.pathname === item.path;
+                {sidebarGroups.map((group) => {
+                  const representative = group.items[0];
+                  if (!representative) return null;
+                  const isHomeGroup = group.items.length === 1 && representative.path === '/';
+                  const hasActive = group.items.some((it) => location.pathname === it.path);
+                  if (isHomeGroup) {
+                    return (
+                      <Link
+                        key={group.title}
+                        to={representative.path}
+                        title={representative.label}
+                        className={cn(
+                          'flex h-11 items-center justify-center rounded-lg transition-colors',
+                          hasActive
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        )}
+                      >
+                        <representative.icon className="h-5 w-5 shrink-0" />
+                      </Link>
+                    );
+                  }
                   return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      title={item.label}
+                    <button
+                      key={group.title}
+                      type="button"
+                      title={group.title}
+                      onClick={() => {
+                        setSidebarCollapsed(false);
+                        setOpenGroup(group.title);
+                      }}
                       className={cn(
-                        'flex h-11 items-center justify-center rounded-lg transition-colors',
-                        isActive
-                          ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                        'flex h-11 w-full items-center justify-center rounded-lg transition-colors',
+                        hasActive
+                          ? 'bg-sidebar-primary/30 text-sidebar-primary-foreground'
                           : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                       )}
                     >
-                      <item.icon className="h-5 w-5 shrink-0" />
-                    </Link>
+                      <representative.icon className="h-5 w-5 shrink-0" />
+                    </button>
                   );
                 })}
               </div>
