@@ -481,8 +481,8 @@ const AdminHome: React.FC = () => {
               <Building2 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <p className="text-teal-100 text-xs font-medium">مدير الفرع</p>
-              <h2 className="text-xl font-bold">{activeBranch?.name || 'الفرع'}</h2>
+              <p className="text-teal-100 text-xs font-medium">{t('admin_home.branch_manager')}</p>
+              <h2 className="text-xl font-bold">{activeBranch?.name || t('admin_home.branch')}</h2>
             </div>
           </div>
         </div>
