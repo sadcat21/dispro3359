@@ -69,6 +69,7 @@ import BackupRestore from "./pages/admin/BackupRestore";
 import ManagerSalesSummaryPage from "./pages/admin/ManagerSalesSummaryPage";
 import ManagerAccountingReview from "./pages/admin/ManagerAccountingReview";
 import WorkerRounds from "./pages/admin/WorkerRounds";
+import WorkerRolesManagement from "./pages/admin/WorkerRolesManagement";
 import FloatingChat from "./components/chat/FloatingChat";
 import { Loader2 } from "lucide-react";
 
@@ -210,6 +211,12 @@ const AppRoutes = () => {
       <Route path="/permissions" element={
         <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
           <Permissions />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/worker-roles-management" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
+          <WorkerRolesManagement />
         </ProtectedRoute>
       } />
 
