@@ -135,7 +135,7 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
               </div>
               <div className="text-start">
                 <div className="font-bold text-base">
-                  {getRoleLabel(roleData.role)}
+                  {roleData.custom_role_name || getRoleLabel(roleData.role)}
                   {roleData.branch_name && (
                     <span className="font-normal text-muted-foreground ms-2">
                       ({roleData.branch_name})
@@ -143,7 +143,7 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  {getRoleDescription(roleData.role)}
+                  {roleData.custom_role_name ? getRoleLabel(roleData.role) : getRoleDescription(roleData.role)}
                 </div>
               </div>
             </Button>
