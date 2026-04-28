@@ -257,28 +257,28 @@ const AdminHome: React.FC = () => {
   const managerSummaryCards = [
     {
       key: 'branches',
-      label: 'الفروع النشطة',
+      label: t('admin_home.active_branches'),
       value: operationalSnapshot?.branchesCount || 0,
       icon: Building2,
       tone: 'from-slate-50 to-white border-slate-200 text-slate-700',
     },
     {
       key: 'workers',
-      label: 'العمال النشطون',
+      label: t('admin_home.active_workers'),
       value: operationalSnapshot?.workersCount || 0,
       icon: Users,
       tone: 'from-fuchsia-50 to-white border-fuchsia-200 text-fuchsia-700',
     },
     {
       key: 'orders',
-      label: 'الطلبات المفتوحة',
+      label: t('admin_home.open_orders'),
       value: operationalSnapshot?.activeOrdersCount || 0,
       icon: ShoppingCart,
       tone: 'from-blue-50 to-white border-blue-200 text-blue-700',
     },
     {
       key: 'tasks',
-      label: 'المتابعات المفتوحة',
+      label: t('admin_home.open_followups'),
       value: incompleteTasks.length + incompleteRequests.length,
       icon: ListTodo,
       tone: 'from-amber-50 to-white border-amber-200 text-amber-700',
@@ -286,12 +286,12 @@ const AdminHome: React.FC = () => {
   ];
 
   const managerQuickActions = [
-    { key: 'new-task', label: 'إسناد مهمة', icon: CheckSquare, onClick: () => setTaskDialogType('task') },
-    { key: 'new-request', label: 'إضافة طلب', icon: MessageSquareMore, onClick: () => setTaskDialogType('request') },
-    { key: 'branches', label: 'إدارة الفروع', icon: Building2, onClick: () => navigate('/branches') },
-    { key: 'permissions', label: 'الصلاحيات', icon: Shield, onClick: () => navigate('/permissions') },
-    { key: 'stats', label: 'التقارير', icon: BarChart3, onClick: () => navigate('/stats') },
-    { key: 'logs', label: 'سجل النشاط', icon: Activity, onClick: () => navigate('/activity-logs') },
+    { key: 'new-task', label: t('admin_home.assign_task'), icon: CheckSquare, onClick: () => setTaskDialogType('task') },
+    { key: 'new-request', label: t('admin_home.add_request'), icon: MessageSquareMore, onClick: () => setTaskDialogType('request') },
+    { key: 'branches', label: t('admin_home.manage_branches'), icon: Building2, onClick: () => navigate('/branches') },
+    { key: 'permissions', label: t('admin_home.permissions'), icon: Shield, onClick: () => navigate('/permissions') },
+    { key: 'stats', label: t('admin_home.reports'), icon: BarChart3, onClick: () => navigate('/stats') },
+    { key: 'logs', label: t('admin_home.activity_log'), icon: Activity, onClick: () => navigate('/activity-logs') },
   ];
 
   // ─── Build Functional Groups ───
