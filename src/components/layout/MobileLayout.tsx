@@ -225,6 +225,30 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     });
   }, [mainNavItems, moreNavItems]);
 
+  // Group desktop nav items into collapsible sections (mirrors AdminHome groups)
+  const sidebarGroups = useMemo(() => {
+    const buckets = new Map<string, typeof desktopNavItems>();
+    for (const item of desktopNavItems) {
+      const title = item.path === '/' ? 'الرئيسية' : (SIDEBAR_GROUP_BY_PATH[item.path] || 'أخرى');
+      if (!buckets.has(title)) buckets.set(title, []);
+      buckets.get(title)!.push(item);
+    }
+    return SIDEBAR_GROUP_ORDER
+      .filter((title) => buckets.has(title))
+      .map((title) => ({ title, items: buckets.get(title)! }));
+  }, [desktopNavItems]);
+
+  // Track which groups are open; default: open the group containing the active route
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const activeGroup = sidebarGroups.find((g) =>
+      g.items.some((item) => location.pathname === item.path)
+    )?.title;
+    if (activeGroup) {
+      setOpenGroups((prev) => (prev[activeGroup] ? prev : { ...prev, [activeGroup]: true }));
+    }
+  }, [location.pathname, sidebarGroups]);
+
   // Close more sheet on route change
   useEffect(() => { setMoreOpen(false); }, [location.pathname]);
 
