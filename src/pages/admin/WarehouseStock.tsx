@@ -41,7 +41,8 @@ interface ProductSummary {
 const WarehouseStock: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { activeBranch, role } = useAuth();
+  const { activeBranch, role, activeRole } = useAuth();
+  const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const canEdit = isAdminRole(role);
   const { warehouseStock, workerStocksByWorker, isLoading, products, workers, createReceipt, loadToWorker, refresh } = useWarehouseStock();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
@@ -364,10 +365,12 @@ const WarehouseStock: React.FC = () => {
                         <span className="font-semibold text-sm text-primary truncate">{s.productName}</span>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <div className="flex items-center gap-1">
-                         <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
-                          <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
-                        </div>
+                        {!isWarehouseManager && (
+                          <div className="flex items-center gap-1">
+                           <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
+                            <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1">
                           <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
                           <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
