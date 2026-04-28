@@ -131,7 +131,7 @@ export const useWarehouseStock = () => {
     if (!branchId) return;
 
     const channel = supabase
-      .channel('warehouse-stock-realtime')
+      .channel(`warehouse-stock-realtime-${branchId}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_stock', filter: `branch_id=eq.${branchId}` }, () => {
         fetchWarehouseStock();
       })
