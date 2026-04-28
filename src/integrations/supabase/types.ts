@@ -4618,6 +4618,8 @@ export type Database = {
       sector_coverage: {
         Row: {
           absent_worker_id: string
+          approval_notes: string | null
+          approval_status: string
           branch_id: string | null
           coverage_mode: string
           coverage_type: string
@@ -4626,15 +4628,21 @@ export type Database = {
           end_date: string
           id: string
           is_active: boolean
+          manager_approved_at: string | null
+          manager_approved_by: string | null
           reason: string | null
           schedule_type: string
           sector_id: string
           start_date: string
           substitute_worker_id: string
+          system_approved_at: string | null
+          system_approved_by: string | null
           updated_at: string
         }
         Insert: {
           absent_worker_id: string
+          approval_notes?: string | null
+          approval_status?: string
           branch_id?: string | null
           coverage_mode?: string
           coverage_type?: string
@@ -4643,15 +4651,21 @@ export type Database = {
           end_date: string
           id?: string
           is_active?: boolean
+          manager_approved_at?: string | null
+          manager_approved_by?: string | null
           reason?: string | null
           schedule_type?: string
           sector_id: string
           start_date: string
           substitute_worker_id: string
+          system_approved_at?: string | null
+          system_approved_by?: string | null
           updated_at?: string
         }
         Update: {
           absent_worker_id?: string
+          approval_notes?: string | null
+          approval_status?: string
           branch_id?: string | null
           coverage_mode?: string
           coverage_type?: string
@@ -4660,11 +4674,15 @@ export type Database = {
           end_date?: string
           id?: string
           is_active?: boolean
+          manager_approved_at?: string | null
+          manager_approved_by?: string | null
           reason?: string | null
           schedule_type?: string
           sector_id?: string
           start_date?: string
           substitute_worker_id?: string
+          system_approved_at?: string | null
+          system_approved_by?: string | null
           updated_at?: string
         }
         Relationships: [

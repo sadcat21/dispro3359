@@ -19,6 +19,8 @@ export interface SectorCoverage {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  approval_status?: 'pending_manager' | 'pending_system' | 'approved' | 'rejected';
+  approval_notes?: string | null;
 }
 
 export const useSectorCoverage = () => {
@@ -84,7 +86,7 @@ export const useSectorCoverage = () => {
       setCoverages(activeCoverages);
 
       const coveragesToReconcile = activeCoverages.filter((coverage) =>
-        isAdminRole(role) || coverage.absent_worker_id === workerId
+        (coverage.approval_status || 'approved') === 'approved' && (isAdminRole(role) || coverage.absent_worker_id === workerId)
       );
 
       await Promise.all(
@@ -141,6 +143,7 @@ export const useSectorCoverage = () => {
     created_by?: string;
     branch_id?: string;
   }) => {
+    const approvalStatus = isAdminRole(role) ? 'approved' : 'pending_manager';
     const { error } = await supabase.from('sector_coverage').insert({
       sector_id: data.sector_id,
       absent_worker_id: data.absent_worker_id,
@@ -153,19 +156,34 @@ export const useSectorCoverage = () => {
       reason: data.reason || null,
       created_by: data.created_by || null,
       branch_id: data.branch_id || null,
+      approval_status: approvalStatus,
     } as any);
     if (error) throw error;
 
-    const movedOrdersCount = await transferOrdersFromAbsentToSubstitute(
-      data.absent_worker_id,
-      data.substitute_worker_id,
-      data.sector_id
-    );
-
-    if (movedOrdersCount > 0) {
-      console.log(`تم نقل ${movedOrdersCount} طلبية من العامل الغائب إلى العامل البديل`);
+    if (approvalStatus === 'approved') {
+      const movedOrdersCount = await transferOrdersFromAbsentToSubstitute(
+        data.absent_worker_id,
+        data.substitute_worker_id,
+        data.sector_id
+      );
+      if (movedOrdersCount > 0) {
+        console.log(`تم نقل ${movedOrdersCount} طلبية من العامل الغائب إلى العامل البديل`);
+      }
     }
 
+    await fetchCoverages();
+  };
+
+  const approveCoverage = async (coverage: SectorCoverage) => {
+    const nextStatus = role === 'project_manager' || role === 'admin' ? 'approved' : 'pending_system';
+    const updatePayload: any = nextStatus === 'approved'
+      ? { approval_status: 'approved', system_approved_by: workerId, system_approved_at: new Date().toISOString() }
+      : { approval_status: 'pending_system', manager_approved_by: workerId, manager_approved_at: new Date().toISOString() };
+    const { error } = await supabase.from('sector_coverage').update(updatePayload).eq('id', coverage.id);
+    if (error) throw error;
+    if (nextStatus === 'approved') {
+      await transferOrdersFromAbsentToSubstitute(coverage.absent_worker_id, coverage.substitute_worker_id, coverage.sector_id);
+    }
     await fetchCoverages();
   };
 
@@ -180,27 +198,27 @@ export const useSectorCoverage = () => {
 
   // Get active coverages for a specific date
   const getActiveCoveragesForDate = useCallback((date: string) => {
-    return coverages.filter(c => c.start_date <= date && c.end_date >= date && c.is_active);
+    return coverages.filter(c => c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved');
   }, [coverages]);
 
   // Get substitute worker for a sector on a date
   const getSubstituteForSector = useCallback((sectorId: string, scheduleType: 'sales' | 'delivery', date: string) => {
     return coverages.filter(
-      c => c.sector_id === sectorId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active
+      c => c.sector_id === sectorId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved'
     );
   }, [coverages]);
 
   // Get all sectors a substitute worker is covering on a date
   const getCoveredSectorsForWorker = useCallback((workerId: string, scheduleType: 'sales' | 'delivery', date: string) => {
     return coverages.filter(
-      c => c.substitute_worker_id === workerId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active
+      c => c.substitute_worker_id === workerId && c.schedule_type === scheduleType && c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved'
     );
   }, [coverages]);
 
   // Check if a worker is absent (has coverage records as absent_worker)
   const isWorkerAbsent = useCallback((workerId: string, date: string) => {
     return coverages.some(
-      c => c.absent_worker_id === workerId && c.start_date <= date && c.end_date >= date && c.is_active
+      c => c.absent_worker_id === workerId && c.start_date <= date && c.end_date >= date && c.is_active && (c.approval_status || 'approved') === 'approved'
     );
   }, [coverages]);
 
@@ -209,6 +227,7 @@ export const useSectorCoverage = () => {
     isLoading,
     fetchCoverages,
     createCoverage,
+    approveCoverage,
     cancelCoverage,
     getActiveCoveragesForDate,
     getSubstituteForSector,
