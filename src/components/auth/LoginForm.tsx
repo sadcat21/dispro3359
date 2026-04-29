@@ -211,23 +211,23 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
   },
 };
 
-const ADMIN_FUNCTIONAL_ROLES = ['company_manager', 'project_manager', 'accountant', 'admin_assistant'];
+// كل الأكواد التي تُعتبر "إدارية" — تظهر في تبويب الإداريين
+const ADMIN_GROUP_KEYS = [
+  'admin', 'company_manager', 'project_manager', 'accountant', 'admin_assistant', 'branch_admin'
+];
 
+// تحديد فئة المستخدم بناءً على دوره الرئيسي حصراً (لا يوجد "دور أساسي")
 const getQuickWorkerGroupKey = (worker: QuickWorker) => {
-  // الأولوية للدور الرئيسي (functional_role) إن كان إدارياً
-  if (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) {
+  // 1) الدور الرئيسي (functional_role) من worker_roles هو المرجع الأول والوحيد للتصنيف
+  if (worker.functional_role) {
     return worker.functional_role;
   }
-  if (worker.role === 'branch_admin') return 'branch_admin';
-  if (worker.role === 'supervisor') return 'supervisor';
-  if (worker.role === 'admin') return 'admin';
-  if (worker.role === 'company_manager') return 'company_manager';
-  if (worker.role === 'project_manager') return 'project_manager';
-  if (worker.role === 'accountant') return 'accountant';
-  if (worker.role === 'admin_assistant') return 'admin_assistant';
-  if (worker.functional_role === 'warehouse_manager') return 'warehouse_manager';
-  if (worker.functional_role === 'sales_rep') return 'sales_rep';
-  if (worker.functional_role === 'delivery_rep') return 'delivery_rep';
+  // 2) Fallback تقني فقط: عندما لا يوجد أي دور رئيسي مُعيّن في worker_roles
+  //    نستخدم العمود التاريخي workers.role لتحديد الفئة
+  if (worker.role && worker.role !== 'worker') {
+    return worker.role;
+  }
+  // 3) عامل بدون أي تصنيف
   return 'worker';
 };
 
@@ -334,10 +334,9 @@ const LoginForm: React.FC = () => {
     else setRealWorkers(result);
   };
 
+  // التصنيف الإداري يعتمد فقط على الفئة المحسوبة من الدور الرئيسي
   const isAdminQuickWorker = (worker: QuickWorker) =>
-    ADMIN_TAB_ROLES.includes(worker.role) ||
-    (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) ||
-    !worker.branch_id;
+    ADMIN_GROUP_KEYS.includes(getQuickWorkerGroupKey(worker)) || !worker.branch_id;
   const adminQuickWorkers = realWorkers.filter(isAdminQuickWorker);
   const branchQuickTabs = [...new Map(
     realWorkers
