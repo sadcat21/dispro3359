@@ -171,6 +171,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                     : r.customers?.name || '—';
                   const productCount = Array.isArray(r.products) ? r.products.length : 0;
                   const isLoadingThis = loadingOrderId === r.id;
+                  const isForwarded = r.status === 'pending_assistant';
                   return (
                     <div
                       key={r.id}
@@ -204,25 +205,34 @@ const BranchInvoiceApprovals: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            onClick={() => approve.mutate(r.id)}
-                            disabled={approve.isPending}
-                            className="bg-green-600 hover:bg-green-700 gap-1"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            {t('branch_invoice_approvals.forward_to_top')}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => reject.mutate(r.id)}
-                            disabled={reject.isPending}
-                            className="gap-1"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            {t('branch_invoice_approvals.reject')}
-                          </Button>
+                          {isForwarded ? (
+                            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 px-3 py-2 gap-1 justify-center">
+                              <Clock3 className="w-4 h-4" />
+                              {t('branch_invoice_approvals.awaiting_final_approval')}
+                            </Badge>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => approve.mutate(r.id)}
+                                disabled={approve.isPending}
+                                className="bg-green-600 hover:bg-green-700 gap-1"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                {t('branch_invoice_approvals.forward_to_top')}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => reject.mutate(r.id)}
+                                disabled={reject.isPending}
+                                className="gap-1"
+                              >
+                                <XCircle className="w-4 h-4" />
+                                {t('branch_invoice_approvals.reject')}
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
