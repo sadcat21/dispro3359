@@ -206,7 +206,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                         </div>
                         <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                           {isForwarded ? (
-                            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 px-3 py-2 gap-1 justify-center">
+                            <Badge variant="outline" className="border-border bg-muted text-muted-foreground px-3 py-2 gap-1 justify-center">
                               <Clock3 className="w-4 h-4" />
                               {t('branch_invoice_approvals.awaiting_final_approval')}
                             </Badge>
