@@ -111,18 +111,20 @@ const AssistantApprovals: React.FC = () => {
 
   // ===== تعويض السكتورات =====
   const coverageQ = useQuery({
-    queryKey: ['assistant-coverage'],
+    queryKey: ['assistant-coverage', branchFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('sector_coverage')
         .select(`
           id, start_date, end_date, reason, approval_status,
           absent_worker:workers!sector_coverage_absent_worker_id_fkey(full_name),
           substitute_worker:workers!sector_coverage_substitute_worker_id_fkey(full_name),
-          sectors(name)
+          sectors!inner(name, branch_id)
         `)
         .eq('approval_status', 'pending')
         .order('created_at', { ascending: false });
+      if (branchFilter) q = q.eq('sectors.branch_id', branchFilter);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as unknown as CoverageRow[];
     },
