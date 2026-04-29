@@ -183,6 +183,21 @@ const BranchInvoiceApprovals: React.FC = () => {
   const pendingBranchRows = rows.filter((r) => r.status === 'pending_branch');
   const forwardedRows = rows.filter((r) => r.status === 'pending_assistant');
   const readyRows = rows.filter((r) => r.status === 'approved' && !!r.invoice_file_url);
+  const postponedRows = rows.filter((r) => r.status === 'postponed');
+  const pendingTabRows = rows.filter(r => r.status === 'pending_branch' || r.status === 'pending_assistant');
+
+  // تجميع المؤجلة حسب العميل
+  const postponedByCustomer = React.useMemo(() => {
+    const map = new Map<string, { customerId: string; customerName: string; items: InvoiceRequestRow[] }>();
+    for (const r of postponedRows) {
+      const cid = r.customer_id || 'unknown';
+      const name = (language === 'fr' && r.customers?.name_fr) ? r.customers.name_fr : (r.customers?.name || '—');
+      const existing = map.get(cid);
+      if (existing) existing.items.push(r);
+      else map.set(cid, { customerId: cid, customerName: name, items: [r] });
+    }
+    return Array.from(map.values()).sort((a, b) => b.items.length - a.items.length);
+  }, [postponedRows, language]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
