@@ -35,6 +35,7 @@ const BranchManagerHome: React.FC = () => {
   const queryClient = useQueryClient();
 
   const branchId = activeBranch?.id;
+  const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
 
   // Realtime: تنبيه فوري عند وصول طلب فاتورة جديد للفرع
   useEffect(() => {
