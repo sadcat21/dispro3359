@@ -182,6 +182,23 @@ const AssistantApprovals: React.FC = () => {
     },
   });
 
+  // طلبات الفاتورة المعلقة لعميل محدد (نافذة منبثقة)
+  const customerInvoicesQ = useQuery({
+    queryKey: ['assistant-customer-invoices', customerDialog?.id],
+    queryFn: async () => {
+      if (!customerDialog) return [];
+      const { data, error } = await supabase
+        .from('manual_invoice_requests')
+        .select('id, order_id, invoice_number, status, branch_approved_at, payment_method, total_amount, created_at, branches(name)')
+        .eq('customer_id', customerDialog.id)
+        .eq('status', 'pending_assistant')
+        .order('branch_approved_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!customerDialog,
+  });
+
   const approveInvoice = useMutation({
     mutationFn: async (id: string) => {
       const { data: request, error: fetchError } = await supabase
