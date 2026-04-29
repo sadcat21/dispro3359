@@ -2179,6 +2179,7 @@ export const translations: Translations = {
   'company_manager.role_desc': { ar: 'مساندة المدير العام في متابعة العمليات والموافقات النهائية', fr: 'Assistance au directeur général pour les opérations et approbations finales', en: 'Assists the General Manager with operations and final approvals' },
   'company_manager.welcome': { ar: 'مرحباً بك في لوحة مساعد المدير العام', fr: 'Bienvenue sur le tableau de bord de l\'assistant du directeur général', en: 'Welcome to the Assistant General Manager dashboard' },
   'company_manager.subtitle': { ar: 'مساندة الإدارة العامة في متابعة المبيعات والعمليات', fr: 'Assistance à la direction générale dans le suivi des ventes et des opérations', en: 'General management support for sales and operations follow-up' },
+  'company_manager.open_branch_approvals': { ar: 'فتح موافقات هذا الفرع', fr: 'Ouvrir les approbations de cette agence', en: 'Open this branch approvals' },
   'company_manager.section_executive': { ar: 'لوحة الإدارة التنفيذية', fr: 'Tableau exécutif', en: 'Executive Dashboard' },
   'company_manager.section_approvals': { ar: 'الموافقات والمراجعات', fr: 'Approbations et révisions', en: 'Approvals & Reviews' },
   'company_manager.section_hr': { ar: 'الموارد البشرية', fr: 'Ressources humaines', en: 'Human Resources' },
@@ -2206,6 +2207,8 @@ export const translations: Translations = {
   // صفحة الموافقات النهائية
   'assistant_approvals.title': { ar: 'الموافقات النهائية', fr: 'Approbations finales', en: 'Final Approvals' },
   'assistant_approvals.subtitle': { ar: 'مراجعة وإقرار العمليات بعد الموافقة الأولية', fr: 'Vérifier et finaliser après approbation initiale', en: 'Review and finalize after initial approval' },
+  'assistant_approvals.filtered_by_branch': { ar: 'مفلتر حسب الفرع', fr: 'Filtré par agence', en: 'Filtered by branch' },
+  'assistant_approvals.clear_filter': { ar: 'إزالة الفلتر', fr: 'Effacer le filtre', en: 'Clear filter' },
   'assistant_approvals.tab_factory_in': { ar: 'استلامات المصنع', fr: 'Réceptions usine', en: 'Factory Receipts' },
   'assistant_approvals.tab_factory_out': { ar: 'تسليمات للمصنع', fr: 'Livraisons usine', en: 'Factory Deliveries' },
   'assistant_approvals.tab_sector': { ar: 'تعويض السكتورات', fr: 'Compensation secteurs', en: 'Sector Compensation' },

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ReceiptRow {
@@ -43,16 +44,37 @@ const AssistantApprovals: React.FC = () => {
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [tab, setTab] = useState('factory_in');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const branchFilter = searchParams.get('branch');
+
+  // اسم الفرع المختار للعرض
+  const { data: filterBranch } = useQuery({
+    queryKey: ['filter-branch-name', branchFilter],
+    queryFn: async () => {
+      if (!branchFilter) return null;
+      const { data } = await supabase.from('branches').select('id, name, wilaya').eq('id', branchFilter).maybeSingle();
+      return data;
+    },
+    enabled: !!branchFilter,
+  });
+
+  const clearBranchFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('branch');
+    setSearchParams(next);
+  };
 
   // ===== استلامات المصنع =====
   const receiptsQ = useQuery({
-    queryKey: ['assistant-receipts'],
+    queryKey: ['assistant-receipts', branchFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('stock_receipts')
         .select('id, receipt_date, invoice_number, total_items, branch_approved_at, branch_id, branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
+      if (branchFilter) q = q.eq('branch_id', branchFilter);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as unknown as ReceiptRow[];
     },
@@ -136,13 +158,15 @@ const AssistantApprovals: React.FC = () => {
 
   // ===== طلبات الفواتير =====
   const invoicesQ = useQuery({
-    queryKey: ['assistant-invoice-requests'],
+    queryKey: ['assistant-invoice-requests', branchFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('manual_invoice_requests')
-        .select('id, invoice_number, status, branch_approved_at, customers(name), branches(name)')
+        .select('id, invoice_number, status, branch_approved_at, branch_id, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
+      if (branchFilter) q = q.eq('branch_id', branchFilter);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
     },
@@ -224,6 +248,18 @@ const AssistantApprovals: React.FC = () => {
             <p className="text-sm text-slate-600">{t('assistant_approvals.subtitle')}</p>
           </div>
         </div>
+        {filterBranch && (
+          <div className="mt-3 flex items-center gap-2">
+            <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
+              {t('assistant_approvals.filtered_by_branch')}: {filterBranch.name}
+              {filterBranch.wilaya ? ` — ${filterBranch.wilaya}` : ''}
+            </Badge>
+            <Button size="sm" variant="ghost" onClick={clearBranchFilter} className="h-7 px-2">
+              <X className="w-3.5 h-3.5 me-1" />
+              {t('assistant_approvals.clear_filter')}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
