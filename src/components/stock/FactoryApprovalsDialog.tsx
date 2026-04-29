@@ -98,6 +98,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState('');
   const [summaryReceipt, setSummaryReceipt] = useState<ReceiptRecord | null>(null);
+  const [printReceipt, setPrintReceipt] = useState<ReceiptRecord | null>(null);
 
   useEffect(() => {
     if (!open) return;
