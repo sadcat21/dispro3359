@@ -2545,9 +2545,14 @@ export type Database = {
           invoice_scope: string | null
           invoice_uploaded_at: string | null
           invoice_uploaded_by: string | null
+          is_merged_parent: boolean | null
+          merged_into_request_id: string | null
+          merged_request_ids: string[] | null
           notes: string | null
           order_id: string | null
           payment_method: string | null
+          postponed_at: string | null
+          postponed_by: string | null
           products: Json
           received_at: string | null
           received_by_assistant_at: string | null
@@ -2574,9 +2579,14 @@ export type Database = {
           invoice_scope?: string | null
           invoice_uploaded_at?: string | null
           invoice_uploaded_by?: string | null
+          is_merged_parent?: boolean | null
+          merged_into_request_id?: string | null
+          merged_request_ids?: string[] | null
           notes?: string | null
           order_id?: string | null
           payment_method?: string | null
+          postponed_at?: string | null
+          postponed_by?: string | null
           products?: Json
           received_at?: string | null
           received_by_assistant_at?: string | null
@@ -2603,9 +2613,14 @@ export type Database = {
           invoice_scope?: string | null
           invoice_uploaded_at?: string | null
           invoice_uploaded_by?: string | null
+          is_merged_parent?: boolean | null
+          merged_into_request_id?: string | null
+          merged_request_ids?: string[] | null
           notes?: string | null
           order_id?: string | null
           payment_method?: string | null
+          postponed_at?: string | null
+          postponed_by?: string | null
           products?: Json
           received_at?: string | null
           received_by_assistant_at?: string | null
@@ -2657,6 +2672,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_merged_into_request_id_fkey"
+            columns: ["merged_into_request_id"]
+            isOneToOne: false
+            referencedRelation: "manual_invoice_requests"
             referencedColumns: ["id"]
           },
           {
