@@ -119,6 +119,11 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [newQtyFields, setNewQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
   const [compQtyFields, setCompQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
   const [compOffersQtyFields, setCompOffersQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
+  // Per-product factory-return detail fields
+  const [lotNumber, setLotNumber] = useState('');
+  const [manufacturingDate, setManufacturingDate] = useState('');
+  const [manufacturingTime, setManufacturingTime] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
 
   // Multi-select
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
