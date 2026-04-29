@@ -200,7 +200,12 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
 
             return (
               <button
-                key={`${roleData.role}-${roleData.branch_id || index}`}
+                key={[
+                  roleData.custom_role_id || roleData.custom_role_code || roleData.role,
+                  roleData.branch_id || 'global',
+                  roleData.is_primary ? 'primary' : 'secondary',
+                  index,
+                ].join('-')}
                 onClick={() => onSelectRole(roleData)}
                 className={`group relative w-full overflow-hidden rounded-xl bg-gradient-to-br ${style.gradient} ring-2 ${style.ring} transition-all duration-200 hover:scale-[1.015] hover:shadow-lg active:scale-[0.99] text-start ${
                   isPrimary ? 'ring-[3px] shadow-md' : ''
