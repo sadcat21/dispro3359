@@ -164,13 +164,17 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
   const fileUrl = r?.invoice_file_url as string | undefined;
   const customerDisplayName = r?.customers?.name_fr || r?.customers?.name || '—';
   const products: any[] = Array.isArray(r?.products) ? r.products : [];
+  const isPrivate = r?.invoice_scope === 'private';
+  const headerClass = isPrivate
+    ? 'bg-amber-100 border-amber-300 text-amber-900'
+    : 'bg-emerald-100 border-emerald-300 text-emerald-900';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col gap-0">
-        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
+        <DialogHeader className={`px-5 pt-5 pb-3 border-b shrink-0 ${r ? headerClass : ''}`}>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-red-600" />
+            <FileText className={`w-5 h-5 ${isPrivate ? 'text-amber-700' : 'text-emerald-700'}`} />
             {t('invoice_review.title')}
           </DialogTitle>
         </DialogHeader>
