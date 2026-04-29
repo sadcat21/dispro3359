@@ -6,14 +6,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Search, Plus, Minus, Trash2, FileText, Lock, Globe2, Send } from 'lucide-react';
+import { Loader2, Plus, Minus, Trash2, FileText, Lock, Globe2, Send, User, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
 import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
+import type { Customer } from '@/types/database';
 
 interface Props {
   open: boolean;
@@ -23,36 +25,47 @@ interface Props {
 interface CartItem {
   productId: string;
   productName: string;
+  image_url?: string | null;
   quantity: number;
   unitPrice: number;
 }
-
-type Step = 'customer' | 'products' | 'payment' | 'scope';
 
 const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const { t, language } = useLanguage();
   const { activeBranch, workerId } = useAuth();
   const qc = useQueryClient();
 
-  const [step, setStep] = useState<Step>('customer');
-  const [search, setSearch] = useState('');
-  const [productSearch, setProductSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<InvoicePaymentMethod | null>(null);
-  const [invoiceScope, setInvoiceScope] = useState<'public' | 'private'>('public');
+  const [invoiceScope, setInvoiceScope] = useState<'public' | 'private'>('private');
 
-  // العملاء
+  const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+
+  // العملاء — نفس الاستعلام المستخدم في النظام
   const customersQ = useQuery({
     queryKey: ['branch-mi-customers', activeBranch?.id],
-    enabled: open && step === 'customer',
+    enabled: open,
     queryFn: async () => {
       let q = supabase
         .from('customers')
-        .select('id, name, name_fr, store_name')
+        .select('*')
         .eq('is_registered', true)
         .eq('status', 'active')
         .order('name');
+      if (activeBranch?.id) q = q.eq('branch_id', activeBranch.id);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data || []) as unknown as Customer[];
+    },
+  });
+
+  const sectorsQ = useQuery({
+    queryKey: ['branch-mi-sectors', activeBranch?.id],
+    enabled: open,
+    queryFn: async () => {
+      let q = supabase.from('sectors').select('*').order('name');
       if (activeBranch?.id) q = q.eq('branch_id', activeBranch.id);
       const { data, error } = await q;
       if (error) throw error;
@@ -63,7 +76,7 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   // المنتجات
   const productsQ = useQuery({
     queryKey: ['branch-mi-products'],
-    enabled: open && step === 'products',
+    enabled: open,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
@@ -76,53 +89,42 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     },
   });
 
-  const filteredCustomers = useMemo(() => {
-    const list = customersQ.data || [];
-    if (!search.trim()) return list;
-    const s = search.toLowerCase();
-    return list.filter((c: any) =>
-      c.name?.toLowerCase().includes(s) ||
-      c.name_fr?.toLowerCase().includes(s) ||
-      c.store_name?.toLowerCase().includes(s)
-    );
-  }, [customersQ.data, search]);
-
-  const filteredProducts = useMemo(() => {
-    const list = productsQ.data || [];
-    if (!productSearch.trim()) return list;
-    const s = productSearch.toLowerCase();
-    return list.filter((p: any) => p.name?.toLowerCase().includes(s));
-  }, [productsQ.data, productSearch]);
-
-  const getCartQty = (id: string) => cart.find(i => i.productId === id)?.quantity || 0;
-
-  const updateCart = (product: any, qty: number) => {
-    setCart(prev => {
-      if (qty <= 0) return prev.filter(i => i.productId !== product.id);
-      const existing = prev.find(i => i.productId === product.id);
-      if (existing) return prev.map(i => i.productId === product.id ? { ...i, quantity: qty } : i);
-      return [...prev, {
-        productId: product.id,
-        productName: product.name,
-        quantity: qty,
-        unitPrice: 0,
-      }];
-    });
-  };
-
   const totalAmount = useMemo(
     () => cart.reduce((s, i) => s + i.quantity * i.unitPrice, 0),
     [cart]
   );
 
+  const updateQty = (productId: string, qty: number) => {
+    setCart(prev => {
+      if (qty <= 0) return prev.filter(i => i.productId !== productId);
+      return prev.map(i => i.productId === productId ? { ...i, quantity: qty } : i);
+    });
+  };
+
+  const addProduct = (productId: string) => {
+    const product = (productsQ.data || []).find((p: any) => p.id === productId);
+    if (!product) return;
+    setCart(prev => {
+      if (prev.some(i => i.productId === productId)) return prev;
+      return [...prev, {
+        productId: product.id,
+        productName: product.name,
+        image_url: product.image_url,
+        quantity: 1,
+        unitPrice: 0,
+      }];
+    });
+  };
+
+  const removeProduct = (productId: string) => {
+    setCart(prev => prev.filter(i => i.productId !== productId));
+  };
+
   const reset = () => {
-    setStep('customer');
-    setSearch('');
-    setProductSearch('');
     setSelectedCustomer(null);
     setCart([]);
     setPaymentMethod(null);
-    setInvoiceScope('public');
+    setInvoiceScope('private');
   };
 
   const handleClose = (v: boolean) => {
@@ -167,207 +169,109 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     onError: (e: any) => toast.error(e?.message || 'Error'),
   });
 
-  const canGoNext = () => {
-    if (step === 'customer') return !!selectedCustomer;
-    if (step === 'products') return cart.length > 0;
-    if (step === 'payment') return !!paymentMethod;
-    return true;
-  };
-
-  const goNext = () => {
-    if (step === 'customer') setStep('products');
-    else if (step === 'products') setStep('payment');
-    else if (step === 'payment') setStep('scope');
-  };
-
-  const goBack = () => {
-    if (step === 'products') setStep('customer');
-    else if (step === 'payment') setStep('products');
-    else if (step === 'scope') setStep('payment');
-  };
+  const canSubmit = !!selectedCustomer && cart.length > 0 && !!paymentMethod;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            {t('branch_manual_invoice.title')}
-          </DialogTitle>
-          {/* Stepper */}
-          <div className="flex items-center gap-2 pt-2 text-xs">
-            {(['customer', 'products', 'payment', 'scope'] as Step[]).map((s, idx) => (
-              <React.Fragment key={s}>
-                <Badge variant={step === s ? 'default' : 'outline'} className="capitalize">
-                  {idx + 1}. {t(`branch_manual_invoice.step_${s}`)}
-                </Badge>
-                {idx < 3 && <span className="text-muted-foreground">›</span>}
-              </React.Fragment>
-            ))}
-          </div>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              {t('branch_manual_invoice.title')}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          {/* STEP 1: العميل */}
-          {step === 'customer' && (
-            <div className="space-y-3 h-full flex flex-col">
-              <div className="relative">
-                <Search className="absolute top-2.5 start-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('branch_manual_invoice.search_customer')}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="ps-9"
-                />
-              </div>
-              <ScrollArea className="flex-1 border rounded-lg">
-                {customersQ.isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : filteredCustomers.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    {t('branch_manual_invoice.no_customers')}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+            {/* العميل */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">{t('branch_manual_invoice.step_customer')}</Label>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start h-auto py-3"
+                onClick={() => setCustomerPickerOpen(true)}
+              >
+                <User className="w-4 h-4 me-2 text-primary" />
+                {selectedCustomer ? (
+                  <div className="text-start flex-1">
+                    <div className="font-medium">
+                      {language === 'fr' && (selectedCustomer as any).name_fr ? (selectedCustomer as any).name_fr : selectedCustomer.name}
+                    </div>
+                    {selectedCustomer.store_name && (
+                      <div className="text-xs text-muted-foreground">{selectedCustomer.store_name}</div>
+                    )}
                   </div>
                 ) : (
-                  <div className="divide-y">
-                    {filteredCustomers.map((c: any) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => setSelectedCustomer(c)}
-                        className={`w-full text-start p-3 hover:bg-muted transition ${selectedCustomer?.id === c.id ? 'bg-primary/10' : ''}`}
-                      >
-                        <div className="font-medium text-sm">
-                          {language === 'fr' && c.name_fr ? c.name_fr : c.name}
-                        </div>
-                        {c.store_name && (
-                          <div className="text-xs text-muted-foreground">{c.store_name}</div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-muted-foreground">{t('branch_manual_invoice.search_customer')}</span>
                 )}
-              </ScrollArea>
+              </Button>
             </div>
-          )}
 
-          {/* STEP 2: المنتجات */}
-          {step === 'products' && (
-            <div className="space-y-3 h-full flex flex-col">
-              <div className="relative">
-                <Search className="absolute top-2.5 start-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('branch_manual_invoice.search_product')}
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  className="ps-9"
-                />
+            {/* المنتجات */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold">{t('branch_manual_invoice.step_products')}</Label>
+                <Button type="button" size="sm" variant="outline" onClick={() => setProductPickerOpen(true)}>
+                  <Plus className="w-4 h-4 me-1" />
+                  {t('branch_manual_invoice.search_product')}
+                </Button>
               </div>
-              <ScrollArea className="flex-1 border rounded-lg">
-                {productsQ.isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2">
-                    {filteredProducts.map((p: any) => {
-                      const qty = getCartQty(p.id);
-                      const selected = qty > 0;
-                      return (
-                        <div
-                          key={p.id}
-                          className={`relative border rounded-lg p-2 flex flex-col items-center text-center transition ${selected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
-                        >
-                          <div className="text-[11px] font-bold text-primary line-clamp-1 w-full">{p.name}</div>
-                          <div className="my-1 w-full h-20 flex items-center justify-center bg-muted/30 rounded">
-                            {p.image_url ? (
-                              <img src={p.image_url} alt={p.name} className="max-h-full max-w-full object-contain" loading="lazy" />
-                            ) : (
-                              <FileText className="w-8 h-8 text-muted-foreground/40" />
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 w-full">
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="outline"
-                              className="h-7 w-7 shrink-0"
-                              onClick={() => updateCart(p, Math.max(0, qty - 1))}
-                            >
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <Input
-                              type="number"
-                              min={0}
-                              value={qty}
-                              onChange={(e) => updateCart(p, Math.max(0, Number(e.target.value) || 0))}
-                              className="h-7 px-1 text-center text-xs"
-                            />
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="outline"
-                              className="h-7 w-7 shrink-0"
-                              onClick={() => updateCart(p, qty + 1)}
-                            >
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </ScrollArea>
-              {cart.length > 0 && (
-                <div className="border rounded-lg p-2 bg-muted/30">
-                  <div className="text-xs font-semibold mb-1.5">
-                    {t('branch_manual_invoice.cart')} ({cart.length})
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cart.map(i => (
-                      <Badge key={i.productId} variant="secondary" className="gap-1">
-                        {i.productName} × {i.quantity}
-                        <button onClick={() => updateCart({ id: i.productId, name: i.productName, price: i.unitPrice }, 0)}>
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="text-xs mt-2 text-muted-foreground">
-                    {t('branch_manual_invoice.total')}: <strong>{totalAmount.toFixed(2)} DA</strong>
-                  </div>
+
+              {cart.length === 0 ? (
+                <div className="border border-dashed rounded-lg py-8 text-center text-sm text-muted-foreground">
+                  <Package className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  {t('branch_manual_invoice.no_products') || 'لا توجد منتجات بعد'}
+                </div>
+              ) : (
+                <div className="border rounded-lg divide-y">
+                  {cart.map(item => (
+                    <div key={item.productId} className="flex items-center gap-2 p-2">
+                      <div className="w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.productName} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package className="w-6 h-6 text-muted-foreground/40" />
+                        )}
+                      </div>
+                      <div className="flex-1 text-sm font-medium truncate">{item.productName}</div>
+                      <div className="flex items-center gap-1">
+                        <Button type="button" size="icon" variant="outline" className="h-7 w-7"
+                          onClick={() => updateQty(item.productId, item.quantity - 1)}>
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={item.quantity}
+                          onChange={(e) => updateQty(item.productId, Math.max(1, Number(e.target.value) || 1))}
+                          className="h-7 w-14 text-center text-xs"
+                        />
+                        <Button type="button" size="icon" variant="outline" className="h-7 w-7"
+                          onClick={() => updateQty(item.productId, item.quantity + 1)}>
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <Button type="button" size="icon" variant="ghost" className="h-7 w-7 text-destructive"
+                        onClick={() => removeProduct(item.productId)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          )}
 
-          {/* STEP 3: طريقة الدفع */}
-          {step === 'payment' && (
-            <div className="space-y-4">
+            {/* الدفع */}
+            <div className="space-y-2">
               <Label className="text-sm font-semibold">{t('branch_manual_invoice.choose_payment')}</Label>
               <InvoicePaymentMethodSelect value={paymentMethod} onChange={setPaymentMethod} />
             </div>
-          )}
 
-          {/* STEP 4: نوع الفاتورة */}
-          {step === 'scope' && (
-            <div className="space-y-4">
+            {/* النطاق */}
+            <div className="space-y-2">
               <Label className="text-sm font-semibold">{t('branch_manual_invoice.choose_scope')}</Label>
               <RadioGroup value={invoiceScope} onValueChange={(v) => setInvoiceScope(v as any)}>
-                <div className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30 transition" onClick={() => setInvoiceScope('public')}>
-                  <RadioGroupItem value="public" id="scope-public" className="mt-1" />
-                  <div className="flex-1">
-                    <Label htmlFor="scope-public" className="flex items-center gap-2 font-semibold cursor-pointer">
-                      <Globe2 className="w-4 h-4 text-blue-600" />
-                      {t('branch_manual_invoice.scope_public')}
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t('branch_manual_invoice.scope_public_desc')}
-                    </p>
-                  </div>
-                </div>
                 <div className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30 transition" onClick={() => setInvoiceScope('private')}>
                   <RadioGroupItem value="private" id="scope-private" className="mt-1" />
                   <div className="flex-1">
@@ -380,52 +284,63 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                     </p>
                   </div>
                 </div>
+                <div className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30 transition" onClick={() => setInvoiceScope('public')}>
+                  <RadioGroupItem value="public" id="scope-public" className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="scope-public" className="flex items-center gap-2 font-semibold cursor-pointer">
+                      <Globe2 className="w-4 h-4 text-blue-600" />
+                      {t('branch_manual_invoice.scope_public')}
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t('branch_manual_invoice.scope_public_desc')}
+                    </p>
+                  </div>
+                </div>
               </RadioGroup>
-
-              {/* ملخص */}
-              <div className="border rounded-lg p-3 bg-muted/30 space-y-1.5 text-sm">
-                <div className="font-semibold mb-1">{t('branch_manual_invoice.summary')}</div>
-                <div>👤 {language === 'fr' && selectedCustomer?.name_fr ? selectedCustomer.name_fr : selectedCustomer?.name}</div>
-                <div>📦 {cart.length} {t('branch_manual_invoice.products_count')}</div>
-                <div>💰 {paymentMethod && INVOICE_PAYMENT_METHODS[paymentMethod].label}</div>
-                <div>💰 {paymentMethod && INVOICE_PAYMENT_METHODS[paymentMethod].label}</div>
-                
-              </div>
             </div>
-          )}
-        </div>
-
-        <DialogFooter className="flex-row justify-between gap-2 pt-3 border-t">
-          <div>
-            {step !== 'customer' && (
-              <Button type="button" variant="outline" onClick={goBack} disabled={submit.isPending}>
-                {t('branch_manual_invoice.back')}
-              </Button>
-            )}
           </div>
-          <div className="flex gap-2">
+
+          <DialogFooter className="flex-row justify-end gap-2 pt-3 border-t">
             <Button type="button" variant="ghost" onClick={() => handleClose(false)} disabled={submit.isPending}>
               {t('branch_manual_invoice.cancel')}
             </Button>
-            {step !== 'scope' ? (
-              <Button type="button" onClick={goNext} disabled={!canGoNext()}>
-                {t('branch_manual_invoice.next')}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={() => submit.mutate()}
-                disabled={submit.isPending}
-                className="gap-2"
-              >
-                {submit.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {t('branch_manual_invoice.send_to_assistant')}
-              </Button>
-            )}
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <Button
+              type="button"
+              onClick={() => submit.mutate()}
+              disabled={!canSubmit || submit.isPending}
+              className="gap-2"
+            >
+              {submit.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {t('branch_manual_invoice.send_to_assistant')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* نافذة اختيار العميل — نفس الموحّدة في النظام */}
+      <CustomerPickerDialog
+        open={customerPickerOpen}
+        onOpenChange={setCustomerPickerOpen}
+        customers={customersQ.data || []}
+        sectors={(sectorsQ.data || []) as any}
+        isLoading={customersQ.isLoading}
+        selectedCustomerId={selectedCustomer?.id}
+        onSelect={(c) => setSelectedCustomer(c)}
+      />
+
+      {/* نافذة اختيار المنتجات — نفس نافذة شحن المخزن */}
+      <SimpleProductPickerDialog
+        open={productPickerOpen}
+        onOpenChange={setProductPickerOpen}
+        products={(productsQ.data || []) as any}
+        selectedProductId=""
+        selectedProductIds={cart.map(i => i.productId)}
+        onSelect={addProduct}
+        onRemoveProduct={removeProduct}
+        closeOnSelect={false}
+        showCloseButton
+      />
+    </>
   );
 };
 
