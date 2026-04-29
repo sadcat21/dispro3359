@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
@@ -20,6 +20,8 @@ interface InvoiceRequestRow {
   whatsapp_contact: string | null;
   created_at: string;
   products: any;
+  invoice_file_url?: string | null;
+  invoice_file_name?: string | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
@@ -41,7 +43,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
-          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products,
+          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
@@ -206,10 +208,23 @@ const BranchInvoiceApprovals: React.FC = () => {
                         </div>
                         <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                           {isForwarded ? (
-                            <Badge variant="outline" className="border-border bg-muted text-muted-foreground px-3 py-2 gap-1 justify-center">
-                              <Clock3 className="w-4 h-4" />
-                              {t('branch_invoice_approvals.awaiting_final_approval')}
-                            </Badge>
+                            r.invoice_file_url ? (
+                              <Button
+                                asChild
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                              >
+                                <a href={r.invoice_file_url} target="_blank" rel="noreferrer" download={r.invoice_file_name || undefined}>
+                                  <Download className="w-4 h-4" />
+                                  {t('branch_invoice_approvals.download_invoice')}
+                                </a>
+                              </Button>
+                            ) : (
+                              <Badge variant="outline" className="border-border bg-muted text-muted-foreground px-3 py-2 gap-1 justify-center">
+                                <Clock3 className="w-4 h-4" />
+                                {t('branch_invoice_approvals.awaiting_final_approval')}
+                              </Badge>
+                            )
                           ) : (
                             <>
                               <Button

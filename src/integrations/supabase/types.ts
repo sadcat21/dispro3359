@@ -2538,7 +2538,11 @@ export type Database = {
           created_at: string
           customer_id: string
           id: string
+          invoice_file_name: string | null
+          invoice_file_url: string | null
           invoice_number: string | null
+          invoice_uploaded_at: string | null
+          invoice_uploaded_by: string | null
           notes: string | null
           order_id: string | null
           payment_method: string | null
@@ -2558,7 +2562,11 @@ export type Database = {
           created_at?: string
           customer_id: string
           id?: string
+          invoice_file_name?: string | null
+          invoice_file_url?: string | null
           invoice_number?: string | null
+          invoice_uploaded_at?: string | null
+          invoice_uploaded_by?: string | null
           notes?: string | null
           order_id?: string | null
           payment_method?: string | null
@@ -2578,7 +2586,11 @@ export type Database = {
           created_at?: string
           customer_id?: string
           id?: string
+          invoice_file_name?: string | null
+          invoice_file_url?: string | null
           invoice_number?: string | null
+          invoice_uploaded_at?: string | null
+          invoice_uploaded_by?: string | null
           notes?: string | null
           order_id?: string | null
           payment_method?: string | null

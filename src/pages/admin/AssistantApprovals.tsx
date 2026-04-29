@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
 
 interface ReceiptRow {
   id: string;
@@ -37,6 +38,7 @@ interface InvoiceRequestRow {
   invoice_number: string | null;
   status: string;
   branch_approved_at: string | null;
+  invoice_file_url?: string | null;
   customers?: { name: string } | null;
   branches?: { name: string } | null;
 }
@@ -46,6 +48,7 @@ const AssistantApprovals: React.FC = () => {
   const qc = useQueryClient();
   const [tab, setTab] = useState('factory_in');
   const [searchParams, setSearchParams] = useSearchParams();
+  const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const branchFilter = searchParams.get('branch');
 
   // اسم الفرع المختار للعرض
@@ -165,7 +168,7 @@ const AssistantApprovals: React.FC = () => {
     queryFn: async () => {
       let q = supabase
         .from('manual_invoice_requests')
-        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, customers(name), branches(name)')
+        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
       if (branchFilter) q = q.eq('branch_id', branchFilter);
@@ -399,12 +402,20 @@ const AssistantApprovals: React.FC = () => {
                             {t('assistant_approvals.branch_approved_at')}: {new Date(i.branch_approved_at).toLocaleString()}
                           </p>
                         )}
+                        {i.invoice_file_url && (
+                          <Badge className="bg-green-100 text-green-700 border border-green-300 mt-1">
+                            ✅ {t('invoice_review.file_uploaded')}
+                          </Badge>
+                        )}
                       </div>
-                      <ActionButtons
-                        onApprove={() => approveInvoice.mutate(i.id)}
-                        onReject={() => rejectInvoice.mutate(i.id)}
-                        pending={approveInvoice.isPending || rejectInvoice.isPending}
-                      />
+                      <Button
+                        size="sm"
+                        onClick={() => setReviewRequestId(i.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        <Eye className="w-4 h-4 me-1" />
+                        {t('invoice_review.review_and_upload')}
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -421,6 +432,12 @@ const AssistantApprovals: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <InvoiceRequestReviewDialog
+        open={!!reviewRequestId}
+        onOpenChange={(v) => { if (!v) setReviewRequestId(null); }}
+        requestId={reviewRequestId}
+      />
     </div>
   );
 };
