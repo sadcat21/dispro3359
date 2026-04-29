@@ -84,6 +84,10 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const [newQtyFields, setNewQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compQtyFields, setCompQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compOffersQtyFields, setCompOffersQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+  const [lotNumber, setLotNumber] = useState('');
+  const [manufacturingDate, setManufacturingDate] = useState('');
+  const [manufacturingTime, setManufacturingTime] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
 
   const getProduct = (id: string) => products.find((product) => product.id === id);
   const currentProduct = singleProductId ? getProduct(singleProductId) : null;
