@@ -119,7 +119,7 @@ const AssistantApprovals: React.FC = () => {
           id, start_date, end_date, reason, approval_status,
           absent_worker:workers!sector_coverage_absent_worker_id_fkey(full_name),
           substitute_worker:workers!sector_coverage_substitute_worker_id_fkey(full_name),
-          sectors!inner(name, branch_id)
+          sectors!inner(name, branch_id, branches(name))
         `)
         .eq('approval_status', 'pending')
         .order('created_at', { ascending: false });
