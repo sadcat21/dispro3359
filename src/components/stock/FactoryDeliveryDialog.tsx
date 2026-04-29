@@ -14,6 +14,10 @@ import SimpleProductPickerDialog from './SimpleProductPickerDialog';
 interface DeliveryItem {
   product_id: string;
   product_quantity: number;
+  lot_number?: string;
+  manufacturing_date?: string;
+  manufacturing_time?: string;
+  delivery_date?: string;
 }
 
 interface Props {
