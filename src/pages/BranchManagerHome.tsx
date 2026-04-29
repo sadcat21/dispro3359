@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -34,6 +35,7 @@ const BranchManagerHome: React.FC = () => {
   const queryClient = useQueryClient();
 
   const branchId = activeBranch?.id;
+  const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
 
   // Realtime: تنبيه فوري عند وصول طلب فاتورة جديد للفرع
   useEffect(() => {
@@ -83,15 +85,14 @@ const BranchManagerHome: React.FC = () => {
     queryKey: ['bm-kpis', branchId, user?.id],
     enabled: !!branchId,
     queryFn: async () => {
-      const [workers, customers, openSessions, activeDebts, pendingInvoices, pendingStock] = await Promise.all([
+      const [workers, customers, openSessions, activeDebts, pendingInvoices, pendingReceipts, pendingDeliveries] = await Promise.all([
         supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('branch_id', branchId!),
         supabase.from('customers').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!),
         supabase.from('accounting_sessions').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'open'),
         supabase.from('customer_debts').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).gt('remaining_amount', 0),
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'pending_branch'),
-        user?.id
-          ? supabase.from('stock_confirmations').select('id', { count: 'exact', head: true }).eq('worker_id', user.id).eq('status', 'pending')
-          : Promise.resolve({ count: 0 } as any),
+        supabase.from('stock_receipts').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
+        supabase.from('factory_orders').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('order_type', 'sending').eq('status', 'pending_approval'),
       ]);
       return {
         workers: workers.count || 0,
@@ -99,7 +100,7 @@ const BranchManagerHome: React.FC = () => {
         openSessions: openSessions.count || 0,
         activeDebts: activeDebts.count || 0,
         pendingInvoices: pendingInvoices.count || 0,
-        pendingStock: pendingStock.count || 0,
+        pendingStock: (pendingReceipts.count || 0) + (pendingDeliveries.count || 0),
       };
     },
     staleTime: 60_000,
@@ -152,10 +153,10 @@ const BranchManagerHome: React.FC = () => {
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
         {
-          key: 'stock_confirmations',
-          label: 'موافقات استلام/تسليم البضاعة',
+          key: 'factory_approvals',
+          label: 'موافقات استلام/تسليم المصنع',
           icon: Truck,
-          onClick: () => window.dispatchEvent(new CustomEvent('open-stock-confirmations')),
+          onClick: () => setFactoryApprovalsOpen(true),
           badge: kpis?.pendingStock,
         },
       ],
@@ -259,6 +260,7 @@ const BranchManagerHome: React.FC = () => {
           );
         })}
       </div>
+      <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
     </div>
   );
 };

@@ -1913,10 +1913,14 @@ export type Database = {
           confirmed_at: string | null
           created_at: string
           created_by: string | null
+          frozen_at: string | null
+          frozen_by: string | null
           id: string
+          linked_receipt_id: string | null
           notes: string | null
           order_type: string
           pallet_count: number | null
+          rejection_note: string | null
           status: string
           updated_at: string
         }
@@ -1929,10 +1933,14 @@ export type Database = {
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
+          linked_receipt_id?: string | null
           notes?: string | null
           order_type?: string
           pallet_count?: number | null
+          rejection_note?: string | null
           status?: string
           updated_at?: string
         }
@@ -1945,10 +1953,14 @@ export type Database = {
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
+          linked_receipt_id?: string | null
           notes?: string | null
           order_type?: string
           pallet_count?: number | null
+          rejection_note?: string | null
           status?: string
           updated_at?: string
         }
@@ -5871,11 +5883,15 @@ export type Database = {
           branch_id: string | null
           created_at: string
           created_by: string
+          frozen_at: string | null
+          frozen_by: string | null
           id: string
           invoice_number: string | null
           invoice_photo_url: string | null
+          linked_delivery_id: string | null
           notes: string | null
           receipt_date: string
+          rejection_note: string | null
           status: string
           total_items: number | null
           updated_at: string
@@ -5890,11 +5906,15 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by: string
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           invoice_number?: string | null
           invoice_photo_url?: string | null
+          linked_delivery_id?: string | null
           notes?: string | null
           receipt_date?: string
+          rejection_note?: string | null
           status?: string
           total_items?: number | null
           updated_at?: string
@@ -5909,11 +5929,15 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           invoice_number?: string | null
           invoice_photo_url?: string | null
+          linked_delivery_id?: string | null
           notes?: string | null
           receipt_date?: string
+          rejection_note?: string | null
           status?: string
           total_items?: number | null
           updated_at?: string
