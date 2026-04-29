@@ -56,7 +56,17 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
   const { t, dir } = useLanguage();
   const ChevronIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
-  const getRoleStyle = (role: AppRole, isCompanyManager: boolean): RoleStyle => {
+  const getRoleStyle = (role: AppRole, isCompanyManager: boolean, isInternalSupervisor: boolean): RoleStyle => {
+    if (isInternalSupervisor) {
+      return {
+        icon: <Shield className="w-6 h-6" />,
+        gradient: 'from-sky-50 via-cyan-50 to-sky-50 dark:from-sky-950/40 dark:via-cyan-950/30 dark:to-sky-950/40',
+        iconBg: 'bg-gradient-to-br from-sky-500 to-cyan-600',
+        iconColor: 'text-white',
+        ring: 'ring-sky-300/50 hover:ring-sky-500/60',
+        accent: 'text-sky-700 dark:text-sky-300',
+      };
+    }
     if (isCompanyManager) {
       return {
         icon: <Crown className="w-6 h-6" />,
@@ -156,7 +166,8 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
     }
   };
 
-  const getRoleDescription = (role: AppRole, isCompanyManager: boolean) => {
+  const getRoleDescription = (role: AppRole, isCompanyManager: boolean, isInternalSupervisor: boolean) => {
+    if (isInternalSupervisor) return t('role_selection.internal_supervisor_desc');
     if (isCompanyManager) return t('role_selection.company_manager_desc');
     switch (role) {
       case 'admin': return t('role_selection.admin_desc');
@@ -193,10 +204,11 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
         <div className="grid gap-3 py-2">
           {sortedRoles.map((roleData, index) => {
             const isCompanyManager = roleData.custom_role_code === 'company_manager';
+            const isInternalSupervisor = roleData.custom_role_code === 'internal_supervisor';
             const isPrimary = index === effectivePrimaryIndex;
-            const style = getRoleStyle(roleData.role, isCompanyManager);
+            const style = getRoleStyle(roleData.role, isCompanyManager, isInternalSupervisor);
             const label = roleData.custom_role_name || getRoleLabel(roleData.role);
-            const description = getRoleDescription(roleData.role, isCompanyManager);
+            const description = getRoleDescription(roleData.role, isCompanyManager, isInternalSupervisor);
 
             return (
               <button

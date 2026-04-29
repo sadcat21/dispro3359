@@ -200,6 +200,33 @@ export const useNavigation = () => {
       };
     }
 
+    // Internal Supervisor — branch-scoped staff discipline & monitoring
+    if (activeRole?.custom_role_code === 'internal_supervisor') {
+      return {
+        main: [
+          { path: '/', icon: Home, label: t('nav.home') },
+          { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
+          { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
+        ],
+        more: [
+          { path: '/manager-sales-summary', icon: BarChart3, label: t('admin_home.item.manager_sales_summary') },
+          { path: '/stats', icon: BarChart3, label: t('nav.stats') },
+          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
+          { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
+          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
+          { path: '/workers', icon: Users, label: t('nav.workers') },
+          { path: '/customers', icon: UserCheck, label: t('nav.customers') },
+          { path: '/customer-accounts', icon: UserCog, label: t('nav.customer_accounts') },
+          { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
+          { path: '/customer-debts', icon: Banknote, label: t('debts.title') },
+          { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
+          { path: '/geo-operations', icon: Navigation, label: t('nav.geo_operations') },
+          { path: '/activity-logs', icon: Activity, label: t('nav.activity_logs') },
+          { path: '/guide', icon: BookOpen, label: t('nav.guide') },
+        ],
+      };
+    }
+
     if (role === 'worker' && activeRole?.custom_role_code === 'warehouse_manager') {
       return {
         main: [
