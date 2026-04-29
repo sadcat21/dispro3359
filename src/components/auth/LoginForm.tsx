@@ -113,6 +113,7 @@ const QUICK_GROUP_ORDER = [
   'accountant',
   'admin_assistant',
   'branch_admin',
+  'internal_supervisor',
   'supervisor',
   'warehouse_manager',
   'sales_rep',
