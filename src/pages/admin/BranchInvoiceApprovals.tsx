@@ -203,7 +203,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       if (!customerDialog) return [];
       const { data, error } = await supabase
         .from('manual_invoice_requests')
-        .select('id, order_id, invoice_number, status, payment_method, total_amount, created_at, branch_approved_at, products, branches(name)')
+        .select('id, order_id, invoice_number, status, payment_method, total_amount, created_at, branch_approved_at, products, whatsapp_contact, invoice_scope, branches(name), order:orders!manual_invoice_requests_order_id_fkey(invoice_payment_method, payment_type, total_amount, created_at)')
         .eq('customer_id', customerDialog.id)
         .eq('status', 'pending_branch')
         .order('branch_approved_at', { ascending: false });
@@ -772,29 +772,65 @@ const BranchInvoiceApprovals: React.FC = () => {
                 )}
               </div>
               <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2 mt-2">
-                {customerInvoicesQ.data!.map((r: any) => (
-                  <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 space-y-1 flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 mt-1 cursor-pointer"
-                      checked={selectedIds.includes(r.id)}
-                      onChange={() => toggleSelected(r.id)}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline">{r.branches?.name || '—'}</Badge>
-                        {r.payment_method && <Badge variant="secondary">{r.payment_method}</Badge>}
-                        <span className="font-bold text-slate-800">
-                          {Number(r.total_amount || 0).toLocaleString('ar')} دج
-                        </span>
+                {customerInvoicesQ.data!.map((r: any) => {
+                  const pm = r.order?.invoice_payment_method || r.payment_method;
+                  const pmLabel: Record<string, string> = {
+                    gros: 'جملة (Gros)',
+                    super_gros: 'سوبر جملة (Super Gros)',
+                    retail: 'تجزئة (Détail)',
+                    cash: 'نقدًا',
+                    cheque: 'شيك',
+                    credit: 'دين',
+                  };
+                  const pmText = pm ? (pmLabel[pm] || pm) : '—';
+                  const pmColor = pm === 'cash' ? 'bg-green-100 text-green-800 border-green-300'
+                    : pm === 'cheque' ? 'bg-blue-100 text-blue-800 border-blue-300'
+                    : pm === 'credit' ? 'bg-rose-100 text-rose-800 border-rose-300'
+                    : 'bg-slate-100 text-slate-800 border-slate-300';
+                  const products = Array.isArray(r.products) ? r.products : [];
+                  const total = r.total_amount ?? r.order?.total_amount ?? 0;
+                  return (
+                    <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 mt-1 cursor-pointer"
+                        checked={selectedIds.includes(r.id)}
+                        onChange={() => toggleSelected(r.id)}
+                      />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline">{r.branches?.name || '—'}</Badge>
+                          <Badge className={`border ${pmColor}`}>طريقة الدفع: {pmText}</Badge>
+                          {r.invoice_scope && (
+                            <Badge variant="outline" className="gap-1">
+                              {r.invoice_scope === 'private' ? <Lock className="w-3 h-3" /> : <Globe2 className="w-3 h-3" />}
+                              {r.invoice_scope === 'private' ? 'خاصة' : 'عامة'}
+                            </Badge>
+                          )}
+                          <span className="font-bold text-slate-800 ms-auto">
+                            {Number(total).toLocaleString('ar')} دج
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          فاتورة #{r.invoice_number || '—'} • {products.length} منتج •{' '}
+                          {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                        </p>
+                        {products.length > 0 && (
+                          <div className="bg-slate-50 rounded p-2 space-y-1 max-h-32 overflow-y-auto">
+                            {products.map((p: any, i: number) => (
+                              <div key={i} className="flex items-center justify-between text-xs gap-2">
+                                <span className="truncate">{p.product_name || p.name || '—'}</span>
+                                <span className="text-muted-foreground whitespace-nowrap">
+                                  {p.quantity} × {Number(p.unit_price || 0).toLocaleString('ar')} = <strong>{Number(p.total || (p.quantity * p.unit_price) || 0).toLocaleString('ar')}</strong>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        فاتورة #{r.invoice_number || '—'} • {Array.isArray(r.products) ? r.products.length : 0} منتج •{' '}
-                        {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
