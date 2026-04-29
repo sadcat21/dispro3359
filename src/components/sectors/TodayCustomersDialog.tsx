@@ -163,10 +163,11 @@ interface TodayCustomersDialogProps {
 const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   open, onOpenChange, targetWorkerId, targetWorkerName,
 }) => {
-  const { workerId: authWorkerId, activeBranch, role, user } = useAuth();
+  const { workerId: authWorkerId, activeBranch, role, user, activeRole } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const isAdmin = isAdminRole(role) || role === 'supervisor';
+  const isInternalSupervisor = activeRole?.custom_role_code === 'internal_supervisor';
+  const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor;
   const todayName = JS_DAY_TO_NAME[new Date().getDay()] || '';
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [selectedCustomDate, setSelectedCustomDate] = useState<Date | undefined>(undefined);
