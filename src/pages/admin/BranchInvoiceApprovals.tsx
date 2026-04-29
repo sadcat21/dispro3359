@@ -447,11 +447,15 @@ const BranchInvoiceApprovals: React.FC = () => {
                           </div>
                         </div>
                       );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="postponed">
