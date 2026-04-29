@@ -379,6 +379,7 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <div>👤 {language === 'fr' && selectedCustomer?.name_fr ? selectedCustomer.name_fr : selectedCustomer?.name}</div>
                 <div>📦 {cart.length} {t('branch_manual_invoice.products_count')}</div>
                 <div>💰 {paymentMethod && INVOICE_PAYMENT_METHODS[paymentMethod].label}</div>
+                <div>💰 {paymentMethod && INVOICE_PAYMENT_METHODS[paymentMethod].label}</div>
                 <div>💵 {totalAmount.toFixed(2)} DA</div>
               </div>
             </div>
