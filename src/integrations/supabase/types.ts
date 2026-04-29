@@ -6500,36 +6500,48 @@ export type Database = {
       warehouse_review_items: {
         Row: {
           actual_quantity: number
+          boxes_quantity: number
           created_at: string
+          damaged_quantity: number
           difference: number | null
           expected_quantity: number
+          hall_quantity: number
           id: string
           item_type: string
           notes: string | null
+          pieces_quantity: number
           product_id: string | null
           session_id: string
           status: string
         }
         Insert: {
           actual_quantity?: number
+          boxes_quantity?: number
           created_at?: string
+          damaged_quantity?: number
           difference?: number | null
           expected_quantity?: number
+          hall_quantity?: number
           id?: string
           item_type?: string
           notes?: string | null
+          pieces_quantity?: number
           product_id?: string | null
           session_id: string
           status?: string
         }
         Update: {
           actual_quantity?: number
+          boxes_quantity?: number
           created_at?: string
+          damaged_quantity?: number
           difference?: number | null
           expected_quantity?: number
+          hall_quantity?: number
           id?: string
           item_type?: string
           notes?: string | null
+          pieces_quantity?: number
           product_id?: string | null
           session_id?: string
           status?: string
