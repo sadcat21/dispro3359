@@ -205,9 +205,18 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                     )}
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                      <span className="text-xs text-slate-500">{t('branch_invoice_approvals.sales_rep')}:</span>
+                      <span className="text-xs text-slate-500">منشئ الطلب:</span>
                       <span className="font-semibold text-slate-800" dir="ltr">{r.worker?.full_name || '—'}</span>
                     </div>
+                    {r.branches?.name && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Store className="w-3.5 h-3.5 shrink-0 text-indigo-600" />
+                        <span className="text-xs text-slate-500">الفرع:</span>
+                        <Badge className="bg-indigo-100 text-indigo-800 border border-indigo-300 font-bold text-sm">
+                          🏢 {r.branches.name}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     {r.payment_method && (
