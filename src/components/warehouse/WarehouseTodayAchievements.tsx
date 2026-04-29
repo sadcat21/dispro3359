@@ -30,6 +30,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const { workerId } = useAuth();
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState<{ type: string; id: string; label: string } | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
 
   // 1) جلسات الشحن اليوم
   const loadingQ = useQuery({
