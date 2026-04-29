@@ -10,14 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
-  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, LucideIcon,
+  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
 } from 'lucide-react';
 
 interface BMItem {
   key: string;
   label: string;
   icon: LucideIcon;
-  path: string;
+  path?: string;
+  onClick?: () => void;
   badge?: number;
 }
 interface BMSection {
