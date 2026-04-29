@@ -158,13 +158,15 @@ const AssistantApprovals: React.FC = () => {
 
   // ===== طلبات الفواتير =====
   const invoicesQ = useQuery({
-    queryKey: ['assistant-invoice-requests'],
+    queryKey: ['assistant-invoice-requests', branchFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('manual_invoice_requests')
-        .select('id, invoice_number, status, branch_approved_at, customers(name), branches(name)')
+        .select('id, invoice_number, status, branch_approved_at, branch_id, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
+      if (branchFilter) q = q.eq('branch_id', branchFilter);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
     },
