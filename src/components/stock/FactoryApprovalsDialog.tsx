@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Loader2, Package, Truck, Inbox, Send, CheckCircle, XCircle, Lock, Unlock,
-  Edit, Save, X, AlertTriangle, Boxes, Sparkles, Wrench, FileText, User, Phone, Car,
+  Edit, Save, X, AlertTriangle, Boxes, Sparkles, Wrench, FileText, User, Phone, Car, Printer,
 } from 'lucide-react';
+import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,6 +98,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState('');
   const [summaryReceipt, setSummaryReceipt] = useState<ReceiptRecord | null>(null);
+  const [printReceipt, setPrintReceipt] = useState<ReceiptRecord | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -434,6 +436,12 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <Button size="sm" variant="outline" disabled={isProcessing || isFrozen} onClick={onStartEdit}>
               <Edit className="w-3.5 h-3.5 ml-1" /> تعديل
             </Button>
+            {kind === 'receipt' && (
+              <Button size="sm" variant="outline" className="border-blue-500 text-blue-700"
+                onClick={() => setPrintReceipt(record as ReceiptRecord)}>
+                <Printer className="w-3.5 h-3.5 ml-1" /> طباعة وصل التحويل
+              </Button>
+            )}
             <Button size="sm" variant="outline" disabled={isProcessing}
               className={isFrozen ? 'border-blue-500 text-blue-700' : 'border-amber-500 text-amber-700'}
               onClick={() => toggleFreeze(kind, record.id, !isFrozen)}>
@@ -836,6 +844,31 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة طباعة وصل التحويل */}
+      {printReceipt && (
+        <ReceiptPrintView
+          open={!!printReceipt}
+          onOpenChange={(o) => { if (!o) setPrintReceipt(null); }}
+          type="transfer"
+          invoiceNumber={printReceipt.invoice_number}
+          date={printReceipt.created_at}
+          items={printReceipt.items.map(it => ({
+            product_name: it.product_app_name || it.product_name,
+            new_qty: it.new_qty,
+            comp_qty: it.comp_qty,
+            comp_offers_qty: it.comp_offers_qty,
+            pieces_per_box: it.pieces_per_box,
+            image_url: it.image_url,
+          }))}
+          driverInfo={{
+            driver_name: printReceipt.meta.driver_name,
+            driver_phone: printReceipt.meta.driver_phone,
+            license_plate: printReceipt.meta.license_plate,
+          }}
+          notes={printReceipt.meta.text}
+        />
+      )}
     </>
   );
 };
