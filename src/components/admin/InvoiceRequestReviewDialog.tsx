@@ -285,55 +285,24 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  {fileUrl && (
-                    <>
-                      <Button size="sm" variant="ghost" asChild className="h-8 px-2">
-                        <a href={fileUrl} target="_blank" rel="noreferrer" download>
-                          <Download className="w-4 h-4" />
-                        </a>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2"
-                        onClick={() => removeFile.mutate()}
-                        disabled={removeFile.isPending}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </>
-                  )}
-                  <label>
-                    <input
-                      type="file"
-                      accept="application/pdf,image/*"
-                      className="hidden"
-                      disabled={uploading}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleUpload(f);
-                        e.target.value = '';
-                      }}
-                    />
+                {fileUrl && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button size="sm" variant="ghost" asChild className="h-8 px-2">
+                      <a href={fileUrl} target="_blank" rel="noreferrer" download>
+                        <Download className="w-4 h-4" />
+                      </a>
+                    </Button>
                     <Button
                       size="sm"
-                      variant={fileUrl ? 'outline' : 'default'}
-                      className={`h-8 gap-1 cursor-pointer ${!fileUrl ? 'bg-red-600 hover:bg-red-700 text-white' : ''}`}
-                      asChild
-                      disabled={uploading}
+                      variant="ghost"
+                      className="h-8 px-2"
+                      onClick={() => removeFile.mutate()}
+                      disabled={removeFile.isPending}
                     >
-                      <span>
-                        {uploading ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Upload className="w-3.5 h-3.5" />
-                        )}
-                        {fileUrl ? t('invoice_review.replace_file') : t('invoice_review.choose_file')}
-                      </span>
+                      <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
-                  </label>
-                </div>
+                  </div>
+                )}
               </div>
 
               {!fileUrl && (
