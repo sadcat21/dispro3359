@@ -2536,11 +2536,13 @@ export type Database = {
           branch_approved_by: string | null
           branch_id: string | null
           created_at: string
+          created_by_role: string | null
           customer_id: string
           id: string
           invoice_file_name: string | null
           invoice_file_url: string | null
           invoice_number: string | null
+          invoice_scope: string | null
           invoice_uploaded_at: string | null
           invoice_uploaded_by: string | null
           notes: string | null
@@ -2548,8 +2550,11 @@ export type Database = {
           payment_method: string | null
           products: Json
           received_at: string | null
+          received_by_assistant_at: string | null
+          received_by_assistant_id: string | null
           sent_at: string
           status: string
+          total_amount: number | null
           whatsapp_contact: string | null
           worker_id: string
         }
@@ -2560,11 +2565,13 @@ export type Database = {
           branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
+          created_by_role?: string | null
           customer_id: string
           id?: string
           invoice_file_name?: string | null
           invoice_file_url?: string | null
           invoice_number?: string | null
+          invoice_scope?: string | null
           invoice_uploaded_at?: string | null
           invoice_uploaded_by?: string | null
           notes?: string | null
@@ -2572,8 +2579,11 @@ export type Database = {
           payment_method?: string | null
           products?: Json
           received_at?: string | null
+          received_by_assistant_at?: string | null
+          received_by_assistant_id?: string | null
           sent_at?: string
           status?: string
+          total_amount?: number | null
           whatsapp_contact?: string | null
           worker_id: string
         }
@@ -2584,11 +2594,13 @@ export type Database = {
           branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
+          created_by_role?: string | null
           customer_id?: string
           id?: string
           invoice_file_name?: string | null
           invoice_file_url?: string | null
           invoice_number?: string | null
+          invoice_scope?: string | null
           invoice_uploaded_at?: string | null
           invoice_uploaded_by?: string | null
           notes?: string | null
@@ -2596,8 +2608,11 @@ export type Database = {
           payment_method?: string | null
           products?: Json
           received_at?: string | null
+          received_by_assistant_at?: string | null
+          received_by_assistant_id?: string | null
           sent_at?: string
           status?: string
+          total_amount?: number | null
           whatsapp_contact?: string | null
           worker_id?: string
         }

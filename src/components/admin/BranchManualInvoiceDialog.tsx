@@ -149,13 +149,13 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         })),
         payment_method: INVOICE_PAYMENT_METHODS[paymentMethod].label,
         whatsapp_contact: '',
-        status: 'pending_assistant', // مباشرة لمساعد المدير
+        status: 'pending_assistant',
         invoice_scope: invoiceScope,
         created_by_role: 'branch_admin',
         total_amount: totalAmount,
         branch_approved_by: workerId,
         branch_approved_at: new Date().toISOString(),
-      } as any);
+      });
       if (error) throw error;
     },
     onSuccess: () => {
