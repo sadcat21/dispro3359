@@ -7341,6 +7341,7 @@ export type Database = {
           custom_role_code: string
           custom_role_id: string
           custom_role_name: string
+          is_primary: boolean
           role: Database["public"]["Enums"]["app_role"]
         }[]
       }
