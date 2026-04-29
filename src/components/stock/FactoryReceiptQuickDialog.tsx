@@ -428,10 +428,18 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       setNewQtyFields(quantityToFields(existing.new_quantity, ppb));
       setCompQtyFields(quantityToFields(existing.compensation_quantity, ppb));
       setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, ppb));
+      setLotNumber(existing.lot_number || '');
+      setManufacturingDate(existing.manufacturing_date || '');
+      setManufacturingTime(existing.manufacturing_time || '');
+      setDeliveryDate(existing.delivery_date || '');
     } else {
       setNewQtyFields({ boxes: '1', pieces: '' });
       setCompQtyFields({ boxes: '0', pieces: '' });
       setCompOffersQtyFields({ boxes: '0', pieces: '' });
+      setLotNumber('');
+      setManufacturingDate('');
+      setManufacturingTime('');
+      setDeliveryDate('');
     }
   };
 
