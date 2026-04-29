@@ -200,7 +200,7 @@ const CustomerJourney = () => {
         `)
         .order('name');
 
-      if (role === 'branch_admin' && activeBranch?.id) {
+      if ((role === 'branch_admin' || isCompanyManager) && activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
       }
 
@@ -208,7 +208,7 @@ const CustomerJourney = () => {
       if (error) throw error;
       return (data || []) as CustomerRecord[];
     },
-    enabled: managerRoles.includes(role || ''),
+    enabled: managerRoles.includes(effectiveRole),
   });
 
   const { data: selectedCustomerRecord, isLoading: selectedCustomerLoading } = useQuery({
@@ -225,7 +225,7 @@ const CustomerJourney = () => {
         `)
         .eq('id', selectedCustomerId);
 
-      if (role === 'branch_admin' && activeBranch?.id) {
+      if ((role === 'branch_admin' || isCompanyManager) && activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
       }
 
@@ -250,7 +250,7 @@ const CustomerJourney = () => {
         .eq('customer_id', selectedCustomerId)
         .order('created_at', { ascending: false });
 
-      if (role === 'branch_admin' && activeBranch?.id) {
+      if ((role === 'branch_admin' || isCompanyManager) && activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
       }
 
@@ -300,7 +300,7 @@ const CustomerJourney = () => {
         .eq('customer_id', selectedCustomerId)
         .order('created_at', { ascending: false });
 
-      if (role === 'branch_admin' && activeBranch?.id) {
+      if ((role === 'branch_admin' || isCompanyManager) && activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
       }
 
@@ -325,7 +325,7 @@ const CustomerJourney = () => {
         .eq('customer_id', selectedCustomerId)
         .order('created_at', { ascending: false });
 
-      if (role === 'branch_admin' && activeBranch?.id) {
+      if ((role === 'branch_admin' || isCompanyManager) && activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
       }
 
