@@ -352,6 +352,16 @@ const BranchInvoiceApprovals: React.FC = () => {
                                   </Button>
                                   <Button
                                     size="sm"
+                                    variant="outline"
+                                    onClick={() => postpone.mutate(r.id)}
+                                    disabled={postpone.isPending}
+                                    className="gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                                  >
+                                    <Clock className="w-4 h-4" />
+                                    تأجيل
+                                  </Button>
+                                  <Button
+                                    size="sm"
                                     variant="destructive"
                                     onClick={() => reject.mutate(r.id)}
                                     disabled={reject.isPending}
