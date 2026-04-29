@@ -329,8 +329,8 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <div className="flex-1 min-w-0 text-right">
                                 <CustomerSummary
                                   customer={{
-                                    name: customer.name,
-                                    store_name: customer.store_name,
+                                    name: (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name,
+                                    store_name: (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name,
                                     customer_type: customer.customer_type,
                                     sector_name: getSectorName(customer.sector_id),
                                     phone: customer.phone,
