@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import BranchManualInvoiceDialog from '@/components/admin/BranchManualInvoiceDialog';
 
 interface InvoiceRequestRow {
   id: string;
@@ -36,6 +37,7 @@ const BranchInvoiceApprovals: React.FC = () => {
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
@@ -57,7 +59,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
-          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name,
+          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
