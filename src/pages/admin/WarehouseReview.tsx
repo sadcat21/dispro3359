@@ -427,6 +427,16 @@ const WarehouseReview: React.FC = () => {
                           item.status === 'surplus' ? 'border-amber-400/50 bg-amber-50 dark:bg-amber-950/20' : ''
                         }`}
                       />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDetailsDialogProductId(item.productId)}
+                        className={`w-8 h-8 p-0 shrink-0 ${detailsByProduct[item.productId] ? 'border-primary text-primary' : ''}`}
+                        title="تفاصيل (صناديق/قطع/صالة/تالف)"
+                      >
+                        <ListChecks className="w-3.5 h-3.5" />
+                      </Button>
                       <div className="w-8 flex justify-center">{getStatusIcon(item.status)}</div>
                     </div>
                   </div>
@@ -434,6 +444,16 @@ const WarehouseReview: React.FC = () => {
                     <div className="mt-1 flex justify-end">
                       {item.status === 'surplus' && <Badge className="bg-amber-500 text-white text-[9px]">فائض: +{diffDisplay}</Badge>}
                       {item.status === 'deficit' && <Badge variant="destructive" className="text-[9px]">عجز: -{diffDisplay}</Badge>}
+                    </div>
+                  )}
+                  {detailsByProduct[item.productId] && (
+                    <div className="mt-1 flex flex-wrap gap-1 justify-end text-[9px]">
+                      <Badge variant="outline" className="gap-1">صناديق: {detailsByProduct[item.productId].boxes}</Badge>
+                      <Badge variant="outline" className="gap-1">قطع: {detailsByProduct[item.productId].pieces}</Badge>
+                      <Badge variant="outline" className="gap-1">صالة: {detailsByProduct[item.productId].hall}</Badge>
+                      {detailsByProduct[item.productId].damaged > 0 && (
+                        <Badge variant="destructive" className="gap-1">تالف: {detailsByProduct[item.productId].damaged}</Badge>
+                      )}
                     </div>
                   )}
                 </div>
