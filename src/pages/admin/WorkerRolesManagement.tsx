@@ -65,7 +65,8 @@ const getRoleRank = (code: string | null | undefined): number => {
 
 const WorkerRolesManagement: React.FC = () => {
   const { role, activeBranch, activeRole } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRtl = language === 'ar';
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -316,7 +317,7 @@ const WorkerRolesManagement: React.FC = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 space-y-4" dir="rtl">
+    <div className="container mx-auto p-4 space-y-4" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="flex items-center gap-2">
         {selectedWorkerId && (
           <button
@@ -401,7 +402,7 @@ const WorkerRolesManagement: React.FC = () => {
                       key={r.id}
                       className={`relative rounded-2xl border-2 overflow-hidden transition-all hover:shadow-xl ${
                         isPrimary
-                          ? 'border-amber-400 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/40 dark:via-yellow-950/30 dark:to-orange-950/40 shadow-lg shadow-amber-200/50'
+                          ? 'border-red-500 bg-gradient-to-br from-red-50 via-rose-50 to-orange-50 dark:from-red-950/40 dark:via-rose-950/30 dark:to-orange-950/40 shadow-lg shadow-red-300/60 ring-2 ring-red-400/40'
                           : !r.is_active
                           ? 'border-muted bg-muted/30 opacity-70'
                           : `${colorSet.border} ${colorSet.bg}`
@@ -409,7 +410,15 @@ const WorkerRolesManagement: React.FC = () => {
                     >
                       {/* شريط علوي للدور الرئيسي */}
                       {isPrimary && (
-                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500" />
+                        <>
+                          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-red-500 via-rose-500 to-orange-500" />
+                          {/* شارة "الدور الرئيسي" البارزة */}
+                          <div className={`absolute top-2 ${isRtl ? 'left-2' : 'right-2'} z-10`}>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-bold shadow-md animate-pulse">
+                              ⭐ {t('worker_roles.primary_role')}
+                            </span>
+                          </div>
+                        </>
                       )}
 
                       {/* رأس البطاقة */}
@@ -418,19 +427,14 @@ const WorkerRolesManagement: React.FC = () => {
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
                               isPrimary
-                                ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md'
+                                ? 'bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md'
                                 : effective ? colorSet.icon : 'bg-muted text-muted-foreground'
                             }`}>
                               {isPrimary ? <span className="text-2xl">⭐</span> : effective ? <ShieldCheck className="w-6 h-6" /> : <ShieldOff className="w-6 h-6" />}
                             </div>
-                            <div className="min-w-0 flex-1">
+                            <div className={`min-w-0 flex-1 ${isRtl ? 'text-right' : 'text-left'}`}>
                               <h3 className="font-bold text-sm leading-tight truncate text-foreground">{roleName}</h3>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {isPrimary && (
-                                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
-                                    {t('worker_roles.primary_role')}
-                                  </span>
-                                )}
+                              <div className={`flex flex-wrap gap-1 mt-1 ${isRtl ? 'justify-end' : 'justify-start'}`}>
                                 {!r.is_primary && r.is_active && (
                                   <span className="text-[10px] font-medium text-muted-foreground">{t('worker_roles.secondary_role')}</span>
                                 )}
@@ -534,7 +538,7 @@ const WorkerRolesManagement: React.FC = () => {
       )}
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent dir="rtl" className="max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogContent dir={isRtl ? 'rtl' : 'ltr'} className="max-h-[90vh] flex flex-col p-0 gap-0">
           <DialogHeader className="p-6 pb-3 border-b shrink-0">
             <DialogTitle>{t('worker_roles.add_role_title')}</DialogTitle>
           </DialogHeader>
