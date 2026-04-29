@@ -867,19 +867,6 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             license_plate: printReceipt.meta.license_plate,
           }}
           notes={printReceipt.meta.text}
-          palletCount={printReceipt.pallet_count ?? null}
-          receiptExpenses={printReceipt.receipt_expenses ?? null}
-          expensesDescription={printReceipt.expenses_description ?? null}
-          deliveryDetail={(() => {
-            if (!printReceipt.linked_delivery_id) return null;
-            const d = deliveries.find(x => x.id === printReceipt.linked_delivery_id);
-            if (!d) return null;
-            return {
-              pallet_count: d.pallet_count,
-              created_at: d.created_at,
-              notes: d.notes,
-            };
-          })()}
         />
       )}
     </>
