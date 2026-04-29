@@ -703,6 +703,7 @@ export const translations: Translations = {
   'role_selection.accountant_desc': { ar: 'إدارة الحسابات والمالية', fr: 'Gestion comptable et financière', en: 'Accounting and finance management' },
   'role_selection.admin_assistant_desc': { ar: 'مساعدة إدارية', fr: 'Assistance administrative', en: 'Administrative assistance' },
   'role_selection.company_manager_desc': { ar: 'مساعدة المدير العام في متابعة عمليات الشركة', fr: 'Assistance au directeur général dans le suivi des opérations', en: 'Assistant to the General Manager for company operations follow-up' },
+  'role_selection.internal_supervisor_desc': { ar: 'متابعة انضباط وأداء العمال داخل الفرع', fr: 'Suivi de la discipline et performance des employés de l\'agence', en: 'Monitor branch staff discipline & performance' },
   'role_selection.primary_badge': { ar: 'الدور الرئيسي', fr: 'Rôle principal', en: 'Primary Role' },
   'role_selection.select_action': { ar: 'الدخول بهذا الدور', fr: 'Se connecter avec ce rôle', en: 'Sign in with this role' },
   'workers.role_project_manager': { ar: 'مدير المشروع', fr: 'Chef de projet', en: 'Project Manager' },
@@ -710,6 +711,21 @@ export const translations: Translations = {
   'workers.role_admin_assistant': { ar: 'عون إداري', fr: 'Assistant administratif', en: 'Administrative Assistant' },
   'workers.role_company_manager': { ar: 'مساعد المدير العام', fr: 'Assistant du directeur général', en: 'Assistant General Manager' },
   'workers.company_manager': { ar: 'مساعد المدير العام', fr: 'Assistant du directeur général', en: 'Assistant General Manager' },
+  'workers.role_internal_supervisor': { ar: 'مشرف داخلي', fr: 'Superviseur interne', en: 'Internal Supervisor' },
+  'workers.internal_supervisor': { ar: 'مشرف داخلي', fr: 'Superviseur interne', en: 'Internal Supervisor' },
+
+  // ==================== Internal Supervisor Dashboard ====================
+  'internal_supervisor.welcome': { ar: 'مرحباً بك في لوحة المشرف الداخلي', fr: 'Bienvenue sur le tableau du superviseur interne', en: 'Welcome to the Internal Supervisor dashboard' },
+  'internal_supervisor.subtitle': { ar: 'متابعة انضباط العمال والتزامهم وأدائهم اليومي داخل الفرع', fr: 'Suivi de la discipline, de l\'engagement et des performances quotidiennes des employés de l\'agence', en: 'Monitor branch staff discipline, commitment & daily performance' },
+  'internal_supervisor.section_discipline': { ar: 'الانضباط والحضور', fr: 'Discipline et présence', en: 'Discipline & Attendance' },
+  'internal_supervisor.section_performance': { ar: 'الأداء والإنجازات', fr: 'Performance et réalisations', en: 'Performance & Achievements' },
+  'internal_supervisor.section_debts': { ar: 'الديون والتحصيل', fr: 'Dettes et recouvrement', en: 'Debts & Collection' },
+  'internal_supervisor.section_customers': { ar: 'العملاء والموافقات', fr: 'Clients et approbations', en: 'Customers & Approvals' },
+  'internal_supervisor.kpi_active_workers': { ar: 'العمال النشطون', fr: 'Employés actifs', en: 'Active workers' },
+  'internal_supervisor.kpi_today_orders': { ar: 'طلبيات اليوم', fr: 'Commandes du jour', en: 'Today\'s orders' },
+  'internal_supervisor.kpi_pending_debts': { ar: 'ديون معلقة', fr: 'Dettes en cours', en: 'Pending debts' },
+  'internal_supervisor.kpi_attendance_today': { ar: 'حضور اليوم', fr: 'Présence du jour', en: 'Today\'s attendance' },
+
 
   'settings.all_branches': { ar: 'جميع الفروع', fr: 'Toutes les succursales', en: 'All Branches' },
   'settings.other': { ar: 'أخرى', fr: 'Autres', en: 'Other' },
