@@ -123,33 +123,40 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 py-4">
-          {roles.map((roleData, index) => (
-            <Button
-              key={`${roleData.role}-${roleData.branch_id || index}`}
-              variant="outline"
-              className={`h-auto p-4 flex items-start gap-4 justify-start border-2 hover:scale-[1.02] transition-all ${getRoleColor(roleData.role)}`}
-              onClick={() => onSelectRole(roleData)}
-            >
-              <div className="shrink-0 mt-1">
-                {getRoleIcon(roleData.role)}
-              </div>
-              <div className="text-start">
-                <div className="font-bold text-base">
-                  {roleData.custom_role_name || getRoleLabel(roleData.role)}
-                  {roleData.branch_name && (
-                    <span className="font-normal text-muted-foreground ms-2">
-                      ({roleData.branch_name})
-                    </span>
+          {roles.map((roleData, index) => {
+            const isCompanyManager = roleData.custom_role_code === 'company_manager';
+            return (
+              <Button
+                key={`${roleData.role}-${roleData.branch_id || index}`}
+                variant="outline"
+                className={`h-auto p-4 flex items-start gap-4 justify-start border-2 hover:scale-[1.02] transition-all ${
+                  isCompanyManager
+                    ? 'bg-gradient-to-r from-emerald-500/10 to-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/40'
+                    : getRoleColor(roleData.role)
+                }`}
+                onClick={() => onSelectRole(roleData)}
+              >
+                <div className="shrink-0 mt-1">
+                  {isCompanyManager ? <Shield className="w-6 h-6" /> : getRoleIcon(roleData.role)}
+                </div>
+                <div className="text-start">
+                  <div className="font-bold text-base">
+                    {roleData.custom_role_name || getRoleLabel(roleData.role)}
+                    {roleData.branch_name && (
+                      <span className="font-normal text-muted-foreground ms-2">
+                        ({roleData.branch_name})
+                      </span>
+                    )}
+                  </div>
+                  {!roleData.custom_role_name && (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {getRoleDescription(roleData.role)}
+                    </div>
                   )}
                 </div>
-                {!roleData.custom_role_name && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {getRoleDescription(roleData.role)}
-                  </div>
-                )}
-              </div>
-            </Button>
-          ))}
+              </Button>
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>
