@@ -243,11 +243,7 @@ const Customers: React.FC = () => {
   // Filter customers by activeBranch
   const filteredByBranch = useMemo(() => {
     if (isAdminRole(role) && activeBranch) {
-      // Branch managers see only their branch's customers (exclude unassigned).
-      // Super admins also see customers with no branch assignment.
-      if (role === 'branch_admin') {
-        return customers.filter(c => c.branch_id === activeBranch.id);
-      }
+      // Match the system manager's branch view: branch customers + unassigned customers.
       return customers.filter(c => c.branch_id === activeBranch.id || c.branch_id === null);
     }
     return customers;
