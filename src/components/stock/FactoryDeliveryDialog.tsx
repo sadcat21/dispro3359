@@ -14,6 +14,10 @@ import SimpleProductPickerDialog from './SimpleProductPickerDialog';
 interface DeliveryItem {
   product_id: string;
   product_quantity: number;
+  lot_number?: string;
+  manufacturing_date?: string;
+  manufacturing_time?: string;
+  delivery_date?: string;
 }
 
 interface Props {
@@ -109,6 +113,10 @@ const FactoryDeliveryDialog: React.FC<Props> = ({ open, onOpenChange, branchId, 
           product_id: i.product_id,
           product_quantity: i.product_quantity,
           pallet_quantity: 0,
+          lot_number: i.lot_number || null,
+          manufacturing_date: i.manufacturing_date || null,
+          manufacturing_time: i.manufacturing_time || null,
+          delivery_date: i.delivery_date || null,
         }));
         const { error: itemsError } = await supabase.from('factory_order_items').insert(orderItems);
         if (itemsError) throw itemsError;
@@ -253,6 +261,49 @@ const FactoryDeliveryDialog: React.FC<Props> = ({ open, onOpenChange, branchId, 
                   min={0}
                 />
               </div>
+
+              {item.product_id && item.product_quantity > 0 && (
+                <div className="border-t pt-2 mt-2 space-y-2 bg-muted/30 rounded p-2">
+                  <Label className="text-[11px] font-semibold">📋 تفاصيل التسليم للمصنع</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">N° de LOT</Label>
+                      <Input
+                        value={item.lot_number || ''}
+                        onChange={e => updateItem(index, 'lot_number', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Heure de fabrication</Label>
+                      <Input
+                        type="time"
+                        value={item.manufacturing_time || ''}
+                        onChange={e => updateItem(index, 'manufacturing_time', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Date de fabrication</Label>
+                      <Input
+                        type="date"
+                        value={item.manufacturing_date || ''}
+                        onChange={e => updateItem(index, 'manufacturing_date', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Date de livraison</Label>
+                      <Input
+                        type="date"
+                        value={item.delivery_date || ''}
+                        onChange={e => updateItem(index, 'delivery_date', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
