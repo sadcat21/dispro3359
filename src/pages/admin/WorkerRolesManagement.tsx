@@ -487,30 +487,70 @@ const WorkerRolesManagement: React.FC = () => {
       )}
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent dir="rtl">
-          <DialogHeader>
+        <DialogContent dir="rtl" className="max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 pb-3 border-b shrink-0">
             <DialogTitle>{t('worker_roles.add_role_title')}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
             <div>
               <Label>{t('worker_roles.role')}</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">{t('worker_roles.choose_primary_hint')}</p>
               {!customRoles || customRoles.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">{t('worker_roles.no_roles')}</p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 max-h-72 overflow-y-auto p-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 p-1">
                   {customRoles.map((cr, index) => {
                     const colorSet = WORKER_CARD_COLORS[index % WORKER_CARD_COLORS.length];
                     const isSelected = selectedRoleIds.includes(cr.id);
+                    const isPrimary = primaryRoleId === cr.id;
+                    const targetRank = getRoleRank(cr.code);
+                    const isFullAdmin = role === 'admin';
+                    const isForbidden = !isFullAdmin && targetRank >= currentUserRank;
                     return (
                       <div
                         key={cr.id}
-                        onClick={() => setSelectedRoleIds(prev => prev.includes(cr.id) ? prev.filter(id => id !== cr.id) : [...prev, cr.id])}
-                        className={`relative flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 cursor-pointer active:scale-95 transition-all hover:shadow-md ${colorSet.bg} ${isSelected ? 'border-primary ring-2 ring-primary/40' : colorSet.border}`}
+                        onClick={() => {
+                          if (isForbidden) {
+                            toast.error(t('worker_roles.cannot_grant_higher'));
+                            return;
+                          }
+                          setSelectedRoleIds(prev => {
+                            const next = prev.includes(cr.id) ? prev.filter(id => id !== cr.id) : [...prev, cr.id];
+                            // إذا أُزيل الدور الرئيسي، اختر أول دور متبقٍ
+                            if (!next.includes(primaryRoleId || '')) {
+                              setPrimaryRoleId(next[0] ?? null);
+                            } else if (!primaryRoleId && next.length > 0) {
+                              setPrimaryRoleId(next[0]);
+                            }
+                            return next;
+                          });
+                        }}
+                        onDoubleClick={() => {
+                          if (isForbidden || !isSelected) return;
+                          setPrimaryRoleId(cr.id);
+                        }}
+                        className={`relative flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 transition-all ${
+                          isForbidden
+                            ? 'opacity-40 cursor-not-allowed bg-muted border-muted'
+                            : `cursor-pointer active:scale-95 hover:shadow-md ${colorSet.bg} ${isSelected ? 'border-primary ring-2 ring-primary/40' : colorSet.border}`
+                        }`}
                       >
                         {isSelected && (
                           <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                             <Check className="w-3 h-3" />
                           </div>
+                        )}
+                        {isSelected && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setPrimaryRoleId(cr.id); }}
+                            className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                              isPrimary ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-amber-200'
+                            }`}
+                            title={t('worker_roles.set_primary')}
+                          >
+                            ⭐
+                          </button>
                         )}
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colorSet.icon}`}>
                           <Shield className="w-5 h-5" />
@@ -536,7 +576,7 @@ const WorkerRolesManagement: React.FC = () => {
               <Input value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder={t('worker_roles.notes_placeholder')} />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="p-4 border-t bg-background shrink-0 sticky bottom-0">
             <Button variant="outline" onClick={() => setAddOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending}>
               {addMutation.isPending && <Loader2 className="w-4 h-4 animate-spin ml-1" />}
