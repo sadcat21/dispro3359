@@ -127,20 +127,20 @@ const CompanyManagerHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-24">
       {/* Hero Header — أبيض مع لمسة ذهبية */}
-      <div className="relative overflow-hidden border-b border-amber-200 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-white to-amber-50/60" />
+      <div className="relative overflow-hidden border-b border-red-200 bg-white">
+        <div className="absolute inset-0 bg-gradient-to-r from-red-50 via-white to-red-50/60" />
         <div className="relative px-6 py-8">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 ring-2 ring-amber-300/40">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30 ring-2 ring-red-300/40">
               <Crown className="w-9 h-9 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-amber-700 tracking-tight">
+              <h1 className="text-2xl font-bold text-red-700 tracking-tight">
                 {t('company_manager.welcome')}
               </h1>
               <p className="text-sm text-slate-600 mt-1">{t('company_manager.subtitle')}</p>
               {user?.full_name && (
-                <Badge variant="outline" className="mt-2 border-amber-400/60 text-amber-700 bg-amber-50">
+                <Badge variant="outline" className="mt-2 border-red-400/60 text-red-700 bg-red-50">
                   {user.full_name}
                   {activeBranch?.name && ` — ${activeBranch.name}`}
                 </Badge>
@@ -150,10 +150,10 @@ const CompanyManagerHome: React.FC = () => {
 
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-            <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="amber" />
+            <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="red" />
             <KpiCard label={t('company_manager.kpi_active_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="slate" />
             <KpiCard label={t('company_manager.kpi_branches')} value={kpis?.branches ?? '—'} icon={Building2} accent="slate" />
-            <KpiCard label={t('company_manager.kpi_total_sales')} value="—" icon={TrendingUp} accent="amber" />
+            <KpiCard label={t('company_manager.kpi_total_sales')} value="—" icon={TrendingUp} accent="red" />
           </div>
         </div>
       </div>
@@ -165,9 +165,9 @@ const CompanyManagerHome: React.FC = () => {
           return (
             <div key={section.titleKey}>
               <div className="flex items-center gap-2 mb-3 px-2">
-                <SecIcon className="w-5 h-5 text-amber-600" />
+                <SecIcon className="w-5 h-5 text-red-600" />
                 <h2 className="text-base font-semibold text-slate-800">{t(section.titleKey)}</h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-amber-300/60 to-transparent" />
+                <div className="flex-1 h-px bg-gradient-to-r from-red-300/60 to-transparent" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {section.items.map((item) => {
@@ -176,11 +176,11 @@ const CompanyManagerHome: React.FC = () => {
                     <Card
                       key={item.key}
                       onClick={() => handleClick(item)}
-                      className="group cursor-pointer border-slate-200 bg-white hover:border-amber-400 hover:shadow-md hover:shadow-amber-500/10 transition-all"
+                      className="group cursor-pointer border-slate-200 bg-white hover:border-red-400 hover:shadow-md hover:shadow-red-500/10 transition-all"
                     >
                       <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-                          <Icon className="w-6 h-6 text-amber-600 group-hover:text-amber-700" />
+                        <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                          <Icon className="w-6 h-6 text-red-600 group-hover:text-red-700" />
                         </div>
                         <p className="text-sm font-medium text-slate-800 leading-tight">
                           {item.label}
@@ -204,15 +204,15 @@ const CompanyManagerHome: React.FC = () => {
   );
 };
 
-const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'amber' | 'slate' }> = ({ label, value, icon: Icon, accent }) => {
-  const isAmber = accent === 'amber';
+const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'red' | 'slate' }> = ({ label, value, icon: Icon, accent }) => {
+  const isRed = accent === 'red';
   return (
-    <Card className={`border ${isAmber ? 'border-amber-300 bg-amber-50/60' : 'border-slate-200 bg-white'}`}>
+    <Card className={`border ${isRed ? 'border-red-300 bg-red-50/60' : 'border-slate-200 bg-white'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <Icon className={`w-5 h-5 ${isAmber ? 'text-amber-600' : 'text-slate-500'}`} />
+          <Icon className={`w-5 h-5 ${isRed ? 'text-red-600' : 'text-slate-500'}`} />
         </div>
-        <p className={`text-3xl font-bold ${isAmber ? 'text-amber-700' : 'text-slate-800'}`}>{value}</p>
+        <p className={`text-3xl font-bold ${isRed ? 'text-red-700' : 'text-slate-800'}`}>{value}</p>
         <p className="text-xs text-slate-600 mt-1 font-medium">{label}</p>
       </CardContent>
     </Card>

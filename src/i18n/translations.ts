@@ -2224,6 +2224,7 @@ export const translations: Translations = {
   'nav.assistant_approvals': { ar: 'الموافقات النهائية', fr: 'Approbations finales', en: 'Final Approvals' },
   'sector_coverage.approved_badge': { ar: 'تمت الموافقة', fr: 'Approuvé', en: 'Approved' },
   'sector_coverage.pending_approval_badge': { ar: 'بانتظار الموافقة', fr: 'En attente d’approbation', en: 'Pending approval' },
+  'sector_coverage.rejected_badge': { ar: 'تم الرفض', fr: 'Rejeté', en: 'Rejected' },
   // رفع الفواتير المشتركة
   'shared_invoices.upload_for_branch': { ar: 'رفع فاتورة لمدير الفرع', fr: 'Téléverser facture pour la filiale', en: 'Upload invoice to branch' },
   'shared_invoices.customer_name': { ar: 'اسم العميل', fr: 'Nom du client', en: 'Customer name' },
