@@ -473,6 +473,12 @@ const WarehouseStock: React.FC = () => {
         <TabsContent value="review" className="mt-3">
           {branchId && <WarehouseReviewHistory branchId={branchId} />}
         </TabsContent>
+
+        {isWarehouseManager && (
+          <TabsContent value="today" className="mt-3">
+            {branchId && <WarehouseTodayAchievements branchId={branchId} />}
+          </TabsContent>
+        )}
       </Tabs>
 
       <SalesHubDialog
