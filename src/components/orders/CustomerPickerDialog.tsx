@@ -236,7 +236,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         {/* Header */}
         <DialogHeader className="p-4 pb-3 border-b">
           <DialogTitle className="text-center text-base font-bold">
-            اختر عميل...
+            {t('customer_picker.title')}
           </DialogTitle>
           <button
             onClick={() => onOpenChange(false)}
@@ -253,13 +253,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="بحث بالاسم، المحل، أو الهاتف..."
+              placeholder={t('customer_picker.search_placeholder')}
               className="pr-10 h-11 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
               autoFocus
             />
           </div>
           <div className="flex items-center justify-between">
-            <label htmlFor="auto-expand" className="text-xs text-muted-foreground">فتح الأقسام تلقائياً</label>
+            <label htmlFor="auto-expand" className="text-xs text-muted-foreground">{t('customer_picker.auto_expand')}</label>
             <Switch id="auto-expand" checked={autoExpand} onCheckedChange={setAutoExpand} />
           </div>
         </div>
@@ -274,7 +274,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             <div className="py-10 text-center">
               <User className="w-10 h-10 mx-auto mb-2 opacity-30" />
               <p className="text-sm text-muted-foreground">
-                {search ? 'لا يوجد عميل مطابق' : t('orders.no_customers')}
+                {search ? t('customer_picker.no_match') : t('orders.no_customers')}
               </p>
               {search && onAddNew && (
                 <Button
@@ -284,7 +284,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                   onClick={onAddNew}
                 >
                   <UserPlus className="w-4 h-4" />
-                  إضافة عميل جديد
+                  {t('customer_picker.add_new')}
                 </Button>
               )}
             </div>
@@ -380,7 +380,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         {/* Footer */}
         <div className="border-t px-4 py-2.5 flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            {filteredCustomers.length} عميل
+            {filteredCustomers.length} {t('customer_picker.count')}
           </p>
           {onAddNew && (
             <Button
@@ -390,7 +390,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               onClick={onAddNew}
             >
               <UserPlus className="w-4 h-4" />
-              عميل جديد
+              {t('customer_picker.new')}
             </Button>
           )}
         </div>
