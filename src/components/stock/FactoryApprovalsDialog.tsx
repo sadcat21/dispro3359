@@ -58,6 +58,8 @@ interface ReceiptRecord {
   rejection_note: string | null;
   linked_delivery_id: string | null;
   pallet_count?: number;
+  receipt_expenses?: number;
+  expenses_description?: string | null;
   items: ReceiptItemDetail[];
   meta: ReturnType<typeof parseReceiptMeta>;
 }
