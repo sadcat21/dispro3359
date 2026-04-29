@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Crown, ShieldCheck, Split, FileText, BarChart3, Warehouse, Truck, ClipboardCheck,
   Package, Gift, Users, Building2, Settings, Database, Shield, FileSpreadsheet,
@@ -41,7 +40,6 @@ const CompanyManagerHome: React.FC = () => {
   const [factoryDeliveryOpen, setFactoryDeliveryOpen] = useState(false);
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
 
-  // KPIs
   const { data: kpis } = useQuery({
     queryKey: ['cm-kpis', activeBranch?.id],
     queryFn: async () => {
@@ -127,22 +125,22 @@ const CompanyManagerHome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 text-emerald-50 pb-24">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden border-b border-amber-500/30">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-emerald-500/10" />
+    <div className="min-h-screen bg-white text-slate-900 pb-24">
+      {/* Hero Header — أبيض مع لمسة ذهبية */}
+      <div className="relative overflow-hidden border-b border-amber-200 bg-white">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-white to-amber-50/60" />
         <div className="relative px-6 py-8">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 ring-2 ring-amber-300/40">
-              <Crown className="w-9 h-9 text-emerald-950" />
+              <Crown className="w-9 h-9 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-amber-100 tracking-tight">
+              <h1 className="text-2xl font-bold text-amber-700 tracking-tight">
                 {t('company_manager.welcome')}
               </h1>
-              <p className="text-sm text-emerald-200/80 mt-1">{t('company_manager.subtitle')}</p>
+              <p className="text-sm text-slate-600 mt-1">{t('company_manager.subtitle')}</p>
               {user?.full_name && (
-                <Badge variant="outline" className="mt-2 border-amber-400/40 text-amber-200 bg-amber-500/10">
+                <Badge variant="outline" className="mt-2 border-amber-400/60 text-amber-700 bg-amber-50">
                   {user.full_name}
                   {activeBranch?.name && ` — ${activeBranch.name}`}
                 </Badge>
@@ -153,8 +151,8 @@ const CompanyManagerHome: React.FC = () => {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="amber" />
-            <KpiCard label={t('company_manager.kpi_active_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="emerald" />
-            <KpiCard label={t('company_manager.kpi_branches')} value={kpis?.branches ?? '—'} icon={Building2} accent="emerald" />
+            <KpiCard label={t('company_manager.kpi_active_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="slate" />
+            <KpiCard label={t('company_manager.kpi_branches')} value={kpis?.branches ?? '—'} icon={Building2} accent="slate" />
             <KpiCard label={t('company_manager.kpi_total_sales')} value="—" icon={TrendingUp} accent="amber" />
           </div>
         </div>
@@ -167,9 +165,9 @@ const CompanyManagerHome: React.FC = () => {
           return (
             <div key={section.titleKey}>
               <div className="flex items-center gap-2 mb-3 px-2">
-                <SecIcon className="w-5 h-5 text-amber-400" />
-                <h2 className="text-base font-semibold text-amber-100">{t(section.titleKey)}</h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-amber-500/40 to-transparent" />
+                <SecIcon className="w-5 h-5 text-amber-600" />
+                <h2 className="text-base font-semibold text-slate-800">{t(section.titleKey)}</h2>
+                <div className="flex-1 h-px bg-gradient-to-r from-amber-300/60 to-transparent" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {section.items.map((item) => {
@@ -178,13 +176,13 @@ const CompanyManagerHome: React.FC = () => {
                     <Card
                       key={item.key}
                       onClick={() => handleClick(item)}
-                      className="group cursor-pointer border-emerald-700/40 bg-gradient-to-br from-emerald-900/60 to-emerald-950/80 backdrop-blur hover:border-amber-400/60 hover:shadow-lg hover:shadow-amber-500/10 transition-all"
+                      className="group cursor-pointer border-slate-200 bg-white hover:border-amber-400 hover:shadow-md hover:shadow-amber-500/10 transition-all"
                     >
                       <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-emerald-500/20 flex items-center justify-center group-hover:from-amber-400/30 group-hover:to-emerald-400/30 transition-colors">
-                          <Icon className="w-6 h-6 text-amber-300 group-hover:text-amber-200" />
+                        <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                          <Icon className="w-6 h-6 text-amber-600 group-hover:text-amber-700" />
                         </div>
-                        <p className="text-sm font-medium text-emerald-50 leading-tight">
+                        <p className="text-sm font-medium text-slate-800 leading-tight">
                           {item.label}
                         </p>
                       </CardContent>
@@ -206,19 +204,16 @@ const CompanyManagerHome: React.FC = () => {
   );
 };
 
-const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'amber' | 'emerald' }> = ({ label, value, icon: Icon, accent }) => {
-  const accentClasses = accent === 'amber'
-    ? 'border-amber-500/40 from-amber-900/40 to-emerald-950/80'
-    : 'border-emerald-500/40 from-emerald-900/50 to-emerald-950/80';
-  const valueColor = accent === 'amber' ? 'text-amber-200' : 'text-emerald-100';
+const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'amber' | 'slate' }> = ({ label, value, icon: Icon, accent }) => {
+  const isAmber = accent === 'amber';
   return (
-    <Card className={`border bg-gradient-to-br ${accentClasses} backdrop-blur`}>
+    <Card className={`border ${isAmber ? 'border-amber-300 bg-amber-50/60' : 'border-slate-200 bg-white'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <Icon className={`w-5 h-5 ${accent === 'amber' ? 'text-amber-300' : 'text-emerald-300'}`} />
+          <Icon className={`w-5 h-5 ${isAmber ? 'text-amber-600' : 'text-slate-500'}`} />
         </div>
-        <p className={`text-3xl font-bold ${valueColor}`}>{value}</p>
-        <p className="text-xs text-emerald-100/80 mt-1 font-medium">{label}</p>
+        <p className={`text-3xl font-bold ${isAmber ? 'text-amber-700' : 'text-slate-800'}`}>{value}</p>
+        <p className="text-xs text-slate-600 mt-1 font-medium">{label}</p>
       </CardContent>
     </Card>
   );
