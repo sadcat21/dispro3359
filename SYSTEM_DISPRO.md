@@ -54,3 +54,11 @@ toast.success(t('common.saved_successfully'));
   4. تحديث `RoleSelectionDialog.tsx` بأيقونة/لون مميز
   5. كل النصوص عبر `t()` في `translations.ts`
 
+
+### 2026-04-29 — دور "المشرف الداخلي" (internal_supervisor)
+- **النوع:** custom_role بكود `internal_supervisor` + قيمة جديدة في enum `app_role`.
+- **الواجهة:** صفحة `InternalSupervisorHome.tsx` بثيم Sky/Cyan (مختلف عن باقي الأدوار) — تُفتح تلقائياً عبر `Index.tsx` عند `activeRole.custom_role_code === 'internal_supervisor'`.
+- **المهام:** متابعة انضباط العمال داخل الفرع: الحضور، التتبع، إنجازات اليوم، الديون، تجميع المبيعات، الموافقة على تعديلات/حذف العملاء — بدون رؤية لوحة المدير الإدارية أو الإعدادات أو الفروع أو الصلاحيات أو الخزينة.
+- **الترجمات:** كل المفاتيح تحت `internal_supervisor.*` في `src/i18n/translations.ts`.
+- **التنقل:** فرع خاص في `useNavigation.ts` تحت `activeRole?.custom_role_code === 'internal_supervisor'`.
+- **التمييز اللوني في `RoleSelectionDialog`:** أزرق سماوي (Sky 500 → Cyan 600) مع أيقونة Shield.
