@@ -595,7 +595,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
               )}
 
-              {renderActionsBar('receipt', r, () => approveReceipt(r), () => saveReceiptEdits(r), () => startEditReceipt(r))}
+              {renderActionsBar('receipt', r, () => setSummaryReceipt(r), () => saveReceiptEdits(r), () => startEditReceipt(r))}
             </div>
           )}
         </div>
