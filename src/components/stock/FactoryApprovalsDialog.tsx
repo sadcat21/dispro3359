@@ -216,61 +216,24 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!workerId || r.frozen_at) return;
     setProcessingId(r.id);
     try {
-      // Apply stock movements + warehouse_stock updates
-      for (const item of r.items) {
-        const ppb = item.pieces_per_box;
-        const totalQtyDb = (item.new_qty || 0) + (item.comp_qty || 0) + (item.comp_offers_qty || 0);
-        await supabase.from('stock_movements').insert({
-          product_id: item.product_id, branch_id: r.branch_id, quantity: totalQtyDb,
-          movement_type: 'receipt', status: 'approved', created_by: workerId,
-          receipt_id: r.id, notes: 'موافقة مدير الفرع على الاستلام',
-        });
-        const { data: existing } = await supabase.from('warehouse_stock')
-          .select('id, quantity, compensation_quantity, factory_return_quantity')
-          .eq('branch_id', r.branch_id).eq('product_id', item.product_id).maybeSingle();
-        if (existing) {
-          await supabase.from('warehouse_stock').update({
-            quantity: (Number(existing.quantity) || 0) + totalQtyDb,
-            compensation_quantity: (Number((existing as any).compensation_quantity) || 0) + (item.comp_qty || 0),
-            factory_return_quantity: Math.max(0, (Number((existing as any).factory_return_quantity) || 0) - (item.comp_qty || 0)),
-          }).eq('id', existing.id);
-        } else {
-          await supabase.from('warehouse_stock').insert({
-            branch_id: r.branch_id, product_id: item.product_id,
-            quantity: totalQtyDb, compensation_quantity: item.comp_qty || 0,
-          });
-        }
-      }
+      // مدير الفرع لا يوافق نهائياً — فقط يحوّل للإدارة العليا (مساعد المدير العام / مدير النظام)
       await supabase.from('stock_receipts').update({
-        status: 'confirmed', approved_by: workerId, approved_at: new Date().toISOString(),
-        branch_approved_by: workerId, branch_approved_at: new Date().toISOString(),
+        status: 'pending_assistant',
+        branch_approved_by: workerId,
+        branch_approved_at: new Date().toISOString(),
         pallet_count: r.pallet_count || 0,
       }).eq('id', r.id);
 
-      // Add pallets to branch balance
-      if ((r.pallet_count || 0) > 0) {
-        const { data: bp } = await supabase.from('branch_pallets')
-          .select('id, quantity').eq('branch_id', r.branch_id).maybeSingle();
-        if (bp) {
-          await supabase.from('branch_pallets')
-            .update({ quantity: (Number(bp.quantity) || 0) + (r.pallet_count || 0) }).eq('id', bp.id);
-        } else {
-          await supabase.from('branch_pallets')
-            .insert({ branch_id: r.branch_id, quantity: r.pallet_count || 0 });
-        }
-        await supabase.from('pallet_movements').insert({
-          branch_id: r.branch_id, quantity: r.pallet_count || 0, movement_type: 'receipt',
-          reference_id: r.id, notes: 'استلام باليطات (موافقة مدير الفرع)', created_by: workerId,
-        });
-      }
-
-      // If linked delivery, approve it as well in unified flow
+      // إذا كان مرتبطاً بتسليم، نحوّله أيضاً للإدارة
       if (r.linked_delivery_id) {
-        const linked = deliveries.find(d => d.id === r.linked_delivery_id);
-        if (linked) await approveDeliveryInternal(linked);
+        await supabase.from('factory_orders').update({
+          status: 'pending_assistant',
+          branch_approved_by: workerId,
+          branch_approved_at: new Date().toISOString(),
+        }).eq('id', r.linked_delivery_id);
       }
 
-      toast.success('تمت الموافقة على الاستلام');
+      toast.success('تم إرسال الطلب للإدارة العليا للموافقة النهائية');
       await fetchData();
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
@@ -310,8 +273,13 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!workerId || d.frozen_at) return;
     setProcessingId(d.id);
     try {
-      await approveDeliveryInternal(d);
-      toast.success('تمت الموافقة على التسليم');
+      // مدير الفرع يحوّل التسليم للإدارة العليا — لا تطبيق نهائي للحركات هنا
+      await supabase.from('factory_orders').update({
+        status: 'pending_assistant',
+        branch_approved_by: workerId,
+        branch_approved_at: new Date().toISOString(),
+      }).eq('id', d.id);
+      toast.success('تم إرسال طلب التسليم للإدارة العليا');
       await fetchData();
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
@@ -454,7 +422,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={isProcessing || isFrozen}
               onClick={onApprove}>
               {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5 ml-1" />}
-              موافقة
+              إرسال للإدارة
             </Button>
             <Button size="sm" variant="destructive" disabled={isProcessing || isFrozen}
               onClick={() => { setRejectingId(record.id); setRejectNote(''); }}>
