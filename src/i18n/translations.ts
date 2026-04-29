@@ -2222,6 +2222,7 @@ export const translations: Translations = {
   'assistant_approvals.substitute_worker': { ar: 'العامل البديل', fr: 'Remplaçant', en: 'Substitute' },
   'assistant_approvals.coverage_period': { ar: 'الفترة', fr: 'Période', en: 'Period' },
   'nav.assistant_approvals': { ar: 'الموافقات النهائية', fr: 'Approbations finales', en: 'Final Approvals' },
+  'sector_coverage.approved_badge': { ar: 'تمت الموافقة', fr: 'Approuvé', en: 'Approved' },
   // رفع الفواتير المشتركة
   'shared_invoices.upload_for_branch': { ar: 'رفع فاتورة لمدير الفرع', fr: 'Téléverser facture pour la filiale', en: 'Upload invoice to branch' },
   'shared_invoices.customer_name': { ar: 'اسم العميل', fr: 'Nom du client', en: 'Customer name' },
