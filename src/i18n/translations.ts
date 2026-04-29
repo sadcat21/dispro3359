@@ -2284,6 +2284,7 @@ export const translations: Translations = {
   'branch_invoice_approvals.approve': { ar: 'موافقة', fr: 'Approuver', en: 'Approve' },
   'branch_invoice_approvals.forward_to_top': { ar: 'تحويل للإدارة العليا', fr: 'Transférer à la direction', en: 'Forward to Top Management' },
   'branch_invoice_approvals.reject': { ar: 'رفض', fr: 'Rejeter', en: 'Reject' },
+  'branch_invoice_approvals.awaiting_final_approval': { ar: 'بانتظار الموافقة النهائية', fr: 'En attente de l’approbation finale', en: 'Awaiting final approval' },
   'branch_invoice_approvals.approved_success': { ar: 'تم تحويل الطلب إلى مساعد المدير العام / مدير النظام للموافقة النهائية', fr: 'Demande transférée à la direction pour approbation finale', en: 'Forwarded to Top Management for final approval' },
   'branch_invoice_approvals.rejected_success': { ar: 'تم رفض الطلب', fr: 'Demande rejetée', en: 'Request rejected' },
   'branch_invoice_approvals.new_request_toast': { ar: '🧾 طلب فاتورة جديد بانتظار تحويلك للإدارة العليا', fr: '🧾 Nouvelle demande de facture à transférer', en: '🧾 New invoice request awaiting forwarding' },
