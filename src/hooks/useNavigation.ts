@@ -152,6 +152,36 @@ export const useNavigation = () => {
       };
     }
 
+    // Company Manager — executive cross-branch role
+    if (activeRole?.custom_role_code === 'company_manager') {
+      return {
+        main: [
+          { path: '/', icon: Home, label: t('nav.home') },
+          { path: '/stats', icon: BarChart3, label: t('nav.stats') },
+          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
+        ],
+        more: [
+          { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
+          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
+          { path: '/shared-invoices', icon: FolderOpen, label: t('nav.shared_invoices') },
+          { path: '/promo-splits', icon: Split, label: t('nav.promo_splits') },
+          { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
+          { path: '/warehouse', icon: Warehouse, label: t('stock.warehouse_stock') },
+          { path: '/warehouse-review', icon: ClipboardCheck, label: t('nav.warehouse_review') },
+          { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
+          { path: '/products', icon: Package, label: t('nav.products') },
+          { path: '/product-offers', icon: Gift, label: t('nav.product_offers') },
+          { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
+          { path: '/workers', icon: Users, label: t('nav.workers') },
+          { path: '/permissions', icon: Shield, label: t('nav.permissions') },
+          { path: '/worker-roles-management', icon: Shield, label: t('nav.worker_roles_management') },
+          { path: '/branches', icon: Building2, label: t('nav.branches') },
+          { path: '/settings', icon: Settings, label: t('nav.settings') },
+          { path: '/guide', icon: BookOpen, label: t('nav.guide') },
+        ],
+      };
+    }
+
     if (role === 'worker' && activeRole?.custom_role_code === 'warehouse_manager') {
       return {
         main: [
