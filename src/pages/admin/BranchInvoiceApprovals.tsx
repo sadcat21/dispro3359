@@ -591,6 +591,17 @@ const BranchInvoiceApprovals: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة تجميع فواتير العميل المؤجلة */}
+      {mergeFor && (
+        <MergeInvoicesDialog
+          open={!!mergeFor}
+          onOpenChange={(v) => { if (!v) setMergeFor(null); }}
+          customerId={mergeFor.customerId}
+          customerName={mergeFor.customerName}
+          requests={mergeFor.requests}
+        />
+      )}
     </div>
   );
 };
