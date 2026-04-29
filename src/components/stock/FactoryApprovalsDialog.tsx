@@ -701,6 +701,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const standaloneDeliveries = deliveries.filter(d => !receipts.some(r => r.linked_delivery_id === d.id)).length;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col" dir="rtl">
         <DialogHeader>
@@ -730,6 +731,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </TabsContent>
         </Tabs>
       </DialogContent>
+    </Dialog>
 
       {/* نافذة ملخص الإرسال للإدارة */}
       <Dialog open={!!summaryReceipt} onOpenChange={(o) => { if (!o) setSummaryReceipt(null); }}>
@@ -834,7 +836,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 };
 
