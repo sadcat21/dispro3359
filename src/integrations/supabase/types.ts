@@ -7475,6 +7475,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_finalize_sector_coverage: { Args: never; Returns: boolean }
       can_insert_stock_confirmation:
         | {
             Args: {
