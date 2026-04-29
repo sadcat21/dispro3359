@@ -259,6 +259,50 @@ const BranchInvoiceApprovals: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* قسم الفواتير الجاهزة للتحميل (بعد موافقة مساعد المدير ورفع الملف) */}
+        {readyRows.length > 0 && (
+          <Card className="shadow-lg border-emerald-200 mt-6">
+            <CardHeader className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Download className="w-5 h-5" />
+                  {t('branch_invoice_approvals.ready_for_download')}
+                </span>
+                <Badge variant="secondary" className="bg-white text-emerald-700">{readyRows.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              {readyRows.map((r) => {
+                const customerName = language === 'fr' && r.customers?.name_fr
+                  ? r.customers.name_fr
+                  : r.customers?.name || '—';
+                return (
+                  <div key={r.id} className="border border-emerald-100 rounded-lg p-4 bg-white flex items-center justify-between gap-4">
+                    <div className="flex-1 space-y-1">
+                      <div className="font-semibold text-slate-800">{customerName}</div>
+                      {r.customers?.store_name && (
+                        <div className="text-sm text-slate-500">{r.customers.store_name}</div>
+                      )}
+                      <div className="text-xs text-slate-500">
+                        {t('branch_invoice_approvals.sales_rep')}: <span className="font-medium text-slate-700">{r.worker?.full_name || '—'}</span>
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
+                      </div>
+                    </div>
+                    <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1">
+                      <a href={r.invoice_file_url!} target="_blank" rel="noreferrer" download={r.invoice_file_name || undefined}>
+                        <Download className="w-4 h-4" />
+                        {t('branch_invoice_approvals.download_invoice')}
+                      </a>
+                    </Button>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* نافذة تفاصيل الطلبية — نفس المستخدمة في عملاء/منجزات اليوم */}
