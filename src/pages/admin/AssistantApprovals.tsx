@@ -188,7 +188,7 @@ const AssistantApprovals: React.FC = () => {
       );
     }
     return (
-      <div className="text-center py-12 text-emerald-200/70">
+      <div className="text-center py-12 text-slate-500">
         <ShieldCheck className="w-12 h-12 mx-auto mb-3 opacity-40" />
         <p>{t('assistant_approvals.no_pending')}</p>
       </div>
@@ -200,12 +200,12 @@ const AssistantApprovals: React.FC = () => {
   }) => (
     <div className="flex gap-2">
       <Button size="sm" onClick={onApprove} disabled={pending}
-        className="bg-emerald-600 hover:bg-emerald-700 text-white">
+        className="bg-amber-600 hover:bg-amber-700 text-white">
         <CheckCircle2 className="w-4 h-4 me-1" />
         {t('assistant_approvals.approve_final')}
       </Button>
       <Button size="sm" variant="outline" onClick={onReject} disabled={pending}
-        className="border-red-500/40 text-red-300 hover:bg-red-500/10">
+        className="border-red-300 text-red-600 hover:bg-red-50">
         <XCircle className="w-4 h-4 me-1" />
         {t('assistant_approvals.reject')}
       </Button>
@@ -213,44 +213,44 @@ const AssistantApprovals: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 text-emerald-50 pb-24">
-      <div className="px-4 py-6 border-b border-amber-500/30">
+    <div className="min-h-screen bg-white text-slate-900 pb-24">
+      <div className="px-4 py-6 border-b border-amber-200 bg-gradient-to-r from-amber-50 via-white to-amber-50/60">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-            <ShieldCheck className="w-7 h-7 text-emerald-950" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <ShieldCheck className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-amber-100">{t('assistant_approvals.title')}</h1>
-            <p className="text-sm text-emerald-200/80">{t('assistant_approvals.subtitle')}</p>
+            <h1 className="text-xl font-bold text-amber-700">{t('assistant_approvals.title')}</h1>
+            <p className="text-sm text-slate-600">{t('assistant_approvals.subtitle')}</p>
           </div>
         </div>
       </div>
 
       <div className="p-4">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-emerald-900/60 border border-emerald-700/40 grid grid-cols-2 md:grid-cols-4 h-auto">
-            <TabsTrigger value="factory_in" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-200">
+          <TabsList className="bg-amber-50 border border-amber-200 grid grid-cols-2 md:grid-cols-4 h-auto">
+            <TabsTrigger value="factory_in" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
               <Truck className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_in')}
               {(receiptsQ.data?.length || 0) > 0 && (
-                <Badge className="ms-2 bg-amber-500 text-emerald-950">{receiptsQ.data!.length}</Badge>
+                <Badge className="ms-2 bg-amber-600 text-white">{receiptsQ.data!.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="sector" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-200">
+            <TabsTrigger value="sector" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
               <Users className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_sector')}
               {(coverageQ.data?.length || 0) > 0 && (
-                <Badge className="ms-2 bg-amber-500 text-emerald-950">{coverageQ.data!.length}</Badge>
+                <Badge className="ms-2 bg-amber-600 text-white">{coverageQ.data!.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="invoices" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-200">
+            <TabsTrigger value="invoices" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
               <FileText className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_invoices')}
               {(invoicesQ.data?.length || 0) > 0 && (
-                <Badge className="ms-2 bg-amber-500 text-emerald-950">{invoicesQ.data!.length}</Badge>
+                <Badge className="ms-2 bg-amber-600 text-white">{invoicesQ.data!.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="factory_out" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-200">
+            <TabsTrigger value="factory_out" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
               <Package className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_out')}
             </TabsTrigger>
@@ -261,18 +261,18 @@ const AssistantApprovals: React.FC = () => {
             {!receiptsQ.data || receiptsQ.data.length === 0
               ? renderEmpty(receiptsQ.isLoading)
               : receiptsQ.data.map((r) => (
-                  <Card key={r.id} className="border-emerald-700/40 bg-emerald-900/40">
+                  <Card key={r.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-amber-100">
+                        <p className="font-semibold text-slate-900">
                           {r.branches?.name || '—'} · {r.receipt_date}
                         </p>
-                        <p className="text-sm text-emerald-200/80">
+                        <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {r.invoice_number || '—'} ·{' '}
                           {t('assistant_approvals.items_count')}: {r.total_items || 0}
                         </p>
                         {r.branch_approved_at && (
-                          <p className="text-xs text-emerald-300/60">
+                          <p className="text-xs text-slate-500">
                             {t('assistant_approvals.branch_approved_at')}: {new Date(r.branch_approved_at).toLocaleString()}
                           </p>
                         )}
@@ -292,15 +292,15 @@ const AssistantApprovals: React.FC = () => {
             {!coverageQ.data || coverageQ.data.length === 0
               ? renderEmpty(coverageQ.isLoading)
               : coverageQ.data.map((c) => (
-                  <Card key={c.id} className="border-emerald-700/40 bg-emerald-900/40">
+                  <Card key={c.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-amber-100">{c.sectors?.name || '—'}</p>
-                        <p className="text-sm text-emerald-200/80">
+                        <p className="font-semibold text-slate-900">{c.sectors?.name || '—'}</p>
+                        <p className="text-sm text-slate-600">
                           {t('assistant_approvals.absent_worker')}: {c.absent_worker?.full_name || '—'} →{' '}
                           {t('assistant_approvals.substitute_worker')}: {c.substitute_worker?.full_name || '—'}
                         </p>
-                        <p className="text-xs text-emerald-300/60">
+                        <p className="text-xs text-slate-500">
                           {t('assistant_approvals.coverage_period')}: {c.start_date} → {c.end_date}
                           {c.reason ? ` · ${c.reason}` : ''}
                         </p>
@@ -320,17 +320,17 @@ const AssistantApprovals: React.FC = () => {
             {!invoicesQ.data || invoicesQ.data.length === 0
               ? renderEmpty(invoicesQ.isLoading)
               : invoicesQ.data.map((i) => (
-                  <Card key={i.id} className="border-emerald-700/40 bg-emerald-900/40">
+                  <Card key={i.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-amber-100">
+                        <p className="font-semibold text-slate-900">
                           {i.customers?.name || '—'} · {i.branches?.name || '—'}
                         </p>
-                        <p className="text-sm text-emerald-200/80">
+                        <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {i.invoice_number || '—'}
                         </p>
                         {i.branch_approved_at && (
-                          <p className="text-xs text-emerald-300/60">
+                          <p className="text-xs text-slate-500">
                             {t('assistant_approvals.branch_approved_at')}: {new Date(i.branch_approved_at).toLocaleString()}
                           </p>
                         )}
@@ -347,8 +347,8 @@ const AssistantApprovals: React.FC = () => {
 
           {/* تسليمات للمصنع */}
           <TabsContent value="factory_out" className="mt-4">
-            <Card className="border-emerald-700/40 bg-emerald-900/40">
-              <CardContent className="p-6 text-center text-emerald-200/70">
+            <Card className="border-slate-200 bg-white">
+              <CardContent className="p-6 text-center text-slate-500">
                 <Package className="w-12 h-12 mx-auto mb-3 opacity-40" />
                 <p>{t('assistant_approvals.no_pending')}</p>
               </CardContent>
