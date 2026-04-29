@@ -73,6 +73,8 @@ const WarehouseReview: React.FC = () => {
   const [includePallets, setIncludePallets] = useState(false);
   const [actuals, setActuals] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [detailsByProduct, setDetailsByProduct] = useState<Record<string, ProductReviewDetails>>({});
+  const [detailsDialogProductId, setDetailsDialogProductId] = useState<string | null>(null);
 
   // Pallet quantity
   const { data: palletQuantity = 0 } = useQuery({
