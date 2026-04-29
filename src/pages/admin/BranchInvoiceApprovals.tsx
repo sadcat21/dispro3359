@@ -372,6 +372,12 @@ const BranchInvoiceApprovals: React.FC = () => {
         order={selectedOrder}
         hideModifyAction={true}
       />
+
+      {/* نافذة إنشاء فاتورة يدوية من مدير الفرع */}
+      <BranchManualInvoiceDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </div>
   );
 };
