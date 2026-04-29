@@ -535,7 +535,7 @@ const WorkerRolesManagement: React.FC = () => {
       )}
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent dir="rtl" className="max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogContent dir={isRtl ? 'rtl' : 'ltr'} className="max-h-[90vh] flex flex-col p-0 gap-0">
           <DialogHeader className="p-6 pb-3 border-b shrink-0">
             <DialogTitle>{t('worker_roles.add_role_title')}</DialogTitle>
           </DialogHeader>
