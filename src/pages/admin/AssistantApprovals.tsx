@@ -28,7 +28,7 @@ interface CoverageRow {
   approval_status: string;
   absent_worker?: { full_name: string } | null;
   substitute_worker?: { full_name: string } | null;
-  sectors?: { name: string } | null;
+  sectors?: { name: string; branch_id?: string; branches?: { name: string } | null } | null;
 }
 
 interface InvoiceRequestRow {
@@ -119,7 +119,7 @@ const AssistantApprovals: React.FC = () => {
           id, start_date, end_date, reason, approval_status,
           absent_worker:workers!sector_coverage_absent_worker_id_fkey(full_name),
           substitute_worker:workers!sector_coverage_substitute_worker_id_fkey(full_name),
-          sectors!inner(name, branch_id)
+          sectors!inner(name, branch_id, branches(name))
         `)
         .eq('approval_status', 'pending')
         .order('created_at', { ascending: false });
@@ -302,9 +302,12 @@ const AssistantApprovals: React.FC = () => {
                   <Card key={r.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-slate-900">
-                          {r.branches?.name || '—'} · {r.receipt_date}
-                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                            🏢 {r.branches?.name || t('assistant_approvals.unknown_branch')}
+                          </Badge>
+                          <span className="text-sm text-slate-500">{r.receipt_date}</span>
+                        </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {r.invoice_number || '—'} ·{' '}
                           {t('assistant_approvals.items_count')}: {r.total_items || 0}
@@ -333,7 +336,12 @@ const AssistantApprovals: React.FC = () => {
                   <Card key={c.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-slate-900">{c.sectors?.name || '—'}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                            🏢 {c.sectors?.branches?.name || t('assistant_approvals.unknown_branch')}
+                          </Badge>
+                          <span className="font-semibold text-slate-900">{c.sectors?.name || '—'}</span>
+                        </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.absent_worker')}: {c.absent_worker?.full_name || '—'} →{' '}
                           {t('assistant_approvals.substitute_worker')}: {c.substitute_worker?.full_name || '—'}
@@ -361,9 +369,12 @@ const AssistantApprovals: React.FC = () => {
                   <Card key={i.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-slate-900">
-                          {i.customers?.name || '—'} · {i.branches?.name || '—'}
-                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                            🏢 {i.branches?.name || t('assistant_approvals.unknown_branch')}
+                          </Badge>
+                          <span className="font-semibold text-slate-900">{i.customers?.name || '—'}</span>
+                        </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {i.invoice_number || '—'}
                         </p>

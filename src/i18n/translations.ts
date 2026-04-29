@@ -2209,6 +2209,7 @@ export const translations: Translations = {
   'assistant_approvals.subtitle': { ar: 'مراجعة وإقرار العمليات بعد الموافقة الأولية', fr: 'Vérifier et finaliser après approbation initiale', en: 'Review and finalize after initial approval' },
   'assistant_approvals.filtered_by_branch': { ar: 'مفلتر حسب الفرع', fr: 'Filtré par agence', en: 'Filtered by branch' },
   'assistant_approvals.clear_filter': { ar: 'إزالة الفلتر', fr: 'Effacer le filtre', en: 'Clear filter' },
+  'assistant_approvals.unknown_branch': { ar: 'فرع غير معروف', fr: 'Agence inconnue', en: 'Unknown branch' },
   'assistant_approvals.tab_factory_in': { ar: 'استلامات المصنع', fr: 'Réceptions usine', en: 'Factory Receipts' },
   'assistant_approvals.tab_factory_out': { ar: 'تسليمات للمصنع', fr: 'Livraisons usine', en: 'Factory Deliveries' },
   'assistant_approvals.tab_sector': { ar: 'تعويض السكتورات', fr: 'Compensation secteurs', en: 'Sector Compensation' },
