@@ -274,7 +274,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             <div className="py-10 text-center">
               <User className="w-10 h-10 mx-auto mb-2 opacity-30" />
               <p className="text-sm text-muted-foreground">
-                {search ? 'لا يوجد عميل مطابق' : t('orders.no_customers')}
+                {search ? t('customer_picker.no_match') : t('orders.no_customers')}
               </p>
               {search && onAddNew && (
                 <Button
