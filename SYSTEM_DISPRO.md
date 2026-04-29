@@ -40,12 +40,17 @@ toast.success(t('common.saved_successfully'));
 
 ---
 
-## 2. (مساحة لتشديدات لاحقة)
+## 2. الأدوار التنفيذية المخصصة (Custom Roles)
 
-أضف هنا أي قاعدة جديدة يطلبها المستخدم في المستقبل، مع التاريخ والسبب.
+### 2026-04-29 — دور "مسير الشركة" (company_manager)
+- **النوع:** custom_role (سجل في `custom_roles` بكود `company_manager`) + قيمة جديدة في enum `app_role` (يُضاف عبر migration).
+- **الواجهة:** صفحة `CompanyManagerHome.tsx` بثيم Emerald + Gold (مختلف عن AdminHome) — تُفتح تلقائياً عبر `Index.tsx` عند `activeRole.custom_role_code === 'company_manager'`.
+- **الترجمات:** كل المفاتيح تحت `company_manager.*` في `src/i18n/translations.ts`.
+- **التنقل:** قائمة جانبية مخصصة في `useNavigation.ts` تحت فرع `activeRole.custom_role_code === 'company_manager'`.
+- **القاعدة:** عند إضافة أي دور تنفيذي جديد، اتبع نفس النمط:
+  1. enum value + custom_role + role_permissions (migration)
+  2. توجيه من `Index.tsx` لصفحة مخصصة بثيم مميز
+  3. فرع خاص في `useNavigation.ts`
+  4. تحديث `RoleSelectionDialog.tsx` بأيقونة/لون مميز
+  5. كل النصوص عبر `t()` في `translations.ts`
 
-<!-- مثال:
-### YYYY-MM-DD — عنوان القاعدة
-- الوصف...
-- الواجب / الممنوع...
--->
