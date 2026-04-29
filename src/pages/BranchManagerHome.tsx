@@ -213,15 +213,27 @@ const BranchManagerHome: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {section.items.map((item) => {
                   const Icon = item.icon;
+                  const showBadge = typeof item.badge === 'number' && item.badge > 0;
                   return (
                     <Card
                       key={item.key}
                       onClick={() => navigate(item.path)}
-                      className="group cursor-pointer border-slate-200 bg-white hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/10 transition-all"
+                      className={`group cursor-pointer bg-white hover:shadow-md transition-all relative ${
+                        showBadge
+                          ? 'border-red-300 ring-2 ring-red-200/60 hover:border-red-400 hover:shadow-red-500/10'
+                          : 'border-slate-200 hover:border-blue-400 hover:shadow-blue-500/10'
+                      }`}
                     >
+                      {showBadge && (
+                        <Badge className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[24px] h-6 flex items-center justify-center px-1.5 animate-pulse">
+                          {item.badge}
+                        </Badge>
+                      )}
                       <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                          <Icon className="w-6 h-6 text-blue-600 group-hover:text-blue-700" />
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                          showBadge ? 'bg-red-50 group-hover:bg-red-100' : 'bg-blue-50 group-hover:bg-blue-100'
+                        }`}>
+                          <Icon className={`w-6 h-6 ${showBadge ? 'text-red-600' : 'text-blue-600 group-hover:text-blue-700'}`} />
                         </div>
                         <p className="text-sm font-medium text-slate-800 leading-tight">
                           {item.label}
