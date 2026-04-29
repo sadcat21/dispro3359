@@ -334,7 +334,10 @@ const LoginForm: React.FC = () => {
     else setRealWorkers(result);
   };
 
-  const isAdminQuickWorker = (worker: QuickWorker) => ADMIN_TAB_ROLES.includes(worker.role) || !worker.branch_id;
+  const isAdminQuickWorker = (worker: QuickWorker) =>
+    ADMIN_TAB_ROLES.includes(worker.role) ||
+    (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) ||
+    !worker.branch_id;
   const adminQuickWorkers = realWorkers.filter(isAdminQuickWorker);
   const branchQuickTabs = [...new Map(
     realWorkers
