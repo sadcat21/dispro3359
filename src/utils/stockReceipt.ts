@@ -15,7 +15,14 @@ export interface ReceiptBreakdown {
   item_type: 'new' | 'compensation' | 'compensation_offers';
 }
 
-export interface ReceiptBreakdownInput {
+export interface FactoryReturnDetails {
+  lot_number?: string | null;
+  manufacturing_date?: string | null; // YYYY-MM-DD
+  manufacturing_time?: string | null; // free text e.g. "12H33"
+  delivery_date?: string | null; // YYYY-MM-DD
+}
+
+export interface ReceiptBreakdownInput extends FactoryReturnDetails {
   product_id: string;
   new_quantity: number;
   compensation_quantity: number;
