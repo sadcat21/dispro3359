@@ -154,16 +154,16 @@ const BranchInvoiceApprovals: React.FC = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // طلبات الفاتورة المعلقة (pending_assistant) لعميل محدد
+  // طلبات الفاتورة المعلقة (pending_branch) لعميل محدد — ليحولها مدير الفرع للإدارة
   const customerInvoicesQ = useQuery({
-    queryKey: ['branch-customer-pending-assistant', customerDialog?.id],
+    queryKey: ['branch-customer-pending-branch', customerDialog?.id],
     queryFn: async () => {
       if (!customerDialog) return [];
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select('id, order_id, invoice_number, status, payment_method, total_amount, created_at, branch_approved_at, products, branches(name)')
         .eq('customer_id', customerDialog.id)
-        .eq('status', 'pending_assistant')
+        .eq('status', 'pending_branch')
         .order('branch_approved_at', { ascending: false });
       if (error) throw error;
       return (data || []) as any[];
@@ -691,7 +691,7 @@ const BranchInvoiceApprovals: React.FC = () => {
         <DialogContent dir="rtl" className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              طلبات الفاتورة المعلقة لدى الإدارة — {customerDialog?.name}
+              طلبات الفاتورة المعلقة لدى مدير الفرع — {customerDialog?.name}
             </DialogTitle>
           </DialogHeader>
           {customerInvoicesQ.isLoading ? (
@@ -699,7 +699,7 @@ const BranchInvoiceApprovals: React.FC = () => {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
-            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة لدى الإدارة لهذا العميل</p>
+            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة لدى مدير الفرع لهذا العميل</p>
           ) : (
             <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
               <p className="text-sm text-muted-foreground">
