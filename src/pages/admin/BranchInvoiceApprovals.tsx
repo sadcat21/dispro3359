@@ -53,6 +53,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   const [scopeDialog, setScopeDialog] = useState<{ id: string; scope: 'public' | 'private' } | null>(null);
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [mergeFor, setMergeFor] = useState<{ customerId: string; customerName: string; requests: PostponedRequest[] } | null>(null);
+  const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
 
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
@@ -151,6 +152,23 @@ const BranchInvoiceApprovals: React.FC = () => {
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
     },
     onError: (e: any) => toast.error(e.message),
+  });
+
+  // طلبات الفاتورة المعلقة (pending_assistant) لعميل محدد
+  const customerInvoicesQ = useQuery({
+    queryKey: ['branch-customer-pending-assistant', customerDialog?.id],
+    queryFn: async () => {
+      if (!customerDialog) return [];
+      const { data, error } = await supabase
+        .from('manual_invoice_requests')
+        .select('id, order_id, invoice_number, status, payment_method, total_amount, created_at, branch_approved_at, products, branches(name)')
+        .eq('customer_id', customerDialog.id)
+        .eq('status', 'pending_assistant')
+        .order('branch_approved_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!customerDialog,
   });
 
   const openOrderDetails = async (row: InvoiceRequestRow) => {
@@ -304,7 +322,21 @@ const BranchInvoiceApprovals: React.FC = () => {
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-slate-800">{customerName}</span>
+                                {r.customer_id ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setCustomerDialog({ id: r.customer_id!, name: customerName });
+                                    }}
+                                    className="font-semibold text-primary hover:underline"
+                                    title="عرض كل طلبات الفاتورة المعلقة لهذا العميل"
+                                  >
+                                    {customerName}
+                                  </button>
+                                ) : (
+                                  <span className="font-semibold text-slate-800">{customerName}</span>
+                                )}
                                 {r.invoice_scope === 'private' ? (
                                   <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px]">
                                     <Lock className="w-3 h-3" />
@@ -623,6 +655,45 @@ const BranchInvoiceApprovals: React.FC = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
+
+      {/* نافذة طلبات الفاتورة المعلقة (مرحلة المدير) لعميل محدد */}
+      <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) setCustomerDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              طلبات الفاتورة المعلقة لدى الإدارة — {customerDialog?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {customerInvoicesQ.isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
+            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة لدى الإدارة لهذا العميل</p>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
+              <p className="text-sm text-muted-foreground">
+                العدد الإجمالي: <span className="font-bold text-foreground">{customerInvoicesQ.data!.length}</span>
+              </p>
+              {customerInvoicesQ.data!.map((r: any) => (
+                <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline">{r.branches?.name || '—'}</Badge>
+                    {r.payment_method && <Badge variant="secondary">{r.payment_method}</Badge>}
+                    <span className="font-bold text-slate-800">
+                      {Number(r.total_amount || 0).toLocaleString('ar')} دج
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    فاتورة #{r.invoice_number || '—'} • {Array.isArray(r.products) ? r.products.length : 0} منتج •{' '}
+                    {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* نافذة اختيار نوع الفاتورة قبل التحويل للإدارة العليا */}
       <Dialog open={!!scopeDialog} onOpenChange={(v) => { if (!v) setScopeDialog(null); }}>
