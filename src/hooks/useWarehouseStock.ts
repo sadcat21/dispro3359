@@ -105,15 +105,32 @@ export const useWarehouseStock = () => {
   }, [branchId]);
 
   const fetchWorkers = useCallback(async () => {
-    // Always filter by branch + only delivery workers (role = 'worker') to prevent mixing other staff
     if (!branchId) { setWorkers([]); return; }
+
+    const { data: deliveryRoleRows } = await supabase
+      .from('worker_roles')
+      .select(`
+        worker_id,
+        custom_roles!inner(code)
+      `)
+      .eq('branch_id', branchId)
+      .eq('custom_roles.code', 'delivery_rep');
+
+    const deliveryWorkerIds = Array.from(new Set((deliveryRoleRows || []).map(row => row.worker_id).filter(Boolean)));
+    if (deliveryWorkerIds.length === 0) {
+      setWorkers([]);
+      return;
+    }
+
     const { data } = await supabase
       .from('workers_safe')
-      .select('id, full_name, username, role')
+      .select('id, full_name, username')
+      .in('id', deliveryWorkerIds)
       .eq('is_active', true)
       .eq('branch_id', branchId)
       .eq('is_test', false)
-      .eq('role', 'worker');
+      .order('full_name');
+
     setWorkers((data || []).map(w => ({ id: w.id!, full_name: w.full_name!, username: w.username! })));
   }, [branchId]);
 
@@ -380,6 +397,9 @@ export const useWarehouseStock = () => {
     items: { product_id: string; quantity: number; notes?: string }[]
   ) => {
     if (!workerId || !branchId) throw new Error('Missing worker or branch');
+    if (!workers.some(worker => worker.id === targetWorkerId)) {
+      throw new Error('لا يمكن الشحن إلا لعامل لديه دور مندوب توصيل في نفس الفرع');
+    }
 
     const operationKey = JSON.stringify({
       targetWorkerId,
