@@ -1,0 +1,1 @@
+ALTER TABLE public.stock_receipts ADD COLUMN IF NOT EXISTS pallet_count integer NOT NULL DEFAULT 0;

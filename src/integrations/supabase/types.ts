@@ -5890,6 +5890,7 @@ export type Database = {
           invoice_photo_url: string | null
           linked_delivery_id: string | null
           notes: string | null
+          pallet_count: number
           receipt_date: string
           rejection_note: string | null
           status: string
@@ -5913,6 +5914,7 @@ export type Database = {
           invoice_photo_url?: string | null
           linked_delivery_id?: string | null
           notes?: string | null
+          pallet_count?: number
           receipt_date?: string
           rejection_note?: string | null
           status?: string
@@ -5936,6 +5938,7 @@ export type Database = {
           invoice_photo_url?: string | null
           linked_delivery_id?: string | null
           notes?: string | null
+          pallet_count?: number
           receipt_date?: string
           rejection_note?: string | null
           status?: string
