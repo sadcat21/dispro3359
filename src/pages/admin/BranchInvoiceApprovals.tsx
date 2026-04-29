@@ -187,6 +187,10 @@ const BranchInvoiceApprovals: React.FC = () => {
   const readyRows = rows.filter((r) => r.status === 'approved' && !!r.invoice_file_url);
   const postponedRows = rows.filter((r) => r.status === 'postponed');
   const pendingTabRows = rows.filter(r => r.status === 'pending_branch' || r.status === 'pending_assistant');
+  // الفواتير الموحَّدة (تم تجميعها وأُرسلت للإدارة) — تظهر في تبويب "المؤجلة" كبطاقات تأكيد
+  const mergedParentRows = rows.filter(
+    (r) => r.is_merged_parent === true && r.status === 'pending_assistant'
+  );
 
   // تجميع المؤجلة حسب العميل
   const postponedByCustomer = React.useMemo(() => {
