@@ -39,7 +39,7 @@ interface OrderSearchDialogProps {
 
 const createStatusConfig = (t: (key: string) => string): Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> => ({
   pending: { label: t('orders.pending'), color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
-  pending_assistant: { label: t('branch_invoice_approvals.awaiting_final_approval'), color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400', icon: Clock },
+  pending_assistant: { label: t('branch_invoice_approvals.awaiting_final_approval'), color: 'bg-muted text-muted-foreground', icon: Clock },
   assigned: { label: t('orders.assigned'), color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400', icon: UserCheck },
   in_progress: { label: t('orders.in_progress'), color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400', icon: Truck },
   delivered: { label: t('orders.delivered'), color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
