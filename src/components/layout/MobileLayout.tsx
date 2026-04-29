@@ -471,7 +471,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              {isAdminRole(role) && (
+              {(isAdminRole(role) || activeRole?.custom_role_code === 'company_manager') && (
                 <DropdownMenuItem
                   onClick={switchBranch}
                   className="flex items-center gap-2 cursor-pointer"
