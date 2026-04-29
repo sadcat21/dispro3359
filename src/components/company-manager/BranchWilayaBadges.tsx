@@ -65,19 +65,23 @@ const BranchWilayaBadges: React.FC = () => {
             <TooltipTrigger asChild>
               <button
                 onClick={() => navigate(`/assistant-approvals?branch=${b.id}`)}
-                className="relative shrink-0 focus:outline-none"
+                className="relative shrink-0 focus:outline-none hover:scale-110 transition-transform"
                 aria-label={t('company_manager.open_branch_approvals')}
               >
-                <div
-                  className={`relative w-8 h-9 ${color.bg} ${color.text} flex flex-col items-center justify-center shadow-sm ring-1 ${color.ring} hover:scale-110 transition-transform`}
-                  style={{
-                    clipPath:
-                      'polygon(50% 0%, 100% 22%, 100% 70%, 50% 100%, 0% 70%, 0% 22%)',
-                  }}
-                >
-                  <ShieldCheck className="w-2.5 h-2.5 opacity-70 -mb-0.5" />
-                  <span className="text-[11px] font-extrabold leading-none">{code ?? '?'}</span>
-                </div>
+                <Shield
+                  className={`w-9 h-9 ${color.text} drop-shadow-sm`}
+                  fill="currentColor"
+                  strokeWidth={1.5}
+                  style={{ color: undefined }}
+                />
+                <Shield
+                  className={`w-9 h-9 absolute inset-0 ${color.text.replace('text-', 'text-')}`}
+                  fill="currentColor"
+                  strokeWidth={1.5}
+                />
+                <span className="absolute inset-0 flex items-center justify-center pt-0.5 text-white text-[11px] font-extrabold leading-none">
+                  {code ?? '?'}
+                </span>
                 {pending > 0 && (
                   <span className="absolute -top-1 -end-1 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center shadow ring-1 ring-white">
                     {pending > 99 ? '99+' : pending}
