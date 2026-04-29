@@ -207,14 +207,21 @@ const WarehouseReview: React.FC = () => {
 
       if (sessionError) throw sessionError;
 
-      const reviewItems = items.map(item => ({
-        session_id: session.id,
-        item_type: 'product',
-        product_id: item.productId,
-        expected_quantity: item.expected,
-        actual_quantity: getActualNum(item.actual, item.piecesPerBox),
-        status: item.status as string,
-      }));
+      const reviewItems = items.map(item => {
+        const d = detailsByProduct[item.productId];
+        return {
+          session_id: session.id,
+          item_type: 'product',
+          product_id: item.productId,
+          expected_quantity: item.expected,
+          actual_quantity: getActualNum(item.actual, item.piecesPerBox),
+          status: item.status as string,
+          boxes_quantity: d?.boxes ?? 0,
+          pieces_quantity: d?.pieces ?? 0,
+          hall_quantity: d?.hall ?? 0,
+          damaged_quantity: d?.damaged ?? 0,
+        };
+      });
 
       if (includeDamaged) {
         for (const d of damagedItems) {
