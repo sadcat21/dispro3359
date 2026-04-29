@@ -92,6 +92,8 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [invoicePhoto, setInvoicePhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [palletCount, setPalletCount] = useState(0);
+  const [receiptExpenses, setReceiptExpenses] = useState(0);
+  const [expensesDescription, setExpensesDescription] = useState('');
   const [tab, setTab] = useState<'create' | 'pending'>('create');
   const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
   const [isLoadingPending, setIsLoadingPending] = useState(false);
