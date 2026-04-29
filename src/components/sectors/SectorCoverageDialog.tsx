@@ -43,7 +43,7 @@ const DAY_NAMES: Record<string, string> = {
 
 const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpenChange }) => {
   const { workerId, activeBranch, role } = useAuth();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { coverages, createCoverage, cancelCoverage, approveCoverage, isLoading: coverageLoading } = useSectorCoverage();
   const { schedules } = useSectorSchedules();
 
@@ -344,9 +344,14 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
                             <Badge variant={c.coverage_mode === 'replace' ? 'destructive' : 'default'} className="text-[10px]">
                               {c.coverage_mode === 'replace' ? 'استبدال' : 'دمج'}
                             </Badge>
+                            {(c.approval_status || 'approved') === 'approved' && (
+                              <Badge variant="outline" className="text-[10px] border-primary text-primary bg-primary/10">
+                                {t('sector_coverage.approved_badge')}
+                              </Badge>
+                            )}
                             {(c.approval_status || 'approved') !== 'approved' && c.approval_status !== 'rejected' && (
                               <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
-                                بانتظار الموافقة
+                                {t('sector_coverage.pending_approval_badge')}
                               </Badge>
                             )}
                           </div>
