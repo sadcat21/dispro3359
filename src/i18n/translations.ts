@@ -1633,6 +1633,7 @@ export const translations: Translations = {
   'warehouse.compensation': { ar: 'التعويض', fr: 'Compensation', en: 'Compensation' },
   'warehouse.received': { ar: 'المستلم', fr: 'Reçu', en: 'Received' },
   'warehouse.remaining': { ar: 'المتبقي', fr: 'Restant', en: 'Remaining' },
+  'warehouse.manual_edit': { ar: 'تعديل يدوي', fr: 'Édition manuelle', en: 'Manual edit' },
 
   // ==================== Worker Debts ====================
   'worker_debts.title': { ar: 'ديون العمال', fr: 'Dettes des employés', en: 'Worker Debts' },

@@ -347,11 +347,11 @@ const WarehouseStock: React.FC = () => {
                 return (
                   <Card key={s.productId} className="overflow-hidden border-border/60 shadow-sm">
                     {/* Product image + name + received + remaining */}
-                    <button
-                      className="w-full bg-primary/5 border-b border-border/40 px-3 py-2 flex items-center justify-between gap-2 hover:bg-primary/10 transition-colors"
-                      onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-full bg-primary/5 border-b border-border/40 px-3 py-2 flex items-center justify-between gap-2">
+                      <button
+                        className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition-opacity"
+                        onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
+                      >
                         <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform ${expandedProduct === s.productId ? 'rotate-180' : ''}`} />
                         {(() => {
                           const prod = products.find(p => p.id === s.productId);
@@ -364,7 +364,7 @@ const WarehouseStock: React.FC = () => {
                           );
                         })()}
                         <span className="font-semibold text-sm text-primary truncate">{s.productName}</span>
-                      </div>
+                      </button>
                       <div className="flex items-center gap-3 shrink-0">
                         {!isWarehouseManager && (
                           <div className="flex items-center gap-1">
@@ -376,8 +376,19 @@ const WarehouseStock: React.FC = () => {
                           <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
                           <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
                         </div>
+                        {canEdit && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="h-7 gap-1 text-[11px]"
+                            onClick={(e) => { e.stopPropagation(); setEditProduct(s); }}
+                          >
+                            <Pencil className="w-3 h-3" />
+                            {t('warehouse.manual_edit')}
+                          </Button>
+                        )}
                       </div>
-                    </button>
+                    </div>
                     {expandedProduct === s.productId && (
                       <CardContent className="p-3 space-y-1.5">
                         <div className="grid grid-cols-4 gap-1.5">
@@ -396,19 +407,6 @@ const WarehouseStock: React.FC = () => {
                             </div>
                           ))}
                         </div>
-                        {canEdit && (
-                          <div className="flex justify-end pt-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 gap-1 text-[11px] text-muted-foreground"
-                              onClick={(e) => { e.stopPropagation(); setEditProduct(s); }}
-                            >
-                              <Pencil className="w-3 h-3" />
-                              تعديل يدوي
-                            </Button>
-                          </div>
-                        )}
                       </CardContent>
                     )}
                   </Card>
