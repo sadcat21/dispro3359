@@ -402,12 +402,20 @@ const AssistantApprovals: React.FC = () => {
                             {t('assistant_approvals.branch_approved_at')}: {new Date(i.branch_approved_at).toLocaleString()}
                           </p>
                         )}
+                        {i.invoice_file_url && (
+                          <Badge className="bg-green-100 text-green-700 border border-green-300 mt-1">
+                            ✅ {t('invoice_review.file_uploaded')}
+                          </Badge>
+                        )}
                       </div>
-                      <ActionButtons
-                        onApprove={() => approveInvoice.mutate(i.id)}
-                        onReject={() => rejectInvoice.mutate(i.id)}
-                        pending={approveInvoice.isPending || rejectInvoice.isPending}
-                      />
+                      <Button
+                        size="sm"
+                        onClick={() => setReviewRequestId(i.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        <Eye className="w-4 h-4 me-1" />
+                        {t('invoice_review.review_and_upload')}
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
