@@ -345,8 +345,13 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
                               {c.coverage_mode === 'replace' ? 'استبدال' : 'دمج'}
                             </Badge>
                             {(c.approval_status || 'approved') === 'approved' && (
-                              <Badge variant="outline" className="text-[10px] border-primary text-primary bg-primary/10">
+                              <Badge variant="outline" className="text-[10px] border-green-600 text-green-700 bg-green-50">
                                 {t('sector_coverage.approved_badge')}
+                              </Badge>
+                            )}
+                            {c.approval_status === 'rejected' && (
+                              <Badge variant="outline" className="text-[10px] border-red-600 text-red-700 bg-red-50">
+                                {t('sector_coverage.rejected_badge')}
                               </Badge>
                             )}
                             {(c.approval_status || 'approved') !== 'approved' && c.approval_status !== 'rejected' && (
