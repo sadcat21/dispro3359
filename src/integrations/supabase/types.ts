@@ -7518,6 +7518,10 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: Json
       }
+      forward_manual_invoice_request_to_management: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
       get_customer_account_id: { Args: never; Returns: string }
       get_customer_sales_rep_statuses: {
         Args: {
