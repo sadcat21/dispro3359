@@ -37,7 +37,7 @@ const ReceiptPrintView: React.FC<Props> = ({
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
 
-  const title = type === 'reception' ? 'Bon de Réception' : 'Bon de Transfert';
+  const title = 'Bon de Transfert';
 
   const hasComp = items.some(i => i.comp_qty > 0);
   const hasCompOffers = items.some(i => i.comp_offers_qty > 0);
