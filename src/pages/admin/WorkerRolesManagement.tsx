@@ -155,18 +155,24 @@ const WorkerRolesManagement: React.FC = () => {
         admin_assistant: 'admin_assistant',
       };
 
+      // منع منح صلاحية >= صلاحية المستخدم الحالي
+      // (admin يستطيع منح كل شيء فقط لو كان admin؛ غيره ممنوع منح ما يساويه أو يفوقه)
+      const isFullAdmin = role === 'admin';
+      for (const rid of selectedRoleIds) {
+        const cr = customRoles?.find(c => c.id === rid);
+        if (!cr) continue;
+        const targetRank = getRoleRank(cr.code);
+        if (!isFullAdmin && targetRank >= currentUserRank) {
+          throw new Error(t('worker_roles.cannot_grant_higher'));
+        }
+      }
+
       // الأدوار النشطة الحالية للعامل
       const currentActive = (workerRoles || []).filter(wr => wr.is_active && wr.custom_role_id);
       const currentActiveIds = currentActive.map(wr => wr.custom_role_id as string);
 
-      // الأدوار التي أُزيل تحديدها → تعطيل
       const toDeactivate = currentActive.filter(wr => !selectedRoleIds.includes(wr.custom_role_id as string));
-      // الأدوار الجديدة المُحددة → إدراج
       const toInsertIds = selectedRoleIds.filter(id => !currentActiveIds.includes(id));
-
-      if (toDeactivate.length === 0 && toInsertIds.length === 0) {
-        return;
-      }
 
       if (toDeactivate.length > 0) {
         const { error: deactErr } = await supabase
@@ -193,12 +199,31 @@ const WorkerRolesManagement: React.FC = () => {
         const { error } = await supabase.from('worker_roles').insert(rows as any);
         if (error) throw error;
       }
+
+      // مزامنة الدور الرئيسي: نزع is_primary عن الجميع ثم تعيينه للمختار
+      // (نقوم بهذه الخطوة دائمًا حتى لو لم تتغير القائمة)
+      const { error: clearErr } = await supabase
+        .from('worker_roles')
+        .update({ is_primary: false } as any)
+        .eq('worker_id', selectedWorkerId);
+      if (clearErr) throw clearErr;
+
+      if (primaryRoleId && selectedRoleIds.includes(primaryRoleId)) {
+        const { error: setErr } = await supabase
+          .from('worker_roles')
+          .update({ is_primary: true } as any)
+          .eq('worker_id', selectedWorkerId)
+          .eq('custom_role_id', primaryRoleId)
+          .eq('is_active', true);
+        if (setErr) throw setErr;
+      }
     },
     onSuccess: () => {
       toast.success(t('worker_roles.add_success'));
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
       setAddOpen(false);
       setSelectedRoleIds([]);
+      setPrimaryRoleId(null);
       setNewValidFrom('');
       setNewValidUntil('');
       setNewNotes('');
