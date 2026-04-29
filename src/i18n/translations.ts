@@ -702,13 +702,14 @@ export const translations: Translations = {
   'role_selection.project_manager_desc': { ar: 'صلاحيات كاملة مثل مدير النظام', fr: 'Permissions complètes comme administrateur système', en: 'Full permissions like system admin' },
   'role_selection.accountant_desc': { ar: 'إدارة الحسابات والمالية', fr: 'Gestion comptable et financière', en: 'Accounting and finance management' },
   'role_selection.admin_assistant_desc': { ar: 'مساعدة إدارية', fr: 'Assistance administrative', en: 'Administrative assistance' },
-  'role_selection.company_manager_desc': { ar: 'إدارة شاملة لعمليات الشركة', fr: 'Gestion globale des opérations de l\'entreprise', en: 'Comprehensive company operations management' },
+  'role_selection.company_manager_desc': { ar: 'مساعدة المدير العام في متابعة عمليات الشركة', fr: 'Assistance au directeur général dans le suivi des opérations', en: 'Assistant to the General Manager for company operations follow-up' },
   'role_selection.primary_badge': { ar: 'الدور الرئيسي', fr: 'Rôle principal', en: 'Primary Role' },
   'role_selection.select_action': { ar: 'الدخول بهذا الدور', fr: 'Se connecter avec ce rôle', en: 'Sign in with this role' },
   'workers.role_project_manager': { ar: 'مدير المشروع', fr: 'Chef de projet', en: 'Project Manager' },
   'workers.role_accountant': { ar: 'المحاسب', fr: 'Comptable', en: 'Accountant' },
   'workers.role_admin_assistant': { ar: 'عون إداري', fr: 'Assistant administratif', en: 'Administrative Assistant' },
-  'workers.role_company_manager': { ar: 'مسير الشركة', fr: 'Directeur de l\'entreprise', en: 'Company Manager' },
+  'workers.role_company_manager': { ar: 'مساعد المدير العام', fr: 'Assistant du directeur général', en: 'Assistant General Manager' },
+  'workers.company_manager': { ar: 'مساعد المدير العام', fr: 'Assistant du directeur général', en: 'Assistant General Manager' },
 
   'settings.all_branches': { ar: 'جميع الفروع', fr: 'Toutes les succursales', en: 'All Branches' },
   'settings.other': { ar: 'أخرى', fr: 'Autres', en: 'Other' },
@@ -2173,11 +2174,11 @@ export const translations: Translations = {
   'worker_home.review_days': { ar: 'أيام المراجعة: الأحد، الثلاثاء، الخميس', fr: 'Jours de révision : Dimanche, Mardi, Jeudi', en: 'Review days: Sunday, Tuesday, Thursday' },
   'worker_home.today_is_review': { ar: '✅ اليوم يوم مراجعة', fr: '✅ Aujourd\'hui est un jour de révision', en: '✅ Today is review day' },
 
-  // ==================== Company Manager (مسير الشركة) ====================
-  'company_manager.role_name': { ar: 'مسير الشركة', fr: 'Directeur exécutif', en: 'Company Manager' },
-  'company_manager.role_desc': { ar: 'مسؤول تنفيذي عن العمليات والموافقات النهائية', fr: 'Responsable exécutif des opérations et approbations finales', en: 'Executive in charge of operations and final approvals' },
-  'company_manager.welcome': { ar: 'مرحباً بك في لوحة مسير الشركة', fr: 'Bienvenue sur le tableau de bord du Directeur', en: 'Welcome to the Company Manager dashboard' },
-  'company_manager.subtitle': { ar: 'الإشراف التنفيذي على المبيعات والعمليات', fr: 'Supervision exécutive des ventes et des opérations', en: 'Executive oversight of sales and operations' },
+  // ==================== Assistant General Manager ====================
+  'company_manager.role_name': { ar: 'مساعد المدير العام', fr: 'Assistant du directeur général', en: 'Assistant General Manager' },
+  'company_manager.role_desc': { ar: 'مساندة المدير العام في متابعة العمليات والموافقات النهائية', fr: 'Assistance au directeur général pour les opérations et approbations finales', en: 'Assists the General Manager with operations and final approvals' },
+  'company_manager.welcome': { ar: 'مرحباً بك في لوحة مساعد المدير العام', fr: 'Bienvenue sur le tableau de bord de l\'assistant du directeur général', en: 'Welcome to the Assistant General Manager dashboard' },
+  'company_manager.subtitle': { ar: 'مساندة الإدارة العامة في متابعة المبيعات والعمليات', fr: 'Assistance à la direction générale dans le suivi des ventes et des opérations', en: 'General management support for sales and operations follow-up' },
   'company_manager.section_executive': { ar: 'لوحة الإدارة التنفيذية', fr: 'Tableau exécutif', en: 'Executive Dashboard' },
   'company_manager.section_approvals': { ar: 'الموافقات والمراجعات', fr: 'Approbations et révisions', en: 'Approvals & Reviews' },
   'company_manager.section_hr': { ar: 'الموارد البشرية', fr: 'Ressources humaines', en: 'Human Resources' },

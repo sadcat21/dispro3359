@@ -106,7 +106,7 @@ const ProtectedRoute: React.FC<{
   }
 
   const customCode = activeRole?.custom_role_code;
-  // مسير الشركة له صلاحيات إدارية كاملة على جميع المسارات
+  // مساعد المدير العام له صلاحيات إدارية كاملة على جميع المسارات
   const isCompanyManager = isCompanyManagerRole(customCode);
 
   // Check for specific allowed roles (includes custom role codes)

@@ -8,7 +8,7 @@ import CompanyManagerHome from './CompanyManagerHome';
 const Index: React.FC = () => {
   const { role, activeRole } = useAuth();
 
-  // Company Manager has its own executive dashboard with a distinct theme
+  // Assistant General Manager has its own executive dashboard with a distinct theme
   if (isCompanyManagerRole(activeRole?.custom_role_code)) {
     return <CompanyManagerHome />;
   }
