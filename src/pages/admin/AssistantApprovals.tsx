@@ -240,19 +240,19 @@ const AssistantApprovals: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-24">
-      <div className="px-4 py-6 border-b border-amber-200 bg-gradient-to-r from-amber-50 via-white to-amber-50/60">
+      <div className="px-4 py-6 border-b border-red-200 bg-gradient-to-r from-red-50 via-white to-red-50/60">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
             <ShieldCheck className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-amber-700">{t('assistant_approvals.title')}</h1>
+            <h1 className="text-xl font-bold text-red-700">{t('assistant_approvals.title')}</h1>
             <p className="text-sm text-slate-600">{t('assistant_approvals.subtitle')}</p>
           </div>
         </div>
         {filterBranch && (
           <div className="mt-3 flex items-center gap-2">
-            <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
+            <Badge className="bg-red-100 text-red-800 border border-red-300">
               {t('assistant_approvals.filtered_by_branch')}: {filterBranch.name}
               {filterBranch.wilaya ? ` — ${filterBranch.wilaya}` : ''}
             </Badge>
@@ -266,29 +266,29 @@ const AssistantApprovals: React.FC = () => {
 
       <div className="p-4">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-amber-50 border border-amber-200 grid grid-cols-2 md:grid-cols-4 h-auto">
-            <TabsTrigger value="factory_in" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+          <TabsList className="bg-red-50 border border-red-200 grid grid-cols-2 md:grid-cols-4 h-auto">
+            <TabsTrigger value="factory_in" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Truck className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_in')}
               {(receiptsQ.data?.length || 0) > 0 && (
-                <Badge className="ms-2 bg-amber-600 text-white">{receiptsQ.data!.length}</Badge>
+                <Badge className="ms-2 bg-red-600 text-white">{receiptsQ.data!.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="sector" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+            <TabsTrigger value="sector" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Users className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_sector')}
               {(coverageQ.data?.length || 0) > 0 && (
-                <Badge className="ms-2 bg-amber-600 text-white">{coverageQ.data!.length}</Badge>
+                <Badge className="ms-2 bg-red-600 text-white">{coverageQ.data!.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="invoices" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+            <TabsTrigger value="invoices" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <FileText className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_invoices')}
               {(invoicesQ.data?.length || 0) > 0 && (
-                <Badge className="ms-2 bg-amber-600 text-white">{invoicesQ.data!.length}</Badge>
+                <Badge className="ms-2 bg-red-600 text-white">{invoicesQ.data!.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="factory_out" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+            <TabsTrigger value="factory_out" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Package className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_out')}
             </TabsTrigger>
