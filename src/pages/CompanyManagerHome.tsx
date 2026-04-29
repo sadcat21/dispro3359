@@ -149,6 +149,11 @@ const CompanyManagerHome: React.FC = () => {
             </div>
           </div>
 
+          {/* شارات حماية الفروع */}
+          <div className="mt-2 mb-4">
+            <BranchWilayaBadges />
+          </div>
+
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="red" />
