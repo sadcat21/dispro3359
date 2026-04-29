@@ -209,7 +209,7 @@ const AssistantApprovals: React.FC = () => {
     if (loading) {
       return (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-red-500" />
         </div>
       );
     }
