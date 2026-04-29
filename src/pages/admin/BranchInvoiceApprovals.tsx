@@ -122,8 +122,12 @@ const BranchInvoiceApprovals: React.FC = () => {
           )
         `)
         .eq('id', row.order_id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
+      if (!data) {
+        toast.error(t('branch_invoice_approvals.no_linked_order'));
+        return;
+      }
       // إرفاق request_id حتى يمكن استخدامه عند الموافقة/الرفض
       setSelectedOrder({ ...data, _invoiceRequestId: row.id, _hideModifyAction: true });
     } catch (e: any) {
