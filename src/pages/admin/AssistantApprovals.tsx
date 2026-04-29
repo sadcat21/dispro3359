@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ReceiptRow {
   id: string;
@@ -41,6 +43,7 @@ interface InvoiceRequestRow {
   invoice_file_url?: string | null;
   invoice_scope?: 'public' | 'private' | null;
   created_by_role?: string | null;
+  customer_id?: string | null;
   customers?: { name: string } | null;
   branches?: { name: string } | null;
 }
@@ -51,6 +54,7 @@ const AssistantApprovals: React.FC = () => {
   const [tab, setTab] = useState('factory_in');
   const [searchParams, setSearchParams] = useSearchParams();
   const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
+  const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
   const branchFilter = searchParams.get('branch');
 
   // اسم الفرع المختار للعرض
@@ -170,7 +174,7 @@ const AssistantApprovals: React.FC = () => {
     queryFn: async () => {
       let q = supabase
         .from('manual_invoice_requests')
-        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, invoice_scope, created_by_role, customers(name), branches(name)')
+        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, invoice_scope, created_by_role, customer_id, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
       if (branchFilter) q = q.eq('branch_id', branchFilter);
@@ -178,6 +182,23 @@ const AssistantApprovals: React.FC = () => {
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
     },
+  });
+
+  // طلبات الفاتورة المعلقة لعميل محدد (نافذة منبثقة)
+  const customerInvoicesQ = useQuery({
+    queryKey: ['assistant-customer-invoices', customerDialog?.id],
+    queryFn: async () => {
+      if (!customerDialog) return [];
+      const { data, error } = await supabase
+        .from('manual_invoice_requests')
+        .select('id, order_id, invoice_number, status, branch_approved_at, payment_method, total_amount, created_at, branches(name)')
+        .eq('customer_id', customerDialog.id)
+        .eq('status', 'pending_assistant')
+        .order('branch_approved_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!customerDialog,
   });
 
   const approveInvoice = useMutation({
@@ -405,7 +426,18 @@ const AssistantApprovals: React.FC = () => {
                               {t('branch_manual_invoice.scope_public')}
                             </Badge>
                           )}
-                          <span className="font-semibold text-slate-900">{i.customers?.name || '—'}</span>
+                          {i.customer_id && i.customers?.name ? (
+                            <button
+                              type="button"
+                              onClick={() => setCustomerDialog({ id: i.customer_id!, name: i.customers!.name })}
+                              className="font-semibold text-primary hover:underline cursor-pointer"
+                              title="عرض كل طلبات الفاتورة المعلقة لهذا العميل"
+                            >
+                              {i.customers.name}
+                            </button>
+                          ) : (
+                            <span className="font-semibold text-slate-900">—</span>
+                          )}
                         </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {i.invoice_number || '—'}
@@ -445,6 +477,61 @@ const AssistantApprovals: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* نافذة طلبات الفاتورة المعلقة لعميل محدد */}
+      <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) setCustomerDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              طلبات الفاتورة المعلقة — {customerDialog?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {customerInvoicesQ.isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
+            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة</p>
+          ) : (
+            <ScrollArea className="max-h-[60vh] pr-2">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  العدد الإجمالي: <span className="font-bold text-foreground">{customerInvoicesQ.data!.length}</span>
+                </p>
+                {customerInvoicesQ.data!.map((r: any) => (
+                  <Card key={r.id} className="border-slate-200">
+                    <CardContent className="p-3 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline">{r.branches?.name || '—'}</Badge>
+                          <Badge variant="secondary">{r.payment_method || '—'}</Badge>
+                          <span className="font-bold">
+                            {Number(r.total_amount || 0).toLocaleString('ar')} دج
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          فاتورة #{r.invoice_number || '—'} • {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setCustomerDialog(null);
+                          setReviewRequestId(r.id);
+                        }}
+                      >
+                        <Eye className="w-4 h-4 me-1" />
+                        مراجعة
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <InvoiceRequestReviewDialog
         open={!!reviewRequestId}
