@@ -646,6 +646,17 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const { error: itemsErr } = await supabase.from('order_items').insert(orderItemsData);
       if (itemsErr) throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
 
+      // إذا كان الطلب يتطلب سلسلة موافقات، نتوقف هنا (لا خصم مخزون، لا وصل، لا SMS)
+      if (requiresApprovalChain) {
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
+        toast.success('تم إرسال طلب الفاتورة لمدير الفرع للمراجعة');
+        setShowPaymentDialog(false);
+        onOpenChange(false);
+        setIsSaving(false);
+        return;
+      }
+
       // Deduct from stock & log movements (including gift quantities)
       for (const item of orderItems) {
         const ws = stockItems.find(s => s.product_id === item.productId);
