@@ -1861,8 +1861,12 @@ export type Database = {
       factory_order_items: {
         Row: {
           created_at: string
+          delivery_date: string | null
           factory_order_id: string
           id: string
+          lot_number: string | null
+          manufacturing_date: string | null
+          manufacturing_time: string | null
           notes: string | null
           pallet_quantity: number
           product_id: string
@@ -1870,8 +1874,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delivery_date?: string | null
           factory_order_id: string
           id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          manufacturing_time?: string | null
           notes?: string | null
           pallet_quantity?: number
           product_id: string
@@ -1879,8 +1887,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delivery_date?: string | null
           factory_order_id?: string
           id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          manufacturing_time?: string | null
           notes?: string | null
           pallet_quantity?: number
           product_id?: string
