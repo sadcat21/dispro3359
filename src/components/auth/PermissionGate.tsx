@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkerPermissions } from '@/hooks/usePermissions';
-import { isAdminRole } from '@/lib/utils';
+import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
 import { Navigate } from 'react-router-dom';
 import { Loader2, ShieldX } from 'lucide-react';
 
@@ -20,11 +20,20 @@ const PermissionGate: React.FC<PermissionGateProps> = ({
   fallback,
   redirectTo,
 }) => {
-  const { role } = useAuth();
+  const { role, activeRole } = useAuth();
   const { data: permissions, isLoading } = useWorkerPermissions();
 
   // Admin-level roles have all permissions
   if (isAdminRole(role)) {
+    return <>{children}</>;
+  }
+
+  // Executive custom roles bypass page-level permission gates;
+  // their access is already constrained by their dedicated navigation.
+  if (
+    isCompanyManagerRole(activeRole?.custom_role_code) ||
+    isInternalSupervisorRole(activeRole?.custom_role_code)
+  ) {
     return <>{children}</>;
   }
 
