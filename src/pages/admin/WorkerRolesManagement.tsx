@@ -43,7 +43,7 @@ interface WorkerRoleRow {
 }
 
 const WorkerRolesManagement: React.FC = () => {
-  const { role, activeBranch } = useAuth();
+  const { role, activeBranch, activeRole } = useAuth();
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
@@ -54,7 +54,7 @@ const WorkerRolesManagement: React.FC = () => {
   const [newValidUntil, setNewValidUntil] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
 
-  const isAdmin = role === 'admin' || role === 'project_manager';
+  const isAdmin = role === 'admin' || role === 'project_manager' || activeRole?.custom_role_code === 'company_manager';
 
   const { data: workers, isLoading: workersLoading } = useQuery({
     queryKey: ['workers-list-roles-mgmt', activeBranch?.id ?? 'all'],
