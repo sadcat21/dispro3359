@@ -9,10 +9,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar } from 'lucide-react';
+import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import type { OrderWithDetails } from '@/types/database';
 
 interface Props {
   branchId: string;
@@ -28,6 +30,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const { workerId } = useAuth();
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState<{ type: string; id: string; label: string } | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
 
   // 1) جلسات الشحن اليوم
   const loadingQ = useQuery({
@@ -52,7 +55,14 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, status, created_at, total_amount, payment_type, customers:customer_id(name)')
+        .select(`
+          *,
+          customer:customer_id(id, name, phone, address),
+          order_items(
+            id, product_id, quantity, unit_price, total_price, gift_quantity, gift_pieces, pricing_unit,
+            product:product_id(id, name, app_name, image_url, price_gros, price_retail, pieces_per_box, pricing_unit)
+          )
+        `)
         .eq('created_by', workerId!)
         .eq('branch_id', branchId)
         .gte('created_at', todayStart())
@@ -205,13 +215,20 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
           {orders.map((o: any) => {
             const isPending = o.status === 'pending_branch' || o.status === 'pending_assistant';
             const canDelete = isPending && !accountingClosed;
+            const total = Number(o.total_amount || 0);
+            const paid = Number(o.paid_amount ?? o.amount_paid ?? 0);
+            const remaining = Math.max(0, total - paid);
+            const itemsCount = (o.order_items || []).length;
             return (
               <Card key={o.id} className={isPending ? 'border-amber-300' : 'border-primary/30'}>
                 <CardContent className="p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{o.customers?.name || 'بدون زبون'}</div>
-                    <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
-                      <span>{Number(o.total_amount || 0).toLocaleString()} د.ج</span>
+                    <div className="text-sm font-medium truncate">{o.customer?.name || 'بدون زبون'}</div>
+                    <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap mt-0.5">
+                      <span className="font-semibold text-foreground">{total.toLocaleString()} د.ج</span>
+                      {paid > 0 && <span className="text-emerald-600">مدفوع: {paid.toLocaleString()}</span>}
+                      {remaining > 0 && <span className="text-destructive">متبقي: {remaining.toLocaleString()}</span>}
+                      <span>{itemsCount} منتج</span>
                       <span>{o.payment_type === 'with_invoice' ? 'بفاتورة' : 'بدون فاتورة'}</span>
                       <span>{format(new Date(o.created_at), 'HH:mm', { locale: ar })}</span>
                     </div>
@@ -221,9 +238,13 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
                      o.status === 'pending_assistant' ? 'بانتظار الإدارة' :
                      o.status === 'delivered' ? 'مُسلّم' : o.status}
                   </Badge>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-primary"
+                    onClick={() => setSelectedOrder(o as OrderWithDetails)} title="عرض التفاصيل">
+                    <Eye className="w-3.5 h-3.5" />
+                  </Button>
                   {canDelete && (
                     <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive"
-                      onClick={() => setDeleting({ type: 'order', id: o.id, label: `طلب ${o.customers?.name}` })}>
+                      onClick={() => setDeleting({ type: 'order', id: o.id, label: `طلب ${o.customer?.name || ''}` })}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   )}
@@ -281,6 +302,13 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <OrderDetailsDialog
+        open={!!selectedOrder}
+        onOpenChange={(o) => !o && setSelectedOrder(null)}
+        order={selectedOrder}
+        hideModifyAction
+      />
     </div>
   );
 };
