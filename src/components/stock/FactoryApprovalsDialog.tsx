@@ -422,7 +422,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={isProcessing || isFrozen}
               onClick={onApprove}>
               {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5 ml-1" />}
-              موافقة
+              إرسال للإدارة
             </Button>
             <Button size="sm" variant="destructive" disabled={isProcessing || isFrozen}
               onClick={() => { setRejectingId(record.id); setRejectNote(''); }}>
