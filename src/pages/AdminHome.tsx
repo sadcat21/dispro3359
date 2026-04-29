@@ -7,7 +7,7 @@ import {
   CalendarDays, Gift, ArrowDownToLine, Truck, ClipboardCheck, Building2, Warehouse, Package,
   Wallet, FileText, Vault, FolderOpen, MapPin, Activity, Store, UserCheck, UserCog, Settings,
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
-  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database
+  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
@@ -54,6 +54,7 @@ const itemColors: Record<string, { bg: string; icon: string; border: string }> =
   '/expenses-management': { bg: 'bg-red-50 dark:bg-red-950/30', icon: 'text-red-600 dark:text-red-400', border: 'border-red-200 dark:border-red-800' },
   '/manager-treasury': { bg: 'bg-emerald-50 dark:bg-emerald-950/30', icon: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800' },
   '/shared-invoices': { bg: 'bg-orange-50 dark:bg-orange-950/30', icon: 'text-orange-600 dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800' },
+  '/assistant-approvals': { bg: 'bg-red-50 dark:bg-red-950/30', icon: 'text-red-600 dark:text-red-400', border: 'border-red-200 dark:border-red-800' },
   '/daily-receipts': { bg: 'bg-teal-50 dark:bg-teal-950/30', icon: 'text-teal-600 dark:text-teal-400', border: 'border-teal-200 dark:border-teal-800' },
   '/worker-debts': { bg: 'bg-pink-50 dark:bg-pink-950/30', icon: 'text-pink-600 dark:text-pink-400', border: 'border-pink-200 dark:border-pink-800' },
   '/orders': { bg: 'bg-blue-50 dark:bg-blue-950/30', icon: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
@@ -314,6 +315,7 @@ const AdminHome: React.FC = () => {
         { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
         ...(!isBranchAdmin ? [{ path: '/daily-receipts', icon: FileText, label: t('nav.daily_receipts') }] : []),
         { path: '/shared-invoices', icon: FolderOpen, label: t('admin_home.item.shared_invoices') },
+        ...(isAdminRole(role) ? [{ path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') }] : []),
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
         ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
       ],
