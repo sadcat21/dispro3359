@@ -35,12 +35,33 @@ interface WorkerRoleRow {
   branch_id: string | null;
   custom_role_id: string | null;
   is_active: boolean;
+  is_primary: boolean;
   valid_from: string | null;
   valid_until: string | null;
   notes: string | null;
   created_at: string;
   custom_roles?: { code: string; name_ar: string } | null;
 }
+
+// تصنيف الأدوار حسب الرتبة (أعلى رقم = صلاحية أعلى)
+const ROLE_RANK: Record<string, number> = {
+  worker: 1,
+  accountant: 2,
+  admin_assistant: 2,
+  warehouse_manager: 2,
+  sales_rep: 2,
+  delivery_rep: 2,
+  supervisor: 3,
+  branch_admin: 4,
+  company_manager: 5,
+  project_manager: 6,
+  admin: 7,
+};
+
+const getRoleRank = (code: string | null | undefined): number => {
+  if (!code) return 0;
+  return ROLE_RANK[code] ?? 1;
+};
 
 const WorkerRolesManagement: React.FC = () => {
   const { role, activeBranch, activeRole } = useAuth();
@@ -50,11 +71,18 @@ const WorkerRolesManagement: React.FC = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+  const [primaryRoleId, setPrimaryRoleId] = useState<string | null>(null);
   const [newValidFrom, setNewValidFrom] = useState<string>('');
   const [newValidUntil, setNewValidUntil] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
 
   const isAdmin = role === 'admin' || role === 'project_manager' || activeRole?.custom_role_code === 'company_manager';
+
+  // أعلى رتبة للمستخدم الحالي = max(دوره الأساسي, دوره النشط المخصص)
+  const currentUserRank = Math.max(
+    getRoleRank(role || undefined),
+    getRoleRank(activeRole?.custom_role_code || undefined)
+  );
 
   const { data: workers, isLoading: workersLoading } = useQuery({
     queryKey: ['workers-list-roles-mgmt', activeBranch?.id ?? 'all'],
@@ -99,13 +127,15 @@ const WorkerRolesManagement: React.FC = () => {
     },
   });
 
-  // عند فتح الديالوغ: تحديد الأدوار المسندة سابقًا (النشطة) تلقائيًا
+  // عند فتح الديالوغ: تحديد الأدوار المسندة سابقًا (النشطة) تلقائيًا + الدور الرئيسي
   useEffect(() => {
     if (addOpen && workerRoles) {
       const existingActive = workerRoles
         .filter(wr => wr.is_active && wr.custom_role_id)
         .map(wr => wr.custom_role_id as string);
       setSelectedRoleIds(existingActive);
+      const primary = workerRoles.find(wr => wr.is_active && wr.is_primary && wr.custom_role_id);
+      setPrimaryRoleId(primary?.custom_role_id ?? (existingActive[0] ?? null));
     }
   }, [addOpen, workerRoles]);
 
@@ -125,18 +155,24 @@ const WorkerRolesManagement: React.FC = () => {
         admin_assistant: 'admin_assistant',
       };
 
+      // منع منح صلاحية >= صلاحية المستخدم الحالي
+      // (admin يستطيع منح كل شيء فقط لو كان admin؛ غيره ممنوع منح ما يساويه أو يفوقه)
+      const isFullAdmin = role === 'admin';
+      for (const rid of selectedRoleIds) {
+        const cr = customRoles?.find(c => c.id === rid);
+        if (!cr) continue;
+        const targetRank = getRoleRank(cr.code);
+        if (!isFullAdmin && targetRank >= currentUserRank) {
+          throw new Error(t('worker_roles.cannot_grant_higher'));
+        }
+      }
+
       // الأدوار النشطة الحالية للعامل
       const currentActive = (workerRoles || []).filter(wr => wr.is_active && wr.custom_role_id);
       const currentActiveIds = currentActive.map(wr => wr.custom_role_id as string);
 
-      // الأدوار التي أُزيل تحديدها → تعطيل
       const toDeactivate = currentActive.filter(wr => !selectedRoleIds.includes(wr.custom_role_id as string));
-      // الأدوار الجديدة المُحددة → إدراج
       const toInsertIds = selectedRoleIds.filter(id => !currentActiveIds.includes(id));
-
-      if (toDeactivate.length === 0 && toInsertIds.length === 0) {
-        return;
-      }
 
       if (toDeactivate.length > 0) {
         const { error: deactErr } = await supabase
@@ -163,12 +199,31 @@ const WorkerRolesManagement: React.FC = () => {
         const { error } = await supabase.from('worker_roles').insert(rows as any);
         if (error) throw error;
       }
+
+      // مزامنة الدور الرئيسي: نزع is_primary عن الجميع ثم تعيينه للمختار
+      // (نقوم بهذه الخطوة دائمًا حتى لو لم تتغير القائمة)
+      const { error: clearErr } = await supabase
+        .from('worker_roles')
+        .update({ is_primary: false } as any)
+        .eq('worker_id', selectedWorkerId);
+      if (clearErr) throw clearErr;
+
+      if (primaryRoleId && selectedRoleIds.includes(primaryRoleId)) {
+        const { error: setErr } = await supabase
+          .from('worker_roles')
+          .update({ is_primary: true } as any)
+          .eq('worker_id', selectedWorkerId)
+          .eq('custom_role_id', primaryRoleId)
+          .eq('is_active', true);
+        if (setErr) throw setErr;
+      }
     },
     onSuccess: () => {
       toast.success(t('worker_roles.add_success'));
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
       setAddOpen(false);
       setSelectedRoleIds([]);
+      setPrimaryRoleId(null);
       setNewValidFrom('');
       setNewValidUntil('');
       setNewNotes('');
@@ -339,17 +394,37 @@ const WorkerRolesManagement: React.FC = () => {
                 return (
                   <div key={r.id} className="border rounded-lg p-4 space-y-3 bg-card">
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={effective ? 'default' : 'secondary'}>
                           {effective ? <ShieldCheck className="w-3 h-3 ml-1" /> : <ShieldOff className="w-3 h-3 ml-1" />}
                           {roleName}
                         </Badge>
+                        {r.is_primary && r.is_active && (
+                          <Badge className="bg-amber-500 hover:bg-amber-500 text-white">⭐ {t('worker_roles.primary_role')}</Badge>
+                        )}
+                        {!r.is_primary && r.is_active && (
+                          <Badge variant="outline">{t('worker_roles.secondary_role')}</Badge>
+                        )}
                         {!r.is_active && <Badge variant="outline">{t('worker_roles.disabled_manually')}</Badge>}
                         {r.valid_until && new Date(r.valid_until) < new Date() && (
                           <Badge variant="destructive">{t('worker_roles.expired')}</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        {r.is_active && !r.is_primary && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              await supabase.from('worker_roles').update({ is_primary: false } as any).eq('worker_id', r.worker_id);
+                              await supabase.from('worker_roles').update({ is_primary: true } as any).eq('id', r.id);
+                              qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
+                              toast.success(t('worker_roles.set_primary'));
+                            }}
+                          >
+                            ⭐ {t('worker_roles.set_primary')}
+                          </Button>
+                        )}
                         <Label className="text-xs">{t('worker_roles.enabled')}</Label>
                         <Switch
                           checked={r.is_active}
@@ -412,30 +487,70 @@ const WorkerRolesManagement: React.FC = () => {
       )}
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent dir="rtl">
-          <DialogHeader>
+        <DialogContent dir="rtl" className="max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 pb-3 border-b shrink-0">
             <DialogTitle>{t('worker_roles.add_role_title')}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
             <div>
               <Label>{t('worker_roles.role')}</Label>
+              <p className="text-[11px] text-muted-foreground mt-1">{t('worker_roles.choose_primary_hint')}</p>
               {!customRoles || customRoles.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">{t('worker_roles.no_roles')}</p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 max-h-72 overflow-y-auto p-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 p-1">
                   {customRoles.map((cr, index) => {
                     const colorSet = WORKER_CARD_COLORS[index % WORKER_CARD_COLORS.length];
                     const isSelected = selectedRoleIds.includes(cr.id);
+                    const isPrimary = primaryRoleId === cr.id;
+                    const targetRank = getRoleRank(cr.code);
+                    const isFullAdmin = role === 'admin';
+                    const isForbidden = !isFullAdmin && targetRank >= currentUserRank;
                     return (
                       <div
                         key={cr.id}
-                        onClick={() => setSelectedRoleIds(prev => prev.includes(cr.id) ? prev.filter(id => id !== cr.id) : [...prev, cr.id])}
-                        className={`relative flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 cursor-pointer active:scale-95 transition-all hover:shadow-md ${colorSet.bg} ${isSelected ? 'border-primary ring-2 ring-primary/40' : colorSet.border}`}
+                        onClick={() => {
+                          if (isForbidden) {
+                            toast.error(t('worker_roles.cannot_grant_higher'));
+                            return;
+                          }
+                          setSelectedRoleIds(prev => {
+                            const next = prev.includes(cr.id) ? prev.filter(id => id !== cr.id) : [...prev, cr.id];
+                            // إذا أُزيل الدور الرئيسي، اختر أول دور متبقٍ
+                            if (!next.includes(primaryRoleId || '')) {
+                              setPrimaryRoleId(next[0] ?? null);
+                            } else if (!primaryRoleId && next.length > 0) {
+                              setPrimaryRoleId(next[0]);
+                            }
+                            return next;
+                          });
+                        }}
+                        onDoubleClick={() => {
+                          if (isForbidden || !isSelected) return;
+                          setPrimaryRoleId(cr.id);
+                        }}
+                        className={`relative flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 transition-all ${
+                          isForbidden
+                            ? 'opacity-40 cursor-not-allowed bg-muted border-muted'
+                            : `cursor-pointer active:scale-95 hover:shadow-md ${colorSet.bg} ${isSelected ? 'border-primary ring-2 ring-primary/40' : colorSet.border}`
+                        }`}
                       >
                         {isSelected && (
                           <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                             <Check className="w-3 h-3" />
                           </div>
+                        )}
+                        {isSelected && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setPrimaryRoleId(cr.id); }}
+                            className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                              isPrimary ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-amber-200'
+                            }`}
+                            title={t('worker_roles.set_primary')}
+                          >
+                            ⭐
+                          </button>
                         )}
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colorSet.icon}`}>
                           <Shield className="w-5 h-5" />
@@ -461,7 +576,7 @@ const WorkerRolesManagement: React.FC = () => {
               <Input value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder={t('worker_roles.notes_placeholder')} />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="p-4 border-t bg-background shrink-0 sticky bottom-0">
             <Button variant="outline" onClick={() => setAddOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending}>
               {addMutation.isPending && <Loader2 className="w-4 h-4 animate-spin ml-1" />}
