@@ -170,9 +170,16 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
     }
   };
 
-  // Determine primary role: explicit is_primary flag, or first role
-  const primaryIndex = roles.findIndex(r => r.is_primary);
-  const effectivePrimaryIndex = primaryIndex >= 0 ? primaryIndex : 0;
+  // Sort: primary role first, then the rest in original order
+  const sortedRoles = [...roles].sort((a, b) => {
+    const ap = a.is_primary ? 1 : 0;
+    const bp = b.is_primary ? 1 : 0;
+    return bp - ap;
+  });
+  const hasExplicitPrimary = sortedRoles.some(r => r.is_primary);
+  const effectivePrimaryIndex = hasExplicitPrimary
+    ? sortedRoles.findIndex(r => r.is_primary)
+    : 0;
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
@@ -184,7 +191,7 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 py-2">
-          {roles.map((roleData, index) => {
+          {sortedRoles.map((roleData, index) => {
             const isCompanyManager = roleData.custom_role_code === 'company_manager';
             const isPrimary = index === effectivePrimaryIndex;
             const style = getRoleStyle(roleData.role, isCompanyManager);
