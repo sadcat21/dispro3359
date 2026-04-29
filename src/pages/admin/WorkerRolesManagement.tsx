@@ -43,7 +43,7 @@ interface WorkerRoleRow {
 }
 
 const WorkerRolesManagement: React.FC = () => {
-  const { role, activeBranch } = useAuth();
+  const { role, activeBranch, activeRole } = useAuth();
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
