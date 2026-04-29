@@ -369,9 +369,12 @@ const AssistantApprovals: React.FC = () => {
                   <Card key={i.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-slate-900">
-                          {i.customers?.name || '—'} · {i.branches?.name || '—'}
-                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                            🏢 {i.branches?.name || t('assistant_approvals.unknown_branch')}
+                          </Badge>
+                          <span className="font-semibold text-slate-900">{i.customers?.name || '—'}</span>
+                        </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {i.invoice_number || '—'}
                         </p>
