@@ -34,22 +34,25 @@ const BranchWilayaBadges: React.FC = () => {
   const { data: counts } = useQuery({
     queryKey: ['cm-branch-pending-counts'],
     queryFn: async () => {
-      const [receipts, invoices] = await Promise.all([
+      const [receipts, invoices, coverage] = await Promise.all([
         supabase.from('stock_receipts').select('branch_id').eq('status', 'pending_assistant'),
         supabase.from('manual_invoice_requests').select('branch_id').eq('status', 'pending_assistant'),
+        supabase
+          .from('sector_coverage')
+          .select('id, sectors!inner(branch_id)')
+          .eq('approval_status', 'pending'),
       ]);
       const map = new Map<string, number>();
-      const add = (rows: any[] | null) => {
-        (rows || []).forEach((r) => {
-          if (!r.branch_id) return;
-          map.set(r.branch_id, (map.get(r.branch_id) || 0) + 1);
-        });
+      const add = (bid: string | null | undefined) => {
+        if (!bid) return;
+        map.set(bid, (map.get(bid) || 0) + 1);
       };
-      add(receipts.data);
-      add(invoices.data);
+      (receipts.data || []).forEach((r: any) => add(r.branch_id));
+      (invoices.data || []).forEach((r: any) => add(r.branch_id));
+      (coverage.data || []).forEach((r: any) => add(r.sectors?.branch_id));
       return map;
     },
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
   });
 
   if (!branches || branches.length === 0) return null;
