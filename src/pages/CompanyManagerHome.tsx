@@ -43,15 +43,16 @@ const CompanyManagerHome: React.FC = () => {
   const { data: kpis } = useQuery({
     queryKey: ['cm-kpis', activeBranch?.id],
     queryFn: async () => {
-      const [workers, branches, pendingFactory] = await Promise.all([
+      const [workers, branches, pendingFactory, pendingInvoices] = await Promise.all([
         supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('branches').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('stock_receipts').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('stock_receipts').select('id', { count: 'exact', head: true }).eq('status', 'pending_assistant'),
+        supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_assistant'),
       ]);
       return {
         workers: workers.count || 0,
         branches: branches.count || 0,
-        pendingApprovals: pendingFactory.count || 0,
+        pendingApprovals: (pendingFactory.count || 0) + (pendingInvoices.count || 0),
       };
     },
     staleTime: 60_000,

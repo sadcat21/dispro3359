@@ -7,7 +7,7 @@ import {
   CalendarDays, Gift, ArrowDownToLine, Truck, ClipboardCheck, Building2, Warehouse, Package,
   Wallet, FileText, Vault, FolderOpen, MapPin, Activity, Store, UserCheck, UserCog, Settings,
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
-  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database
+  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
@@ -314,6 +314,7 @@ const AdminHome: React.FC = () => {
         { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
         ...(!isBranchAdmin ? [{ path: '/daily-receipts', icon: FileText, label: t('nav.daily_receipts') }] : []),
         { path: '/shared-invoices', icon: FolderOpen, label: t('admin_home.item.shared_invoices') },
+        ...(isAdminRole(role) ? [{ path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') }] : []),
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
         ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
       ],

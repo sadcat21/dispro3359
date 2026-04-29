@@ -33,6 +33,7 @@ interface CoverageRow {
 
 interface InvoiceRequestRow {
   id: string;
+  order_id: string | null;
   invoice_number: string | null;
   status: string;
   branch_approved_at: string | null;
@@ -164,7 +165,7 @@ const AssistantApprovals: React.FC = () => {
     queryFn: async () => {
       let q = supabase
         .from('manual_invoice_requests')
-        .select('id, invoice_number, status, branch_approved_at, branch_id, customers(name), branches(name)')
+        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
       if (branchFilter) q = q.eq('branch_id', branchFilter);
@@ -176,6 +177,13 @@ const AssistantApprovals: React.FC = () => {
 
   const approveInvoice = useMutation({
     mutationFn: async (id: string) => {
+      const { data: request, error: fetchError } = await supabase
+        .from('manual_invoice_requests')
+        .select('order_id')
+        .eq('id', id)
+        .maybeSingle();
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from('manual_invoice_requests')
         .update({
@@ -184,6 +192,14 @@ const AssistantApprovals: React.FC = () => {
         })
         .eq('id', id);
       if (error) throw error;
+
+      if (request?.order_id) {
+        const { error: orderError } = await supabase
+          .from('orders')
+          .update({ status: 'pending' })
+          .eq('id', request.order_id);
+        if (orderError) throw orderError;
+      }
     },
     onSuccess: () => {
       toast.success(t('assistant_approvals.approved_success'));

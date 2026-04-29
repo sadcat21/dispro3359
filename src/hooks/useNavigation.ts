@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Home, Users, Package, BarChart3, Settings, FileSpreadsheet, UserCheck, Building2, Shield, ShoppingCart, Truck, Activity, Store, BookOpen, UserCog, Gift, Wallet, Warehouse, ClipboardList, Banknote, Calculator, MapPin, Navigation, FileText, Vault, FolderOpen, Scale, Trophy, CalendarDays, Split, ClipboardCheck, Radar } from 'lucide-react';
+import { Home, Users, Package, BarChart3, Settings, FileSpreadsheet, UserCheck, Building2, Shield, ShoppingCart, Truck, Activity, Store, BookOpen, UserCog, Gift, Wallet, Warehouse, ClipboardList, Banknote, Calculator, MapPin, Navigation, FileText, Vault, FolderOpen, Scale, Trophy, CalendarDays, Split, ClipboardCheck, Radar, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkerPermissions } from '@/hooks/usePermissions';
 import { useMyUIOverrides, useMyRoleOverrides } from '@/hooks/useUIOverrides';
@@ -68,6 +68,7 @@ export const useNavigation = () => {
           { path: '/accounting', icon: Calculator, label: t('accounting.title') },
           { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
           { path: '/shared-invoices', icon: FolderOpen, label: t('nav.shared_invoices') },
+          { path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') },
           { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
           { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
@@ -168,6 +169,7 @@ export const useNavigation = () => {
           { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
           { path: '/activity-logs', icon: Activity, label: t('nav.activity_logs') },
           { path: '/shared-invoices', icon: FolderOpen, label: t('nav.shared_invoices') },
+          { path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') },
           { path: '/promo-splits', icon: Split, label: t('nav.promo_splits') },
           { path: '/customer-accounts', icon: UserCog, label: t('nav.customer_accounts') },
           { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
