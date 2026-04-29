@@ -273,8 +273,13 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!workerId || d.frozen_at) return;
     setProcessingId(d.id);
     try {
-      await approveDeliveryInternal(d);
-      toast.success('تمت الموافقة على التسليم');
+      // مدير الفرع يحوّل التسليم للإدارة العليا — لا تطبيق نهائي للحركات هنا
+      await supabase.from('factory_orders').update({
+        status: 'pending_assistant',
+        branch_approved_by: workerId,
+        branch_approved_at: new Date().toISOString(),
+      }).eq('id', d.id);
+      toast.success('تم إرسال طلب التسليم للإدارة العليا');
       await fetchData();
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
