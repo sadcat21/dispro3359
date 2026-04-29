@@ -18,6 +18,7 @@ interface BMItem {
   label: string;
   icon: LucideIcon;
   path: string;
+  badge?: number;
 }
 interface BMSection {
   titleKey: string;
