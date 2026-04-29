@@ -2231,5 +2231,4 @@ export const translations: Translations = {
   'shared_invoices.upload_success': { ar: 'تم رفع الفاتورة بنجاح', fr: 'Facture téléversée', en: 'Invoice uploaded' },
   'shared_invoices.uploaded_invoices': { ar: 'الفواتير المرسلة لفرعك', fr: 'Factures reçues', en: 'Invoices for your branch' },
   'shared_invoices.download_print': { ar: 'تحميل وطباعة', fr: 'Télécharger', en: 'Download' },
-  'shared_invoices.no_invoices': { ar: 'لا توجد فواتير', fr: 'Aucune facture', en: 'No invoices' },
 };
