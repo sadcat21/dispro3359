@@ -67,7 +67,7 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, sort_order')
+        .select('id, name, image_url, sort_order')
         .eq('is_active', true)
         .order('sort_order', { ascending: true })
         .order('name');
