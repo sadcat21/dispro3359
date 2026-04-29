@@ -226,11 +226,9 @@ export const useCreateOrder = () => {
             status: 'pending_branch',
             payment_method: invoicePaymentMethod || null,
             products: items as any,
-            total_amount: totalAmount || null,
           } as any);
 
         if (invReqError) {
-          // لا تُفشل إنشاء الطلب — فقط سجّل التحذير
           console.warn('[useCreateOrder] فشل إنشاء طلب موافقة الفاتورة:', invReqError);
         }
       }
