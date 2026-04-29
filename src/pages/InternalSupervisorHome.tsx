@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
   Activity, UserCheck, ShoppingCart, Radar, FileSpreadsheet, UserCog,
-  Navigation, LucideIcon,
+  Navigation, LucideIcon, Warehouse, Truck, ClipboardCheck, ClipboardList,
+  Wallet, FileText, Vault, Scale,
 } from 'lucide-react';
 
 interface Item {
