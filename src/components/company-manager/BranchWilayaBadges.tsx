@@ -65,21 +65,16 @@ const BranchWilayaBadges: React.FC = () => {
             <TooltipTrigger asChild>
               <button
                 onClick={() => navigate(`/assistant-approvals?branch=${b.id}`)}
-                className="relative shrink-0 focus:outline-none hover:scale-110 transition-transform"
+                className="relative shrink-0 w-9 h-9 focus:outline-none hover:scale-110 transition-transform"
                 aria-label={t('company_manager.open_branch_approvals')}
               >
                 <Shield
-                  className={`w-9 h-9 ${color.text} drop-shadow-sm`}
-                  fill="currentColor"
-                  strokeWidth={1.5}
-                  style={{ color: undefined }}
-                />
-                <Shield
-                  className={`w-9 h-9 absolute inset-0 ${color.text.replace('text-', 'text-')}`}
-                  fill="currentColor"
+                  className="w-9 h-9 drop-shadow"
+                  fill={color.hex}
+                  color={color.hex}
                   strokeWidth={1.5}
                 />
-                <span className="absolute inset-0 flex items-center justify-center pt-0.5 text-white text-[11px] font-extrabold leading-none">
+                <span className="absolute inset-0 flex items-center justify-center pt-1 text-white text-[11px] font-extrabold leading-none pointer-events-none">
                   {code ?? '?'}
                 </span>
                 {pending > 0 && (
