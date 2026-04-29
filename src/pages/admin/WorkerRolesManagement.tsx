@@ -463,7 +463,7 @@ const WorkerRolesManagement: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending || selectedRoleIds.length === 0}>
+            <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending}>
               {addMutation.isPending && <Loader2 className="w-4 h-4 animate-spin ml-1" />}
               {t('common.add')}
             </Button>
