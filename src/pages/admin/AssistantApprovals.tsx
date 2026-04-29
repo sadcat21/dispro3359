@@ -172,7 +172,7 @@ const AssistantApprovals: React.FC = () => {
     queryFn: async () => {
       let q = supabase
         .from('manual_invoice_requests')
-        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, invoice_scope, created_by_role, customers(name), branches(name)')
+        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, invoice_scope, created_by_role, customer_id, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
       if (branchFilter) q = q.eq('branch_id', branchFilter);
