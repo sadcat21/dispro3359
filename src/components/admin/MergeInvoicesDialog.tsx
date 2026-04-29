@@ -37,17 +37,19 @@ interface AggLine {
   product_name: string;
   unit?: string;
   quantity: number;
-  unit_price?: number;
-  total: number;
 }
 
 const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, customerName, requests }) => {
   const { workerId, activeBranch } = useAuth();
   const qc = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<string[]>(() => requests.map(r => r.id));
+  const [paymentMethod, setPaymentMethod] = useState<InvoicePaymentMethod | null>(null);
 
-  React.useEffect(() => {
-    if (open) setSelectedIds(requests.map(r => r.id));
+  useEffect(() => {
+    if (open) {
+      setSelectedIds(requests.map(r => r.id));
+      setPaymentMethod(null);
+    }
   }, [open, requests]);
 
   const toggle = (id: string) =>
