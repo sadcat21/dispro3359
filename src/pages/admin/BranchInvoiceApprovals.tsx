@@ -49,6 +49,8 @@ const BranchInvoiceApprovals: React.FC = () => {
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [scopeDialog, setScopeDialog] = useState<{ id: string; scope: 'public' | 'private' } | null>(null);
+  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
+  const [mergeFor, setMergeFor] = useState<{ customerId: string; customerName: string; requests: PostponedRequest[] } | null>(null);
 
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
