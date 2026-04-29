@@ -336,7 +336,12 @@ const AssistantApprovals: React.FC = () => {
                   <Card key={c.id} className="border-slate-200 bg-white">
                     <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
-                        <p className="font-semibold text-slate-900">{c.sectors?.name || '—'}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                            🏢 {c.sectors?.branches?.name || t('assistant_approvals.unknown_branch')}
+                          </Badge>
+                          <span className="font-semibold text-slate-900">{c.sectors?.name || '—'}</span>
+                        </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.absent_worker')}: {c.absent_worker?.full_name || '—'} →{' '}
                           {t('assistant_approvals.substitute_worker')}: {c.substitute_worker?.full_name || '—'}
