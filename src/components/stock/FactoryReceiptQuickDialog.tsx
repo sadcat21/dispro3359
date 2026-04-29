@@ -223,6 +223,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             license_plate: licensePlate || null,
           }),
           total_items: validItems.length,
+          pallet_count: palletCount || 0,
           status,
         })
         .select()

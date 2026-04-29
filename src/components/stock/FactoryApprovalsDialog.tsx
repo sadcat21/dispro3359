@@ -244,7 +244,25 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       await supabase.from('stock_receipts').update({
         status: 'confirmed', approved_by: workerId, approved_at: new Date().toISOString(),
         branch_approved_by: workerId, branch_approved_at: new Date().toISOString(),
+        pallet_count: r.pallet_count || 0,
       }).eq('id', r.id);
+
+      // Add pallets to branch balance
+      if ((r.pallet_count || 0) > 0) {
+        const { data: bp } = await supabase.from('branch_pallets')
+          .select('id, quantity').eq('branch_id', r.branch_id).maybeSingle();
+        if (bp) {
+          await supabase.from('branch_pallets')
+            .update({ quantity: (Number(bp.quantity) || 0) + (r.pallet_count || 0) }).eq('id', bp.id);
+        } else {
+          await supabase.from('branch_pallets')
+            .insert({ branch_id: r.branch_id, quantity: r.pallet_count || 0 });
+        }
+        await supabase.from('pallet_movements').insert({
+          branch_id: r.branch_id, quantity: r.pallet_count || 0, movement_type: 'receipt',
+          reference_id: r.id, notes: 'استلام باليطات (موافقة مدير الفرع)', created_by: workerId,
+        });
+      }
 
       // If linked delivery, approve it as well in unified flow
       if (r.linked_delivery_id) {
@@ -364,6 +382,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         });
       });
       if (rows.length > 0) await supabase.from('stock_receipt_items').insert(rows);
+      await supabase.from('stock_receipts').update({ pallet_count: editPallets || 0 }).eq('id', r.id);
       toast.success('تم حفظ التعديلات');
       setEditingId(null);
       await fetchData();
