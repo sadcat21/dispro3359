@@ -40,6 +40,7 @@ import AttendanceButton from '@/components/attendance/AttendanceButton';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import RefreshButton from '@/components/layout/RefreshButton';
+import BranchWilayaBadges from '@/components/company-manager/BranchWilayaBadges';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -386,6 +387,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
           {/* Action icons */}
           <RefreshButton />
+          {activeRole?.custom_role_code === 'company_manager' && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           <StockConfirmationsPopover />
           <StockDisputesPopover />
