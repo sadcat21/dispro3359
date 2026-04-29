@@ -232,8 +232,19 @@ const BranchInvoiceApprovals: React.FC = () => {
                           )}
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-slate-800">{customerName}</span>
+                                {r.invoice_scope === 'private' ? (
+                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px]">
+                                    <Lock className="w-3 h-3" />
+                                    {t('branch_manual_invoice.scope_private')}
+                                  </Badge>
+                                ) : r.invoice_scope === 'public' ? (
+                                  <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px]">
+                                    <Globe2 className="w-3 h-3" />
+                                    {t('branch_manual_invoice.scope_public')}
+                                  </Badge>
+                                ) : null}
                                 <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition" />
                               </div>
                               {r.customers?.store_name && (
