@@ -1,0 +1,178 @@
+import React from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+
+interface InvoiceRequestRow {
+  id: string;
+  invoice_number: string | null;
+  status: string;
+  payment_method: string | null;
+  whatsapp_contact: string | null;
+  created_at: string;
+  products: any;
+  customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
+  worker?: { full_name: string } | null;
+}
+
+const BranchInvoiceApprovals: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { activeBranch } = useAuth();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const branchId = activeBranch?.id;
+
+  const requestsQ = useQuery({
+    queryKey: ['branch-invoice-approvals', branchId],
+    enabled: !!branchId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('manual_invoice_requests')
+        .select(`
+          id, invoice_number, status, payment_method, whatsapp_contact, created_at, products,
+          customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
+          worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
+        `)
+        .eq('branch_id', branchId!)
+        .eq('status', 'pending_branch')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as unknown as InvoiceRequestRow[];
+    },
+  });
+
+  const approve = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('manual_invoice_requests')
+        .update({
+          status: 'pending_assistant',
+          branch_approved_at: new Date().toISOString(),
+        } as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t('branch_invoice_approvals.approved_success'));
+      qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const reject = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('manual_invoice_requests')
+        .update({ status: 'rejected' } as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t('branch_invoice_approvals.rejected_success'));
+      qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const rows = requestsQ.data || [];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            {t('common.back')}
+          </Button>
+          <h1 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
+            <FileText className="w-6 h-6" />
+            {t('branch_invoice_approvals.title')}
+          </h1>
+          <div className="w-20" />
+        </div>
+
+        <Card className="shadow-lg border-blue-200">
+          <CardHeader className="bg-gradient-to-r from-blue-500 to-sky-600 text-white rounded-t-lg">
+            <CardTitle className="flex items-center justify-between">
+              <span>{t('branch_invoice_approvals.pending_list')}</span>
+              <Badge variant="secondary" className="bg-white text-blue-700">
+                {rows.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            {requestsQ.isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              </div>
+            ) : rows.length === 0 ? (
+              <div className="text-center py-12 text-slate-500">
+                <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{t('branch_invoice_approvals.no_pending')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {rows.map((r) => {
+                  const customerName = language === 'fr' && r.customers?.name_fr
+                    ? r.customers.name_fr
+                    : r.customers?.name || '—';
+                  const productCount = Array.isArray(r.products) ? r.products.length : 0;
+                  return (
+                    <div key={r.id} className="border border-blue-100 rounded-lg p-4 bg-white hover:shadow-md transition">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-1">
+                          <div className="font-semibold text-slate-800">{customerName}</div>
+                          {r.customers?.store_name && (
+                            <div className="text-sm text-slate-500">{r.customers.store_name}</div>
+                          )}
+                          <div className="text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1 pt-1">
+                            <span>{t('branch_invoice_approvals.worker')}: {r.worker?.full_name || '—'}</span>
+                            <span>{t('branch_invoice_approvals.products_count')}: {productCount}</span>
+                            {r.payment_method && <span>{t('branch_invoice_approvals.payment')}: {r.payment_method}</span>}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => approve.mutate(r.id)}
+                            disabled={approve.isPending}
+                            className="bg-green-600 hover:bg-green-700 gap-1"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            {t('branch_invoice_approvals.approve')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => reject.mutate(r.id)}
+                            disabled={reject.isPending}
+                            className="gap-1"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            {t('branch_invoice_approvals.reject')}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default BranchInvoiceApprovals;
