@@ -844,6 +844,31 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة طباعة وصل التحويل */}
+      {printReceipt && (
+        <ReceiptPrintView
+          open={!!printReceipt}
+          onOpenChange={(o) => { if (!o) setPrintReceipt(null); }}
+          type="transfer"
+          invoiceNumber={printReceipt.invoice_number}
+          date={printReceipt.created_at}
+          items={printReceipt.items.map(it => ({
+            product_name: it.product_app_name || it.product_name,
+            new_qty: it.new_qty,
+            comp_qty: it.comp_qty,
+            comp_offers_qty: it.comp_offers_qty,
+            pieces_per_box: it.pieces_per_box,
+            image_url: it.image_url,
+          }))}
+          driverInfo={{
+            driver_name: printReceipt.meta.driver_name,
+            driver_phone: printReceipt.meta.driver_phone,
+            license_plate: printReceipt.meta.license_plate,
+          }}
+          notes={printReceipt.meta.text}
+        />
+      )}
     </>
   );
 };
