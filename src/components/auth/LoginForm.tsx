@@ -170,6 +170,14 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
     iconWrapClass: 'bg-emerald-50 ring-emerald-100',
     branchTextClass: 'text-emerald-500',
   },
+  internal_supervisor: {
+    label: 'المشرفون الداخليون',
+    sectionClass: 'border-indigo-200 bg-indigo-50 text-indigo-700',
+    badgeClass: 'bg-indigo-100 text-indigo-700',
+    cardClass: 'border-indigo-200 bg-indigo-50/20 hover:border-indigo-300 hover:bg-indigo-50/40',
+    iconWrapClass: 'bg-indigo-50 ring-indigo-100',
+    branchTextClass: 'text-indigo-500',
+  },
   supervisor: {
     label: 'المشرفون',
     sectionClass: 'border-sky-200 bg-sky-50 text-sky-700',
