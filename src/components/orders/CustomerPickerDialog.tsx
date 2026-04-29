@@ -259,7 +259,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             />
           </div>
           <div className="flex items-center justify-between">
-            <label htmlFor="auto-expand" className="text-xs text-muted-foreground">فتح الأقسام تلقائياً</label>
+            <label htmlFor="auto-expand" className="text-xs text-muted-foreground">{t('customer_picker.auto_expand')}</label>
             <Switch id="auto-expand" checked={autoExpand} onCheckedChange={setAutoExpand} />
           </div>
         </div>
