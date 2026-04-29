@@ -334,10 +334,9 @@ const LoginForm: React.FC = () => {
     else setRealWorkers(result);
   };
 
+  // التصنيف الإداري يعتمد فقط على الفئة المحسوبة من الدور الرئيسي
   const isAdminQuickWorker = (worker: QuickWorker) =>
-    ADMIN_TAB_ROLES.includes(worker.role) ||
-    (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) ||
-    !worker.branch_id;
+    ADMIN_GROUP_KEYS.includes(getQuickWorkerGroupKey(worker)) || !worker.branch_id;
   const adminQuickWorkers = realWorkers.filter(isAdminQuickWorker);
   const branchQuickTabs = [...new Map(
     realWorkers
