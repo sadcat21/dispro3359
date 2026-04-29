@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
@@ -46,7 +46,7 @@ const BranchInvoiceApprovals: React.FC = () => {
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
         .eq('branch_id', branchId!)
-        .eq('status', 'pending_branch')
+        .in('status', ['pending_branch', 'pending_assistant'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
@@ -55,13 +55,9 @@ const BranchInvoiceApprovals: React.FC = () => {
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('manual_invoice_requests')
-        .update({
-          status: 'pending_assistant',
-          branch_approved_at: new Date().toISOString(),
-        } as any)
-        .eq('id', id);
+      const { error } = await (supabase as any).rpc('forward_manual_invoice_request_to_management', {
+        p_request_id: id,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -122,6 +118,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   };
 
   const rows = requestsQ.data || [];
+  const pendingBranchRows = rows.filter((r) => r.status === 'pending_branch');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
@@ -152,7 +149,7 @@ const BranchInvoiceApprovals: React.FC = () => {
             <CardTitle className="flex items-center justify-between">
               <span>{t('branch_invoice_approvals.pending_list')}</span>
               <Badge variant="secondary" className="bg-white text-blue-700">
-                {rows.length}
+                {pendingBranchRows.length}
               </Badge>
             </CardTitle>
           </CardHeader>
