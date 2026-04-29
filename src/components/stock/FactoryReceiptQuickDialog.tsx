@@ -954,6 +954,30 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <div className="text-center text-[11px] text-muted-foreground">سيُحفظ: {boxesToBP(parsedCompOffers, singlePPB)}</div>
               </div>
 
+              {receiptSource === 'factory' && (parsedComp > 0 || parsedCompOffers > 0) && (
+                <div className="space-y-2 border rounded-lg p-2.5 bg-purple-50/60 dark:bg-purple-950/20">
+                  <Label className="text-center block text-xs font-semibold text-purple-700">📋 تفاصيل التسليم للمصنع</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">N° de LOT</Label>
+                      <Input value={lotNumber} onChange={e => setLotNumber(e.target.value)} className="h-8 text-xs" placeholder="LOT 18" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Heure de fabrication</Label>
+                      <Input value={manufacturingTime} onChange={e => setManufacturingTime(e.target.value)} className="h-8 text-xs" placeholder="12H33" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Date de fabrication</Label>
+                      <Input type="date" value={manufacturingDate} onChange={e => setManufacturingDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Date de livraison</Label>
+                      <Input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button className="w-full bg-lime-600 hover:bg-lime-700" onClick={handleConfirmSingleProduct}>
                 <Plus className="w-4 h-4 ml-1" /> إضافة للاستلام
               </Button>
