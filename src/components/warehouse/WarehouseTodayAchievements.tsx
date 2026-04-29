@@ -302,6 +302,13 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <OrderDetailsDialog
+        open={!!selectedOrder}
+        onOpenChange={(o) => !o && setSelectedOrder(null)}
+        order={selectedOrder}
+        hideModifyAction
+      />
     </div>
   );
 };
