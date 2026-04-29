@@ -506,6 +506,35 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
                 </div>
               </div>
 
+              {(() => {
+                const cq = fieldsToQuantity(compQtyFields, currentPPB);
+                const coq = fieldsToQuantity(compOffersQtyFields, currentPPB);
+                if (receiptSource !== 'factory' || (cq <= 0 && coq <= 0)) return null;
+                return (
+                  <div className="space-y-2 rounded-lg border border-purple-200 bg-purple-50/60 p-2.5 dark:border-purple-900 dark:bg-purple-950/20">
+                    <Label className="block text-center text-xs font-semibold text-purple-700">📋 تفاصيل التسليم للمصنع</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">N° de LOT</Label>
+                        <Input value={lotNumber} onChange={(e) => setLotNumber(e.target.value)} className="h-8 text-xs" placeholder="LOT 18" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">Heure de fabrication</Label>
+                        <Input value={manufacturingTime} onChange={(e) => setManufacturingTime(e.target.value)} className="h-8 text-xs" placeholder="12H33" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">Date de fabrication</Label>
+                        <Input type="date" value={manufacturingDate} onChange={(e) => setManufacturingDate(e.target.value)} className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">Date de livraison</Label>
+                        <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-8 text-xs" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <Button className="w-full" onClick={confirmProductQuantities}><Plus className="w-4 h-4 ml-1" /> حفظ الكمية</Button>
               <Button type="button" variant="outline" className="w-full" onClick={() => setSingleProductId(null)}>إلغاء</Button>
             </div>
