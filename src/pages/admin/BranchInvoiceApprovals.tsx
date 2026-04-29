@@ -121,6 +121,8 @@ const BranchInvoiceApprovals: React.FC = () => {
 
   const rows = requestsQ.data || [];
   const pendingBranchRows = rows.filter((r) => r.status === 'pending_branch');
+  const forwardedRows = rows.filter((r) => r.status === 'pending_assistant');
+  const readyRows = rows.filter((r) => r.status === 'approved' && !!r.invoice_file_url);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
