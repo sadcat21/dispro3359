@@ -380,7 +380,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         {/* Footer */}
         <div className="border-t px-4 py-2.5 flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            {filteredCustomers.length} عميل
+            {filteredCustomers.length} {t('customer_picker.count')}
           </p>
           {onAddNew && (
             <Button
