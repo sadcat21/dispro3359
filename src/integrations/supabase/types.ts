@@ -7499,6 +7499,10 @@ export type Database = {
         Args: { p_worker_id: string }
         Returns: boolean
       }
+      can_manage_sector_coverage_branch: {
+        Args: { p_branch_id: string }
+        Returns: boolean
+      }
       confirm_loading_session_atomic: {
         Args: { p_session_id: string }
         Returns: Json
