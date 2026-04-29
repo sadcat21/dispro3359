@@ -44,16 +44,37 @@ const AssistantApprovals: React.FC = () => {
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [tab, setTab] = useState('factory_in');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const branchFilter = searchParams.get('branch');
+
+  // اسم الفرع المختار للعرض
+  const { data: filterBranch } = useQuery({
+    queryKey: ['filter-branch-name', branchFilter],
+    queryFn: async () => {
+      if (!branchFilter) return null;
+      const { data } = await supabase.from('branches').select('id, name, wilaya').eq('id', branchFilter).maybeSingle();
+      return data;
+    },
+    enabled: !!branchFilter,
+  });
+
+  const clearBranchFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('branch');
+    setSearchParams(next);
+  };
 
   // ===== استلامات المصنع =====
   const receiptsQ = useQuery({
-    queryKey: ['assistant-receipts'],
+    queryKey: ['assistant-receipts', branchFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('stock_receipts')
         .select('id, receipt_date, invoice_number, total_items, branch_approved_at, branch_id, branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
+      if (branchFilter) q = q.eq('branch_id', branchFilter);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as unknown as ReceiptRow[];
     },
