@@ -270,39 +270,48 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
                 ) : (
-                  <div className="divide-y">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2">
                     {filteredProducts.map((p: any) => {
                       const qty = getCartQty(p.id);
+                      const selected = qty > 0;
                       return (
-                        <div key={p.id} className="flex items-center justify-between p-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium truncate">{p.name}</div>
+                        <div
+                          key={p.id}
+                          className={`relative border rounded-lg p-2 flex flex-col items-center text-center transition ${selected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}
+                        >
+                          <div className="text-[11px] font-bold text-primary line-clamp-1 w-full">{p.name}</div>
+                          <div className="my-1 w-full h-20 flex items-center justify-center bg-muted/30 rounded">
+                            {p.image_url ? (
+                              <img src={p.image_url} alt={p.name} className="max-h-full max-w-full object-contain" loading="lazy" />
+                            ) : (
+                              <FileText className="w-8 h-8 text-muted-foreground/40" />
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1 w-full">
                             <Button
                               type="button"
                               size="icon"
                               variant="outline"
-                              className="h-8 w-8"
+                              className="h-7 w-7 shrink-0"
                               onClick={() => updateCart(p, Math.max(0, qty - 1))}
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus className="w-3 h-3" />
                             </Button>
                             <Input
                               type="number"
                               min={0}
                               value={qty}
                               onChange={(e) => updateCart(p, Math.max(0, Number(e.target.value) || 0))}
-                              className="h-8 w-16 text-center"
+                              className="h-7 px-1 text-center text-xs"
                             />
                             <Button
                               type="button"
                               size="icon"
                               variant="outline"
-                              className="h-8 w-8"
+                              className="h-7 w-7 shrink-0"
                               onClick={() => updateCart(p, qty + 1)}
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus className="w-3 h-3" />
                             </Button>
                           </div>
                         </div>
