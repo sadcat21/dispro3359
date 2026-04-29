@@ -251,15 +251,28 @@ const BranchManagerHome: React.FC = () => {
   );
 };
 
-const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'blue' | 'slate' }> = ({ label, value, icon: Icon, accent }) => {
-  const isBlue = accent === 'blue';
+const KpiCard: React.FC<{
+  label: string;
+  value: number | string;
+  icon: LucideIcon;
+  accent: 'blue' | 'slate' | 'alert';
+  onClick?: () => void;
+}> = ({ label, value, icon: Icon, accent, onClick }) => {
+  const styles = {
+    blue: { border: 'border-blue-300 bg-blue-50/60', icon: 'text-blue-600', value: 'text-blue-700' },
+    slate: { border: 'border-slate-200 bg-white', icon: 'text-slate-500', value: 'text-slate-800' },
+    alert: { border: 'border-red-300 bg-red-50/70 ring-2 ring-red-200/60 animate-pulse', icon: 'text-red-600', value: 'text-red-700' },
+  }[accent];
   return (
-    <Card className={`border ${isBlue ? 'border-blue-300 bg-blue-50/60' : 'border-slate-200 bg-white'}`}>
+    <Card
+      onClick={onClick}
+      className={`border ${styles.border} ${onClick ? 'cursor-pointer hover:shadow-md transition-all' : ''}`}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <Icon className={`w-5 h-5 ${isBlue ? 'text-blue-600' : 'text-slate-500'}`} />
+          <Icon className={`w-5 h-5 ${styles.icon}`} />
         </div>
-        <p className={`text-3xl font-bold ${isBlue ? 'text-blue-700' : 'text-slate-800'}`}>{value}</p>
+        <p className={`text-3xl font-bold ${styles.value}`}>{value}</p>
         <p className="text-xs text-slate-600 mt-1 font-medium">{label}</p>
       </CardContent>
     </Card>
