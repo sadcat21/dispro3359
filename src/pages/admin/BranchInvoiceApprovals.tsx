@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,12 +6,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 
 interface InvoiceRequestRow {
   id: string;
+  order_id: string | null;
   invoice_number: string | null;
   status: string;
   payment_method: string | null;
@@ -29,6 +31,9 @@ const BranchInvoiceApprovals: React.FC = () => {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
     enabled: !!branchId,
@@ -36,7 +41,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
-          id, invoice_number, status, payment_method, whatsapp_contact, created_at, products,
+          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
@@ -62,6 +67,8 @@ const BranchInvoiceApprovals: React.FC = () => {
     onSuccess: () => {
       toast.success(t('branch_invoice_approvals.approved_success'));
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+      qc.invalidateQueries({ queryKey: ['bm-kpis'] });
+      setSelectedOrder(null);
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -77,9 +84,42 @@ const BranchInvoiceApprovals: React.FC = () => {
     onSuccess: () => {
       toast.success(t('branch_invoice_approvals.rejected_success'));
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+      qc.invalidateQueries({ queryKey: ['bm-kpis'] });
+      setSelectedOrder(null);
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const openOrderDetails = async (row: InvoiceRequestRow) => {
+    if (!row.order_id) {
+      toast.error(t('branch_invoice_approvals.no_linked_order'));
+      return;
+    }
+    setLoadingOrderId(row.id);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          customer:customers!orders_customer_id_fkey(*),
+          assigned_worker:workers!orders_assigned_worker_id_fkey(id, full_name),
+          created_by_worker:workers!orders_created_by_fkey(id, full_name),
+          items:order_items(
+            *,
+            product:products(*)
+          )
+        `)
+        .eq('id', row.order_id)
+        .single();
+      if (error) throw error;
+      // إرفاق request_id حتى يمكن استخدامه عند الموافقة/الرفض
+      setSelectedOrder({ ...data, _invoiceRequestId: row.id, _hideModifyAction: true });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoadingOrderId(null);
+    }
+  };
 
   const rows = requestsQ.data || [];
 
@@ -96,6 +136,15 @@ const BranchInvoiceApprovals: React.FC = () => {
             {t('branch_invoice_approvals.title')}
           </h1>
           <div className="w-20" />
+        </div>
+
+        {/* شريط شرح دور مدير الفرع كوسيط */}
+        <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-start gap-3">
+          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-900">
+            <p className="font-semibold mb-1">{t('branch_invoice_approvals.role_intro_title')}</p>
+            <p className="text-blue-800/90 leading-relaxed">{t('branch_invoice_approvals.role_intro_desc')}</p>
+          </div>
         </div>
 
         <Card className="shadow-lg border-blue-200">
@@ -124,16 +173,32 @@ const BranchInvoiceApprovals: React.FC = () => {
                     ? r.customers.name_fr
                     : r.customers?.name || '—';
                   const productCount = Array.isArray(r.products) ? r.products.length : 0;
+                  const isLoadingThis = loadingOrderId === r.id;
                   return (
-                    <div key={r.id} className="border border-blue-100 rounded-lg p-4 bg-white hover:shadow-md transition">
+                    <div
+                      key={r.id}
+                      onClick={() => openOrderDetails(r)}
+                      className="border border-blue-100 rounded-lg p-4 bg-white hover:shadow-md hover:border-blue-300 transition cursor-pointer relative group"
+                    >
+                      {isLoadingThis && (
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg z-10">
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                        </div>
+                      )}
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-1">
-                          <div className="font-semibold text-slate-800">{customerName}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-800">{customerName}</span>
+                            <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition" />
+                          </div>
                           {r.customers?.store_name && (
                             <div className="text-sm text-slate-500">{r.customers.store_name}</div>
                           )}
                           <div className="text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1 pt-1">
-                            <span>{t('branch_invoice_approvals.worker')}: {r.worker?.full_name || '—'}</span>
+                            <span>
+                              {t('branch_invoice_approvals.sales_rep')}:{' '}
+                              <span className="font-medium text-slate-700">{r.worker?.full_name || '—'}</span>
+                            </span>
                             <span>{t('branch_invoice_approvals.products_count')}: {productCount}</span>
                             {r.payment_method && <span>{t('branch_invoice_approvals.payment')}: {r.payment_method}</span>}
                           </div>
@@ -141,7 +206,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                             {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2 shrink-0">
+                        <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             onClick={() => approve.mutate(r.id)}
@@ -149,7 +214,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                             className="bg-green-600 hover:bg-green-700 gap-1"
                           >
                             <CheckCircle2 className="w-4 h-4" />
-                            {t('branch_invoice_approvals.approve')}
+                            {t('branch_invoice_approvals.forward_to_top')}
                           </Button>
                           <Button
                             size="sm"
@@ -171,6 +236,14 @@ const BranchInvoiceApprovals: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* نافذة تفاصيل الطلبية — نفس المستخدمة في عملاء/منجزات اليوم */}
+      <OrderDetailsDialog
+        open={!!selectedOrder}
+        onOpenChange={(isOpen) => { if (!isOpen) setSelectedOrder(null); }}
+        order={selectedOrder}
+        hideModifyAction={true}
+      />
     </div>
   );
 };
