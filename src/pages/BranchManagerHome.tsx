@@ -87,7 +87,7 @@ const BranchManagerHome: React.FC = () => {
     queryFn: async () => {
       const [workers, customers, openSessions, activeDebts, pendingInvoices, pendingReceipts, pendingDeliveries] = await Promise.all([
         supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('branch_id', branchId!),
-        supabase.from('customers').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!),
+        supabase.from('customers').select('id', { count: 'exact', head: true }).or(`branch_id.eq.${branchId},branch_id.is.null`),
         supabase.from('accounting_sessions').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'open'),
         supabase.from('customer_debts').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).gt('remaining_amount', 0),
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'pending_branch'),
