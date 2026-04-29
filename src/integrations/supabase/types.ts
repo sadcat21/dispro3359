@@ -7462,6 +7462,10 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
+      approve_stock_receipt_two_stage: {
+        Args: { p_receipt_id: string; p_stage: string }
+        Returns: Json
+      }
       can_create_stock_confirmation_for_session: {
         Args: {
           _branch_id: string
