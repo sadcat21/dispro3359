@@ -11,12 +11,18 @@ import { toast } from 'sonner';
  * - Monitors GPS status and forces logout when GPS is turned off
  */
 const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { role, isAuthenticated, logout } = useAuth();
+  const { role, activeRole, isAuthenticated, logout } = useAuth();
   const [gpsStatus, setGpsStatus] = useState<'checking' | 'granted' | 'denied' | 'unavailable'>('checking');
   const { isLoading: workerPermsLoading } = useWorkerPermissions();
   const canBypassGpsGuard = useHasPermission('bypass_gps_guard');
 
-  const isWorker = isAuthenticated && role !== 'admin' && role !== 'branch_admin';
+  // الأدوار الإدارية المستثناة من فحص GPS (سواء كدور أساسي أو دور رئيسي)
+  const ADMIN_ROLES = ['admin', 'branch_admin', 'project_manager', 'company_manager', 'accountant', 'admin_assistant', 'supervisor'];
+  const isAdminUser =
+    ADMIN_ROLES.includes(role as string) ||
+    (activeRole?.custom_role_code && ADMIN_ROLES.includes(activeRole.custom_role_code));
+
+  const isWorker = isAuthenticated && !isAdminUser;
   const shouldEnforceGps = isWorker && !canBypassGpsGuard;
   const canCheckGps = shouldEnforceGps && !workerPermsLoading;
 
