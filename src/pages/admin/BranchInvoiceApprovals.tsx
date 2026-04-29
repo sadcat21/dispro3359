@@ -40,7 +40,7 @@ interface InvoiceRequestRow {
 
 const BranchInvoiceApprovals: React.FC = () => {
   const { t, language } = useLanguage();
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId } = useAuth();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
