@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2, Clock, ChevronDown, ChevronUp, Layers, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
@@ -15,6 +15,7 @@ import BranchManualInvoiceDialog from '@/components/admin/BranchManualInvoiceDia
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import MergeInvoicesDialog, { type PostponedRequest } from '@/components/admin/MergeInvoicesDialog';
 
 interface InvoiceRequestRow {
   id: string;
@@ -29,13 +30,17 @@ interface InvoiceRequestRow {
   invoice_file_name?: string | null;
   invoice_scope?: 'public' | 'private' | null;
   created_by_role?: string | null;
+  customer_id?: string | null;
+  worker_id?: string | null;
+  branch_id?: string | null;
+  postponed_at?: string | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
 
 const BranchInvoiceApprovals: React.FC = () => {
   const { t, language } = useLanguage();
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId } = useAuth();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
@@ -44,6 +49,8 @@ const BranchInvoiceApprovals: React.FC = () => {
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [scopeDialog, setScopeDialog] = useState<{ id: string; scope: 'public' | 'private' } | null>(null);
+  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
+  const [mergeFor, setMergeFor] = useState<{ customerId: string; customerName: string; requests: PostponedRequest[] } | null>(null);
 
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
@@ -65,12 +72,12 @@ const BranchInvoiceApprovals: React.FC = () => {
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
-          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role,
+          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role, customer_id, worker_id, branch_id, postponed_at,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
         .or(orFilter)
-        .in('status', ['pending_branch', 'pending_assistant', 'approved'])
+        .in('status', ['pending_branch', 'pending_assistant', 'approved', 'postponed'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
@@ -118,6 +125,25 @@ const BranchInvoiceApprovals: React.FC = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const postpone = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('manual_invoice_requests')
+        .update({
+          status: 'postponed',
+          postponed_at: new Date().toISOString(),
+          postponed_by: workerId,
+        } as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('تم تأجيل الفاتورة');
+      qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const openOrderDetails = async (row: InvoiceRequestRow) => {
     if (!row.order_id) {
       toast.error(t('branch_invoice_approvals.no_linked_order'));
@@ -157,6 +183,21 @@ const BranchInvoiceApprovals: React.FC = () => {
   const pendingBranchRows = rows.filter((r) => r.status === 'pending_branch');
   const forwardedRows = rows.filter((r) => r.status === 'pending_assistant');
   const readyRows = rows.filter((r) => r.status === 'approved' && !!r.invoice_file_url);
+  const postponedRows = rows.filter((r) => r.status === 'postponed');
+  const pendingTabRows = rows.filter(r => r.status === 'pending_branch' || r.status === 'pending_assistant');
+
+  // تجميع المؤجلة حسب العميل
+  const postponedByCustomer = React.useMemo(() => {
+    const map = new Map<string, { customerId: string; customerName: string; items: InvoiceRequestRow[] }>();
+    for (const r of postponedRows) {
+      const cid = r.customer_id || 'unknown';
+      const name = (language === 'fr' && r.customers?.name_fr) ? r.customers.name_fr : (r.customers?.name || '—');
+      const existing = map.get(cid);
+      if (existing) existing.items.push(r);
+      else map.set(cid, { customerId: cid, customerName: name, items: [r] });
+    }
+    return Array.from(map.values()).sort((a, b) => b.items.length - a.items.length);
+  }, [postponedRows, language]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
@@ -189,11 +230,16 @@ const BranchInvoiceApprovals: React.FC = () => {
         </div>
 
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="pending" className="gap-2">
               <FileText className="w-4 h-4" />
               {t('branch_invoice_approvals.pending_list')}
-              <Badge variant="secondary" className="ml-1">{rows.filter(r => r.status !== 'approved').length}</Badge>
+              <Badge variant="secondary" className="ml-1">{pendingTabRows.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="postponed" className="gap-2">
+              <Clock className="w-4 h-4" />
+              المؤجلة
+              <Badge variant="secondary" className="ml-1">{postponedRows.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="ready" className="gap-2">
               <Download className="w-4 h-4" />
@@ -217,14 +263,14 @@ const BranchInvoiceApprovals: React.FC = () => {
                   <div className="flex justify-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                   </div>
-                ) : (rows.filter(r => r.status !== 'approved')).length === 0 ? (
+                ) : pendingTabRows.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
                     <p>{t('branch_invoice_approvals.no_pending')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {rows.filter(r => r.status !== 'approved').map((r) => {
+                    {pendingTabRows.map((r) => {
                       const customerName = language === 'fr' && r.customers?.name_fr
                         ? r.customers.name_fr
                         : r.customers?.name || '—';
@@ -306,6 +352,16 @@ const BranchInvoiceApprovals: React.FC = () => {
                                   </Button>
                                   <Button
                                     size="sm"
+                                    variant="outline"
+                                    onClick={() => postpone.mutate(r.id)}
+                                    disabled={postpone.isPending}
+                                    className="gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                                  >
+                                    <Clock className="w-4 h-4" />
+                                    تأجيل
+                                  </Button>
+                                  <Button
+                                    size="sm"
                                     variant="destructive"
                                     onClick={() => reject.mutate(r.id)}
                                     disabled={reject.isPending}
@@ -323,6 +379,91 @@ const BranchInvoiceApprovals: React.FC = () => {
                     })}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="postponed">
+            <Card className="shadow-lg border-amber-200">
+              <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    الفواتير المؤجلة (مجمّعة حسب العميل)
+                  </span>
+                  <Badge variant="secondary" className="bg-white text-amber-700">{postponedRows.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-2">
+                {postponedByCustomer.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                    <p>لا توجد فواتير مؤجلة</p>
+                  </div>
+                ) : postponedByCustomer.map(group => {
+                  const isOpen = expandedCustomer === group.customerId;
+                  return (
+                    <div key={group.customerId} className="border border-amber-200 rounded-lg bg-white overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedCustomer(isOpen ? null : group.customerId)}
+                        className="w-full flex items-center justify-between gap-3 p-3 hover:bg-amber-50 transition"
+                      >
+                        <div className="flex items-center gap-2 flex-1 text-start">
+                          <span className="font-semibold text-slate-800">{group.customerName}</span>
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                            {group.items.length} فاتورة
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMergeFor({
+                              customerId: group.customerId,
+                              customerName: group.customerName,
+                              requests: group.items as PostponedRequest[],
+                            });
+                          }}
+                          className="gap-1 bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Layers className="w-4 h-4" />
+                          تجميع المنتجات
+                        </Button>
+                        {isOpen ? <ChevronUp className="w-4 h-4 text-amber-700" /> : <ChevronDown className="w-4 h-4 text-amber-700" />}
+                      </button>
+                      {isOpen && (
+                        <div className="border-t border-amber-100 bg-amber-50/40 p-3 space-y-2">
+                          {group.items.map(r => (
+                            <div key={r.id} className="bg-white border border-amber-100 rounded p-2 flex items-center justify-between gap-2 text-sm">
+                              <div className="flex-1">
+                                <div className="font-medium">
+                                  {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
+                                  <span className="text-xs text-muted-foreground mr-2">
+                                    {Array.isArray(r.products) ? r.products.length : 0} منتج
+                                  </span>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  المندوب: {r.worker?.full_name || '—'} •{' '}
+                                  {new Date(r.created_at).toLocaleDateString('ar')}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
+                                className="gap-1 text-green-700 hover:bg-green-50"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                إرسال فردي
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </TabsContent>
@@ -450,6 +591,17 @@ const BranchInvoiceApprovals: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة تجميع فواتير العميل المؤجلة */}
+      {mergeFor && (
+        <MergeInvoicesDialog
+          open={!!mergeFor}
+          onOpenChange={(v) => { if (!v) setMergeFor(null); }}
+          customerId={mergeFor.customerId}
+          customerName={mergeFor.customerName}
+          requests={mergeFor.requests}
+        />
+      )}
     </div>
   );
 };
