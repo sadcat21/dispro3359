@@ -154,6 +154,23 @@ const BranchInvoiceApprovals: React.FC = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // طلبات الفاتورة المعلقة (pending_assistant) لعميل محدد
+  const customerInvoicesQ = useQuery({
+    queryKey: ['branch-customer-pending-assistant', customerDialog?.id],
+    queryFn: async () => {
+      if (!customerDialog) return [];
+      const { data, error } = await supabase
+        .from('manual_invoice_requests')
+        .select('id, order_id, invoice_number, status, payment_method, total_amount, created_at, branch_approved_at, products, branches(name)')
+        .eq('customer_id', customerDialog.id)
+        .eq('status', 'pending_assistant')
+        .order('branch_approved_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!customerDialog,
+  });
+
   const openOrderDetails = async (row: InvoiceRequestRow) => {
     if (!row.order_id) {
       toast.error(t('branch_invoice_approvals.no_linked_order'));
