@@ -100,6 +100,53 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [summaryReceipt, setSummaryReceipt] = useState<ReceiptRecord | null>(null);
   const [printReceipt, setPrintReceipt] = useState<ReceiptRecord | null>(null);
 
+  const printReceiptDetails = (r: ReceiptRecord) => {
+    const linkedD = r.linked_delivery_id ? deliveries.find(d => d.id === r.linked_delivery_id) : null;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const dateStr = new Date(r.created_at).toLocaleString('fr');
+    w.document.write(`
+      <html dir="ltr"><head><title>Détails de réception</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:20px;color:#000}
+        h1{text-align:center;font-size:20px;margin-bottom:15px}
+        .box{border:1px solid #999;border-radius:5px;padding:10px;margin:10px 0}
+        .box h3{margin:0 0 8px 0;font-size:14px;border-bottom:1px solid #ccc;padding-bottom:4px}
+        .row{font-size:13px;margin:4px 0}
+        .label{color:#555}
+        table{width:100%;border-collapse:collapse;margin-top:6px}
+        th,td{border:1px solid #000;padding:5px 8px;font-size:12px;text-align:left}
+      </style></head><body>
+        <h1>Détails de réception ${r.invoice_number ? '#' + r.invoice_number : ''}</h1>
+        <div class="row"><span class="label">Date:</span> <strong>${dateStr}</strong></div>
+        <div class="row"><span class="label">Source:</span> <strong>${r.meta.source === 'branch' ? 'Autre succursale' : 'Usine'}</strong></div>
+
+        <div class="box">
+          <h3>Détails supplémentaires</h3>
+          <div class="row"><span class="label">Nombre de palettes:</span> <strong>${r.pallet_count ?? 0}</strong></div>
+          <div class="row"><span class="label">Frais de réception:</span> <strong>${(r.receipt_expenses ?? 0).toLocaleString()} DA</strong></div>
+          ${r.expenses_description ? `<div class="row"><span class="label">Description des frais:</span> ${r.expenses_description}</div>` : ''}
+        </div>
+
+        ${linkedD ? `
+          <div class="box">
+            <h3>Livraison liée</h3>
+            <div class="row"><span class="label">Date livraison:</span> <strong>${new Date(linkedD.created_at).toLocaleString('fr')}</strong></div>
+            <div class="row"><span class="label">Palettes livrées:</span> <strong>${linkedD.pallet_count ?? 0}</strong></div>
+            ${linkedD.notes ? `<div class="row"><span class="label">Remarques:</span> ${linkedD.notes}</div>` : ''}
+            <table><thead><tr><th>#</th><th>Produit</th><th>Quantité</th></tr></thead><tbody>
+              ${linkedD.items.map((it, i) => `<tr><td>${i + 1}</td><td>${it.product_app_name || it.product_name}</td><td>${it.quantity}</td></tr>`).join('')}
+            </tbody></table>
+          </div>
+        ` : ''}
+
+        ${r.meta.text ? `<div class="box"><h3>Remarques</h3><div class="row">${r.meta.text}</div></div>` : ''}
+      </body></html>
+    `);
+    w.document.close();
+    w.print();
+  };
+
   useEffect(() => {
     if (!open) return;
     if (activeBranch?.id) setBranchId(activeBranch.id);
@@ -440,6 +487,12 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
               <Button size="sm" variant="outline" className="border-blue-500 text-blue-700"
                 onClick={() => setPrintReceipt(record as ReceiptRecord)}>
                 <Printer className="w-3.5 h-3.5 ml-1" /> طباعة وصل التحويل
+              </Button>
+            )}
+            {kind === 'receipt' && (
+              <Button size="sm" variant="outline" className="border-purple-500 text-purple-700"
+                onClick={() => printReceiptDetails(record as ReceiptRecord)}>
+                <FileText className="w-3.5 h-3.5 ml-1" /> طباعة تفاصيل الاستلام
               </Button>
             )}
             <Button size="sm" variant="outline" disabled={isProcessing}
@@ -867,19 +920,6 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             license_plate: printReceipt.meta.license_plate,
           }}
           notes={printReceipt.meta.text}
-          palletCount={printReceipt.pallet_count ?? null}
-          receiptExpenses={printReceipt.receipt_expenses ?? null}
-          expensesDescription={printReceipt.expenses_description ?? null}
-          deliveryDetail={(() => {
-            if (!printReceipt.linked_delivery_id) return null;
-            const d = deliveries.find(x => x.id === printReceipt.linked_delivery_id);
-            if (!d) return null;
-            return {
-              pallet_count: d.pallet_count,
-              created_at: d.created_at,
-              notes: d.notes,
-            };
-          })()}
         />
       )}
     </>
