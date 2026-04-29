@@ -236,6 +236,10 @@ const WarehouseReview: React.FC = () => {
             expected_quantity: d.expected,
             actual_quantity: actualNum,
             status: Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit',
+            boxes_quantity: 0,
+            pieces_quantity: 0,
+            hall_quantity: 0,
+            damaged_quantity: actualNum,
           });
         }
       }
