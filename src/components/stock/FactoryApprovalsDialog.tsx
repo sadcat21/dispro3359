@@ -835,7 +835,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 };
 
