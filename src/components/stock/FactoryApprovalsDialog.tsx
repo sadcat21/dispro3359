@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Loader2, Package, Truck, Inbox, Send, CheckCircle, XCircle, Lock, Unlock,
-  Edit, Save, X, AlertTriangle, Boxes, Sparkles, Wrench, FileText, User, Phone, Car,
+  Edit, Save, X, AlertTriangle, Boxes, Sparkles, Wrench, FileText, User, Phone, Car, Printer,
 } from 'lucide-react';
+import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
