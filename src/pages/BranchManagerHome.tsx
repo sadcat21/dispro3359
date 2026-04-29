@@ -35,17 +35,19 @@ const BranchManagerHome: React.FC = () => {
     queryKey: ['bm-kpis', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [workers, customers, openSessions, activeDebts] = await Promise.all([
+      const [workers, customers, openSessions, activeDebts, pendingInvoices] = await Promise.all([
         supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('branch_id', branchId!),
         supabase.from('customers').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!),
         supabase.from('accounting_sessions').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'open'),
         supabase.from('customer_debts').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).gt('remaining_amount', 0),
+        supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'pending_branch'),
       ]);
       return {
         workers: workers.count || 0,
         customers: customers.count || 0,
         openSessions: openSessions.count || 0,
         activeDebts: activeDebts.count || 0,
+        pendingInvoices: pendingInvoices.count || 0,
       };
     },
     staleTime: 60_000,
