@@ -278,14 +278,22 @@ const LoginForm: React.FC = () => {
     const workerIds = workers.map(w => w.id);
     const { data: roles } = await supabase
       .from('worker_roles')
-      .select('worker_id, custom_role_id, custom_roles(code)')
+      .select('worker_id, custom_role_id, is_primary, is_active, custom_roles(code)')
       .in('worker_id', workerIds)
+      .eq('is_active', true)
       .not('custom_role_id', 'is', null);
 
     const funcRoleMap: Record<string, string> = {};
     if (roles) {
+      // أولاً: الأدوار الرئيسية النشطة لها الأولوية
       for (const r of roles as any[]) {
-        if (r.custom_roles?.code) {
+        if (r.is_primary && r.custom_roles?.code) {
+          funcRoleMap[r.worker_id] = r.custom_roles.code;
+        }
+      }
+      // ثانياً: من ليس له دور رئيسي، نأخذ أي دور نشط
+      for (const r of roles as any[]) {
+        if (!funcRoleMap[r.worker_id] && r.custom_roles?.code) {
           funcRoleMap[r.worker_id] = r.custom_roles.code;
         }
       }
