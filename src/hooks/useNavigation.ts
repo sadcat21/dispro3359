@@ -200,25 +200,36 @@ export const useNavigation = () => {
       };
     }
 
-    // Internal Supervisor — branch-scoped staff discipline & monitoring
+    // Internal Supervisor — يتابع رحلة العامل: مسؤول المخزن → العملاء → مدير الفرع
     if (activeRole?.custom_role_code === 'internal_supervisor') {
       return {
         main: [
           { path: '/', icon: Home, label: t('nav.home') },
           { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
           { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
+          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
         ],
         more: [
-          { path: '/manager-sales-summary', icon: BarChart3, label: t('admin_home.item.manager_sales_summary') },
-          { path: '/stats', icon: BarChart3, label: t('nav.stats') },
-          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
+          // المرحلة 1: استلام البضاعة من المخزن
+          { path: '/warehouse-review', icon: ClipboardCheck, label: t('nav.warehouse_review') },
+          { path: '/load-stock', icon: Truck, label: t('stock.load_to_worker') },
+          { path: '/stock-receipts', icon: ClipboardList, label: t('stock.receipts') },
+          // المرحلة 2: التوصيل للعملاء والتحصيل
           { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
-          { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
-          { path: '/workers', icon: Users, label: t('nav.workers') },
           { path: '/customers', icon: UserCheck, label: t('nav.customers') },
           { path: '/customer-accounts', icon: UserCog, label: t('nav.customer_accounts') },
           { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
           { path: '/customer-debts', icon: Banknote, label: t('debts.title') },
+          // المرحلة 3: التسليم لمدير الفرع
+          { path: '/worker-liability', icon: Wallet, label: t('liability.title') },
+          { path: '/daily-receipts', icon: FileText, label: t('nav.daily_receipts') },
+          { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
+          { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
+          // متابعة عامة وأداء
+          { path: '/manager-sales-summary', icon: BarChart3, label: t('admin_home.item.manager_sales_summary') },
+          { path: '/stats', icon: BarChart3, label: t('nav.stats') },
+          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
+          { path: '/workers', icon: Users, label: t('nav.workers') },
           { path: '/geo-operations', icon: Navigation, label: t('nav.geo_operations') },
           { path: '/activity-logs', icon: Activity, label: t('nav.activity_logs') },
           { path: '/guide', icon: BookOpen, label: t('nav.guide') },
