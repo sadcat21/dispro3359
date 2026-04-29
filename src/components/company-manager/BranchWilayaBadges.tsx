@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ShieldCheck } from 'lucide-react';
 import { getWilayaCode, getWilayaColor } from '@/lib/algeriaWilayas';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BranchRow {
   id: string;
@@ -30,19 +31,12 @@ const BranchWilayaBadges: React.FC = () => {
     staleTime: 60_000,
   });
 
-  // عدد الموافقات النهائية المعلقة لكل فرع
   const { data: counts } = useQuery({
     queryKey: ['cm-branch-pending-counts'],
     queryFn: async () => {
       const [receipts, invoices] = await Promise.all([
-        supabase
-          .from('stock_receipts')
-          .select('branch_id')
-          .eq('status', 'pending_assistant'),
-        supabase
-          .from('manual_invoice_requests')
-          .select('branch_id')
-          .eq('status', 'pending_assistant'),
+        supabase.from('stock_receipts').select('branch_id').eq('status', 'pending_assistant'),
+        supabase.from('manual_invoice_requests').select('branch_id').eq('status', 'pending_assistant'),
       ]);
       const map = new Map<string, number>();
       const add = (rows: any[] | null) => {
@@ -61,37 +55,44 @@ const BranchWilayaBadges: React.FC = () => {
   if (!branches || branches.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex items-center gap-1.5 shrink-0">
       {branches.map((b) => {
         const code = getWilayaCode(b.wilaya);
         const color = getWilayaColor(code);
         const pending = counts?.get(b.id) || 0;
         return (
-          <button
-            key={b.id}
-            onClick={() => navigate(`/assistant-approvals?branch=${b.id}`)}
-            title={`${b.name}${b.wilaya ? ' — ' + b.wilaya : ''}`}
-            className="relative group focus:outline-none"
-            aria-label={t('company_manager.open_branch_approvals')}
-          >
-            <div
-              className={`relative w-14 h-16 ${color.bg} ${color.text} flex flex-col items-center justify-center shadow-md ring-2 ${color.ring} ring-offset-1 transition-transform group-hover:scale-105`}
-              style={{
-                clipPath: 'polygon(50% 0%, 100% 20%, 100% 70%, 50% 100%, 0% 70%, 0% 20%)',
-              }}
-            >
-              <ShieldCheck className="w-4 h-4 opacity-80 -mb-1" />
-              <span className="text-lg font-extrabold leading-none">{code ?? '?'}</span>
-            </div>
-            {pending > 0 && (
-              <span className="absolute -top-1 -end-1 min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[11px] font-bold flex items-center justify-center shadow ring-2 ring-white">
-                {pending > 99 ? '99+' : pending}
-              </span>
-            )}
-            <span className="block mt-1 text-[10px] text-slate-700 text-center truncate max-w-[64px]">
-              {b.name}
-            </span>
-          </button>
+          <Tooltip key={b.id}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate(`/assistant-approvals?branch=${b.id}`)}
+                className="relative shrink-0 focus:outline-none"
+                aria-label={t('company_manager.open_branch_approvals')}
+              >
+                <div
+                  className={`relative w-8 h-9 ${color.bg} ${color.text} flex flex-col items-center justify-center shadow-sm ring-1 ${color.ring} hover:scale-110 transition-transform`}
+                  style={{
+                    clipPath:
+                      'polygon(50% 0%, 100% 22%, 100% 70%, 50% 100%, 0% 70%, 0% 22%)',
+                  }}
+                >
+                  <ShieldCheck className="w-2.5 h-2.5 opacity-70 -mb-0.5" />
+                  <span className="text-[11px] font-extrabold leading-none">{code ?? '?'}</span>
+                </div>
+                {pending > 0 && (
+                  <span className="absolute -top-1 -end-1 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center shadow ring-1 ring-white">
+                    {pending > 99 ? '99+' : pending}
+                  </span>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">
+                {b.name}
+                {b.wilaya ? ` — ${b.wilaya}` : ''}
+                {pending > 0 ? ` · ${pending}` : ''}
+              </p>
+            </TooltipContent>
+          </Tooltip>
         );
       })}
     </div>
