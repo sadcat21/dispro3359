@@ -49,7 +49,7 @@ const WorkerRolesManagement: React.FC = () => {
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [newCustomRoleId, setNewCustomRoleId] = useState<string>('');
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [newValidFrom, setNewValidFrom] = useState<string>('');
   const [newValidUntil, setNewValidUntil] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
