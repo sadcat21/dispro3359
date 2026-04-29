@@ -183,11 +183,18 @@ const BranchManagerHome: React.FC = () => {
           </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
             <KpiCard label={t('branch_manager.kpi_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="blue" />
             <KpiCard label={t('branch_manager.kpi_customers')} value={kpis?.customers ?? '—'} icon={UserCheck} accent="slate" />
             <KpiCard label={t('branch_manager.kpi_open_sessions')} value={kpis?.openSessions ?? '—'} icon={BookOpenCheck} accent="blue" />
             <KpiCard label={t('branch_manager.kpi_active_debts')} value={kpis?.activeDebts ?? '—'} icon={Banknote} accent="slate" />
+            <KpiCard
+              label={t('branch_manager.kpi_pending_invoices')}
+              value={kpis?.pendingInvoices ?? '—'}
+              icon={ShieldCheck}
+              accent={kpis?.pendingInvoices ? 'alert' : 'blue'}
+              onClick={() => navigate('/branch-invoice-approvals')}
+            />
           </div>
         </div>
       </div>
