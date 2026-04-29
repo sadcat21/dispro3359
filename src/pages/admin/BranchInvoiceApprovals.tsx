@@ -656,6 +656,45 @@ const BranchInvoiceApprovals: React.FC = () => {
         onOpenChange={setCreateDialogOpen}
       />
 
+      {/* نافذة طلبات الفاتورة المعلقة (مرحلة المدير) لعميل محدد */}
+      <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) setCustomerDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              طلبات الفاتورة المعلقة لدى الإدارة — {customerDialog?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {customerInvoicesQ.isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
+            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة لدى الإدارة لهذا العميل</p>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
+              <p className="text-sm text-muted-foreground">
+                العدد الإجمالي: <span className="font-bold text-foreground">{customerInvoicesQ.data!.length}</span>
+              </p>
+              {customerInvoicesQ.data!.map((r: any) => (
+                <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline">{r.branches?.name || '—'}</Badge>
+                    {r.payment_method && <Badge variant="secondary">{r.payment_method}</Badge>}
+                    <span className="font-bold text-slate-800">
+                      {Number(r.total_amount || 0).toLocaleString('ar')} دج
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    فاتورة #{r.invoice_number || '—'} • {Array.isArray(r.products) ? r.products.length : 0} منتج •{' '}
+                    {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* نافذة اختيار نوع الفاتورة قبل التحويل للإدارة العليا */}
       <Dialog open={!!scopeDialog} onOpenChange={(v) => { if (!v) setScopeDialog(null); }}>
         <DialogContent className="max-w-md">
