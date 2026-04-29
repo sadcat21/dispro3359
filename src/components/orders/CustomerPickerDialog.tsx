@@ -284,7 +284,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                   onClick={onAddNew}
                 >
                   <UserPlus className="w-4 h-4" />
-                  إضافة عميل جديد
+                  {t('customer_picker.add_new')}
                 </Button>
               )}
             </div>
