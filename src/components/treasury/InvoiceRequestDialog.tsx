@@ -242,7 +242,7 @@ const InvoiceRequestDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       products: cart.map(i => ({ productId: i.productId, productName: i.productName, quantity: i.quantity })),
       payment_method: selectedPayment || null,
       whatsapp_contact: whatsappContact,
-      status: 'sent',
+      status: 'pending_branch',
     } as any);
     if (error) console.error('Failed to save manual request:', error);
     else queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
