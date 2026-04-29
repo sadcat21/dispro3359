@@ -58,6 +58,8 @@ interface ReceiptRecord {
   rejection_note: string | null;
   linked_delivery_id: string | null;
   pallet_count?: number;
+  receipt_expenses?: number;
+  expenses_description?: string | null;
   items: ReceiptItemDetail[];
   meta: ReturnType<typeof parseReceiptMeta>;
 }
@@ -94,6 +96,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [editPallets, setEditPallets] = useState(0);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState('');
+  const [summaryReceipt, setSummaryReceipt] = useState<ReceiptRecord | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -592,7 +595,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
               )}
 
-              {renderActionsBar('receipt', r, () => approveReceipt(r), () => saveReceiptEdits(r), () => startEditReceipt(r))}
+              {renderActionsBar('receipt', r, () => setSummaryReceipt(r), () => saveReceiptEdits(r), () => startEditReceipt(r))}
             </div>
           )}
         </div>
@@ -727,6 +730,110 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* نافذة ملخص الإرسال للإدارة */}
+      <Dialog open={!!summaryReceipt} onOpenChange={(o) => { if (!o) setSummaryReceipt(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              ملخص الإرسال للإدارة العليا
+            </DialogTitle>
+          </DialogHeader>
+
+          {summaryReceipt && (
+            <div id="receipt-summary-print" className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
+                <div><span className="text-muted-foreground">رقم الفاتورة:</span> <strong>{summaryReceipt.invoice_number || '—'}</strong></div>
+                <div><span className="text-muted-foreground">التاريخ:</span> <strong>{new Date(summaryReceipt.created_at).toLocaleString('ar')}</strong></div>
+                <div><span className="text-muted-foreground">المُنشئ:</span> <strong>{summaryReceipt.creator_name || '—'}</strong></div>
+                <div><span className="text-muted-foreground">المصدر:</span> <strong>{summaryReceipt.meta.source === 'branch' ? 'فرع آخر' : 'المصنع'}</strong></div>
+                {summaryReceipt.meta.driver_name && (
+                  <div><span className="text-muted-foreground">السائق:</span> <strong>{summaryReceipt.meta.driver_name}</strong></div>
+                )}
+                {summaryReceipt.meta.license_plate && (
+                  <div><span className="text-muted-foreground">رقم اللوحة:</span> <strong>{summaryReceipt.meta.license_plate}</strong></div>
+                )}
+              </div>
+
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="p-2 text-right">المنتج</th>
+                      <th className="p-2 text-center text-emerald-700">جديد</th>
+                      <th className="p-2 text-center text-amber-700">تعويض تالف</th>
+                      <th className="p-2 text-center text-purple-700">تعويض عروض</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summaryReceipt.items.map((it) => (
+                      <tr key={it.id} className="border-t">
+                        <td className="p-2">{getProductDisplayName({ name: it.product_name, app_name: it.product_app_name })}</td>
+                        <td className="p-2 text-center font-semibold">{fmt(it.new_qty, it.pieces_per_box)}</td>
+                        <td className="p-2 text-center">{fmt(it.comp_qty, it.pieces_per_box)}</td>
+                        <td className="p-2 text-center">{fmt(it.comp_offers_qty, it.pieces_per_box)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 border rounded-lg bg-amber-50 dark:bg-amber-950/20">
+                  <div className="text-xs text-muted-foreground">🪵 عدد الباليطات</div>
+                  <div className="text-lg font-bold">{summaryReceipt.pallet_count || 0}</div>
+                </div>
+                <div className="p-3 border rounded-lg bg-rose-50 dark:bg-rose-950/20">
+                  <div className="text-xs text-muted-foreground">💰 مصاريف الاستلام</div>
+                  <div className="text-lg font-bold">{(summaryReceipt.receipt_expenses || 0).toLocaleString()} دج</div>
+                  {summaryReceipt.expenses_description && (
+                    <div className="text-[10px] text-muted-foreground mt-1">{summaryReceipt.expenses_description}</div>
+                  )}
+                </div>
+              </div>
+
+              {summaryReceipt.meta.text && (
+                <div className="p-2 border rounded text-xs bg-muted/20">
+                  <span className="text-muted-foreground">ملاحظات: </span>{summaryReceipt.meta.text}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-3 border-t no-print">
+            <Button variant="outline" className="flex-1" onClick={() => {
+              const node = document.getElementById('receipt-summary-print');
+              if (!node) return;
+              const w = window.open('', '_blank', 'width=800,height=600');
+              if (!w) return;
+              w.document.write(`<html dir="rtl"><head><title>ملخص الاستلام</title>
+                <style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}</style>
+                </head><body><h2>ملخص الاستلام للإدارة</h2>${node.innerHTML}</body></html>`);
+              w.document.close();
+              w.focus();
+              setTimeout(() => { w.print(); w.close(); }, 300);
+            }}>
+              <FileText className="w-4 h-4 ml-1" /> طباعة
+            </Button>
+            <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+              disabled={processingId === summaryReceipt?.id}
+              onClick={async () => {
+                if (!summaryReceipt) return;
+                await approveReceipt(summaryReceipt);
+                setSummaryReceipt(null);
+              }}>
+              {processingId === summaryReceipt?.id
+                ? <Loader2 className="w-4 h-4 animate-spin ml-1" />
+                : <Send className="w-4 h-4 ml-1" />}
+              تأكيد الإرسال للإدارة
+            </Button>
+            <Button variant="ghost" onClick={() => setSummaryReceipt(null)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };

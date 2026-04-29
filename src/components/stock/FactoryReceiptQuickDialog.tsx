@@ -92,6 +92,8 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [invoicePhoto, setInvoicePhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [palletCount, setPalletCount] = useState(0);
+  const [receiptExpenses, setReceiptExpenses] = useState(0);
+  const [expensesDescription, setExpensesDescription] = useState('');
   const [tab, setTab] = useState<'create' | 'pending'>('create');
   const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
   const [isLoadingPending, setIsLoadingPending] = useState(false);
@@ -224,6 +226,8 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           }),
           total_items: validItems.length,
           pallet_count: palletCount || 0,
+          receipt_expenses: receiptExpenses || 0,
+          expenses_description: expensesDescription || null,
           status,
         })
         .select()
@@ -373,6 +377,8 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     setInvoicePhoto(null);
     setPhotoPreview(null);
     setPalletCount(0);
+    setReceiptExpenses(0);
+    setExpensesDescription('');
     setReceiptSource('factory');
     setDriverName('');
     setDriverPhone('');
@@ -535,6 +541,25 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <div>
                   <Label className="text-xs">🪵 باليطات</Label>
                   <Input type="number" min={0} value={palletCount} onChange={e => setPalletCount(parseInt(e.target.value) || 0)} className="text-center h-8 text-sm" />
+                </div>
+              </div>
+
+              {/* Receipt Expenses (e.g., external worker fee) */}
+              <div className="border rounded-lg p-2.5 bg-amber-50/40 dark:bg-amber-950/20 space-y-2">
+                <Label className="text-xs font-semibold">💰 مصاريف الاستلام</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">المبلغ (دج)</Label>
+                    <Input type="number" min={0} value={receiptExpenses}
+                      onChange={e => setReceiptExpenses(parseFloat(e.target.value) || 0)}
+                      className="text-center h-8 text-sm" placeholder="0" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">الوصف</Label>
+                    <Input value={expensesDescription}
+                      onChange={e => setExpensesDescription(e.target.value)}
+                      className="h-8 text-xs" placeholder="مثال: عامل خارجي" />
+                  </div>
                 </div>
               </div>
 

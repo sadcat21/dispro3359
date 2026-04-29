@@ -5883,6 +5883,7 @@ export type Database = {
           branch_id: string | null
           created_at: string
           created_by: string
+          expenses_description: string | null
           frozen_at: string | null
           frozen_by: string | null
           id: string
@@ -5892,6 +5893,7 @@ export type Database = {
           notes: string | null
           pallet_count: number
           receipt_date: string
+          receipt_expenses: number
           rejection_note: string | null
           status: string
           total_items: number | null
@@ -5907,6 +5909,7 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by: string
+          expenses_description?: string | null
           frozen_at?: string | null
           frozen_by?: string | null
           id?: string
@@ -5916,6 +5919,7 @@ export type Database = {
           notes?: string | null
           pallet_count?: number
           receipt_date?: string
+          receipt_expenses?: number
           rejection_note?: string | null
           status?: string
           total_items?: number | null
@@ -5931,6 +5935,7 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          expenses_description?: string | null
           frozen_at?: string | null
           frozen_by?: string | null
           id?: string
@@ -5940,6 +5945,7 @@ export type Database = {
           notes?: string | null
           pallet_count?: number
           receipt_date?: string
+          receipt_expenses?: number
           rejection_note?: string | null
           status?: string
           total_items?: number | null
