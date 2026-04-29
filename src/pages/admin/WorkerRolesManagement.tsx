@@ -317,7 +317,7 @@ const WorkerRolesManagement: React.FC = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 space-y-4" dir="rtl">
+    <div className="container mx-auto p-4 space-y-4" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="flex items-center gap-2">
         {selectedWorkerId && (
           <button
