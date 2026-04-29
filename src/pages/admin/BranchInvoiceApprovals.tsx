@@ -390,6 +390,60 @@ const BranchInvoiceApprovals: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="postponed">
+            {/* بطاقات الفواتير الموحَّدة (تم تجميعها وأُرسلت للإدارة) */}
+            {mergedParentRows.length > 0 && (
+              <Card className="shadow-lg border-blue-300 mb-4">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Layers className="w-5 h-5" />
+                      الفواتير الموحَّدة المُرسَلة للإدارة
+                    </span>
+                    <Badge variant="secondary" className="bg-white text-blue-700">{mergedParentRows.length}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-2">
+                  {mergedParentRows.map((r) => {
+                    const customerName = language === 'fr' && r.customers?.name_fr
+                      ? r.customers.name_fr
+                      : r.customers?.name || '—';
+                    const itemsCount = Array.isArray(r.products) ? r.products.length : 0;
+                    const mergedCount = Array.isArray(r.merged_request_ids) ? r.merged_request_ids.length : 0;
+                    return (
+                      <div
+                        key={r.id}
+                        className="border border-blue-200 rounded-lg bg-white p-3 flex items-center justify-between gap-3 flex-wrap"
+                      >
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1">
+                              <Layers className="w-3 h-3" />
+                              فاتورة موحَّدة
+                            </Badge>
+                            <span className="font-semibold text-slate-800 truncate">{customerName}</span>
+                          </div>
+                          <div className="text-xs text-slate-600">
+                            تم تجميع <strong className="text-blue-700">{mergedCount}</strong> فاتورة •{' '}
+                            <strong className="text-blue-700">{itemsCount}</strong> منتج •{' '}
+                            {new Date(r.created_at).toLocaleString('ar')}
+                          </div>
+                          {r.payment_method && (
+                            <div className="text-xs text-slate-500">
+                              طريقة الدفع: <span className="font-medium text-slate-700">{r.payment_method}</span>
+                            </div>
+                          )}
+                        </div>
+                        <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1">
+                          <Clock3 className="w-3 h-3" />
+                          بانتظار اعتماد الإدارة
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="shadow-lg border-amber-200">
               <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
                 <CardTitle className="flex items-center justify-between">
