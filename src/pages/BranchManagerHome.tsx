@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,6 +18,7 @@ interface BMItem {
   label: string;
   icon: LucideIcon;
   path: string;
+  badge?: number;
 }
 interface BMSection {
   titleKey: string;
@@ -28,8 +30,53 @@ const BranchManagerHome: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { user, activeBranch } = useAuth();
+  const queryClient = useQueryClient();
 
   const branchId = activeBranch?.id;
+
+  // Realtime: تنبيه فوري عند وصول طلب فاتورة جديد للفرع
+  useEffect(() => {
+    if (!branchId) return;
+    const channel = supabase
+      .channel(`branch-invoice-requests-${branchId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'manual_invoice_requests',
+          filter: `branch_id=eq.${branchId}`,
+        },
+        (payload: any) => {
+          if (payload?.new?.status === 'pending_branch') {
+            toast.info(t('branch_invoice_approvals.new_request_toast'), {
+              action: {
+                label: t('branch_invoice_approvals.review'),
+                onClick: () => navigate('/branch-invoice-approvals'),
+              },
+            });
+            queryClient.invalidateQueries({ queryKey: ['bm-kpis', branchId] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'manual_invoice_requests',
+          filter: `branch_id=eq.${branchId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['bm-kpis', branchId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [branchId, navigate, queryClient, t]);
+
 
   const { data: kpis } = useQuery({
     queryKey: ['bm-kpis', branchId],
@@ -89,7 +136,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'expenses_management', label: t('branch_manager.expenses_management'), icon: Receipt, path: '/expenses-management' },
         { key: 'shared_invoices', label: t('nav.shared_invoices'), icon: FileText, path: '/shared-invoices' },
-        { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: ShieldCheck, path: '/branch-invoice-approvals' },
+        { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: ShieldCheck, path: '/branch-invoice-approvals', badge: kpis?.pendingInvoices },
       ],
     },
     {
@@ -136,11 +183,18 @@ const BranchManagerHome: React.FC = () => {
           </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
             <KpiCard label={t('branch_manager.kpi_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="blue" />
             <KpiCard label={t('branch_manager.kpi_customers')} value={kpis?.customers ?? '—'} icon={UserCheck} accent="slate" />
             <KpiCard label={t('branch_manager.kpi_open_sessions')} value={kpis?.openSessions ?? '—'} icon={BookOpenCheck} accent="blue" />
             <KpiCard label={t('branch_manager.kpi_active_debts')} value={kpis?.activeDebts ?? '—'} icon={Banknote} accent="slate" />
+            <KpiCard
+              label={t('branch_manager.kpi_pending_invoices')}
+              value={kpis?.pendingInvoices ?? '—'}
+              icon={ShieldCheck}
+              accent={kpis?.pendingInvoices ? 'alert' : 'blue'}
+              onClick={() => navigate('/branch-invoice-approvals')}
+            />
           </div>
         </div>
       </div>
@@ -159,15 +213,27 @@ const BranchManagerHome: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {section.items.map((item) => {
                   const Icon = item.icon;
+                  const showBadge = typeof item.badge === 'number' && item.badge > 0;
                   return (
                     <Card
                       key={item.key}
                       onClick={() => navigate(item.path)}
-                      className="group cursor-pointer border-slate-200 bg-white hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/10 transition-all"
+                      className={`group cursor-pointer bg-white hover:shadow-md transition-all relative ${
+                        showBadge
+                          ? 'border-red-300 ring-2 ring-red-200/60 hover:border-red-400 hover:shadow-red-500/10'
+                          : 'border-slate-200 hover:border-blue-400 hover:shadow-blue-500/10'
+                      }`}
                     >
+                      {showBadge && (
+                        <Badge className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[24px] h-6 flex items-center justify-center px-1.5 animate-pulse">
+                          {item.badge}
+                        </Badge>
+                      )}
                       <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                          <Icon className="w-6 h-6 text-blue-600 group-hover:text-blue-700" />
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                          showBadge ? 'bg-red-50 group-hover:bg-red-100' : 'bg-blue-50 group-hover:bg-blue-100'
+                        }`}>
+                          <Icon className={`w-6 h-6 ${showBadge ? 'text-red-600' : 'text-blue-600 group-hover:text-blue-700'}`} />
                         </div>
                         <p className="text-sm font-medium text-slate-800 leading-tight">
                           {item.label}
@@ -185,15 +251,28 @@ const BranchManagerHome: React.FC = () => {
   );
 };
 
-const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'blue' | 'slate' }> = ({ label, value, icon: Icon, accent }) => {
-  const isBlue = accent === 'blue';
+const KpiCard: React.FC<{
+  label: string;
+  value: number | string;
+  icon: LucideIcon;
+  accent: 'blue' | 'slate' | 'alert';
+  onClick?: () => void;
+}> = ({ label, value, icon: Icon, accent, onClick }) => {
+  const styles = {
+    blue: { border: 'border-blue-300 bg-blue-50/60', icon: 'text-blue-600', value: 'text-blue-700' },
+    slate: { border: 'border-slate-200 bg-white', icon: 'text-slate-500', value: 'text-slate-800' },
+    alert: { border: 'border-red-300 bg-red-50/70 ring-2 ring-red-200/60 animate-pulse', icon: 'text-red-600', value: 'text-red-700' },
+  }[accent];
   return (
-    <Card className={`border ${isBlue ? 'border-blue-300 bg-blue-50/60' : 'border-slate-200 bg-white'}`}>
+    <Card
+      onClick={onClick}
+      className={`border ${styles.border} ${onClick ? 'cursor-pointer hover:shadow-md transition-all' : ''}`}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <Icon className={`w-5 h-5 ${isBlue ? 'text-blue-600' : 'text-slate-500'}`} />
+          <Icon className={`w-5 h-5 ${styles.icon}`} />
         </div>
-        <p className={`text-3xl font-bold ${isBlue ? 'text-blue-700' : 'text-slate-800'}`}>{value}</p>
+        <p className={`text-3xl font-bold ${styles.value}`}>{value}</p>
         <p className="text-xs text-slate-600 mt-1 font-medium">{label}</p>
       </CardContent>
     </Card>
