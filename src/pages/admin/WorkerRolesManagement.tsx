@@ -382,105 +382,152 @@ const WorkerRolesManagement: React.FC = () => {
               {t('worker_roles.add_role')}
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {rolesLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : workerRoles?.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">{t('worker_roles.no_roles')}</p>
             ) : (
-              workerRoles?.map(r => {
-                const effective = isRoleEffective(r);
-                const roleName = r.custom_roles?.name_ar || r.role;
-                return (
-                  <div key={r.id} className="border rounded-lg p-4 space-y-3 bg-card">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={effective ? 'default' : 'secondary'}>
-                          {effective ? <ShieldCheck className="w-3 h-3 ml-1" /> : <ShieldOff className="w-3 h-3 ml-1" />}
-                          {roleName}
-                        </Badge>
-                        {r.is_primary && r.is_active && (
-                          <Badge className="bg-amber-500 hover:bg-amber-500 text-white">⭐ {t('worker_roles.primary_role')}</Badge>
-                        )}
-                        {!r.is_primary && r.is_active && (
-                          <Badge variant="outline">{t('worker_roles.secondary_role')}</Badge>
-                        )}
-                        {!r.is_active && <Badge variant="outline">{t('worker_roles.disabled_manually')}</Badge>}
-                        {r.valid_until && new Date(r.valid_until) < new Date() && (
-                          <Badge variant="destructive">{t('worker_roles.expired')}</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {r.is_active && !r.is_primary && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {workerRoles?.map((r, index) => {
+                  const effective = isRoleEffective(r);
+                  const roleName = r.custom_roles?.name_ar || r.role;
+                  const colorSet = WORKER_CARD_COLORS[index % WORKER_CARD_COLORS.length];
+                  const isPrimary = r.is_primary && r.is_active;
+                  const isExpired = r.valid_until && new Date(r.valid_until) < new Date();
+
+                  return (
+                    <div
+                      key={r.id}
+                      className={`relative rounded-2xl border-2 overflow-hidden transition-all hover:shadow-xl ${
+                        isPrimary
+                          ? 'border-amber-400 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/40 dark:via-yellow-950/30 dark:to-orange-950/40 shadow-lg shadow-amber-200/50'
+                          : !r.is_active
+                          ? 'border-muted bg-muted/30 opacity-70'
+                          : `${colorSet.border} ${colorSet.bg}`
+                      }`}
+                    >
+                      {/* شريط علوي للدور الرئيسي */}
+                      {isPrimary && (
+                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500" />
+                      )}
+
+                      {/* رأس البطاقة */}
+                      <div className="p-4 pb-3">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                              isPrimary
+                                ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md'
+                                : effective ? colorSet.icon : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {isPrimary ? <span className="text-2xl">⭐</span> : effective ? <ShieldCheck className="w-6 h-6" /> : <ShieldOff className="w-6 h-6" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-bold text-sm leading-tight truncate text-foreground">{roleName}</h3>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {isPrimary && (
+                                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                                    {t('worker_roles.primary_role')}
+                                  </span>
+                                )}
+                                {!r.is_primary && r.is_active && (
+                                  <span className="text-[10px] font-medium text-muted-foreground">{t('worker_roles.secondary_role')}</span>
+                                )}
+                                {!r.is_active && (
+                                  <span className="text-[10px] font-medium text-muted-foreground">{t('worker_roles.disabled_manually')}</span>
+                                )}
+                                {isExpired && (
+                                  <span className="text-[10px] font-bold text-destructive">• {t('worker_roles.expired')}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              await supabase.from('worker_roles').update({ is_primary: false } as any).eq('worker_id', r.worker_id);
-                              await supabase.from('worker_roles').update({ is_primary: true } as any).eq('id', r.id);
-                              qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
-                              toast.success(t('worker_roles.set_primary'));
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => {
+                              if (confirm(t('worker_roles.confirm_delete'))) deleteMutation.mutate(r.id);
                             }}
                           >
-                            ⭐ {t('worker_roles.set_primary')}
+                            <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
+                        </div>
+
+                        {/* أزرار التحكم */}
+                        <div className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-background/60 backdrop-blur-sm border">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={r.is_active}
+                              onCheckedChange={(checked) => toggleMutation.mutate({ id: r.id, is_active: checked })}
+                            />
+                            <Label className="text-xs font-semibold">{t('worker_roles.enabled')}</Label>
+                          </div>
+                          {r.is_active && !r.is_primary && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-[11px] px-2 border-amber-400 text-amber-700 hover:bg-amber-50"
+                              onClick={async () => {
+                                await supabase.from('worker_roles').update({ is_primary: false } as any).eq('worker_id', r.worker_id);
+                                await supabase.from('worker_roles').update({ is_primary: true } as any).eq('id', r.id);
+                                qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
+                                toast.success(t('worker_roles.set_primary'));
+                              }}
+                            >
+                              ⭐ {t('worker_roles.set_primary')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* قسم التواريخ */}
+                      <div className="px-4 pb-4 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-[10px] flex items-center gap-1 text-muted-foreground mb-1">
+                              <Calendar className="w-3 h-3" /> {t('worker_roles.from_date')}
+                            </Label>
+                            <Input
+                              type="datetime-local"
+                              className="h-8 text-xs"
+                              defaultValue={formatDateInput(r.valid_from)}
+                              onBlur={(e) => {
+                                const newVal = e.target.value ? new Date(e.target.value).toISOString() : null;
+                                if (newVal !== r.valid_from) {
+                                  updateDatesMutation.mutate({ id: r.id, valid_from: newVal, valid_until: r.valid_until });
+                                }
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-[10px] flex items-center gap-1 text-muted-foreground mb-1">
+                              <Calendar className="w-3 h-3" /> {t('worker_roles.to_date')}
+                            </Label>
+                            <Input
+                              type="datetime-local"
+                              className="h-8 text-xs"
+                              defaultValue={formatDateInput(r.valid_until)}
+                              onBlur={(e) => {
+                                const newVal = e.target.value ? new Date(e.target.value).toISOString() : null;
+                                if (newVal !== r.valid_until) {
+                                  updateDatesMutation.mutate({ id: r.id, valid_from: r.valid_from, valid_until: newVal });
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {r.notes && (
+                          <p className="text-[11px] text-muted-foreground bg-background/60 rounded-md p-2 border">
+                            📝 {r.notes}
+                          </p>
                         )}
-                        <Label className="text-xs">{t('worker_roles.enabled')}</Label>
-                        <Switch
-                          checked={r.is_active}
-                          onCheckedChange={(checked) => toggleMutation.mutate({ id: r.id, is_active: checked })}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm(t('worker_roles.confirm_delete'))) deleteMutation.mutate(r.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {t('worker_roles.from_date')}
-                        </Label>
-                        <Input
-                          type="datetime-local"
-                          defaultValue={formatDateInput(r.valid_from)}
-                          onBlur={(e) => {
-                            const newVal = e.target.value ? new Date(e.target.value).toISOString() : null;
-                            const oldVal = r.valid_from;
-                            if (newVal !== oldVal) {
-                              updateDatesMutation.mutate({ id: r.id, valid_from: newVal, valid_until: r.valid_until });
-                            }
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {t('worker_roles.to_date')}
-                        </Label>
-                        <Input
-                          type="datetime-local"
-                          defaultValue={formatDateInput(r.valid_until)}
-                          onBlur={(e) => {
-                            const newVal = e.target.value ? new Date(e.target.value).toISOString() : null;
-                            const oldVal = r.valid_until;
-                            if (newVal !== oldVal) {
-                              updateDatesMutation.mutate({ id: r.id, valid_from: r.valid_from, valid_until: newVal });
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {r.notes && <p className="text-xs text-muted-foreground">📝 {r.notes}</p>}
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </CardContent>
         </Card>
