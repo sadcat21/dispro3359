@@ -1905,6 +1905,10 @@ export type Database = {
       }
       factory_orders: {
         Row: {
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
           branch_id: string | null
           confirmed_at: string | null
           created_at: string
@@ -1917,6 +1921,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -1929,6 +1937,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -1941,6 +1953,34 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "factory_orders_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "factory_orders_branch_id_fkey"
             columns: ["branch_id"]
@@ -2490,6 +2530,10 @@ export type Database = {
       }
       manual_invoice_requests: {
         Row: {
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
           branch_id: string | null
           created_at: string
           customer_id: string
@@ -2505,6 +2549,10 @@ export type Database = {
           worker_id: string
         }
         Insert: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
           customer_id: string
@@ -2520,6 +2568,10 @@ export type Database = {
           worker_id: string
         }
         Update: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
           customer_id?: string
@@ -2535,6 +2587,34 @@ export type Database = {
           worker_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "manual_invoice_requests_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "manual_invoice_requests_branch_id_fkey"
             columns: ["branch_id"]
@@ -5040,6 +5120,93 @@ export type Database = {
           },
         ]
       }
+      shared_invoices: {
+        Row: {
+          created_at: string
+          customer_name: string
+          downloaded_at: string | null
+          downloaded_by: string | null
+          id: string
+          invoice_date: string
+          invoice_number: string
+          notes: string | null
+          pdf_path: string
+          pdf_url: string
+          printed_at: string | null
+          target_branch_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          downloaded_at?: string | null
+          downloaded_by?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          notes?: string | null
+          pdf_path: string
+          pdf_url: string
+          printed_at?: string | null
+          target_branch_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          downloaded_at?: string | null
+          downloaded_by?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          notes?: string | null
+          pdf_path?: string
+          pdf_url?: string
+          printed_at?: string | null
+          target_branch_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_invoices_downloaded_by_fkey"
+            columns: ["downloaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_downloaded_by_fkey"
+            columns: ["downloaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_target_branch_id_fkey"
+            columns: ["target_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stamp_price_tiers: {
         Row: {
           created_at: string
@@ -5638,6 +5805,10 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
           branch_id: string | null
           created_at: string
           created_by: string
@@ -5653,6 +5824,10 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
           created_by: string
@@ -5668,6 +5843,10 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
           created_by?: string
@@ -5691,6 +5870,34 @@ export type Database = {
           {
             foreignKeyName: "stock_receipts_approved_by_fkey"
             columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
             isOneToOne: false
             referencedRelation: "workers_safe"
             referencedColumns: ["id"]
