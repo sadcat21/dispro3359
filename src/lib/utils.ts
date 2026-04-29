@@ -15,3 +15,8 @@ export function isAdminRole(role: AppRole | null | undefined): boolean {
 export function isSuperAdminRole(role: AppRole | null | undefined): boolean {
   return role === 'admin' || role === 'project_manager';
 }
+
+/** Returns true if the role is the executive Company Manager */
+export function isCompanyManagerRole(role: AppRole | null | undefined): boolean {
+  return role === 'company_manager';
+}
