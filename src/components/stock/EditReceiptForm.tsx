@@ -17,6 +17,10 @@ interface EditItem {
   new_quantity: number;
   compensation_quantity: number;
   compensation_offers_quantity: number;
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
 }
 
 interface BoxPieceFields {
