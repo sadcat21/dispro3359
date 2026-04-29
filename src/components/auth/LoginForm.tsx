@@ -67,7 +67,7 @@ const ROLE_ICONS: Record<string, LucideIcon> = {
 
 const ROLE_LABEL_AR: Record<string, string> = {
   admin: 'مدير',
-  company_manager: 'مسير الشركة',
+  company_manager: 'مساعد المدير العام',
   project_manager: 'مدير مشروع',
   branch_admin: 'مدير فرع',
   accountant: 'محاسب',
@@ -130,7 +130,7 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
     branchTextClass: 'text-rose-500',
   },
   company_manager: {
-    label: 'مسير الشركة',
+    label: 'مساعد المدير العام',
     sectionClass: 'border-amber-300 bg-gradient-to-r from-amber-50 to-emerald-50 text-amber-800',
     badgeClass: 'bg-amber-100 text-amber-800',
     cardClass: 'border-amber-300 bg-gradient-to-br from-amber-50/40 to-emerald-50/30 hover:border-amber-400 hover:from-amber-50/60 hover:to-emerald-50/50',
