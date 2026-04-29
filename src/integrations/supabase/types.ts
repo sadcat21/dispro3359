@@ -2540,6 +2540,7 @@ export type Database = {
           id: string
           invoice_number: string | null
           notes: string | null
+          order_id: string | null
           payment_method: string | null
           products: Json
           received_at: string | null
@@ -2559,6 +2560,7 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           notes?: string | null
+          order_id?: string | null
           payment_method?: string | null
           products?: Json
           received_at?: string | null
@@ -2578,6 +2580,7 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           notes?: string | null
+          order_id?: string | null
           payment_method?: string | null
           products?: Json
           received_at?: string | null
@@ -2627,6 +2630,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
