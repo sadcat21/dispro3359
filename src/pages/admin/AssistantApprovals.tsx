@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ReceiptRow {
