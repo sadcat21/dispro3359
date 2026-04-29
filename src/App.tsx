@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { isAdminRole } from "@/lib/utils";
+import { isAdminRole, isCompanyManagerRole } from "@/lib/utils";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";
 import { SelectedWorkerProvider } from "@/contexts/SelectedWorkerContext";
@@ -105,18 +105,20 @@ const ProtectedRoute: React.FC<{
     return <Navigate to="/login" replace />;
   }
 
+  const customCode = activeRole?.custom_role_code;
+  // مسير الشركة له صلاحيات إدارية كاملة على جميع المسارات
+  const isCompanyManager = isCompanyManagerRole(customCode);
+
   // Check for specific allowed roles (includes custom role codes)
   if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Also check custom role codes
-    const customCode = activeRole?.custom_role_code;
     const hasCustomAccess = allowedCustomRoles && customCode && allowedCustomRoles.includes(customCode);
-    if (!hasCustomAccess) {
+    if (!hasCustomAccess && !isCompanyManager) {
       return <Navigate to="/" replace />;
     }
   }
 
   // Legacy adminOnly check - uses isAdminRole to include admin, branch_admin, project_manager
-  if (adminOnly && !isAdminRole(role)) {
+  if (adminOnly && !isAdminRole(role) && !isCompanyManager) {
     return <Navigate to="/" replace />;
   }
 
