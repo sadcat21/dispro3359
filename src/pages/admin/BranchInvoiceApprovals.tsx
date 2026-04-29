@@ -125,7 +125,24 @@ const BranchInvoiceApprovals: React.FC = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const openOrderDetails = async (row: InvoiceRequestRow) => {
+  const postpone = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('manual_invoice_requests')
+        .update({
+          status: 'postponed',
+          postponed_at: new Date().toISOString(),
+          postponed_by: workerId,
+        } as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('تم تأجيل الفاتورة');
+      qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
     if (!row.order_id) {
       toast.error(t('branch_invoice_approvals.no_linked_order'));
       return;
