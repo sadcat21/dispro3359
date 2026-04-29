@@ -127,13 +127,15 @@ const WorkerRolesManagement: React.FC = () => {
     },
   });
 
-  // عند فتح الديالوغ: تحديد الأدوار المسندة سابقًا (النشطة) تلقائيًا
+  // عند فتح الديالوغ: تحديد الأدوار المسندة سابقًا (النشطة) تلقائيًا + الدور الرئيسي
   useEffect(() => {
     if (addOpen && workerRoles) {
       const existingActive = workerRoles
         .filter(wr => wr.is_active && wr.custom_role_id)
         .map(wr => wr.custom_role_id as string);
       setSelectedRoleIds(existingActive);
+      const primary = workerRoles.find(wr => wr.is_active && wr.is_primary && wr.custom_role_id);
+      setPrimaryRoleId(primary?.custom_role_id ?? (existingActive[0] ?? null));
     }
   }, [addOpen, workerRoles]);
 
