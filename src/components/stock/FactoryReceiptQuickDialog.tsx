@@ -19,6 +19,11 @@ interface ReceiptItem {
   new_quantity: number; // كمية جديدة
   compensation_quantity: number; // تعويض تالف
   compensation_offers_quantity: number; // تعويض عروض
+  // Factory-return per-product details (used when source = factory & there's compensation)
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
 }
 
 interface PendingReceipt {
