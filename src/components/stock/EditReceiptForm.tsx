@@ -57,13 +57,17 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const receiptMeta = useMemo(() => parseReceiptMeta(receipt.notes), [receipt.notes]);
 
   const convertDbItemsToEditItems = (items: StockReceiptItem[]): EditItem[] => {
-    return aggregateReceiptItemsForEditing(items).map((item) => {
+    return aggregateReceiptItemsForEditing(items as any).map((item) => {
       const ppb = products.find((product) => product.id === item.product_id)?.pieces_per_box || 1;
       return {
-        ...item,
+        product_id: item.product_id,
         new_quantity: fromDbQuantity(item.new_quantity, ppb),
         compensation_quantity: fromDbQuantity(item.compensation_quantity, ppb),
         compensation_offers_quantity: fromDbQuantity(item.compensation_offers_quantity, ppb),
+        lot_number: item.lot_number || null,
+        manufacturing_date: item.manufacturing_date || null,
+        manufacturing_time: item.manufacturing_time || null,
+        delivery_date: item.delivery_date || null,
       };
     });
   };
