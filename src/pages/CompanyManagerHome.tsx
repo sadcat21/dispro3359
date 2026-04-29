@@ -150,10 +150,10 @@ const CompanyManagerHome: React.FC = () => {
 
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-            <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="amber" />
+            <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="red" />
             <KpiCard label={t('company_manager.kpi_active_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="slate" />
             <KpiCard label={t('company_manager.kpi_branches')} value={kpis?.branches ?? '—'} icon={Building2} accent="slate" />
-            <KpiCard label={t('company_manager.kpi_total_sales')} value="—" icon={TrendingUp} accent="amber" />
+            <KpiCard label={t('company_manager.kpi_total_sales')} value="—" icon={TrendingUp} accent="red" />
           </div>
         </div>
       </div>
