@@ -207,16 +207,17 @@ const CompanyManagerHome: React.FC = () => {
 
 const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'amber' | 'emerald' }> = ({ label, value, icon: Icon, accent }) => {
   const accentClasses = accent === 'amber'
-    ? 'border-amber-500/30 from-amber-500/15 to-transparent text-amber-200'
-    : 'border-emerald-500/30 from-emerald-500/15 to-transparent text-emerald-200';
+    ? 'border-amber-500/40 from-amber-900/40 to-emerald-950/80'
+    : 'border-emerald-500/40 from-emerald-900/50 to-emerald-950/80';
+  const valueColor = accent === 'amber' ? 'text-amber-200' : 'text-emerald-100';
   return (
     <Card className={`border bg-gradient-to-br ${accentClasses} backdrop-blur`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <Icon className={`w-5 h-5 ${accent === 'amber' ? 'text-amber-300' : 'text-emerald-300'}`} />
         </div>
-        <p className="text-2xl font-bold">{value}</p>
-        <p className="text-xs opacity-80 mt-1">{label}</p>
+        <p className={`text-3xl font-bold ${valueColor}`}>{value}</p>
+        <p className="text-xs text-emerald-100/80 mt-1 font-medium">{label}</p>
       </CardContent>
     </Card>
   );
