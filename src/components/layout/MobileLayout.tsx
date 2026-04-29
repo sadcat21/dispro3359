@@ -387,6 +387,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
           {/* Action icons */}
           <RefreshButton />
+          {activeRole?.custom_role_code === 'company_manager' && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           <StockConfirmationsPopover />
           <StockDisputesPopover />
