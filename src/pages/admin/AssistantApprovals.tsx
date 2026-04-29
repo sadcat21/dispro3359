@@ -432,6 +432,12 @@ const AssistantApprovals: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <InvoiceRequestReviewDialog
+        open={!!reviewRequestId}
+        onOpenChange={(v) => { if (!v) setReviewRequestId(null); }}
+        requestId={reviewRequestId}
+      />
     </div>
   );
 };
