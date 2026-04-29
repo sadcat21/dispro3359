@@ -78,7 +78,14 @@ const BranchInvoiceApprovals: React.FC = () => {
   });
 
   const approve = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, scope }: { id: string; scope: 'public' | 'private' }) => {
+      // حفظ النطاق على السجل قبل التحويل
+      const { error: updErr } = await supabase
+        .from('manual_invoice_requests')
+        .update({ invoice_scope: scope } as any)
+        .eq('id', id);
+      if (updErr) throw updErr;
+
       const { error } = await (supabase as any).rpc('forward_manual_invoice_request_to_management', {
         p_request_id: id,
       });
@@ -89,6 +96,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
       qc.invalidateQueries({ queryKey: ['bm-kpis'] });
       setSelectedOrder(null);
+      setScopeDialog(null);
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -289,7 +297,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 <>
                                   <Button
                                     size="sm"
-                                    onClick={() => approve.mutate(r.id)}
+                                    onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
                                     disabled={approve.isPending}
                                     className="bg-green-600 hover:bg-green-700 gap-1"
                                   >
