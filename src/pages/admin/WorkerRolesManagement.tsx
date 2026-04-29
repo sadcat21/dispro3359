@@ -65,7 +65,8 @@ const getRoleRank = (code: string | null | undefined): number => {
 
 const WorkerRolesManagement: React.FC = () => {
   const { role, activeBranch, activeRole } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRtl = language === 'ar';
   const qc = useQueryClient();
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
