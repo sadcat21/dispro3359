@@ -38,6 +38,7 @@ interface InvoiceRequestRow {
   invoice_number: string | null;
   status: string;
   branch_approved_at: string | null;
+  invoice_file_url?: string | null;
   customers?: { name: string } | null;
   branches?: { name: string } | null;
 }
