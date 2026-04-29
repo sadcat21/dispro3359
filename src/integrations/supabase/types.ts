@@ -7530,6 +7530,10 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: Json
       }
+      current_worker_manages_branch: {
+        Args: { p_branch_id: string }
+        Returns: boolean
+      }
       forward_manual_invoice_request_to_management: {
         Args: { p_request_id: string }
         Returns: Json
