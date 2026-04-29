@@ -230,11 +230,16 @@ const BranchInvoiceApprovals: React.FC = () => {
         </div>
 
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="pending" className="gap-2">
               <FileText className="w-4 h-4" />
               {t('branch_invoice_approvals.pending_list')}
-              <Badge variant="secondary" className="ml-1">{rows.filter(r => r.status !== 'approved').length}</Badge>
+              <Badge variant="secondary" className="ml-1">{pendingTabRows.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="postponed" className="gap-2">
+              <Clock className="w-4 h-4" />
+              المؤجلة
+              <Badge variant="secondary" className="ml-1">{postponedRows.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="ready" className="gap-2">
               <Download className="w-4 h-4" />
