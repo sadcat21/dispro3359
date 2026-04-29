@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import BranchManualInvoiceDialog from '@/components/admin/BranchManualInvoiceDialog';
 
 interface InvoiceRequestRow {
   id: string;
@@ -23,6 +24,8 @@ interface InvoiceRequestRow {
   products: any;
   invoice_file_url?: string | null;
   invoice_file_name?: string | null;
+  invoice_scope?: 'public' | 'private' | null;
+  created_by_role?: string | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
@@ -36,6 +39,7 @@ const BranchInvoiceApprovals: React.FC = () => {
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
@@ -57,7 +61,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
-          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name,
+          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
@@ -145,7 +149,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
           <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             {t('common.back')}
@@ -154,7 +158,13 @@ const BranchInvoiceApprovals: React.FC = () => {
             <FileText className="w-6 h-6" />
             {t('branch_invoice_approvals.title')}
           </h1>
-          <div className="w-20" />
+          <Button
+            onClick={() => setCreateDialogOpen(true)}
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <Plus className="w-4 h-4" />
+            {t('branch_manual_invoice.new_request')}
+          </Button>
         </div>
 
         {/* شريط شرح دور مدير الفرع كوسيط */}
@@ -222,8 +232,19 @@ const BranchInvoiceApprovals: React.FC = () => {
                           )}
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-slate-800">{customerName}</span>
+                                {r.invoice_scope === 'private' ? (
+                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px]">
+                                    <Lock className="w-3 h-3" />
+                                    {t('branch_manual_invoice.scope_private')}
+                                  </Badge>
+                                ) : r.invoice_scope === 'public' ? (
+                                  <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px]">
+                                    <Globe2 className="w-3 h-3" />
+                                    {t('branch_manual_invoice.scope_public')}
+                                  </Badge>
+                                ) : null}
                                 <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition" />
                               </div>
                               {r.customers?.store_name && (
@@ -350,6 +371,12 @@ const BranchInvoiceApprovals: React.FC = () => {
         onOpenChange={(isOpen) => { if (!isOpen) setSelectedOrder(null); }}
         order={selectedOrder}
         hideModifyAction={true}
+      />
+
+      {/* نافذة إنشاء فاتورة يدوية من مدير الفرع */}
+      <BranchManualInvoiceDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
       />
     </div>
   );

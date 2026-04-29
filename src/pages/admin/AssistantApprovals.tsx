@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
 
@@ -39,6 +39,8 @@ interface InvoiceRequestRow {
   status: string;
   branch_approved_at: string | null;
   invoice_file_url?: string | null;
+  invoice_scope?: 'public' | 'private' | null;
+  created_by_role?: string | null;
   customers?: { name: string } | null;
   branches?: { name: string } | null;
 }
@@ -168,7 +170,7 @@ const AssistantApprovals: React.FC = () => {
     queryFn: async () => {
       let q = supabase
         .from('manual_invoice_requests')
-        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, customers(name), branches(name)')
+        .select('id, order_id, invoice_number, status, branch_approved_at, branch_id, invoice_file_url, invoice_scope, created_by_role, customers(name), branches(name)')
         .eq('status', 'pending_assistant')
         .order('branch_approved_at', { ascending: false });
       if (branchFilter) q = q.eq('branch_id', branchFilter);
@@ -392,6 +394,18 @@ const AssistantApprovals: React.FC = () => {
                           <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
                             🏢 {i.branches?.name || t('assistant_approvals.unknown_branch')}
                           </Badge>
+                          {i.invoice_scope === 'private' && (
+                            <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1">
+                              <Lock className="w-3 h-3" />
+                              {t('branch_manual_invoice.scope_private')}
+                            </Badge>
+                          )}
+                          {i.invoice_scope === 'public' && (
+                            <Badge className="bg-sky-100 text-sky-800 border border-sky-300 gap-1">
+                              <Globe2 className="w-3 h-3" />
+                              {t('branch_manual_invoice.scope_public')}
+                            </Badge>
+                          )}
                           <span className="font-semibold text-slate-900">{i.customers?.name || '—'}</span>
                         </div>
                         <p className="text-sm text-slate-600">
