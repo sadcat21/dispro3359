@@ -455,16 +455,23 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     const cq = parsedComp;
     const coq = parsedCompOffers;
     if (nq <= 0 && cq <= 0 && coq <= 0) return;
+    const showFactoryDetails = receiptSource === 'factory' && (cq > 0 || coq > 0);
+    const factoryFields = showFactoryDetails ? {
+      lot_number: lotNumber || null,
+      manufacturing_date: manufacturingDate || null,
+      manufacturing_time: manufacturingTime || null,
+      delivery_date: deliveryDate || null,
+    } : { lot_number: null, manufacturing_date: null, manufacturing_time: null, delivery_date: null };
     // Replace existing quantities instead of adding
     setItems(prev => {
       const existing = prev.findIndex(i => i.product_id === singleProductId);
       if (existing >= 0) {
         return prev.map((item, idx) => idx === existing
-          ? { ...item, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq }
+          ? { ...item, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq, ...factoryFields }
           : item
         );
       }
-      return [...prev, { product_id: singleProductId, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq }];
+      return [...prev, { product_id: singleProductId, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq, ...factoryFields }];
     });
     setSingleProductId(null);
   };
@@ -477,6 +484,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     setNewQtyFields(quantityToFields(item.new_quantity, ppb));
     setCompQtyFields(quantityToFields(item.compensation_quantity, ppb));
     setCompOffersQtyFields(quantityToFields(item.compensation_offers_quantity, ppb));
+    setLotNumber(item.lot_number || '');
+    setManufacturingDate(item.manufacturing_date || '');
+    setManufacturingTime(item.manufacturing_time || '');
+    setDeliveryDate(item.delivery_date || '');
   };
 
   const handleConfirmMulti = () => {
