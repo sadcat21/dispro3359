@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { OrderWithDetails, OrderStatus } from '@/types/database';
 import { useUpdateOrderStatus, useDeleteOrder } from '@/hooks/useOrders';
 import { useLogActivity } from '@/hooks/useActivityLogs';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import {
@@ -36,13 +37,14 @@ interface OrderSearchDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
-  pending: { label: 'قيد الانتظار', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
-  assigned: { label: 'تم التعيين', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400', icon: UserCheck },
-  in_progress: { label: 'قيد التوصيل', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400', icon: Truck },
-  delivered: { label: 'تم التوصيل', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
-  cancelled: { label: 'ملغي', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400', icon: XCircle },
-};
+const createStatusConfig = (t: (key: string) => string): Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> => ({
+  pending: { label: t('orders.pending'), color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
+  pending_assistant: { label: t('branch_invoice_approvals.awaiting_final_approval'), color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400', icon: Clock },
+  assigned: { label: t('orders.assigned'), color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400', icon: UserCheck },
+  in_progress: { label: t('orders.in_progress'), color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400', icon: Truck },
+  delivered: { label: t('orders.delivered'), color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
+  cancelled: { label: t('orders.cancelled'), color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400', icon: XCircle },
+});
 
 const PAYMENT_STATUS_CONFIG = {
   pending: { label: 'قيد الانتظار', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Clock },
@@ -57,6 +59,8 @@ type PaymentStatus = keyof typeof PAYMENT_STATUS_CONFIG;
 const INACTIVITY_TIMEOUT = 30000; // 30 seconds
 
 const OrderSearchDialog: React.FC<OrderSearchDialogProps> = ({ open, onOpenChange }) => {
+  const { t } = useLanguage();
+  const STATUS_CONFIG = createStatusConfig(t);
   const [searchCode, setSearchCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [order, setOrder] = useState<OrderWithDetails | null>(null);
