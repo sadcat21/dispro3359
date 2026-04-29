@@ -41,6 +41,7 @@ interface InvoiceRequestRow {
   invoice_file_url?: string | null;
   invoice_scope?: 'public' | 'private' | null;
   created_by_role?: string | null;
+  customer_id?: string | null;
   customers?: { name: string } | null;
   branches?: { name: string } | null;
 }
