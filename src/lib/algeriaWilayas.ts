@@ -87,16 +87,16 @@ export const getWilayaCode = (wilaya?: string | null): number | null => {
 
 // لون مميز لكل ولاية (مستقر بناءً على الرقم)
 const PALETTE = [
-  { bg: 'bg-blue-500', ring: 'ring-blue-300', text: 'text-white' },
-  { bg: 'bg-emerald-500', ring: 'ring-emerald-300', text: 'text-white' },
-  { bg: 'bg-purple-500', ring: 'ring-purple-300', text: 'text-white' },
-  { bg: 'bg-orange-500', ring: 'ring-orange-300', text: 'text-white' },
-  { bg: 'bg-pink-500', ring: 'ring-pink-300', text: 'text-white' },
-  { bg: 'bg-cyan-500', ring: 'ring-cyan-300', text: 'text-white' },
-  { bg: 'bg-indigo-500', ring: 'ring-indigo-300', text: 'text-white' },
-  { bg: 'bg-teal-500', ring: 'ring-teal-300', text: 'text-white' },
-  { bg: 'bg-rose-500', ring: 'ring-rose-300', text: 'text-white' },
-  { bg: 'bg-amber-500', ring: 'ring-amber-300', text: 'text-white' },
+  { bg: 'bg-blue-500', ring: 'ring-blue-300', text: 'text-white', hex: '#3b82f6' },
+  { bg: 'bg-emerald-500', ring: 'ring-emerald-300', text: 'text-white', hex: '#10b981' },
+  { bg: 'bg-purple-500', ring: 'ring-purple-300', text: 'text-white', hex: '#a855f7' },
+  { bg: 'bg-orange-500', ring: 'ring-orange-300', text: 'text-white', hex: '#f97316' },
+  { bg: 'bg-pink-500', ring: 'ring-pink-300', text: 'text-white', hex: '#ec4899' },
+  { bg: 'bg-cyan-500', ring: 'ring-cyan-300', text: 'text-white', hex: '#06b6d4' },
+  { bg: 'bg-indigo-500', ring: 'ring-indigo-300', text: 'text-white', hex: '#6366f1' },
+  { bg: 'bg-teal-500', ring: 'ring-teal-300', text: 'text-white', hex: '#14b8a6' },
+  { bg: 'bg-rose-500', ring: 'ring-rose-300', text: 'text-white', hex: '#f43f5e' },
+  { bg: 'bg-amber-500', ring: 'ring-amber-300', text: 'text-white', hex: '#f59e0b' },
 ];
 
 export const getWilayaColor = (code: number | null) => {
