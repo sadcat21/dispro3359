@@ -390,7 +390,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               onClick={onAddNew}
             >
               <UserPlus className="w-4 h-4" />
-              عميل جديد
+              {t('customer_picker.new')}
             </Button>
           )}
         </div>
