@@ -164,13 +164,17 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
   const fileUrl = r?.invoice_file_url as string | undefined;
   const customerDisplayName = r?.customers?.name_fr || r?.customers?.name || '—';
   const products: any[] = Array.isArray(r?.products) ? r.products : [];
+  const isPrivate = r?.invoice_scope === 'private';
+  const headerClass = isPrivate
+    ? 'bg-amber-100 border-amber-300 text-amber-900'
+    : 'bg-emerald-100 border-emerald-300 text-emerald-900';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col gap-0">
-        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
+        <DialogHeader className={`px-5 pt-5 pb-3 border-b shrink-0 ${r ? headerClass : ''}`}>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-red-600" />
+            <FileText className={`w-5 h-5 ${isPrivate ? 'text-amber-700' : 'text-emerald-700'}`} />
             {t('invoice_review.title')}
           </DialogTitle>
         </DialogHeader>
@@ -201,9 +205,18 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                     )}
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                      <span className="text-xs text-slate-500">{t('branch_invoice_approvals.sales_rep')}:</span>
+                      <span className="text-xs text-slate-500">منشئ الطلب:</span>
                       <span className="font-semibold text-slate-800" dir="ltr">{r.worker?.full_name || '—'}</span>
                     </div>
+                    {r.branches?.name && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Store className="w-3.5 h-3.5 shrink-0 text-indigo-600" />
+                        <span className="text-xs text-slate-500">الفرع:</span>
+                        <Badge className="bg-indigo-100 text-indigo-800 border border-indigo-300 font-bold text-sm">
+                          🏢 {r.branches.name}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     {r.payment_method && (
@@ -221,9 +234,6 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                         <Globe2 className="w-3 h-3" />
                         {t('branch_manual_invoice.scope_public')}
                       </Badge>
-                    )}
-                    {r.branches?.name && (
-                      <span className="text-[11px] text-slate-500">🏢 {r.branches.name}</span>
                     )}
                   </div>
                 </div>
