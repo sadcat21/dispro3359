@@ -30,6 +30,10 @@ interface InvoiceRequestRow {
   invoice_file_name?: string | null;
   invoice_scope?: 'public' | 'private' | null;
   created_by_role?: string | null;
+  customer_id?: string | null;
+  worker_id?: string | null;
+  branch_id?: string | null;
+  postponed_at?: string | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
