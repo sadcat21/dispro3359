@@ -99,9 +99,19 @@ const WorkerRolesManagement: React.FC = () => {
     },
   });
 
+  // عند فتح الديالوغ: تحديد الأدوار المسندة سابقًا (النشطة) تلقائيًا
+  useEffect(() => {
+    if (addOpen && workerRoles) {
+      const existingActive = workerRoles
+        .filter(wr => wr.is_active && wr.custom_role_id)
+        .map(wr => wr.custom_role_id as string);
+      setSelectedRoleIds(existingActive);
+    }
+  }, [addOpen, workerRoles]);
+
   const addMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedWorkerId || selectedRoleIds.length === 0) {
+      if (!selectedWorkerId) {
         throw new Error(t('worker_roles.select_worker_and_role'));
       }
 
@@ -115,22 +125,44 @@ const WorkerRolesManagement: React.FC = () => {
         admin_assistant: 'admin_assistant',
       };
 
-      const rows = selectedRoleIds.map(rid => {
-        const cr = customRoles?.find(c => c.id === rid);
-        const baseRole: AppRole = (cr && baseRoleMap[cr.code]) || 'worker';
-        return {
-          worker_id: selectedWorkerId,
-          role: baseRole,
-          custom_role_id: rid,
-          is_active: true,
-          valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
-          valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
-          notes: newNotes || null,
-        };
-      });
+      // الأدوار النشطة الحالية للعامل
+      const currentActive = (workerRoles || []).filter(wr => wr.is_active && wr.custom_role_id);
+      const currentActiveIds = currentActive.map(wr => wr.custom_role_id as string);
 
-      const { error } = await supabase.from('worker_roles').insert(rows as any);
-      if (error) throw error;
+      // الأدوار التي أُزيل تحديدها → تعطيل
+      const toDeactivate = currentActive.filter(wr => !selectedRoleIds.includes(wr.custom_role_id as string));
+      // الأدوار الجديدة المُحددة → إدراج
+      const toInsertIds = selectedRoleIds.filter(id => !currentActiveIds.includes(id));
+
+      if (toDeactivate.length === 0 && toInsertIds.length === 0) {
+        return;
+      }
+
+      if (toDeactivate.length > 0) {
+        const { error: deactErr } = await supabase
+          .from('worker_roles')
+          .update({ is_active: false } as any)
+          .in('id', toDeactivate.map(wr => wr.id));
+        if (deactErr) throw deactErr;
+      }
+
+      if (toInsertIds.length > 0) {
+        const rows = toInsertIds.map(rid => {
+          const cr = customRoles?.find(c => c.id === rid);
+          const baseRole: AppRole = (cr && baseRoleMap[cr.code]) || 'worker';
+          return {
+            worker_id: selectedWorkerId,
+            role: baseRole,
+            custom_role_id: rid,
+            is_active: true,
+            valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
+            valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
+            notes: newNotes || null,
+          };
+        });
+        const { error } = await supabase.from('worker_roles').insert(rows as any);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success(t('worker_roles.add_success'));
