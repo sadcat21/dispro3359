@@ -2255,4 +2255,22 @@ export const translations: Translations = {
   'shared_invoices.upload_failed': { ar: 'فشل رفع الفاتورة', fr: 'Échec téléversement', en: 'Upload failed' },
   'shared_invoices.required_fields': { ar: 'الرجاء ملء جميع الحقول المطلوبة', fr: 'Veuillez remplir tous les champs', en: 'Please fill all required fields' },
   'shared_invoices.all_branches': { ar: 'جميع الفروع', fr: 'Toutes les filiales', en: 'All branches' },
+
+  // Branch Manager Dashboard
+  'branch_manager.welcome': { ar: 'لوحة مدير الفرع', fr: 'Tableau de bord — Responsable de filiale', en: 'Branch Manager Dashboard' },
+  'branch_manager.subtitle': { ar: 'إدارة كاملة لعمليات الفرع وفريق العمل', fr: 'Gestion complète des opérations et de l’équipe de la filiale', en: 'Full control over your branch operations and team' },
+  'branch_manager.section_workers': { ar: 'العمال والمتابعة', fr: 'Employés et suivi', en: 'Workers & Tracking' },
+  'branch_manager.section_offers': { ar: 'العروض والترويج', fr: 'Offres et promotion', en: 'Offers & Promotions' },
+  'branch_manager.section_customers': { ar: 'العملاء ومسارهم', fr: 'Clients et parcours', en: 'Customers & Journey' },
+  'branch_manager.section_finance': { ar: 'المبيعات والديون', fr: 'Ventes et dettes', en: 'Sales & Debts' },
+  'branch_manager.section_treasury': { ar: 'الخزينة والمصاريف', fr: 'Trésorerie et dépenses', en: 'Treasury & Expenses' },
+  'branch_manager.section_accounting': { ar: 'جلسات المحاسبة والمراجعة', fr: 'Sessions comptables et révision', en: 'Accounting Sessions & Review' },
+  'branch_manager.worker_rounds': { ar: 'جولات العمال', fr: 'Tournées des employés', en: 'Worker Rounds' },
+  'branch_manager.debts_management': { ar: 'إدارة الديون', fr: 'Gestion des dettes', en: 'Debts Management' },
+  'branch_manager.expenses_management': { ar: 'إدارة المصاريف', fr: 'Gestion des dépenses', en: 'Expenses Management' },
+  'branch_manager.branch_expenses': { ar: 'مصاريف الفرع', fr: 'Dépenses de la filiale', en: 'Branch Expenses' },
+  'branch_manager.kpi_workers': { ar: 'عمال الفرع', fr: 'Employés de la filiale', en: 'Branch Workers' },
+  'branch_manager.kpi_customers': { ar: 'عملاء الفرع', fr: 'Clients de la filiale', en: 'Branch Customers' },
+  'branch_manager.kpi_open_sessions': { ar: 'جلسات محاسبة مفتوحة', fr: 'Sessions comptables ouvertes', en: 'Open Accounting Sessions' },
+  'branch_manager.kpi_active_debts': { ar: 'ديون نشطة', fr: 'Dettes actives', en: 'Active Debts' },
 };
