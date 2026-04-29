@@ -119,7 +119,7 @@ interface DebtTimelineItem {
   debtRemainingAfter: number | null;
 }
 
-const managerRoles = ['admin', 'branch_admin', 'project_manager'];
+const managerRoles = ['admin', 'branch_admin', 'project_manager', 'company_manager'];
 
 const CustomerJourney = () => {
   const navigate = useNavigate();
