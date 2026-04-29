@@ -41,6 +41,19 @@ const BranchInvoiceApprovals: React.FC = () => {
     queryKey: ['branch-invoice-approvals', branchId],
     enabled: !!branchId,
     queryFn: async () => {
+      // 1) جلب كل العمال المرتبطين بهذا الفرع
+      const { data: branchWorkers, error: wErr } = await supabase
+        .from('workers')
+        .select('id')
+        .eq('branch_id', branchId!);
+      if (wErr) throw wErr;
+      const workerIds = (branchWorkers || []).map((w: any) => w.id);
+
+      // 2) جلب طلبات الفواتير: إما branch_id = الفرع، أو worker_id ∈ عمال الفرع
+      const orFilter = workerIds.length > 0
+        ? `branch_id.eq.${branchId},worker_id.in.(${workerIds.join(',')})`
+        : `branch_id.eq.${branchId}`;
+
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
@@ -48,7 +61,7 @@ const BranchInvoiceApprovals: React.FC = () => {
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
-        .eq('branch_id', branchId!)
+        .or(orFilter)
         .in('status', ['pending_branch', 'pending_assistant', 'approved'])
         .order('created_at', { ascending: false });
       if (error) throw error;
