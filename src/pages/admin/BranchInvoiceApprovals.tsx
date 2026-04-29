@@ -208,7 +208,32 @@ const BranchInvoiceApprovals: React.FC = () => {
         .eq('status', 'pending_branch')
         .order('branch_approved_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as any[];
+      const rows = (data || []) as any[];
+
+      // جلب pieces_per_box و weight_per_box للمنتجات لعرض السعر بصيغة (وزن × سعر/كلغ)
+      const productIds = Array.from(new Set(
+        rows.flatMap((r) => Array.isArray(r.products) ? r.products.map((p: any) => p.product_id).filter(Boolean) : [])
+      ));
+      let prodMap: Record<string, { pieces_per_box: number | null; weight_per_box: number | null }> = {};
+      if (productIds.length > 0) {
+        const { data: prods } = await supabase
+          .from('products')
+          .select('id, pieces_per_box, weight_per_box')
+          .in('id', productIds);
+        (prods || []).forEach((p: any) => {
+          prodMap[p.id] = { pieces_per_box: p.pieces_per_box, weight_per_box: p.weight_per_box };
+        });
+      }
+      rows.forEach((r) => {
+        if (Array.isArray(r.products)) {
+          r.products = r.products.map((p: any) => ({
+            ...p,
+            pieces_per_box: prodMap[p.product_id]?.pieces_per_box ?? null,
+            weight_per_box: prodMap[p.product_id]?.weight_per_box ?? null,
+          }));
+        }
+      });
+      return rows;
     },
     enabled: !!customerDialog,
   });
