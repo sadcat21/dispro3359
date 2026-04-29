@@ -80,11 +80,12 @@ const InternalSupervisorHome: React.FC = () => {
         { key: 'customer_debts', label: t('debts.title'), icon: Banknote, path: '/customer-debts' },
       ],
     },
-    // المرحلة: تسوية الفائض والعجز
+    // مراجعة المخزون والتسوية النهائية
     {
       titleKey: 'internal_supervisor.section_handover_stage',
       icon: Vault,
       items: [
+        { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardCheck, path: '/warehouse-review' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: Scale, path: '/surplus-deficit' },
       ],
     },
