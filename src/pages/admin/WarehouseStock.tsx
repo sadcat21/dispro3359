@@ -43,7 +43,8 @@ const WarehouseStock: React.FC = () => {
   const navigate = useNavigate();
   const { activeBranch, role, activeRole } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
-  const canEdit = isAdminRole(role);
+  const isCompanyManager = activeRole?.custom_role_code === 'company_manager';
+  const canEdit = isAdminRole(role) || isCompanyManager;
   const { warehouseStock, workerStocksByWorker, isLoading, products, workers, createReceipt, loadToWorker, refresh } = useWarehouseStock();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
