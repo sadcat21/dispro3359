@@ -68,6 +68,41 @@ const InternalSupervisorHome: React.FC = () => {
   });
 
   const sections: Section[] = [
+    // المرحلة 1: استلام البضاعة من مسؤول المخزن
+    {
+      titleKey: 'internal_supervisor.section_warehouse_stage',
+      icon: Warehouse,
+      items: [
+        { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardCheck, path: '/warehouse-review' },
+        { key: 'load_stock', label: t('stock.load_to_worker'), icon: Truck, path: '/load-stock' },
+        { key: 'stock_receipts', label: t('stock.receipts'), icon: ClipboardList, path: '/stock-receipts' },
+      ],
+    },
+    // المرحلة 2: التوصيل للعملاء والتحصيل
+    {
+      titleKey: 'internal_supervisor.section_delivery_stage',
+      icon: Truck,
+      items: [
+        { key: 'orders', label: t('nav.orders'), icon: ShoppingCart, path: '/orders' },
+        { key: 'order_tracking', label: t('nav.order_tracking'), icon: Radar, path: '/order-tracking' },
+        { key: 'customers', label: t('nav.customers'), icon: UserCheck, path: '/customers' },
+        { key: 'customer_accounts', label: t('nav.customer_accounts'), icon: UserCog, path: '/customer-accounts' },
+        { key: 'customer_journey', label: t('nav.customer_journey'), icon: Activity, path: '/customer-journey' },
+        { key: 'customer_debts', label: t('debts.title'), icon: Banknote, path: '/customer-debts' },
+      ],
+    },
+    // المرحلة 3: تسليم التحصيلات لمدير الفرع
+    {
+      titleKey: 'internal_supervisor.section_handover_stage',
+      icon: Vault,
+      items: [
+        { key: 'worker_liability', label: t('liability.title'), icon: Wallet, path: '/worker-liability' },
+        { key: 'daily_receipts', label: t('nav.daily_receipts'), icon: FileText, path: '/daily-receipts' },
+        { key: 'manager_treasury', label: t('nav.manager_treasury'), icon: Vault, path: '/manager-treasury' },
+        { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: Scale, path: '/surplus-deficit' },
+      ],
+    },
+    // الانضباط ومتابعة الالتزام
     {
       titleKey: 'internal_supervisor.section_discipline',
       icon: ShieldCheck,
@@ -78,6 +113,7 @@ const InternalSupervisorHome: React.FC = () => {
         { key: 'activity_logs', label: t('nav.activity_logs'), icon: Activity, path: '/activity-logs' },
       ],
     },
+    // الأداء العام
     {
       titleKey: 'internal_supervisor.section_performance',
       icon: BarChart3,
@@ -85,25 +121,7 @@ const InternalSupervisorHome: React.FC = () => {
         { key: 'sales_summary', label: t('admin_home.item.manager_sales_summary'), icon: BarChart3, path: '/manager-sales-summary' },
         { key: 'stats', label: t('nav.stats'), icon: BarChart3, path: '/stats' },
         { key: 'promo_table', label: t('nav.table'), icon: FileSpreadsheet, path: '/promo-table' },
-        { key: 'orders', label: t('nav.orders'), icon: ShoppingCart, path: '/orders' },
-        { key: 'order_tracking', label: t('nav.order_tracking'), icon: Radar, path: '/order-tracking' },
         { key: 'workers', label: t('nav.workers'), icon: Users, path: '/workers' },
-      ],
-    },
-    {
-      titleKey: 'internal_supervisor.section_debts',
-      icon: Banknote,
-      items: [
-        { key: 'customer_debts', label: t('debts.title'), icon: Banknote, path: '/customer-debts' },
-      ],
-    },
-    {
-      titleKey: 'internal_supervisor.section_customers',
-      icon: UserCheck,
-      items: [
-        { key: 'customers', label: t('nav.customers'), icon: UserCheck, path: '/customers' },
-        { key: 'customer_accounts', label: t('nav.customer_accounts'), icon: UserCog, path: '/customer-accounts' },
-        { key: 'customer_journey', label: t('nav.customer_journey'), icon: Activity, path: '/customer-journey' },
       ],
     },
   ];
