@@ -3,9 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { isAdminRole, isCompanyManagerRole } from "@/lib/utils";
+import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from "@/lib/utils";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";
 import { SelectedWorkerProvider } from "@/contexts/SelectedWorkerContext";
@@ -86,6 +86,32 @@ const queryClient = new QueryClient({
   },
 });
 
+const INTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
+  '/',
+  '/attendance',
+  '/worker-tracking',
+  '/order-tracking',
+  '/warehouse-review',
+  '/load-stock',
+  '/stock-receipts',
+  '/orders',
+  '/customers',
+  '/customer-accounts',
+  '/customer-journey',
+  '/customer-debts',
+  '/worker-liability',
+  '/daily-receipts',
+  '/manager-treasury',
+  '/surplus-deficit',
+  '/manager-sales-summary',
+  '/stats',
+  '/promo-table',
+  '/workers',
+  '/geo-operations',
+  '/activity-logs',
+  '/guide',
+]);
+
 // Protected Route Component
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
@@ -94,6 +120,7 @@ const ProtectedRoute: React.FC<{
   allowedCustomRoles?: string[];
 }> = ({ children, adminOnly = false, allowedRoles, allowedCustomRoles }) => {
   const { isAuthenticated, isLoading, role, activeRole } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -110,6 +137,12 @@ const ProtectedRoute: React.FC<{
   const customCode = activeRole?.custom_role_code;
   // مساعد المدير العام له صلاحيات إدارية كاملة على جميع المسارات
   const isCompanyManager = isCompanyManagerRole(customCode);
+  const isInternalSupervisorAllowed =
+    isInternalSupervisorRole(customCode) && INTERNAL_SUPERVISOR_ALLOWED_PATHS.has(location.pathname);
+
+  if (isInternalSupervisorAllowed) {
+    return <GpsGuard><MobileLayout>{children}</MobileLayout></GpsGuard>;
+  }
 
   // Check for specific allowed roles (includes custom role codes)
   if (allowedRoles && role && !allowedRoles.includes(role)) {
