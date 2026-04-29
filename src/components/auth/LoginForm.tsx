@@ -211,7 +211,13 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
   },
 };
 
+const ADMIN_FUNCTIONAL_ROLES = ['company_manager', 'project_manager', 'accountant', 'admin_assistant'];
+
 const getQuickWorkerGroupKey = (worker: QuickWorker) => {
+  // الأولوية للدور الرئيسي (functional_role) إن كان إدارياً
+  if (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) {
+    return worker.functional_role;
+  }
   if (worker.role === 'branch_admin') return 'branch_admin';
   if (worker.role === 'supervisor') return 'supervisor';
   if (worker.role === 'admin') return 'admin';
