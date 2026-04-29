@@ -387,18 +387,34 @@ const WorkerRolesManagement: React.FC = () => {
           <div className="space-y-3">
             <div>
               <Label>{t('worker_roles.role')}</Label>
-              <Select value={newCustomRoleId} onValueChange={setNewCustomRoleId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('worker_roles.role_placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customRoles?.map(cr => (
-                    <SelectItem key={cr.id} value={cr.id}>
-                      {cr.name_ar} ({cr.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!customRoles || customRoles.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">{t('worker_roles.no_roles')}</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 max-h-72 overflow-y-auto p-1">
+                  {customRoles.map((cr, index) => {
+                    const colorSet = WORKER_CARD_COLORS[index % WORKER_CARD_COLORS.length];
+                    const isSelected = selectedRoleIds.includes(cr.id);
+                    return (
+                      <div
+                        key={cr.id}
+                        onClick={() => setSelectedRoleIds(prev => prev.includes(cr.id) ? prev.filter(id => id !== cr.id) : [...prev, cr.id])}
+                        className={`relative flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 cursor-pointer active:scale-95 transition-all hover:shadow-md ${colorSet.bg} ${isSelected ? 'border-primary ring-2 ring-primary/40' : colorSet.border}`}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                            <Check className="w-3 h-3" />
+                          </div>
+                        )}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colorSet.icon}`}>
+                          <Shield className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold text-center leading-tight text-foreground">{cr.name_ar}</span>
+                        <span className={`text-[10px] font-medium ${colorSet.accent}`}>{cr.code}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div>
               <Label>{t('worker_roles.from_date_optional')}</Label>
