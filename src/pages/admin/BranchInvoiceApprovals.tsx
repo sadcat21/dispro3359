@@ -383,6 +383,91 @@ const BranchInvoiceApprovals: React.FC = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="postponed">
+            <Card className="shadow-lg border-amber-200">
+              <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    الفواتير المؤجلة (مجمّعة حسب العميل)
+                  </span>
+                  <Badge variant="secondary" className="bg-white text-amber-700">{postponedRows.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-2">
+                {postponedByCustomer.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                    <p>لا توجد فواتير مؤجلة</p>
+                  </div>
+                ) : postponedByCustomer.map(group => {
+                  const isOpen = expandedCustomer === group.customerId;
+                  return (
+                    <div key={group.customerId} className="border border-amber-200 rounded-lg bg-white overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedCustomer(isOpen ? null : group.customerId)}
+                        className="w-full flex items-center justify-between gap-3 p-3 hover:bg-amber-50 transition"
+                      >
+                        <div className="flex items-center gap-2 flex-1 text-start">
+                          <span className="font-semibold text-slate-800">{group.customerName}</span>
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                            {group.items.length} فاتورة
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMergeFor({
+                              customerId: group.customerId,
+                              customerName: group.customerName,
+                              requests: group.items as PostponedRequest[],
+                            });
+                          }}
+                          className="gap-1 bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Layers className="w-4 h-4" />
+                          تجميع المنتجات
+                        </Button>
+                        {isOpen ? <ChevronUp className="w-4 h-4 text-amber-700" /> : <ChevronDown className="w-4 h-4 text-amber-700" />}
+                      </button>
+                      {isOpen && (
+                        <div className="border-t border-amber-100 bg-amber-50/40 p-3 space-y-2">
+                          {group.items.map(r => (
+                            <div key={r.id} className="bg-white border border-amber-100 rounded p-2 flex items-center justify-between gap-2 text-sm">
+                              <div className="flex-1">
+                                <div className="font-medium">
+                                  {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
+                                  <span className="text-xs text-muted-foreground mr-2">
+                                    {Array.isArray(r.products) ? r.products.length : 0} منتج
+                                  </span>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  المندوب: {r.worker?.full_name || '—'} •{' '}
+                                  {new Date(r.created_at).toLocaleDateString('ar')}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
+                                className="gap-1 text-green-700 hover:bg-green-50"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                إرسال فردي
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="ready">
             <Card className="shadow-lg border-emerald-200">
               <CardHeader className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-t-lg">
