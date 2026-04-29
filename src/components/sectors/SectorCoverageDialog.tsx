@@ -344,9 +344,11 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
                             <Badge variant={c.coverage_mode === 'replace' ? 'destructive' : 'default'} className="text-[10px]">
                               {c.coverage_mode === 'replace' ? 'استبدال' : 'دمج'}
                             </Badge>
-                            {(c.approval_status || 'approved') !== 'approved' && (
+                            {(c.approval_status || 'approved') !== 'approved' && c.approval_status !== 'rejected' && (
                               <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
-                                {c.approval_status === 'pending_system' ? 'بانتظار مدير النظام' : 'بانتظار المدير'}
+                                {c.approval_status === 'pending_system' || c.approval_status === 'pending'
+                                  ? 'بانتظار مساعد المدير العام'
+                                  : 'بانتظار المدير'}
                               </Badge>
                             )}
                           </div>
