@@ -101,13 +101,10 @@ const WorkerRolesManagement: React.FC = () => {
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedWorkerId || !newCustomRoleId) {
+      if (!selectedWorkerId || selectedRoleIds.length === 0) {
         throw new Error(t('worker_roles.select_worker_and_role'));
       }
-      const cr = customRoles?.find(c => c.id === newCustomRoleId);
-      if (!cr) throw new Error(t('worker_roles.invalid_role'));
 
-      // map custom role code to base app_role when possible (fallback: 'worker')
       const baseRoleMap: Record<string, AppRole> = {
         admin: 'admin',
         branch_admin: 'branch_admin',
@@ -117,24 +114,29 @@ const WorkerRolesManagement: React.FC = () => {
         accountant: 'accountant',
         admin_assistant: 'admin_assistant',
       };
-      const baseRole: AppRole = baseRoleMap[cr.code] || 'worker';
 
-      const { error } = await supabase.from('worker_roles').insert({
-        worker_id: selectedWorkerId,
-        role: baseRole,
-        custom_role_id: cr.id,
-        is_active: true,
-        valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
-        valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
-        notes: newNotes || null,
-      } as any);
+      const rows = selectedRoleIds.map(rid => {
+        const cr = customRoles?.find(c => c.id === rid);
+        const baseRole: AppRole = (cr && baseRoleMap[cr.code]) || 'worker';
+        return {
+          worker_id: selectedWorkerId,
+          role: baseRole,
+          custom_role_id: rid,
+          is_active: true,
+          valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
+          valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
+          notes: newNotes || null,
+        };
+      });
+
+      const { error } = await supabase.from('worker_roles').insert(rows as any);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t('worker_roles.add_success'));
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
       setAddOpen(false);
-      setNewCustomRoleId('');
+      setSelectedRoleIds([]);
       setNewValidFrom('');
       setNewValidUntil('');
       setNewNotes('');
