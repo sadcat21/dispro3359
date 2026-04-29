@@ -16,6 +16,8 @@ import { useWarehouseStock } from '@/hooks/useWarehouseStock';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistory';
+import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
+import { ListChecks } from 'lucide-react';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
@@ -71,6 +73,8 @@ const WarehouseReview: React.FC = () => {
   const [includePallets, setIncludePallets] = useState(false);
   const [actuals, setActuals] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [detailsByProduct, setDetailsByProduct] = useState<Record<string, ProductReviewDetails>>({});
+  const [detailsDialogProductId, setDetailsDialogProductId] = useState<string | null>(null);
 
   // Pallet quantity
   const { data: palletQuantity = 0 } = useQuery({
@@ -203,14 +207,21 @@ const WarehouseReview: React.FC = () => {
 
       if (sessionError) throw sessionError;
 
-      const reviewItems = items.map(item => ({
-        session_id: session.id,
-        item_type: 'product',
-        product_id: item.productId,
-        expected_quantity: item.expected,
-        actual_quantity: getActualNum(item.actual, item.piecesPerBox),
-        status: item.status as string,
-      }));
+      const reviewItems = items.map(item => {
+        const d = detailsByProduct[item.productId];
+        return {
+          session_id: session.id,
+          item_type: 'product',
+          product_id: item.productId,
+          expected_quantity: item.expected,
+          actual_quantity: getActualNum(item.actual, item.piecesPerBox),
+          status: item.status as string,
+          boxes_quantity: d?.boxes ?? 0,
+          pieces_quantity: d?.pieces ?? 0,
+          hall_quantity: d?.hall ?? 0,
+          damaged_quantity: d?.damaged ?? 0,
+        };
+      });
 
       if (includeDamaged) {
         for (const d of damagedItems) {
@@ -225,6 +236,10 @@ const WarehouseReview: React.FC = () => {
             expected_quantity: d.expected,
             actual_quantity: actualNum,
             status: Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit',
+            boxes_quantity: 0,
+            pieces_quantity: 0,
+            hall_quantity: 0,
+            damaged_quantity: actualNum,
           });
         }
       }
@@ -239,6 +254,10 @@ const WarehouseReview: React.FC = () => {
           expected_quantity: palletQuantity,
           actual_quantity: palletNum,
           status: Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit',
+          boxes_quantity: 0,
+          pieces_quantity: 0,
+          hall_quantity: 0,
+          damaged_quantity: 0,
         });
       }
 
@@ -423,6 +442,16 @@ const WarehouseReview: React.FC = () => {
                           item.status === 'surplus' ? 'border-amber-400/50 bg-amber-50 dark:bg-amber-950/20' : ''
                         }`}
                       />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDetailsDialogProductId(item.productId)}
+                        className={`w-8 h-8 p-0 shrink-0 ${detailsByProduct[item.productId] ? 'border-primary text-primary' : ''}`}
+                        title="تفاصيل (صناديق/قطع/صالة/تالف)"
+                      >
+                        <ListChecks className="w-3.5 h-3.5" />
+                      </Button>
                       <div className="w-8 flex justify-center">{getStatusIcon(item.status)}</div>
                     </div>
                   </div>
@@ -430,6 +459,16 @@ const WarehouseReview: React.FC = () => {
                     <div className="mt-1 flex justify-end">
                       {item.status === 'surplus' && <Badge className="bg-amber-500 text-white text-[9px]">فائض: +{diffDisplay}</Badge>}
                       {item.status === 'deficit' && <Badge variant="destructive" className="text-[9px]">عجز: -{diffDisplay}</Badge>}
+                    </div>
+                  )}
+                  {detailsByProduct[item.productId] && (
+                    <div className="mt-1 flex flex-wrap gap-1 justify-end text-[9px]">
+                      <Badge variant="outline" className="gap-1">صناديق: {detailsByProduct[item.productId].boxes}</Badge>
+                      <Badge variant="outline" className="gap-1">قطع: {detailsByProduct[item.productId].pieces}</Badge>
+                      <Badge variant="outline" className="gap-1">صالة: {detailsByProduct[item.productId].hall}</Badge>
+                      {detailsByProduct[item.productId].damaged > 0 && (
+                        <Badge variant="destructive" className="gap-1">تالف: {detailsByProduct[item.productId].damaged}</Badge>
+                      )}
                     </div>
                   )}
                 </div>
@@ -502,6 +541,27 @@ const WarehouseReview: React.FC = () => {
           {branchId && <WarehouseReviewHistory branchId={branchId} />}
         </TabsContent>
       </Tabs>
+
+      {detailsDialogProductId && (() => {
+        const item = items.find(i => i.productId === detailsDialogProductId);
+        if (!item) return null;
+        return (
+          <ProductReviewDetailsDialog
+            open={!!detailsDialogProductId}
+            onOpenChange={(o) => { if (!o) setDetailsDialogProductId(null); }}
+            productName={item.productName}
+            imageUrl={item.imageUrl}
+            piecesPerBox={item.piecesPerBox}
+            expected={item.expected}
+            initial={detailsByProduct[item.productId]}
+            onSave={(d) => {
+              setDetailsByProduct(prev => ({ ...prev, [item.productId]: d }));
+              const total = d.boxes + (item.piecesPerBox > 0 ? d.pieces / item.piecesPerBox : 0) + d.hall;
+              updateActual(item.productId, fmtQty(total, item.piecesPerBox));
+            }}
+          />
+        );
+      })()}
     </div>
   );
 };
