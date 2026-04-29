@@ -214,7 +214,8 @@ export const useNavigation = () => {
           { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
           { path: '/customers', icon: UserCheck, label: t('nav.customers') },
           { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
-          // تسوية الفائض والعجز
+          // مراجعة المخزون وتسوية الفائض والعجز
+          { path: '/warehouse-review', icon: ClipboardCheck, label: t('nav.warehouse_review') },
           { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           // متابعة عامة وأداء
           { path: '/manager-sales-summary', icon: BarChart3, label: t('admin_home.item.manager_sales_summary') },
