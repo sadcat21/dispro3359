@@ -42,9 +42,9 @@ toast.success(t('common.saved_successfully'));
 
 ## 2. الأدوار التنفيذية المخصصة (Custom Roles)
 
-### 2026-04-29 — دور "مسير الشركة" (company_manager)
+### 2026-04-29 — دور "مساعد المدير العام" (company_manager)
 - **النوع:** custom_role (سجل في `custom_roles` بكود `company_manager`) + قيمة جديدة في enum `app_role` (يُضاف عبر migration).
-- **الواجهة:** صفحة `CompanyManagerHome.tsx` بثيم Emerald + Gold (مختلف عن AdminHome) — تُفتح تلقائياً عبر `Index.tsx` عند `activeRole.custom_role_code === 'company_manager'`.
+- **الواجهة:** صفحة `CompanyManagerHome.tsx` بثيم Emerald + Gold (مختلف عن AdminHome) — تُفتح تلقائياً عبر `Index.tsx` عند `activeRole.custom_role_code === 'company_manager'`، ويُعرض للمستخدم باسم "مساعد المدير العام".
 - **الترجمات:** كل المفاتيح تحت `company_manager.*` في `src/i18n/translations.ts`.
 - **التنقل:** قائمة جانبية مخصصة في `useNavigation.ts` تحت فرع `activeRole.custom_role_code === 'company_manager'`.
 - **القاعدة:** عند إضافة أي دور تنفيذي جديد، اتبع نفس النمط:
