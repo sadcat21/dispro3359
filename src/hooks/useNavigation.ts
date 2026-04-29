@@ -152,7 +152,7 @@ export const useNavigation = () => {
       };
     }
 
-    // Company Manager — executive cross-branch role
+    // Assistant General Manager — executive cross-branch role
     if (activeRole?.custom_role_code === 'company_manager') {
       return {
         main: [
