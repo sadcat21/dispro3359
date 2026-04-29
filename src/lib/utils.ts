@@ -20,3 +20,8 @@ export function isSuperAdminRole(role: AppRole | null | undefined): boolean {
 export function isCompanyManagerRole(customRoleCode: string | null | undefined): boolean {
   return customRoleCode === 'company_manager';
 }
+
+/** Returns true if the active custom role is the Internal Supervisor (branch-scoped staff discipline & monitoring) */
+export function isInternalSupervisorRole(customRoleCode: string | null | undefined): boolean {
+  return customRoleCode === 'internal_supervisor';
+}
