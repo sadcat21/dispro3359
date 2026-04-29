@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Trash2, Calendar, ShieldCheck, ShieldOff, ArrowRight, HardHat, Search } from 'lucide-react';
+import { Loader2, Plus, Trash2, Calendar, ShieldCheck, ShieldOff, ArrowRight, HardHat, Search, Shield, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -49,7 +49,7 @@ const WorkerRolesManagement: React.FC = () => {
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [newCustomRoleId, setNewCustomRoleId] = useState<string>('');
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [newValidFrom, setNewValidFrom] = useState<string>('');
   const [newValidUntil, setNewValidUntil] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
@@ -101,13 +101,10 @@ const WorkerRolesManagement: React.FC = () => {
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedWorkerId || !newCustomRoleId) {
+      if (!selectedWorkerId || selectedRoleIds.length === 0) {
         throw new Error(t('worker_roles.select_worker_and_role'));
       }
-      const cr = customRoles?.find(c => c.id === newCustomRoleId);
-      if (!cr) throw new Error(t('worker_roles.invalid_role'));
 
-      // map custom role code to base app_role when possible (fallback: 'worker')
       const baseRoleMap: Record<string, AppRole> = {
         admin: 'admin',
         branch_admin: 'branch_admin',
@@ -117,24 +114,29 @@ const WorkerRolesManagement: React.FC = () => {
         accountant: 'accountant',
         admin_assistant: 'admin_assistant',
       };
-      const baseRole: AppRole = baseRoleMap[cr.code] || 'worker';
 
-      const { error } = await supabase.from('worker_roles').insert({
-        worker_id: selectedWorkerId,
-        role: baseRole,
-        custom_role_id: cr.id,
-        is_active: true,
-        valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
-        valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
-        notes: newNotes || null,
-      } as any);
+      const rows = selectedRoleIds.map(rid => {
+        const cr = customRoles?.find(c => c.id === rid);
+        const baseRole: AppRole = (cr && baseRoleMap[cr.code]) || 'worker';
+        return {
+          worker_id: selectedWorkerId,
+          role: baseRole,
+          custom_role_id: rid,
+          is_active: true,
+          valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
+          valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
+          notes: newNotes || null,
+        };
+      });
+
+      const { error } = await supabase.from('worker_roles').insert(rows as any);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t('worker_roles.add_success'));
       qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
       setAddOpen(false);
-      setNewCustomRoleId('');
+      setSelectedRoleIds([]);
       setNewValidFrom('');
       setNewValidUntil('');
       setNewNotes('');
@@ -385,18 +387,34 @@ const WorkerRolesManagement: React.FC = () => {
           <div className="space-y-3">
             <div>
               <Label>{t('worker_roles.role')}</Label>
-              <Select value={newCustomRoleId} onValueChange={setNewCustomRoleId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('worker_roles.role_placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customRoles?.map(cr => (
-                    <SelectItem key={cr.id} value={cr.id}>
-                      {cr.name_ar} ({cr.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!customRoles || customRoles.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">{t('worker_roles.no_roles')}</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 max-h-72 overflow-y-auto p-1">
+                  {customRoles.map((cr, index) => {
+                    const colorSet = WORKER_CARD_COLORS[index % WORKER_CARD_COLORS.length];
+                    const isSelected = selectedRoleIds.includes(cr.id);
+                    return (
+                      <div
+                        key={cr.id}
+                        onClick={() => setSelectedRoleIds(prev => prev.includes(cr.id) ? prev.filter(id => id !== cr.id) : [...prev, cr.id])}
+                        className={`relative flex flex-col items-center justify-center p-3 gap-1.5 rounded-xl border-2 cursor-pointer active:scale-95 transition-all hover:shadow-md ${colorSet.bg} ${isSelected ? 'border-primary ring-2 ring-primary/40' : colorSet.border}`}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                            <Check className="w-3 h-3" />
+                          </div>
+                        )}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colorSet.icon}`}>
+                          <Shield className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold text-center leading-tight text-foreground">{cr.name_ar}</span>
+                        <span className={`text-[10px] font-medium ${colorSet.accent}`}>{cr.code}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div>
               <Label>{t('worker_roles.from_date_optional')}</Label>
@@ -413,7 +431,7 @@ const WorkerRolesManagement: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending || !newCustomRoleId}>
+            <Button onClick={() => addMutation.mutate()} disabled={addMutation.isPending || selectedRoleIds.length === 0}>
               {addMutation.isPending && <Loader2 className="w-4 h-4 animate-spin ml-1" />}
               {t('common.add')}
             </Button>
