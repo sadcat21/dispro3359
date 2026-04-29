@@ -143,6 +143,7 @@ const ReceiptPrintView: React.FC<Props> = ({
             </tbody>
           </table>
 
+          {notes && (
             <div style={{ fontSize: '12px', margin: '10px 0', color: '#000' }}>
               Remarques: {notes}
             </div>
