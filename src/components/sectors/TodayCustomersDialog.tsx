@@ -163,10 +163,11 @@ interface TodayCustomersDialogProps {
 const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   open, onOpenChange, targetWorkerId, targetWorkerName,
 }) => {
-  const { workerId: authWorkerId, activeBranch, role, user } = useAuth();
+  const { workerId: authWorkerId, activeBranch, role, user, activeRole } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const isAdmin = isAdminRole(role) || role === 'supervisor';
+  const isInternalSupervisor = activeRole?.custom_role_code === 'internal_supervisor';
+  const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor;
   const todayName = JS_DAY_TO_NAME[new Date().getDay()] || '';
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [selectedCustomDate, setSelectedCustomDate] = useState<Date | undefined>(undefined);
@@ -235,7 +236,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       return workers.map(w => ({ ...w, _custom_role_codes: workerRoleCodesMap.get(w.id) || new Set<string>() }));
     },
-    enabled: (isAdminRole(role) || role === 'supervisor') && open && !targetWorkerId,
+    enabled: (isAdminRole(role) || role === 'supervisor' || isInternalSupervisor) && open && !targetWorkerId,
   });
 
   const adminExcludedRoles = useMemo(() => new Set(['admin', 'branch_admin', 'project_manager', 'accountant', 'admin_assistant']), []);
