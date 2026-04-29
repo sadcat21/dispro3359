@@ -426,7 +426,18 @@ const AssistantApprovals: React.FC = () => {
                               {t('branch_manual_invoice.scope_public')}
                             </Badge>
                           )}
-                          <span className="font-semibold text-slate-900">{i.customers?.name || '—'}</span>
+                          {i.customer_id && i.customers?.name ? (
+                            <button
+                              type="button"
+                              onClick={() => setCustomerDialog({ id: i.customer_id!, name: i.customers!.name })}
+                              className="font-semibold text-primary hover:underline cursor-pointer"
+                              title="عرض كل طلبات الفاتورة المعلقة لهذا العميل"
+                            >
+                              {i.customers.name}
+                            </button>
+                          ) : (
+                            <span className="font-semibold text-slate-900">—</span>
+                          )}
                         </div>
                         <p className="text-sm text-slate-600">
                           {t('assistant_approvals.invoice_number')}: {i.invoice_number || '—'}
