@@ -44,6 +44,10 @@ export interface StockReceiptItem {
   product_id: string;
   quantity: number;
   notes: string | null;
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
   product?: Product;
 }
 
