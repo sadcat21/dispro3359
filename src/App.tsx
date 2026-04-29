@@ -72,6 +72,7 @@ import ManagerSalesSummaryPage from "./pages/admin/ManagerSalesSummaryPage";
 import ManagerAccountingReview from "./pages/admin/ManagerAccountingReview";
 import WorkerRounds from "./pages/admin/WorkerRounds";
 import WorkerRolesManagement from "./pages/admin/WorkerRolesManagement";
+import AssistantPermissionsControl from "./pages/admin/AssistantPermissionsControl";
 import FloatingChat from "./components/chat/FloatingChat";
 import { Loader2 } from "lucide-react";
 
