@@ -208,10 +208,23 @@ const BranchInvoiceApprovals: React.FC = () => {
                         </div>
                         <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                           {isForwarded ? (
-                            <Badge variant="outline" className="border-border bg-muted text-muted-foreground px-3 py-2 gap-1 justify-center">
-                              <Clock3 className="w-4 h-4" />
-                              {t('branch_invoice_approvals.awaiting_final_approval')}
-                            </Badge>
+                            r.invoice_file_url ? (
+                              <Button
+                                asChild
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                              >
+                                <a href={r.invoice_file_url} target="_blank" rel="noreferrer" download={r.invoice_file_name || undefined}>
+                                  <Download className="w-4 h-4" />
+                                  {t('branch_invoice_approvals.download_invoice')}
+                                </a>
+                              </Button>
+                            ) : (
+                              <Badge variant="outline" className="border-border bg-muted text-muted-foreground px-3 py-2 gap-1 justify-center">
+                                <Clock3 className="w-4 h-4" />
+                                {t('branch_invoice_approvals.awaiting_final_approval')}
+                              </Badge>
+                            )
                           ) : (
                             <>
                               <Button
