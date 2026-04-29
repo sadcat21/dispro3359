@@ -542,6 +542,25 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
               </div>
 
+              {/* Receipt Expenses (e.g., external worker fee) */}
+              <div className="border rounded-lg p-2.5 bg-amber-50/40 dark:bg-amber-950/20 space-y-2">
+                <Label className="text-xs font-semibold">💰 مصاريف الاستلام</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">المبلغ (دج)</Label>
+                    <Input type="number" min={0} value={receiptExpenses}
+                      onChange={e => setReceiptExpenses(parseFloat(e.target.value) || 0)}
+                      className="text-center h-8 text-sm" placeholder="0" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">الوصف</Label>
+                    <Input value={expensesDescription}
+                      onChange={e => setExpensesDescription(e.target.value)}
+                      className="h-8 text-xs" placeholder="مثال: عامل خارجي" />
+                  </div>
+                </div>
+              </div>
+
               {/* Driver Info */}
               <div className="border rounded-lg p-2.5 bg-muted/30 space-y-2">
                 <Label className="text-xs font-semibold flex items-center gap-1">
