@@ -16,6 +16,8 @@ import { useWarehouseStock } from '@/hooks/useWarehouseStock';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistory';
+import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
+import { ListChecks } from 'lucide-react';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
