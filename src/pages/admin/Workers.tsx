@@ -62,6 +62,7 @@ const Workers: React.FC = () => {
     accountant: t('workers.accountant'),
     admin_assistant: t('workers.admin_assistant'),
     warehouse_manager: t('workers.warehouse_manager'),
+    company_manager: t('workers.company_manager'),
   };
 
   const ALL_ROLES: AppRole[] = ['worker', 'branch_admin', 'supervisor', 'admin'];
