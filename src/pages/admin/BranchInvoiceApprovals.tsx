@@ -390,6 +390,66 @@ const BranchInvoiceApprovals: React.FC = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
+
+      {/* نافذة اختيار نوع الفاتورة قبل التحويل للإدارة العليا */}
+      <Dialog open={!!scopeDialog} onOpenChange={(v) => { if (!v) setScopeDialog(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('branch_manual_invoice.choose_scope')}</DialogTitle>
+          </DialogHeader>
+          {scopeDialog && (
+            <RadioGroup
+              value={scopeDialog.scope}
+              onValueChange={(v) => setScopeDialog({ ...scopeDialog, scope: v as 'public' | 'private' })}
+              className="space-y-2"
+            >
+              <div
+                className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30"
+                onClick={() => setScopeDialog({ ...scopeDialog, scope: 'private' })}
+              >
+                <RadioGroupItem value="private" id="fwd-private" className="mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor="fwd-private" className="flex items-center gap-2 font-semibold cursor-pointer">
+                    <Lock className="w-4 h-4 text-amber-600" />
+                    {t('branch_manual_invoice.scope_private')}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t('branch_manual_invoice.scope_private_desc')}
+                  </p>
+                </div>
+              </div>
+              <div
+                className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30"
+                onClick={() => setScopeDialog({ ...scopeDialog, scope: 'public' })}
+              >
+                <RadioGroupItem value="public" id="fwd-public" className="mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor="fwd-public" className="flex items-center gap-2 font-semibold cursor-pointer">
+                    <Globe2 className="w-4 h-4 text-blue-600" />
+                    {t('branch_manual_invoice.scope_public')}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t('branch_manual_invoice.scope_public_desc')}
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setScopeDialog(null)} disabled={approve.isPending}>
+              {t('common.cancel') || 'إلغاء'}
+            </Button>
+            <Button
+              onClick={() => scopeDialog && approve.mutate(scopeDialog)}
+              disabled={approve.isPending}
+              className="gap-1 bg-green-600 hover:bg-green-700"
+            >
+              {approve.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              {t('branch_invoice_approvals.forward_to_top')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
