@@ -64,8 +64,9 @@ const CompanyManagerHome: React.FC = () => {
       titleKey: 'company_manager.section_approvals',
       icon: ShieldCheck,
       items: [
-        { key: 'factory_receipt', label: t('company_manager.factory_approvals') + ' — ' + t('worker_home.factory_receipt'), icon: Truck, action: () => setFactoryReceiptOpen(true) },
-        { key: 'factory_delivery', label: t('company_manager.factory_approvals') + ' — ' + t('worker_home.factory_delivery'), icon: ClipboardCheck, action: () => setFactoryDeliveryOpen(true) },
+        { key: 'final_approvals', label: t('assistant_approvals.title'), icon: ShieldCheck, path: '/assistant-approvals' },
+        { key: 'factory_receipt', label: t('worker_home.factory_receipt'), icon: Truck, action: () => setFactoryReceiptOpen(true) },
+        { key: 'factory_delivery', label: t('worker_home.factory_delivery'), icon: ClipboardCheck, action: () => setFactoryDeliveryOpen(true) },
         { key: 'sector_comp', label: t('company_manager.sector_compensation'), icon: Split, path: '/promo-splits' },
         { key: 'invoice_requests', label: t('company_manager.invoice_requests'), icon: FileText, action: () => setInvoiceRequestOpen(true) },
         { key: 'shared_invoices', label: t('nav.shared_invoices'), icon: FileText, path: '/shared-invoices' },

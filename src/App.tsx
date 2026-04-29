@@ -52,6 +52,7 @@ import ManagerTreasury from "./pages/admin/ManagerTreasury";
 import WorkerLiability from "./pages/admin/WorkerLiability";
 import ShareTarget from "./pages/ShareTarget";
 import SharedInvoices from "./pages/admin/SharedInvoices";
+import AssistantApprovals from "./pages/admin/AssistantApprovals";
 import SurplusDeficitTreasury from "./pages/admin/SurplusDeficitTreasury";
 import Rewards from "./pages/admin/Rewards";
 import WorkerRewards from "./pages/WorkerRewards";
@@ -382,6 +383,12 @@ const AppRoutes = () => {
       <Route path="/shared-invoices" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <SharedInvoices />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/assistant-approvals" element={
+        <ProtectedRoute allowedRoles={['admin']} allowedCustomRoles={['company_manager']}>
+          <AssistantApprovals />
         </ProtectedRoute>
       } />
 
