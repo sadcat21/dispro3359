@@ -143,6 +143,8 @@ const BranchInvoiceApprovals: React.FC = () => {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const openOrderDetails = async (row: InvoiceRequestRow) => {
     if (!row.order_id) {
       toast.error(t('branch_invoice_approvals.no_linked_order'));
       return;
