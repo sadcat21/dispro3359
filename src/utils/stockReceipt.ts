@@ -15,7 +15,14 @@ export interface ReceiptBreakdown {
   item_type: 'new' | 'compensation' | 'compensation_offers';
 }
 
-export interface ReceiptBreakdownInput {
+export interface FactoryReturnDetails {
+  lot_number?: string | null;
+  manufacturing_date?: string | null; // YYYY-MM-DD
+  manufacturing_time?: string | null; // free text e.g. "12H33"
+  delivery_date?: string | null; // YYYY-MM-DD
+}
+
+export interface ReceiptBreakdownInput extends FactoryReturnDetails {
   product_id: string;
   new_quantity: number;
   compensation_quantity: number;
@@ -98,6 +105,10 @@ export const aggregateReceiptItemsForEditing = <T extends {
   product_id: string;
   quantity?: number | null;
   notes?: string | null;
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
 }>(items: T[]) => {
   const grouped = new Map<string, ReceiptBreakdownInput>();
 
@@ -113,6 +124,15 @@ export const aggregateReceiptItemsForEditing = <T extends {
     existing.new_quantity += breakdown.new_qty;
     existing.compensation_quantity += breakdown.comp_qty;
     existing.compensation_offers_quantity += breakdown.comp_offers_qty;
+
+    // Capture factory-return details from the compensation row when available
+    if (breakdown.comp_qty > 0 || breakdown.comp_offers_qty > 0) {
+      if (item.lot_number != null) existing.lot_number = item.lot_number;
+      if (item.manufacturing_date != null) existing.manufacturing_date = item.manufacturing_date;
+      if (item.manufacturing_time != null) existing.manufacturing_time = item.manufacturing_time;
+      if (item.delivery_date != null) existing.delivery_date = item.delivery_date;
+    }
+
     grouped.set(item.product_id, existing);
   });
 
@@ -130,11 +150,22 @@ export const buildReceiptItemRows = (
       quantity: number;
       pallet_quantity: number;
       notes: string;
+      lot_number?: string | null;
+      manufacturing_date?: string | null;
+      manufacturing_time?: string | null;
+      delivery_date?: string | null;
     }> = [];
 
     const newQty = Number(item.new_quantity) || 0;
     const compQty = Number(item.compensation_quantity) || 0;
     const compOffersQty = Number(item.compensation_offers_quantity) || 0;
+
+    const factoryDetails = {
+      lot_number: item.lot_number || null,
+      manufacturing_date: item.manufacturing_date || null,
+      manufacturing_time: item.manufacturing_time || null,
+      delivery_date: item.delivery_date || null,
+    };
 
     if (newQty > 0) {
       rows.push({
@@ -153,6 +184,7 @@ export const buildReceiptItemRows = (
         quantity: compQty,
         pallet_quantity: 0,
         notes: JSON.stringify({ item_type: 'compensation', new_qty: 0, comp_qty: compQty, comp_offers_qty: 0 }),
+        ...factoryDetails,
       });
     }
 
@@ -163,6 +195,7 @@ export const buildReceiptItemRows = (
         quantity: compOffersQty,
         pallet_quantity: 0,
         notes: JSON.stringify({ item_type: 'compensation_offers', new_qty: 0, comp_qty: 0, comp_offers_qty: compOffersQty }),
+        ...factoryDetails,
       });
     }
 

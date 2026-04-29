@@ -19,6 +19,11 @@ interface ReceiptItem {
   new_quantity: number; // كمية جديدة
   compensation_quantity: number; // تعويض تالف
   compensation_offers_quantity: number; // تعويض عروض
+  // Factory-return per-product details (used when source = factory & there's compensation)
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
 }
 
 interface PendingReceipt {
@@ -114,6 +119,11 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [newQtyFields, setNewQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
   const [compQtyFields, setCompQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
   const [compOffersQtyFields, setCompOffersQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
+  // Per-product factory-return detail fields
+  const [lotNumber, setLotNumber] = useState('');
+  const [manufacturingDate, setManufacturingDate] = useState('');
+  const [manufacturingTime, setManufacturingTime] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
 
   // Multi-select
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
@@ -418,10 +428,18 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       setNewQtyFields(quantityToFields(existing.new_quantity, ppb));
       setCompQtyFields(quantityToFields(existing.compensation_quantity, ppb));
       setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, ppb));
+      setLotNumber(existing.lot_number || '');
+      setManufacturingDate(existing.manufacturing_date || '');
+      setManufacturingTime(existing.manufacturing_time || '');
+      setDeliveryDate(existing.delivery_date || '');
     } else {
       setNewQtyFields({ boxes: '1', pieces: '' });
       setCompQtyFields({ boxes: '0', pieces: '' });
       setCompOffersQtyFields({ boxes: '0', pieces: '' });
+      setLotNumber('');
+      setManufacturingDate('');
+      setManufacturingTime('');
+      setDeliveryDate('');
     }
   };
 
@@ -437,16 +455,23 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     const cq = parsedComp;
     const coq = parsedCompOffers;
     if (nq <= 0 && cq <= 0 && coq <= 0) return;
+    const showFactoryDetails = receiptSource === 'factory' && (cq > 0 || coq > 0);
+    const factoryFields = showFactoryDetails ? {
+      lot_number: lotNumber || null,
+      manufacturing_date: manufacturingDate || null,
+      manufacturing_time: manufacturingTime || null,
+      delivery_date: deliveryDate || null,
+    } : { lot_number: null, manufacturing_date: null, manufacturing_time: null, delivery_date: null };
     // Replace existing quantities instead of adding
     setItems(prev => {
       const existing = prev.findIndex(i => i.product_id === singleProductId);
       if (existing >= 0) {
         return prev.map((item, idx) => idx === existing
-          ? { ...item, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq }
+          ? { ...item, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq, ...factoryFields }
           : item
         );
       }
-      return [...prev, { product_id: singleProductId, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq }];
+      return [...prev, { product_id: singleProductId, new_quantity: nq, compensation_quantity: cq, compensation_offers_quantity: coq, ...factoryFields }];
     });
     setSingleProductId(null);
   };
@@ -459,6 +484,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     setNewQtyFields(quantityToFields(item.new_quantity, ppb));
     setCompQtyFields(quantityToFields(item.compensation_quantity, ppb));
     setCompOffersQtyFields(quantityToFields(item.compensation_offers_quantity, ppb));
+    setLotNumber(item.lot_number || '');
+    setManufacturingDate(item.manufacturing_date || '');
+    setManufacturingTime(item.manufacturing_time || '');
+    setDeliveryDate(item.delivery_date || '');
   };
 
   const handleConfirmMulti = () => {
@@ -924,6 +953,30 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
                 <div className="text-center text-[11px] text-muted-foreground">سيُحفظ: {boxesToBP(parsedCompOffers, singlePPB)}</div>
               </div>
+
+              {receiptSource === 'factory' && (parsedComp > 0 || parsedCompOffers > 0) && (
+                <div className="space-y-2 border rounded-lg p-2.5 bg-purple-50/60 dark:bg-purple-950/20">
+                  <Label className="text-center block text-xs font-semibold text-purple-700">📋 تفاصيل التسليم للمصنع</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">N° de LOT</Label>
+                      <Input value={lotNumber} onChange={e => setLotNumber(e.target.value)} className="h-8 text-xs" placeholder="LOT 18" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Heure de fabrication</Label>
+                      <Input value={manufacturingTime} onChange={e => setManufacturingTime(e.target.value)} className="h-8 text-xs" placeholder="12H33" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Date de fabrication</Label>
+                      <Input type="date" value={manufacturingDate} onChange={e => setManufacturingDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Date de livraison</Label>
+                      <Input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <Button className="w-full bg-lime-600 hover:bg-lime-700" onClick={handleConfirmSingleProduct}>
                 <Plus className="w-4 h-4 ml-1" /> إضافة للاستلام

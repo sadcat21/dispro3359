@@ -17,6 +17,10 @@ interface EditItem {
   new_quantity: number;
   compensation_quantity: number;
   compensation_offers_quantity: number;
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
 }
 
 interface BoxPieceFields {
@@ -53,13 +57,17 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const receiptMeta = useMemo(() => parseReceiptMeta(receipt.notes), [receipt.notes]);
 
   const convertDbItemsToEditItems = (items: StockReceiptItem[]): EditItem[] => {
-    return aggregateReceiptItemsForEditing(items).map((item) => {
+    return aggregateReceiptItemsForEditing(items as any).map((item) => {
       const ppb = products.find((product) => product.id === item.product_id)?.pieces_per_box || 1;
       return {
-        ...item,
+        product_id: item.product_id,
         new_quantity: fromDbQuantity(item.new_quantity, ppb),
         compensation_quantity: fromDbQuantity(item.compensation_quantity, ppb),
         compensation_offers_quantity: fromDbQuantity(item.compensation_offers_quantity, ppb),
+        lot_number: item.lot_number || null,
+        manufacturing_date: item.manufacturing_date || null,
+        manufacturing_time: item.manufacturing_time || null,
+        delivery_date: item.delivery_date || null,
       };
     });
   };
@@ -76,6 +84,10 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const [newQtyFields, setNewQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compQtyFields, setCompQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compOffersQtyFields, setCompOffersQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+  const [lotNumber, setLotNumber] = useState('');
+  const [manufacturingDate, setManufacturingDate] = useState('');
+  const [manufacturingTime, setManufacturingTime] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
 
   const getProduct = (id: string) => products.find((product) => product.id === id);
   const currentProduct = singleProductId ? getProduct(singleProductId) : null;
@@ -120,10 +132,18 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       setNewQtyFields(quantityToFields(existing.new_quantity, editorPpb));
       setCompQtyFields(quantityToFields(existing.compensation_quantity, editorPpb));
       setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, editorPpb));
+      setLotNumber(existing.lot_number || '');
+      setManufacturingDate(existing.manufacturing_date || '');
+      setManufacturingTime(existing.manufacturing_time || '');
+      setDeliveryDate(existing.delivery_date || '');
     } else {
       setNewQtyFields({ boxes: '1', pieces: '000' });
       setCompQtyFields({ boxes: '0', pieces: '000' });
       setCompOffersQtyFields({ boxes: '0', pieces: '000' });
+      setLotNumber('');
+      setManufacturingDate('');
+      setManufacturingTime('');
+      setDeliveryDate('');
     }
   };
 
@@ -144,6 +164,14 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       return;
     }
 
+    const showFactoryDetails = receiptSource === 'factory' && (compensationQuantity > 0 || compensationOffersQuantity > 0);
+    const factoryFields = showFactoryDetails ? {
+      lot_number: lotNumber || null,
+      manufacturing_date: manufacturingDate || null,
+      manufacturing_time: manufacturingTime || null,
+      delivery_date: deliveryDate || null,
+    } : { lot_number: null, manufacturing_date: null, manufacturing_time: null, delivery_date: null };
+
     setEditItems((prev) => {
       const existingIndex = prev.findIndex((item) => item.product_id === singleProductId);
       if (existingIndex >= 0) {
@@ -152,6 +180,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
           new_quantity: newQuantity,
           compensation_quantity: compensationQuantity,
           compensation_offers_quantity: compensationOffersQuantity,
+          ...factoryFields,
         } : item);
       }
 
@@ -160,6 +189,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
         new_quantity: newQuantity,
         compensation_quantity: compensationQuantity,
         compensation_offers_quantity: compensationOffersQuantity,
+        ...factoryFields,
       }];
     });
 
@@ -475,6 +505,35 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
                   </div>
                 </div>
               </div>
+
+              {(() => {
+                const cq = fieldsToQuantity(compQtyFields, currentPPB);
+                const coq = fieldsToQuantity(compOffersQtyFields, currentPPB);
+                if (receiptSource !== 'factory' || (cq <= 0 && coq <= 0)) return null;
+                return (
+                  <div className="space-y-2 rounded-lg border border-purple-200 bg-purple-50/60 p-2.5 dark:border-purple-900 dark:bg-purple-950/20">
+                    <Label className="block text-center text-xs font-semibold text-purple-700">📋 تفاصيل التسليم للمصنع</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">N° de LOT</Label>
+                        <Input value={lotNumber} onChange={(e) => setLotNumber(e.target.value)} className="h-8 text-xs" placeholder="LOT 18" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">Heure de fabrication</Label>
+                        <Input value={manufacturingTime} onChange={(e) => setManufacturingTime(e.target.value)} className="h-8 text-xs" placeholder="12H33" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">Date de fabrication</Label>
+                        <Input type="date" value={manufacturingDate} onChange={(e) => setManufacturingDate(e.target.value)} className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-purple-700">Date de livraison</Label>
+                        <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-8 text-xs" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <Button className="w-full" onClick={confirmProductQuantities}><Plus className="w-4 h-4 ml-1" /> حفظ الكمية</Button>
               <Button type="button" variant="outline" className="w-full" onClick={() => setSingleProductId(null)}>إلغاء</Button>
