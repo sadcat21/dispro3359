@@ -436,6 +436,12 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <Button size="sm" variant="outline" disabled={isProcessing || isFrozen} onClick={onStartEdit}>
               <Edit className="w-3.5 h-3.5 ml-1" /> تعديل
             </Button>
+            {kind === 'receipt' && (
+              <Button size="sm" variant="outline" className="border-blue-500 text-blue-700"
+                onClick={() => setPrintReceipt(record as ReceiptRecord)}>
+                <Printer className="w-3.5 h-3.5 ml-1" /> طباعة وصل التحويل
+              </Button>
+            )}
             <Button size="sm" variant="outline" disabled={isProcessing}
               className={isFrozen ? 'border-blue-500 text-blue-700' : 'border-amber-500 text-amber-700'}
               onClick={() => toggleFreeze(kind, record.id, !isFrozen)}>
