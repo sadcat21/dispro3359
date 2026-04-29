@@ -478,6 +478,61 @@ const AssistantApprovals: React.FC = () => {
         </Tabs>
       </div>
 
+      {/* نافذة طلبات الفاتورة المعلقة لعميل محدد */}
+      <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) setCustomerDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              طلبات الفاتورة المعلقة — {customerDialog?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {customerInvoicesQ.isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
+            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة</p>
+          ) : (
+            <ScrollArea className="max-h-[60vh] pr-2">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  العدد الإجمالي: <span className="font-bold text-foreground">{customerInvoicesQ.data!.length}</span>
+                </p>
+                {customerInvoicesQ.data!.map((r: any) => (
+                  <Card key={r.id} className="border-slate-200">
+                    <CardContent className="p-3 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline">{r.branches?.name || '—'}</Badge>
+                          <Badge variant="secondary">{r.payment_method || '—'}</Badge>
+                          <span className="font-bold">
+                            {Number(r.total_amount || 0).toLocaleString('ar')} دج
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          فاتورة #{r.invoice_number || '—'} • {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setCustomerDialog(null);
+                          setReviewRequestId(r.id);
+                        }}
+                      >
+                        <Eye className="w-4 h-4 me-1" />
+                        مراجعة
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <InvoiceRequestReviewDialog
         open={!!reviewRequestId}
         onOpenChange={(v) => { if (!v) setReviewRequestId(null); }}
