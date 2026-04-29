@@ -394,17 +394,37 @@ const WorkerRolesManagement: React.FC = () => {
                 return (
                   <div key={r.id} className="border rounded-lg p-4 space-y-3 bg-card">
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={effective ? 'default' : 'secondary'}>
                           {effective ? <ShieldCheck className="w-3 h-3 ml-1" /> : <ShieldOff className="w-3 h-3 ml-1" />}
                           {roleName}
                         </Badge>
+                        {r.is_primary && r.is_active && (
+                          <Badge className="bg-amber-500 hover:bg-amber-500 text-white">⭐ {t('worker_roles.primary_role')}</Badge>
+                        )}
+                        {!r.is_primary && r.is_active && (
+                          <Badge variant="outline">{t('worker_roles.secondary_role')}</Badge>
+                        )}
                         {!r.is_active && <Badge variant="outline">{t('worker_roles.disabled_manually')}</Badge>}
                         {r.valid_until && new Date(r.valid_until) < new Date() && (
                           <Badge variant="destructive">{t('worker_roles.expired')}</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        {r.is_active && !r.is_primary && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              await supabase.from('worker_roles').update({ is_primary: false } as any).eq('worker_id', r.worker_id);
+                              await supabase.from('worker_roles').update({ is_primary: true } as any).eq('id', r.id);
+                              qc.invalidateQueries({ queryKey: ['worker-roles-mgmt'] });
+                              toast.success(t('worker_roles.set_primary'));
+                            }}
+                          >
+                            ⭐ {t('worker_roles.set_primary')}
+                          </Button>
+                        )}
                         <Label className="text-xs">{t('worker_roles.enabled')}</Label>
                         <Switch
                           checked={r.is_active}
