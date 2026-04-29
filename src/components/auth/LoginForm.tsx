@@ -76,33 +76,33 @@ const ROLE_LABEL_AR: Record<string, string> = {
   worker: 'عامل',
 };
 
+// نحدد "الدور الفعّال" للعرض: الدور الرئيسي (functional_role) إن وُجد، وإلا workers.role
+const getEffectiveRoleCode = (w: QuickWorker) => w.functional_role || w.role;
+
 const getWorkerIcon = (w: QuickWorker) => {
-  if (w.functional_role && FUNCTIONAL_ROLE_ICONS[w.functional_role]) {
-    return FUNCTIONAL_ROLE_ICONS[w.functional_role];
-  }
-  return ROLE_ICONS[w.role] || UserRound;
+  const code = getEffectiveRoleCode(w);
+  if (FUNCTIONAL_ROLE_ICONS[code]) return FUNCTIONAL_ROLE_ICONS[code];
+  return ROLE_ICONS[code] || UserRound;
 };
 
 const getWorkerIconTone = (w: QuickWorker, isRealMode: boolean) => {
-  if (w.functional_role === 'delivery_rep') return 'text-blue-600';
-  if (w.functional_role === 'sales_rep') return 'text-violet-600';
-  if (w.functional_role === 'warehouse_manager') return 'text-amber-600';
-  if (w.role === 'admin') return 'text-rose-600';
-  if (w.role === 'company_manager') return 'text-amber-600';
-  if (w.role === 'project_manager') return 'text-fuchsia-600';
-  if (w.role === 'branch_admin') return 'text-emerald-600';
-  if (w.role === 'accountant') return 'text-orange-600';
-  if (w.role === 'admin_assistant') return 'text-cyan-600';
-  if (w.role === 'supervisor') return 'text-sky-600';
+  const code = getEffectiveRoleCode(w);
+  if (code === 'delivery_rep') return 'text-blue-600';
+  if (code === 'sales_rep') return 'text-violet-600';
+  if (code === 'warehouse_manager') return 'text-amber-600';
+  if (code === 'admin') return 'text-rose-600';
+  if (code === 'company_manager') return 'text-amber-600';
+  if (code === 'project_manager') return 'text-fuchsia-600';
+  if (code === 'branch_admin') return 'text-emerald-600';
+  if (code === 'accountant') return 'text-orange-600';
+  if (code === 'admin_assistant') return 'text-cyan-600';
+  if (code === 'supervisor') return 'text-sky-600';
   return 'text-slate-600';
 };
 
 const getWorkerLabel = (w: QuickWorker) => {
-  const base = ROLE_LABEL_AR[w.role] || w.role;
-  if (w.functional_role && FUNCTIONAL_ROLE_LABEL_AR[w.functional_role]) {
-    return `${base} - ${FUNCTIONAL_ROLE_LABEL_AR[w.functional_role]}`;
-  }
-  return base;
+  const code = getEffectiveRoleCode(w);
+  return ROLE_LABEL_AR[code] || FUNCTIONAL_ROLE_LABEL_AR[code] || code;
 };
 
 const ADMIN_TAB_ROLES = ['admin', 'company_manager', 'project_manager', 'accountant', 'admin_assistant'];
