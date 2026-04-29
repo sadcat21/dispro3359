@@ -24,6 +24,8 @@ interface InvoiceRequestRow {
   products: any;
   invoice_file_url?: string | null;
   invoice_file_name?: string | null;
+  invoice_scope?: 'public' | 'private' | null;
+  created_by_role?: string | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
