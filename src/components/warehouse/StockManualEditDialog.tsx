@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { parseBP, dbBPDisplay, boxesToBP } from '@/utils/boxPieceInput';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { History } from 'lucide-react';
 import StockEditHistory from './StockEditHistory';
 
@@ -35,29 +36,9 @@ interface QuantityFields {
   pieces: string;
 }
 
-const FIELDS = [
-  { key: 'remaining', label: 'المتبقي', color: 'text-primary' },
-  { key: 'sold', label: 'المباع', color: 'text-blue-600' },
-  { key: 'gifts', label: 'الهدايا', color: 'text-green-600' },
-  { key: 'damaged', label: 'التالف', color: 'text-destructive' },
-  { key: 'factoryReturn', label: 'المسترجع', color: 'text-violet-600' },
-  { key: 'compensation', label: 'التعويض', color: 'text-teal-600' },
-  { key: 'surplus', label: 'الفائض', color: 'text-amber-600' },
-  { key: 'deficit', label: 'العجز', color: 'text-destructive' },
-] as const;
-
-type FieldKey = typeof FIELDS[number]['key'];
-
 const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
 
-const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
-  const parsed = parseBP(boxesToBP(quantity, piecesPerBox), piecesPerBox);
-  return {
-    boxes: String(parsed.boxes),
-    pieces: String(parsed.pieces).padStart(2, '0'),
-  };
-};
-
+/** Convert a DB-stored B.P value (e.g. 8.05) to {boxes:"8", pieces:"05"} */
 const sourceValueToFields = (value: number, piecesPerBox: number): QuantityFields => {
   const parsed = parseBP(String(Math.round(value * 100) / 100), piecesPerBox);
   return {
@@ -66,18 +47,30 @@ const sourceValueToFields = (value: number, piecesPerBox: number): QuantityField
   };
 };
 
-const fieldsToQuantity = (fields: QuantityFields, piecesPerBox: number): number => {
-  const boxes = sanitizeDigits(fields.boxes, 5) || '0';
-  const pieces = sanitizeDigits(fields.pieces, 3) || '0';
-  return parseBP(`${boxes}.${pieces}`, piecesPerBox).totalBoxes;
+/** Convert {boxes, pieces} fields to a DB B.P number (e.g. 8.05) — NOT fractional boxes */
+const fieldsToDbBP = (fields: QuantityFields, piecesPerBox: number): number => {
+  const ppb = Math.max(1, Math.round(piecesPerBox));
+  const boxesNum = parseInt(sanitizeDigits(fields.boxes, 5) || '0', 10);
+  const piecesNum = parseInt(sanitizeDigits(fields.pieces, 3) || '0', 10);
+  // normalize overflow pieces into boxes
+  const totalPieces = boxesNum * ppb + piecesNum;
+  const finalBoxes = Math.floor(totalPieces / ppb);
+  const finalPieces = totalPieces % ppb;
+  // DB B.P format: integer.pieces (always 2-digit pieces)
+  return parseFloat(`${finalBoxes}.${String(finalPieces).padStart(2, '0')}`);
 };
 
 const normalizeFields = (fields: QuantityFields, piecesPerBox: number): QuantityFields => {
-  return quantityToFields(fieldsToQuantity(fields, piecesPerBox), piecesPerBox);
-};
-
-const toDbQuantity = (quantity: number, piecesPerBox: number): number => {
-  return piecesPerBox > 1 ? parseFloat(boxesToBP(quantity, piecesPerBox)) : quantity;
+  const ppb = Math.max(1, Math.round(piecesPerBox));
+  const boxesNum = parseInt(sanitizeDigits(fields.boxes, 5) || '0', 10);
+  const piecesNum = parseInt(sanitizeDigits(fields.pieces, 3) || '0', 10);
+  const totalPieces = boxesNum * ppb + piecesNum;
+  const finalBoxes = Math.floor(totalPieces / ppb);
+  const finalPieces = totalPieces % ppb;
+  return {
+    boxes: String(finalBoxes),
+    pieces: String(finalPieces).padStart(2, '0'),
+  };
 };
 
 const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
@@ -85,12 +78,27 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const { workerId } = useAuth();
+  const { t, dir } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [fieldValues, setFieldValues] = useState<Record<FieldKey, QuantityFields>>(() => {
+
+  const FIELDS = [
+    { key: 'remaining', label: t('warehouse.remaining'), color: 'text-primary' },
+    { key: 'sold', label: t('warehouse.sold'), color: 'text-blue-600' },
+    { key: 'gifts', label: t('warehouse.gifts'), color: 'text-green-600' },
+    { key: 'damaged', label: t('warehouse.damaged'), color: 'text-destructive' },
+    { key: 'factoryReturn', label: t('warehouse.returned'), color: 'text-violet-600' },
+    { key: 'compensation', label: t('warehouse.compensation'), color: 'text-teal-600' },
+    { key: 'surplus', label: t('warehouse.surplus'), color: 'text-amber-600' },
+    { key: 'deficit', label: t('warehouse.deficit'), color: 'text-destructive' },
+  ] as const;
+
+  type FieldKey = typeof FIELDS[number]['key'];
+
+  const [fieldValues, setFieldValues] = useState<Record<string, QuantityFields>>(() => {
     const init: Record<string, QuantityFields> = {};
     for (const f of FIELDS) init[f.key] = { boxes: '0', pieces: '00' };
-    return init as Record<FieldKey, QuantityFields>;
+    return init;
   });
 
   useEffect(() => {
@@ -99,21 +107,22 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
       for (const f of FIELDS) {
         newVals[f.key] = sourceValueToFields((currentValues as any)[f.key] || 0, piecesPerBox);
       }
-      setFieldValues(newVals as Record<FieldKey, QuantityFields>);
+      setFieldValues(newVals);
       setShowHistory(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, currentValues, piecesPerBox]);
 
   const fmt = (v: number) => dbBPDisplay(v, piecesPerBox);
 
-  const handleFieldChange = (key: FieldKey, field: 'boxes' | 'pieces', value: string) => {
+  const handleFieldChange = (key: string, field: 'boxes' | 'pieces', value: string) => {
     setFieldValues(prev => ({
       ...prev,
       [key]: { ...prev[key], [field]: sanitizeDigits(value, field === 'boxes' ? 5 : 3) },
     }));
   };
 
-  const handleFieldBlur = (key: FieldKey) => {
+  const handleFieldBlur = (key: string) => {
     setFieldValues(prev => ({
       ...prev,
       [key]: normalizeFields(prev[key], piecesPerBox),
@@ -123,22 +132,24 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const normalized: Record<FieldKey, QuantityFields> = { ...fieldValues };
+      const normalized: Record<string, QuantityFields> = {};
+      const newDbValues: Record<string, number> = {};
       for (const f of FIELDS) {
         normalized[f.key] = normalizeFields(fieldValues[f.key], piecesPerBox);
+        newDbValues[f.key] = fieldsToDbBP(normalized[f.key], piecesPerBox);
       }
 
       const changes: Record<string, { from: string; to: string }> = {};
       for (const f of FIELDS) {
         const oldDisplay = fmt((currentValues as any)[f.key] || 0);
-        const newDisplay = boxesToBP(fieldsToQuantity(normalized[f.key], piecesPerBox), piecesPerBox);
+        const newDisplay = fmt(newDbValues[f.key]);
         if (oldDisplay !== newDisplay) {
           changes[f.key] = { from: oldDisplay, to: newDisplay };
         }
       }
 
       if (Object.keys(changes).length === 0) {
-        toast.info('لا توجد تغييرات');
+        toast.info(t('warehouse.no_changes'));
         onOpenChange(false);
         return;
       }
@@ -154,10 +165,10 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
         await supabase
           .from('warehouse_stock')
           .update({
-            damaged_quantity: toDbQuantity(fieldsToQuantity(normalized.damaged, piecesPerBox), piecesPerBox),
-            factory_return_quantity: toDbQuantity(fieldsToQuantity(normalized.factoryReturn, piecesPerBox), piecesPerBox),
-            compensation_quantity: toDbQuantity(fieldsToQuantity(normalized.compensation, piecesPerBox), piecesPerBox),
-            quantity: toDbQuantity(fieldsToQuantity(normalized.remaining, piecesPerBox), piecesPerBox),
+            damaged_quantity: newDbValues.damaged,
+            factory_return_quantity: newDbValues.factoryReturn,
+            compensation_quantity: newDbValues.compensation,
+            quantity: newDbValues.remaining,
           })
           .eq('id', wsRow.id);
       }
@@ -168,14 +179,12 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
         .eq('branch_id', branchId)
         .eq('product_id', productId);
 
-      const newSurplus = fieldsToQuantity(normalized.surplus, piecesPerBox);
-      const newDeficit = fieldsToQuantity(normalized.deficit, piecesPerBox);
       const discrepancyRows: any[] = [];
-      if (newSurplus > 0) {
-        discrepancyRows.push({ branch_id: branchId, product_id: productId, discrepancy_type: 'surplus', quantity: newSurplus });
+      if (newDbValues.surplus > 0) {
+        discrepancyRows.push({ branch_id: branchId, product_id: productId, discrepancy_type: 'surplus', quantity: newDbValues.surplus });
       }
-      if (newDeficit > 0) {
-        discrepancyRows.push({ branch_id: branchId, product_id: productId, discrepancy_type: 'deficit', quantity: newDeficit });
+      if (newDbValues.deficit > 0) {
+        discrepancyRows.push({ branch_id: branchId, product_id: productId, discrepancy_type: 'deficit', quantity: newDbValues.deficit });
       }
       if (discrepancyRows.length > 0) {
         await supabase.from('stock_discrepancies').insert(discrepancyRows);
@@ -192,14 +201,14 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
         });
       }
 
-      toast.success('تم حفظ التعديلات');
+      toast.success(t('warehouse.saved'));
       queryClient.invalidateQueries({ queryKey: ['warehouse-product-summary'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-sold-summary'] });
       queryClient.invalidateQueries({ queryKey: ['stock-edit-history'] });
       onOpenChange(false);
     } catch (e: any) {
-      toast.error(e.message || 'حدث خطأ');
+      toast.error(e.message || 'Error');
     } finally {
       setSaving(false);
     }
@@ -207,16 +216,16 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-md">
+      <DialogContent dir={dir} className="max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-sm">تعديل يدوي — {productName}</DialogTitle>
+            <DialogTitle className="text-sm">{t('warehouse.manual_edit')} — {productName}</DialogTitle>
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7"
               onClick={() => setShowHistory(!showHistory)}
-              title="سجل التعديلات"
+              title={t('warehouse.edit_history')}
             >
               <History className="w-4 h-4" />
             </Button>
@@ -229,9 +238,9 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
           <div className="space-y-2.5">
             <div className="grid grid-cols-[80px_1fr_1fr_auto] gap-2 items-center px-1">
               <span />
-              <span className="text-[10px] text-center font-semibold text-muted-foreground">الصندوق</span>
-              <span className="text-[10px] text-center font-semibold text-muted-foreground">القطع</span>
-              <span className="text-[10px] text-muted-foreground w-16 text-center">الحالي</span>
+              <span className="text-[10px] text-center font-semibold text-muted-foreground">{t('warehouse.boxes')}</span>
+              <span className="text-[10px] text-center font-semibold text-muted-foreground">{t('warehouse.pieces')}</span>
+              <span className="text-[10px] text-muted-foreground w-16 text-center">{t('warehouse.current')}</span>
             </div>
 
             {FIELDS.map(f => (
@@ -264,7 +273,7 @@ const StockManualEditDialog: React.FC<StockManualEditDialogProps> = ({
             ))}
 
             <Button onClick={handleSave} disabled={saving} className="w-full">
-              {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+              {saving ? t('warehouse.saving') : t('warehouse.save_edits')}
             </Button>
           </div>
         )}
