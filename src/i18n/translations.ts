@@ -2284,4 +2284,6 @@ export const translations: Translations = {
   'branch_invoice_approvals.reject': { ar: 'رفض', fr: 'Rejeter', en: 'Reject' },
   'branch_invoice_approvals.approved_success': { ar: 'تمت الموافقة وأُرسلت لمساعد المدير العام', fr: 'Approuvé et envoyé à l\'assistant DG', en: 'Approved and sent to Assistant GM' },
   'branch_invoice_approvals.rejected_success': { ar: 'تم رفض الطلب', fr: 'Demande rejetée', en: 'Request rejected' },
+  'branch_invoice_approvals.new_request_toast': { ar: '🧾 طلب فاتورة جديد بانتظار موافقتك', fr: '🧾 Nouvelle demande de facture en attente', en: '🧾 New invoice request awaiting approval' },
+  'branch_invoice_approvals.review': { ar: 'مراجعة', fr: 'Examiner', en: 'Review' },
 };
