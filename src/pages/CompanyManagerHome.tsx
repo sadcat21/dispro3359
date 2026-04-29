@@ -15,6 +15,7 @@ import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
 import FactoryDeliveryQuickDialog from '@/components/stock/FactoryDeliveryQuickDialog';
 import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
+import BranchWilayaBadges from '@/components/company-manager/BranchWilayaBadges';
 
 interface ExecItem {
   key: string;
