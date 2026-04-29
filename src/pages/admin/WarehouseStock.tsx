@@ -22,6 +22,8 @@ import QuickLoadWorkerDialog from '@/components/warehouse/QuickLoadWorkerDialog'
 import BranchPalletCard from '@/components/stock/BranchPalletCard';
 import WarehouseReviewDialog from '@/components/warehouse/WarehouseReviewDialog';
 import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistory';
+import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
+import { Calendar } from 'lucide-react';
 
 interface ProductSummary {
   productId: string;
