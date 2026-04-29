@@ -113,6 +113,10 @@ const FactoryDeliveryDialog: React.FC<Props> = ({ open, onOpenChange, branchId, 
           product_id: i.product_id,
           product_quantity: i.product_quantity,
           pallet_quantity: 0,
+          lot_number: i.lot_number || null,
+          manufacturing_date: i.manufacturing_date || null,
+          manufacturing_time: i.manufacturing_time || null,
+          delivery_date: i.delivery_date || null,
         }));
         const { error: itemsError } = await supabase.from('factory_order_items').insert(orderItems);
         if (itemsError) throw itemsError;
