@@ -277,7 +277,6 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                         <div key={p.id} className="flex items-center justify-between p-3">
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium truncate">{p.name}</div>
-                            <div className="text-xs text-muted-foreground">{Number(p.price || 0).toFixed(2)} DA</div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <Button
