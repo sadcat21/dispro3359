@@ -132,10 +132,18 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       setNewQtyFields(quantityToFields(existing.new_quantity, editorPpb));
       setCompQtyFields(quantityToFields(existing.compensation_quantity, editorPpb));
       setCompOffersQtyFields(quantityToFields(existing.compensation_offers_quantity, editorPpb));
+      setLotNumber(existing.lot_number || '');
+      setManufacturingDate(existing.manufacturing_date || '');
+      setManufacturingTime(existing.manufacturing_time || '');
+      setDeliveryDate(existing.delivery_date || '');
     } else {
       setNewQtyFields({ boxes: '1', pieces: '000' });
       setCompQtyFields({ boxes: '0', pieces: '000' });
       setCompOffersQtyFields({ boxes: '0', pieces: '000' });
+      setLotNumber('');
+      setManufacturingDate('');
+      setManufacturingTime('');
+      setDeliveryDate('');
     }
   };
 
