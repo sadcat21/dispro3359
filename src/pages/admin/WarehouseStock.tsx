@@ -285,7 +285,7 @@ const WarehouseStock: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-2">
+        <TabsList className={`w-full grid ${isWarehouseManager ? 'grid-cols-3' : 'grid-cols-2'}`}>
           <TabsTrigger value="stock" className="text-xs gap-1">
             <Package className="w-3.5 h-3.5" />
             {t('warehouse.stock_tab')}
@@ -294,6 +294,12 @@ const WarehouseStock: React.FC = () => {
             <ClipboardCheck className="w-3.5 h-3.5" />
             {t('warehouse.reviews_tab')}
           </TabsTrigger>
+          {isWarehouseManager && (
+            <TabsTrigger value="today" className="text-xs gap-1">
+              <Calendar className="w-3.5 h-3.5" />
+              إنجازات اليوم
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="stock" className="space-y-4 mt-3">
