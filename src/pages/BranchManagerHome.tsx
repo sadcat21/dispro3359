@@ -229,7 +229,7 @@ const BranchManagerHome: React.FC = () => {
                   return (
                     <Card
                       key={item.key}
-                      onClick={() => navigate(item.path)}
+                      onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
                       className={`group cursor-pointer bg-white hover:shadow-md transition-all relative ${
                         showBadge
                           ? 'border-red-300 ring-2 ring-red-200/60 hover:border-red-400 hover:shadow-red-500/10'
