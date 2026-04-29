@@ -105,21 +105,65 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     const w = window.open('', '_blank');
     if (!w) return;
     const dateStr = new Date(r.created_at).toLocaleString('fr');
+    const drv = r.meta;
+    const hasDriver = drv.driver_name || drv.driver_phone || drv.license_plate;
+
+    const itemsRows = r.items.map((it, i) => {
+      const total = it.new_qty + it.comp_qty + it.comp_offers_qty;
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${it.product_app_name || it.product_name}</td>
+        <td style="text-align:center">${it.new_qty > 0 ? boxesToBP(it.new_qty, it.pieces_per_box) : '-'}</td>
+        <td style="text-align:center">${it.comp_qty > 0 ? boxesToBP(it.comp_qty, it.pieces_per_box) : '-'}</td>
+        <td style="text-align:center">${it.comp_offers_qty > 0 ? boxesToBP(it.comp_offers_qty, it.pieces_per_box) : '-'}</td>
+        <td style="text-align:center;font-weight:bold">${boxesToBP(total, it.pieces_per_box)}</td>
+      </tr>`;
+    }).join('');
+
     w.document.write(`
-      <html dir="ltr"><head><title>Détails de réception</title>
+      <html dir="ltr"><head><title>Bon de Transfert - Détails</title>
       <style>
         body{font-family:Arial,sans-serif;padding:20px;color:#000}
-        h1{text-align:center;font-size:20px;margin-bottom:15px}
+        h1{text-align:center;font-size:22px;margin-bottom:10px}
+        h2{text-align:center;font-size:16px;margin:0 0 15px 0;color:#444}
         .box{border:1px solid #999;border-radius:5px;padding:10px;margin:10px 0}
         .box h3{margin:0 0 8px 0;font-size:14px;border-bottom:1px solid #ccc;padding-bottom:4px}
         .row{font-size:13px;margin:4px 0}
         .label{color:#555}
         table{width:100%;border-collapse:collapse;margin-top:6px}
         th,td{border:1px solid #000;padding:5px 8px;font-size:12px;text-align:left}
+        th{background:#f0f0f0}
+        .signature{display:flex;justify-content:space-between;margin-top:40px}
+        .signature div{text-align:center;width:40%}
+        .sig-line{border-top:1px solid #000;margin-top:50px;padding-top:5px}
       </style></head><body>
-        <h1>Détails de réception ${r.invoice_number ? '#' + r.invoice_number : ''}</h1>
+        <h1>Bon de Transfert</h1>
+        <h2>Détails de réception</h2>
         <div class="row"><span class="label">Date:</span> <strong>${dateStr}</strong></div>
+        ${r.invoice_number ? `<div class="row"><span class="label">N° Facture:</span> <strong>${r.invoice_number}</strong></div>` : ''}
         <div class="row"><span class="label">Source:</span> <strong>${r.meta.source === 'branch' ? 'Autre succursale' : 'Usine'}</strong></div>
+
+        ${hasDriver ? `
+          <div class="box">
+            <h3>Informations du chauffeur</h3>
+            ${drv.driver_name ? `<div class="row">Nom: ${drv.driver_name}</div>` : ''}
+            ${drv.driver_phone ? `<div class="row">Téléphone: ${drv.driver_phone}</div>` : ''}
+            ${drv.license_plate ? `<div class="row">Immatriculation: ${drv.license_plate}</div>` : ''}
+          </div>
+        ` : ''}
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Produit</th>
+              <th style="text-align:center">Nouveau</th>
+              <th style="text-align:center">Comp. Dommage</th>
+              <th style="text-align:center">Comp. Offres</th>
+              <th style="text-align:center">Total</th>
+            </tr>
+          </thead>
+          <tbody>${itemsRows}</tbody>
+        </table>
 
         <div class="box">
           <h3>Détails supplémentaires</h3>
@@ -141,6 +185,11 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         ` : ''}
 
         ${r.meta.text ? `<div class="box"><h3>Remarques</h3><div class="row">${r.meta.text}</div></div>` : ''}
+
+        <div class="signature">
+          <div><div class="sig-line">Signature du récepteur</div></div>
+          <div><div class="sig-line">Signature du livreur</div></div>
+        </div>
       </body></html>
     `);
     w.document.close();
