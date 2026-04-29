@@ -151,6 +151,13 @@ const BranchManagerHome: React.FC = () => {
         { key: 'manager_treasury', label: t('nav.manager_treasury'), icon: Wallet, path: '/manager-treasury' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
+        {
+          key: 'stock_confirmations',
+          label: 'موافقات استلام/تسليم البضاعة',
+          icon: Truck,
+          onClick: () => window.dispatchEvent(new CustomEvent('open-stock-confirmations')),
+          badge: kpis?.pendingStock,
+        },
       ],
     },
     {
