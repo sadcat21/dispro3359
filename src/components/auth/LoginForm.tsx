@@ -23,6 +23,7 @@ import {
   ClipboardPenLine,
   Truck,
   Warehouse,
+  Crown,
   LucideIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -55,6 +56,7 @@ const FUNCTIONAL_ROLE_LABEL_AR: Record<string, string> = {
 
 const ROLE_ICONS: Record<string, LucideIcon> = {
   admin: ShieldCheck,
+  company_manager: Crown,
   project_manager: FolderKanban,
   branch_admin: Building2,
   accountant: Calculator,
@@ -65,6 +67,7 @@ const ROLE_ICONS: Record<string, LucideIcon> = {
 
 const ROLE_LABEL_AR: Record<string, string> = {
   admin: 'مدير',
+  company_manager: 'مسير الشركة',
   project_manager: 'مدير مشروع',
   branch_admin: 'مدير فرع',
   accountant: 'محاسب',
@@ -85,6 +88,7 @@ const getWorkerIconTone = (w: QuickWorker, isRealMode: boolean) => {
   if (w.functional_role === 'sales_rep') return 'text-violet-600';
   if (w.functional_role === 'warehouse_manager') return 'text-amber-600';
   if (w.role === 'admin') return 'text-rose-600';
+  if (w.role === 'company_manager') return 'text-amber-600';
   if (w.role === 'project_manager') return 'text-fuchsia-600';
   if (w.role === 'branch_admin') return 'text-emerald-600';
   if (w.role === 'accountant') return 'text-orange-600';
@@ -101,9 +105,10 @@ const getWorkerLabel = (w: QuickWorker) => {
   return base;
 };
 
-const ADMIN_TAB_ROLES = ['admin', 'project_manager', 'accountant', 'admin_assistant'];
+const ADMIN_TAB_ROLES = ['admin', 'company_manager', 'project_manager', 'accountant', 'admin_assistant'];
 const QUICK_GROUP_ORDER = [
   'admin',
+  'company_manager',
   'project_manager',
   'accountant',
   'admin_assistant',
@@ -123,6 +128,14 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
     cardClass: 'border-rose-200 bg-rose-50/20 hover:border-rose-300 hover:bg-rose-50/40',
     iconWrapClass: 'bg-rose-50 ring-rose-100',
     branchTextClass: 'text-rose-500',
+  },
+  company_manager: {
+    label: 'مسير الشركة',
+    sectionClass: 'border-amber-300 bg-gradient-to-r from-amber-50 to-emerald-50 text-amber-800',
+    badgeClass: 'bg-amber-100 text-amber-800',
+    cardClass: 'border-amber-300 bg-gradient-to-br from-amber-50/40 to-emerald-50/30 hover:border-amber-400 hover:from-amber-50/60 hover:to-emerald-50/50',
+    iconWrapClass: 'bg-gradient-to-br from-amber-100 to-emerald-100 ring-amber-200',
+    branchTextClass: 'text-amber-600',
   },
   project_manager: {
     label: 'مديرو المشاريع',
@@ -202,6 +215,7 @@ const getQuickWorkerGroupKey = (worker: QuickWorker) => {
   if (worker.role === 'branch_admin') return 'branch_admin';
   if (worker.role === 'supervisor') return 'supervisor';
   if (worker.role === 'admin') return 'admin';
+  if (worker.role === 'company_manager') return 'company_manager';
   if (worker.role === 'project_manager') return 'project_manager';
   if (worker.role === 'accountant') return 'accountant';
   if (worker.role === 'admin_assistant') return 'admin_assistant';
