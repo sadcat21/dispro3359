@@ -143,6 +143,38 @@ const ReceiptPrintView: React.FC<Props> = ({
             </tbody>
           </table>
 
+          {/* Détails supplémentaires */}
+          {(palletCount != null || receiptExpenses != null || expensesDescription) && (
+            <div style={{ border: '1px solid #ccc', padding: '8px', borderRadius: '5px', margin: '10px 0' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '5px' }}>Détails supplémentaires</div>
+              {palletCount != null && (
+                <div style={{ fontSize: '12px' }}>Nombre de palettes: <strong>{palletCount}</strong></div>
+              )}
+              {receiptExpenses != null && receiptExpenses > 0 && (
+                <div style={{ fontSize: '12px' }}>Frais de réception: <strong>{Number(receiptExpenses).toLocaleString()} DA</strong></div>
+              )}
+              {expensesDescription && (
+                <div style={{ fontSize: '12px' }}>Description des frais: {expensesDescription}</div>
+              )}
+            </div>
+          )}
+
+          {/* Livraison liée */}
+          {deliveryDetail && (
+            <div style={{ border: '1px solid #999', padding: '8px', borderRadius: '5px', margin: '10px 0', background: '#f9f9f9' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '5px' }}>Livraison liée</div>
+              {deliveryDetail.created_at && (
+                <div style={{ fontSize: '12px' }}>Date: {formatDate(deliveryDetail.created_at, 'dd/MM/yyyy HH:mm', 'fr')}</div>
+              )}
+              {deliveryDetail.pallet_count != null && (
+                <div style={{ fontSize: '12px' }}>Palettes livrées: <strong>{deliveryDetail.pallet_count}</strong></div>
+              )}
+              {deliveryDetail.notes && (
+                <div style={{ fontSize: '12px' }}>Remarques livraison: {deliveryDetail.notes}</div>
+              )}
+            </div>
+          )}
+
           {notes && (
             <div style={{ fontSize: '12px', margin: '10px 0', color: '#000' }}>
               Remarques: {notes}
