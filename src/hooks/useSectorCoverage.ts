@@ -143,7 +143,9 @@ export const useSectorCoverage = () => {
     created_by?: string;
     branch_id?: string;
   }) => {
-    const approvalStatus = isAdminRole(role) ? 'approved' : 'pending_manager';
+    // admin/project_manager → موافقة فورية. أي شخص آخر (بما فيه branch_admin) → pending لمساعد المدير العام
+    const isSuperAdmin = role === 'admin' || role === 'project_manager';
+    const approvalStatus = isSuperAdmin ? 'approved' : 'pending';
     const { error } = await supabase.from('sector_coverage').insert({
       sector_id: data.sector_id,
       absent_worker_id: data.absent_worker_id,
@@ -158,7 +160,10 @@ export const useSectorCoverage = () => {
       branch_id: data.branch_id || null,
       approval_status: approvalStatus,
     } as any);
-    if (error) throw error;
+    if (error) {
+      console.error('[sector_coverage insert error]', error);
+      throw error;
+    }
 
     if (approvalStatus === 'approved') {
       const movedOrdersCount = await transferOrdersFromAbsentToSubstitute(
