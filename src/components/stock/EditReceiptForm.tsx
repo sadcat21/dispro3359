@@ -164,6 +164,14 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       return;
     }
 
+    const showFactoryDetails = receiptSource === 'factory' && (compensationQuantity > 0 || compensationOffersQuantity > 0);
+    const factoryFields = showFactoryDetails ? {
+      lot_number: lotNumber || null,
+      manufacturing_date: manufacturingDate || null,
+      manufacturing_time: manufacturingTime || null,
+      delivery_date: deliveryDate || null,
+    } : { lot_number: null, manufacturing_date: null, manufacturing_time: null, delivery_date: null };
+
     setEditItems((prev) => {
       const existingIndex = prev.findIndex((item) => item.product_id === singleProductId);
       if (existingIndex >= 0) {
@@ -172,6 +180,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
           new_quantity: newQuantity,
           compensation_quantity: compensationQuantity,
           compensation_offers_quantity: compensationOffersQuantity,
+          ...factoryFields,
         } : item);
       }
 
@@ -180,6 +189,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
         new_quantity: newQuantity,
         compensation_quantity: compensationQuantity,
         compensation_offers_quantity: compensationOffersQuantity,
+        ...factoryFields,
       }];
     });
 
