@@ -2293,6 +2293,7 @@ export const translations: Translations = {
   'branch_invoice_approvals.role_intro_title': { ar: 'دورك كمدير فرع: وسيط بين مندوب المبيعات والإدارة العليا', fr: 'Votre rôle: intermédiaire entre le commercial et la direction', en: 'Your role: intermediary between sales rep and top management' },
   'branch_invoice_approvals.role_intro_desc': { ar: 'راجع الطلبية بالتفصيل ثم حوّلها إلى مساعد المدير العام أو مدير النظام للموافقة النهائية، أو ارفضها إذا لزم الأمر.', fr: 'Examinez la commande en détail, puis transférez-la à l\'assistant DG ou à l\'admin système pour l\'approbation finale, ou rejetez-la si nécessaire.', en: 'Review the order details, then forward it to the Assistant GM or System Admin for final approval, or reject if needed.' },
   'branch_invoice_approvals.download_invoice': { ar: 'تحميل الفاتورة', fr: 'Télécharger la facture', en: 'Download invoice' },
+  'branch_invoice_approvals.ready_for_download': { ar: 'فواتير جاهزة للتحميل', fr: 'Factures prêtes au téléchargement', en: 'Invoices ready to download' },
   'invoice_review.title': { ar: 'مراجعة الطلب ورفع الفاتورة', fr: 'Examiner la demande et téléverser la facture', en: 'Review request & upload invoice' },
   'invoice_review.review_and_upload': { ar: 'مراجعة ورفع الفاتورة', fr: 'Examiner & téléverser', en: 'Review & upload' },
   'invoice_review.upload_section_title': { ar: 'ملف الفاتورة (PDF)', fr: 'Fichier de facture (PDF)', en: 'Invoice file (PDF)' },
