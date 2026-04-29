@@ -62,23 +62,18 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
     for (const r of selectedRequests) {
       const items: any[] = Array.isArray(r.products) ? r.products : [];
       for (const it of items) {
-        const key = String(it.product_id || it.id || it.name || it.product_name || Math.random());
+        const key = String(it.product_id || it.productId || it.id || it.name || it.product_name || Math.random());
         const name = it.product_name || it.name || '—';
         const qty = Number(it.quantity ?? it.qty ?? 0) || 0;
-        const price = Number(it.unit_price ?? it.price ?? 0) || 0;
-        const total = Number(it.total ?? qty * price) || 0;
         const existing = map.get(key);
         if (existing) {
           existing.quantity += qty;
-          existing.total += total;
         } else {
           map.set(key, {
-            product_id: it.product_id,
+            product_id: it.product_id || it.productId,
             product_name: name,
             unit: it.unit,
             quantity: qty,
-            unit_price: price,
-            total,
           });
         }
       }
@@ -86,11 +81,31 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
     return Array.from(map.values());
   }, [selectedRequests]);
 
-  const grandTotal = aggregated.reduce((s, x) => s + (x.total || 0), 0);
+  // جلب صور المنتجات
+  const productIds = useMemo(
+    () => aggregated.map(a => a.product_id).filter(Boolean) as string[],
+    [aggregated]
+  );
+
+  const productImagesQ = useQuery({
+    queryKey: ['merge-products-images', productIds],
+    enabled: productIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, image_url')
+        .in('id', productIds);
+      if (error) throw error;
+      const map: Record<string, { name: string; image_url: string | null }> = {};
+      (data || []).forEach((p: any) => { map[p.id] = { name: p.name, image_url: p.image_url }; });
+      return map;
+    },
+  });
 
   const mergeMutation = useMutation({
     mutationFn: async () => {
       if (selectedRequests.length === 0) throw new Error('لم يتم تحديد أي فاتورة');
+      if (!paymentMethod) throw new Error('يرجى اختيار طريقة الدفع');
 
       const first = selectedRequests[0];
       const productsPayload = aggregated.map(a => ({
@@ -98,11 +113,9 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
         product_name: a.product_name,
         unit: a.unit,
         quantity: a.quantity,
-        unit_price: a.unit_price,
-        total: a.total,
       }));
 
-      // 1) إنشاء طلب فاتورة موحّد جديد مباشرة بحالة pending_assistant
+      // 1) إنشاء طلب فاتورة موحّد جديد بحالة pending_assistant
       const { data: parent, error: insErr } = await supabase
         .from('manual_invoice_requests')
         .insert({
@@ -110,7 +123,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
           worker_id: workerId,
           branch_id: activeBranch?.id || first.branch_id || null,
           status: 'pending_assistant',
-          payment_method: first.payment_method,
+          payment_method: INVOICE_PAYMENT_METHODS[paymentMethod].label,
           whatsapp_contact: first.whatsapp_contact,
           invoice_scope: first.invoice_scope || 'private',
           products: productsPayload as any,
@@ -143,9 +156,11 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
     onError: (e: any) => toast.error(e.message || 'تعذّر الإرسال'),
   });
 
+  const imagesMap = productImagesQ.data || {};
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5 text-blue-600" />
@@ -153,13 +168,13 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto">
           {/* قائمة الفواتير لتحديد ما يُجمَّع */}
           <div className="border rounded-lg p-3 bg-muted/30">
             <p className="text-sm font-semibold mb-2">حدد الفواتير التي تريد تجميعها ({selectedIds.length}/{requests.length})</p>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {requests.map(r => (
-                <label key={r.id} className="flex items-center gap-2 text-sm bg-white rounded px-2 py-1.5 cursor-pointer hover:bg-blue-50">
+                <label key={r.id} className="flex items-center gap-2 text-sm bg-card rounded px-2 py-1.5 cursor-pointer hover:bg-blue-50">
                   <Checkbox checked={selectedIds.includes(r.id)} onCheckedChange={() => toggle(r.id)} />
                   <span className="flex-1">
                     {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
@@ -175,38 +190,64 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
             </div>
           </div>
 
-          {/* المنتجات المُجمَّعة */}
+          {/* المنتجات المُجمَّعة كبطاقات شبكية */}
           <div className="border rounded-lg overflow-hidden">
             <div className="bg-blue-50 px-3 py-2 text-sm font-semibold flex items-center justify-between">
-              <span>المنتجات المُجمَّعة ({aggregated.length})</span>
-              <span className="text-blue-700">المجموع: {grandTotal.toLocaleString()}</span>
+              <span className="flex items-center gap-1.5">
+                <Package className="w-4 h-4 text-blue-600" />
+                المنتجات المُجمَّعة
+              </span>
+              <span className="text-blue-700">عدد المنتجات ({aggregated.length})</span>
             </div>
-            <div className="max-h-72 overflow-y-auto">
+            <div className="p-2 max-h-72 overflow-y-auto">
               {aggregated.length === 0 ? (
                 <div className="text-center text-sm text-muted-foreground py-6">لا توجد منتجات</div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/50 text-xs">
-                    <tr>
-                      <th className="text-start px-3 py-2">المنتج</th>
-                      <th className="text-center px-2 py-2">الكمية</th>
-                      <th className="text-center px-2 py-2">السعر</th>
-                      <th className="text-end px-3 py-2">الإجمالي</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {aggregated.map((a, i) => (
-                      <tr key={i} className="border-t">
-                        <td className="px-3 py-2">{a.product_name}</td>
-                        <td className="text-center px-2 py-2 font-medium">{a.quantity}</td>
-                        <td className="text-center px-2 py-2">{a.unit_price?.toLocaleString() || '—'}</td>
-                        <td className="text-end px-3 py-2 font-semibold">{a.total.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {aggregated.map((a, i) => {
+                    const info = a.product_id ? imagesMap[a.product_id] : null;
+                    const productImage = info?.image_url || null;
+                    const displayName = info?.name || a.product_name;
+                    return (
+                      <div
+                        key={(a.product_id || a.product_name) + '-' + i}
+                        className="flex flex-col rounded-xl overflow-hidden shadow border border-border bg-card"
+                      >
+                        <div className="px-1.5 py-1 border-b bg-muted border-border">
+                          <span className="font-bold text-[10px] leading-tight block truncate text-foreground">
+                            {displayName}
+                          </span>
+                        </div>
+                        <div className="relative w-full aspect-[4/3] bg-muted overflow-hidden">
+                          {productImage ? (
+                            <img src={productImage} alt={displayName} className="w-full h-full object-contain" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-2xl text-muted-foreground/30">📦</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="px-1 py-1 bg-card flex items-center justify-center gap-1 border-t border-border">
+                          <span className="flex h-6 min-w-6 px-1.5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                            {a.quantity}×
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
+          </div>
+
+          {/* اختيار طريقة الدفع للفاتورة الموحّدة */}
+          <div className="border rounded-lg p-3 bg-muted/20 space-y-2">
+            <p className="text-sm font-semibold">طريقة الدفع للفاتورة الموحّدة</p>
+            <InvoicePaymentMethodSelect
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+              disabled={mergeMutation.isPending}
+            />
           </div>
         </div>
 
@@ -216,7 +257,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
           </Button>
           <Button
             onClick={() => mergeMutation.mutate()}
-            disabled={mergeMutation.isPending || selectedIds.length < 1}
+            disabled={mergeMutation.isPending || selectedIds.length < 1 || !paymentMethod}
             className="gap-1 bg-blue-600 hover:bg-blue-700"
           >
             {mergeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
