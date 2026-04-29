@@ -2179,6 +2179,7 @@ export const translations: Translations = {
   'company_manager.role_desc': { ar: 'مساندة المدير العام في متابعة العمليات والموافقات النهائية', fr: 'Assistance au directeur général pour les opérations et approbations finales', en: 'Assists the General Manager with operations and final approvals' },
   'company_manager.welcome': { ar: 'مرحباً بك في لوحة مساعد المدير العام', fr: 'Bienvenue sur le tableau de bord de l\'assistant du directeur général', en: 'Welcome to the Assistant General Manager dashboard' },
   'company_manager.subtitle': { ar: 'مساندة الإدارة العامة في متابعة المبيعات والعمليات', fr: 'Assistance à la direction générale dans le suivi des ventes et des opérations', en: 'General management support for sales and operations follow-up' },
+  'company_manager.open_branch_approvals': { ar: 'فتح موافقات هذا الفرع', fr: 'Ouvrir les approbations de cette agence', en: 'Open this branch approvals' },
   'company_manager.section_executive': { ar: 'لوحة الإدارة التنفيذية', fr: 'Tableau exécutif', en: 'Executive Dashboard' },
   'company_manager.section_approvals': { ar: 'الموافقات والمراجعات', fr: 'Approbations et révisions', en: 'Approvals & Reviews' },
   'company_manager.section_hr': { ar: 'الموارد البشرية', fr: 'Ressources humaines', en: 'Human Resources' },
