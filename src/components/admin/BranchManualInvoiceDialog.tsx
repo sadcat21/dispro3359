@@ -322,7 +322,7 @@ const BranchManualInvoiceDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         open={customerPickerOpen}
         onOpenChange={setCustomerPickerOpen}
         customers={customersQ.data || []}
-        sectors={sectorsQ.data || []}
+        sectors={(sectorsQ.data || []) as any}
         isLoading={customersQ.isLoading}
         selectedCustomerId={selectedCustomer?.id}
         onSelect={(c) => setSelectedCustomer(c)}
