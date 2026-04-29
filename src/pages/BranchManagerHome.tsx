@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
-  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, LucideIcon,
+  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, LucideIcon,
 } from 'lucide-react';
 
 interface BMItem {
