@@ -35,12 +35,33 @@ interface WorkerRoleRow {
   branch_id: string | null;
   custom_role_id: string | null;
   is_active: boolean;
+  is_primary: boolean;
   valid_from: string | null;
   valid_until: string | null;
   notes: string | null;
   created_at: string;
   custom_roles?: { code: string; name_ar: string } | null;
 }
+
+// تصنيف الأدوار حسب الرتبة (أعلى رقم = صلاحية أعلى)
+const ROLE_RANK: Record<string, number> = {
+  worker: 1,
+  accountant: 2,
+  admin_assistant: 2,
+  warehouse_manager: 2,
+  sales_rep: 2,
+  delivery_rep: 2,
+  supervisor: 3,
+  branch_admin: 4,
+  company_manager: 5,
+  project_manager: 6,
+  admin: 7,
+};
+
+const getRoleRank = (code: string | null | undefined): number => {
+  if (!code) return 0;
+  return ROLE_RANK[code] ?? 1;
+};
 
 const WorkerRolesManagement: React.FC = () => {
   const { role, activeBranch, activeRole } = useAuth();
@@ -50,11 +71,18 @@ const WorkerRolesManagement: React.FC = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+  const [primaryRoleId, setPrimaryRoleId] = useState<string | null>(null);
   const [newValidFrom, setNewValidFrom] = useState<string>('');
   const [newValidUntil, setNewValidUntil] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
 
   const isAdmin = role === 'admin' || role === 'project_manager' || activeRole?.custom_role_code === 'company_manager';
+
+  // أعلى رتبة للمستخدم الحالي = max(دوره الأساسي, دوره النشط المخصص)
+  const currentUserRank = Math.max(
+    getRoleRank(role || undefined),
+    getRoleRank(activeRole?.custom_role_code || undefined)
+  );
 
   const { data: workers, isLoading: workersLoading } = useQuery({
     queryKey: ['workers-list-roles-mgmt', activeBranch?.id ?? 'all'],
