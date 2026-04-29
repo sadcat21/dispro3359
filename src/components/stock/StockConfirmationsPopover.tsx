@@ -561,6 +561,17 @@ const StockConfirmationsPopover: React.FC = () => {
   const [open, setOpen] = useState(false);
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
 
+  // Allow opening from external triggers (e.g. BranchManagerHome card)
+  React.useEffect(() => {
+    const handler = () => {
+      setOpen(true);
+      workerHook.refetch();
+      managerHook.refetch();
+    };
+    window.addEventListener('open-stock-confirmations', handler);
+    return () => window.removeEventListener('open-stock-confirmations', handler);
+  }, [workerHook, managerHook]);
+
   useRealtimeSubscription(
     'stock-confirmations-rt',
     [{ table: 'stock_confirmations', filter: workerHook.workerId ? `worker_id=eq.${workerHook.workerId}` : undefined }],

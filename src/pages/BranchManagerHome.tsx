@@ -10,14 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
-  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, LucideIcon,
+  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
 } from 'lucide-react';
 
 interface BMItem {
   key: string;
   label: string;
   icon: LucideIcon;
-  path: string;
+  path?: string;
+  onClick?: () => void;
   badge?: number;
 }
 interface BMSection {
@@ -79,15 +80,18 @@ const BranchManagerHome: React.FC = () => {
 
 
   const { data: kpis } = useQuery({
-    queryKey: ['bm-kpis', branchId],
+    queryKey: ['bm-kpis', branchId, user?.id],
     enabled: !!branchId,
     queryFn: async () => {
-      const [workers, customers, openSessions, activeDebts, pendingInvoices] = await Promise.all([
+      const [workers, customers, openSessions, activeDebts, pendingInvoices, pendingStock] = await Promise.all([
         supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('branch_id', branchId!),
         supabase.from('customers').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!),
         supabase.from('accounting_sessions').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'open'),
         supabase.from('customer_debts').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).gt('remaining_amount', 0),
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'pending_branch'),
+        user?.id
+          ? supabase.from('stock_confirmations').select('id', { count: 'exact', head: true }).eq('worker_id', user.id).eq('status', 'pending')
+          : Promise.resolve({ count: 0 } as any),
       ]);
       return {
         workers: workers.count || 0,
@@ -95,6 +99,7 @@ const BranchManagerHome: React.FC = () => {
         openSessions: openSessions.count || 0,
         activeDebts: activeDebts.count || 0,
         pendingInvoices: pendingInvoices.count || 0,
+        pendingStock: pendingStock.count || 0,
       };
     },
     staleTime: 60_000,
@@ -146,6 +151,13 @@ const BranchManagerHome: React.FC = () => {
         { key: 'manager_treasury', label: t('nav.manager_treasury'), icon: Wallet, path: '/manager-treasury' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
+        {
+          key: 'stock_confirmations',
+          label: 'موافقات استلام/تسليم البضاعة',
+          icon: Truck,
+          onClick: () => window.dispatchEvent(new CustomEvent('open-stock-confirmations')),
+          badge: kpis?.pendingStock,
+        },
       ],
     },
     {
@@ -217,7 +229,7 @@ const BranchManagerHome: React.FC = () => {
                   return (
                     <Card
                       key={item.key}
-                      onClick={() => navigate(item.path)}
+                      onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
                       className={`group cursor-pointer bg-white hover:shadow-md transition-all relative ${
                         showBadge
                           ? 'border-red-300 ring-2 ring-red-200/60 hover:border-red-400 hover:shadow-red-500/10'
