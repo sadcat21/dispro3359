@@ -235,9 +235,6 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                         {t('branch_manual_invoice.scope_public')}
                       </Badge>
                     )}
-                    {r.branches?.name && (
-                      <span className="text-[11px] text-slate-500">🏢 {r.branches.name}</span>
-                    )}
                   </div>
                 </div>
               </div>
