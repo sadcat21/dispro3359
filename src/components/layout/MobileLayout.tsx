@@ -40,6 +40,7 @@ import AttendanceButton from '@/components/attendance/AttendanceButton';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import RefreshButton from '@/components/layout/RefreshButton';
+import BranchWilayaBadges from '@/components/company-manager/BranchWilayaBadges';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
