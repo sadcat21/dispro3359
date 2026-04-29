@@ -47,6 +47,7 @@ const AssistantApprovals: React.FC = () => {
   const qc = useQueryClient();
   const [tab, setTab] = useState('factory_in');
   const [searchParams, setSearchParams] = useSearchParams();
+  const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const branchFilter = searchParams.get('branch');
 
   // اسم الفرع المختار للعرض
