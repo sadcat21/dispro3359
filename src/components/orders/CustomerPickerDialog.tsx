@@ -236,7 +236,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         {/* Header */}
         <DialogHeader className="p-4 pb-3 border-b">
           <DialogTitle className="text-center text-base font-bold">
-            اختر عميل...
+            {t('customer_picker.title')}
           </DialogTitle>
           <button
             onClick={() => onOpenChange(false)}
