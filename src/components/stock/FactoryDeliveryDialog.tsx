@@ -261,6 +261,49 @@ const FactoryDeliveryDialog: React.FC<Props> = ({ open, onOpenChange, branchId, 
                   min={0}
                 />
               </div>
+
+              {item.product_id && item.product_quantity > 0 && (
+                <div className="border-t pt-2 mt-2 space-y-2 bg-muted/30 rounded p-2">
+                  <Label className="text-[11px] font-semibold">📋 تفاصيل التسليم للمصنع</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">N° de LOT</Label>
+                      <Input
+                        value={item.lot_number || ''}
+                        onChange={e => updateItem(index, 'lot_number', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Heure de fabrication</Label>
+                      <Input
+                        type="time"
+                        value={item.manufacturing_time || ''}
+                        onChange={e => updateItem(index, 'manufacturing_time', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Date de fabrication</Label>
+                      <Input
+                        type="date"
+                        value={item.manufacturing_date || ''}
+                        onChange={e => updateItem(index, 'manufacturing_date', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Date de livraison</Label>
+                      <Input
+                        type="date"
+                        value={item.delivery_date || ''}
+                        onChange={e => updateItem(index, 'delivery_date', e.target.value)}
+                        className="text-center text-xs h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
