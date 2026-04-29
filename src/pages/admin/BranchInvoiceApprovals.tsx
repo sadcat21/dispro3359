@@ -149,7 +149,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
           <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             {t('common.back')}
@@ -158,7 +158,13 @@ const BranchInvoiceApprovals: React.FC = () => {
             <FileText className="w-6 h-6" />
             {t('branch_invoice_approvals.title')}
           </h1>
-          <div className="w-20" />
+          <Button
+            onClick={() => setCreateDialogOpen(true)}
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <Plus className="w-4 h-4" />
+            {t('branch_manual_invoice.new_request')}
+          </Button>
         </div>
 
         {/* شريط شرح دور مدير الفرع كوسيط */}
