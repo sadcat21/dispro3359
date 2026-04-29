@@ -34,6 +34,8 @@ interface InvoiceRequestRow {
   worker_id?: string | null;
   branch_id?: string | null;
   postponed_at?: string | null;
+  is_merged_parent?: boolean | null;
+  merged_request_ids?: string[] | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
