@@ -72,12 +72,12 @@ const BranchInvoiceApprovals: React.FC = () => {
       const { data, error } = await supabase
         .from('manual_invoice_requests')
         .select(`
-          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role,
+          id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role, customer_id, worker_id, branch_id, postponed_at,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
         .or(orFilter)
-        .in('status', ['pending_branch', 'pending_assistant', 'approved'])
+        .in('status', ['pending_branch', 'pending_assistant', 'approved', 'postponed'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
