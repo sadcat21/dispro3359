@@ -6918,6 +6918,7 @@ export type Database = {
           custom_role_id: string | null
           id: string
           is_active: boolean
+          is_primary: boolean
           notes: string | null
           role: Database["public"]["Enums"]["app_role"]
           valid_from: string | null
@@ -6931,6 +6932,7 @@ export type Database = {
           custom_role_id?: string | null
           id?: string
           is_active?: boolean
+          is_primary?: boolean
           notes?: string | null
           role: Database["public"]["Enums"]["app_role"]
           valid_from?: string | null
@@ -6944,6 +6946,7 @@ export type Database = {
           custom_role_id?: string | null
           id?: string
           is_active?: boolean
+          is_primary?: boolean
           notes?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           valid_from?: string | null
