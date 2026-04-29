@@ -255,7 +255,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Single role - check if admin needs branch selection
     const selectedRole: WorkerRole = roles.length === 1 ? roles[0] : { role: worker.role, branch_id: worker.branch_id, branch_name: null };
     
-    if (isAdminRole(selectedRole.role)) {
+    if (isAdminRole(selectedRole.role) || selectedRole.custom_role_code === 'company_manager') {
       // branch_admin: auto-lock to their branch, skip branch selection
       if (selectedRole.role === 'branch_admin' && worker.branch_id) {
         const { data: branchData } = await supabase
@@ -295,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveRole(roleData);
 
     // If admin role selected, show branch selection (except branch_admin auto-locks)
-    if (isAdminRole(roleData.role)) {
+    if (isAdminRole(roleData.role) || roleData.custom_role_code === 'company_manager') {
       if (roleData.role === 'branch_admin' && pendingWorker.branch_id) {
         // Auto-lock branch_admin to their branch
         supabase.from('branches').select('*').eq('id', pendingWorker.branch_id).maybeSingle().then(({ data: branchData }) => {
