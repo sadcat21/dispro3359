@@ -447,7 +447,6 @@ const WorkerRolesManagement: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          </div>
                           <Button
                             variant="ghost"
                             size="icon"
