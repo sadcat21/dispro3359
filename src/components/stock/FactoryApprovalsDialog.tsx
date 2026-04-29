@@ -745,7 +745,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <div id="receipt-summary-print" className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
                 <div><span className="text-muted-foreground">رقم الفاتورة:</span> <strong>{summaryReceipt.invoice_number || '—'}</strong></div>
-                <div><span className="text-muted-foreground">التاريخ:</span> <strong>{formatDate(summaryReceipt.created_at)}</strong></div>
+                <div><span className="text-muted-foreground">التاريخ:</span> <strong>{new Date(summaryReceipt.created_at).toLocaleString('ar')}</strong></div>
                 <div><span className="text-muted-foreground">المُنشئ:</span> <strong>{summaryReceipt.creator_name || '—'}</strong></div>
                 <div><span className="text-muted-foreground">المصدر:</span> <strong>{summaryReceipt.meta.source === 'branch' ? 'فرع آخر' : 'المصنع'}</strong></div>
                 {summaryReceipt.meta.driver_name && (
