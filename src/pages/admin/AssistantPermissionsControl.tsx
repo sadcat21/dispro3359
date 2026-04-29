@@ -66,17 +66,22 @@ const AssistantPermissionsControl: React.FC = () => {
         .eq('code', ASSISTANT_ROLE_CODE)
         .maybeSingle();
 
-      const { data: workerRoles, error } = await supabase
-        .from('worker_roles')
-        .select('worker_id, custom_role_id, role')
-        .or(
-          customRole?.id
-            ? `custom_role_id.eq.${customRole.id},role.eq.company_manager`
-            : `role.eq.company_manager`
-        );
-      if (error) throw error;
+      // استعلامان منفصلان ثم دمج النتائج (أكثر موثوقية من .or مع enum)
+      const [byRole, byCustom] = await Promise.all([
+        supabase.from('worker_roles').select('worker_id').eq('role', 'company_manager' as any),
+        customRole?.id
+          ? supabase.from('worker_roles').select('worker_id').eq('custom_role_id', customRole.id)
+          : Promise.resolve({ data: [] as { worker_id: string }[], error: null } as any),
+      ]);
+      if (byRole.error) throw byRole.error;
+      if (byCustom.error) throw byCustom.error;
 
-      const ids = Array.from(new Set((workerRoles ?? []).map((wr: any) => wr.worker_id)));
+      const ids = Array.from(
+        new Set([
+          ...(byRole.data ?? []).map((r: any) => r.worker_id),
+          ...(byCustom.data ?? []).map((r: any) => r.worker_id),
+        ])
+      );
       if (ids.length === 0) return [] as AssistantWorker[];
 
       const { data: workers, error: wErr } = await supabase
