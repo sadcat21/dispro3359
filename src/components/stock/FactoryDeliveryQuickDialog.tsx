@@ -15,6 +15,10 @@ import { formatDate } from '@/utils/formatters';
 interface DeliveryItem {
   product_id: string;
   quantity: number;
+  lot_number?: string;
+  manufacturing_date?: string;
+  manufacturing_time?: string;
+  delivery_date?: string;
 }
 
 interface PendingDelivery {
