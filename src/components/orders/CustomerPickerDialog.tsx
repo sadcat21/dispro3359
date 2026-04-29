@@ -349,11 +349,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   <div className="flex items-center gap-1 mt-0.5">
                                     <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
                                       <Banknote className="w-2.5 h-2.5" />
-                                      دين: {debtInfo.total.toLocaleString()} DA
+                                      {t('customer_picker.debt')}: {debtInfo.total.toLocaleString()} DA
                                     </Badge>
                                     {debtInfo.lastDate && (
                                       <span className="text-[10px] text-muted-foreground">
-                                        آخر: {new Date(debtInfo.lastDate).toLocaleDateString('ar-DZ')}
+                                        {t('customer_picker.last')}: {new Date(debtInfo.lastDate).toLocaleDateString(language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US')}
                                       </span>
                                     )}
                                   </div>
