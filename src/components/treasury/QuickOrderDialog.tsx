@@ -309,7 +309,7 @@ const QuickOrderDialog: React.FC<Props> = ({ open, onOpenChange, onOrderCreated 
         products: selectedProducts.map(p => ({ productId: p.id, productName: p.name, quantity: p.quantity })),
         payment_method: 'trigg',
         whatsapp_contact: phone,
-        status: 'sent',
+        status: 'pending_branch',
       } as any);
       queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
     }

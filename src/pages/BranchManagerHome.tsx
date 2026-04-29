@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
-  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, LucideIcon,
+  AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, LucideIcon,
 } from 'lucide-react';
 
 interface BMItem {
@@ -35,17 +35,19 @@ const BranchManagerHome: React.FC = () => {
     queryKey: ['bm-kpis', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [workers, customers, openSessions, activeDebts] = await Promise.all([
+      const [workers, customers, openSessions, activeDebts, pendingInvoices] = await Promise.all([
         supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('branch_id', branchId!),
         supabase.from('customers').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!),
         supabase.from('accounting_sessions').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'open'),
         supabase.from('customer_debts').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).gt('remaining_amount', 0),
+        supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('branch_id', branchId!).eq('status', 'pending_branch'),
       ]);
       return {
         workers: workers.count || 0,
         customers: customers.count || 0,
         openSessions: openSessions.count || 0,
         activeDebts: activeDebts.count || 0,
+        pendingInvoices: pendingInvoices.count || 0,
       };
     },
     staleTime: 60_000,
@@ -87,6 +89,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'expenses_management', label: t('branch_manager.expenses_management'), icon: Receipt, path: '/expenses-management' },
         { key: 'shared_invoices', label: t('nav.shared_invoices'), icon: FileText, path: '/shared-invoices' },
+        { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: ShieldCheck, path: '/branch-invoice-approvals' },
       ],
     },
     {
