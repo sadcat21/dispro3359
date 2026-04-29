@@ -263,14 +263,14 @@ const BranchInvoiceApprovals: React.FC = () => {
                   <div className="flex justify-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                   </div>
-                ) : (rows.filter(r => r.status !== 'approved')).length === 0 ? (
+                ) : pendingTabRows.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
                     <p>{t('branch_invoice_approvals.no_pending')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {rows.filter(r => r.status !== 'approved').map((r) => {
+                    {pendingTabRows.map((r) => {
                       const customerName = language === 'fr' && r.customers?.name_fr
                         ? r.customers.name_fr
                         : r.customers?.name || '—';
