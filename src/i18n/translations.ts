@@ -2231,4 +2231,12 @@ export const translations: Translations = {
   'shared_invoices.upload_success': { ar: 'تم رفع الفاتورة بنجاح', fr: 'Facture téléversée', en: 'Invoice uploaded' },
   'shared_invoices.uploaded_invoices': { ar: 'الفواتير المرسلة لفرعك', fr: 'Factures reçues', en: 'Invoices for your branch' },
   'shared_invoices.download_print': { ar: 'تحميل وطباعة', fr: 'Télécharger', en: 'Download' },
+  'shared_invoices.invoice_number': { ar: 'رقم الفاتورة', fr: 'N° facture', en: 'Invoice number' },
+  'shared_invoices.notes': { ar: 'ملاحظات (اختياري)', fr: 'Notes (optionnel)', en: 'Notes (optional)' },
+  'shared_invoices.upload': { ar: 'رفع', fr: 'Téléverser', en: 'Upload' },
+  'shared_invoices.uploading': { ar: 'جاري الرفع...', fr: 'Téléversement...', en: 'Uploading...' },
+  'shared_invoices.select_pdf': { ar: 'اختر ملف PDF', fr: 'Choisir un PDF', en: 'Choose a PDF' },
+  'shared_invoices.upload_failed': { ar: 'فشل رفع الفاتورة', fr: 'Échec téléversement', en: 'Upload failed' },
+  'shared_invoices.required_fields': { ar: 'الرجاء ملء جميع الحقول المطلوبة', fr: 'Veuillez remplir tous les champs', en: 'Please fill all required fields' },
+  'shared_invoices.all_branches': { ar: 'جميع الفروع', fr: 'Toutes les filiales', en: 'All branches' },
 };
