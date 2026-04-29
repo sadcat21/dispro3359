@@ -345,18 +345,48 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
 
             {/* أزرار ثابتة في الأسفل */}
             <div className="border-t bg-white p-3 flex gap-2 shrink-0">
-              <Button
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white h-11"
-                onClick={() => approve.mutate()}
-                disabled={approve.isPending || !fileUrl}
-              >
-                {approve.isPending ? (
-                  <Loader2 className="w-4 h-4 me-1 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-4 h-4 me-1" />
-                )}
-                {t('assistant_approvals.approve_final')}
-              </Button>
+              {fileUrl ? (
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white h-11"
+                  onClick={() => approve.mutate()}
+                  disabled={approve.isPending}
+                >
+                  {approve.isPending ? (
+                    <Loader2 className="w-4 h-4 me-1 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 me-1" />
+                  )}
+                  {t('assistant_approvals.approve_final')}
+                </Button>
+              ) : (
+                <label className="flex-1">
+                  <input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    asChild
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 cursor-pointer"
+                    disabled={uploading}
+                  >
+                    <span>
+                      {uploading ? (
+                        <Loader2 className="w-4 h-4 me-1 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 me-1" />
+                      )}
+                      {t('invoice_review.choose_file')}
+                    </span>
+                  </Button>
+                </label>
+              )}
               <Button
                 variant="destructive"
                 className="flex-1 h-11"
