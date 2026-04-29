@@ -11,6 +11,7 @@ export interface WorkerRole {
   custom_role_id?: string | null;
   custom_role_code?: string | null;
   custom_role_name?: string | null;
+  is_primary?: boolean;
 }
 
 interface AuthContextType extends AuthState {
