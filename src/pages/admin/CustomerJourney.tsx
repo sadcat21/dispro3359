@@ -125,7 +125,9 @@ const CustomerJourney = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCustomerId = searchParams.get('customerId');
-  const { role, activeBranch } = useAuth();
+  const { role, activeBranch, activeRole } = useAuth();
+  const isCompanyManager = activeRole?.custom_role_code === 'company_manager';
+  const effectiveRole = isCompanyManager ? 'company_manager' : (role || '');
   const { t, dir, language } = useLanguage();
   const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(initialCustomerId);
