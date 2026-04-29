@@ -54,6 +54,48 @@ const BranchInvoiceApprovals: React.FC = () => {
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [mergeFor, setMergeFor] = useState<{ customerId: string; customerName: string; requests: PostponedRequest[] } | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkScopeDialog, setBulkScopeDialog] = useState<{ scope: 'public' | 'private' } | null>(null);
+
+  const toggleSelected = (id: string) =>
+    setSelectedIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+
+  const bulkAction = useMutation({
+    mutationFn: async ({ ids, action, scope }: { ids: string[]; action: 'forward' | 'reject' | 'postpone'; scope?: 'public' | 'private' }) => {
+      for (const id of ids) {
+        if (action === 'forward') {
+          const { error: updErr } = await supabase
+            .from('manual_invoice_requests')
+            .update({ invoice_scope: scope } as any)
+            .eq('id', id);
+          if (updErr) throw updErr;
+          const { error } = await (supabase as any).rpc('forward_manual_invoice_request_to_management', { p_request_id: id });
+          if (error) throw error;
+        } else if (action === 'reject') {
+          const { error } = await supabase
+            .from('manual_invoice_requests')
+            .update({ status: 'rejected' } as any)
+            .eq('id', id);
+          if (error) throw error;
+        } else if (action === 'postpone') {
+          const { error } = await supabase
+            .from('manual_invoice_requests')
+            .update({ status: 'postponed', postponed_at: new Date().toISOString(), postponed_by: workerId } as any)
+            .eq('id', id);
+          if (error) throw error;
+        }
+      }
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(`تم تنفيذ الإجراء على ${vars.ids.length} فاتورة`);
+      qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+      qc.invalidateQueries({ queryKey: ['branch-customer-pending-branch'] });
+      qc.invalidateQueries({ queryKey: ['bm-kpis'] });
+      setSelectedIds([]);
+      setBulkScopeDialog(null);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const requestsQ = useQuery({
     queryKey: ['branch-invoice-approvals', branchId],
@@ -687,7 +729,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       />
 
       {/* نافذة طلبات الفاتورة المعلقة (مرحلة المدير) لعميل محدد */}
-      <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) setCustomerDialog(null); }}>
+      <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) { setCustomerDialog(null); setSelectedIds([]); } }}>
         <DialogContent dir="rtl" className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -701,27 +743,100 @@ const BranchInvoiceApprovals: React.FC = () => {
           ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
             <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة لدى مدير الفرع لهذا العميل</p>
           ) : (
-            <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
-              <p className="text-sm text-muted-foreground">
-                العدد الإجمالي: <span className="font-bold text-foreground">{customerInvoicesQ.data!.length}</span>
-              </p>
-              {customerInvoicesQ.data!.map((r: any) => (
-                <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline">{r.branches?.name || '—'}</Badge>
-                    {r.payment_method && <Badge variant="secondary">{r.payment_method}</Badge>}
-                    <span className="font-bold text-slate-800">
-                      {Number(r.total_amount || 0).toLocaleString('ar')} دج
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    فاتورة #{r.invoice_number || '—'} • {Array.isArray(r.products) ? r.products.length : 0} منتج •{' '}
-                    {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
-                  </p>
+            <>
+              <div className="flex items-center justify-between gap-2 flex-wrap border-b pb-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 cursor-pointer"
+                    checked={selectedIds.length === customerInvoicesQ.data!.length && customerInvoicesQ.data!.length > 0}
+                    onChange={(e) => setSelectedIds(e.target.checked ? customerInvoicesQ.data!.map((r: any) => r.id) : [])}
+                  />
+                  <span className="text-sm">تحديد الكل ({selectedIds.length}/{customerInvoicesQ.data!.length})</span>
                 </div>
-              ))}
-            </div>
+                {selectedIds.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" disabled={bulkAction.isPending}
+                      onClick={() => setBulkScopeDialog({ scope: 'private' })}>
+                      <ArrowUpRight className="w-4 h-4" /> إرسال
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1 text-amber-700 border-amber-300" disabled={bulkAction.isPending}
+                      onClick={() => bulkAction.mutate({ ids: selectedIds, action: 'postpone' })}>
+                      <Clock3 className="w-4 h-4" /> تأجيل
+                    </Button>
+                    <Button size="sm" variant="destructive" className="gap-1" disabled={bulkAction.isPending}
+                      onClick={() => bulkAction.mutate({ ids: selectedIds, action: 'reject' })}>
+                      <XCircle className="w-4 h-4" /> رفض
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2 mt-2">
+                {customerInvoicesQ.data!.map((r: any) => (
+                  <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 space-y-1 flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 mt-1 cursor-pointer"
+                      checked={selectedIds.includes(r.id)}
+                      onChange={() => toggleSelected(r.id)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline">{r.branches?.name || '—'}</Badge>
+                        {r.payment_method && <Badge variant="secondary">{r.payment_method}</Badge>}
+                        <span className="font-bold text-slate-800">
+                          {Number(r.total_amount || 0).toLocaleString('ar')} دج
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        فاتورة #{r.invoice_number || '—'} • {Array.isArray(r.products) ? r.products.length : 0} منتج •{' '}
+                        {new Date(r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* اختيار نطاق الفاتورة عند الإرسال الجماعي */}
+      <Dialog open={!!bulkScopeDialog} onOpenChange={(v) => { if (!v) setBulkScopeDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>اختر نوع الفاتورة للإرسال ({selectedIds.length})</DialogTitle>
+          </DialogHeader>
+          {bulkScopeDialog && (
+            <RadioGroup
+              value={bulkScopeDialog.scope}
+              onValueChange={(v) => setBulkScopeDialog({ scope: v as 'public' | 'private' })}
+              className="space-y-2"
+            >
+              <div className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30"
+                onClick={() => setBulkScopeDialog({ scope: 'private' })}>
+                <RadioGroupItem value="private" id="bulk-private" className="mt-1" />
+                <Label htmlFor="bulk-private" className="flex items-center gap-2 font-semibold cursor-pointer">
+                  <Lock className="w-4 h-4 text-amber-600" /> {t('branch_manual_invoice.scope_private')}
+                </Label>
+              </div>
+              <div className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:bg-muted/30"
+                onClick={() => setBulkScopeDialog({ scope: 'public' })}>
+                <RadioGroupItem value="public" id="bulk-public" className="mt-1" />
+                <Label htmlFor="bulk-public" className="flex items-center gap-2 font-semibold cursor-pointer">
+                  <Globe2 className="w-4 h-4 text-blue-600" /> {t('branch_manual_invoice.scope_public')}
+                </Label>
+              </div>
+            </RadioGroup>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setBulkScopeDialog(null)} disabled={bulkAction.isPending}>إلغاء</Button>
+            <Button className="bg-green-600 hover:bg-green-700"
+              disabled={bulkAction.isPending}
+              onClick={() => bulkScopeDialog && bulkAction.mutate({ ids: selectedIds, action: 'forward', scope: bulkScopeDialog.scope })}>
+              {bulkAction.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الإرسال'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
