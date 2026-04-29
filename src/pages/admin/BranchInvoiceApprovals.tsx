@@ -397,142 +397,167 @@ const BranchInvoiceApprovals: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="postponed">
-            {/* بطاقات الفواتير الموحَّدة (تم تجميعها وأُرسلت للإدارة) */}
-            {mergedParentRows.length > 0 && (
-              <Card className="shadow-lg border-blue-300 mb-4">
-                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Layers className="w-5 h-5" />
-                      الفواتير الموحَّدة المُرسَلة للإدارة
-                    </span>
-                    <Badge variant="secondary" className="bg-white text-blue-700">{mergedParentRows.length}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-2">
-                  {mergedParentRows.map((r) => {
-                    const customerName = language === 'fr' && r.customers?.name_fr
-                      ? r.customers.name_fr
-                      : r.customers?.name || '—';
-                    const itemsCount = Array.isArray(r.products) ? r.products.length : 0;
-                    const mergedCount = Array.isArray(r.merged_request_ids) ? r.merged_request_ids.length : 0;
-                    return (
-                      <div
-                        key={r.id}
-                        className="border border-blue-200 rounded-lg bg-white p-3 flex items-center justify-between gap-3 flex-wrap"
-                      >
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1">
-                              <Layers className="w-3 h-3" />
-                              فاتورة موحَّدة
+            <Tabs defaultValue="postponed_list" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="postponed_list" className="gap-2">
+                  <Clock className="w-4 h-4" />
+                  الفواتير المؤجلة
+                  <Badge variant="secondary" className="ml-1">{postponedRows.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="merged_sent" className="gap-2">
+                  <Layers className="w-4 h-4" />
+                  الفواتير الموحَّدة المُرسَلة للإدارة
+                  <Badge variant="secondary" className="ml-1">{mergedParentRows.length}</Badge>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="merged_sent">
+                {mergedParentRows.length === 0 ? (
+                  <Card className="shadow-lg border-blue-200">
+                    <CardContent className="py-12 text-center text-slate-500">
+                      <Layers className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                      <p>لا توجد فواتير موحَّدة مُرسَلة للإدارة</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="shadow-lg border-blue-300">
+                    <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <Layers className="w-5 h-5" />
+                          الفواتير الموحَّدة المُرسَلة للإدارة
+                        </span>
+                        <Badge variant="secondary" className="bg-white text-blue-700">{mergedParentRows.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-2">
+                      {mergedParentRows.map((r) => {
+                        const customerName = language === 'fr' && r.customers?.name_fr
+                          ? r.customers.name_fr
+                          : r.customers?.name || '—';
+                        const itemsCount = Array.isArray(r.products) ? r.products.length : 0;
+                        const mergedCount = Array.isArray(r.merged_request_ids) ? r.merged_request_ids.length : 0;
+                        return (
+                          <div
+                            key={r.id}
+                            className="border border-blue-200 rounded-lg bg-white p-3 flex items-center justify-between gap-3 flex-wrap"
+                          >
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1">
+                                  <Layers className="w-3 h-3" />
+                                  فاتورة موحَّدة
+                                </Badge>
+                                <span className="font-semibold text-slate-800 truncate">{customerName}</span>
+                              </div>
+                              <div className="text-xs text-slate-600">
+                                تم تجميع <strong className="text-blue-700">{mergedCount}</strong> فاتورة •{' '}
+                                <strong className="text-blue-700">{itemsCount}</strong> منتج •{' '}
+                                {new Date(r.created_at).toLocaleString('ar')}
+                              </div>
+                              {r.payment_method && (
+                                <div className="text-xs text-slate-500">
+                                  طريقة الدفع: <span className="font-medium text-slate-700">{r.payment_method}</span>
+                                </div>
+                              )}
+                            </div>
+                            <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1">
+                              <Clock3 className="w-3 h-3" />
+                              بانتظار اعتماد الإدارة
                             </Badge>
-                            <span className="font-semibold text-slate-800 truncate">{customerName}</span>
                           </div>
-                          <div className="text-xs text-slate-600">
-                            تم تجميع <strong className="text-blue-700">{mergedCount}</strong> فاتورة •{' '}
-                            <strong className="text-blue-700">{itemsCount}</strong> منتج •{' '}
-                            {new Date(r.created_at).toLocaleString('ar')}
-                          </div>
-                          {r.payment_method && (
-                            <div className="text-xs text-slate-500">
-                              طريقة الدفع: <span className="font-medium text-slate-700">{r.payment_method}</span>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="postponed_list">
+                <Card className="shadow-lg border-amber-200">
+                  <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Clock className="w-5 h-5" />
+                        الفواتير المؤجلة (مجمّعة حسب العميل)
+                      </span>
+                      <Badge variant="secondary" className="bg-white text-amber-700">{postponedRows.length}</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-2">
+                    {postponedByCustomer.length === 0 ? (
+                      <div className="text-center py-12 text-slate-500">
+                        <Clock className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                        <p>لا توجد فواتير مؤجلة</p>
+                      </div>
+                    ) : postponedByCustomer.map(group => {
+                      const isOpen = expandedCustomer === group.customerId;
+                      return (
+                        <div key={group.customerId} className="border border-amber-200 rounded-lg bg-white overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedCustomer(isOpen ? null : group.customerId)}
+                            className="w-full flex items-center justify-between gap-3 p-3 hover:bg-amber-50 transition"
+                          >
+                            <div className="flex items-center gap-2 flex-1 text-start">
+                              <span className="font-semibold text-slate-800">{group.customerName}</span>
+                              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                                {group.items.length} فاتورة
+                              </Badge>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMergeFor({
+                                  customerId: group.customerId,
+                                  customerName: group.customerName,
+                                  requests: group.items as PostponedRequest[],
+                                });
+                              }}
+                              className="gap-1 bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Layers className="w-4 h-4" />
+                              تجميع المنتجات
+                            </Button>
+                            {isOpen ? <ChevronUp className="w-4 h-4 text-amber-700" /> : <ChevronDown className="w-4 h-4 text-amber-700" />}
+                          </button>
+                          {isOpen && (
+                            <div className="border-t border-amber-100 bg-amber-50/40 p-3 space-y-2">
+                              {group.items.map(r => (
+                                <div key={r.id} className="bg-white border border-amber-100 rounded p-2 flex items-center justify-between gap-2 text-sm">
+                                  <div className="flex-1">
+                                    <div className="font-medium">
+                                      {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
+                                      <span className="text-xs text-muted-foreground mr-2">
+                                        {Array.isArray(r.products) ? r.products.length : 0} منتج
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      المندوب: {r.worker?.full_name || '—'} •{' '}
+                                      {new Date(r.created_at).toLocaleDateString('ar')}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
+                                    className="gap-1 text-green-700 hover:bg-green-50"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    إرسال فردي
+                                  </Button>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
-                        <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1">
-                          <Clock3 className="w-3 h-3" />
-                          بانتظار اعتماد الإدارة
-                        </Badge>
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="shadow-lg border-amber-200">
-              <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    الفواتير المؤجلة (مجمّعة حسب العميل)
-                  </span>
-                  <Badge variant="secondary" className="bg-white text-amber-700">{postponedRows.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-2">
-                {postponedByCustomer.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                    <p>لا توجد فواتير مؤجلة</p>
-                  </div>
-                ) : postponedByCustomer.map(group => {
-                  const isOpen = expandedCustomer === group.customerId;
-                  return (
-                    <div key={group.customerId} className="border border-amber-200 rounded-lg bg-white overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => setExpandedCustomer(isOpen ? null : group.customerId)}
-                        className="w-full flex items-center justify-between gap-3 p-3 hover:bg-amber-50 transition"
-                      >
-                        <div className="flex items-center gap-2 flex-1 text-start">
-                          <span className="font-semibold text-slate-800">{group.customerName}</span>
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                            {group.items.length} فاتورة
-                          </Badge>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMergeFor({
-                              customerId: group.customerId,
-                              customerName: group.customerName,
-                              requests: group.items as PostponedRequest[],
-                            });
-                          }}
-                          className="gap-1 bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Layers className="w-4 h-4" />
-                          تجميع المنتجات
-                        </Button>
-                        {isOpen ? <ChevronUp className="w-4 h-4 text-amber-700" /> : <ChevronDown className="w-4 h-4 text-amber-700" />}
-                      </button>
-                      {isOpen && (
-                        <div className="border-t border-amber-100 bg-amber-50/40 p-3 space-y-2">
-                          {group.items.map(r => (
-                            <div key={r.id} className="bg-white border border-amber-100 rounded p-2 flex items-center justify-between gap-2 text-sm">
-                              <div className="flex-1">
-                                <div className="font-medium">
-                                  {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
-                                  <span className="text-xs text-muted-foreground mr-2">
-                                    {Array.isArray(r.products) ? r.products.length : 0} منتج
-                                  </span>
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  المندوب: {r.worker?.full_name || '—'} •{' '}
-                                  {new Date(r.created_at).toLocaleDateString('ar')}
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
-                                className="gap-1 text-green-700 hover:bg-green-50"
-                              >
-                                <CheckCircle2 className="w-4 h-4" />
-                                إرسال فردي
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="ready">
