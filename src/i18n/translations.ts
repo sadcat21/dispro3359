@@ -1644,6 +1644,14 @@ export const translations: Translations = {
   'warehouse.received': { ar: 'المستلم', fr: 'Reçu', en: 'Received' },
   'warehouse.remaining': { ar: 'المتبقي', fr: 'Restant', en: 'Remaining' },
   'warehouse.manual_edit': { ar: 'تعديل يدوي', fr: 'Édition manuelle', en: 'Manual edit' },
+  'warehouse.boxes': { ar: 'الصندوق', fr: 'Caisse', en: 'Box' },
+  'warehouse.pieces': { ar: 'القطع', fr: 'Pièces', en: 'Pieces' },
+  'warehouse.current': { ar: 'الحالي', fr: 'Actuel', en: 'Current' },
+  'warehouse.edit_history': { ar: 'سجل التعديلات', fr: 'Historique des modifications', en: 'Edit history' },
+  'warehouse.save_edits': { ar: 'حفظ التعديلات', fr: 'Enregistrer les modifications', en: 'Save changes' },
+  'warehouse.saving': { ar: 'جاري الحفظ...', fr: 'Enregistrement...', en: 'Saving...' },
+  'warehouse.saved': { ar: 'تم حفظ التعديلات', fr: 'Modifications enregistrées', en: 'Changes saved' },
+  'warehouse.no_changes': { ar: 'لا توجد تغييرات', fr: 'Aucune modification', en: 'No changes' },
 
   // ==================== Worker Debts ====================
   'worker_debts.title': { ar: 'ديون العمال', fr: 'Dettes des employés', en: 'Worker Debts' },
