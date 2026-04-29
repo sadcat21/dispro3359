@@ -253,7 +253,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="بحث بالاسم، المحل، أو الهاتف..."
+              placeholder={t('customer_picker.search_placeholder')}
               className="pr-10 h-11 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
               autoFocus
             />
