@@ -346,7 +346,7 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
                             </Badge>
                             {(c.approval_status || 'approved') !== 'approved' && c.approval_status !== 'rejected' && (
                               <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
-                                بانتظار مساعد المدير العام
+                                بانتظار الموافقة
                               </Badge>
                             )}
                           </div>
