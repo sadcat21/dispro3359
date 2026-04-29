@@ -28,7 +28,7 @@ interface CoverageRow {
   approval_status: string;
   absent_worker?: { full_name: string } | null;
   substitute_worker?: { full_name: string } | null;
-  sectors?: { name: string } | null;
+  sectors?: { name: string; branch_id?: string; branches?: { name: string } | null } | null;
 }
 
 interface InvoiceRequestRow {
