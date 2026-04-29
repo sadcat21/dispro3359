@@ -2275,7 +2275,7 @@ export const translations: Translations = {
   'branch_manager.kpi_active_debts': { ar: 'ديون نشطة', fr: 'Dettes actives', en: 'Active Debts' },
   'branch_manager.kpi_pending_invoices': { ar: 'طلبات فواتير معلقة', fr: 'Factures en attente', en: 'Pending Invoice Requests' },
   'branch_invoice_approvals.title': { ar: 'الموافقة على طلبات الفواتير', fr: 'Approbation des factures', en: 'Invoice Requests Approval' },
-  'branch_invoice_approvals.pending_list': { ar: 'الطلبات بانتظار موافقتك', fr: 'Demandes en attente', en: 'Requests awaiting your approval' },
+  'branch_invoice_approvals.pending_list': { ar: 'طلبات مرحلة مدير الفرع', fr: 'Demandes de l’étape agence', en: 'Branch-stage requests' },
   'branch_invoice_approvals.no_pending': { ar: 'لا توجد طلبات معلقة', fr: 'Aucune demande en attente', en: 'No pending requests' },
   'branch_invoice_approvals.worker': { ar: 'مندوب المبيعات', fr: 'Commercial', en: 'Sales Rep' },
   'branch_invoice_approvals.sales_rep': { ar: 'مندوب المبيعات', fr: 'Commercial', en: 'Sales Rep' },
