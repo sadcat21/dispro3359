@@ -382,6 +382,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         });
       });
       if (rows.length > 0) await supabase.from('stock_receipt_items').insert(rows);
+      await supabase.from('stock_receipts').update({ pallet_count: editPallets || 0 }).eq('id', r.id);
       toast.success('تم حفظ التعديلات');
       setEditingId(null);
       await fetchData();
