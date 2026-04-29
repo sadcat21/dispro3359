@@ -55,7 +55,14 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, status, created_at, total_amount, payment_type, customers:customer_id(name)')
+        .select(`
+          *,
+          customer:customer_id(id, name, phone, address),
+          order_items(
+            id, product_id, quantity, unit_price, total_price, gift_quantity, gift_pieces, pricing_unit,
+            product:product_id(id, name, app_name, image_url, price_gros, price_retail, pieces_per_box, pricing_unit)
+          )
+        `)
         .eq('created_by', workerId!)
         .eq('branch_id', branchId)
         .gte('created_at', todayStart())
