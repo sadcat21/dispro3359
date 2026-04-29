@@ -280,34 +280,60 @@ const BranchInvoiceApprovals: React.FC = () => {
           </TabsList>
 
           <TabsContent value="pending">
-            <Card className="shadow-lg border-blue-200">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-sky-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center justify-between">
-                  <span>{t('branch_invoice_approvals.pending_list')}</span>
-                  <Badge variant="secondary" className="bg-white text-blue-700">
-                    {pendingBranchRows.length}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                {requestsQ.isLoading ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                  </div>
-                ) : pendingTabRows.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                    <p>{t('branch_invoice_approvals.no_pending')}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {pendingTabRows.map((r) => {
-                      const customerName = language === 'fr' && r.customers?.name_fr
-                        ? r.customers.name_fr
-                        : r.customers?.name || '—';
-                      const productCount = Array.isArray(r.products) ? r.products.length : 0;
-                      const isLoadingThis = loadingOrderId === r.id;
-                      const isForwarded = r.status === 'pending_assistant';
+            <Tabs defaultValue="branch_stage" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="branch_stage" className="gap-2">
+                  <FileText className="w-4 h-4" />
+                  Demandes de l'étape agence
+                  <Badge variant="secondary" className="ml-1">{pendingBranchRows.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="final_stage" className="gap-2">
+                  <Clock3 className="w-4 h-4" />
+                  En attente de l'approbation finale
+                  <Badge variant="secondary" className="ml-1">{forwardedRows.length}</Badge>
+                </TabsTrigger>
+              </TabsList>
+
+              {(['branch_stage', 'final_stage'] as const).map((subTab) => {
+                const subRows = subTab === 'branch_stage' ? pendingBranchRows : forwardedRows;
+                const headerColor = subTab === 'branch_stage'
+                  ? 'from-blue-500 to-sky-600'
+                  : 'from-amber-500 to-orange-600';
+                const headerBadgeColor = subTab === 'branch_stage' ? 'text-blue-700' : 'text-amber-700';
+                const headerTitle = subTab === 'branch_stage'
+                  ? "Demandes de l'étape agence"
+                  : "En attente de l'approbation finale";
+                return (
+                  <TabsContent key={subTab} value={subTab}>
+                    <Card className="shadow-lg border-blue-200">
+                      <CardHeader className={`bg-gradient-to-r ${headerColor} text-white rounded-t-lg`}>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>{headerTitle}</span>
+                          <Badge variant="secondary" className={`bg-white ${headerBadgeColor}`}>
+                            {subRows.length}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        {requestsQ.isLoading ? (
+                          <div className="flex justify-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                          </div>
+                        ) : subRows.length === 0 ? (
+                          <div className="text-center py-12 text-slate-500">
+                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                            <p>{t('branch_invoice_approvals.no_pending')}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {subRows.map((r) => {
+                              const customerName = language === 'fr' && r.customers?.name_fr
+                                ? r.customers.name_fr
+                                : r.customers?.name || '—';
+                              const productCount = Array.isArray(r.products) ? r.products.length : 0;
+                              const isLoadingThis = loadingOrderId === r.id;
+                              const isForwarded = r.status === 'pending_assistant';
+{/* === START_ROW_RENDER === */}
                       return (
                         <div
                           key={r.id}
