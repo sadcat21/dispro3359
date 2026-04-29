@@ -333,7 +333,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                               const productCount = Array.isArray(r.products) ? r.products.length : 0;
                               const isLoadingThis = loadingOrderId === r.id;
                               const isForwarded = r.status === 'pending_assistant';
-{/* === START_ROW_RENDER === */}
+
                       return (
                         <div
                           key={r.id}
