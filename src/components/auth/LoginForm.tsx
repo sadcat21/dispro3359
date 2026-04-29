@@ -211,7 +211,13 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
   },
 };
 
+const ADMIN_FUNCTIONAL_ROLES = ['company_manager', 'project_manager', 'accountant', 'admin_assistant'];
+
 const getQuickWorkerGroupKey = (worker: QuickWorker) => {
+  // الأولوية للدور الرئيسي (functional_role) إن كان إدارياً
+  if (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) {
+    return worker.functional_role;
+  }
   if (worker.role === 'branch_admin') return 'branch_admin';
   if (worker.role === 'supervisor') return 'supervisor';
   if (worker.role === 'admin') return 'admin';
@@ -278,14 +284,22 @@ const LoginForm: React.FC = () => {
     const workerIds = workers.map(w => w.id);
     const { data: roles } = await supabase
       .from('worker_roles')
-      .select('worker_id, custom_role_id, custom_roles(code)')
+      .select('worker_id, custom_role_id, is_primary, is_active, custom_roles(code)')
       .in('worker_id', workerIds)
+      .eq('is_active', true)
       .not('custom_role_id', 'is', null);
 
     const funcRoleMap: Record<string, string> = {};
     if (roles) {
+      // أولاً: الأدوار الرئيسية النشطة لها الأولوية
       for (const r of roles as any[]) {
-        if (r.custom_roles?.code) {
+        if (r.is_primary && r.custom_roles?.code) {
+          funcRoleMap[r.worker_id] = r.custom_roles.code;
+        }
+      }
+      // ثانياً: من ليس له دور رئيسي، نأخذ أي دور نشط
+      for (const r of roles as any[]) {
+        if (!funcRoleMap[r.worker_id] && r.custom_roles?.code) {
           funcRoleMap[r.worker_id] = r.custom_roles.code;
         }
       }
@@ -320,7 +334,10 @@ const LoginForm: React.FC = () => {
     else setRealWorkers(result);
   };
 
-  const isAdminQuickWorker = (worker: QuickWorker) => ADMIN_TAB_ROLES.includes(worker.role) || !worker.branch_id;
+  const isAdminQuickWorker = (worker: QuickWorker) =>
+    ADMIN_TAB_ROLES.includes(worker.role) ||
+    (worker.functional_role && ADMIN_FUNCTIONAL_ROLES.includes(worker.functional_role)) ||
+    !worker.branch_id;
   const adminQuickWorkers = realWorkers.filter(isAdminQuickWorker);
   const branchQuickTabs = [...new Map(
     realWorkers
