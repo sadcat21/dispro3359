@@ -48,7 +48,7 @@ const BranchInvoiceApprovals: React.FC = () => {
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name)
         `)
         .eq('branch_id', branchId!)
-        .in('status', ['pending_branch', 'pending_assistant'])
+        .in('status', ['pending_branch', 'pending_assistant', 'approved'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as unknown as InvoiceRequestRow[];
