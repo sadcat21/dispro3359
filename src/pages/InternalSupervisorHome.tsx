@@ -94,7 +94,6 @@ const InternalSupervisorHome: React.FC = () => {
       icon: Banknote,
       items: [
         { key: 'customer_debts', label: t('debts.title'), icon: Banknote, path: '/customer-debts' },
-        { key: 'worker_debts', label: t('nav.worker_debts'), icon: Banknote, path: '/worker-debts' },
       ],
     },
     {

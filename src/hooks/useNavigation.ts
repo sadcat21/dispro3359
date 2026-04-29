@@ -219,7 +219,6 @@ export const useNavigation = () => {
           { path: '/customer-accounts', icon: UserCog, label: t('nav.customer_accounts') },
           { path: '/customer-journey', icon: Activity, label: t('nav.customer_journey') },
           { path: '/customer-debts', icon: Banknote, label: t('debts.title') },
-          { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
           { path: '/geo-operations', icon: Navigation, label: t('nav.geo_operations') },
           { path: '/activity-logs', icon: Activity, label: t('nav.activity_logs') },
           { path: '/guide', icon: BookOpen, label: t('nav.guide') },
