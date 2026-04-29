@@ -260,6 +260,7 @@ const BranchManagerHome: React.FC = () => {
           );
         })}
       </div>
+      <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
     </div>
   );
 };
