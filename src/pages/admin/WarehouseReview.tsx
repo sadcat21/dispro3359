@@ -541,6 +541,27 @@ const WarehouseReview: React.FC = () => {
           {branchId && <WarehouseReviewHistory branchId={branchId} />}
         </TabsContent>
       </Tabs>
+
+      {detailsDialogProductId && (() => {
+        const item = items.find(i => i.productId === detailsDialogProductId);
+        if (!item) return null;
+        return (
+          <ProductReviewDetailsDialog
+            open={!!detailsDialogProductId}
+            onOpenChange={(o) => { if (!o) setDetailsDialogProductId(null); }}
+            productName={item.productName}
+            imageUrl={item.imageUrl}
+            piecesPerBox={item.piecesPerBox}
+            expected={item.expected}
+            initial={detailsByProduct[item.productId]}
+            onSave={(d) => {
+              setDetailsByProduct(prev => ({ ...prev, [item.productId]: d }));
+              const total = d.boxes + (item.piecesPerBox > 0 ? d.pieces / item.piecesPerBox : 0) + d.hall;
+              updateActual(item.productId, fmtQty(total, item.piecesPerBox));
+            }}
+          />
+        );
+      })()}
     </div>
   );
 };
