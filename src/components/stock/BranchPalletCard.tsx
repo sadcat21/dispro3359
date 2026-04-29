@@ -92,23 +92,8 @@ const BranchPalletCard: React.FC<Props> = ({ branchId }) => {
               <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{quantity}</div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8"
-              onClick={() => { setAdjustType('add'); setShowDialog(true); }}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8"
-              onClick={() => { setAdjustType('subtract'); setShowDialog(true); }}
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
+          <div className="text-[10px] text-muted-foreground text-left max-w-[140px]">
+            يُحدَّث تلقائياً عبر الاستلام والمراجعة فقط
           </div>
         </CardContent>
       </Card>
