@@ -512,7 +512,7 @@ const LoginForm: React.FC = () => {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold cursor-pointer select-none" onClick={handleTitleTap}>{t('app.name')}</CardTitle>
-            <CardDescription>{t('app.description')}</CardDescription>
+            
           </div>
         </CardHeader>
         <CardContent>
