@@ -728,6 +728,8 @@ export const translations: Translations = {
   'customer_picker.add_new': { ar: 'إضافة عميل جديد', fr: 'Ajouter un nouveau client', en: 'Add new customer' },
   'customer_picker.new': { ar: 'عميل جديد', fr: 'Nouveau client', en: 'New customer' },
   'customer_picker.count': { ar: 'عميل', fr: 'client(s)', en: 'customer(s)' },
+  'customer_picker.debt': { ar: 'دين', fr: 'Dette', en: 'Debt' },
+  'customer_picker.last': { ar: 'آخر', fr: 'Dernier', en: 'Last' },
   'orders.purchase_method': { ar: 'طريقة الشراء', fr: 'Méthode d\'achat', en: 'Purchase Method' },
   'orders.payment_method': { ar: 'طريقة الدفع', fr: 'Méthode de paiement', en: 'Payment Method' },
   'orders.price_type': { ar: 'نوع التسعير', fr: 'Type de prix', en: 'Price Type' },
