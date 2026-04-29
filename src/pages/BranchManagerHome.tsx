@@ -29,8 +29,53 @@ const BranchManagerHome: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { user, activeBranch } = useAuth();
+  const queryClient = useQueryClient();
 
   const branchId = activeBranch?.id;
+
+  // Realtime: تنبيه فوري عند وصول طلب فاتورة جديد للفرع
+  useEffect(() => {
+    if (!branchId) return;
+    const channel = supabase
+      .channel(`branch-invoice-requests-${branchId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'manual_invoice_requests',
+          filter: `branch_id=eq.${branchId}`,
+        },
+        (payload: any) => {
+          if (payload?.new?.status === 'pending_branch') {
+            toast.info(t('branch_invoice_approvals.new_request_toast'), {
+              action: {
+                label: t('branch_invoice_approvals.review'),
+                onClick: () => navigate('/branch-invoice-approvals'),
+              },
+            });
+            queryClient.invalidateQueries({ queryKey: ['bm-kpis', branchId] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'manual_invoice_requests',
+          filter: `branch_id=eq.${branchId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['bm-kpis', branchId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [branchId, navigate, queryClient, t]);
+
 
   const { data: kpis } = useQuery({
     queryKey: ['bm-kpis', branchId],
