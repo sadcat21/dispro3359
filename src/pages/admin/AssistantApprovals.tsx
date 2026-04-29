@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
 
 interface ReceiptRow {
   id: string;
