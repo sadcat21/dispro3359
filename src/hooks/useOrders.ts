@@ -213,12 +213,36 @@ export const useCreateOrder = () => {
 
       if (itemsError) throw itemsError;
 
+      // إذا كانت الطلبية بفاتورة → أنشئ طلب موافقة في مسار الفواتير
+      // (موافقة أولية من مدير الفرع ثم نهائية من مساعد المدير العام)
+      if (paymentType === 'with_invoice') {
+        const { error: invReqError } = await supabase
+          .from('manual_invoice_requests')
+          .insert({
+            order_id: order.id,
+            customer_id: customerId,
+            worker_id: workerId!,
+            branch_id: activeBranch?.id || null,
+            status: 'pending_branch',
+            payment_method: invoicePaymentMethod || null,
+            products: items as any,
+            total_amount: totalAmount || null,
+          } as any);
+
+        if (invReqError) {
+          // لا تُفشل إنشاء الطلب — فقط سجّل التحذير
+          console.warn('[useCreateOrder] فشل إنشاء طلب موافقة الفاتورة:', invReqError);
+        }
+      }
+
       return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       queryClient.invalidateQueries({ queryKey: ['assigned-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['bm-kpis'] });
     },
   });
 };
