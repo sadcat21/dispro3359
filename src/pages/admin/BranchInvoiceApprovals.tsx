@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2, Clock, ChevronDown, ChevronUp, Layers, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
@@ -15,6 +15,7 @@ import BranchManualInvoiceDialog from '@/components/admin/BranchManualInvoiceDia
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import MergeInvoicesDialog, { type PostponedRequest } from '@/components/admin/MergeInvoicesDialog';
 
 interface InvoiceRequestRow {
   id: string;
