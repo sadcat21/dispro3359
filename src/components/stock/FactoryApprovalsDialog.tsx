@@ -731,6 +731,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           </TabsContent>
         </Tabs>
       </DialogContent>
+    </Dialog>
 
       {/* نافذة ملخص الإرسال للإدارة */}
       <Dialog open={!!summaryReceipt} onOpenChange={(o) => { if (!o) setSummaryReceipt(null); }}>
