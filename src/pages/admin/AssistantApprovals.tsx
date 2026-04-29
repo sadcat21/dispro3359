@@ -248,6 +248,18 @@ const AssistantApprovals: React.FC = () => {
             <p className="text-sm text-slate-600">{t('assistant_approvals.subtitle')}</p>
           </div>
         </div>
+        {filterBranch && (
+          <div className="mt-3 flex items-center gap-2">
+            <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
+              {t('assistant_approvals.filtered_by_branch')}: {filterBranch.name}
+              {filterBranch.wilaya ? ` — ${filterBranch.wilaya}` : ''}
+            </Badge>
+            <Button size="sm" variant="ghost" onClick={clearBranchFilter} className="h-7 px-2">
+              <X className="w-3.5 h-3.5 me-1" />
+              {t('assistant_approvals.clear_filter')}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
