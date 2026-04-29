@@ -226,12 +226,12 @@ const AssistantApprovals: React.FC = () => {
   }) => (
     <div className="flex gap-2">
       <Button size="sm" onClick={onApprove} disabled={pending}
-        className="bg-amber-600 hover:bg-amber-700 text-white">
+        className="bg-green-600 hover:bg-green-700 text-white">
         <CheckCircle2 className="w-4 h-4 me-1" />
         {t('assistant_approvals.approve_final')}
       </Button>
-      <Button size="sm" variant="outline" onClick={onReject} disabled={pending}
-        className="border-red-300 text-red-600 hover:bg-red-50">
+      <Button size="sm" onClick={onReject} disabled={pending}
+        className="bg-red-600 hover:bg-red-700 text-white">
         <XCircle className="w-4 h-4 me-1" />
         {t('assistant_approvals.reject')}
       </Button>
