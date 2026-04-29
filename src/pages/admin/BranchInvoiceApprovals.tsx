@@ -208,7 +208,32 @@ const BranchInvoiceApprovals: React.FC = () => {
         .eq('status', 'pending_branch')
         .order('branch_approved_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as any[];
+      const rows = (data || []) as any[];
+
+      // جلب pieces_per_box و weight_per_box للمنتجات لعرض السعر بصيغة (وزن × سعر/كلغ)
+      const productIds = Array.from(new Set(
+        rows.flatMap((r) => Array.isArray(r.products) ? r.products.map((p: any) => p.product_id).filter(Boolean) : [])
+      ));
+      let prodMap: Record<string, { pieces_per_box: number | null; weight_per_box: number | null }> = {};
+      if (productIds.length > 0) {
+        const { data: prods } = await supabase
+          .from('products')
+          .select('id, pieces_per_box, weight_per_box')
+          .in('id', productIds);
+        (prods || []).forEach((p: any) => {
+          prodMap[p.id] = { pieces_per_box: p.pieces_per_box, weight_per_box: p.weight_per_box };
+        });
+      }
+      rows.forEach((r) => {
+        if (Array.isArray(r.products)) {
+          r.products = r.products.map((p: any) => ({
+            ...p,
+            pieces_per_box: prodMap[p.product_id]?.pieces_per_box ?? null,
+            weight_per_box: prodMap[p.product_id]?.weight_per_box ?? null,
+          }));
+        }
+      });
+      return rows;
     },
     enabled: !!customerDialog,
   });
@@ -816,15 +841,29 @@ const BranchInvoiceApprovals: React.FC = () => {
                           {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleString('ar')}
                         </p>
                         {products.length > 0 && (
-                          <div className="bg-slate-50 rounded p-2 space-y-1 max-h-32 overflow-y-auto">
-                            {products.map((p: any, i: number) => (
-                              <div key={i} className="flex items-center justify-between text-xs gap-2">
-                                <span className="truncate">{p.product_name || p.name || '—'}</span>
-                                <span className="text-muted-foreground whitespace-nowrap">
-                                  {p.quantity} × {Number(p.unit_price || 0).toLocaleString('ar')} = <strong>{Number(p.total || (p.quantity * p.unit_price) || 0).toLocaleString('ar')}</strong>
-                                </span>
-                              </div>
-                            ))}
+                          <div className="bg-slate-50 rounded p-2 space-y-1 max-h-40 overflow-y-auto">
+                            {products.map((p: any, i: number) => {
+                              const qty = Number(p.quantity || 0);
+                              const unitPrice = Number(p.unit_price || 0); // سعر الصندوق
+                              const lineTotal = Number(p.total || (qty * unitPrice) || 0);
+                              const wpb = Number(p.weight_per_box || 0); // وزن الصندوق (كلغ)
+                              const pricePerKg = wpb > 0 ? unitPrice / wpb : 0;
+                              return (
+                                <div key={i} className="flex items-center justify-between text-xs gap-2">
+                                  <span className="truncate font-medium text-slate-700">{p.product_name || p.name || '—'}</span>
+                                  <span className="text-muted-foreground whitespace-nowrap">
+                                    {wpb > 0 ? (
+                                      <>
+                                        {qty} × ({wpb} × {pricePerKg.toLocaleString('ar', { maximumFractionDigits: 2 })}) ={' '}
+                                      </>
+                                    ) : (
+                                      <>{qty} × {unitPrice.toLocaleString('ar')} = </>
+                                    )}
+                                    <strong className="text-slate-900">{lineTotal.toLocaleString('ar', { maximumFractionDigits: 2 })}</strong> دج
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
