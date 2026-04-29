@@ -598,6 +598,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         paymentStatus = 'cash';
       }
 
+      // ⚠️ بيع بفاتورة من المخزني → يجب أن يمر بسلسلة موافقات: مدير الفرع → الإدارة العليا
+      // لا نخصم المخزون ولا نطبع الوصل، الطلب يبقى pending_branch حتى الموافقة النهائية
+      const requiresApprovalChain = isWarehouseManager && finalPaymentType === 'with_invoice';
+      const orderStatus = requiresApprovalChain ? 'pending_branch' : 'delivered';
+
       const { data: order, error: orderErr } = await supabase
         .from('orders')
         .insert({
@@ -605,7 +610,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           created_by: workerId!,
           assigned_worker_id: workerId!,
           branch_id: activeBranch?.id || null,
-          status: 'delivered',
+          status: orderStatus,
           payment_type: finalPaymentType,
           payment_status: paymentStatus,
           invoice_payment_method: finalPaymentType === 'with_invoice' ? (finalInvoiceMethod || null) : null,
@@ -640,6 +645,17 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
       const { error: itemsErr } = await supabase.from('order_items').insert(orderItemsData);
       if (itemsErr) throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
+
+      // إذا كان الطلب يتطلب سلسلة موافقات، نتوقف هنا (لا خصم مخزون، لا وصل، لا SMS)
+      if (requiresApprovalChain) {
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
+        toast.success('تم إرسال طلب الفاتورة لمدير الفرع للمراجعة');
+        setShowPaymentDialog(false);
+        onOpenChange(false);
+        setIsSaving(false);
+        return;
+      }
 
       // Deduct from stock & log movements (including gift quantities)
       for (const item of orderItems) {
