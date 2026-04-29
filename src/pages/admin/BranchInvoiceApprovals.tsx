@@ -20,6 +20,8 @@ interface InvoiceRequestRow {
   whatsapp_contact: string | null;
   created_at: string;
   products: any;
+  invoice_file_url?: string | null;
+  invoice_file_name?: string | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
 }
