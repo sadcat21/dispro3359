@@ -98,35 +98,6 @@ const BranchPalletCard: React.FC<Props> = ({ branchId }) => {
         </CardContent>
       </Card>
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-sm" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>{adjustType === 'add' ? 'إضافة باليطات' : 'خصم باليطات'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">الكمية</Label>
-              <Input
-                type="number"
-                min={1}
-                value={adjustAmount}
-                onChange={e => setAdjustAmount(parseInt(e.target.value) || 0)}
-                className="text-center"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">ملاحظات (اختياري)</Label>
-              <Input value={adjustNotes} onChange={e => setAdjustNotes(e.target.value)} className="text-right" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAdjust} disabled={isSaving} className="w-full">
-              {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              تأكيد
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
