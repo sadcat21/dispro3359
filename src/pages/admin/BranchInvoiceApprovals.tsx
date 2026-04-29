@@ -841,15 +841,29 @@ const BranchInvoiceApprovals: React.FC = () => {
                           {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleString('ar')}
                         </p>
                         {products.length > 0 && (
-                          <div className="bg-slate-50 rounded p-2 space-y-1 max-h-32 overflow-y-auto">
-                            {products.map((p: any, i: number) => (
-                              <div key={i} className="flex items-center justify-between text-xs gap-2">
-                                <span className="truncate">{p.product_name || p.name || '—'}</span>
-                                <span className="text-muted-foreground whitespace-nowrap">
-                                  {p.quantity} × {Number(p.unit_price || 0).toLocaleString('ar')} = <strong>{Number(p.total || (p.quantity * p.unit_price) || 0).toLocaleString('ar')}</strong>
-                                </span>
-                              </div>
-                            ))}
+                          <div className="bg-slate-50 rounded p-2 space-y-1 max-h-40 overflow-y-auto">
+                            {products.map((p: any, i: number) => {
+                              const qty = Number(p.quantity || 0);
+                              const unitPrice = Number(p.unit_price || 0); // سعر الصندوق
+                              const lineTotal = Number(p.total || (qty * unitPrice) || 0);
+                              const wpb = Number(p.weight_per_box || 0); // وزن الصندوق (كلغ)
+                              const pricePerKg = wpb > 0 ? unitPrice / wpb : 0;
+                              return (
+                                <div key={i} className="flex items-center justify-between text-xs gap-2">
+                                  <span className="truncate font-medium text-slate-700">{p.product_name || p.name || '—'}</span>
+                                  <span className="text-muted-foreground whitespace-nowrap">
+                                    {wpb > 0 ? (
+                                      <>
+                                        {qty} × ({wpb} × {pricePerKg.toLocaleString('ar', { maximumFractionDigits: 2 })}) ={' '}
+                                      </>
+                                    ) : (
+                                      <>{qty} × {unitPrice.toLocaleString('ar')} = </>
+                                    )}
+                                    <strong className="text-slate-900">{lineTotal.toLocaleString('ar', { maximumFractionDigits: 2 })}</strong> دج
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
