@@ -432,11 +432,13 @@ const WarehouseReview: React.FC = () => {
         {/* Details breakdown */}
         {detailsByProduct[item.productId] && (
           <div className="mt-1.5 flex flex-wrap gap-1 justify-end text-[9px]">
-            <Badge variant="outline" className="gap-1">صناديق: {detailsByProduct[item.productId].boxes}</Badge>
-            <Badge variant="outline" className="gap-1">قطع: {detailsByProduct[item.productId].pieces}</Badge>
-            <Badge variant="outline" className="gap-1">صالة: {detailsByProduct[item.productId].hall}</Badge>
+            <Badge variant="outline" className="gap-1 border-primary/40 text-primary">
+              صالح: {detailsByProduct[item.productId].boxes}.{String(detailsByProduct[item.productId].pieces).padStart(2, '0')}
+            </Badge>
             {detailsByProduct[item.productId].damaged > 0 && (
-              <Badge variant="destructive" className="gap-1">تالف: {detailsByProduct[item.productId].damaged}</Badge>
+              <Badge variant="destructive" className="gap-1">
+                تالف: {detailsByProduct[item.productId].damagedBoxes ?? 0}.{String(detailsByProduct[item.productId].damagedPieces ?? 0).padStart(2, '0')}
+              </Badge>
             )}
           </div>
         )}
@@ -699,7 +701,7 @@ const WarehouseReview: React.FC = () => {
             onSave={(d) => {
               setDetailsByProduct(prev => ({ ...prev, [item.productId]: d }));
               const ppb = item.piecesPerBox > 0 ? item.piecesPerBox : 1;
-              const goodTotal = d.boxes + d.pieces / ppb + d.hall;
+              const goodTotal = d.boxes + d.pieces / ppb;
               const damagedTotal = d.damaged || 0;
               const total = goodTotal + damagedTotal;
               updateActual(item.productId, fmtQty(total, item.piecesPerBox));
