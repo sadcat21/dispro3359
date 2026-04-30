@@ -7,12 +7,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Loader2, CheckCircle, AlertTriangle, Package, Search, Save, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { ProductReviewDetailsDialog, ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import BoxPieceInput from '@/components/ui/BoxPieceInput';
 import { boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 
 interface WarehouseReviewDialogProps {
@@ -54,6 +54,8 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [detailsDialogProduct, setDetailsDialogProduct] = useState<ReviewItem | null>(null);
+  const [savedDetails, setSavedDetails] = useState<Record<string, ProductReviewDetails>>({});
 
   useEffect(() => {
     if (!open) return;
@@ -118,6 +120,12 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
       if (item.productId !== productId || item.itemType !== 'product') return item;
       return { ...item, actualNum: boxValue, hasValue: true, status: computeStatus(item.expected, boxValue, true) };
     }));
+  };
+
+  const handleProductDetailsSave = (product: ReviewItem, details: ProductReviewDetails) => {
+    setSavedDetails(prev => ({ ...prev, [product.productId]: details }));
+    const totalBoxes = details.boxes + details.pieces / product.piecesPerBox + details.damaged;
+    updateActual(product.productId, totalBoxes);
   };
 
   const markAllMatched = () => {
@@ -258,97 +266,39 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
     }
   };
 
-  const renderProductRow = (item: ReviewItem) => {
-    const diff = item.hasValue ? item.actualNum - item.expected : 0;
+  const renderProductCard = (item: ReviewItem) => {
+    const statusRing = item.status === 'matched' ? 'ring-2 ring-green-500' :
+      item.status === 'surplus' ? 'ring-2 ring-amber-400' :
+      item.status === 'deficit' ? 'ring-2 ring-destructive' : '';
 
     return (
-      <div key={item.productId} className={`rounded-lg px-3 py-2.5 border ${
-        item.status === 'deficit' ? 'border-destructive/30 bg-destructive/5' :
-        item.status === 'surplus' ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/10' :
-        item.status === 'unverified' ? 'border-muted-foreground/20 bg-muted/30' :
-        'border-primary/30 bg-primary/5'
-      }`}>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            {item.imageUrl ? (
-              <img src={item.imageUrl} alt="" className="w-7 h-7 rounded object-cover shrink-0" />
-            ) : (
-              <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0">
-                <Package className="w-3.5 h-3.5 text-muted-foreground" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="text-sm font-medium truncate">{item.productName}</div>
-              {item.piecesPerBox > 1 && (
-                <div className="text-[9px] text-muted-foreground">{item.piecesPerBox} ق/ص</div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-16 text-center">
-              <span className="text-sm font-bold text-muted-foreground">
-                {item.piecesPerBox > 1 ? boxesToBP(item.expected, item.piecesPerBox) : String(item.expected)}
-              </span>
-            </div>
-            {item.piecesPerBox > 1 ? (
-              <BoxPieceInput
-                value={item.hasValue ? item.actualNum : 0}
-                onChange={(val) => updateActual(item.productId, val)}
-                piecesPerBox={item.piecesPerBox}
-                className={`w-20 h-8 text-center text-sm font-bold ${
-                  item.status === 'matched' ? 'border-primary/50 bg-primary/5' :
-                  item.status === 'deficit' ? 'border-destructive/50 bg-destructive/5' :
-                  item.status === 'surplus' ? 'border-amber-400/50 bg-amber-50 dark:bg-amber-950/20' :
-                  ''
-                }`}
-                placeholder="—"
-                showHint={false}
-                onFocus={() => setActiveProductId(item.productId)}
-              />
-            ) : (
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="—"
-                value={item.hasValue ? item.actualNum : ''}
-                onChange={e => {
-                  const val = parseFloat(e.target.value) || 0;
-                  updateActual(item.productId, val);
-                }}
-                onFocus={() => setActiveProductId(item.productId)}
-                onBlur={() => setActiveProductId(current => current === item.productId ? null : current)}
-                className={`w-20 h-8 text-center text-sm font-bold ${
-                  item.status === 'matched' ? 'border-primary/50 bg-primary/5' :
-                  item.status === 'deficit' ? 'border-destructive/50 bg-destructive/5' :
-                  item.status === 'surplus' ? 'border-amber-400/50 bg-amber-50 dark:bg-amber-950/20' :
-                  ''
-                }`}
-              />
-            )}
-            <div className="w-8 flex justify-center">
-              {getStatusIcon(item.status)}
-            </div>
-          </div>
-        </div>
-        {item.hasValue && item.status !== 'matched' && item.status !== 'unverified' && (
-          <div className="mt-1 flex justify-end">
-            {item.status === 'surplus' && (
-              <Badge className="bg-amber-500 text-white text-[9px]">
-                فائض: +{item.piecesPerBox > 1 ? boxesToBP(diff, item.piecesPerBox) : diff}
-              </Badge>
-            )}
-            {item.status === 'deficit' && (
-              <Badge variant="destructive" className="text-[9px]">
-                عجز: -{item.piecesPerBox > 1 ? boxesToBP(Math.abs(diff), item.piecesPerBox) : Math.abs(diff)}
-              </Badge>
-            )}
+      <button
+        key={item.productId}
+        onClick={() => setDetailsDialogProduct(item)}
+        className={`relative flex flex-col items-center gap-1 rounded-lg border bg-card p-2 text-center transition-all hover:shadow-md active:scale-95 ${statusRing}`}
+      >
+        {item.status !== 'unverified' && (
+          <div className="absolute top-1 left-1">
+            {getStatusIcon(item.status)}
           </div>
         )}
-      </div>
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt="" className="w-14 h-14 rounded-md object-cover" />
+        ) : (
+          <div className="w-14 h-14 rounded-md bg-muted flex items-center justify-center">
+            <Package className="w-6 h-6 text-muted-foreground" />
+          </div>
+        )}
+        <span className="text-[11px] font-medium leading-tight line-clamp-2">{item.productName}</span>
+        <span className="text-[9px] text-muted-foreground">
+          المتوقع: {item.piecesPerBox > 1 ? boxesToBP(item.expected, item.piecesPerBox) : item.expected}
+        </span>
+      </button>
     );
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
         <DialogHeader className="shrink-0">
@@ -389,74 +339,14 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
         </div>
 
         <ScrollArea className="flex-1 min-h-0">
-          <div className="space-y-3 pe-1 pb-2">
-            <div className="flex items-center justify-between px-3 py-1 text-[10px] font-semibold text-muted-foreground">
-              <span>المنتج</span>
-              <div className="flex items-center gap-4">
-                <span className="w-16 text-center">المتوقع</span>
-                <span className="w-20 text-center">الفعلي</span>
-                <span className="w-8"></span>
-              </div>
-            </div>
-
+          <div className="pe-1 pb-2">
             {filteredItems.length === 0 ? (
               <div className="text-center py-6 text-sm text-muted-foreground">
                 لا توجد منتجات مطابقة للبحث
               </div>
             ) : (
-              <>
-                <div className="space-y-1.5">
-                  {pendingItems.map(renderProductRow)}
-                </div>
-
-                {reviewedItems.length > 0 && (
-                  <div className="space-y-1.5 border-t pt-2">
-                    <p className="text-xs font-semibold text-muted-foreground">
-                      تمت مراجعتها ({reviewedItems.length})
-                    </p>
-                    {reviewedItems.map(renderProductRow)}
-                  </div>
-                )}
-              </>
-            )}
-
-            {includeDamaged && damagedItems.length > 0 && (
-              <div className="pt-2 border-t mt-2">
-                <p className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" /> التالف ({damagedItems.length})
-                </p>
-                {damagedItems.map(d => {
-                  const ppb = d.piecesPerBox || 1;
-                  return (
-                    <div key={`damaged-${d.productId}`} className="rounded-lg px-3 py-2 border border-border bg-card flex items-center justify-between mb-1.5">
-                      <div>
-                        <div className="text-sm font-medium">{d.productName}</div>
-                        <div className="text-[10px] text-muted-foreground">
-                          المتوقع: {ppb > 1 ? boxesToBP(d.expected, ppb) : d.expected}
-                        </div>
-                      </div>
-                      {ppb > 1 ? (
-                        <BoxPieceInput
-                          value={damagedActuals[d.productId] ?? 0}
-                          onChange={val => setDamagedActuals(prev => ({ ...prev, [d.productId]: val }))}
-                          piecesPerBox={ppb}
-                          className="w-20 h-8 text-center text-sm font-bold"
-                          placeholder="—"
-                          showHint={false}
-                        />
-                      ) : (
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="—"
-                          value={damagedActuals[d.productId] ?? ''}
-                          onChange={e => setDamagedActuals(prev => ({ ...prev, [d.productId]: parseFloat(e.target.value) || 0 }))}
-                          className="w-20 h-8 text-center text-sm font-bold"
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-3 gap-2">
+                {filteredItems.map(renderProductCard)}
               </div>
             )}
 
@@ -494,6 +384,20 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {detailsDialogProduct && (
+      <ProductReviewDetailsDialog
+        open={!!detailsDialogProduct}
+        onOpenChange={(v) => { if (!v) setDetailsDialogProduct(null); }}
+        productName={detailsDialogProduct.productName}
+        imageUrl={detailsDialogProduct.imageUrl}
+        piecesPerBox={detailsDialogProduct.piecesPerBox}
+        expected={detailsDialogProduct.expected}
+        initial={savedDetails[detailsDialogProduct.productId]}
+        onSave={(details) => handleProductDetailsSave(detailsDialogProduct, details)}
+      />
+    )}
+    </>
   );
 };
 
