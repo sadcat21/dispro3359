@@ -318,16 +318,17 @@ const WarehouseReview: React.FC = () => {
   const reviewedItems = filteredItems.filter(i => i.status !== 'unverified');
 
   const renderProductCard = (item: ReviewItem) => {
-    const statusRing =
-      item.status === 'matched' ? 'ring-2 ring-green-500' :
-      item.status === 'surplus' ? 'ring-2 ring-amber-400' :
-      item.status === 'deficit' ? 'ring-2 ring-destructive' : '';
+    const statusStyles =
+      item.status === 'matched' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/30' :
+      item.status === 'surplus' ? 'ring-2 ring-amber-400 bg-amber-50 dark:bg-amber-950/30' :
+      item.status === 'deficit' ? 'ring-2 ring-destructive bg-destructive/10' :
+      'bg-card';
 
     return (
       <button
         key={item.productId}
         onClick={() => setDetailsDialogProductId(item.productId)}
-        className={`relative flex flex-col items-center gap-1.5 rounded-xl border bg-card p-2.5 text-center transition-all hover:shadow-md active:scale-95 ${statusRing}`}
+        className={`relative flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-center transition-all hover:shadow-md active:scale-95 ${statusStyles}`}
       >
         {item.status !== 'unverified' && (
           <div className="absolute top-1.5 left-1.5">
