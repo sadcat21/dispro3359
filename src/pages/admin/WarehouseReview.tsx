@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistory';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import palletImage from '@/assets/pallet.png';
+import PalletReviewDialog from '@/components/warehouse/PalletReviewDialog';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
@@ -75,6 +76,7 @@ const WarehouseReview: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [detailsByProduct, setDetailsByProduct] = useState<Record<string, ProductReviewDetails>>({});
   const [detailsDialogProductId, setDetailsDialogProductId] = useState<string | null>(null);
+  const [palletDialogOpen, setPalletDialogOpen] = useState(false);
 
   // Pallet quantity
   const { data: palletQuantity = 0 } = useQuery({
@@ -543,8 +545,7 @@ const WarehouseReview: React.FC = () => {
                     <button
                       key="pallet-card"
                       onClick={() => {
-                        const val = prompt('أدخل العدد الفعلي للباليطات:', palletActual);
-                        if (val !== null) setPalletActual(val);
+                        setPalletDialogOpen(true);
                       }}
                       className={`relative flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-center transition-all hover:shadow-md active:scale-95 ${palletStyles}`}
                     >
@@ -642,6 +643,14 @@ const WarehouseReview: React.FC = () => {
           />
         );
       })()}
+
+      <PalletReviewDialog
+        open={palletDialogOpen}
+        onOpenChange={setPalletDialogOpen}
+        expected={palletQuantity}
+        initial={palletActual}
+        onSave={(val) => setPalletActual(val)}
+      />
     </div>
   );
 };
