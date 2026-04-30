@@ -318,131 +318,35 @@ const WarehouseReview: React.FC = () => {
   const pendingItems = filteredItems.filter(i => i.status === 'unverified');
   const reviewedItems = filteredItems.filter(i => i.status !== 'unverified');
 
-  const renderItemRow = (item: ReviewItem) => {
-    const actualNum = item.actual !== '' ? getActualNum(item.actual, item.piecesPerBox) : 0;
-    const diffNum = item.actual !== '' ? actualNum - item.expected : 0;
-    const diffDisplay = diffNum !== 0 ? fmtQty(Math.abs(diffNum), item.piecesPerBox) : '0';
-
-    const sideBorder =
-      item.status === 'matched' ? 'border-r-4 border-r-primary' :
-      item.status === 'surplus' ? 'border-r-4 border-r-amber-500' :
-      item.status === 'deficit' ? 'border-r-4 border-r-destructive' :
-      'border-r-4 border-r-muted-foreground/20';
-
-    const cardBg =
-      item.status === 'deficit' ? 'bg-destructive/5' :
-      item.status === 'surplus' ? 'bg-amber-50/60 dark:bg-amber-950/10' :
-      item.status === 'matched' ? 'bg-primary/5' :
-      'bg-card';
+  const renderProductCard = (item: ReviewItem) => {
+    const statusRing =
+      item.status === 'matched' ? 'ring-2 ring-green-500' :
+      item.status === 'surplus' ? 'ring-2 ring-amber-400' :
+      item.status === 'deficit' ? 'ring-2 ring-destructive' : '';
 
     return (
-      <div key={item.productId} className={`rounded-lg border ${sideBorder} ${cardBg} p-2.5 transition-colors`}>
-        {/* Top row: image + name + status icon */}
-        <div className="flex items-center gap-2.5 mb-2">
-          <button
-            type="button"
-            onClick={() => setDetailsDialogProductId(item.productId)}
-            className="shrink-0 rounded-md overflow-hidden border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors relative group"
-            title="انقر لإدخال التفاصيل (صالح/تالف)"
-          >
-            {item.imageUrl ? (
-              <img src={item.imageUrl} alt="" className="w-11 h-11 object-cover" />
-            ) : (
-              <div className="w-11 h-11 bg-muted flex items-center justify-center">
-                <Package className="w-4 h-4 text-muted-foreground" />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
-              <ListChecks className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 drop-shadow" />
-            </div>
-            {detailsByProduct[item.productId] && (
-              <div className="absolute top-0.5 right-0.5 w-2 h-2 bg-primary rounded-full ring-1 ring-background" />
-            )}
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold truncate leading-tight">{item.productName}</div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] text-muted-foreground">المتوقع:</span>
-              <span className="text-xs font-bold text-foreground">{fmtQty(item.expected, item.piecesPerBox)}</span>
-              {item.piecesPerBox > 1 && (
-                <span className="text-[9px] text-muted-foreground">({item.piecesPerBox} ق/ص)</span>
-              )}
-            </div>
-          </div>
-          <div className="shrink-0">{getStatusIcon(item.status)}</div>
-        </div>
-
-        {/* Bottom row: input + quick match + details */}
-        <div className="flex items-stretch gap-1.5">
-          <Input
-            type="text"
-            inputMode="decimal"
-            placeholder="الفعلي —"
-            value={item.actual}
-            onChange={e => updateActual(item.productId, sanitizeBPInput(e.target.value))}
-            className={`flex-1 h-10 text-center text-base font-bold ${
-              item.status === 'matched' ? 'border-primary/60 bg-primary/5' :
-              item.status === 'deficit' ? 'border-destructive/60 bg-destructive/5' :
-              item.status === 'surplus' ? 'border-amber-400/60 bg-amber-50 dark:bg-amber-950/20' : ''
-            }`}
-          />
-          <Button
-            type="button"
-            size="sm"
-            variant={item.status === 'matched' ? 'default' : 'outline'}
-            onClick={() => updateActual(item.productId, fmtQty(item.expected, item.piecesPerBox))}
-            className={`h-10 px-3 text-xs font-bold gap-1 ${
-              item.status === 'matched'
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
-                : ''
-            }`}
-            title="تطابق سريع"
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            مطابق
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => setDetailsDialogProductId(item.productId)}
-            className={`h-10 w-10 p-0 shrink-0 ${detailsByProduct[item.productId] ? 'border-primary text-primary bg-primary/5' : ''}`}
-            title="تفاصيل (صناديق/قطع/صالة/تالف)"
-          >
-            <ListChecks className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Diff badge */}
-        {item.actual !== '' && item.status !== 'matched' && item.status !== 'unverified' && (
-          <div className="mt-1.5 flex justify-end">
-            {item.status === 'surplus' && (
-              <Badge className="bg-amber-500 hover:bg-amber-500 text-white text-[10px] gap-1">
-                <TrendingUp className="w-3 h-3" /> فائض: +{diffDisplay}
-              </Badge>
-            )}
-            {item.status === 'deficit' && (
-              <Badge variant="destructive" className="text-[10px] gap-1">
-                <TrendingDown className="w-3 h-3" /> عجز: -{diffDisplay}
-              </Badge>
-            )}
+      <button
+        key={item.productId}
+        onClick={() => setDetailsDialogProductId(item.productId)}
+        className={`relative flex flex-col items-center gap-1.5 rounded-xl border bg-card p-2.5 text-center transition-all hover:shadow-md active:scale-95 ${statusRing}`}
+      >
+        {item.status !== 'unverified' && (
+          <div className="absolute top-1.5 left-1.5">
+            {getStatusIcon(item.status)}
           </div>
         )}
-
-        {/* Details breakdown */}
-        {detailsByProduct[item.productId] && (
-          <div className="mt-1.5 flex flex-wrap gap-1 justify-end text-[9px]">
-            <Badge variant="outline" className="gap-1 border-primary/40 text-primary">
-              صالح: {detailsByProduct[item.productId].boxes}.{String(detailsByProduct[item.productId].pieces).padStart(2, '0')}
-            </Badge>
-            {detailsByProduct[item.productId].damaged > 0 && (
-              <Badge variant="destructive" className="gap-1">
-                تالف: {detailsByProduct[item.productId].damagedBoxes ?? 0}.{String(detailsByProduct[item.productId].damagedPieces ?? 0).padStart(2, '0')}
-              </Badge>
-            )}
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover" />
+        ) : (
+          <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+            <Package className="w-7 h-7 text-muted-foreground" />
           </div>
         )}
-      </div>
+        <span className="text-[11px] font-semibold leading-tight line-clamp-2 w-full">{item.productName}</span>
+        <span className="text-[9px] text-muted-foreground">
+          المتوقع: {fmtQty(item.expected, item.piecesPerBox)}
+        </span>
+      </button>
     );
   };
 
@@ -561,43 +465,16 @@ const WarehouseReview: React.FC = () => {
               </div>
             </div>
 
-            {/* Pending section */}
-            {pendingItems.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 px-1">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <h3 className="text-xs font-bold text-foreground">
-                    قيد المراجعة <span className="text-muted-foreground font-normal">({pendingItems.length})</span>
-                  </h3>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="space-y-2">
-                  {pendingItems.map(renderItemRow)}
-                </div>
-              </div>
-            )}
-
-            {/* Reviewed section */}
-            {reviewedItems.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 px-1 pt-2">
-                  <CheckCircle className="w-3.5 h-3.5 text-primary" />
-                  <h3 className="text-xs font-bold text-foreground">
-                    تمت مراجعتها <span className="text-muted-foreground font-normal">({reviewedItems.length})</span>
-                  </h3>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="space-y-2">
-                  {reviewedItems.map(renderItemRow)}
-                </div>
-              </div>
-            )}
-
-            {/* Empty state */}
             {filteredItems.length === 0 && (
               <div className="text-center py-12 text-sm text-muted-foreground bg-card border rounded-lg">
                 <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
                 {search ? 'لا توجد منتجات مطابقة للبحث' : 'لا توجد منتجات للمراجعة'}
+              </div>
+            )}
+
+            {filteredItems.length > 0 && (
+              <div className="grid grid-cols-3 gap-2.5">
+                {filteredItems.map(renderProductCard)}
               </div>
             )}
 
