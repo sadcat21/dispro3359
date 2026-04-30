@@ -318,6 +318,19 @@ const WarehouseReview: React.FC = () => {
   const reviewedItems = filteredItems.filter(i => i.status !== 'unverified');
 
   const renderProductCard = (item: ReviewItem) => {
+    const actualNum = item.actual !== '' ? getActualNum(item.actual, item.piecesPerBox) : null;
+    const diffNum = actualNum !== null ? actualNum - item.expected : null;
+    const ppb = item.piecesPerBox;
+
+    const toBP = (val: number) => {
+      if (ppb <= 1) return fmtPlainQty(val);
+      const abs = Math.abs(val);
+      const totalPieces = Math.round(abs * ppb);
+      const boxes = Math.floor(totalPieces / ppb);
+      const pieces = totalPieces % ppb;
+      return `${boxes}.${String(pieces).padStart(2, '0')}`;
+    };
+
     const statusStyles =
       item.status === 'matched' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/30' :
       item.status === 'surplus' ? 'ring-2 ring-amber-400 bg-amber-50 dark:bg-amber-950/30' :
@@ -343,9 +356,42 @@ const WarehouseReview: React.FC = () => {
           </div>
         )}
         <span className="text-[11px] font-semibold leading-tight line-clamp-2 w-full">{item.productName}</span>
-        <span className="text-[9px] text-muted-foreground">
-          المتوقع: {fmtQty(item.expected, item.piecesPerBox)}
-        </span>
+        <div className="w-full flex flex-col gap-1 mt-0.5">
+          {/* المتوقع */}
+          <div className="flex items-center justify-between rounded-md bg-muted/60 px-1.5 py-0.5">
+            <span className="text-[8px] text-muted-foreground font-medium">المتوقع</span>
+            <span className="text-[10px] font-bold text-foreground">{toBP(item.expected)}</span>
+          </div>
+          {/* الفعلي */}
+          <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+            actualNum !== null
+              ? item.status === 'matched' ? 'bg-green-100 dark:bg-green-900/30'
+              : item.status === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30'
+              : item.status === 'deficit' ? 'bg-red-100 dark:bg-red-900/30'
+              : 'bg-muted/60'
+              : 'bg-muted/40'
+          }`}>
+            <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
+            <span className="text-[10px] font-bold">{actualNum !== null ? toBP(actualNum) : '—'}</span>
+          </div>
+          {/* الفرق */}
+          <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+            diffNum !== null && Math.abs(diffNum) >= 0.001
+              ? diffNum > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
+              : diffNum !== null ? 'bg-green-200/70 dark:bg-green-900/40' : 'bg-muted/40'
+          }`}>
+            <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
+            <span className={`text-[10px] font-extrabold ${
+              diffNum !== null && Math.abs(diffNum) >= 0.001
+                ? diffNum > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
+                : diffNum !== null ? 'text-green-600 dark:text-green-400' : ''
+            }`}>
+              {diffNum !== null
+                ? Math.abs(diffNum) < 0.001 ? '0' : `${diffNum > 0 ? '+' : '-'}${toBP(diffNum)}`
+                : '—'}
+            </span>
+          </div>
+        </div>
       </button>
     );
   };
