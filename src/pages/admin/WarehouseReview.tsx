@@ -17,6 +17,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistory';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
+import palletImage from '@/assets/pallet.png';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
@@ -521,63 +522,72 @@ const WarehouseReview: React.FC = () => {
             {filteredItems.length > 0 && (
               <div className="grid grid-cols-3 gap-2.5">
                 {filteredItems.map(renderProductCard)}
-              </div>
-            )}
+                {/* بطاقة الباليطات */}
+                {(() => {
+                  const palletNum = palletActual !== '' ? (parseFloat(palletActual) || 0) : null;
+                  const palletDiff = palletNum !== null ? palletNum - palletQuantity : null;
+                  const palletStatus = palletNum === null ? 'unverified'
+                    : Math.abs(palletDiff!) < 0.001 ? 'matched'
+                    : palletDiff! > 0 ? 'surplus' : 'deficit';
+                  const palletStyles =
+                    palletStatus === 'matched' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/30' :
+                    palletStatus === 'surplus' ? 'ring-2 ring-amber-400 bg-amber-50 dark:bg-amber-950/30' :
+                    palletStatus === 'deficit' ? 'ring-2 ring-destructive bg-destructive/10' :
+                    'bg-card';
+                  const palletStatusIcon =
+                    palletStatus === 'matched' ? <CheckCircle className="w-4 h-4 text-primary shrink-0" /> :
+                    palletStatus === 'surplus' ? <TrendingUp className="w-4 h-4 text-amber-500 shrink-0" /> :
+                    palletStatus === 'deficit' ? <TrendingDown className="w-4 h-4 text-destructive shrink-0" /> : null;
 
-            {/* Damaged section */}
-            {includeDamaged && damagedItems.length > 0 && (
-              <div className="space-y-2 pt-3">
-                <div className="flex items-center gap-2 px-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
-                  <h3 className="text-xs font-bold text-foreground">
-                    التالف <span className="text-muted-foreground font-normal">({damagedItems.length})</span>
-                  </h3>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                {damagedItems.map(d => (
-                  <div key={`damaged-${d.productId}`} className="rounded-lg border border-r-4 border-r-destructive/40 bg-card p-2.5 flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold truncate">{d.productName}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5">
-                        المتوقع: <span className="font-bold text-foreground">{fmtQty(d.expected, piecesPerBoxMap.get(d.productId) || 20)}</span>
+                  return (
+                    <button
+                      key="pallet-card"
+                      onClick={() => {
+                        const val = prompt('أدخل العدد الفعلي للباليطات:', palletActual);
+                        if (val !== null) setPalletActual(val);
+                      }}
+                      className={`relative flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-center transition-all hover:shadow-md active:scale-95 ${palletStyles}`}
+                    >
+                      {palletStatusIcon && (
+                        <div className="absolute top-1.5 left-1.5">
+                          {palletStatusIcon}
+                        </div>
+                      )}
+                      <img src={palletImage} alt="باليط" className="w-16 h-16 rounded-lg object-cover" />
+                      <span className="text-[11px] font-semibold leading-tight line-clamp-2 w-full">الباليطات</span>
+                      <div className="w-full flex flex-col gap-1 mt-0.5">
+                        <div className="flex items-center justify-between rounded-md bg-muted/60 px-1.5 py-0.5">
+                          <span className="text-[8px] text-muted-foreground font-medium">المتوقع</span>
+                          <span className="text-[10px] font-bold text-foreground">{palletQuantity}</span>
+                        </div>
+                        <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                          palletStatus === 'matched' ? 'bg-green-100 dark:bg-green-900/30' :
+                          palletStatus === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30' :
+                          palletStatus === 'deficit' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-muted/40'
+                        }`}>
+                          <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
+                          <span className="text-[10px] font-bold">{palletNum !== null ? palletNum : '—'}</span>
+                        </div>
+                        <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                          palletDiff !== null && Math.abs(palletDiff) >= 0.001
+                            ? palletDiff > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
+                            : palletDiff !== null ? 'bg-green-200/70 dark:bg-green-900/40' : 'bg-muted/40'
+                        }`}>
+                          <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
+                          <span className={`text-[10px] font-extrabold ${
+                            palletDiff !== null && Math.abs(palletDiff) >= 0.001
+                              ? palletDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
+                              : palletDiff !== null ? 'text-green-600 dark:text-green-400' : ''
+                          }`}>
+                            {palletDiff !== null
+                              ? Math.abs(palletDiff) < 0.001 ? '0' : `${palletDiff > 0 ? '+' : ''}${palletDiff}`
+                              : '—'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="—"
-                      value={damagedActuals[d.productId] ?? ''}
-                      onChange={e => setDamagedActuals(prev => ({ ...prev, [d.productId]: sanitizeBPInput(e.target.value) }))}
-                      className="w-24 h-10 text-center text-sm font-bold"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Pallet section */}
-            {includePallets && (
-              <div className="space-y-2 pt-3">
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-base">🪵</span>
-                  <h3 className="text-xs font-bold text-foreground">الباليطات</h3>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="rounded-lg border border-r-4 border-r-blue-400/50 bg-card p-2.5 flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold">رصيد الباليطات</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5">
-                      المتوقع: <span className="font-bold text-foreground">{palletQuantity}</span>
-                    </div>
-                  </div>
-                  <Input
-                    type="number"
-                    placeholder="—"
-                    value={palletActual}
-                    onChange={e => setPalletActual(e.target.value)}
-                    className="w-24 h-10 text-center text-sm font-bold"
-                  />
-                </div>
+                    </button>
+                  );
+                })()}
               </div>
             )}
           </TabsContent>
