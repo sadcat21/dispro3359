@@ -103,6 +103,12 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
     },
   };
 
+  // حساب الفائض/العجز بالصناديق والقطع
+  const diffAbs = Math.abs(diff);
+  const diffTotalPieces = Math.round(diffAbs * ppb);
+  const diffBoxes = Math.floor(diffTotalPieces / ppb);
+  const diffPieces = diffTotalPieces % ppb;
+
   const handleSave = () => {
     onSave({
       boxes: goodParsed.boxes,
@@ -243,11 +249,18 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               <span className="font-bold text-base">{boxesToBP(grandTotal, ppb)} صندوق</span>
             </div>
             {Math.abs(diff) >= 0.01 && (
-              <div className="flex items-center justify-between text-xs mt-1">
-                <span className="text-muted-foreground">{diff > 0 ? 'فائض:' : 'عجز:'}</span>
-                <span className={`font-bold ${diff > 0 ? 'text-amber-600' : 'text-destructive'}`}>
-                  {diff > 0 ? '+' : '-'}{boxesToBP(Math.abs(diff), ppb)}
-                </span>
+              <div className={`mt-2 rounded-md p-2 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className={`font-semibold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                    {diff > 0 ? 'فائض:' : 'عجز:'}
+                  </span>
+                  <span className={`font-bold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                    {diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}
+                  </span>
+                </div>
+                <div className={`text-[11px] text-center mt-1 ${diff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
+                  = {diffBoxes} صندوق + {diffPieces} قطعة
+                </div>
               </div>
             )}
           </div>
