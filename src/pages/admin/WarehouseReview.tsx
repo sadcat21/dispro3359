@@ -19,6 +19,7 @@ import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistor
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import palletImage from '@/assets/pallet.png';
 import PalletReviewDialog from '@/components/warehouse/PalletReviewDialog';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
@@ -118,7 +119,7 @@ const WarehouseReview: React.FC = () => {
       const expected = normalizeDbQtyToBoxes(rawExpected, ppb);
       return {
         productId: product.id,
-        productName: product.name,
+        productName: getProductDisplayName(product),
         imageUrl: product.image_url,
         piecesPerBox: ppb,
         expected,
@@ -138,7 +139,7 @@ const WarehouseReview: React.FC = () => {
         const ppb = product?.pieces_per_box || 20;
         return {
           productId: ws.product_id,
-          productName: product?.name || '—',
+          productName: product ? getProductDisplayName(product) : '—',
           expected: normalizeDbQtyToBoxes((ws as any).damaged_quantity || 0, ppb),
         };
       });
@@ -183,10 +184,21 @@ const WarehouseReview: React.FC = () => {
       else if (item.status === 'deficit') deficit++;
       else unverified++;
     }
-    return { matched, surplus, deficit, unverified, total: items.length };
-  }, [items]);
+    // Include pallet as a step in the total count
+    const palletCounted = palletActual.trim() !== '';
+    const totalWithPallet = items.length + 1;
+    const unverifiedWithPallet = unverified + (palletCounted ? 0 : 1);
+    if (palletCounted) {
+      const palletNum = parseFloat(palletActual) || 0;
+      const palletDiff = palletNum - palletQuantity;
+      if (Math.abs(palletDiff) < 0.001) matched++;
+      else if (palletDiff > 0) surplus++;
+      else deficit++;
+    }
+    return { matched, surplus, deficit, unverified: unverifiedWithPallet, total: totalWithPallet };
+  }, [items, palletActual, palletQuantity]);
 
-  const canSave = stats.unverified === 0 && items.length > 0;
+  const canSave = stats.unverified === 0 && items.length > 0 && palletActual.trim() !== '';
 
   const handleSave = async () => {
     if (!workerId || !branchId || !canSave) return;
