@@ -129,7 +129,6 @@ const WarehouseReview: React.FC = () => {
 
   // Damaged items
   const damagedItems = useMemo(() => {
-    if (!includeDamaged) return [];
     return warehouseStock
       .filter(ws => (ws as any).damaged_quantity > 0)
       .map(ws => {
@@ -141,18 +140,16 @@ const WarehouseReview: React.FC = () => {
           expected: normalizeDbQtyToBoxes((ws as any).damaged_quantity || 0, ppb),
         };
       });
-  }, [includeDamaged, warehouseStock, products]);
+  }, [warehouseStock, products]);
 
   const [damagedActuals, setDamagedActuals] = useState<Record<string, string>>({});
   const [palletActual, setPalletActual] = useState('');
 
   useEffect(() => {
-    if (includeDamaged) {
-      const actuals: Record<string, string> = {};
-      damagedItems.forEach(d => { actuals[d.productId] = ''; });
-      setDamagedActuals(actuals);
-    }
-  }, [includeDamaged, damagedItems.length]);
+    const actuals: Record<string, string> = {};
+    damagedItems.forEach(d => { actuals[d.productId] = ''; });
+    setDamagedActuals(actuals);
+  }, [damagedItems.length]);
 
   const updateActual = (productId: string, value: string) => {
     setActuals(prev => ({ ...prev, [productId]: value }));
@@ -208,8 +205,8 @@ const WarehouseReview: React.FC = () => {
           branch_id: branchId,
           reviewer_id: workerId,
           status: 'completed',
-          include_damaged: includeDamaged,
-          include_pallets: includePallets,
+          include_damaged: true,
+          include_pallets: true,
           total_products: items.length,
           total_discrepancies: stats.surplus + stats.deficit,
           completed_at: new Date().toISOString(),
@@ -235,8 +232,8 @@ const WarehouseReview: React.FC = () => {
         };
       });
 
-      if (includeDamaged) {
-        for (const d of damagedItems) {
+      {
+        for (const d of damagedItems) {  
           const actualStr = damagedActuals[d.productId] ?? '';
           const ppb = piecesPerBoxMap.get(d.productId) || 20;
           const actualNum = getActualNum(actualStr, ppb);
@@ -256,7 +253,7 @@ const WarehouseReview: React.FC = () => {
         }
       }
 
-      if (includePallets) {
+      {
         const palletNum = parseFloat(palletActual) || 0;
         const diff = palletNum - palletQuantity;
         reviewItems.push({
@@ -504,14 +501,7 @@ const WarehouseReview: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1.5 flex-1 min-w-0">
-                  <Switch id="include-damaged" checked={includeDamaged} onCheckedChange={setIncludeDamaged} className="scale-75" />
-                  <Label htmlFor="include-damaged" className="text-[11px] cursor-pointer truncate">التالف</Label>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1.5 flex-1 min-w-0">
-                  <Switch id="include-pallets" checked={includePallets} onCheckedChange={setIncludePallets} className="scale-75" />
-                  <Label htmlFor="include-pallets" className="text-[11px] cursor-pointer truncate">الباليطات</Label>
-                </div>
+
                 <Button
                   size="sm"
                   variant="outline"
