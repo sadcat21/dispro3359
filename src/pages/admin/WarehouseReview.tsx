@@ -488,30 +488,32 @@ const WarehouseReview: React.FC = () => {
                           <span className="text-[8px] text-muted-foreground font-medium">المتوقع</span>
                           <span className="text-[10px] font-bold text-foreground">{palletQuantity}</span>
                         </div>
-                        <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-                          palletStatus === 'matched' ? 'bg-green-100 dark:bg-green-900/30' :
-                          palletStatus === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30' :
-                          palletStatus === 'deficit' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-muted/40'
-                        }`}>
-                          <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
-                          <span className="text-[10px] font-bold">{palletNum !== null ? palletNum : '—'}</span>
-                        </div>
-                        <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-                          palletDiff !== null && Math.abs(palletDiff) >= 0.001
-                            ? palletDiff > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
-                            : palletDiff !== null ? 'bg-green-200/70 dark:bg-green-900/40' : 'bg-muted/40'
-                        }`}>
-                          <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
-                          <span className={`text-[10px] font-extrabold ${
-                            palletDiff !== null && Math.abs(palletDiff) >= 0.001
-                              ? palletDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
-                              : palletDiff !== null ? 'text-green-600 dark:text-green-400' : ''
-                          }`}>
-                            {palletDiff !== null
-                              ? Math.abs(palletDiff) < 0.001 ? '0' : `${palletDiff > 0 ? '+' : ''}${palletDiff}`
-                              : '—'}
-                          </span>
-                        </div>
+                        {palletNum !== null && (
+                          <>
+                            <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                              palletStatus === 'matched' ? 'bg-green-100 dark:bg-green-900/30' :
+                              palletStatus === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30' :
+                              palletStatus === 'deficit' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-muted/40'
+                            }`}>
+                              <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
+                              <span className="text-[10px] font-bold">{palletNum}</span>
+                            </div>
+                            <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                              palletDiff !== null && Math.abs(palletDiff) >= 0.001
+                                ? palletDiff > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
+                                : 'bg-green-200/70 dark:bg-green-900/40'
+                            }`}>
+                              <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
+                              <span className={`text-[10px] font-extrabold ${
+                                palletDiff !== null && Math.abs(palletDiff) >= 0.001
+                                  ? palletDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
+                                  : 'text-green-600 dark:text-green-400'
+                              }`}>
+                                {Math.abs(palletDiff!) < 0.001 ? '0' : `${palletDiff! > 0 ? '+' : ''}${palletDiff}`}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </button>
                   );
