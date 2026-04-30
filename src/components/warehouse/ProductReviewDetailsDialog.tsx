@@ -3,14 +3,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Package, Boxes, Layers, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
+import { Package, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
+import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
 
 export interface ProductReviewDetails {
-  boxes: number;       // صناديق صالحة كاملة
-  pieces: number;      // قطع صالحة (مفردة)
-  hall: number;        // كمية بالصالة (بالصناديق)
-  damaged: number;     // إجمالي التالف بالصناديق (boxes + pieces/ppb)
+  /** صناديق صالحة كاملة (بعد التطبيع) */
+  boxes: number;
+  /** قطع صالحة متبقية (< piecesPerBox) */
+  pieces: number;
+  /** غير مستخدم — أُزيل (للتوافق فقط) */
+  hall: number;
+  /** إجمالي التالف بالصناديق الكسرية للحفظ */
+  damaged: number;
+  /** صناديق التالف */
   damagedBoxes?: number;
+  /** قطع التالف */
   damagedPieces?: number;
 }
 
@@ -20,58 +27,44 @@ interface Props {
   productName: string;
   imageUrl?: string | null;
   piecesPerBox: number;
-  expected: number; // متوقع بالصناديق
+  expected: number; // متوقع بالصناديق (كسري)
   initial?: ProductReviewDetails;
   onSave: (details: ProductReviewDetails) => void;
 }
 
-const num = (v: string) => {
-  const n = parseFloat(v);
-  return isNaN(n) ? 0 : n;
-};
+const sanitizeBP = (v: string): string => v.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
   open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, onSave,
 }) => {
-  // الصالح
-  const [goodBoxes, setGoodBoxes] = useState('');
-  const [goodPieces, setGoodPieces] = useState('');
-  const [hall, setHall] = useState('');
-  // التالف
-  const [damagedBoxes, setDamagedBoxes] = useState('');
-  const [damagedPieces, setDamagedPieces] = useState('');
+  const ppb = Math.max(1, piecesPerBox || 1);
+
+  const [goodInput, setGoodInput] = useState('');
+  const [damagedInput, setDamagedInput] = useState('');
 
   useEffect(() => {
     if (open) {
-      setGoodBoxes(initial?.boxes ? String(initial.boxes) : '');
-      setGoodPieces(initial?.pieces ? String(initial.pieces) : '');
-      setHall(initial?.hall ? String(initial.hall) : '');
-      setDamagedBoxes(initial?.damagedBoxes ? String(initial.damagedBoxes) : '');
-      setDamagedPieces(initial?.damagedPieces ? String(initial.damagedPieces) : '');
+      const goodTotal = (initial?.boxes ?? 0) + (initial?.pieces ?? 0) / ppb;
+      const damagedTotal = initial?.damaged ?? 0;
+      setGoodInput(goodTotal > 0 ? boxesToBP(goodTotal, ppb) : '');
+      setDamagedInput(damagedTotal > 0 ? boxesToBP(damagedTotal, ppb) : '');
     }
-  }, [open, initial]);
+  }, [open, initial, ppb]);
 
-  const ppb = piecesPerBox > 0 ? piecesPerBox : 1;
+  const goodParsed = useMemo(() => parseBP(goodInput, ppb), [goodInput, ppb]);
+  const damagedParsed = useMemo(() => parseBP(damagedInput, ppb), [damagedInput, ppb]);
 
-  const goodTotal = useMemo(() => {
-    return num(goodBoxes) + num(goodPieces) / ppb + num(hall);
-  }, [goodBoxes, goodPieces, hall, ppb]);
-
-  const damagedTotal = useMemo(() => {
-    return num(damagedBoxes) + num(damagedPieces) / ppb;
-  }, [damagedBoxes, damagedPieces, ppb]);
-
-  const grandTotal = goodTotal + damagedTotal;
+  const grandTotal = goodParsed.totalBoxes + damagedParsed.totalBoxes;
   const diff = grandTotal - expected;
 
   const handleSave = () => {
     onSave({
-      boxes: num(goodBoxes),
-      pieces: num(goodPieces),
-      hall: num(hall),
-      damaged: damagedTotal,
-      damagedBoxes: num(damagedBoxes),
-      damagedPieces: num(damagedPieces),
+      boxes: goodParsed.boxes,
+      pieces: goodParsed.pieces,
+      hall: 0,
+      damaged: damagedParsed.totalBoxes,
+      damagedBoxes: damagedParsed.boxes,
+      damagedPieces: damagedParsed.pieces,
     });
     onOpenChange(false);
   };
@@ -96,114 +89,74 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
           {/* المتوقع */}
           <div className="bg-muted/50 rounded-lg p-2.5 text-sm flex items-center justify-between">
             <span className="text-muted-foreground">المتوقع (صندوق):</span>
-            <span className="font-bold text-base">{expected.toFixed(2)}</span>
+            <span className="font-bold text-base">{boxesToBP(expected, ppb)}</span>
+          </div>
+
+          {/* تنبيه طريقة الإدخال */}
+          <div className="rounded-md bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">
+            💡 <strong>صيغة B.P</strong>: اكتب <code className="bg-background px-1 rounded">صناديق.قطع</code> — مثلاً <code className="bg-background px-1 rounded">2843.09</code> = 2843 صندوق + 9 قطع
+            <span className="block text-muted-foreground mt-0.5">({ppb} قطعة في الصندوق)</span>
           </div>
 
           {/* ============ القسم 1: الصالح ============ */}
-          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3 space-y-3">
+          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3 space-y-2">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-bold text-primary">الكمية الصالحة</h3>
-              <span className="text-[10px] text-muted-foreground ms-auto">
-                ({ppb} قطعة/صندوق)
-              </span>
             </div>
 
-            {/* B.P: Box + Piece */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Boxes className="w-3 h-3" />
-                  صناديق (B)
-                </Label>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={goodBoxes}
-                  onChange={e => setGoodBoxes(e.target.value)}
-                  className="text-center text-base font-bold h-10"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Package className="w-3 h-3" />
-                  قطع (P)
-                </Label>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={goodPieces}
-                  onChange={e => setGoodPieces(e.target.value)}
-                  className="text-center text-base font-bold h-10"
-                />
-              </div>
-            </div>
-
-            {/* الصالة */}
             <div className="space-y-1">
-              <Label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Layers className="w-3 h-3 text-blue-500" />
-                الصالة (صندوق)
+              <Label className="text-[11px] text-muted-foreground">
+                أدخل بصيغة B.P (صناديق.قطع)
               </Label>
               <Input
-                type="number"
+                type="text"
                 inputMode="decimal"
-                placeholder="0"
-                value={hall}
-                onChange={e => setHall(e.target.value)}
-                className="text-center text-base font-bold h-10"
+                placeholder="0.00"
+                value={goodInput}
+                onChange={e => setGoodInput(sanitizeBP(e.target.value))}
+                className="text-center text-lg font-bold h-11"
               />
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-primary/20">
-              <span className="text-muted-foreground">إجمالي الصالح:</span>
-              <span className="font-bold text-primary">{goodTotal.toFixed(2)} صندوق</span>
+              <span className="text-muted-foreground">
+                = {goodParsed.boxes} صندوق + {goodParsed.pieces} قطعة
+              </span>
+              <span className="font-bold text-primary">
+                {goodParsed.totalBoxes.toFixed(2)} صندوق
+              </span>
             </div>
           </div>
 
           {/* ============ القسم 2: التالف ============ */}
-          <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-3 space-y-3">
+          <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-3 space-y-2">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-destructive" />
               <h3 className="text-sm font-bold text-destructive">الكمية التالفة</h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Boxes className="w-3 h-3" />
-                  صناديق (B)
-                </Label>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={damagedBoxes}
-                  onChange={e => setDamagedBoxes(e.target.value)}
-                  className="text-center text-base font-bold h-10"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Package className="w-3 h-3" />
-                  قطع (P)
-                </Label>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={damagedPieces}
-                  onChange={e => setDamagedPieces(e.target.value)}
-                  className="text-center text-base font-bold h-10"
-                />
-              </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">
+                أدخل بصيغة B.P (صناديق.قطع)
+              </Label>
+              <Input
+                type="text"
+                inputMode="decimal"
+                placeholder="0.00"
+                value={damagedInput}
+                onChange={e => setDamagedInput(sanitizeBP(e.target.value))}
+                className="text-center text-lg font-bold h-11"
+              />
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-destructive/20">
-              <span className="text-muted-foreground">إجمالي التالف:</span>
-              <span className="font-bold text-destructive">{damagedTotal.toFixed(2)} صندوق</span>
+              <span className="text-muted-foreground">
+                = {damagedParsed.boxes} صندوق + {damagedParsed.pieces} قطعة
+              </span>
+              <span className="font-bold text-destructive">
+                {damagedParsed.totalBoxes.toFixed(2)} صندوق
+              </span>
             </div>
           </div>
 
@@ -215,13 +168,13 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
           }`}>
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">الإجمالي الفعلي (صالح + تالف):</span>
-              <span className="font-bold text-base">{grandTotal.toFixed(2)} صندوق</span>
+              <span className="font-bold text-base">{boxesToBP(grandTotal, ppb)} صندوق</span>
             </div>
             {Math.abs(diff) >= 0.01 && (
               <div className="flex items-center justify-between text-xs mt-1">
                 <span className="text-muted-foreground">{diff > 0 ? 'فائض:' : 'عجز:'}</span>
                 <span className={`font-bold ${diff > 0 ? 'text-amber-600' : 'text-destructive'}`}>
-                  {diff > 0 ? '+' : ''}{diff.toFixed(2)}
+                  {diff > 0 ? '+' : '-'}{boxesToBP(Math.abs(diff), ppb)}
                 </span>
               </div>
             )}
