@@ -33,7 +33,6 @@ interface Props {
   onSave: (details: ProductReviewDetails) => void;
 }
 
-const sanitizeBP = (v: string): string => v.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
 const sanitizeInt = (v: string): string => v.replace(/[^0-9]/g, '');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
@@ -84,13 +83,13 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   };
 
   const grandTotal = goodParsed.totalBoxes + damagedParsed.totalBoxes;
+  const totalPiecesCombined = (goodParsed.boxes * ppb + goodParsed.pieces) + (damagedParsed.boxes * ppb + damagedParsed.pieces);
+  const totalCombinedBoxes = Math.floor(totalPiecesCombined / ppb);
+  const totalCombinedPieces = totalPiecesCombined % ppb;
   const diff = grandTotal - expected;
   const isMatch = Math.abs(diff) < 0.01 && grandTotal > 0;
   const isSurplus = diff > 0.01;
   const hasInput = grandTotal > 0;
-
-  // Determine section color scheme
-  const sectionColor = isMatch ? 'green' : isSurplus ? 'amber' : hasInput ? 'red' : 'default';
 
   const sectionStyles = {
     good: {
@@ -271,7 +270,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 <span className="font-bold text-base whitespace-nowrap">{boxesToBP(grandTotal, ppb)} صندوق</span>
               </div>
               <div className="mt-2 text-2xl font-black text-center">
-                = {goodParsed.boxes + damagedParsed.boxes} صندوق + {goodParsed.pieces + damagedParsed.pieces} قطعة
+                = {totalCombinedBoxes} صندوق + {totalCombinedPieces} قطعة
               </div>
               {Math.abs(diff) >= 0.01 && (
                 <div className={`mt-3 rounded-lg p-3 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
