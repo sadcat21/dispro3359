@@ -643,6 +643,14 @@ const WarehouseReview: React.FC = () => {
           />
         );
       })()}
+
+      <PalletReviewDialog
+        open={palletDialogOpen}
+        onOpenChange={setPalletDialogOpen}
+        expected={palletQuantity}
+        initial={palletActual}
+        onSave={(val) => setPalletActual(val)}
+      />
     </div>
   );
 };
