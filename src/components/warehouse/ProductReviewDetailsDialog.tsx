@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Package, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
-import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { boxesToBP } from '@/utils/boxPieceInput';
 
 export interface ProductReviewDetails {
   /** صناديق صالحة كاملة (بعد التطبيع) */
@@ -33,6 +33,7 @@ interface Props {
 }
 
 const sanitizeBP = (v: string): string => v.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+const sanitizeInt = (v: string): string => v.replace(/[^0-9]/g, '');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
   open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, onSave,
@@ -41,18 +42,31 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
   const [goodInput, setGoodInput] = useState('');
   const [damagedInput, setDamagedInput] = useState('');
+  const [goodBoxes, setGoodBoxes] = useState('');
+  const [goodPieces, setGoodPieces] = useState('');
+  const [damagedBoxes, setDamagedBoxes] = useState('');
+  const [damagedPieces, setDamagedPieces] = useState('');
 
   useEffect(() => {
     if (open) {
-      const goodTotal = (initial?.boxes ?? 0) + (initial?.pieces ?? 0) / ppb;
-      const damagedTotal = initial?.damaged ?? 0;
-      setGoodInput(goodTotal > 0 ? boxesToBP(goodTotal, ppb) : '');
-      setDamagedInput(damagedTotal > 0 ? boxesToBP(damagedTotal, ppb) : '');
+      setGoodBoxes(String(initial?.boxes ?? 0));
+      setGoodPieces(String(initial?.pieces ?? 0));
+      setDamagedBoxes(String(initial?.damagedBoxes ?? 0));
+      setDamagedPieces(String(initial?.damagedPieces ?? 0));
     }
-  }, [open, initial, ppb]);
+  }, [open, initial]);
 
-  const goodParsed = useMemo(() => parseBP(goodInput, ppb), [goodInput, ppb]);
-  const damagedParsed = useMemo(() => parseBP(damagedInput, ppb), [damagedInput, ppb]);
+  const normalize = (boxes: string, pieces: string) => {
+    const b = Math.max(0, parseInt(boxes) || 0);
+    const p = Math.max(0, parseInt(pieces) || 0);
+    const extraBoxes = Math.floor(p / ppb);
+    const remainingPieces = p % ppb;
+    const totalBoxes = b + extraBoxes;
+    return { boxes: totalBoxes, pieces: remainingPieces, totalBoxes: totalBoxes + remainingPieces / ppb };
+  };
+
+  const goodParsed = useMemo(() => normalize(goodBoxes, goodPieces), [goodBoxes, goodPieces, ppb]);
+  const damagedParsed = useMemo(() => normalize(damagedBoxes, damagedPieces), [damagedBoxes, damagedPieces, ppb]);
 
   const grandTotal = goodParsed.totalBoxes + damagedParsed.totalBoxes;
   const diff = grandTotal - expected;
@@ -94,8 +108,8 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
           {/* تنبيه طريقة الإدخال */}
           <div className="rounded-md bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">
-            💡 <strong>صيغة B.P</strong>: اكتب <code className="bg-background px-1 rounded">صناديق.قطع</code> — مثلاً <code className="bg-background px-1 rounded">2843.09</code> = 2843 صندوق + 9 قطع
-            <span className="block text-muted-foreground mt-0.5">({ppb} قطعة في الصندوق)</span>
+            💡 أدخل الكمية في الحقلين المنفصلين: <strong>صناديق</strong> و <strong>قطع</strong>
+            <span className="block text-muted-foreground mt-0.5">({ppb} قطعة في الصندوق) — يتم التطبيع تلقائياً</span>
           </div>
 
           {/* ============ القسم 1: الصالح ============ */}
@@ -106,17 +120,30 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">
-                أدخل بصيغة B.P (صناديق.قطع)
-              </Label>
-              <Input
-                type="text"
-                inputMode="decimal"
-                placeholder="0.00"
-                value={goodInput}
-                onChange={e => setGoodInput(sanitizeBP(e.target.value))}
-                className="text-center text-lg font-bold h-11"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">صناديق</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={goodBoxes}
+                    onChange={e => setGoodBoxes(sanitizeInt(e.target.value))}
+                    className="text-center text-lg font-bold h-11"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">قطع</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={goodPieces}
+                    onChange={e => setGoodPieces(sanitizeInt(e.target.value))}
+                    className="text-center text-lg font-bold h-11"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-primary/20">
@@ -137,17 +164,30 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">
-                أدخل بصيغة B.P (صناديق.قطع)
-              </Label>
-              <Input
-                type="text"
-                inputMode="decimal"
-                placeholder="0.00"
-                value={damagedInput}
-                onChange={e => setDamagedInput(sanitizeBP(e.target.value))}
-                className="text-center text-lg font-bold h-11"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">صناديق</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={damagedBoxes}
+                    onChange={e => setDamagedBoxes(sanitizeInt(e.target.value))}
+                    className="text-center text-lg font-bold h-11"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">قطع</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={damagedPieces}
+                    onChange={e => setDamagedPieces(sanitizeInt(e.target.value))}
+                    className="text-center text-lg font-bold h-11"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-destructive/20">
