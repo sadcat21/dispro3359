@@ -76,6 +76,32 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   const grandTotal = goodParsed.totalBoxes + damagedParsed.totalBoxes;
   const diff = grandTotal - expected;
   const isMatch = Math.abs(diff) < 0.01 && grandTotal > 0;
+  const isSurplus = diff > 0.01;
+  const hasInput = grandTotal > 0;
+
+  // Determine section color scheme
+  const sectionColor = isMatch ? 'green' : isSurplus ? 'amber' : hasInput ? 'red' : 'default';
+
+  const sectionStyles = {
+    good: {
+      container: isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
+        : isSurplus ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
+        : 'border-primary/30 bg-primary/5',
+      icon: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-primary',
+      title: isMatch ? 'text-green-700 dark:text-green-400' : isSurplus ? 'text-amber-700 dark:text-amber-400' : 'text-primary',
+      border: isMatch ? 'border-green-300/40' : isSurplus ? 'border-amber-300/40' : 'border-primary/20',
+      value: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-primary',
+    },
+    damaged: {
+      container: isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
+        : isSurplus ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
+        : 'border-destructive/30 bg-destructive/5',
+      icon: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-destructive',
+      title: isMatch ? 'text-green-700 dark:text-green-400' : isSurplus ? 'text-amber-700 dark:text-amber-400' : 'text-destructive',
+      border: isMatch ? 'border-green-300/40' : isSurplus ? 'border-amber-300/40' : 'border-destructive/20',
+      value: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-destructive',
+    },
+  };
 
   const handleSave = () => {
     onSave({
@@ -119,12 +145,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
           </div>
 
           {/* ============ القسم 1: الصالح ============ */}
-          <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${
-            isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' : 'border-primary/30 bg-primary/5'
-          }`}>
+          <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${sectionStyles.good.container}`}>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className={`w-4 h-4 ${isMatch ? 'text-green-600' : 'text-primary'}`} />
-              <h3 className={`text-sm font-bold ${isMatch ? 'text-green-700 dark:text-green-400' : 'text-primary'}`}>الكمية الصالحة</h3>
+              <CheckCircle2 className={`w-4 h-4 ${sectionStyles.good.icon}`} />
+              <h3 className={`text-sm font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
             </div>
 
             <div className="space-y-1">
@@ -154,23 +178,21 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className={`flex items-center justify-between text-xs pt-1 border-t ${isMatch ? 'border-green-300/40' : 'border-primary/20'}`}>
+            <div className={`flex items-center justify-between text-xs pt-1 border-t ${sectionStyles.good.border}`}>
               <span className="text-muted-foreground">
                 = {goodParsed.boxes} صندوق + {goodParsed.pieces} قطعة
               </span>
-              <span className={`font-bold ${isMatch ? 'text-green-600' : 'text-primary'}`}>
+              <span className={`font-bold ${sectionStyles.good.value}`}>
                 {formatBPFromParts(goodParsed.boxes, goodParsed.pieces)} صندوق
               </span>
             </div>
           </div>
 
           {/* ============ القسم 2: التالف ============ */}
-          <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${
-            isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' : 'border-destructive/30 bg-destructive/5'
-          }`}>
+          <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${sectionStyles.damaged.container}`}>
             <div className="flex items-center gap-2">
-              <AlertTriangle className={`w-4 h-4 ${isMatch ? 'text-green-600' : 'text-destructive'}`} />
-              <h3 className={`text-sm font-bold ${isMatch ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>الكمية التالفة</h3>
+              <AlertTriangle className={`w-4 h-4 ${sectionStyles.damaged.icon}`} />
+              <h3 className={`text-sm font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
             </div>
 
             <div className="space-y-1">
@@ -200,11 +222,11 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className={`flex items-center justify-between text-xs pt-1 border-t ${isMatch ? 'border-green-300/40' : 'border-destructive/20'}`}>
+            <div className={`flex items-center justify-between text-xs pt-1 border-t ${sectionStyles.damaged.border}`}>
               <span className="text-muted-foreground">
                 = {damagedParsed.boxes} صندوق + {damagedParsed.pieces} قطعة
               </span>
-              <span className={`font-bold ${isMatch ? 'text-green-600' : 'text-destructive'}`}>
+              <span className={`font-bold ${sectionStyles.damaged.value}`}>
                 {formatBPFromParts(damagedParsed.boxes, damagedParsed.pieces)} صندوق
               </span>
             </div>
