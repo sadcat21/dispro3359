@@ -118,8 +118,12 @@ export const useWarehouseStock = () => {
       .eq('custom_roles.code', 'delivery_rep')
       .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
-    const deliveryWorkerIds = Array.from(new Set((deliveryRoleRows || []).map(row => row.worker_id).filter(Boolean)))
-      .filter(id => id !== workerId);
+    const deliveryRoleBranchByWorker = new Map(
+      (deliveryRoleRows || [])
+        .filter(row => row.worker_id)
+        .map(row => [row.worker_id as string, row.branch_id as string | null])
+    );
+    const deliveryWorkerIds = Array.from(deliveryRoleBranchByWorker.keys());
     if (deliveryWorkerIds.length === 0) {
       setWorkers([]);
       return;
@@ -127,14 +131,15 @@ export const useWarehouseStock = () => {
 
     const { data } = await supabase
       .from('workers_safe')
-      .select('id, full_name, username')
+      .select('id, full_name, username, branch_id')
       .in('id', deliveryWorkerIds)
       .eq('is_active', true)
-      .eq('branch_id', branchId)
       .eq('is_test', false)
       .order('full_name');
 
-    setWorkers((data || []).map(w => ({ id: w.id!, full_name: w.full_name!, username: w.username! })));
+    setWorkers((data || [])
+      .filter(w => deliveryRoleBranchByWorker.get(w.id!) === branchId || (!deliveryRoleBranchByWorker.get(w.id!) && w.branch_id === branchId))
+      .map(w => ({ id: w.id!, full_name: w.full_name!, username: w.username! })));
   }, [branchId]);
 
   const fetchReceipts = useCallback(async () => {
