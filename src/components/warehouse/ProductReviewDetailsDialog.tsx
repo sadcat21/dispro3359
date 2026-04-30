@@ -47,10 +47,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
   useEffect(() => {
     if (open) {
-      setGoodBoxes(String(initial?.boxes ?? 0));
-      setGoodPieces(String(initial?.pieces ?? 0));
-      setDamagedBoxes(String(initial?.damagedBoxes ?? 0));
-      setDamagedPieces(String(initial?.damagedPieces ?? 0));
+      setGoodBoxes(initial?.boxes ? String(initial.boxes) : '');
+      setGoodPieces(initial?.pieces ? String(initial.pieces) : '');
+      setDamagedBoxes(initial?.damagedBoxes ? String(initial.damagedBoxes) : '');
+      setDamagedPieces(initial?.damagedPieces ? String(initial.damagedPieces) : '');
     }
   }, [open, initial]);
 
