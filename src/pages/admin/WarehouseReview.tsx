@@ -339,13 +339,26 @@ const WarehouseReview: React.FC = () => {
       <div key={item.productId} className={`rounded-lg border ${sideBorder} ${cardBg} p-2.5 transition-colors`}>
         {/* Top row: image + name + status icon */}
         <div className="flex items-center gap-2.5 mb-2">
-          {item.imageUrl ? (
-            <img src={item.imageUrl} alt="" className="w-10 h-10 rounded-md object-cover shrink-0 border" />
-          ) : (
-            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
-              <Package className="w-4 h-4 text-muted-foreground" />
+          <button
+            type="button"
+            onClick={() => setDetailsDialogProductId(item.productId)}
+            className="shrink-0 rounded-md overflow-hidden border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors relative group"
+            title="انقر لإدخال التفاصيل (صالح/تالف)"
+          >
+            {item.imageUrl ? (
+              <img src={item.imageUrl} alt="" className="w-11 h-11 object-cover" />
+            ) : (
+              <div className="w-11 h-11 bg-muted flex items-center justify-center">
+                <Package className="w-4 h-4 text-muted-foreground" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+              <ListChecks className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 drop-shadow" />
             </div>
-          )}
+            {detailsByProduct[item.productId] && (
+              <div className="absolute top-0.5 right-0.5 w-2 h-2 bg-primary rounded-full ring-1 ring-background" />
+            )}
+          </button>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold truncate leading-tight">{item.productName}</div>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -685,7 +698,10 @@ const WarehouseReview: React.FC = () => {
             initial={detailsByProduct[item.productId]}
             onSave={(d) => {
               setDetailsByProduct(prev => ({ ...prev, [item.productId]: d }));
-              const total = d.boxes + (item.piecesPerBox > 0 ? d.pieces / item.piecesPerBox : 0) + d.hall;
+              const ppb = item.piecesPerBox > 0 ? item.piecesPerBox : 1;
+              const goodTotal = d.boxes + d.pieces / ppb + d.hall;
+              const damagedTotal = d.damaged || 0;
+              const total = goodTotal + damagedTotal;
               updateActual(item.productId, fmtQty(total, item.piecesPerBox));
             }}
           />
