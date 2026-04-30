@@ -407,7 +407,7 @@ const WarehouseReview: React.FC = () => {
   };
 
   return (
-    <div className="pb-32 min-h-screen bg-muted/20" dir="rtl">
+    <div className="pb-32 min-h-screen bg-muted/20 max-w-4xl mx-auto" dir="rtl">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
         <div className="px-4 pt-3 pb-2 space-y-2">
@@ -522,7 +522,7 @@ const WarehouseReview: React.FC = () => {
             )}
 
             {filteredItems.length > 0 && (
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
                 {filteredItems.map(renderProductCard)}
                 {/* بطاقة الباليطات */}
                 {(() => {
@@ -600,11 +600,11 @@ const WarehouseReview: React.FC = () => {
       </div>
 
       {/* Floating Save bar */}
-      {activeTab === 'review' && (
-        <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-2.5 z-50">
+      {activeTab === 'review' && canSave && (
+        <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-2.5 z-50 max-w-4xl mx-auto">
           <Button
             onClick={handleSave}
-            disabled={isSaving || !canSave}
+            disabled={isSaving}
             className="w-full gap-2 h-11 text-sm font-bold"
             size="lg"
           >
@@ -613,9 +613,7 @@ const WarehouseReview: React.FC = () => {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {canSave
-              ? `حفظ المراجعة (${stats.total} منتج)`
-              : `حفظ المراجعة — ${stats.unverified} متبقي`}
+            حفظ المراجعة ({stats.total} منتج)
           </Button>
         </div>
       )}
