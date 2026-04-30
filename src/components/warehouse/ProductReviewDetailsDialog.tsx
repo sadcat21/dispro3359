@@ -68,6 +68,11 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   const goodParsed = useMemo(() => normalize(goodBoxes, goodPieces), [goodBoxes, goodPieces, ppb]);
   const damagedParsed = useMemo(() => normalize(damagedBoxes, damagedPieces), [damagedBoxes, damagedPieces, ppb]);
 
+  const formatBPFromParts = (boxes: number, pieces: number): string => {
+    if (pieces === 0) return String(boxes);
+    return `${boxes}.${String(pieces).padStart(2, '0')}`;
+  };
+
   const grandTotal = goodParsed.totalBoxes + damagedParsed.totalBoxes;
   const diff = grandTotal - expected;
   const isMatch = Math.abs(diff) < 0.01 && grandTotal > 0;
@@ -154,7 +159,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 = {goodParsed.boxes} صندوق + {goodParsed.pieces} قطعة
               </span>
               <span className={`font-bold ${isMatch ? 'text-green-600' : 'text-primary'}`}>
-                {goodParsed.totalBoxes.toFixed(2)} صندوق
+                {formatBPFromParts(goodParsed.boxes, goodParsed.pieces)} صندوق
               </span>
             </div>
           </div>
@@ -200,7 +205,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 = {damagedParsed.boxes} صندوق + {damagedParsed.pieces} قطعة
               </span>
               <span className={`font-bold ${isMatch ? 'text-green-600' : 'text-destructive'}`}>
-                {damagedParsed.totalBoxes.toFixed(2)} صندوق
+                {formatBPFromParts(damagedParsed.boxes, damagedParsed.pieces)} صندوق
               </span>
             </div>
           </div>
