@@ -70,6 +70,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
   const grandTotal = goodParsed.totalBoxes + damagedParsed.totalBoxes;
   const diff = grandTotal - expected;
+  const isMatch = Math.abs(diff) < 0.01 && grandTotal > 0;
 
   const handleSave = () => {
     onSave({
@@ -113,10 +114,12 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
           </div>
 
           {/* ============ القسم 1: الصالح ============ */}
-          <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3 space-y-2">
+          <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${
+            isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' : 'border-primary/30 bg-primary/5'
+          }`}>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-bold text-primary">الكمية الصالحة</h3>
+              <CheckCircle2 className={`w-4 h-4 ${isMatch ? 'text-green-600' : 'text-primary'}`} />
+              <h3 className={`text-sm font-bold ${isMatch ? 'text-green-700 dark:text-green-400' : 'text-primary'}`}>الكمية الصالحة</h3>
             </div>
 
             <div className="space-y-1">
@@ -146,21 +149,23 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-primary/20">
+            <div className={`flex items-center justify-between text-xs pt-1 border-t ${isMatch ? 'border-green-300/40' : 'border-primary/20'}`}>
               <span className="text-muted-foreground">
                 = {goodParsed.boxes} صندوق + {goodParsed.pieces} قطعة
               </span>
-              <span className="font-bold text-primary">
+              <span className={`font-bold ${isMatch ? 'text-green-600' : 'text-primary'}`}>
                 {goodParsed.totalBoxes.toFixed(2)} صندوق
               </span>
             </div>
           </div>
 
           {/* ============ القسم 2: التالف ============ */}
-          <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-3 space-y-2">
+          <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${
+            isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' : 'border-destructive/30 bg-destructive/5'
+          }`}>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-destructive" />
-              <h3 className="text-sm font-bold text-destructive">الكمية التالفة</h3>
+              <AlertTriangle className={`w-4 h-4 ${isMatch ? 'text-green-600' : 'text-destructive'}`} />
+              <h3 className={`text-sm font-bold ${isMatch ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>الكمية التالفة</h3>
             </div>
 
             <div className="space-y-1">
@@ -190,11 +195,11 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-destructive/20">
+            <div className={`flex items-center justify-between text-xs pt-1 border-t ${isMatch ? 'border-green-300/40' : 'border-destructive/20'}`}>
               <span className="text-muted-foreground">
                 = {damagedParsed.boxes} صندوق + {damagedParsed.pieces} قطعة
               </span>
-              <span className="font-bold text-destructive">
+              <span className={`font-bold ${isMatch ? 'text-green-600' : 'text-destructive'}`}>
                 {damagedParsed.totalBoxes.toFixed(2)} صندوق
               </span>
             </div>
@@ -202,7 +207,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
           {/* ملخص الإجمالي */}
           <div className={`rounded-lg p-3 border-2 ${
-            Math.abs(diff) < 0.01 ? 'border-primary/40 bg-primary/5' :
+            isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' :
             diff > 0 ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' :
             'border-destructive/40 bg-destructive/5'
           }`}>
