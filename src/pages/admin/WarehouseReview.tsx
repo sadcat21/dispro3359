@@ -698,7 +698,10 @@ const WarehouseReview: React.FC = () => {
             initial={detailsByProduct[item.productId]}
             onSave={(d) => {
               setDetailsByProduct(prev => ({ ...prev, [item.productId]: d }));
-              const total = d.boxes + (item.piecesPerBox > 0 ? d.pieces / item.piecesPerBox : 0) + d.hall;
+              const ppb = item.piecesPerBox > 0 ? item.piecesPerBox : 1;
+              const goodTotal = d.boxes + d.pieces / ppb + d.hall;
+              const damagedTotal = d.damaged || 0;
+              const total = goodTotal + damagedTotal;
               updateActual(item.productId, fmtQty(total, item.piecesPerBox));
             }}
           />
