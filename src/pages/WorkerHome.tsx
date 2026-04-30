@@ -251,11 +251,10 @@ const WorkerHome: React.FC = () => {
     queryFn: async () => {
       const { data: roleRows } = await supabase
         .from('worker_roles')
-        .select('worker_id, custom_roles!inner(code)')
-        .eq('branch_id', effectiveBranchId!)
-        .eq('role', 'worker')
+        .select('worker_id, branch_id, custom_roles!inner(code)')
         .eq('is_active', true)
-        .eq('custom_roles.code', 'delivery_rep');
+        .eq('custom_roles.code', 'delivery_rep')
+        .or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
 
       const deliveryWorkerIds = Array.from(new Set((roleRows || []).map(row => row.worker_id).filter(Boolean)))
         .filter(id => id !== workerId);
