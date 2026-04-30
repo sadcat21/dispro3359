@@ -161,12 +161,6 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-3">
 
-            {/* تنبيه طريقة الإدخال */}
-            <div className="rounded-md bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">
-              💡 أدخل الكمية في الحقلين المنفصلين: <strong>صناديق</strong> و <strong>قطع</strong>
-              <span className="block text-muted-foreground mt-0.5">إذا تجاوز عدد القطع سعة الصندوق فسيتم تحويله تلقائياً عند الخروج من الحقل</span>
-            </div>
-
             {/* ============ القسم 1: الصالح ============ */}
             <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${sectionStyles.good.container}`}>
               <div className="flex items-center gap-2">
