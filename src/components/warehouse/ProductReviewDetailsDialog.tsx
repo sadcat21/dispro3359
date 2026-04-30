@@ -197,14 +197,6 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 </div>
               </div>
 
-              <div className={`pt-2 border-t ${sectionStyles.good.border} space-y-1`}>
-                <div className={`text-2xl font-black text-center ${sectionStyles.good.value}`}>
-                  = {goodParsed.boxes} صندوق + {goodParsed.pieces} قطعة
-                </div>
-                <div className="text-center text-sm font-semibold text-muted-foreground">
-                  {formatBPFromParts(goodParsed.boxes, goodParsed.pieces)} صندوق
-                </div>
-              </div>
             </div>
 
             {/* ============ القسم 2: التالف ============ */}
@@ -243,14 +235,6 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 </div>
             </div>
 
-              <div className={`pt-2 border-t ${sectionStyles.damaged.border} space-y-1`}>
-                <div className={`text-2xl font-black text-center ${sectionStyles.damaged.value}`}>
-                  = {damagedParsed.boxes} صندوق + {damagedParsed.pieces} قطعة
-                </div>
-                <div className="text-center text-sm font-semibold text-muted-foreground">
-                  {formatBPFromParts(damagedParsed.boxes, damagedParsed.pieces)} صندوق
-                </div>
-              </div>
             </div>
 
             {/* ملخص الإجمالي */}
