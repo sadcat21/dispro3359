@@ -114,9 +114,12 @@ export const useWarehouseStock = () => {
         custom_roles!inner(code)
       `)
       .eq('branch_id', branchId)
+      .eq('role', 'worker')
+      .eq('is_active', true)
       .eq('custom_roles.code', 'delivery_rep');
 
-    const deliveryWorkerIds = Array.from(new Set((deliveryRoleRows || []).map(row => row.worker_id).filter(Boolean)));
+    const deliveryWorkerIds = Array.from(new Set((deliveryRoleRows || []).map(row => row.worker_id).filter(Boolean)))
+      .filter(id => id !== workerId);
     if (deliveryWorkerIds.length === 0) {
       setWorkers([]);
       return;
@@ -397,7 +400,18 @@ export const useWarehouseStock = () => {
     items: { product_id: string; quantity: number; notes?: string }[]
   ) => {
     if (!workerId || !branchId) throw new Error('Missing worker or branch');
-    if (!workers.some(worker => worker.id === targetWorkerId)) {
+
+    const { data: deliveryRole } = await supabase
+      .from('worker_roles')
+      .select('worker_id, custom_roles!inner(code)')
+      .eq('worker_id', targetWorkerId)
+      .eq('branch_id', branchId)
+      .eq('role', 'worker')
+      .eq('is_active', true)
+      .eq('custom_roles.code', 'delivery_rep')
+      .maybeSingle();
+
+    if (!deliveryRole) {
       throw new Error('لا يمكن الشحن إلا لعامل لديه دور مندوب توصيل في نفس الفرع');
     }
 

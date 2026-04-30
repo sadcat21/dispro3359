@@ -249,13 +249,28 @@ const WorkerHome: React.FC = () => {
   const { data: loadWorkersList = [] } = useQuery({
     queryKey: ['wh-load-workers', effectiveBranchId],
     queryFn: async () => {
+      const { data: roleRows } = await supabase
+        .from('worker_roles')
+        .select('worker_id, custom_roles!inner(code)')
+        .eq('branch_id', effectiveBranchId!)
+        .eq('role', 'worker')
+        .eq('is_active', true)
+        .eq('custom_roles.code', 'delivery_rep');
+
+      const deliveryWorkerIds = Array.from(new Set((roleRows || []).map(row => row.worker_id).filter(Boolean)))
+        .filter(id => id !== workerId);
+
+      if (deliveryWorkerIds.length === 0) return [];
+
       const { data } = await supabase
-        .from('workers')
-        .select('id, full_name, username, role, is_active, branch_id')
+        .from('workers_safe')
+        .select('id, full_name, username')
         .eq('is_active', true)
         .eq('branch_id', effectiveBranchId!)
+        .eq('is_test', false)
+        .in('id', deliveryWorkerIds)
         .order('full_name');
-      return (data || []).filter(w => w.id !== workerId);
+      return data || [];
     },
     enabled: isWarehouseManager && !!effectiveBranchId,
   });
