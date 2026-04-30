@@ -256,20 +256,26 @@ const WorkerHome: React.FC = () => {
         .eq('custom_roles.code', 'delivery_rep')
         .or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
 
-      const deliveryWorkerIds = Array.from(new Set((roleRows || []).map(row => row.worker_id).filter(Boolean)))
-        .filter(id => id !== workerId);
+      const deliveryRoleBranchByWorker = new Map(
+        (roleRows || [])
+          .filter(row => row.worker_id)
+          .map(row => [row.worker_id as string, row.branch_id as string | null])
+      );
+      const deliveryWorkerIds = Array.from(deliveryRoleBranchByWorker.keys());
 
       if (deliveryWorkerIds.length === 0) return [];
 
       const { data } = await supabase
         .from('workers_safe')
-        .select('id, full_name, username')
+        .select('id, full_name, username, branch_id')
         .eq('is_active', true)
-        .eq('branch_id', effectiveBranchId!)
         .eq('is_test', false)
         .in('id', deliveryWorkerIds)
         .order('full_name');
-      return data || [];
+      return (data || []).filter(w =>
+        deliveryRoleBranchByWorker.get(w.id!) === effectiveBranchId
+        || (!deliveryRoleBranchByWorker.get(w.id!) && w.branch_id === effectiveBranchId)
+      );
     },
     enabled: isWarehouseManager && !!effectiveBranchId,
   });
