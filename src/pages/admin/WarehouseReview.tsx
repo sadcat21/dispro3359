@@ -370,35 +370,35 @@ const WarehouseReview: React.FC = () => {
             <span className="text-[8px] text-muted-foreground font-medium">المتوقع</span>
             <span className="text-[10px] font-bold text-foreground">{toBP(item.expected)}</span>
           </div>
-          {/* الفعلي */}
-          <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-            actualNum !== null
-              ? item.status === 'matched' ? 'bg-green-100 dark:bg-green-900/30'
-              : item.status === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30'
-              : item.status === 'deficit' ? 'bg-red-100 dark:bg-red-900/30'
-              : 'bg-muted/60'
-              : 'bg-muted/40'
-          }`}>
-            <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
-            <span className="text-[10px] font-bold">{actualNum !== null ? toBP(actualNum) : '—'}</span>
-          </div>
-          {/* الفرق */}
-          <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-            diffNum !== null && Math.abs(diffNum) >= 0.001
-              ? diffNum > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
-              : diffNum !== null ? 'bg-green-200/70 dark:bg-green-900/40' : 'bg-muted/40'
-          }`}>
-            <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
-            <span className={`text-[10px] font-extrabold ${
-              diffNum !== null && Math.abs(diffNum) >= 0.001
-                ? diffNum > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
-                : diffNum !== null ? 'text-green-600 dark:text-green-400' : ''
-            }`}>
-              {diffNum !== null
-                ? Math.abs(diffNum) < 0.001 ? '0' : `${diffNum > 0 ? '+' : '-'}${toBP(diffNum)}`
-                : '—'}
-            </span>
-          </div>
+          {actualNum !== null && (
+            <>
+              {/* الفعلي */}
+              <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                item.status === 'matched' ? 'bg-green-100 dark:bg-green-900/30'
+                : item.status === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30'
+                : item.status === 'deficit' ? 'bg-red-100 dark:bg-red-900/30'
+                : 'bg-muted/60'
+              }`}>
+                <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
+                <span className="text-[10px] font-bold">{toBP(actualNum)}</span>
+              </div>
+              {/* الفرق */}
+              <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                diffNum !== null && Math.abs(diffNum) >= 0.001
+                  ? diffNum > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
+                  : 'bg-green-200/70 dark:bg-green-900/40'
+              }`}>
+                <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
+                <span className={`text-[10px] font-extrabold ${
+                  diffNum !== null && Math.abs(diffNum) >= 0.001
+                    ? diffNum > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {Math.abs(diffNum!) < 0.001 ? '0' : `${diffNum! > 0 ? '+' : '-'}${toBP(diffNum!)}`}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </button>
     );
@@ -421,97 +421,26 @@ const WarehouseReview: React.FC = () => {
                   ✅ يوم المراجعة
                 </Badge>
               )}
+              <Button
+                size="sm"
+                variant={activeTab === 'history' ? 'default' : 'outline'}
+                onClick={() => setActiveTab(activeTab === 'history' ? 'review' : 'history')}
+                className="h-8 px-2 gap-1 text-xs"
+              >
+                <History className="w-3.5 h-3.5" />
+                {activeTab === 'history' ? 'مراجعة جديدة' : 'السجل'}
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => navigate(-1)} className="h-8 px-2">
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full grid grid-cols-2 h-9">
-              <TabsTrigger value="review" className="text-xs gap-1">
-                <ClipboardCheck className="w-3.5 h-3.5" />
-                مراجعة جديدة
-              </TabsTrigger>
-              <TabsTrigger value="history" className="text-xs gap-1">
-                <History className="w-3.5 h-3.5" />
-                السجل
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {activeTab === 'review' && items.length > 0 && (
-            <>
-              {/* Progress Bar */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-semibold text-foreground">
-                    التقدم: {stats.total - stats.unverified}/{stats.total}
-                  </span>
-                  <span className="font-bold text-primary">{progressPct}%</span>
-                </div>
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-l from-primary to-primary/70 transition-all duration-300"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Stats chips - compact grid */}
-              <div className="grid grid-cols-4 gap-1.5">
-                <div className="rounded-md bg-primary/10 border border-primary/20 px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-primary leading-none">{stats.matched}</div>
-                  <div className="text-[9px] text-primary/80 mt-0.5">مطابق</div>
-                </div>
-                <div className="rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-amber-600 leading-none">{stats.surplus}</div>
-                  <div className="text-[9px] text-amber-600/80 mt-0.5">فائض</div>
-                </div>
-                <div className="rounded-md bg-destructive/10 border border-destructive/20 px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-destructive leading-none">{stats.deficit}</div>
-                  <div className="text-[9px] text-destructive/80 mt-0.5">عجز</div>
-                </div>
-                <div className="rounded-md bg-muted border border-border px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-muted-foreground leading-none">{stats.unverified}</div>
-                  <div className="text-[9px] text-muted-foreground mt-0.5">متبقي</div>
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </div>
 
       <div className="px-4 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="review" className="space-y-3 mt-0">
-            {/* Toolbar: search + options + match all */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="بحث عن منتج..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pr-10 h-10 text-sm bg-background"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 flex-wrap">
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/5"
-                  onClick={markAllMatched}
-                >
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  تطابق الكل
-                </Button>
-              </div>
-            </div>
-
             {filteredItems.length === 0 && (
               <div className="text-center py-12 text-sm text-muted-foreground bg-card border rounded-lg">
                 <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
@@ -559,30 +488,32 @@ const WarehouseReview: React.FC = () => {
                           <span className="text-[8px] text-muted-foreground font-medium">المتوقع</span>
                           <span className="text-[10px] font-bold text-foreground">{palletQuantity}</span>
                         </div>
-                        <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-                          palletStatus === 'matched' ? 'bg-green-100 dark:bg-green-900/30' :
-                          palletStatus === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30' :
-                          palletStatus === 'deficit' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-muted/40'
-                        }`}>
-                          <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
-                          <span className="text-[10px] font-bold">{palletNum !== null ? palletNum : '—'}</span>
-                        </div>
-                        <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-                          palletDiff !== null && Math.abs(palletDiff) >= 0.001
-                            ? palletDiff > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
-                            : palletDiff !== null ? 'bg-green-200/70 dark:bg-green-900/40' : 'bg-muted/40'
-                        }`}>
-                          <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
-                          <span className={`text-[10px] font-extrabold ${
-                            palletDiff !== null && Math.abs(palletDiff) >= 0.001
-                              ? palletDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
-                              : palletDiff !== null ? 'text-green-600 dark:text-green-400' : ''
-                          }`}>
-                            {palletDiff !== null
-                              ? Math.abs(palletDiff) < 0.001 ? '0' : `${palletDiff > 0 ? '+' : ''}${palletDiff}`
-                              : '—'}
-                          </span>
-                        </div>
+                        {palletNum !== null && (
+                          <>
+                            <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                              palletStatus === 'matched' ? 'bg-green-100 dark:bg-green-900/30' :
+                              palletStatus === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30' :
+                              palletStatus === 'deficit' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-muted/40'
+                            }`}>
+                              <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
+                              <span className="text-[10px] font-bold">{palletNum}</span>
+                            </div>
+                            <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                              palletDiff !== null && Math.abs(palletDiff) >= 0.001
+                                ? palletDiff > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
+                                : 'bg-green-200/70 dark:bg-green-900/40'
+                            }`}>
+                              <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
+                              <span className={`text-[10px] font-extrabold ${
+                                palletDiff !== null && Math.abs(palletDiff) >= 0.001
+                                  ? palletDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
+                                  : 'text-green-600 dark:text-green-400'
+                              }`}>
+                                {Math.abs(palletDiff!) < 0.001 ? '0' : `${palletDiff! > 0 ? '+' : ''}${palletDiff}`}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </button>
                   );
