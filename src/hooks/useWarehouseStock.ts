@@ -111,12 +111,12 @@ export const useWarehouseStock = () => {
       .from('worker_roles')
       .select(`
         worker_id,
+        branch_id,
         custom_roles!inner(code)
       `)
-      .eq('branch_id', branchId)
-      .eq('role', 'worker')
       .eq('is_active', true)
-      .eq('custom_roles.code', 'delivery_rep');
+      .eq('custom_roles.code', 'delivery_rep')
+      .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
     const deliveryWorkerIds = Array.from(new Set((deliveryRoleRows || []).map(row => row.worker_id).filter(Boolean)))
       .filter(id => id !== workerId);
