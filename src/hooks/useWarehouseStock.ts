@@ -186,10 +186,13 @@ export const useWarehouseStock = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_stock', filter: `branch_id=eq.${branchId}` }, () => {
         fetchWorkerStocks();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_roles' }, () => {
+        fetchWorkers();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [branchId, fetchWarehouseStock, fetchWorkerStocks]);
+  }, [branchId, fetchWarehouseStock, fetchWorkerStocks, fetchWorkers]);
 
   // Enrich stock with product data
   const enrichedWarehouseStock = warehouseStock
