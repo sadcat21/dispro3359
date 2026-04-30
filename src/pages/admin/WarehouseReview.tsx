@@ -71,8 +71,6 @@ const WarehouseReview: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('review');
   const [search, setSearch] = useState('');
-  const [includeDamaged, setIncludeDamaged] = useState(false);
-  const [includePallets, setIncludePallets] = useState(false);
   const [actuals, setActuals] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [detailsByProduct, setDetailsByProduct] = useState<Record<string, ProductReviewDetails>>({});
