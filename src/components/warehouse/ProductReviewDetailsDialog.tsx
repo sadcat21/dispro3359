@@ -132,24 +132,24 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[92dvh] overflow-hidden flex flex-col p-0" dir="rtl">
+       <DialogContent className="max-w-md max-h-[92dvh] overflow-hidden flex flex-col p-0" dir="rtl">
         <DialogHeader>
-          <div className="px-6 pt-6 pb-3 border-b border-border space-y-3">
-            <DialogTitle className="flex items-start gap-3">
+           <div className="px-4 pt-4 pb-2 border-b border-border space-y-2">
+             <DialogTitle className="flex items-start gap-2">
               {imageUrl ? (
-                <img src={imageUrl} alt="" className="w-11 h-11 rounded-md object-cover border shrink-0" />
+                 <img src={imageUrl} alt="" className="w-9 h-9 rounded-md object-cover border shrink-0" />
               ) : (
-                <div className="w-11 h-11 rounded-md bg-muted flex items-center justify-center shrink-0">
-                  <Package className="w-5 h-5 text-primary" />
+                 <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center shrink-0">
+                   <Package className="w-4 h-4 text-primary" />
                 </div>
               )}
-              <div className="min-w-0 flex-1 space-y-2">
-                <span className="block truncate text-right">{productName}</span>
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <Badge variant="secondary" className="text-xs font-bold px-2.5 py-1">
+               <div className="min-w-0 flex-1 space-y-1">
+                 <span className="block truncate text-right text-sm">{productName}</span>
+                 <div className="flex flex-wrap items-center justify-end gap-1.5">
+                   <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5">
                     المتوقع: {boxesToBP(expected, ppb)}
                   </Badge>
-                  <Badge variant="outline" className="text-xs font-bold px-2.5 py-1">
+                   <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
                     {ppb} قطعة / صندوق
                   </Badge>
                 </div>
@@ -158,19 +158,19 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          <div className="space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 py-2">
+          <div className="space-y-2">
 
             {/* ============ القسم 1: الصالح ============ */}
-            <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${sectionStyles.good.container}`}>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className={`w-4 h-4 ${sectionStyles.good.icon}`} />
-                <h3 className={`text-sm font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
+            <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.good.container}`}>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
+                <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
               </div>
 
-              <div className="space-y-1">
+              <div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">صناديق</Label>
                     <Input
                       type="text"
@@ -179,10 +179,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       value={goodBoxes}
                       onChange={e => setGoodBoxes(sanitizeInt(e.target.value))}
                       onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
-                      className="text-center text-lg font-bold h-11"
+                      className="text-center text-base font-bold h-9"
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">قطع</Label>
                     <Input
                       type="text"
@@ -191,7 +191,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       value={goodPieces}
                       onChange={e => setGoodPieces(sanitizeInt(e.target.value))}
                       onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
-                      className="text-center text-lg font-bold h-11"
+                      className="text-center text-base font-bold h-9"
                     />
                   </div>
                 </div>
@@ -200,15 +200,15 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             </div>
 
             {/* ============ القسم 2: التالف ============ */}
-            <div className={`rounded-lg border-2 p-3 space-y-2 transition-colors ${sectionStyles.damaged.container}`}>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className={`w-4 h-4 ${sectionStyles.damaged.icon}`} />
-                <h3 className={`text-sm font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
+            <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.damaged.container}`}>
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
+                <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
               </div>
 
-              <div className="space-y-1">
+              <div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">صناديق</Label>
                     <Input
                       type="text"
@@ -217,10 +217,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       value={damagedBoxes}
                       onChange={e => setDamagedBoxes(sanitizeInt(e.target.value))}
                       onBlur={() => applyNormalizedValues(damagedBoxes, damagedPieces, setDamagedBoxes, setDamagedPieces)}
-                      className="text-center text-lg font-bold h-11"
+                      className="text-center text-base font-bold h-9"
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">قطع</Label>
                     <Input
                       type="text"
@@ -229,7 +229,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       value={damagedPieces}
                       onChange={e => setDamagedPieces(sanitizeInt(e.target.value))}
                       onBlur={() => applyNormalizedValues(damagedBoxes, damagedPieces, setDamagedBoxes, setDamagedPieces)}
-                      className="text-center text-lg font-bold h-11"
+                      className="text-center text-base font-bold h-9"
                     />
                   </div>
                 </div>
@@ -238,29 +238,29 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             </div>
 
             {/* ملخص الإجمالي */}
-            <div className={`rounded-lg p-3 border-2 ${
+            <div className={`rounded-lg p-2 border-2 ${
               isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' :
               diff > 0 ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' :
               'border-destructive/40 bg-destructive/5'
             }`}>
-              <div className="flex items-center justify-between text-sm gap-3">
+              <div className="flex items-center justify-between text-xs gap-2">
                 <span className="font-medium">الإجمالي الفعلي (صالح + تالف):</span>
-                <span className="font-bold text-base whitespace-nowrap">{boxesToBP(grandTotal, ppb)} صندوق</span>
+                <span className="font-bold text-sm whitespace-nowrap">{boxesToBP(grandTotal, ppb)} صندوق</span>
               </div>
-              <div className="mt-2 text-2xl font-black text-center">
+              <div className="mt-1 text-lg font-black text-center">
                 = {totalCombinedBoxes} صندوق + {totalCombinedPieces} قطعة
               </div>
               {Math.abs(diff) >= 0.01 && (
-                <div className={`mt-3 rounded-lg p-3 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={`text-lg font-bold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                <div className={`mt-2 rounded-lg p-2 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`text-sm font-bold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
                       {diff > 0 ? 'فائض:' : 'عجز:'}
                     </span>
-                    <span className={`text-2xl font-extrabold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                    <span className={`text-lg font-extrabold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
                       {diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}
                     </span>
                   </div>
-                  <div className={`text-xl font-black text-center mt-2 ${diff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
+                  <div className={`text-base font-black text-center mt-1 ${diff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
                     = {diffBoxes} صندوق + {diffPieces} قطعة
                   </div>
                 </div>
@@ -269,12 +269,14 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border bg-background px-6 py-4 gap-2 sticky bottom-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">إلغاء</Button>
-          <Button onClick={handleSave} className="gap-1.5 flex-1">
+        <DialogFooter className="shrink-0 border-t border-border bg-background px-4 py-2 sticky bottom-0">
+          <div className="flex gap-2 w-full">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-9">إلغاء</Button>
+          <Button onClick={handleSave} className="gap-1.5 flex-1 h-9">
             <Save className="w-4 h-4" />
-            حفظ التفاصيل
+            حفظ
           </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
