@@ -370,35 +370,35 @@ const WarehouseReview: React.FC = () => {
             <span className="text-[8px] text-muted-foreground font-medium">المتوقع</span>
             <span className="text-[10px] font-bold text-foreground">{toBP(item.expected)}</span>
           </div>
-          {/* الفعلي */}
-          <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-            actualNum !== null
-              ? item.status === 'matched' ? 'bg-green-100 dark:bg-green-900/30'
-              : item.status === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30'
-              : item.status === 'deficit' ? 'bg-red-100 dark:bg-red-900/30'
-              : 'bg-muted/60'
-              : 'bg-muted/40'
-          }`}>
-            <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
-            <span className="text-[10px] font-bold">{actualNum !== null ? toBP(actualNum) : '—'}</span>
-          </div>
-          {/* الفرق */}
-          <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
-            diffNum !== null && Math.abs(diffNum) >= 0.001
-              ? diffNum > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
-              : diffNum !== null ? 'bg-green-200/70 dark:bg-green-900/40' : 'bg-muted/40'
-          }`}>
-            <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
-            <span className={`text-[10px] font-extrabold ${
-              diffNum !== null && Math.abs(diffNum) >= 0.001
-                ? diffNum > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
-                : diffNum !== null ? 'text-green-600 dark:text-green-400' : ''
-            }`}>
-              {diffNum !== null
-                ? Math.abs(diffNum) < 0.001 ? '0' : `${diffNum > 0 ? '+' : '-'}${toBP(diffNum)}`
-                : '—'}
-            </span>
-          </div>
+          {actualNum !== null && (
+            <>
+              {/* الفعلي */}
+              <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                item.status === 'matched' ? 'bg-green-100 dark:bg-green-900/30'
+                : item.status === 'surplus' ? 'bg-amber-100 dark:bg-amber-900/30'
+                : item.status === 'deficit' ? 'bg-red-100 dark:bg-red-900/30'
+                : 'bg-muted/60'
+              }`}>
+                <span className="text-[8px] text-muted-foreground font-medium">الفعلي</span>
+                <span className="text-[10px] font-bold">{toBP(actualNum)}</span>
+              </div>
+              {/* الفرق */}
+              <div className={`flex items-center justify-between rounded-md px-1.5 py-0.5 ${
+                diffNum !== null && Math.abs(diffNum) >= 0.001
+                  ? diffNum > 0 ? 'bg-amber-200/70 dark:bg-amber-900/40' : 'bg-red-200/70 dark:bg-red-900/40'
+                  : 'bg-green-200/70 dark:bg-green-900/40'
+              }`}>
+                <span className="text-[8px] text-muted-foreground font-medium">الفرق</span>
+                <span className={`text-[10px] font-extrabold ${
+                  diffNum !== null && Math.abs(diffNum) >= 0.001
+                    ? diffNum > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {Math.abs(diffNum!) < 0.001 ? '0' : `${diffNum! > 0 ? '+' : '-'}${toBP(diffNum!)}`}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </button>
     );
