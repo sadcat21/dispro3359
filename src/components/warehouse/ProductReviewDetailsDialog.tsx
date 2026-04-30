@@ -69,9 +69,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
     setBoxes: React.Dispatch<React.SetStateAction<string>>,
     setPieces: React.Dispatch<React.SetStateAction<string>>,
   ) => {
+    if (boxes === '' && pieces === '') return;
     const normalized = normalize(boxes, pieces);
-    setBoxes(String(normalized.boxes));
-    setPieces(String(normalized.pieces));
+    setBoxes(normalized.boxes > 0 ? String(normalized.boxes) : '');
+    setPieces(normalized.pieces > 0 ? String(normalized.pieces) : '');
   };
 
   const goodParsed = useMemo(() => normalize(goodBoxes, goodPieces), [goodBoxes, goodPieces, ppb]);
