@@ -106,24 +106,37 @@ export const useWarehouseStock = () => {
 
   const fetchWorkers = useCallback(async () => {
     if (!branchId) { setWorkers([]); return; }
+    const now = new Date().toISOString();
 
     const { data: deliveryRoleRows } = await supabase
       .from('worker_roles')
       .select(`
         worker_id,
         branch_id,
+        valid_from,
+        valid_until,
         custom_roles!inner(code)
       `)
       .eq('is_active', true)
-      .eq('custom_roles.code', 'delivery_rep')
-      .or(`branch_id.eq.${branchId},branch_id.is.null`);
+      .eq('custom_roles.code', 'delivery_rep');
+
+    const eligibleDeliveryRoles = (deliveryRoleRows || []).filter(row =>
+      row.worker_id
+      && (row.branch_id === branchId || row.branch_id === null)
+      && (!row.valid_from || row.valid_from <= now)
+      && (!row.valid_until || row.valid_until >= now)
+    );
 
     const deliveryRoleBranchByWorker = new Map(
-      (deliveryRoleRows || [])
-        .filter(row => row.worker_id)
+      eligibleDeliveryRoles
+        .sort((a, b) => Number(a.branch_id === branchId) - Number(b.branch_id === branchId))
         .map(row => [row.worker_id as string, row.branch_id as string | null])
     );
-    const deliveryWorkerIds = Array.from(deliveryRoleBranchByWorker.keys());
+    const deliveryWorkerIds = Array.from(new Set(
+      (deliveryRoleRows || [])
+        .filter(row => eligibleDeliveryRoles.some(roleRow => roleRow.worker_id === row.worker_id))
+        .map(row => row.worker_id as string)
+    ));
     if (deliveryWorkerIds.length === 0) {
       setWorkers([]);
       return;
@@ -173,10 +186,13 @@ export const useWarehouseStock = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_stock', filter: `branch_id=eq.${branchId}` }, () => {
         fetchWorkerStocks();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_roles' }, () => {
+        fetchWorkers();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [branchId, fetchWarehouseStock, fetchWorkerStocks]);
+  }, [branchId, fetchWarehouseStock, fetchWorkerStocks, fetchWorkers]);
 
   // Enrich stock with product data
   const enrichedWarehouseStock = warehouseStock
