@@ -421,65 +421,20 @@ const WarehouseReview: React.FC = () => {
                   ✅ يوم المراجعة
                 </Badge>
               )}
+              <Button
+                size="sm"
+                variant={activeTab === 'history' ? 'default' : 'outline'}
+                onClick={() => setActiveTab(activeTab === 'history' ? 'review' : 'history')}
+                className="h-8 px-2 gap-1 text-xs"
+              >
+                <History className="w-3.5 h-3.5" />
+                {activeTab === 'history' ? 'مراجعة جديدة' : 'السجل'}
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => navigate(-1)} className="h-8 px-2">
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full grid grid-cols-2 h-9">
-              <TabsTrigger value="review" className="text-xs gap-1">
-                <ClipboardCheck className="w-3.5 h-3.5" />
-                مراجعة جديدة
-              </TabsTrigger>
-              <TabsTrigger value="history" className="text-xs gap-1">
-                <History className="w-3.5 h-3.5" />
-                السجل
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {activeTab === 'review' && items.length > 0 && (
-            <>
-              {/* Progress Bar */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-semibold text-foreground">
-                    التقدم: {stats.total - stats.unverified}/{stats.total}
-                  </span>
-                  <span className="font-bold text-primary">{progressPct}%</span>
-                </div>
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-l from-primary to-primary/70 transition-all duration-300"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Stats chips - compact grid */}
-              <div className="grid grid-cols-4 gap-1.5">
-                <div className="rounded-md bg-primary/10 border border-primary/20 px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-primary leading-none">{stats.matched}</div>
-                  <div className="text-[9px] text-primary/80 mt-0.5">مطابق</div>
-                </div>
-                <div className="rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-amber-600 leading-none">{stats.surplus}</div>
-                  <div className="text-[9px] text-amber-600/80 mt-0.5">فائض</div>
-                </div>
-                <div className="rounded-md bg-destructive/10 border border-destructive/20 px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-destructive leading-none">{stats.deficit}</div>
-                  <div className="text-[9px] text-destructive/80 mt-0.5">عجز</div>
-                </div>
-                <div className="rounded-md bg-muted border border-border px-1.5 py-1 text-center">
-                  <div className="text-sm font-bold text-muted-foreground leading-none">{stats.unverified}</div>
-                  <div className="text-[9px] text-muted-foreground mt-0.5">متبقي</div>
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </div>
 
