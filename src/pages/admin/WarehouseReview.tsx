@@ -441,32 +441,6 @@ const WarehouseReview: React.FC = () => {
       <div className="px-4 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="review" className="space-y-3 mt-0">
-            {/* Toolbar: search + options + match all */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="بحث عن منتج..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pr-10 h-10 text-sm bg-background"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 flex-wrap">
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/5"
-                  onClick={markAllMatched}
-                >
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  تطابق الكل
-                </Button>
-              </div>
-            </div>
-
             {filteredItems.length === 0 && (
               <div className="text-center py-12 text-sm text-muted-foreground bg-card border rounded-lg">
                 <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
