@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, CheckCircle, AlertTriangle, Package, Search, Save, TrendingUp, TrendingDown, Minus, ArrowRight, ClipboardCheck, History } from 'lucide-react';
@@ -71,8 +69,6 @@ const WarehouseReview: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('review');
   const [search, setSearch] = useState('');
-  const [includeDamaged, setIncludeDamaged] = useState(false);
-  const [includePallets, setIncludePallets] = useState(false);
   const [actuals, setActuals] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [detailsByProduct, setDetailsByProduct] = useState<Record<string, ProductReviewDetails>>({});
@@ -131,7 +127,6 @@ const WarehouseReview: React.FC = () => {
 
   // Damaged items
   const damagedItems = useMemo(() => {
-    if (!includeDamaged) return [];
     return warehouseStock
       .filter(ws => (ws as any).damaged_quantity > 0)
       .map(ws => {
@@ -143,18 +138,16 @@ const WarehouseReview: React.FC = () => {
           expected: normalizeDbQtyToBoxes((ws as any).damaged_quantity || 0, ppb),
         };
       });
-  }, [includeDamaged, warehouseStock, products]);
+  }, [warehouseStock, products]);
 
   const [damagedActuals, setDamagedActuals] = useState<Record<string, string>>({});
   const [palletActual, setPalletActual] = useState('');
 
   useEffect(() => {
-    if (includeDamaged) {
-      const actuals: Record<string, string> = {};
-      damagedItems.forEach(d => { actuals[d.productId] = ''; });
-      setDamagedActuals(actuals);
-    }
-  }, [includeDamaged, damagedItems.length]);
+    const actuals: Record<string, string> = {};
+    damagedItems.forEach(d => { actuals[d.productId] = ''; });
+    setDamagedActuals(actuals);
+  }, [damagedItems.length]);
 
   const updateActual = (productId: string, value: string) => {
     setActuals(prev => ({ ...prev, [productId]: value }));
@@ -210,8 +203,8 @@ const WarehouseReview: React.FC = () => {
           branch_id: branchId,
           reviewer_id: workerId,
           status: 'completed',
-          include_damaged: includeDamaged,
-          include_pallets: includePallets,
+          include_damaged: true,
+          include_pallets: true,
           total_products: items.length,
           total_discrepancies: stats.surplus + stats.deficit,
           completed_at: new Date().toISOString(),
@@ -237,8 +230,8 @@ const WarehouseReview: React.FC = () => {
         };
       });
 
-      if (includeDamaged) {
-        for (const d of damagedItems) {
+      {
+        for (const d of damagedItems) {  
           const actualStr = damagedActuals[d.productId] ?? '';
           const ppb = piecesPerBoxMap.get(d.productId) || 20;
           const actualNum = getActualNum(actualStr, ppb);
@@ -258,7 +251,7 @@ const WarehouseReview: React.FC = () => {
         }
       }
 
-      if (includePallets) {
+      {
         const palletNum = parseFloat(palletActual) || 0;
         const diff = palletNum - palletQuantity;
         reviewItems.push({
@@ -412,7 +405,7 @@ const WarehouseReview: React.FC = () => {
   };
 
   return (
-    <div className="pb-32 min-h-screen bg-muted/20" dir="rtl">
+    <div className="pb-32 min-h-screen bg-muted/20 max-w-4xl mx-auto" dir="rtl">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
         <div className="px-4 pt-3 pb-2 space-y-2">
@@ -506,14 +499,7 @@ const WarehouseReview: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1.5 flex-1 min-w-0">
-                  <Switch id="include-damaged" checked={includeDamaged} onCheckedChange={setIncludeDamaged} className="scale-75" />
-                  <Label htmlFor="include-damaged" className="text-[11px] cursor-pointer truncate">التالف</Label>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1.5 flex-1 min-w-0">
-                  <Switch id="include-pallets" checked={includePallets} onCheckedChange={setIncludePallets} className="scale-75" />
-                  <Label htmlFor="include-pallets" className="text-[11px] cursor-pointer truncate">الباليطات</Label>
-                </div>
+
                 <Button
                   size="sm"
                   variant="outline"
@@ -534,7 +520,7 @@ const WarehouseReview: React.FC = () => {
             )}
 
             {filteredItems.length > 0 && (
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
                 {filteredItems.map(renderProductCard)}
                 {/* بطاقة الباليطات */}
                 {(() => {
@@ -612,11 +598,11 @@ const WarehouseReview: React.FC = () => {
       </div>
 
       {/* Floating Save bar */}
-      {activeTab === 'review' && (
-        <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-2.5 z-50">
+      {activeTab === 'review' && canSave && (
+        <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-2.5 z-50 max-w-4xl mx-auto">
           <Button
             onClick={handleSave}
-            disabled={isSaving || !canSave}
+            disabled={isSaving}
             className="w-full gap-2 h-11 text-sm font-bold"
             size="lg"
           >
@@ -625,9 +611,7 @@ const WarehouseReview: React.FC = () => {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {canSave
-              ? `حفظ المراجعة (${stats.total} منتج)`
-              : `حفظ المراجعة — ${stats.unverified} متبقي`}
+            حفظ المراجعة ({stats.total} منتج)
           </Button>
         </div>
       )}
