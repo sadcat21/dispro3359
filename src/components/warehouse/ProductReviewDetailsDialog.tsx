@@ -249,16 +249,16 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               <span className="font-bold text-base">{boxesToBP(grandTotal, ppb)} صندوق</span>
             </div>
             {Math.abs(diff) >= 0.01 && (
-              <div className={`mt-2 rounded-md p-2 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
-                <div className="flex items-center justify-between text-xs">
-                  <span className={`font-semibold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+              <div className={`mt-2 rounded-lg p-3 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-base font-bold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
                     {diff > 0 ? 'فائض:' : 'عجز:'}
                   </span>
-                  <span className={`font-bold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                  <span className={`text-xl font-extrabold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
                     {diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}
                   </span>
                 </div>
-                <div className={`text-[11px] text-center mt-1 ${diff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
+                <div className={`text-sm font-semibold text-center mt-2 ${diff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
                   = {diffBoxes} صندوق + {diffPieces} قطعة
                 </div>
               </div>
