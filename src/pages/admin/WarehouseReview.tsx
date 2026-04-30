@@ -312,180 +312,297 @@ const WarehouseReview: React.FC = () => {
 
   const today = new Date().getDay();
   const isReviewDay = [0, 2, 4].includes(today);
+  const progressPct = stats.total > 0 ? Math.round(((stats.total - stats.unverified) / stats.total) * 100) : 0;
+
+  // Split items: pending (unverified) vs reviewed
+  const pendingItems = filteredItems.filter(i => i.status === 'unverified');
+  const reviewedItems = filteredItems.filter(i => i.status !== 'unverified');
+
+  const renderItemRow = (item: ReviewItem) => {
+    const actualNum = item.actual !== '' ? getActualNum(item.actual, item.piecesPerBox) : 0;
+    const diffNum = item.actual !== '' ? actualNum - item.expected : 0;
+    const diffDisplay = diffNum !== 0 ? fmtQty(Math.abs(diffNum), item.piecesPerBox) : '0';
+
+    const sideBorder =
+      item.status === 'matched' ? 'border-r-4 border-r-primary' :
+      item.status === 'surplus' ? 'border-r-4 border-r-amber-500' :
+      item.status === 'deficit' ? 'border-r-4 border-r-destructive' :
+      'border-r-4 border-r-muted-foreground/20';
+
+    const cardBg =
+      item.status === 'deficit' ? 'bg-destructive/5' :
+      item.status === 'surplus' ? 'bg-amber-50/60 dark:bg-amber-950/10' :
+      item.status === 'matched' ? 'bg-primary/5' :
+      'bg-card';
+
+    return (
+      <div key={item.productId} className={`rounded-lg border ${sideBorder} ${cardBg} p-2.5 transition-colors`}>
+        {/* Top row: image + name + status icon */}
+        <div className="flex items-center gap-2.5 mb-2">
+          {item.imageUrl ? (
+            <img src={item.imageUrl} alt="" className="w-10 h-10 rounded-md object-cover shrink-0 border" />
+          ) : (
+            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+              <Package className="w-4 h-4 text-muted-foreground" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold truncate leading-tight">{item.productName}</div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] text-muted-foreground">المتوقع:</span>
+              <span className="text-xs font-bold text-foreground">{fmtQty(item.expected, item.piecesPerBox)}</span>
+              {item.piecesPerBox > 1 && (
+                <span className="text-[9px] text-muted-foreground">({item.piecesPerBox} ق/ص)</span>
+              )}
+            </div>
+          </div>
+          <div className="shrink-0">{getStatusIcon(item.status)}</div>
+        </div>
+
+        {/* Bottom row: input + quick match + details */}
+        <div className="flex items-stretch gap-1.5">
+          <Input
+            type="text"
+            inputMode="decimal"
+            placeholder="الفعلي —"
+            value={item.actual}
+            onChange={e => updateActual(item.productId, sanitizeBPInput(e.target.value))}
+            className={`flex-1 h-10 text-center text-base font-bold ${
+              item.status === 'matched' ? 'border-primary/60 bg-primary/5' :
+              item.status === 'deficit' ? 'border-destructive/60 bg-destructive/5' :
+              item.status === 'surplus' ? 'border-amber-400/60 bg-amber-50 dark:bg-amber-950/20' : ''
+            }`}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant={item.status === 'matched' ? 'default' : 'outline'}
+            onClick={() => updateActual(item.productId, fmtQty(item.expected, item.piecesPerBox))}
+            className={`h-10 px-3 text-xs font-bold gap-1 ${
+              item.status === 'matched'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                : ''
+            }`}
+            title="تطابق سريع"
+          >
+            <CheckCircle className="w-3.5 h-3.5" />
+            مطابق
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setDetailsDialogProductId(item.productId)}
+            className={`h-10 w-10 p-0 shrink-0 ${detailsByProduct[item.productId] ? 'border-primary text-primary bg-primary/5' : ''}`}
+            title="تفاصيل (صناديق/قطع/صالة/تالف)"
+          >
+            <ListChecks className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Diff badge */}
+        {item.actual !== '' && item.status !== 'matched' && item.status !== 'unverified' && (
+          <div className="mt-1.5 flex justify-end">
+            {item.status === 'surplus' && (
+              <Badge className="bg-amber-500 hover:bg-amber-500 text-white text-[10px] gap-1">
+                <TrendingUp className="w-3 h-3" /> فائض: +{diffDisplay}
+              </Badge>
+            )}
+            {item.status === 'deficit' && (
+              <Badge variant="destructive" className="text-[10px] gap-1">
+                <TrendingDown className="w-3 h-3" /> عجز: -{diffDisplay}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Details breakdown */}
+        {detailsByProduct[item.productId] && (
+          <div className="mt-1.5 flex flex-wrap gap-1 justify-end text-[9px]">
+            <Badge variant="outline" className="gap-1">صناديق: {detailsByProduct[item.productId].boxes}</Badge>
+            <Badge variant="outline" className="gap-1">قطع: {detailsByProduct[item.productId].pieces}</Badge>
+            <Badge variant="outline" className="gap-1">صالة: {detailsByProduct[item.productId].hall}</Badge>
+            {detailsByProduct[item.productId].damaged > 0 && (
+              <Badge variant="destructive" className="gap-1">تالف: {detailsByProduct[item.productId].damaged}</Badge>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="p-4 space-y-4" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <ClipboardCheck className="w-5 h-5 text-primary" />
-          مراجعة المخزون
-        </h2>
-        <Button size="sm" variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowRight className="w-4 h-4 ml-1" />
-          رجوع
-        </Button>
+    <div className="pb-32 min-h-screen bg-muted/20" dir="rtl">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+        <div className="px-4 pt-3 pb-2 space-y-2">
+          {/* Title row */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-primary" />
+              مراجعة المخزون
+            </h2>
+            <div className="flex items-center gap-1">
+              {isReviewDay && (
+                <Badge className="bg-primary/15 text-primary border-primary/30 hover:bg-primary/15 text-[10px] gap-1">
+                  ✅ يوم المراجعة
+                </Badge>
+              )}
+              <Button size="sm" variant="ghost" onClick={() => navigate(-1)} className="h-8 px-2">
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full grid grid-cols-2 h-9">
+              <TabsTrigger value="review" className="text-xs gap-1">
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                مراجعة جديدة
+              </TabsTrigger>
+              <TabsTrigger value="history" className="text-xs gap-1">
+                <History className="w-3.5 h-3.5" />
+                السجل
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {activeTab === 'review' && items.length > 0 && (
+            <>
+              {/* Progress Bar */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-foreground">
+                    التقدم: {stats.total - stats.unverified}/{stats.total}
+                  </span>
+                  <span className="font-bold text-primary">{progressPct}%</span>
+                </div>
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-l from-primary to-primary/70 transition-all duration-300"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Stats chips - compact grid */}
+              <div className="grid grid-cols-4 gap-1.5">
+                <div className="rounded-md bg-primary/10 border border-primary/20 px-1.5 py-1 text-center">
+                  <div className="text-sm font-bold text-primary leading-none">{stats.matched}</div>
+                  <div className="text-[9px] text-primary/80 mt-0.5">مطابق</div>
+                </div>
+                <div className="rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 py-1 text-center">
+                  <div className="text-sm font-bold text-amber-600 leading-none">{stats.surplus}</div>
+                  <div className="text-[9px] text-amber-600/80 mt-0.5">فائض</div>
+                </div>
+                <div className="rounded-md bg-destructive/10 border border-destructive/20 px-1.5 py-1 text-center">
+                  <div className="text-sm font-bold text-destructive leading-none">{stats.deficit}</div>
+                  <div className="text-[9px] text-destructive/80 mt-0.5">عجز</div>
+                </div>
+                <div className="rounded-md bg-muted border border-border px-1.5 py-1 text-center">
+                  <div className="text-sm font-bold text-muted-foreground leading-none">{stats.unverified}</div>
+                  <div className="text-[9px] text-muted-foreground mt-0.5">متبقي</div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Review day indicator */}
-      {isReviewDay && (
-        <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 text-center text-sm font-medium text-primary">
-          ✅ اليوم يوم مراجعة مخزون
-        </div>
-      )}
+      <div className="px-4 pt-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsContent value="review" className="space-y-3 mt-0">
+            {/* Toolbar: search + options + match all */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="بحث عن منتج..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pr-10 h-10 text-sm bg-background"
+                />
+              </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-2">
-          <TabsTrigger value="review" className="text-xs gap-1">
-            <ClipboardCheck className="w-3.5 h-3.5" />
-            مراجعة جديدة
-          </TabsTrigger>
-          <TabsTrigger value="history" className="text-xs gap-1">
-            <History className="w-3.5 h-3.5" />
-            السجل
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="review" className="space-y-3 mt-3">
-          {/* Options */}
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Switch id="include-damaged" checked={includeDamaged} onCheckedChange={setIncludeDamaged} />
-              <Label htmlFor="include-damaged" className="text-xs">مراجعة التالف</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch id="include-pallets" checked={includePallets} onCheckedChange={setIncludePallets} />
-              <Label htmlFor="include-pallets" className="text-xs">مراجعة الباليطات</Label>
-            </div>
-            <Button size="sm" variant="ghost" className="text-xs ms-auto" onClick={markAllMatched}>
-              <CheckCircle className="w-3.5 h-3.5 me-1" />
-              تطابق الكل
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-[10px]">{stats.total} منتج</Badge>
-            {stats.unverified > 0 && <Badge variant="outline" className="text-[10px] border-muted-foreground/30">{stats.unverified} لم يُراجع</Badge>}
-            <Badge className="bg-primary/80 text-primary-foreground text-[10px]">{stats.matched} مطابق</Badge>
-            {stats.surplus > 0 && <Badge className="bg-amber-500 text-white text-[10px]">{stats.surplus} فائض</Badge>}
-            {stats.deficit > 0 && <Badge variant="destructive" className="text-[10px]">{stats.deficit} عجز</Badge>}
-          </div>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input placeholder="بحث عن منتج..." value={search} onChange={e => setSearch(e.target.value)} className="pr-9 h-9 text-sm" />
-          </div>
-
-          {/* Column headers */}
-          <div className="flex items-center justify-between px-3 py-1 text-[10px] font-semibold text-muted-foreground">
-            <span>المنتج</span>
-            <div className="flex items-center gap-4">
-              <span className="w-16 text-center">المتوقع</span>
-              <span className="w-14 text-center">سريع</span>
-              <span className="w-20 text-center">الفعلي</span>
-              <span className="w-8"></span>
-            </div>
-          </div>
-
-          {/* Product items */}
-          <div className="space-y-1.5">
-            {filteredItems.map(item => {
-              const actualNum = item.actual !== '' ? getActualNum(item.actual, item.piecesPerBox) : 0;
-              const diffNum = item.actual !== '' ? actualNum - item.expected : 0;
-              const diffDisplay = diffNum !== 0 ? fmtQty(Math.abs(diffNum), item.piecesPerBox) : '0';
-              return (
-                <div key={item.productId} className={`rounded-lg px-3 py-2.5 border ${
-                  item.status === 'deficit' ? 'border-destructive/30 bg-destructive/5' :
-                  item.status === 'surplus' ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/10' :
-                  item.status === 'unverified' ? 'border-muted-foreground/20 bg-muted/30' :
-                  'border-primary/30 bg-primary/5'
-                }`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt="" className="w-7 h-7 rounded object-cover shrink-0" />
-                      ) : (
-                        <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0">
-                          <Package className="w-3.5 h-3.5 text-muted-foreground" />
-                        </div>
-                      )}
-                      <span className="text-sm font-medium truncate">{item.productName}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div className="w-16 text-center">
-                        <span className="text-sm font-bold text-muted-foreground">{fmtQty(item.expected, item.piecesPerBox)}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => updateActual(item.productId, fmtQty(item.expected, item.piecesPerBox))}
-                        className={`w-14 h-8 text-[11px] px-1 font-bold ${
-                          item.status === 'matched'
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                            : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
-                        }`}
-                      >
-                        {item.status === 'matched' ? '✓ مطابق' : 'مطابق'}
-                      </Button>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="—"
-                        value={item.actual}
-                        onChange={e => updateActual(item.productId, sanitizeBPInput(e.target.value))}
-                        className={`w-20 h-8 text-center text-sm font-bold ${
-                          item.status === 'matched' ? 'border-primary/50 bg-primary/5' :
-                          item.status === 'deficit' ? 'border-destructive/50 bg-destructive/5' :
-                          item.status === 'surplus' ? 'border-amber-400/50 bg-amber-50 dark:bg-amber-950/20' : ''
-                        }`}
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDetailsDialogProductId(item.productId)}
-                        className={`w-8 h-8 p-0 shrink-0 ${detailsByProduct[item.productId] ? 'border-primary text-primary' : ''}`}
-                        title="تفاصيل (صناديق/قطع/صالة/تالف)"
-                      >
-                        <ListChecks className="w-3.5 h-3.5" />
-                      </Button>
-                      <div className="w-8 flex justify-center">{getStatusIcon(item.status)}</div>
-                    </div>
-                  </div>
-                  {item.actual !== '' && item.status !== 'matched' && item.status !== 'unverified' && (
-                    <div className="mt-1 flex justify-end">
-                      {item.status === 'surplus' && <Badge className="bg-amber-500 text-white text-[9px]">فائض: +{diffDisplay}</Badge>}
-                      {item.status === 'deficit' && <Badge variant="destructive" className="text-[9px]">عجز: -{diffDisplay}</Badge>}
-                    </div>
-                  )}
-                  {detailsByProduct[item.productId] && (
-                    <div className="mt-1 flex flex-wrap gap-1 justify-end text-[9px]">
-                      <Badge variant="outline" className="gap-1">صناديق: {detailsByProduct[item.productId].boxes}</Badge>
-                      <Badge variant="outline" className="gap-1">قطع: {detailsByProduct[item.productId].pieces}</Badge>
-                      <Badge variant="outline" className="gap-1">صالة: {detailsByProduct[item.productId].hall}</Badge>
-                      {detailsByProduct[item.productId].damaged > 0 && (
-                        <Badge variant="destructive" className="gap-1">تالف: {detailsByProduct[item.productId].damaged}</Badge>
-                      )}
-                    </div>
-                  )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1.5 flex-1 min-w-0">
+                  <Switch id="include-damaged" checked={includeDamaged} onCheckedChange={setIncludeDamaged} className="scale-75" />
+                  <Label htmlFor="include-damaged" className="text-[11px] cursor-pointer truncate">التالف</Label>
                 </div>
-              );
-            })}
+                <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1.5 flex-1 min-w-0">
+                  <Switch id="include-pallets" checked={includePallets} onCheckedChange={setIncludePallets} className="scale-75" />
+                  <Label htmlFor="include-pallets" className="text-[11px] cursor-pointer truncate">الباليطات</Label>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/5"
+                  onClick={markAllMatched}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  تطابق الكل
+                </Button>
+              </div>
+            </div>
+
+            {/* Pending section */}
+            {pendingItems.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-1">
+                  <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <h3 className="text-xs font-bold text-foreground">
+                    قيد المراجعة <span className="text-muted-foreground font-normal">({pendingItems.length})</span>
+                  </h3>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-2">
+                  {pendingItems.map(renderItemRow)}
+                </div>
+              </div>
+            )}
+
+            {/* Reviewed section */}
+            {reviewedItems.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-1 pt-2">
+                  <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                  <h3 className="text-xs font-bold text-foreground">
+                    تمت مراجعتها <span className="text-muted-foreground font-normal">({reviewedItems.length})</span>
+                  </h3>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-2">
+                  {reviewedItems.map(renderItemRow)}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {filteredItems.length === 0 && (
+              <div className="text-center py-12 text-sm text-muted-foreground bg-card border rounded-lg">
+                <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                {search ? 'لا توجد منتجات مطابقة للبحث' : 'لا توجد منتجات للمراجعة'}
+              </div>
+            )}
 
             {/* Damaged section */}
             {includeDamaged && damagedItems.length > 0 && (
-              <div className="pt-2 border-t mt-2">
-                <p className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" /> التالف ({damagedItems.length})
-                </p>
+              <div className="space-y-2 pt-3">
+                <div className="flex items-center gap-2 px-1">
+                  <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
+                  <h3 className="text-xs font-bold text-foreground">
+                    التالف <span className="text-muted-foreground font-normal">({damagedItems.length})</span>
+                  </h3>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
                 {damagedItems.map(d => (
-                  <div key={`damaged-${d.productId}`} className="rounded-lg px-3 py-2 border border-border bg-card flex items-center justify-between mb-1.5">
-                    <div>
-                      <div className="text-sm font-medium">{d.productName}</div>
-                      <div className="text-[10px] text-muted-foreground">المتوقع: {fmtQty(d.expected, piecesPerBoxMap.get(d.productId) || 20)}</div>
+                  <div key={`damaged-${d.productId}`} className="rounded-lg border border-r-4 border-r-destructive/40 bg-card p-2.5 flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold truncate">{d.productName}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        المتوقع: <span className="font-bold text-foreground">{fmtQty(d.expected, piecesPerBoxMap.get(d.productId) || 20)}</span>
+                      </div>
                     </div>
                     <Input
                       type="text"
@@ -493,7 +610,7 @@ const WarehouseReview: React.FC = () => {
                       placeholder="—"
                       value={damagedActuals[d.productId] ?? ''}
                       onChange={e => setDamagedActuals(prev => ({ ...prev, [d.productId]: sanitizeBPInput(e.target.value) }))}
-                      className="w-20 h-8 text-center text-sm font-bold"
+                      className="w-24 h-10 text-center text-sm font-bold"
                     />
                   </div>
                 ))}
@@ -502,45 +619,57 @@ const WarehouseReview: React.FC = () => {
 
             {/* Pallet section */}
             {includePallets && (
-              <div className="pt-2 border-t mt-2">
-                <p className="text-xs font-semibold text-muted-foreground mb-1.5">🪵 الباليطات</p>
-                <div className="rounded-lg px-3 py-2 border border-border bg-card flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium">رصيد الباليطات</div>
-                    <div className="text-[10px] text-muted-foreground">المتوقع: {palletQuantity}</div>
+              <div className="space-y-2 pt-3">
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-base">🪵</span>
+                  <h3 className="text-xs font-bold text-foreground">الباليطات</h3>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="rounded-lg border border-r-4 border-r-blue-400/50 bg-card p-2.5 flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold">رصيد الباليطات</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                      المتوقع: <span className="font-bold text-foreground">{palletQuantity}</span>
+                    </div>
                   </div>
                   <Input
                     type="number"
                     placeholder="—"
                     value={palletActual}
                     onChange={e => setPalletActual(e.target.value)}
-                    className="w-20 h-8 text-center text-sm font-bold"
+                    className="w-24 h-10 text-center text-sm font-bold"
                   />
                 </div>
               </div>
             )}
-          </div>
+          </TabsContent>
 
-          {/* Save button */}
-          <div className="fixed bottom-16 left-0 right-0 bg-background pt-2 pb-2 px-4 border-t z-50">
-            {!canSave && items.length > 0 && (
-              <p className="text-xs text-muted-foreground text-center mb-1">
-                يرجى إدخال الكمية الفعلية لجميع المنتجات ({stats.unverified} متبقي)
-              </p>
+          <TabsContent value="history" className="mt-0">
+            {branchId && <WarehouseReviewHistory branchId={branchId} />}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Floating Save bar */}
+      {activeTab === 'review' && (
+        <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur border-t shadow-[0_-4px_12px_rgba(0,0,0,0.06)] px-4 py-2.5 z-50">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || !canSave}
+            className="w-full gap-2 h-11 text-sm font-bold"
+            size="lg"
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
             )}
-            <Button onClick={handleSave} disabled={isSaving || !canSave} className="w-full gap-2" size="default">
-              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              حفظ المراجعة
-            </Button>
-          </div>
-          {/* Spacer for fixed bottom bar */}
-          <div className="h-28" />
-        </TabsContent>
-
-        <TabsContent value="history" className="mt-3">
-          {branchId && <WarehouseReviewHistory branchId={branchId} />}
-        </TabsContent>
-      </Tabs>
+            {canSave
+              ? `حفظ المراجعة (${stats.total} منتج)`
+              : `حفظ المراجعة — ${stats.unverified} متبقي`}
+          </Button>
+        </div>
+      )}
 
       {detailsDialogProductId && (() => {
         const item = items.find(i => i.productId === detailsDialogProductId);
