@@ -403,12 +403,11 @@ export const useWarehouseStock = () => {
 
     const { data: deliveryRole } = await supabase
       .from('worker_roles')
-      .select('worker_id, custom_roles!inner(code)')
+      .select('worker_id, branch_id, custom_roles!inner(code)')
       .eq('worker_id', targetWorkerId)
-      .eq('branch_id', branchId)
-      .eq('role', 'worker')
       .eq('is_active', true)
       .eq('custom_roles.code', 'delivery_rep')
+      .or(`branch_id.eq.${branchId},branch_id.is.null`)
       .maybeSingle();
 
     if (!deliveryRole) {
