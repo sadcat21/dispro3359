@@ -40,7 +40,9 @@ const PendingWarehouseReviews: React.FC = () => {
   const [overrides, setOverrides] = useState<Record<string, { actual: number; status: 'matched' | 'surplus' | 'deficit'; details: ProductReviewDetails }>>({});
   const [chosenDecision, setChosenDecision] = useState<'accept_surplus' | 'reject_surplus' | 'charge_worker' | 'absorb_deficit' | null>(null);
   const [priceTier, setPriceTier] = useState<'invoice' | 'retail' | 'gros' | 'super_gros'>('invoice');
-  const [unitPrice, setUnitPrice] = useState<string>(''); // سعر الوحدة (كما هو في المنتج: قد يكون kg/قطعة/صندوق)
+  const [priceBasis, setPriceBasis] = useState<'box' | 'kg' | 'unit'>('box'); // ما يمثله السعر المُدخل
+  const [weightPerBoxInput, setWeightPerBoxInput] = useState<string>(''); // الوزن لكل صندوق (يدوي إن لم يتوفر)
+  const [unitPrice, setUnitPrice] = useState<string>('');
   const [managerNotes, setManagerNotes] = useState('');
 
   const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending'), [items]);
@@ -121,19 +123,18 @@ const PendingWarehouseReviews: React.FC = () => {
     return map[tier] || 0;
   };
 
-  // يحوّل سعر الوحدة (حسب pricing_unit) إلى سعر الصندوق وسعر القطعة
-  const computePrices = (product: any, unitPriceVal: number) => {
+  // تُحسب على ضوء ما يمثله السعر المُدخل (basis) وعدد الوحدات في الصندوق
+  const computePrices = (product: any, unitPriceVal: number, basis: 'box' | 'kg' | 'unit', wpbOverride: number) => {
     const ppb = Math.max(1, Number(product?.pieces_per_box || 1));
-    const pricingUnit = product?.pricing_unit || 'box';
-    const weightPerBox = Number(product?.weight_per_box || 0);
+    const weightPerBox = wpbOverride > 0 ? wpbOverride : Number(product?.weight_per_box || 0);
     let boxPrice = unitPriceVal;
-    if (pricingUnit === 'kg' && weightPerBox > 0) {
-      boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × كغ/صندوق
-    } else if (pricingUnit === 'unit') {
-      boxPrice = unitPriceVal * ppb; // سعر/قطعة × قطعة/صندوق
+    if (basis === 'kg' && weightPerBox > 0) {
+      boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × عدد الكغ في الصندوق
+    } else if (basis === 'unit') {
+      boxPrice = unitPriceVal * ppb; // سعر/قطعة × عدد القطع في الصندوق
     }
     const piecePrice = ppb > 0 ? boxPrice / ppb : boxPrice;
-    return { boxPrice, piecePrice, ppb, pricingUnit, weightPerBox };
+    return { boxPrice, piecePrice, ppb, weightPerBox };
   };
 
   const openDecisionDialog = (item: any) => {
@@ -141,12 +142,14 @@ const PendingWarehouseReviews: React.FC = () => {
     setChosenDecision(null);
     setManagerNotes('');
     const product = item.product;
-    // افتراضي: سعر الفاتورة إن وُجد، وإلا الجملة
     const defaultTier: 'invoice' | 'retail' | 'gros' | 'super_gros' =
       product?.price_invoice ? 'invoice' :
       product?.price_gros ? 'gros' :
       product?.price_super_gros ? 'super_gros' : 'retail';
     setPriceTier(defaultTier);
+    // الافتراضي: السعر المخزّن يُعتبر سعر الصندوق (كما هو معتمد في باقي النظام)
+    setPriceBasis('box');
+    setWeightPerBoxInput(String(product?.weight_per_box || ''));
     setUnitPrice(String(getProductTierPrice(product, defaultTier)));
   };
 
@@ -176,7 +179,7 @@ const PendingWarehouseReviews: React.FC = () => {
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
       const unitPriceVal = parseFloat(unitPrice) || 0;
-      const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal);
+      const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal, priceBasis, parseFloat(weightPerBoxInput) || 0);
       const deficitTotalBoxes = Math.abs(diffBoxes); // كسري بالصناديق
       const totalPiecesDiff = Math.round(deficitTotalBoxes * ppb);
       const fullBoxes = Math.floor(totalPiecesDiff / ppb);
@@ -460,18 +463,27 @@ const PendingWarehouseReviews: React.FC = () => {
                 {chosenDecision === 'charge_worker' && (() => {
                   const product = dialogItem.product;
                   const unitPriceVal = parseFloat(unitPrice) || 0;
-                  const { boxPrice, piecePrice, ppb: pp, pricingUnit, weightPerBox } = computePrices(product, unitPriceVal);
+                  const wpbVal = parseFloat(weightPerBoxInput) || 0;
+                  const { boxPrice, piecePrice, ppb: pp, weightPerBox } = computePrices(product, unitPriceVal, priceBasis, wpbVal);
                   const totalPiecesDiff = Math.round(diff * pp);
                   const fullBoxes = Math.floor(totalPiecesDiff / pp);
                   const remPieces = totalPiecesDiff % pp;
                   const debt = fullBoxes * boxPrice + remPieces * piecePrice;
-                  const unitLabel = pricingUnit === 'kg' ? 'الكيلوغرام' : pricingUnit === 'unit' ? 'القطعة' : 'الصندوق';
+                  const unitLabel = priceBasis === 'kg' ? 'الكيلوغرام' : priceBasis === 'unit' ? 'القطعة' : 'الصندوق';
+                  const unitsPerBox = priceBasis === 'kg' ? weightPerBox : priceBasis === 'unit' ? pp : 1;
+                  const unitsLabel = priceBasis === 'kg' ? 'كغ' : priceBasis === 'unit' ? 'قطعة' : 'صندوق';
 
                   const tiers: Array<{ key: 'invoice' | 'retail' | 'gros' | 'super_gros'; label: string }> = [
                     { key: 'invoice', label: 'الفاتورة' },
                     { key: 'retail', label: 'التجزئة' },
                     { key: 'gros', label: 'الجملة' },
                     { key: 'super_gros', label: 'سوبر جملة' },
+                  ];
+
+                  const bases: Array<{ key: 'box' | 'kg' | 'unit'; label: string }> = [
+                    { key: 'box', label: 'صندوق' },
+                    { key: 'kg', label: 'كيلوغرام' },
+                    { key: 'unit', label: 'قطعة' },
                   ];
 
                   return (
@@ -500,6 +512,40 @@ const PendingWarehouseReviews: React.FC = () => {
                         </div>
                       </div>
 
+                      <div>
+                        <Label className="text-xs mb-1 block">السعر المُدخل يمثّل سعر:</Label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {bases.map(b => {
+                            const active = priceBasis === b.key;
+                            return (
+                              <button
+                                key={b.key}
+                                type="button"
+                                onClick={() => setPriceBasis(b.key)}
+                                className={`text-[10px] py-1.5 px-1 rounded border transition ${
+                                  active ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted'
+                                }`}
+                              >
+                                {b.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {priceBasis === 'kg' && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">عدد الكلغ في الصندوق</Label>
+                          <Input
+                            type="number"
+                            value={weightPerBoxInput}
+                            onChange={(e) => setWeightPerBoxInput(e.target.value)}
+                            placeholder="مثال: 8"
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                      )}
+
                       <div className="space-y-1">
                         <Label className="text-xs">سعر الوحدة ({unitLabel})</Label>
                         <Input
@@ -511,12 +557,14 @@ const PendingWarehouseReviews: React.FC = () => {
                       </div>
 
                       <div className="bg-muted/60 rounded p-2 text-[11px] space-y-0.5">
-                        {pricingUnit === 'kg' && weightPerBox > 0 && (
-                          <div>الوزن لكل صندوق: <b>{weightPerBox}</b> كغ</div>
+                        <div>عدد {unitsLabel === 'صندوق' ? 'القطع' : unitsLabel} في الصندوق: <b>{unitsPerBox || pp}</b></div>
+                        {priceBasis !== 'box' && (
+                          <div className="text-[10px] text-muted-foreground">
+                            سعر الصندوق = {unitPriceVal.toFixed(2)} × {unitsPerBox} = <b>{boxPrice.toFixed(2)}</b>
+                          </div>
                         )}
-                        <div>عدد القطع في الصندوق: <b>{pp}</b></div>
                         <div>سعر الصندوق: <b>{boxPrice.toFixed(2)}</b></div>
-                        <div>سعر القطعة: <b>{piecePrice.toFixed(2)}</b></div>
+                        <div>سعر القطعة: <b>{piecePrice.toFixed(2)}</b> (= {boxPrice.toFixed(2)} ÷ {pp})</div>
                         <div className="pt-1 border-t mt-1">
                           الفرق: <b>{fullBoxes}</b> صندوق + <b>{remPieces}</b> قطعة
                         </div>
