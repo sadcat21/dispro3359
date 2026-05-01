@@ -449,6 +449,15 @@ const WarehouseReview: React.FC = () => {
               )}
               <Button
                 size="sm"
+                variant="outline"
+                onClick={() => navigate('/warehouse-pending-reviews')}
+                className="h-8 px-2 gap-1 text-xs"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                المعلقة
+              </Button>
+              <Button
+                size="sm"
                 variant={activeTab === 'history' ? 'default' : 'outline'}
                 onClick={() => setActiveTab(activeTab === 'history' ? 'review' : 'history')}
                 className="h-8 px-2 gap-1 text-xs"
