@@ -28,7 +28,9 @@ interface Props {
   productName: string;
   imageUrl?: string | null;
   piecesPerBox: number;
-  expected: number; // متوقع بالصناديق (كسري)
+  expected: number; // متوقع الإجمالي بالصناديق (كسري)
+  /** المتوقع التالف من قاعدة البيانات (بالصناديق الكسرية) */
+  expectedDamaged?: number;
   initial?: ProductReviewDetails;
   /** قيم مسؤول المخزن — لتظهر للمدير كاشارة أسفل كل حقل */
   reviewerValues?: { goodBoxes?: number; goodPieces?: number; damagedBoxes?: number; damagedPieces?: number };
@@ -39,7 +41,7 @@ interface Props {
 const sanitizeInt = (v: string): string => v.replace(/[^0-9]/g, '');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
-  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, reviewerValues, reviewerName, onSave,
+  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, expectedDamaged = 0, initial, reviewerValues, reviewerName, onSave,
 }) => {
   const ppb = Math.max(1, piecesPerBox || 1);
 
@@ -182,9 +184,14 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
             {/* ============ القسم 1: الصالح ============ */}
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.good.container}`}>
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
-                <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
+                  <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
+                </div>
+                <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0.5">
+                  المتوقع: {boxesToBP(Math.max(0, expected - expectedDamaged), ppb)}
+                </Badge>
               </div>
 
               <div>
@@ -222,9 +229,14 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
             {/* ============ القسم 2: التالف ============ */}
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.damaged.container}`}>
-              <div className="flex items-center gap-1.5">
-                <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
-                <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
+                  <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
+                </div>
+                <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0.5">
+                  المتوقع: {boxesToBP(expectedDamaged, ppb)}
+                </Badge>
               </div>
 
               <div>

@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,6 +46,21 @@ const PendingWarehouseReviews: React.FC = () => {
   const [managerNotes, setManagerNotes] = useState('');
 
   const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending' || i.meta.decision_status === 'auto_approved'), [items]);
+
+  // المتوقع التالف من warehouse_stock للعنصر المفتوح
+  const { data: reviewItemStock } = useQuery({
+    queryKey: ['warehouse-stock-damaged', reviewItem?.product_id, reviewItem?.session?.branch_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('warehouse_stock')
+        .select('damaged_quantity')
+        .eq('branch_id', reviewItem.session.branch_id)
+        .eq('product_id', reviewItem.product_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!reviewItem?.product_id && !!reviewItem?.session?.branch_id,
+  });
   const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending' && i.meta.decision_status !== 'auto_approved'), [items]);
 
   const visible = showDecided ? decided : pending;
@@ -552,6 +569,7 @@ const PendingWarehouseReviews: React.FC = () => {
           imageUrl={reviewItem.product?.image_url}
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
+          expectedDamaged={Number((reviewItemStock as any)?.damaged_quantity || 0)}
           initial={overrides[reviewItem.id]?.details}
           reviewerName={reviewItem.session?.reviewer?.full_name || undefined}
           reviewerValues={(() => {
