@@ -292,7 +292,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                         return (
                           <div
                             key={item.id}
-                            className="relative rounded-xl overflow-hidden border border-border bg-muted/30 flex flex-col"
+                            className="relative rounded-xl overflow-hidden border-4 border-green-500 bg-green-50 dark:bg-green-950/10 flex flex-col"
                           >
                             <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                               {item.item_type === 'pallet' ? (
@@ -302,10 +302,10 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                               ) : (
                                 <Package className="w-10 h-10 text-muted-foreground/50" />
                               )}
-                              <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-primary text-primary-foreground shadow">
+                              <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-green-600 text-white shadow">
                                 مطابق
                               </Badge>
-                              <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow bg-primary/90 text-primary-foreground">
+                              <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow bg-green-600 text-white">
                                 {formatReviewQty(item, item.expected_quantity)}
                               </div>
                             </div>
