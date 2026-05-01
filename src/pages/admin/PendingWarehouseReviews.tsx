@@ -62,6 +62,15 @@ const PendingWarehouseReviews: React.FC = () => {
     },
     enabled: !!reviewItem?.product_id && !!reviewItem?.session?.branch_id,
   });
+
+  // حركات المنتج بعد المراجعة (شحن/استلام/مرتجعات)
+  const { data: reviewItemMovements } = useReviewItemMovements({
+    productId: reviewItem?.product_id || null,
+    branchId: reviewItem?.session?.branch_id || null,
+    sinceIso: reviewItem?.created_at || null,
+    piecesPerBox: reviewItem?.product?.pieces_per_box || 1,
+    enabled: !!reviewItem,
+  });
   const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending' && i.meta.decision_status !== 'auto_approved'), [items]);
 
   const visible = showDecided ? decided : pending;
