@@ -258,7 +258,9 @@ const PendingWarehouseReviews: React.FC = () => {
       const goodBoxes = override?.details.boxes ?? Number(dialogItem.boxes_quantity || 0);
       const goodPieces = override?.details.pieces ?? Number(dialogItem.pieces_quantity || 0);
       const actualGood = goodBoxes + goodPieces / ppb;
-      newStockQty = toDbBP(actualGood, ppb);
+      newStockQty = chosenDecision === 'accept_surplus'
+        ? toDbBP(expected, ppb)
+        : toDbBP(actualGood, ppb);
       // التالف بصيغة DB B.P (من override أو من البند الأصلي)
       const dmgBoxes = override?.details.damagedBoxes ?? 0;
       const dmgPieces = override?.details.damagedPieces ?? 0;
@@ -270,9 +272,9 @@ const PendingWarehouseReviews: React.FC = () => {
       }
       // الفائض/العجز يُكتب فقط عند قبول الفائض أو امتصاص العجز (وليس rejection أو charge)
       if (chosenDecision === 'accept_surplus' && diffBoxes > 0) {
-        surplusQty = ppb > 1 ? parseFloat(boxesToBP(diffBoxes, ppb)) : diffBoxes;
+        surplusQty = toDbBP(diffBoxes, ppb);
       } else if (chosenDecision === 'absorb_deficit' && diffBoxes < 0) {
-        deficitQty = ppb > 1 ? parseFloat(boxesToBP(-diffBoxes, ppb)) : -diffBoxes;
+        deficitQty = toDbBP(-diffBoxes, ppb);
       }
     }
 
