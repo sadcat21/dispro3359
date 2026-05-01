@@ -18,6 +18,7 @@ import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/w
 import palletImage from '@/assets/pallet.png';
 import PalletReviewDialog from '@/components/warehouse/PalletReviewDialog';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { stringifyMeta, type ReviewItemMeta } from '@/hooks/useWarehouseReviewDecisions';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
@@ -216,6 +217,10 @@ const WarehouseReview: React.FC = () => {
 
       const reviewItems = items.map(item => {
         const d = detailsByProduct[item.productId];
+        const meta: ReviewItemMeta = {
+          decision_status: item.status === 'matched' ? 'auto_approved' : 'pending',
+          reviewer_worker_id: workerId,
+        };
         return {
           session_id: session.id,
           item_type: 'product',
@@ -227,6 +232,7 @@ const WarehouseReview: React.FC = () => {
           pieces_quantity: d?.pieces ?? 0,
           hall_quantity: d?.hall ?? 0,
           damaged_quantity: d?.damaged ?? 0,
+          notes: stringifyMeta(meta),
         };
       });
 
@@ -236,17 +242,23 @@ const WarehouseReview: React.FC = () => {
           const ppb = piecesPerBoxMap.get(d.productId) || 20;
           const actualNum = getActualNum(actualStr, ppb);
           const diff = actualNum - d.expected;
+          const dmgStatus = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
+          const meta: ReviewItemMeta = {
+            decision_status: dmgStatus === 'matched' ? 'auto_approved' : 'pending',
+            reviewer_worker_id: workerId,
+          };
           reviewItems.push({
             session_id: session.id,
             item_type: 'damaged',
             product_id: d.productId,
             expected_quantity: d.expected,
             actual_quantity: actualNum,
-            status: Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit',
+            status: dmgStatus,
             boxes_quantity: 0,
             pieces_quantity: 0,
             hall_quantity: 0,
             damaged_quantity: actualNum,
+            notes: stringifyMeta(meta),
           });
         }
       }
@@ -254,17 +266,23 @@ const WarehouseReview: React.FC = () => {
       {
         const palletNum = parseFloat(palletActual) || 0;
         const diff = palletNum - palletQuantity;
+        const palStatus = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
+        const meta: ReviewItemMeta = {
+          decision_status: palStatus === 'matched' ? 'auto_approved' : 'pending',
+          reviewer_worker_id: workerId,
+        };
         reviewItems.push({
           session_id: session.id,
           item_type: 'pallet',
           product_id: null as any,
           expected_quantity: palletQuantity,
           actual_quantity: palletNum,
-          status: Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit',
+          status: palStatus,
           boxes_quantity: 0,
           pieces_quantity: 0,
           hall_quantity: 0,
           damaged_quantity: 0,
+          notes: stringifyMeta(meta),
         });
       }
 
@@ -275,8 +293,10 @@ const WarehouseReview: React.FC = () => {
         if (itemsError) throw itemsError;
       }
 
+      // تحديث المخزون فقط للعناصر المطابقة
+      // الفوارق تبقى معلّقة بانتظار قرار مدير الفرع
       for (const item of items) {
-        if (item.status !== 'matched') {
+        if (item.status === 'matched') {
           await supabase
             .from('warehouse_stock')
             .update({ quantity: getDbStoredQty(item.actual, item.piecesPerBox) })
@@ -288,7 +308,13 @@ const WarehouseReview: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['warehouse-review-history'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-product-summary'] });
-      toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق، ${stats.surplus} فائض، ${stats.deficit} عجز`);
+      queryClient.invalidateQueries({ queryKey: ['warehouse-pending-review-items'] });
+      const pendingCount = stats.surplus + stats.deficit;
+      if (pendingCount > 0) {
+        toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق معتمد، و${pendingCount} فارق بانتظار قرار مدير الفرع`);
+      } else {
+        toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق`);
+      }
       
       // Reset for new review
       setActuals({});
@@ -421,6 +447,15 @@ const WarehouseReview: React.FC = () => {
                   ✅ يوم المراجعة
                 </Badge>
               )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate('/warehouse-pending-reviews')}
+                className="h-8 px-2 gap-1 text-xs"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                المعلقة
+              </Button>
               <Button
                 size="sm"
                 variant={activeTab === 'history' ? 'default' : 'outline'}
