@@ -454,7 +454,7 @@ const PendingWarehouseReviews: React.FC = () => {
               قرار المدير
             </DialogTitle>
             <DialogDescription>
-              {dialogItem?.item_type === 'pallet' ? 'الباليطات' : dialogItem?.product?.name}
+              {dialogItem?.item_type === 'pallet' ? 'الباليطات' : getProductDisplayName(dialogItem?.product)}
             </DialogDescription>
           </DialogHeader>
 
