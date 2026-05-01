@@ -240,10 +240,17 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
             {/* ============ القسم 1: الصالح ============ */}
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.good.container}`}>
-              <div className="flex items-center justify-between gap-1.5">
-                <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
+                  {hasGoodGap && hasInput && (
+                    <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
+                      goodDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
+                    }`}>
+                      {goodDiff > 0 ? 'فائض' : 'عجز'}: {goodDiff > 0 ? '+' : '-'}{formatBPFromParts(goodGapParts.boxes, goodGapParts.pieces)}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   {movementsNetChange !== 0 && (
