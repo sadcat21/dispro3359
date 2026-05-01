@@ -249,6 +249,9 @@ serve(async (req) => {
 
         const all_ok = checks.every((c) => c.ok);
 
+        return json({ ok: true, all_ok, checks, actual });
+      }
+
       // ============================================================
       // STEP 3: RESET (drop & recreate public schema)
       // ============================================================
