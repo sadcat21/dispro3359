@@ -582,9 +582,11 @@ const WarehouseReview: React.FC = () => {
         </div>
       )}
 
-      {detailsDialogProductId && (() => {
+       {detailsDialogProductId && (() => {
         const item = items.find(i => i.productId === detailsDialogProductId);
         if (!item) return null;
+        const wsRow = warehouseStock.find(ws => ws.product_id === item.productId) as any;
+        const expectedDamaged = normalizeDbQtyToBoxes(Number(wsRow?.damaged_quantity || 0), item.piecesPerBox);
         return (
           <ProductReviewDetailsDialog
             open={!!detailsDialogProductId}
@@ -593,6 +595,7 @@ const WarehouseReview: React.FC = () => {
             imageUrl={item.imageUrl}
             piecesPerBox={item.piecesPerBox}
             expected={item.expected}
+            expectedDamaged={expectedDamaged}
             initial={detailsByProduct[item.productId]}
             onSave={(d) => {
               setDetailsByProduct(prev => ({ ...prev, [item.productId]: d }));
