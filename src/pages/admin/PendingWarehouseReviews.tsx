@@ -614,7 +614,7 @@ const PendingWarehouseReviews: React.FC = () => {
         <ProductReviewDetailsDialog
           open={!!reviewItem}
           onOpenChange={(o) => { if (!o) setReviewItem(null); }}
-          productName={reviewItem.product?.name || '—'}
+          productName={getProductDisplayName(reviewItem.product) || '—'}
           imageUrl={reviewItem.product?.image_url}
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
