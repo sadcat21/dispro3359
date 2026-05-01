@@ -296,33 +296,35 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               </div>
 
               <div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className={simpleMode ? '' : 'grid grid-cols-2 gap-2'}>
                   <div className="space-y-0.5">
-                    <Label className="text-[11px] text-muted-foreground">صناديق</Label>
+                    {!simpleMode && <Label className="text-[11px] text-muted-foreground">صناديق</Label>}
                     <Input
                       type="text"
                       inputMode="numeric"
                       placeholder="0"
                       value={goodBoxes}
                       onChange={e => setGoodBoxes(sanitizeInt(e.target.value))}
-                      onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
+                      onBlur={() => !simpleMode && applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
                       className="text-center text-base font-bold h-9"
                     />
                     <ReviewerHint value={reviewerValues?.goodBoxes} />
                   </div>
-                  <div className="space-y-0.5">
-                    <Label className="text-[11px] text-muted-foreground">قطع</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="0"
-                      value={goodPieces}
-                      onChange={e => setGoodPieces(sanitizeInt(e.target.value))}
-                      onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
-                      className="text-center text-base font-bold h-9"
-                    />
-                    <ReviewerHint value={reviewerValues?.goodPieces} />
-                  </div>
+                  {!simpleMode && (
+                    <div className="space-y-0.5">
+                      <Label className="text-[11px] text-muted-foreground">قطع</Label>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={goodPieces}
+                        onChange={e => setGoodPieces(sanitizeInt(e.target.value))}
+                        onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
+                        className="text-center text-base font-bold h-9"
+                      />
+                      <ReviewerHint value={reviewerValues?.goodPieces} />
+                    </div>
+                  )}
                 </div>
               </div>
 
