@@ -20,6 +20,8 @@ import { usePendingReviewItems, useApplyManagerDecision, type ReviewItemMeta } f
 import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
+import ReviewCardMovementBadge from '@/components/warehouse/ReviewCardMovementBadge';
+import { useReviewItemMovements, movementTypeLabel, type MovementRow } from '@/hooks/useReviewItemMovements';
 import { format } from 'date-fns';
 
 const fmtPlain = (n: number) => {
@@ -60,6 +62,15 @@ const PendingWarehouseReviews: React.FC = () => {
       return data;
     },
     enabled: !!reviewItem?.product_id && !!reviewItem?.session?.branch_id,
+  });
+
+  // حركات المنتج بعد المراجعة (شحن/استلام/مرتجعات)
+  const { data: reviewItemMovements } = useReviewItemMovements({
+    productId: reviewItem?.product_id || null,
+    branchId: reviewItem?.session?.branch_id || null,
+    sinceIso: reviewItem?.created_at || null,
+    piecesPerBox: reviewItem?.product?.pieces_per_box || 1,
+    enabled: !!reviewItem,
   });
   const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending' && i.meta.decision_status !== 'auto_approved'), [items]);
 
@@ -335,6 +346,14 @@ const PendingWarehouseReviews: React.FC = () => {
                       <Package className="w-10 h-10 text-muted-foreground/50" />
                     )}
                     {statusBadge}
+                    {item.item_type === 'product' && !isDecided && (
+                      <ReviewCardMovementBadge
+                        productId={item.product_id}
+                        branchId={item.session?.branch_id || null}
+                        sinceIso={item.created_at}
+                        piecesPerBox={ppb}
+                      />
+                    )}
                     {!isMatched && (
                       <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
                         isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'
@@ -565,6 +584,9 @@ const PendingWarehouseReviews: React.FC = () => {
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
           expectedDamaged={dbBPToBoxes(Number((reviewItemStock as any)?.damaged_quantity || 0), reviewItem.product?.pieces_per_box || 1)}
+          movementsNetChange={reviewItemMovements?.netChange || 0}
+          movements={reviewItemMovements?.rows || []}
+          movementTypeLabel={movementTypeLabel}
           initial={overrides[reviewItem.id]?.details}
           reviewerName={reviewItem.session?.reviewer?.full_name || undefined}
           reviewerValues={(() => {

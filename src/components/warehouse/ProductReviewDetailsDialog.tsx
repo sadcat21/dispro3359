@@ -35,13 +35,22 @@ interface Props {
   /** قيم مسؤول المخزن — لتظهر للمدير كاشارة أسفل كل حقل */
   reviewerValues?: { goodBoxes?: number; goodPieces?: number; damagedBoxes?: number; damagedPieces?: number };
   reviewerName?: string;
+  /** صافي حركة المنتج بعد المراجعة (موجب = دخول، سالب = خروج) بالصناديق الكسرية */
+  movementsNetChange?: number;
+  /** قائمة الحركات للعرض */
+  movements?: Array<{ id: string; movement_type: string; sign: 1 | -1; qtyBoxes: number; created_at: string; notes?: string | null }>;
+  /** ترجمة نوع الحركة */
+  movementTypeLabel?: (t: string) => string;
   onSave: (details: ProductReviewDetails) => void;
 }
 
 const sanitizeInt = (v: string): string => v.replace(/[^0-9]/g, '');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
-  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, expectedDamaged = 0, initial, reviewerValues, reviewerName, onSave,
+  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, expectedDamaged = 0,
+  initial, reviewerValues, reviewerName,
+  movementsNetChange = 0, movements = [], movementTypeLabel: getMoveLabel,
+  onSave,
 }) => {
   const ppb = Math.max(1, piecesPerBox || 1);
 
@@ -182,6 +191,37 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
         <div className="flex-1 overflow-y-auto px-4 py-2">
           <div className="space-y-2">
 
+            {/* ============ لوحة الحركة منذ المراجعة ============ */}
+            {movements.length > 0 && (
+              <div className="rounded-lg border-2 border-blue-500/40 bg-blue-50 dark:bg-blue-950/20 p-2 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                    🔄 حركة على المنتج بعد مراجعة المخزن
+                  </h3>
+                  <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
+                    movementsNetChange > 0 ? 'bg-green-600 text-white' : movementsNetChange < 0 ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    صافي: {movementsNetChange > 0 ? '+' : ''}{boxesToBP(Math.abs(movementsNetChange), ppb)}
+                  </Badge>
+                </div>
+                <div className="space-y-0.5 max-h-28 overflow-y-auto">
+                  {movements.map(m => (
+                    <div key={m.id} className="flex items-center justify-between text-[10px] bg-background/60 rounded px-1.5 py-0.5">
+                      <span className="text-muted-foreground">
+                        {getMoveLabel ? getMoveLabel(m.movement_type) : m.movement_type}
+                      </span>
+                      <span className={`font-bold ${m.sign > 0 ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>
+                        {m.sign > 0 ? '+' : '-'}{boxesToBP(m.qtyBoxes, ppb)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-[10px] text-blue-700 dark:text-blue-300 pt-1 border-t border-blue-500/30">
+                  المتوقع الجديد للصالح = {boxesToBP(Math.max(0, expected - expectedDamaged), ppb)} {movementsNetChange >= 0 ? '+' : '−'} {boxesToBP(Math.abs(movementsNetChange), ppb)} = <b>{boxesToBP(Math.max(0, expected - expectedDamaged + movementsNetChange), ppb)}</b>
+                </div>
+              </div>
+            )}
+
             {/* ============ القسم 1: الصالح ============ */}
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.good.container}`}>
               <div className="flex items-center justify-between gap-1.5">
@@ -189,9 +229,16 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                   <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
                 </div>
-                <Badge className="text-[10px] font-bold px-1.5 py-0.5 bg-green-600 text-white hover:bg-green-600 border-0">
-                  المتوقع: {boxesToBP(Math.max(0, expected - expectedDamaged), ppb)}
-                </Badge>
+                <div className="flex items-center gap-1">
+                  {movementsNetChange !== 0 && (
+                    <span className="text-[10px] text-muted-foreground line-through">
+                      {boxesToBP(Math.max(0, expected - expectedDamaged), ppb)}
+                    </span>
+                  )}
+                  <Badge className="text-[10px] font-bold px-1.5 py-0.5 bg-green-600 text-white hover:bg-green-600 border-0">
+                    المتوقع: {boxesToBP(Math.max(0, expected - expectedDamaged + movementsNetChange), ppb)}
+                  </Badge>
+                </div>
               </div>
 
               <div>
