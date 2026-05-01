@@ -438,9 +438,26 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
         </div>
 
         <DialogFooter className="shrink-0 border-t border-border bg-background px-4 py-2 sticky bottom-0">
-          <div className="flex gap-2 w-full">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-9">إلغاء</Button>
-          <Button onClick={handleSave} className="gap-1.5 flex-1 h-9">
+          <div className="flex gap-2 w-full flex-wrap">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 min-w-[80px] h-9">إلغاء</Button>
+          {reviewerValues && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setGoodBoxes(reviewerValues.goodBoxes ? String(reviewerValues.goodBoxes) : '');
+                setGoodPieces(reviewerValues.goodPieces ? String(reviewerValues.goodPieces) : '');
+                setDamagedBoxes(reviewerValues.damagedBoxes ? String(reviewerValues.damagedBoxes) : '');
+                setDamagedPieces(reviewerValues.damagedPieces ? String(reviewerValues.damagedPieces) : '');
+              }}
+              className="gap-1.5 flex-1 min-w-[100px] h-9 bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/25"
+              title="نسخ مدخلات مسؤول المخزن إلى الحقول"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              تأكيد
+            </Button>
+          )}
+          <Button onClick={handleSave} className="gap-1.5 flex-1 min-w-[80px] h-9">
             <Save className="w-4 h-4" />
             حفظ
           </Button>
