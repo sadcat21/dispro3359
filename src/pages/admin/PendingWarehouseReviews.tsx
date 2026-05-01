@@ -49,6 +49,27 @@ const PendingWarehouseReviews: React.FC = () => {
 
   const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending' || i.meta.decision_status === 'auto_approved'), [items]);
 
+  // جلب المتوقع التالف من warehouse_stock لكل منتجات الفرع — لاحتساب الفجوة على البطاقات
+  const productIds = useMemo(
+    () => Array.from(new Set(items.map(i => i.product_id).filter(Boolean))) as string[],
+    [items]
+  );
+  const { data: stockMap } = useQuery({
+    queryKey: ['warehouse-stock-damaged-map', activeBranch?.id, productIds.join(',')],
+    queryFn: async () => {
+      if (!activeBranch?.id || productIds.length === 0) return {} as Record<string, number>;
+      const { data } = await supabase
+        .from('warehouse_stock')
+        .select('product_id, damaged_quantity')
+        .eq('branch_id', activeBranch.id)
+        .in('product_id', productIds);
+      const map: Record<string, number> = {};
+      (data || []).forEach((r: any) => { map[r.product_id] = Number(r.damaged_quantity || 0); });
+      return map;
+    },
+    enabled: !!activeBranch?.id && productIds.length > 0,
+  });
+
   // المتوقع التالف من warehouse_stock للعنصر المفتوح
   const { data: reviewItemStock } = useQuery({
     queryKey: ['warehouse-stock-damaged', reviewItem?.product_id, reviewItem?.session?.branch_id],
