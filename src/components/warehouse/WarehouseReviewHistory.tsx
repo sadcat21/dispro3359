@@ -79,7 +79,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
     queryFn: async () => {
       const { data, error } = await supabase
         .from('warehouse_review_items')
-        .select('*, product:products(name, pieces_per_box)')
+        .select('*, product:products(name, pieces_per_box, image_url)')
         .eq('session_id', viewSessionId!)
         .order('created_at', { ascending: true });
       if (error) throw error;
