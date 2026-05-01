@@ -11,6 +11,7 @@ import { Loader2, CheckCircle, AlertTriangle, Package, ClipboardCheck, TrendingU
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import palletImage from '@/assets/pallet.png';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const fmtQty = (n: number) => {
   const rounded = Math.round(n * 100) / 100;
@@ -80,7 +81,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
     queryFn: async () => {
       const { data, error } = await supabase
         .from('warehouse_review_items')
-        .select('*, product:products(name, pieces_per_box, image_url)')
+        .select('*, product:products(name, app_name, pieces_per_box, image_url)')
         .eq('session_id', viewSessionId!)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -228,10 +229,10 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                       <AlertTriangle className="w-3 h-3" />
                       الفوارق ({discrepancyItems.length})
                     </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {discrepancyItems.map(item => {
                         const imgUrl = (item.product as any)?.image_url as string | null | undefined;
-                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (getProductDisplayName(item.product as any) || '—');
                         const isDeficit = item._status === 'deficit';
                         const diffStr = formatDiffDisplay(item, item._diff.absDiff, item._diff.piecesPerBox);
                         return (
@@ -285,10 +286,10 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                       <CheckCircle className="w-3 h-3" />
                       مطابق ({matchedItemsView.length})
                     </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {matchedItemsView.map(item => {
                         const imgUrl = (item.product as any)?.image_url as string | null | undefined;
-                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (getProductDisplayName(item.product as any) || '—');
                         return (
                           <div
                             key={item.id}
