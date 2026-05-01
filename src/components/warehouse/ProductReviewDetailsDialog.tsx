@@ -450,7 +450,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 const p = totalPieces % ppb;
                 return { b, p };
               };
-              const g = fillFrom(expectedGoodAdjusted);
+              const g = fillFrom(simpleMode ? expected : expectedGoodAdjusted);
               const d = fillFrom(expectedDamaged);
               setGoodBoxes(g.b > 0 ? String(g.b) : '');
               setGoodPieces(g.p > 0 ? String(g.p) : '');
