@@ -134,6 +134,23 @@ const BranchManagerHome: React.FC = () => {
       ],
     },
     {
+      titleKey: 'branch_manager.section_approvals',
+      icon: ShieldCheck,
+      items: [
+        { key: 'all_approvals', label: 'كل الموافقات', icon: ShieldCheck, path: '/branch-approvals', badge: (kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0) },
+        { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: FileText, path: '/branch-invoice-approvals', badge: kpis?.pendingInvoices },
+        { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardList, path: '/warehouse-review' },
+        {
+          key: 'factory_approvals',
+          label: 'موافقات استلام/تسليم المصنع',
+          icon: Truck,
+          onClick: () => setFactoryApprovalsOpen(true),
+          badge: kpis?.pendingStock,
+        },
+        { key: 'manager_accounting_review', label: t('admin_home.item.manager_accounting_review'), icon: BookOpenCheck, path: '/manager-accounting-review' },
+      ],
+    },
+    {
       titleKey: 'branch_manager.section_finance',
       icon: Wallet,
       items: [
@@ -142,7 +159,6 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'expenses_management', label: t('branch_manager.expenses_management'), icon: Receipt, path: '/expenses-management' },
         { key: 'shared_invoices', label: t('nav.shared_invoices'), icon: FileText, path: '/shared-invoices' },
-        { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: ShieldCheck, path: '/branch-invoice-approvals', badge: kpis?.pendingInvoices },
       ],
     },
     {
@@ -152,13 +168,6 @@ const BranchManagerHome: React.FC = () => {
         { key: 'manager_treasury', label: t('nav.manager_treasury'), icon: Wallet, path: '/manager-treasury' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
-        {
-          key: 'factory_approvals',
-          label: 'موافقات استلام/تسليم المصنع',
-          icon: Truck,
-          onClick: () => setFactoryApprovalsOpen(true),
-          badge: kpis?.pendingStock,
-        },
       ],
     },
     {
@@ -166,7 +175,6 @@ const BranchManagerHome: React.FC = () => {
       icon: BookOpenCheck,
       items: [
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
-        { key: 'manager_accounting_review', label: t('admin_home.item.manager_accounting_review'), icon: BookOpenCheck, path: '/manager-accounting-review' },
       ],
     },
   ];
