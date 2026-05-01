@@ -433,6 +433,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 );
               })()}
             </div>
+            )}
           </div>
         </div>
 
