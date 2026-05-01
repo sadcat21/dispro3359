@@ -300,7 +300,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                           >
                             <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                               {item.item_type === 'pallet' ? (
-                                <span className="text-4xl">🪵</span>
+                                <img src={palletImage} alt="الباليطات" className="w-full h-full object-cover" loading="lazy" />
                               ) : imgUrl ? (
                                 <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
