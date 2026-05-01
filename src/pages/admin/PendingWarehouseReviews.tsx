@@ -20,6 +20,7 @@ import { usePendingReviewItems, useApplyManagerDecision, type ReviewItemMeta } f
 import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
+import ReviewCardMovementBadge from '@/components/warehouse/ReviewCardMovementBadge';
 import { format } from 'date-fns';
 
 const fmtPlain = (n: number) => {
