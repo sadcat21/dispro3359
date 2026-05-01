@@ -156,16 +156,25 @@ const PendingWarehouseReviews: React.FC = () => {
     const newStockQty = item.item_type === 'product'
       ? (ppb > 1 ? parseFloat(boxesToBP(newActual, ppb)) : newActual)
       : null;
+    // كمية التالف بصيغة DB B.P
+    const dmgBoxes = details.damagedBoxes || 0;
+    const dmgPieces = details.damagedPieces || 0;
+    const newDamagedStockQty = item.item_type === 'product' && (dmgBoxes > 0 || dmgPieces > 0)
+      ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
+      : 0;
     try {
       await applyDecision.mutateAsync({
         itemId: item.id,
         productId: item.product_id,
         itemType: item.item_type,
         currentMeta: item.meta as ReviewItemMeta,
-        decision: 'absorb_deficit', // أي قرار غير reject — نستعمله كـ "موافق"
+        decision: 'absorb_deficit',
         managerNotes: 'تمت المراجعة — مطابق بعد إعادة العد',
         branchId: item.session?.branch_id || activeBranch?.id || null,
         newStockQty,
+        newDamagedStockQty,
+        surplusQty: 0,
+        deficitQty: 0,
         newActualQuantity: newActual,
         newStatus: 'matched',
         newBoxesQuantity: details.boxes,
