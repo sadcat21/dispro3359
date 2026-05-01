@@ -447,6 +447,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/branch-approvals" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
+          <BranchManagerApprovals />
+        </ProtectedRoute>
+      } />
+
       <Route path="/surplus-deficit" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <SurplusDeficitTreasury />
