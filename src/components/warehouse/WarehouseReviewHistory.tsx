@@ -275,18 +275,31 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                       <CheckCircle className="w-3 h-3" />
                       مطابق ({matchedItemsView.length})
                     </p>
-                    {matchedItemsView.map(item => (
-                      <div key={item.id} className="bg-muted/40 border border-border rounded-lg px-3 py-2 flex items-center justify-between">
-                        <span className="text-sm">
-                          {item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—'}
-                          {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{formatReviewQty(item, item.expected_quantity)}</span>
-                          <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                    {matchedItemsView.map(item => {
+                      const imgUrl = (item.product as any)?.image_url as string | null | undefined;
+                      const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                      return (
+                        <div key={item.id} className="bg-muted/40 border border-border rounded-lg px-3 py-2 flex items-center gap-2">
+                          {item.item_type !== 'pallet' && (
+                            <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border/60">
+                              {imgUrl ? (
+                                <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <Package className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          )}
+                          <span className="text-sm flex-1 truncate">
+                            {productName}
+                            {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
+                          </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-muted-foreground">{formatReviewQty(item, item.expected_quantity)}</span>
+                            <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
