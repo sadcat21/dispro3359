@@ -198,7 +198,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
 
       {/* Session details dialog */}
       <Dialog open={!!viewSessionId} onOpenChange={open => { if (!open) setViewSessionId(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-2xl h-[90dvh] overflow-hidden flex flex-col p-4 sm:p-6" dir="rtl">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <ClipboardCheck className="w-4 h-4 text-primary" />
@@ -211,8 +211,8 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
           ) : (
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="space-y-3 pe-1 pb-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pe-1 pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="space-y-3">
                 {viewSession && (
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="text-muted-foreground">التاريخ:</div>
@@ -245,7 +245,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                           >
                             <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                               {item.item_type === 'pallet' ? (
-                                <span className="text-4xl">🪵</span>
+                                <img src={palletImage} alt="الباليطات" className="w-full h-full object-cover" loading="lazy" />
                               ) : imgUrl ? (
                                 <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
@@ -332,7 +332,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>
