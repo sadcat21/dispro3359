@@ -105,11 +105,27 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
   // المتوقع الصالح بعد الحركة
   const expectedGoodAdjusted = Math.max(0, expected - expectedDamaged + (movementsNetChange || 0));
-  // فجوة منفصلة للصالح والتالف
-  const goodDiff = goodParsed.totalBoxes - expectedGoodAdjusted;
-  const damagedDiff = damagedParsed.totalBoxes - expectedDamaged;
-  const hasGoodGap = Math.abs(goodDiff) >= 0.01;
-  const hasDamagedGap = Math.abs(damagedDiff) >= 0.01;
+
+  // ====== فجوة مسؤول المخزن (تُستخدم للشارة واللون) ======
+  // محسوبة بناءً على ما أدخله مسؤول المخزن مقارنةً بالمتوقع
+  const reviewerGoodTotal =
+    (Math.max(0, reviewerValues?.goodBoxes || 0)) +
+    (Math.max(0, reviewerValues?.goodPieces || 0)) / ppb;
+  const reviewerDamagedTotal =
+    (Math.max(0, reviewerValues?.damagedBoxes || 0)) +
+    (Math.max(0, reviewerValues?.damagedPieces || 0)) / ppb;
+  const hasReviewerInput =
+    (reviewerValues?.goodBoxes || 0) + (reviewerValues?.goodPieces || 0) +
+    (reviewerValues?.damagedBoxes || 0) + (reviewerValues?.damagedPieces || 0) > 0;
+
+  const goodDiff = reviewerGoodTotal - expectedGoodAdjusted;
+  const damagedDiff = reviewerDamagedTotal - expectedDamaged;
+  const hasGoodGap = hasReviewerInput && Math.abs(goodDiff) >= 0.01;
+  const hasDamagedGap = hasReviewerInput && Math.abs(damagedDiff) >= 0.01;
+
+  // فجوة مدخلات المدير (للملخص الإجمالي فقط — لا تؤثر على الشارة/اللون)
+  const managerGoodDiff = goodParsed.totalBoxes - expectedGoodAdjusted;
+  const managerDamagedDiff = damagedParsed.totalBoxes - expectedDamaged;
   const isMatch = !hasGoodGap && !hasDamagedGap && grandTotal > 0;
   const isSurplus = diff > 0.01;
   const hasInput = grandTotal > 0;
