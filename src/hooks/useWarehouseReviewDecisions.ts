@@ -178,24 +178,30 @@ export const useApplyManagerDecision = () => {
           .eq('product_id', params.productId);
 
         const discRows: any[] = [];
+        const discrepancyWorkerId = params.reviewerWorkerId || params.currentMeta.reviewer_worker_id || workerId;
         if ((params.surplusQty || 0) > 0) {
           discRows.push({
+            worker_id: discrepancyWorkerId,
             branch_id: params.branchId,
             product_id: params.productId,
             discrepancy_type: 'surplus',
             quantity: params.surplusQty,
+            remaining_quantity: params.surplusQty,
           });
         }
         if ((params.deficitQty || 0) > 0) {
           discRows.push({
+            worker_id: discrepancyWorkerId,
             branch_id: params.branchId,
             product_id: params.productId,
             discrepancy_type: 'deficit',
             quantity: params.deficitQty,
+            remaining_quantity: params.deficitQty,
           });
         }
         if (discRows.length > 0) {
-          await supabase.from('stock_discrepancies').insert(discRows);
+          const { error: discErr } = await supabase.from('stock_discrepancies').insert(discRows);
+          if (discErr) throw discErr;
         }
       }
 
@@ -206,6 +212,7 @@ export const useApplyManagerDecision = () => {
       queryClient.invalidateQueries({ queryKey: ['warehouse-review-history'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-product-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-discrepancies'] });
       queryClient.invalidateQueries({ queryKey: ['worker-debts'] });
     },
   });
