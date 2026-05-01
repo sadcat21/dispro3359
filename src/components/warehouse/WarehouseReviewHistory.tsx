@@ -197,7 +197,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
 
       {/* Session details dialog */}
       <Dialog open={!!viewSessionId} onOpenChange={open => { if (!open) setViewSessionId(null); }}>
-        <DialogContent className="max-w-md max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <ClipboardCheck className="w-4 h-4 text-primary" />
