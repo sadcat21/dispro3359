@@ -336,6 +336,14 @@ const PendingWarehouseReviews: React.FC = () => {
                       <Package className="w-10 h-10 text-muted-foreground/50" />
                     )}
                     {statusBadge}
+                    {item.item_type === 'product' && !isDecided && (
+                      <ReviewCardMovementBadge
+                        productId={item.product_id}
+                        branchId={item.session?.branch_id || null}
+                        sinceIso={item.created_at}
+                        piecesPerBox={ppb}
+                      />
+                    )}
                     {!isMatched && (
                       <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
                         isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'
