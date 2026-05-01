@@ -47,7 +47,69 @@ const PendingWarehouseReviews: React.FC = () => {
 
   const visible = showDecided ? decided : pending;
 
-  const openDialog = (item: any) => {
+  // فتح نافذة مراجعة المنتج (الكميات) — يجب أن تُفتح أولاً قبل القرار
+  const openReview = (item: any) => {
+    setReviewItem(item);
+  };
+
+  // عند حفظ تعديلات الكميات من نافذة المراجعة
+  const handleReviewSave = (details: ProductReviewDetails) => {
+    if (!reviewItem) return;
+    const ppb = reviewItem.product?.pieces_per_box || 1;
+    const expected = Number(reviewItem.expected_quantity || 0);
+    // الإجمالي = الصالح + التالف بالصناديق الكسرية
+    const totalPieces = (details.boxes * ppb + details.pieces) + ((details.damagedBoxes || 0) * ppb + (details.damagedPieces || 0));
+    const newActual = ppb > 1 ? totalPieces / ppb : totalPieces;
+    const diff = newActual - expected;
+    const newStatus: 'matched' | 'surplus' | 'deficit' =
+      Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
+
+    setOverrides(prev => ({
+      ...prev,
+      [reviewItem.id]: { actual: newActual, status: newStatus, details },
+    }));
+
+    // نُغلق نافذة المراجعة ونفتح نافذة القرار بناءً على الحالة الجديدة
+    const updatedItem = { ...reviewItem, actual_quantity: newActual, status: newStatus };
+    setReviewItem(null);
+
+    if (newStatus === 'matched') {
+      // مطابق → نطبّق القرار تلقائياً (لا حاجة لاختيار)
+      applyMatched(updatedItem, details);
+    } else {
+      openDecisionDialog(updatedItem);
+    }
+  };
+
+  const applyMatched = async (item: any, details: ProductReviewDetails) => {
+    const ppb = item.product?.pieces_per_box || 1;
+    const newActual = Number(item.actual_quantity || 0);
+    const newStockQty = item.item_type === 'product'
+      ? (ppb > 1 ? parseFloat(boxesToBP(newActual, ppb)) : newActual)
+      : null;
+    try {
+      await applyDecision.mutateAsync({
+        itemId: item.id,
+        productId: item.product_id,
+        itemType: item.item_type,
+        currentMeta: item.meta as ReviewItemMeta,
+        decision: 'absorb_deficit', // أي قرار غير reject — نستعمله كـ "موافق"
+        managerNotes: 'تمت المراجعة — مطابق بعد إعادة العد',
+        branchId: item.session?.branch_id || activeBranch?.id || null,
+        newStockQty,
+        newActualQuantity: newActual,
+        newStatus: 'matched',
+        newBoxesQuantity: details.boxes,
+        newPiecesQuantity: details.pieces,
+        newDamagedQuantity: details.damaged,
+      });
+      toast.success('تم اعتماد المنتج كمطابق ✅');
+    } catch (err: any) {
+      toast.error(err.message || 'فشل الحفظ');
+    }
+  };
+
+  const openDecisionDialog = (item: any) => {
     setDialogItem(item);
     setChosenDecision(null);
     setManagerNotes('');
@@ -70,24 +132,19 @@ const PendingWarehouseReviews: React.FC = () => {
     const itemType = dialogItem.item_type;
     const expected = Number(dialogItem.expected_quantity || 0);
     const actual = Number(dialogItem.actual_quantity || 0);
-    const diffBoxes = actual - expected; // بالـ boxes (للمنتج) أو بالوحدات (للباليت)
+    const diffBoxes = actual - expected;
+    const override = overrides[dialogItem.id];
 
-    // المخزون الجديد بصيغة DB BP
     let newStockQty: number | null = null;
     if (itemType === 'product') {
-      // للمنتج: نخزن في DB بصيغة BP
-      // accept_surplus / charge_worker / absorb_deficit → نضع الفعلي
-      // reject_surplus → لا نُحدّث (سيتم تجاهل التحديث في hook)
       const actualForDb = ppb > 1 ? parseFloat(boxesToBP(actual, ppb)) : actual;
       newStockQty = actualForDb;
     }
 
-    // مبلغ الدين عند خصم على المسؤول
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
       const price = parseFloat(unitPrice) || 0;
-      const deficitBoxes = Math.abs(diffBoxes); // عجز
-      // السعر لكل صندوق
+      const deficitBoxes = Math.abs(diffBoxes);
       debtAmount = price * deficitBoxes;
       if (debtAmount <= 0) {
         toast.error('أدخل سعر الوحدة لاحتساب قيمة الدين');
@@ -108,6 +165,12 @@ const PendingWarehouseReviews: React.FC = () => {
         debtDescription: `عجز في مراجعة المخزون - ${dialogItem.product?.name || dialogItem.item_type} (${fmtQty(Math.abs(diffBoxes), ppb)})`,
         branchId: dialogItem.session?.branch_id || activeBranch?.id || null,
         newStockQty,
+        // إذا كان هناك override، نحدّث الكميات في DB
+        newActualQuantity: override ? override.actual : null,
+        newStatus: override ? override.status : null,
+        newBoxesQuantity: override ? override.details.boxes : null,
+        newPiecesQuantity: override ? override.details.pieces : null,
+        newDamagedQuantity: override ? override.details.damaged : null,
       });
       toast.success('تم تطبيق القرار بنجاح');
       closeDialog();
