@@ -270,11 +270,15 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                                     {productName}
                                     {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
                                   </p>
-                                  <div className="flex items-center justify-center gap-1 flex-wrap">
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-semibold bg-background">
+                                  <div className="flex flex-col gap-1">
+                                    <Badge className="text-[12px] px-2 py-1 font-bold justify-center bg-green-600 text-white hover:bg-green-600 border-0">
                                       متوقع: {formatReviewQty(item, item.expected_quantity)}
                                     </Badge>
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-semibold bg-background">
+                                    <Badge className={`text-[12px] px-2 py-1 font-bold justify-center border-0 ${
+                                      isDeficit
+                                        ? 'bg-destructive text-destructive-foreground hover:bg-destructive'
+                                        : 'bg-amber-400 text-black hover:bg-amber-400'
+                                    }`}>
                                       فعلي: {formatReviewQty(item, item.actual_quantity)}
                                     </Badge>
                                   </div>
