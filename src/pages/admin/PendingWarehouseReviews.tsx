@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePendingReviewItems, useApplyManagerDecision, type ReviewItemMeta } from '@/hooks/useWarehouseReviewDecisions';
-import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPToBoxes, parseBP } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import ReviewCardMovementBadge from '@/components/warehouse/ReviewCardMovementBadge';
@@ -32,6 +32,12 @@ const fmtPlain = (n: number) => {
 };
 
 const fmtQty = (n: number, ppb: number) => (ppb > 1 ? boxesToBP(n, ppb) : fmtPlain(n));
+const toDbBP = (quantityInBoxes: number, ppb: number) => (
+  ppb > 1 ? parseFloat(boxesToBP(quantityInBoxes, ppb)) : quantityInBoxes
+);
+const partsToDbBP = (boxes = 0, pieces = 0, ppb: number) => (
+  ppb > 1 ? parseFloat(parseBP(`${boxes}.${String(pieces).padStart(2, '0')}`, ppb).display) : boxes
+);
 
 const PendingWarehouseReviews: React.FC = () => {
   const navigate = useNavigate();
