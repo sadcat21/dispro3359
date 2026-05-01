@@ -35,6 +35,12 @@ interface Props {
   /** قيم مسؤول المخزن — لتظهر للمدير كاشارة أسفل كل حقل */
   reviewerValues?: { goodBoxes?: number; goodPieces?: number; damagedBoxes?: number; damagedPieces?: number };
   reviewerName?: string;
+  /** صافي حركة المنتج بعد المراجعة (موجب = دخول، سالب = خروج) بالصناديق الكسرية */
+  movementsNetChange?: number;
+  /** قائمة الحركات للعرض */
+  movements?: Array<{ id: string; movement_type: string; sign: 1 | -1; qtyBoxes: number; created_at: string; notes?: string | null }>;
+  /** ترجمة نوع الحركة */
+  movementTypeLabel?: (t: string) => string;
   onSave: (details: ProductReviewDetails) => void;
 }
 
