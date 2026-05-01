@@ -28,7 +28,9 @@ interface Props {
   productName: string;
   imageUrl?: string | null;
   piecesPerBox: number;
-  expected: number; // متوقع بالصناديق (كسري)
+  expected: number; // متوقع الإجمالي بالصناديق (كسري)
+  /** المتوقع التالف من قاعدة البيانات (بالصناديق الكسرية) */
+  expectedDamaged?: number;
   initial?: ProductReviewDetails;
   /** قيم مسؤول المخزن — لتظهر للمدير كاشارة أسفل كل حقل */
   reviewerValues?: { goodBoxes?: number; goodPieces?: number; damagedBoxes?: number; damagedPieces?: number };
