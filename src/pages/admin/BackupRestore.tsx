@@ -15,6 +15,7 @@ import {
   ExternalLink, Clock, History, FileSpreadsheet, Play, ArrowLeftRight
 } from "lucide-react";
 import CloneProjectTab from "@/components/backup/CloneProjectTab";
+import SchemaScriptTab from "@/components/backup/SchemaScriptTab";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
