@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, CheckCircle, AlertTriangle, Package, ClipboardCheck, TrendingUp, TrendingDown, History } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import palletImage from '@/assets/pallet.png';
 
 const fmtQty = (n: number) => {
   const rounded = Math.round(n * 100) / 100;
@@ -20,8 +21,8 @@ const formatReviewQty = (item: any, value: number) => {
   const numeric = Number(value || 0);
   if (item.item_type === 'pallet') return fmtQty(numeric);
   const piecesPerBox = Number((item.product as any)?.pieces_per_box || 1);
-  // DB stores quantities in B.P format (decimal part = pieces count, not fraction)
-  return piecesPerBox > 1 ? dbBPDisplay(numeric, piecesPerBox) : fmtQty(numeric);
+  // Review records store product quantities as real boxes; display them in B.P format.
+  return piecesPerBox > 1 ? boxesToBP(numeric, piecesPerBox) : fmtQty(numeric);
 };
 
 // Compute true numerical difference accounting for B.P storage format.
@@ -37,8 +38,8 @@ const computeDiff = (item: any) => {
     expectedReal = expected;
     actualReal = actual;
   } else {
-    expectedReal = dbBPToBoxes(expected, piecesPerBox);
-    actualReal = dbBPToBoxes(actual, piecesPerBox);
+    expectedReal = expected;
+    actualReal = actual;
   }
 
   const diff = actualReal - expectedReal;
