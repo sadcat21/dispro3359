@@ -121,10 +121,11 @@ const PendingWarehouseReviews: React.FC = () => {
     return map[tier] || 0;
   };
 
-  // تُحسب على ضوء ما يمثله السعر المُدخل (basis) وعدد الوحدات في الصندوق
-  const computePrices = (product: any, unitPriceVal: number, basis: 'box' | 'kg' | 'unit', wpbOverride: number) => {
+  // تُحسب على ضوء نوع التسعير المعرَّف في إدارة المنتجات (pricing_unit)
+  const computePrices = (product: any, unitPriceVal: number) => {
     const ppb = Math.max(1, Number(product?.pieces_per_box || 1));
-    const weightPerBox = wpbOverride > 0 ? wpbOverride : Number(product?.weight_per_box || 0);
+    const weightPerBox = Number(product?.weight_per_box || 0);
+    const basis: 'box' | 'kg' | 'unit' = (product?.pricing_unit === 'kg' || product?.pricing_unit === 'unit') ? product.pricing_unit : 'box';
     let boxPrice = unitPriceVal;
     if (basis === 'kg' && weightPerBox > 0) {
       boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × عدد الكغ في الصندوق
@@ -132,7 +133,7 @@ const PendingWarehouseReviews: React.FC = () => {
       boxPrice = unitPriceVal * ppb; // سعر/قطعة × عدد القطع في الصندوق
     }
     const piecePrice = ppb > 0 ? boxPrice / ppb : boxPrice;
-    return { boxPrice, piecePrice, ppb, weightPerBox };
+    return { boxPrice, piecePrice, ppb, weightPerBox, basis };
   };
 
   const openDecisionDialog = (item: any) => {
