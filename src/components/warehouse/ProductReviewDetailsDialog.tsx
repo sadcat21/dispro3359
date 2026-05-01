@@ -383,20 +383,47 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               (hasGoodGap || hasDamagedGap) ? 'border-destructive/50 bg-destructive/5' :
               'border-border bg-muted/30'
             }`}>
-              <div className="flex items-center justify-between text-xs gap-2">
-                <span className="font-medium">الإجمالي الفعلي (صالح + تالف):</span>
-                <span className="font-bold text-sm whitespace-nowrap">{boxesToBP(grandTotal, ppb)} صندوق</span>
-              </div>
-              <div className="mt-1 text-lg font-black text-center">
-                = {totalCombinedBoxes} صندوق + {totalCombinedPieces} قطعة
-              </div>
+              {(() => {
+                const reviewerGrand = reviewerGoodTotal + reviewerDamagedTotal;
+                const totalDiff = reviewerGrand - expected;
+                const hasTotalGap = hasReviewerInput && Math.abs(totalDiff) >= 0.01;
+                const totalGapParts = partsOf(totalDiff);
+                return (
+                  <>
+                    <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-medium">الإجمالي الفعلي (صالح + تالف):</span>
+                        {hasTotalGap && (
+                          <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
+                            totalDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
+                          }`}>
+                            {totalDiff > 0 ? 'فائض' : 'عجز'}: {totalDiff > 0 ? '+' : '-'}{formatBPFromParts(totalGapParts.boxes, totalGapParts.pieces)}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="font-bold text-sm whitespace-nowrap">{boxesToBP(grandTotal, ppb)} صندوق</span>
+                    </div>
+                    <div className="mt-1 text-lg font-black text-center">
+                      = {totalCombinedBoxes} صندوق + {totalCombinedPieces} قطعة
+                    </div>
 
-              {/* الفرق الإجمالي فقط للمعلومة (التفصيل يظهر بجانب عناوين الأقسام) */}
-              {Math.abs(diff) >= 0.01 && (
-                <div className="mt-2 text-[11px] text-muted-foreground text-center pt-1.5 border-t border-border/40">
-                  الفرق الإجمالي: <span className="font-bold text-foreground">{diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}</span>
-                </div>
-              )}
+                    {hasReviewerInput && (
+                      <div className="mt-2 text-[11px] text-muted-foreground text-center pt-1.5 border-t border-border/40 space-y-0.5">
+                        <div>
+                          المتوقع الكلي: <span className="font-bold text-foreground">{boxesToBP(expected, ppb)}</span>
+                          {' • '}
+                          فعلي مسؤول المخزن: <span className="font-bold text-foreground">{boxesToBP(reviewerGrand, ppb)}</span>
+                        </div>
+                        {Math.abs(diff) >= 0.01 && (
+                          <div>
+                            الفرق (مدخلات المدير − المتوقع): <span className="font-bold text-foreground">{diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
