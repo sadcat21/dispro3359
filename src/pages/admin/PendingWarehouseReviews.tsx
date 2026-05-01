@@ -258,9 +258,9 @@ const PendingWarehouseReviews: React.FC = () => {
       const goodBoxes = override?.details.boxes ?? Number(dialogItem.boxes_quantity || 0);
       const goodPieces = override?.details.pieces ?? Number(dialogItem.pieces_quantity || 0);
       const actualGood = goodBoxes + goodPieces / ppb;
-      newStockQty = chosenDecision === 'accept_surplus'
-        ? toDbBP(expected, ppb)
-        : toDbBP(actualGood, ppb);
+      // الكمية الجديدة في المخزون = الكمية الفعلية المعدودة (سواء كان فائض أو عجز أو مطابق)
+      // الفائض/العجز يُسجل بشكل منفصل في جدول الفروقات للمتابعة فقط
+      newStockQty = toDbBP(actualGood, ppb);
       // التالف بصيغة DB B.P (من override أو من البند الأصلي)
       const dmgBoxes = override?.details.damagedBoxes ?? 0;
       const dmgPieces = override?.details.damagedPieces ?? 0;
