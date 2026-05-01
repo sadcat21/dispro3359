@@ -11,6 +11,7 @@ import { Loader2, CheckCircle, AlertTriangle, Package, ClipboardCheck, TrendingU
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import palletImage from '@/assets/pallet.png';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const fmtQty = (n: number) => {
   const rounded = Math.round(n * 100) / 100;
