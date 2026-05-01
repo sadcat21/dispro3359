@@ -324,8 +324,6 @@ const PendingWarehouseReviews: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {visible.map((item: any) => {
-              const isMatched = item.status === 'matched';
-              const isSurplus = item.status === 'surplus';
               const ppb = item.product?.pieces_per_box || 1;
               const expected = Number(item.expected_quantity || 0);
               const actual = Number(item.actual_quantity || 0);
