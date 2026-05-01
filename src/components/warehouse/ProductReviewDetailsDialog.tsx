@@ -330,7 +330,8 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
             </div>
 
-            {/* ============ القسم 2: التالف ============ */}
+            {!simpleMode && (
+            /* ============ القسم 2: التالف ============ */
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.damaged.container}`}>
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1.5 flex-wrap">
