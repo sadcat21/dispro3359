@@ -75,7 +75,7 @@ const PendingWarehouseReviews: React.FC = () => {
     setReviewItem(null);
 
     if (newStatus === 'matched') {
-      // مطابق → نطبّق القرار تلقائياً (لا حاجة لاختيار)
+      // مطابق → نعتمد المنتج تلقائياً
       applyMatched(updatedItem, details);
     } else {
       openDecisionDialog(updatedItem);
