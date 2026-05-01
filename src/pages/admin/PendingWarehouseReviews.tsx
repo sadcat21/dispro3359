@@ -84,7 +84,7 @@ const PendingWarehouseReviews: React.FC = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('warehouse_stock')
-        .select('damaged_quantity')
+        .select('quantity, damaged_quantity')
         .eq('branch_id', reviewItem.session.branch_id)
         .eq('product_id', reviewItem.product_id)
         .maybeSingle();
@@ -713,7 +713,9 @@ const PendingWarehouseReviews: React.FC = () => {
           simpleMode={reviewItem.item_type === 'pallet'}
           imageUrl={reviewItem.item_type === 'pallet' ? palletImage : reviewItem.product?.image_url}
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
-          expected={Number(reviewItem.expected_quantity || 0)}
+          expected={(reviewItemStock as any)?.quantity != null
+            ? dbBPToBoxes(Number((reviewItemStock as any).quantity || 0), reviewItem.product?.pieces_per_box || 1)
+            : Number(reviewItem.expected_quantity || 0)}
           expectedDamaged={dbBPToBoxes(Number((reviewItemStock as any)?.damaged_quantity || 0), reviewItem.product?.pieces_per_box || 1)}
           movementsNetChange={reviewItemMovements?.netChange || 0}
           movements={reviewItemMovements?.rows || []}
