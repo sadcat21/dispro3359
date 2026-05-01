@@ -102,32 +102,48 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   const totalCombinedBoxes = Math.floor(totalPiecesCombined / ppb);
   const totalCombinedPieces = totalPiecesCombined % ppb;
   const diff = grandTotal - expected;
-  const isMatch = Math.abs(diff) < 0.01 && grandTotal > 0;
+
+  // المتوقع الصالح بعد الحركة
+  const expectedGoodAdjusted = Math.max(0, expected - expectedDamaged + (movementsNetChange || 0));
+  // فجوة منفصلة للصالح والتالف
+  const goodDiff = goodParsed.totalBoxes - expectedGoodAdjusted;
+  const damagedDiff = damagedParsed.totalBoxes - expectedDamaged;
+  const hasGoodGap = Math.abs(goodDiff) >= 0.01;
+  const hasDamagedGap = Math.abs(damagedDiff) >= 0.01;
+  const isMatch = !hasGoodGap && !hasDamagedGap && grandTotal > 0;
   const isSurplus = diff > 0.01;
   const hasInput = grandTotal > 0;
 
   const sectionStyles = {
     good: {
-      container: isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
-        : isSurplus ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
+      container: !hasGoodGap && hasInput ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
+        : goodDiff > 0 ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
         : 'border-primary/30 bg-primary/5',
-      icon: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-primary',
-      title: isMatch ? 'text-green-700 dark:text-green-400' : isSurplus ? 'text-amber-700 dark:text-amber-400' : 'text-primary',
-      border: isMatch ? 'border-green-300/40' : isSurplus ? 'border-amber-300/40' : 'border-primary/20',
-      value: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-primary',
+      icon: !hasGoodGap && hasInput ? 'text-green-600' : goodDiff > 0 ? 'text-amber-600' : 'text-primary',
+      title: !hasGoodGap && hasInput ? 'text-green-700 dark:text-green-400' : goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-primary',
+      border: !hasGoodGap && hasInput ? 'border-green-300/40' : goodDiff > 0 ? 'border-amber-300/40' : 'border-primary/20',
+      value: !hasGoodGap && hasInput ? 'text-green-600' : goodDiff > 0 ? 'text-amber-600' : 'text-primary',
     },
     damaged: {
-      container: isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
-        : isSurplus ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
+      container: !hasDamagedGap && hasInput ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
+        : damagedDiff > 0 ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
         : 'border-destructive/30 bg-destructive/5',
-      icon: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-destructive',
-      title: isMatch ? 'text-green-700 dark:text-green-400' : isSurplus ? 'text-amber-700 dark:text-amber-400' : 'text-destructive',
-      border: isMatch ? 'border-green-300/40' : isSurplus ? 'border-amber-300/40' : 'border-destructive/20',
-      value: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-destructive',
+      icon: !hasDamagedGap && hasInput ? 'text-green-600' : damagedDiff > 0 ? 'text-amber-600' : 'text-destructive',
+      title: !hasDamagedGap && hasInput ? 'text-green-700 dark:text-green-400' : damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive',
+      border: !hasDamagedGap && hasInput ? 'border-green-300/40' : damagedDiff > 0 ? 'border-amber-300/40' : 'border-destructive/20',
+      value: !hasDamagedGap && hasInput ? 'text-green-600' : damagedDiff > 0 ? 'text-amber-600' : 'text-destructive',
     },
   };
 
-  // حساب الفائض/العجز بالصناديق والقطع
+  // حساب الفجوة بالصناديق والقطع لكل قسم
+  const partsOf = (val: number) => {
+    const total = Math.round(Math.abs(val) * ppb);
+    return { boxes: Math.floor(total / ppb), pieces: total % ppb };
+  };
+  const goodGapParts = partsOf(goodDiff);
+  const damagedGapParts = partsOf(damagedDiff);
+
+  // (للتوافق مع ملخص الإجمالي الكلي)
   const diffAbs = Math.abs(diff);
   const diffTotalPieces = Math.round(diffAbs * ppb);
   const diffBoxes = Math.floor(diffTotalPieces / ppb);
