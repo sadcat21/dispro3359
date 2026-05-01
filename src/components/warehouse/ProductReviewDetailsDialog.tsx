@@ -209,6 +209,13 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       className="text-center text-base font-bold h-9"
                     />
                     <ReviewerHint value={reviewerValues?.goodPieces} />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* ============ القسم 2: التالف ============ */}
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.damaged.container}`}>
               <div className="flex items-center gap-1.5">
                 <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
