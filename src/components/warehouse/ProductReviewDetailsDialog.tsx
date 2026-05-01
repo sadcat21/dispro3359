@@ -248,6 +248,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       onBlur={() => applyNormalizedValues(damagedBoxes, damagedPieces, setDamagedBoxes, setDamagedPieces)}
                       className="text-center text-base font-bold h-9"
                     />
+                    <ReviewerHint value={reviewerValues?.damagedPieces} />
                   </div>
                 </div>
             </div>
