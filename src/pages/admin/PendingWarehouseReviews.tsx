@@ -369,7 +369,7 @@ const PendingWarehouseReviews: React.FC = () => {
                   onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReview(item); } } : undefined}
                   className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${borderClass} ${clickable ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-transform' : ''}`}
                 >
-                  <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                  <div className="relative h-20 sm:h-24 md:aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {imgUrl ? (
                       <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
