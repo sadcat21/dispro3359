@@ -330,9 +330,11 @@ const PendingWarehouseReviews: React.FC = () => {
               const actual = Number(item.actual_quantity || 0);
               const meta: ReviewItemMeta = item.meta;
               const isDecided = meta.decision_status !== 'pending' && meta.decision_status !== 'auto_approved';
-              const imgUrl = item.product?.image_url as string | undefined;
+              const imgUrl = item.item_type === 'pallet'
+                ? palletImage
+                : (item.product?.image_url as string | undefined);
               const productName =
-                item.item_type === 'pallet' ? '🪵 الباليطات' :
+                item.item_type === 'pallet' ? 'الباليطات' :
                 item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
                 item.product?.name || '—';
 
