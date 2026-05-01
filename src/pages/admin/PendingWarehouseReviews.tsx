@@ -84,7 +84,7 @@ const PendingWarehouseReviews: React.FC = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('warehouse_stock')
-        .select('damaged_quantity')
+        .select('quantity, damaged_quantity')
         .eq('branch_id', reviewItem.session.branch_id)
         .eq('product_id', reviewItem.product_id)
         .maybeSingle();
