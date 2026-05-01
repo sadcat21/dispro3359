@@ -41,6 +41,8 @@ interface Props {
   movements?: Array<{ id: string; movement_type: string; sign: 1 | -1; qtyBoxes: number; created_at: string; notes?: string | null }>;
   /** ترجمة نوع الحركة */
   movementTypeLabel?: (t: string) => string;
+  /** وضع مبسّط (للباليطات): كمية واحدة فقط، بدون تالف ولا قطع */
+  simpleMode?: boolean;
   onSave: (details: ProductReviewDetails) => void;
 }
 
@@ -50,6 +52,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   open, onOpenChange, productName, imageUrl, piecesPerBox, expected, expectedDamaged = 0,
   initial, reviewerValues, reviewerName,
   movementsNetChange = 0, movements = [], movementTypeLabel: getMoveLabel,
+  simpleMode = false,
   onSave,
 }) => {
   const ppb = Math.max(1, piecesPerBox || 1);
@@ -271,7 +274,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
-                  <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
+                  <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>{simpleMode ? 'الكمية' : 'الكمية الصالحة'}</h3>
                   {hasGoodGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
                       goodDiff > 0 ? 'bg-amber-400 text-black hover:bg-amber-400' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
@@ -293,39 +296,42 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               </div>
 
               <div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className={simpleMode ? '' : 'grid grid-cols-2 gap-2'}>
                   <div className="space-y-0.5">
-                    <Label className="text-[11px] text-muted-foreground">صناديق</Label>
+                    {!simpleMode && <Label className="text-[11px] text-muted-foreground">صناديق</Label>}
                     <Input
                       type="text"
                       inputMode="numeric"
                       placeholder="0"
                       value={goodBoxes}
                       onChange={e => setGoodBoxes(sanitizeInt(e.target.value))}
-                      onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
+                      onBlur={() => !simpleMode && applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
                       className="text-center text-base font-bold h-9"
                     />
                     <ReviewerHint value={reviewerValues?.goodBoxes} />
                   </div>
-                  <div className="space-y-0.5">
-                    <Label className="text-[11px] text-muted-foreground">قطع</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="0"
-                      value={goodPieces}
-                      onChange={e => setGoodPieces(sanitizeInt(e.target.value))}
-                      onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
-                      className="text-center text-base font-bold h-9"
-                    />
-                    <ReviewerHint value={reviewerValues?.goodPieces} />
-                  </div>
+                  {!simpleMode && (
+                    <div className="space-y-0.5">
+                      <Label className="text-[11px] text-muted-foreground">قطع</Label>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={goodPieces}
+                        onChange={e => setGoodPieces(sanitizeInt(e.target.value))}
+                        onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
+                        className="text-center text-base font-bold h-9"
+                      />
+                      <ReviewerHint value={reviewerValues?.goodPieces} />
+                    </div>
+                  )}
                 </div>
               </div>
 
             </div>
 
-            {/* ============ القسم 2: التالف ============ */}
+            {!simpleMode && (
+            /* ============ القسم 2: التالف ============ */
             <div className={`rounded-lg border-2 p-2 space-y-1.5 transition-colors ${sectionStyles.damaged.container}`}>
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -376,8 +382,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             </div>
 
             </div>
+            )}
 
             {/* ملخص الإجمالي */}
+            {!simpleMode && (
             <div className={`rounded-lg p-2 border-2 ${
               isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' :
               (hasGoodGap || hasDamagedGap) ? 'border-destructive/50 bg-destructive/5' :
@@ -425,6 +433,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 );
               })()}
             </div>
+            )}
           </div>
         </div>
 
