@@ -252,12 +252,12 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                                 <Package className="w-10 h-10 text-muted-foreground/50" />
                               )}
                               <Badge className={`absolute top-1.5 start-1.5 text-[10px] shadow ${
-                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'
+                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-400 text-black'
                               }`}>
                                 {isDeficit ? 'عجز' : 'فائض'}
                               </Badge>
                               <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
-                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'
+                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-400 text-black'
                               }`}>
                                 {isDeficit ? '-' : '+'}{diffStr}
                               </div>
