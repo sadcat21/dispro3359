@@ -308,7 +308,13 @@ const WarehouseReview: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['warehouse-review-history'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-product-summary'] });
-      toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق، ${stats.surplus} فائض، ${stats.deficit} عجز`);
+      queryClient.invalidateQueries({ queryKey: ['warehouse-pending-review-items'] });
+      const pendingCount = stats.surplus + stats.deficit;
+      if (pendingCount > 0) {
+        toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق معتمد، و${pendingCount} فارق بانتظار قرار مدير الفرع`);
+      } else {
+        toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق`);
+      }
       
       // Reset for new review
       setActuals({});
