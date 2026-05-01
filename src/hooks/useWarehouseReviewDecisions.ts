@@ -80,6 +80,12 @@ export const useApplyManagerDecision = () => {
       // كميات لتعديل المخزون
       branchId?: string | null;
       newStockQty?: number | null;
+      // تحديث الكميات الفعلية (إذا أعاد المدير المراجعة)
+      newActualQuantity?: number | null;
+      newStatus?: 'matched' | 'surplus' | 'deficit' | null;
+      newBoxesQuantity?: number | null;
+      newPiecesQuantity?: number | null;
+      newDamagedQuantity?: number | null;
     }) => {
       let workerDebtId: string | null = null;
 
