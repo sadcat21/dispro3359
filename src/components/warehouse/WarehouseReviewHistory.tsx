@@ -20,7 +20,36 @@ const formatReviewQty = (item: any, value: number) => {
   const numeric = Number(value || 0);
   if (item.item_type === 'pallet') return fmtQty(numeric);
   const piecesPerBox = Number((item.product as any)?.pieces_per_box || 1);
-  return piecesPerBox > 1 ? boxesToBP(numeric, piecesPerBox) : fmtQty(numeric);
+  // DB stores quantities in B.P format (decimal part = pieces count, not fraction)
+  return piecesPerBox > 1 ? dbBPDisplay(numeric, piecesPerBox) : fmtQty(numeric);
+};
+
+// Compute true numerical difference accounting for B.P storage format.
+// Returns { absDiff, sign } where sign is -1 (deficit), 0 (matched), 1 (surplus).
+const computeDiff = (item: any) => {
+  const expected = Number(item.expected_quantity || 0);
+  const actual = Number(item.actual_quantity || 0);
+  const piecesPerBox = Number((item.product as any)?.pieces_per_box || 1);
+
+  let expectedReal: number;
+  let actualReal: number;
+  if (item.item_type === 'pallet' || piecesPerBox <= 1) {
+    expectedReal = expected;
+    actualReal = actual;
+  } else {
+    expectedReal = dbBPToBoxes(expected, piecesPerBox);
+    actualReal = dbBPToBoxes(actual, piecesPerBox);
+  }
+
+  const diff = actualReal - expectedReal;
+  const sign = Math.abs(diff) < 1e-6 ? 0 : diff > 0 ? 1 : -1;
+  return { absDiff: Math.abs(diff), sign, piecesPerBox };
+};
+
+const formatDiffDisplay = (item: any, absDiff: number, piecesPerBox: number) => {
+  if (item.item_type === 'pallet' || piecesPerBox <= 1) return fmtQty(absDiff);
+  // absDiff is fractional boxes -> use boxesToBP for display
+  return boxesToBP(absDiff, piecesPerBox);
 };
 
 interface WarehouseReviewHistoryProps {
