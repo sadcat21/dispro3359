@@ -159,14 +159,15 @@ const PendingWarehouseReviews: React.FC = () => {
   const applyMatched = async (item: any, details: ProductReviewDetails) => {
     const ppb = item.product?.pieces_per_box || 1;
     const newActual = Number(item.actual_quantity || 0);
+    const goodTotal = (details.boxes || 0) + (details.pieces || 0) / ppb;
     const newStockQty = item.item_type === 'product'
-      ? (ppb > 1 ? parseFloat(boxesToBP(newActual, ppb)) : newActual)
+      ? toDbBP(goodTotal, ppb)
       : null;
     // كمية التالف بصيغة DB B.P
     const dmgBoxes = details.damagedBoxes || 0;
     const dmgPieces = details.damagedPieces || 0;
-    const newDamagedStockQty = item.item_type === 'product' && (dmgBoxes > 0 || dmgPieces > 0)
-      ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
+    const newDamagedStockQty = item.item_type === 'product'
+      ? partsToDbBP(dmgBoxes, dmgPieces, ppb)
       : 0;
     try {
       await applyDecision.mutateAsync({
