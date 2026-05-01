@@ -382,8 +382,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             </div>
 
             </div>
+            )}
 
             {/* ملخص الإجمالي */}
+            {!simpleMode && (
             <div className={`rounded-lg p-2 border-2 ${
               isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' :
               (hasGoodGap || hasDamagedGap) ? 'border-destructive/50 bg-destructive/5' :
