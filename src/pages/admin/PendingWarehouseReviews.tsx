@@ -46,6 +46,21 @@ const PendingWarehouseReviews: React.FC = () => {
   const [managerNotes, setManagerNotes] = useState('');
 
   const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending' || i.meta.decision_status === 'auto_approved'), [items]);
+
+  // المتوقع التالف من warehouse_stock للعنصر المفتوح
+  const { data: reviewItemStock } = useQuery({
+    queryKey: ['warehouse-stock-damaged', reviewItem?.product_id, reviewItem?.session?.branch_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('warehouse_stock')
+        .select('damaged_quantity')
+        .eq('branch_id', reviewItem.session.branch_id)
+        .eq('product_id', reviewItem.product_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!reviewItem?.product_id && !!reviewItem?.session?.branch_id,
+  });
   const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending' && i.meta.decision_status !== 'auto_approved'), [items]);
 
   const visible = showDecided ? decided : pending;
