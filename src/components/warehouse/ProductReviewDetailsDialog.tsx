@@ -209,21 +209,19 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
            <div className="px-4 pt-4 pb-2 border-b border-border space-y-2">
              <DialogTitle className="flex items-start gap-2">
               {imageUrl ? (
-                 <img src={imageUrl} alt="" className="w-9 h-9 rounded-md object-cover border shrink-0" />
-              ) : (
-                 <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center shrink-0">
-                   <Package className="w-4 h-4 text-primary" />
-                </div>
-              )}
+                 <img src={imageUrl} alt="" className="w-9 h-9 rounded-md object-contain bg-muted border shrink-0" />
+              ) : null}
                <div className="min-w-0 flex-1 space-y-1">
                  <span className="block truncate text-right text-sm">{productName}</span>
                  <div className="flex flex-wrap items-center justify-end gap-1.5">
                    <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5">
                     المتوقع: {boxesToBP(expected, ppb)}
                   </Badge>
-                   <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
-                    {ppb} قطعة / صندوق
-                  </Badge>
+                   {!simpleMode && (
+                     <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
+                      {ppb} قطعة / صندوق
+                    </Badge>
+                   )}
                   {reviewerName && (
                     <Badge className="text-[10px] font-bold px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
                       مدخلات: {reviewerName}
