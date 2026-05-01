@@ -91,18 +91,98 @@ const SchemaScriptTab = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Split SQL respecting $$...$$ dollar-quoted blocks (functions/triggers).
+  const splitSql = (sql: string): string[] => {
+    const out: string[] = [];
+    let buf = "";
+    let i = 0;
+    let dollarTag = "";
+    while (i < sql.length) {
+      const ch = sql[i];
+      if (dollarTag) {
+        buf += ch;
+        if (ch === "$" && sql.substr(i).startsWith(dollarTag)) {
+          buf += dollarTag.slice(1);
+          i += dollarTag.length;
+          dollarTag = "";
+          continue;
+        }
+        i++; continue;
+      }
+      if (ch === "$") {
+        const m = sql.substr(i).match(/^\$[A-Za-z0-9_]*\$/);
+        if (m) { dollarTag = m[0]; buf += dollarTag; i += dollarTag.length; continue; }
+      }
+      if (ch === ";") {
+        const s = buf.trim(); if (s) out.push(s); buf = ""; i++; continue;
+      }
+      buf += ch; i++;
+    }
+    const tail = buf.trim(); if (tail) out.push(tail);
+    return out;
+  };
+
   const handleApply = async () => {
     if (!targetUrl || !targetPwd) { toast.error("أدخل بيانات المشروع الهدف"); return; }
     if (!content) { toast.error("السكربت لم يُحمّل بعد"); return; }
     setApplying(true); setApplyResult(null); setVerifyResult(null);
+
+    const BATCH_SIZE = 80;
+    const MAX_PASSES = 5;
+
     try {
-      const { data, error } = await supabase.functions.invoke("apply-schema", {
-        body: { step: "apply", target: { url: targetUrl, db_password: targetPwd }, sql: content },
+      let pending: string[] = splitSql(content);
+      const total = pending.length;
+      let totalExecuted = 0;
+      let totalSkipped = 0;
+      let lastErrors: { index: number; statement: string; error: string }[] = [];
+
+      for (let pass = 0; pass < MAX_PASSES && pending.length > 0; pass++) {
+        const failedThisPass: string[] = [];
+        const errorsThisPass: { index: number; statement: string; error: string }[] = [];
+
+        for (let off = 0; off < pending.length; off += BATCH_SIZE) {
+          const batch = pending.slice(off, off + BATCH_SIZE);
+          const { data, error } = await supabase.functions.invoke("apply-schema", {
+            body: {
+              step: "apply",
+              target: { url: targetUrl, db_password: targetPwd },
+              statements: batch,
+            },
+          });
+          if (error) throw new Error(error.message);
+          if (!data?.ok) throw new Error(data?.error || "فشل التنفيذ");
+
+          totalExecuted += data.executed || 0;
+          totalSkipped += data.skipped || 0;
+          if (data.failed_statements?.length) failedThisPass.push(...data.failed_statements);
+          if (data.errors?.length) errorsThisPass.push(...data.errors);
+
+          setApplyResult({
+            total,
+            executed: totalExecuted,
+            skipped: totalSkipped,
+            errors: errorsThisPass,
+          });
+        }
+
+        if (failedThisPass.length === pending.length) {
+          lastErrors = errorsThisPass;
+          pending = failedThisPass;
+          break;
+        }
+        lastErrors = errorsThisPass;
+        pending = failedThisPass;
+      }
+
+      setApplyResult({
+        total,
+        executed: totalExecuted,
+        skipped: totalSkipped,
+        errors: lastErrors,
       });
-      if (error) throw new Error(error.message);
-      if (!data?.ok) throw new Error(data?.error || "فشل التنفيذ");
-      setApplyResult(data);
-      if (data.errors?.length) toast.warning(`تم التنفيذ مع ${data.errors.length} أخطاء`);
+
+      if (lastErrors.length) toast.warning(`انتهى التنفيذ مع ${lastErrors.length} أخطاء متبقية`);
       else toast.success("تم تنفيذ كل الأوامر بنجاح");
     } catch (e: any) {
       toast.error(e.message || "فشل التنفيذ");
