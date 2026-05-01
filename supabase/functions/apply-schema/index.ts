@@ -249,7 +249,17 @@ serve(async (req) => {
 
         const all_ok = checks.every((c) => c.ok);
 
-        return json({ ok: true, all_ok, checks, actual });
+      // ============================================================
+      // STEP 3: RESET (drop & recreate public schema)
+      // ============================================================
+      if (step === "reset") {
+        await client.queryArray(`DROP SCHEMA IF EXISTS public CASCADE;`);
+        await client.queryArray(`CREATE SCHEMA public;`);
+        await client.queryArray(`GRANT ALL ON SCHEMA public TO postgres;`);
+        await client.queryArray(`GRANT ALL ON SCHEMA public TO public;`);
+        await client.queryArray(`GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;`);
+        await client.queryArray(`GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;`);
+        return json({ ok: true, message: "تم تفريغ قاعدة البيانات بنجاح" });
       }
 
       return json({ ok: false, error: "خطوة غير معروفة" }, 400);
