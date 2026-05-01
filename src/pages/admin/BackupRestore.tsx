@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { 
   Database, Download, Upload, Image, Settings, CheckCircle, 
   XCircle, Loader2, CloudUpload, RefreshCw, ArrowLeft, Copy, Info,
-  ExternalLink, Clock, History, FileSpreadsheet, Play, ArrowLeftRight
+  ExternalLink, Clock, History, FileSpreadsheet, Play, ArrowLeftRight, FileCode
 } from "lucide-react";
 import CloneProjectTab from "@/components/backup/CloneProjectTab";
 import SchemaScriptTab from "@/components/backup/SchemaScriptTab";
