@@ -34,7 +34,10 @@ const PendingWarehouseReviews: React.FC = () => {
   const applyDecision = useApplyManagerDecision();
 
   const [showDecided, setShowDecided] = useState(false);
+  const [reviewItem, setReviewItem] = useState<any | null>(null); // للنافذة الأولى (تعديل الكميات)
   const [dialogItem, setDialogItem] = useState<any | null>(null);
+  // الكميات التي عدّلها المدير لكل عنصر (overrides)
+  const [overrides, setOverrides] = useState<Record<string, { actual: number; status: 'matched' | 'surplus' | 'deficit'; details: ProductReviewDetails }>>({});
   const [chosenDecision, setChosenDecision] = useState<'accept_surplus' | 'reject_surplus' | 'charge_worker' | 'absorb_deficit' | null>(null);
   const [unitPrice, setUnitPrice] = useState<string>('');
   const [managerNotes, setManagerNotes] = useState('');
