@@ -247,8 +247,9 @@ const PendingWarehouseReviews: React.FC = () => {
     const itemType = dialogItem.item_type;
     const expected = Number(dialogItem.expected_quantity || 0);
     const actual = Number(dialogItem.actual_quantity || 0);
-    const diffBoxes = actual - expected;
     const override = overrides[dialogItem.id];
+    const confirmedActual = override?.actual ?? actual;
+    const diffBoxes = confirmedActual - expected;
 
     let newStockQty: number | null = null;
     let newDamagedStockQty: number | null = null;
@@ -257,10 +258,9 @@ const PendingWarehouseReviews: React.FC = () => {
     if (itemType === 'product') {
       const goodBoxes = override?.details.boxes ?? Number(dialogItem.boxes_quantity || 0);
       const goodPieces = override?.details.pieces ?? Number(dialogItem.pieces_quantity || 0);
-      const actualGood = goodBoxes + goodPieces / ppb;
-      // الكمية الجديدة في المخزون = الكمية الفعلية المعدودة (سواء كان فائض أو عجز أو مطابق)
-      // الفائض/العجز يُسجل بشكل منفصل في جدول الفروقات للمتابعة فقط
-      newStockQty = toDbBP(actualGood, ppb);
+      // الكمية الجديدة في المخزون = الإجمالي الفعلي المؤكد بصيغة صناديق.قطع.
+      // مثال: 2843.09 + قطعة واحدة مع 20 قطعة/صندوق = 2843.10، وليس 2843.1 كمعنى عشري.
+      newStockQty = toDbBP(confirmedActual, ppb);
       // التالف بصيغة DB B.P (من override أو من البند الأصلي)
       const dmgBoxes = override?.details.damagedBoxes ?? 0;
       const dmgPieces = override?.details.damagedPieces ?? 0;

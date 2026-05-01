@@ -1,6 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { parseBP } from '@/utils/boxPieceInput';
+
+const dbBPToPieces = (quantity: number, piecesPerBox: number): number => (
+  parseBP(Number(quantity || 0).toFixed(2), Math.max(1, Math.round(piecesPerBox || 1))).totalPieces
+);
+
+const piecesToDbBP = (totalPieces: number, piecesPerBox: number): number => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  const safePieces = Math.max(0, Math.round(totalPieces));
+  const boxes = Math.floor(safePieces / ppb);
+  const pieces = safePieces % ppb;
+  return parseFloat(pieces > 0 ? `${boxes}.${String(pieces).padStart(2, '0')}` : String(boxes));
+};
 
 // نخزن قرار المدير داخل حقل notes كـ JSON لتجنّب تعديل المخطط
 export interface ReviewItemMeta {
@@ -154,8 +167,31 @@ export const useApplyManagerDecision = () => {
         params.decision !== 'reject_surplus'
       ) {
         // تحديث الكمية الصالحة والتالفة في مخزون الفرع
+        // الفائض/العجز يُضاف أو يُطرح من المتبقي الحالي كقطع، وليس كجمع عشري عادي.
         const stockUpdate: { quantity?: number; damaged_quantity?: number } = {};
-        if (params.newStockQty !== null && params.newStockQty !== undefined) {
+        const shouldAdjustCurrentStock =
+          params.decision === 'accept_surplus' || params.decision === 'absorb_deficit' || params.decision === 'charge_worker';
+
+        if (shouldAdjustCurrentStock && ((params.surplusQty || 0) > 0 || (params.deficitQty || 0) > 0)) {
+          const [{ data: stockRow }, { data: productRow }] = await Promise.all([
+            supabase
+              .from('warehouse_stock')
+              .select('quantity')
+              .eq('branch_id', params.branchId)
+              .eq('product_id', params.productId)
+              .maybeSingle(),
+            supabase
+              .from('products')
+              .select('pieces_per_box')
+              .eq('id', params.productId)
+              .maybeSingle(),
+          ]);
+          const ppb = Math.max(1, Number((productRow as any)?.pieces_per_box || 1));
+          const currentPieces = dbBPToPieces(Number((stockRow as any)?.quantity || 0), ppb);
+          const surplusPieces = dbBPToPieces(Number(params.surplusQty || 0), ppb);
+          const deficitPieces = dbBPToPieces(Number(params.deficitQty || 0), ppb);
+          stockUpdate.quantity = piecesToDbBP(currentPieces + surplusPieces - deficitPieces, ppb);
+        } else if (params.newStockQty !== null && params.newStockQty !== undefined) {
           stockUpdate.quantity = params.newStockQty;
         }
         if (params.newDamagedStockQty !== null && params.newDamagedStockQty !== undefined) {
