@@ -421,7 +421,7 @@ const PendingWarehouseReviews: React.FC = () => {
                     <AlertTriangle className="w-3 h-3" />فجوة
                   </Badge>;
 
-              const clickable = !isDecided && (item.item_type === 'product' || item.item_type === 'pallet');
+              const clickable = !isDecided && (item.item_type === 'product' || item.item_type === 'pallet' || item.item_type === 'damaged');
               return (
                 <div
                   key={item.id}
