@@ -213,7 +213,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pe-1 pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pe-1 pb-1 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <div className="space-y-3">
                 {viewSession && (
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -321,18 +321,18 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                               ) : (
                                 <Package className="w-10 h-10 text-muted-foreground/50" />
                               )}
-                              <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-green-600 text-white shadow">
+                              <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-green-600 text-white shadow hover:bg-green-600">
                                 مطابق
                               </Badge>
-                              <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow bg-green-600 text-white">
-                                {formatReviewQty(item, item.expected_quantity)}
-                              </div>
                             </div>
-                            <div className="p-2">
+                            <div className="p-2 space-y-1.5">
                               <p className="text-[12px] font-bold leading-tight line-clamp-2 min-h-[30px] text-center">
                                 {productName}
                                 {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
                               </p>
+                              <Badge className="w-full text-[12px] px-2 py-1 font-bold justify-center bg-green-600 text-white hover:bg-green-600 border-0">
+                                الكمية: {formatReviewQty(item, item.expected_quantity)}
+                              </Badge>
                             </div>
                           </div>
                         );
