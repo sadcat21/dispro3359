@@ -325,7 +325,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                               </div>
                             </div>
                             <div className="p-2">
-                              <p className="text-[11px] font-medium leading-tight line-clamp-2 min-h-[28px]">
+                              <p className="text-[12px] font-bold leading-tight line-clamp-2 min-h-[30px] text-center">
                                 {productName}
                                 {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
                               </p>
