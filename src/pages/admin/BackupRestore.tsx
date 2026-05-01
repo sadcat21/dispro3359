@@ -770,6 +770,11 @@ function doGet(e) {
           <CloneProjectTab />
         </TabsContent>
 
+        {/* SQL Schema Script Tab */}
+        <TabsContent value="schema" className="space-y-4">
+          <SchemaScriptTab />
+        </TabsContent>
+
         {/* Logs Tab */}
         <TabsContent value="logs" className="space-y-4">
           <Card>
