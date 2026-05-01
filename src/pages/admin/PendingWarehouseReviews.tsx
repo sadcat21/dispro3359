@@ -318,10 +318,15 @@ const PendingWarehouseReviews: React.FC = () => {
                 ? <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-amber-500 text-white shadow">فائض</Badge>
                 : <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-destructive text-destructive-foreground shadow">عجز</Badge>;
 
+              const clickable = !isDecided && item.item_type === 'product';
               return (
                 <div
                   key={item.id}
-                  className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${borderClass}`}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={clickable ? () => openReview(item) : undefined}
+                  onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReview(item); } } : undefined}
+                  className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${borderClass} ${clickable ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-transform' : ''}`}
                 >
                   <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {imgUrl ? (
