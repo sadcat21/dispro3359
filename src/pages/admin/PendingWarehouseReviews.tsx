@@ -110,13 +110,44 @@ const PendingWarehouseReviews: React.FC = () => {
     }
   };
 
+  const getProductTierPrice = (product: any, tier: 'invoice' | 'retail' | 'gros' | 'super_gros'): number => {
+    if (!product) return 0;
+    const map: Record<string, number> = {
+      invoice: Number(product.price_invoice || 0),
+      retail: Number(product.price_retail || 0),
+      gros: Number(product.price_gros || 0),
+      super_gros: Number(product.price_super_gros || 0),
+    };
+    return map[tier] || 0;
+  };
+
+  // يحوّل سعر الوحدة (حسب pricing_unit) إلى سعر الصندوق وسعر القطعة
+  const computePrices = (product: any, unitPriceVal: number) => {
+    const ppb = Math.max(1, Number(product?.pieces_per_box || 1));
+    const pricingUnit = product?.pricing_unit || 'box';
+    const weightPerBox = Number(product?.weight_per_box || 0);
+    let boxPrice = unitPriceVal;
+    if (pricingUnit === 'kg' && weightPerBox > 0) {
+      boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × كغ/صندوق
+    } else if (pricingUnit === 'unit') {
+      boxPrice = unitPriceVal * ppb; // سعر/قطعة × قطعة/صندوق
+    }
+    const piecePrice = ppb > 0 ? boxPrice / ppb : boxPrice;
+    return { boxPrice, piecePrice, ppb, pricingUnit, weightPerBox };
+  };
+
   const openDecisionDialog = (item: any) => {
     setDialogItem(item);
     setChosenDecision(null);
     setManagerNotes('');
     const product = item.product;
-    const defaultPrice = product?.price_invoice || product?.price_gros || product?.price_super_gros || product?.price_retail || 0;
-    setUnitPrice(String(defaultPrice));
+    // افتراضي: سعر الفاتورة إن وُجد، وإلا الجملة
+    const defaultTier: 'invoice' | 'retail' | 'gros' | 'super_gros' =
+      product?.price_invoice ? 'invoice' :
+      product?.price_gros ? 'gros' :
+      product?.price_super_gros ? 'super_gros' : 'retail';
+    setPriceTier(defaultTier);
+    setUnitPrice(String(getProductTierPrice(product, defaultTier)));
   };
 
   const closeDialog = () => {
