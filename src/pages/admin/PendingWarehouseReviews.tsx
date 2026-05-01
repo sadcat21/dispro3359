@@ -97,7 +97,24 @@ const PendingWarehouseReviews: React.FC = () => {
   });
   const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending' && i.meta.decision_status !== 'auto_approved'), [items]);
 
-  const visible = showDecided ? decided : pending;
+  const visible = useMemo(() => {
+    const base = showDecided ? decided : pending;
+    const computeHasGap = (item: any) => {
+      const ppb = item.product?.pieces_per_box || 1;
+      const expected = Number(item.expected_quantity || 0);
+      const actual = Number(item.actual_quantity || 0);
+      const expectedDamaged = item.product_id
+        ? dbBPToBoxes(Number(stockMap?.[item.product_id] || 0), ppb)
+        : 0;
+      const expectedGood = Math.max(0, expected - expectedDamaged);
+      const actualDamagedRaw = Number(item.damaged_quantity || 0);
+      const actualDamaged = ppb > 1 ? dbBPToBoxes(actualDamagedRaw, ppb) : actualDamagedRaw;
+      const actualGood = Math.max(0, actual - actualDamaged);
+      return Math.abs(actualGood - expectedGood) >= 0.01 || Math.abs(actualDamaged - expectedDamaged) >= 0.01;
+    };
+    // ذات الفجوة أولاً ثم المطابقة
+    return [...base].sort((a, b) => Number(computeHasGap(b)) - Number(computeHasGap(a)));
+  }, [showDecided, decided, pending, stockMap]);
 
   // فتح نافذة مراجعة المنتج (الكميات) — يجب أن تُفتح أولاً قبل القرار
   const openReview = (item: any) => {
