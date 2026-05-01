@@ -446,11 +446,6 @@ const PendingWarehouseReviews: React.FC = () => {
                         piecesPerBox={ppb}
                       />
                     )}
-                    {hasGap && (
-                      <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold shadow bg-destructive text-destructive-foreground">
-                        فجوة
-                      </div>
-                    )}
                   </div>
 
                   <div className="p-2 space-y-1.5 flex-1 flex flex-col">
