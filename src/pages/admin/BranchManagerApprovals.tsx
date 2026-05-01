@@ -39,7 +39,7 @@ const BranchManagerApprovals: React.FC = () => {
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('status', 'pending_branch'),
         supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true })
-          .eq('decision_status', 'pending'),
+          .eq('status', 'pending'),
         supabase.from('stock_receipts').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
         supabase.from('factory_orders').select('id', { count: 'exact', head: true })
