@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { boxesToBP } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPToBoxes, dbBPDisplay } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,36 @@ const formatReviewQty = (item: any, value: number) => {
   const numeric = Number(value || 0);
   if (item.item_type === 'pallet') return fmtQty(numeric);
   const piecesPerBox = Number((item.product as any)?.pieces_per_box || 1);
-  return piecesPerBox > 1 ? boxesToBP(numeric, piecesPerBox) : fmtQty(numeric);
+  // DB stores quantities in B.P format (decimal part = pieces count, not fraction)
+  return piecesPerBox > 1 ? dbBPDisplay(numeric, piecesPerBox) : fmtQty(numeric);
+};
+
+// Compute true numerical difference accounting for B.P storage format.
+// Returns { absDiff, sign } where sign is -1 (deficit), 0 (matched), 1 (surplus).
+const computeDiff = (item: any) => {
+  const expected = Number(item.expected_quantity || 0);
+  const actual = Number(item.actual_quantity || 0);
+  const piecesPerBox = Number((item.product as any)?.pieces_per_box || 1);
+
+  let expectedReal: number;
+  let actualReal: number;
+  if (item.item_type === 'pallet' || piecesPerBox <= 1) {
+    expectedReal = expected;
+    actualReal = actual;
+  } else {
+    expectedReal = dbBPToBoxes(expected, piecesPerBox);
+    actualReal = dbBPToBoxes(actual, piecesPerBox);
+  }
+
+  const diff = actualReal - expectedReal;
+  const sign = Math.abs(diff) < 1e-6 ? 0 : diff > 0 ? 1 : -1;
+  return { absDiff: Math.abs(diff), sign, piecesPerBox };
+};
+
+const formatDiffDisplay = (item: any, absDiff: number, piecesPerBox: number) => {
+  if (item.item_type === 'pallet' || piecesPerBox <= 1) return fmtQty(absDiff);
+  // absDiff is fractional boxes -> use boxesToBP for display
+  return boxesToBP(absDiff, piecesPerBox);
 };
 
 interface WarehouseReviewHistoryProps {
@@ -50,7 +79,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
     queryFn: async () => {
       const { data, error } = await supabase
         .from('warehouse_review_items')
-        .select('*, product:products(name, pieces_per_box)')
+        .select('*, product:products(name, pieces_per_box, image_url)')
         .eq('session_id', viewSessionId!)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -77,11 +106,17 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
   }
 
   const viewSession = sessions.find(s => s.id === viewSessionId);
-  const productItems = sessionItems.filter(i => i.item_type === 'product');
-  const damagedItems = sessionItems.filter(i => i.item_type === 'damaged');
-  const palletItems = sessionItems.filter(i => i.item_type === 'pallet');
-  const discrepancyItems = sessionItems.filter(i => i.status !== 'matched');
-  const matchedItemsView = sessionItems.filter(i => i.status === 'matched');
+  // Recompute status using B.P-aware diff to avoid false discrepancies caused by legacy decimal-based saves
+  const itemsWithDiff = sessionItems.map((i: any) => {
+    const d = computeDiff(i);
+    const recomputedStatus = d.sign === 0 ? 'matched' : d.sign > 0 ? 'surplus' : 'deficit';
+    return { ...i, _diff: d, _status: recomputedStatus };
+  });
+  const productItems = itemsWithDiff.filter(i => i.item_type === 'product');
+  const damagedItems = itemsWithDiff.filter(i => i.item_type === 'damaged');
+  const palletItems = itemsWithDiff.filter(i => i.item_type === 'pallet');
+  const discrepancyItems = itemsWithDiff.filter(i => i._status !== 'matched');
+  const matchedItemsView = itemsWithDiff.filter(i => i._status === 'matched');
 
   return (
     <div className="space-y-3">
@@ -192,28 +227,45 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                       <AlertTriangle className="w-3 h-3" />
                       الفوارق ({discrepancyItems.length})
                     </p>
-                    {discrepancyItems.map(item => (
-                      <div key={item.id} className={`rounded-lg px-3 py-2.5 ${
-                        item.status === 'deficit' ? 'bg-destructive/10 border border-destructive/30' : 'bg-amber-50 dark:bg-amber-950/10 border border-amber-300'
-                      }`}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-semibold">
-                            {item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—'}
-                            {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
-                          </span>
-                          <Badge className={`text-[10px] ${item.status === 'deficit' ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'}`}>
-                            {item.status === 'deficit' ? 'عجز' : 'فائض'}
-                          </Badge>
+                    {discrepancyItems.map(item => {
+                      const imgUrl = (item.product as any)?.image_url as string | null | undefined;
+                      const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                      const isDeficit = item._status === 'deficit';
+                      const diffStr = formatDiffDisplay(item, item._diff.absDiff, item._diff.piecesPerBox);
+                      return (
+                        <div key={item.id} className={`rounded-lg px-3 py-2.5 flex gap-3 ${
+                          isDeficit ? 'bg-destructive/10 border border-destructive/30' : 'bg-amber-50 dark:bg-amber-950/10 border border-amber-300'
+                        }`}>
+                          {item.item_type !== 'pallet' && (
+                            <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border/60">
+                              {imgUrl ? (
+                                <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <Package className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1 gap-2">
+                              <span className="text-sm font-semibold truncate">
+                                {productName}
+                                {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
+                              </span>
+                              <Badge className={`text-[10px] shrink-0 ${isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'}`}>
+                                {isDeficit ? 'عجز' : 'فائض'}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                              <span>المتوقع: <b>{formatReviewQty(item, item.expected_quantity)}</b></span>
+                              <span>الفعلي: <b>{formatReviewQty(item, item.actual_quantity)}</b></span>
+                              <span className="font-bold" style={{ color: isDeficit ? '#c00' : '#e65100' }}>
+                                {isDeficit ? '-' : '+'}{diffStr}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          <span>المتوقع: <b>{formatReviewQty(item, item.expected_quantity)}</b></span>
-                          <span>الفعلي: <b>{formatReviewQty(item, item.actual_quantity)}</b></span>
-                          <span className="font-bold" style={{ color: item.status === 'deficit' ? '#c00' : '#e65100' }}>
-                            {item.status === 'deficit' ? '-' : '+'}{formatReviewQty(item, Math.abs(item.difference || 0))}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
@@ -223,18 +275,31 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                       <CheckCircle className="w-3 h-3" />
                       مطابق ({matchedItemsView.length})
                     </p>
-                    {matchedItemsView.map(item => (
-                      <div key={item.id} className="bg-muted/40 border border-border rounded-lg px-3 py-2 flex items-center justify-between">
-                        <span className="text-sm">
-                          {item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—'}
-                          {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{formatReviewQty(item, item.expected_quantity)}</span>
-                          <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                    {matchedItemsView.map(item => {
+                      const imgUrl = (item.product as any)?.image_url as string | null | undefined;
+                      const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                      return (
+                        <div key={item.id} className="bg-muted/40 border border-border rounded-lg px-3 py-2 flex items-center gap-2">
+                          {item.item_type !== 'pallet' && (
+                            <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border/60">
+                              {imgUrl ? (
+                                <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <Package className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          )}
+                          <span className="text-sm flex-1 truncate">
+                            {productName}
+                            {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
+                          </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-muted-foreground">{formatReviewQty(item, item.expected_quantity)}</span>
+                            <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
