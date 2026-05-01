@@ -216,6 +216,8 @@ const BranchManagerHome: React.FC = () => {
               accent={kpis?.pendingInvoices ? 'alert' : 'blue'}
               onClick={() => navigate('/branch-invoice-approvals')}
             />
+          </div>
+
           {/* زر الموافقات البارز */}
           <button
             onClick={() => navigate('/branch-approvals')}
@@ -237,7 +239,6 @@ const BranchManagerHome: React.FC = () => {
             )}
           </button>
         </div>
-      </div>
       </div>
 
       {/* Sections */}
