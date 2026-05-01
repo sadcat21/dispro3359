@@ -633,7 +633,7 @@ const PendingWarehouseReviews: React.FC = () => {
           onOpenChange={(o) => { if (!o) setReviewItem(null); }}
           productName={reviewItem.item_type === 'pallet' ? 'الباليطات' : (getProductDisplayName(reviewItem.product) || '—')}
           simpleMode={reviewItem.item_type === 'pallet'}
-          imageUrl={reviewItem.product?.image_url}
+          imageUrl={reviewItem.item_type === 'pallet' ? palletImage : reviewItem.product?.image_url}
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
           expectedDamaged={dbBPToBoxes(Number((reviewItemStock as any)?.damaged_quantity || 0), reviewItem.product?.pieces_per_box || 1)}
