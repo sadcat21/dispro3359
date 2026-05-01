@@ -214,9 +214,11 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                <div className="min-w-0 flex-1 space-y-1">
                  <span className="block truncate text-right text-sm">{productName}</span>
                  <div className="flex flex-wrap items-center justify-end gap-1.5">
-                   <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5">
-                    المتوقع: {boxesToBP(expected, ppb)}
-                  </Badge>
+                   {!simpleMode && (
+                     <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5">
+                      المتوقع: {boxesToBP(expected, ppb)}
+                    </Badge>
+                   )}
                    {!simpleMode && (
                      <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
                       {ppb} قطعة / صندوق
