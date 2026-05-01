@@ -55,7 +55,7 @@ const PendingWarehouseReviews: React.FC = () => {
   const [unitPrice, setUnitPrice] = useState<string>('');
   const [managerNotes, setManagerNotes] = useState('');
 
-  const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending' || i.meta.decision_status === 'auto_approved'), [items]);
+  const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending'), [items]);
 
   // جلب المتوقع التالف من warehouse_stock لكل منتجات الفرع — لاحتساب الفجوة على البطاقات
   const productIds = useMemo(
