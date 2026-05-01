@@ -318,10 +318,15 @@ const PendingWarehouseReviews: React.FC = () => {
                 ? <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-amber-500 text-white shadow">فائض</Badge>
                 : <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-destructive text-destructive-foreground shadow">عجز</Badge>;
 
+              const clickable = !isDecided && item.item_type === 'product';
               return (
                 <div
                   key={item.id}
-                  className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${borderClass}`}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={clickable ? () => openReview(item) : undefined}
+                  onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReview(item); } } : undefined}
+                  className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${borderClass} ${clickable ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-transform' : ''}`}
                 >
                   <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {imgUrl ? (
@@ -371,17 +376,7 @@ const PendingWarehouseReviews: React.FC = () => {
                       <div className="flex justify-center mt-auto">
                         {renderDecisionBadge(meta)}
                       </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => openReview(item)}
-                        disabled={item.item_type !== 'product'}
-                        className="w-full h-9 mt-auto gap-1 text-[11px] bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 text-primary-foreground font-bold shadow"
-                      >
-                        <ClipboardCheck className="w-3.5 h-3.5" />
-                        مراجعة إدارية
-                      </Button>
-                    )}
+                    ) : null}
 
                     {overrides[item.id] && !isDecided && (
                       <div className="text-[9px] bg-primary/10 border border-primary/30 rounded p-1 text-center">
