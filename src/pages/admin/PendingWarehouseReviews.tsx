@@ -503,26 +503,6 @@ const PendingWarehouseReviews: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="bg-primary/5 border border-primary/20 rounded p-2 text-[11px]">
-                        نوع التسعير (من إدارة المنتجات): <b>{basisLabelFull}</b>
-                        {basis === 'kg' && (
-                          <span> • وزن الصندوق: <b>{weightPerBox || '—'}</b> كغ</span>
-                        )}
-                        {basis === 'unit' && (
-                          <span> • قطع/صندوق: <b>{pp}</b></span>
-                        )}
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label className="text-xs">سعر الوحدة ({unitLabel})</Label>
-                        <Input
-                          type="number"
-                          value={unitPrice}
-                          onChange={(e) => setUnitPrice(e.target.value)}
-                          className="h-9 text-sm"
-                        />
-                      </div>
-
                       <div className="bg-muted/60 rounded p-2 text-[11px] space-y-0.5">
                         <div>عدد {unitsLabel === 'صندوق' ? 'القطع' : unitsLabel} في الصندوق: <b>{unitsPerBox || pp}</b></div>
                         {basis !== 'box' && (
