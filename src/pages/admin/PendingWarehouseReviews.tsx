@@ -313,7 +313,7 @@ const PendingWarehouseReviews: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 pt-3 space-y-2">
+      <div className="px-2 sm:px-4 pt-3 space-y-2">
         {visible.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-sm text-muted-foreground">
