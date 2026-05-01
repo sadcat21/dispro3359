@@ -269,121 +269,113 @@ const PendingWarehouseReviews: React.FC = () => {
           <Card>
             <CardContent className="py-12 text-center text-sm text-muted-foreground">
               <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              {showDecided ? 'لا توجد قرارات بعد' : 'لا توجد فوارق معلّقة 🎉'}
+              {showDecided ? 'لا توجد قرارات بعد' : 'لا توجد بنود للمراجعة 🎉'}
             </CardContent>
           </Card>
         ) : (
-          visible.map((item: any) => {
-            const isSurplus = item.status === 'surplus';
-            const ppb = item.product?.pieces_per_box || 1;
-            const expected = Number(item.expected_quantity || 0);
-            const actual = Number(item.actual_quantity || 0);
-            const diff = Math.abs(actual - expected);
-            const meta: ReviewItemMeta = item.meta;
-            const isDecided = meta.decision_status !== 'pending';
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {visible.map((item: any) => {
+              const isMatched = item.status === 'matched';
+              const isSurplus = item.status === 'surplus';
+              const ppb = item.product?.pieces_per_box || 1;
+              const expected = Number(item.expected_quantity || 0);
+              const actual = Number(item.actual_quantity || 0);
+              const diff = Math.abs(actual - expected);
+              const meta: ReviewItemMeta = item.meta;
+              const isDecided = meta.decision_status !== 'pending' && meta.decision_status !== 'auto_approved';
+              const imgUrl = item.product?.image_url as string | undefined;
+              const productName =
+                item.item_type === 'pallet' ? '🪵 الباليطات' :
+                item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
+                item.product?.name || '—';
 
-            const itemLabel =
-              item.item_type === 'pallet' ? '🪵 الباليطات' :
-              item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
-              item.product?.name || '—';
+              const borderClass = isMatched
+                ? 'border-green-500 bg-green-50/40 dark:bg-green-950/10'
+                : isSurplus
+                ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/10'
+                : 'border-destructive bg-destructive/5';
 
-            return (
-              <Card
-                key={item.id}
-                className={`border ${
-                  isSurplus
-                    ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/10'
-                    : 'border-destructive/40 bg-destructive/5'
-                }`}
-              >
-                <CardContent className="p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {isSurplus
-                        ? <TrendingUp className="w-4 h-4 text-amber-600 shrink-0" />
-                        : <TrendingDown className="w-4 h-4 text-destructive shrink-0" />}
-                      <span className="text-sm font-semibold truncate">{itemLabel}</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Badge className={`text-[10px] ${isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'}`}>
-                        {isSurplus ? 'فائض' : 'عجز'}
-                      </Badge>
-                      {renderDecisionBadge(meta)}
-                    </div>
-                  </div>
+              const statusBadge = isMatched
+                ? <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-green-600 text-white shadow">مطابق</Badge>
+                : isSurplus
+                ? <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-amber-500 text-white shadow">فائض</Badge>
+                : <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-destructive text-destructive-foreground shadow">عجز</Badge>;
 
-                  <div className="grid grid-cols-3 gap-1 text-xs">
-                    <div className="bg-muted/60 rounded px-2 py-1">
-                      <div className="text-[9px] text-muted-foreground">المتوقع</div>
-                      <div className="font-bold">{fmtQty(expected, ppb)}</div>
-                    </div>
-                    <div className="bg-muted/60 rounded px-2 py-1">
-                      <div className="text-[9px] text-muted-foreground">الفعلي</div>
-                      <div className="font-bold">{fmtQty(actual, ppb)}</div>
-                    </div>
-                    <div className={`rounded px-2 py-1 ${isSurplus ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                      <div className="text-[9px] text-muted-foreground">الفرق</div>
-                      <div className={`font-extrabold ${isSurplus ? 'text-amber-700' : 'text-destructive'}`}>
+              return (
+                <div
+                  key={item.id}
+                  className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${borderClass}`}
+                >
+                  <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                    {imgUrl ? (
+                      <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <Package className="w-10 h-10 text-muted-foreground/50" />
+                    )}
+                    {statusBadge}
+                    {!isMatched && (
+                      <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
+                        isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'
+                      }`}>
                         {isSurplus ? '+' : '-'}{fmtQty(diff, ppb)}
                       </div>
-                    </div>
+                    )}
                   </div>
 
-                  <div className="text-[10px] text-muted-foreground flex items-center justify-between">
-                    <span>المراجع: {item.session?.reviewer?.full_name || '—'}</span>
-                    <span>{item.session?.created_at ? format(new Date(item.session.created_at), 'dd/MM HH:mm') : ''}</span>
-                  </div>
+                  <div className="p-2 space-y-1.5 flex-1 flex flex-col">
+                    <p className="text-[12px] font-bold leading-tight line-clamp-2 min-h-[30px] text-center">
+                      {productName}
+                    </p>
 
-                  {isDecided && meta.manager_notes && (
-                    <div className="text-[11px] bg-card border rounded p-2">
-                      <span className="text-muted-foreground">ملاحظة المدير: </span>
-                      <span>{meta.manager_notes}</span>
-                    </div>
-                  )}
-                  {isDecided && meta.manager_decision_by_name && (
-                    <div className="text-[10px] text-muted-foreground">
-                      قرار: {meta.manager_decision_by_name}
-                      {meta.manager_decision_at && ` • ${format(new Date(meta.manager_decision_at), 'dd/MM HH:mm')}`}
-                    </div>
-                  )}
+                    {isMatched ? (
+                      <Badge className="w-full text-[12px] px-2 py-1 font-bold justify-center bg-green-600 text-white border-0">
+                        الكمية: {fmtQty(expected, ppb)}
+                      </Badge>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        <Badge className="text-[11px] px-2 py-1 font-bold justify-center bg-green-600 text-white border-0">
+                          متوقع: {fmtQty(expected, ppb)}
+                        </Badge>
+                        <Badge className={`text-[11px] px-2 py-1 font-bold justify-center border-0 ${
+                          isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'
+                        }`}>
+                          فعلي: {fmtQty(actual, ppb)}
+                        </Badge>
+                      </div>
+                    )}
 
-                  {!isDecided && (
-                    <div className="space-y-1.5">
-                      {overrides[item.id] && (
-                        <div className="text-[10px] bg-primary/10 border border-primary/30 rounded p-1.5 text-center">
-                          ✓ تمت إعادة المراجعة — الكمية الجديدة: <b>{fmtQty(overrides[item.id].actual, ppb)}</b>
-                          {' '}({overrides[item.id].status === 'matched' ? 'مطابق' : overrides[item.id].status === 'surplus' ? 'فائض' : 'عجز'})
-                        </div>
-                      )}
+                    <div className="text-[9px] text-muted-foreground text-center">
+                      {item.session?.created_at ? format(new Date(item.session.created_at), 'dd/MM HH:mm') : ''}
+                      {' • '}
+                      {item.session?.reviewer?.full_name || '—'}
+                    </div>
+
+                    {isDecided ? (
+                      <div className="flex justify-center mt-auto">
+                        {renderDecisionBadge(meta)}
+                      </div>
+                    ) : (
                       <Button
                         size="sm"
-                        variant="outline"
                         onClick={() => openReview(item)}
                         disabled={item.item_type !== 'product'}
-                        className="w-full gap-1 h-9 text-xs"
+                        className="w-full h-9 mt-auto gap-1 text-[11px] bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 text-primary-foreground font-bold shadow"
                       >
                         <ClipboardCheck className="w-3.5 h-3.5" />
-                        مراجعة كميات المنتج
+                        مراجعة إدارية
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => openDecisionDialog(item)}
-                        disabled={item.item_type === 'product' && !overrides[item.id]}
-                        className="w-full gap-1 h-9 text-xs"
-                      >
-                        اتخاذ قرار
-                      </Button>
-                      {item.item_type === 'product' && !overrides[item.id] && (
-                        <p className="text-[9px] text-muted-foreground text-center">
-                          يجب أولاً مراجعة كميات المنتج قبل اتخاذ القرار
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })
+                    )}
+
+                    {overrides[item.id] && !isDecided && (
+                      <div className="text-[9px] bg-primary/10 border border-primary/30 rounded p-1 text-center">
+                        ✓ كمية جديدة: <b>{fmtQty(overrides[item.id].actual, ppb)}</b>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
