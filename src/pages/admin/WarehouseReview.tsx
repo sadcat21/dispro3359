@@ -18,6 +18,7 @@ import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/w
 import palletImage from '@/assets/pallet.png';
 import PalletReviewDialog from '@/components/warehouse/PalletReviewDialog';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { stringifyMeta, type ReviewItemMeta } from '@/hooks/useWarehouseReviewDecisions';
 
 const sanitizeBPInput = (value: string): string => value.replace(/[^0-9.]/g, '');
 
