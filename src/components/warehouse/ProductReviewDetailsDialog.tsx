@@ -30,13 +30,16 @@ interface Props {
   piecesPerBox: number;
   expected: number; // متوقع بالصناديق (كسري)
   initial?: ProductReviewDetails;
+  /** قيم مسؤول المخزن — لتظهر للمدير كاشارة أسفل كل حقل */
+  reviewerValues?: { goodBoxes?: number; goodPieces?: number; damagedBoxes?: number; damagedPieces?: number };
+  reviewerName?: string;
   onSave: (details: ProductReviewDetails) => void;
 }
 
 const sanitizeInt = (v: string): string => v.replace(/[^0-9]/g, '');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
-  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, onSave,
+  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, reviewerValues, reviewerName, onSave,
 }) => {
   const ppb = Math.max(1, piecesPerBox || 1);
 
@@ -131,6 +134,16 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
     onOpenChange(false);
   };
 
+  const ReviewerHint: React.FC<{ value?: number }> = ({ value }) => {
+    if (!reviewerValues) return null;
+    return (
+      <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
+        <span className="opacity-70">المخزني:</span>
+        <span className="font-bold text-foreground">{value ?? 0}</span>
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
        <DialogContent className="max-w-md max-h-[92dvh] overflow-hidden flex flex-col p-0" dir="rtl">
@@ -153,6 +166,11 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                    <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
                     {ppb} قطعة / صندوق
                   </Badge>
+                  {reviewerName && (
+                    <Badge className="text-[10px] font-bold px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+                      مدخلات: {reviewerName}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </DialogTitle>
@@ -182,6 +200,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
                       className="text-center text-base font-bold h-9"
                     />
+                    <ReviewerHint value={reviewerValues?.goodBoxes} />
                   </div>
                   <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">قطع</Label>
@@ -194,6 +213,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
                       className="text-center text-base font-bold h-9"
                     />
+                    <ReviewerHint value={reviewerValues?.goodPieces} />
                   </div>
                 </div>
               </div>
@@ -220,6 +240,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       onBlur={() => applyNormalizedValues(damagedBoxes, damagedPieces, setDamagedBoxes, setDamagedPieces)}
                       className="text-center text-base font-bold h-9"
                     />
+                    <ReviewerHint value={reviewerValues?.damagedBoxes} />
                   </div>
                   <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">قطع</Label>
@@ -232,6 +253,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       onBlur={() => applyNormalizedValues(damagedBoxes, damagedPieces, setDamagedBoxes, setDamagedPieces)}
                       className="text-center text-base font-bold h-9"
                     />
+                    <ReviewerHint value={reviewerValues?.damagedPieces} />
                   </div>
                 </div>
             </div>

@@ -553,6 +553,18 @@ const PendingWarehouseReviews: React.FC = () => {
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
           initial={overrides[reviewItem.id]?.details}
+          reviewerName={reviewItem.session?.reviewer?.full_name || undefined}
+          reviewerValues={(() => {
+            const ppb = Math.max(1, reviewItem.product?.pieces_per_box || 1);
+            const dmgFrac = Number(reviewItem.damaged_quantity || 0);
+            const dmgPiecesTotal = Math.round(dmgFrac * ppb);
+            return {
+              goodBoxes: Number(reviewItem.boxes_quantity || 0),
+              goodPieces: Number(reviewItem.pieces_quantity || 0),
+              damagedBoxes: Math.floor(dmgPiecesTotal / ppb),
+              damagedPieces: dmgPiecesTotal % ppb,
+            };
+          })()}
           onSave={handleReviewSave}
         />
       )}
