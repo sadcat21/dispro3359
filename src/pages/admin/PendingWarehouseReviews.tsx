@@ -175,7 +175,7 @@ const PendingWarehouseReviews: React.FC = () => {
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
       const unitPriceVal = parseFloat(unitPrice) || 0;
-      const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal, priceBasis, parseFloat(weightPerBoxInput) || 0);
+      const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal);
       const deficitTotalBoxes = Math.abs(diffBoxes); // كسري بالصناديق
       const totalPiecesDiff = Math.round(deficitTotalBoxes * ppb);
       const fullBoxes = Math.floor(totalPiecesDiff / ppb);
