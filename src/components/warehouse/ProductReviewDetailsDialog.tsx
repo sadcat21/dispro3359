@@ -234,7 +234,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                   <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
                 </div>
-                <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0.5">
+                <Badge className="text-[10px] font-bold px-1.5 py-0.5 bg-destructive text-destructive-foreground hover:bg-destructive border-0">
                   المتوقع: {boxesToBP(expectedDamaged, ppb)}
                 </Badge>
               </div>
