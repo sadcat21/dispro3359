@@ -40,7 +40,9 @@ const PendingWarehouseReviews: React.FC = () => {
   const [overrides, setOverrides] = useState<Record<string, { actual: number; status: 'matched' | 'surplus' | 'deficit'; details: ProductReviewDetails }>>({});
   const [chosenDecision, setChosenDecision] = useState<'accept_surplus' | 'reject_surplus' | 'charge_worker' | 'absorb_deficit' | null>(null);
   const [priceTier, setPriceTier] = useState<'invoice' | 'retail' | 'gros' | 'super_gros'>('invoice');
-  const [unitPrice, setUnitPrice] = useState<string>(''); // سعر الوحدة (كما هو في المنتج: قد يكون kg/قطعة/صندوق)
+  const [priceBasis, setPriceBasis] = useState<'box' | 'kg' | 'unit'>('box'); // ما يمثله السعر المُدخل
+  const [weightPerBoxInput, setWeightPerBoxInput] = useState<string>(''); // الوزن لكل صندوق (يدوي إن لم يتوفر)
+  const [unitPrice, setUnitPrice] = useState<string>('');
   const [managerNotes, setManagerNotes] = useState('');
 
   const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending'), [items]);
