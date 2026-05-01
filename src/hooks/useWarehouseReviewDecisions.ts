@@ -39,7 +39,7 @@ export const usePendingReviewItems = (branchId?: string | null) => {
         .from('warehouse_review_items')
         .select(`
           *,
-          product:products(id, name, app_name, image_url, pieces_per_box, price_invoice, price_gros, price_super_gros, price_retail),
+          product:products(id, name, app_name, image_url, pieces_per_box, pricing_unit, weight_per_box, price_invoice, price_gros, price_super_gros, price_retail),
           session:warehouse_review_sessions!inner(id, branch_id, reviewer_id, created_at, completed_at, reviewer:workers!warehouse_review_sessions_reviewer_id_fkey(id, full_name))
         `)
         .neq('status', 'matched')

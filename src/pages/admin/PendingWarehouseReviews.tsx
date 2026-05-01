@@ -39,7 +39,8 @@ const PendingWarehouseReviews: React.FC = () => {
   // الكميات التي عدّلها المدير لكل عنصر (overrides)
   const [overrides, setOverrides] = useState<Record<string, { actual: number; status: 'matched' | 'surplus' | 'deficit'; details: ProductReviewDetails }>>({});
   const [chosenDecision, setChosenDecision] = useState<'accept_surplus' | 'reject_surplus' | 'charge_worker' | 'absorb_deficit' | null>(null);
-  const [unitPrice, setUnitPrice] = useState<string>('');
+  const [priceTier, setPriceTier] = useState<'invoice' | 'retail' | 'gros' | 'super_gros'>('invoice');
+  const [unitPrice, setUnitPrice] = useState<string>(''); // سعر الوحدة (كما هو في المنتج: قد يكون kg/قطعة/صندوق)
   const [managerNotes, setManagerNotes] = useState('');
 
   const pending = useMemo(() => items.filter(i => i.meta.decision_status === 'pending'), [items]);
@@ -109,13 +110,44 @@ const PendingWarehouseReviews: React.FC = () => {
     }
   };
 
+  const getProductTierPrice = (product: any, tier: 'invoice' | 'retail' | 'gros' | 'super_gros'): number => {
+    if (!product) return 0;
+    const map: Record<string, number> = {
+      invoice: Number(product.price_invoice || 0),
+      retail: Number(product.price_retail || 0),
+      gros: Number(product.price_gros || 0),
+      super_gros: Number(product.price_super_gros || 0),
+    };
+    return map[tier] || 0;
+  };
+
+  // يحوّل سعر الوحدة (حسب pricing_unit) إلى سعر الصندوق وسعر القطعة
+  const computePrices = (product: any, unitPriceVal: number) => {
+    const ppb = Math.max(1, Number(product?.pieces_per_box || 1));
+    const pricingUnit = product?.pricing_unit || 'box';
+    const weightPerBox = Number(product?.weight_per_box || 0);
+    let boxPrice = unitPriceVal;
+    if (pricingUnit === 'kg' && weightPerBox > 0) {
+      boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × كغ/صندوق
+    } else if (pricingUnit === 'unit') {
+      boxPrice = unitPriceVal * ppb; // سعر/قطعة × قطعة/صندوق
+    }
+    const piecePrice = ppb > 0 ? boxPrice / ppb : boxPrice;
+    return { boxPrice, piecePrice, ppb, pricingUnit, weightPerBox };
+  };
+
   const openDecisionDialog = (item: any) => {
     setDialogItem(item);
     setChosenDecision(null);
     setManagerNotes('');
     const product = item.product;
-    const defaultPrice = product?.price_invoice || product?.price_gros || product?.price_super_gros || product?.price_retail || 0;
-    setUnitPrice(String(defaultPrice));
+    // افتراضي: سعر الفاتورة إن وُجد، وإلا الجملة
+    const defaultTier: 'invoice' | 'retail' | 'gros' | 'super_gros' =
+      product?.price_invoice ? 'invoice' :
+      product?.price_gros ? 'gros' :
+      product?.price_super_gros ? 'super_gros' : 'retail';
+    setPriceTier(defaultTier);
+    setUnitPrice(String(getProductTierPrice(product, defaultTier)));
   };
 
   const closeDialog = () => {
@@ -143,9 +175,13 @@ const PendingWarehouseReviews: React.FC = () => {
 
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
-      const price = parseFloat(unitPrice) || 0;
-      const deficitBoxes = Math.abs(diffBoxes);
-      debtAmount = price * deficitBoxes;
+      const unitPriceVal = parseFloat(unitPrice) || 0;
+      const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal);
+      const deficitTotalBoxes = Math.abs(diffBoxes); // كسري بالصناديق
+      const totalPiecesDiff = Math.round(deficitTotalBoxes * ppb);
+      const fullBoxes = Math.floor(totalPiecesDiff / ppb);
+      const remPieces = totalPiecesDiff % ppb;
+      debtAmount = fullBoxes * boxPrice + remPieces * piecePrice;
       if (debtAmount <= 0) {
         toast.error('أدخل سعر الوحدة لاحتساب قيمة الدين');
         return;
@@ -421,20 +457,79 @@ const PendingWarehouseReviews: React.FC = () => {
                   </div>
                 )}
 
-                {chosenDecision === 'charge_worker' && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">سعر الوحدة (لكل صندوق)</Label>
-                    <Input
-                      type="number"
-                      value={unitPrice}
-                      onChange={(e) => setUnitPrice(e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                    <p className="text-[10px] text-muted-foreground">
-                      قيمة الدين: <b>{((parseFloat(unitPrice) || 0) * diff).toFixed(2)}</b>
-                    </p>
-                  </div>
-                )}
+                {chosenDecision === 'charge_worker' && (() => {
+                  const product = dialogItem.product;
+                  const unitPriceVal = parseFloat(unitPrice) || 0;
+                  const { boxPrice, piecePrice, ppb: pp, pricingUnit, weightPerBox } = computePrices(product, unitPriceVal);
+                  const totalPiecesDiff = Math.round(diff * pp);
+                  const fullBoxes = Math.floor(totalPiecesDiff / pp);
+                  const remPieces = totalPiecesDiff % pp;
+                  const debt = fullBoxes * boxPrice + remPieces * piecePrice;
+                  const unitLabel = pricingUnit === 'kg' ? 'الكيلوغرام' : pricingUnit === 'unit' ? 'القطعة' : 'الصندوق';
+
+                  const tiers: Array<{ key: 'invoice' | 'retail' | 'gros' | 'super_gros'; label: string }> = [
+                    { key: 'invoice', label: 'الفاتورة' },
+                    { key: 'retail', label: 'التجزئة' },
+                    { key: 'gros', label: 'الجملة' },
+                    { key: 'super_gros', label: 'سوبر جملة' },
+                  ];
+
+                  return (
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-xs mb-1 block">طريقة احتساب السعر الأساسي</Label>
+                        <div className="grid grid-cols-4 gap-1">
+                          {tiers.map(t => {
+                            const p = getProductTierPrice(product, t.key);
+                            const active = priceTier === t.key;
+                            return (
+                              <button
+                                key={t.key}
+                                type="button"
+                                disabled={p <= 0}
+                                onClick={() => { setPriceTier(t.key); setUnitPrice(String(p)); }}
+                                className={`text-[10px] py-1.5 px-1 rounded border transition ${
+                                  active ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted'
+                                } disabled:opacity-40 disabled:cursor-not-allowed`}
+                              >
+                                <div className="font-bold">{t.label}</div>
+                                <div className="text-[9px] opacity-80">{p > 0 ? p.toFixed(2) : '—'}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-xs">سعر الوحدة ({unitLabel})</Label>
+                        <Input
+                          type="number"
+                          value={unitPrice}
+                          onChange={(e) => setUnitPrice(e.target.value)}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+
+                      <div className="bg-muted/60 rounded p-2 text-[11px] space-y-0.5">
+                        {pricingUnit === 'kg' && weightPerBox > 0 && (
+                          <div>الوزن لكل صندوق: <b>{weightPerBox}</b> كغ</div>
+                        )}
+                        <div>عدد القطع في الصندوق: <b>{pp}</b></div>
+                        <div>سعر الصندوق: <b>{boxPrice.toFixed(2)}</b></div>
+                        <div>سعر القطعة: <b>{piecePrice.toFixed(2)}</b></div>
+                        <div className="pt-1 border-t mt-1">
+                          الفرق: <b>{fullBoxes}</b> صندوق + <b>{remPieces}</b> قطعة
+                        </div>
+                        <div>
+                          الاحتساب: {fullBoxes} × {boxPrice.toFixed(2)} + {remPieces} × {piecePrice.toFixed(2)}
+                        </div>
+                        <div className="text-sm pt-1">
+                          قيمة الدين: <b className="text-destructive">{debt.toFixed(2)}</b>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="space-y-1.5">
                   <Label className="text-xs">ملاحظة (اختياري)</Label>
