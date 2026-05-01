@@ -363,52 +363,10 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 = {totalCombinedBoxes} صندوق + {totalCombinedPieces} قطعة
               </div>
 
-              {/* تفصيل الفجوة: الصالح + التالف منفصلين */}
-              {(hasGoodGap || hasDamagedGap) && (
-                <div className="mt-2 space-y-1.5">
-                  <div className="text-[11px] font-bold text-destructive flex items-center gap-1">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    تفصيل الفجوة:
-                  </div>
-
-                  {hasGoodGap && (
-                    <div className={`rounded-lg p-2 ${goodDiff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20 border border-amber-400/40' : 'bg-destructive/10 border border-destructive/30'}`}>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`text-xs font-bold ${goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
-                          الصالح — {goodDiff > 0 ? 'فائض' : 'عجز'}:
-                        </span>
-                        <span className={`text-base font-extrabold ${goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
-                          {goodDiff > 0 ? '+' : '-'}{formatBPFromParts(goodGapParts.boxes, goodGapParts.pieces)}
-                        </span>
-                      </div>
-                      <div className={`text-xs font-black text-center mt-0.5 ${goodDiff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
-                        = {goodGapParts.boxes} صندوق + {goodGapParts.pieces} قطعة
-                      </div>
-                    </div>
-                  )}
-
-                  {hasDamagedGap && (
-                    <div className={`rounded-lg p-2 ${damagedDiff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20 border border-amber-400/40' : 'bg-destructive/10 border border-destructive/30'}`}>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`text-xs font-bold ${damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
-                          التالف — {damagedDiff > 0 ? 'فائض' : 'عجز'}:
-                        </span>
-                        <span className={`text-base font-extrabold ${damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
-                          {damagedDiff > 0 ? '+' : '-'}{formatBPFromParts(damagedGapParts.boxes, damagedGapParts.pieces)}
-                        </span>
-                      </div>
-                      <div className={`text-xs font-black text-center mt-0.5 ${damagedDiff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
-                        = {damagedGapParts.boxes} صندوق + {damagedGapParts.pieces} قطعة
-                      </div>
-                    </div>
-                  )}
-
-                  {/* الفرق الإجمالي للمعلومة */}
-                  {Math.abs(diff) >= 0.01 && (
-                    <div className="text-[10px] text-muted-foreground text-center pt-1 border-t border-border/40">
-                      الفرق الإجمالي: {diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}
-                    </div>
-                  )}
+              {/* الفرق الإجمالي فقط للمعلومة (التفصيل يظهر بجانب عناوين الأقسام) */}
+              {Math.abs(diff) >= 0.01 && (
+                <div className="mt-2 text-[11px] text-muted-foreground text-center pt-1.5 border-t border-border/40">
+                  الفرق الإجمالي: <span className="font-bold text-foreground">{diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}</span>
                 </div>
               )}
             </div>
