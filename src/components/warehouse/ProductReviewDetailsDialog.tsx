@@ -274,7 +274,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                   <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
                   {hasGoodGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
-                      goodDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
+                      goodDiff > 0 ? 'bg-amber-400 text-black hover:bg-amber-400' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                     }`}>
                       {goodDiff > 0 ? 'فائض' : 'عجز'}: {goodDiff > 0 ? '+' : '-'}{formatBPFromParts(goodGapParts.boxes, goodGapParts.pieces)}
                     </Badge>
@@ -333,7 +333,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                   <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
                   {hasDamagedGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
-                      damagedDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
+                      damagedDiff > 0 ? 'bg-amber-400 text-black hover:bg-amber-400' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                     }`}>
                       {damagedDiff > 0 ? 'فائض' : 'عجز'}: {damagedDiff > 0 ? '+' : '-'}{formatBPFromParts(damagedGapParts.boxes, damagedGapParts.pieces)}
                     </Badge>
@@ -395,7 +395,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                         <span className="font-medium">الإجمالي الفعلي (صالح + تالف):</span>
                         {hasTotalGap && (
                           <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
-                            totalDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
+                            totalDiff > 0 ? 'bg-amber-400 text-black hover:bg-amber-400' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                           }`}>
                             {totalDiff > 0 ? 'فائض' : 'عجز'}: {totalDiff > 0 ? '+' : '-'}{formatBPFromParts(totalGapParts.boxes, totalGapParts.pieces)}
                           </Badge>
