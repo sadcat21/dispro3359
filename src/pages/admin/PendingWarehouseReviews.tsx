@@ -334,10 +334,11 @@ const PendingWarehouseReviews: React.FC = () => {
               const imgUrl = item.item_type === 'pallet'
                 ? palletImage
                 : (item.product?.image_url as string | undefined);
+              const displayName = getProductDisplayName(item.product) || '—';
               const productName =
                 item.item_type === 'pallet' ? 'الباليطات' :
-                item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
-                item.product?.name || '—';
+                item.item_type === 'damaged' ? `${displayName} (تالف)` :
+                displayName;
 
               // فصل فجوة الصالح عن فجوة التالف
               const expectedDamaged = item.product_id ? dbBPToBoxes(Number(stockMap?.[item.product_id] || 0), ppb) : 0;
