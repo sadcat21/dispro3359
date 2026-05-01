@@ -255,15 +255,15 @@ const PendingWarehouseReviews: React.FC = () => {
     let surplusQty = 0;
     let deficitQty = 0;
     if (itemType === 'product') {
-      const actualForDb = ppb > 1 ? parseFloat(boxesToBP(actual, ppb)) : actual;
-      newStockQty = actualForDb;
+      const goodBoxes = override?.details.boxes ?? Number(dialogItem.boxes_quantity || 0);
+      const goodPieces = override?.details.pieces ?? Number(dialogItem.pieces_quantity || 0);
+      const actualGood = goodBoxes + goodPieces / ppb;
+      newStockQty = toDbBP(actualGood, ppb);
       // التالف بصيغة DB B.P (من override أو من البند الأصلي)
       const dmgBoxes = override?.details.damagedBoxes ?? 0;
       const dmgPieces = override?.details.damagedPieces ?? 0;
       if (override) {
-        newDamagedStockQty = (dmgBoxes > 0 || dmgPieces > 0)
-          ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
-          : 0;
+        newDamagedStockQty = partsToDbBP(dmgBoxes, dmgPieces, ppb);
       } else {
         // استخدم القيمة المخزنة في بند المراجعة كما هي
         newDamagedStockQty = Number(dialogItem.damaged_quantity || 0);
