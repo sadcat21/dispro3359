@@ -134,7 +134,7 @@ export const hasPiecePart = (value: string): boolean => {
  * Use this when reading quantities from the database.
  */
 export const dbBPDisplay = (quantity: number, piecesPerBox: number): string => {
-  return parseBP(String(Math.round(quantity * 100) / 100), piecesPerBox).display;
+  return parseBP(Number(quantity || 0).toFixed(2), piecesPerBox).display;
 };
 
 /**
@@ -142,5 +142,5 @@ export const dbBPDisplay = (quantity: number, piecesPerBox: number): string => {
  * e.g. 1308.08 with ppb=20 → 1308.4 (1308 + 8/20)
  */
 export const dbBPToBoxes = (quantity: number, piecesPerBox: number): number => {
-  return parseBP(String(Math.round(quantity * 100) / 100), piecesPerBox).totalBoxes;
+  return parseBP(Number(quantity || 0).toFixed(2), piecesPerBox).totalBoxes;
 };
