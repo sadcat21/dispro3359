@@ -9,8 +9,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Copy, Download, FileCode, Loader2, ExternalLink, RefreshCw,
-  Play, CheckCircle2, XCircle, Eye, EyeOff, ShieldCheck
+  Play, CheckCircle2, XCircle, Eye, EyeOff, ShieldCheck, Trash2
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 const SCRIPT_URL = "/backup/aroma2_schema.sql";
 
