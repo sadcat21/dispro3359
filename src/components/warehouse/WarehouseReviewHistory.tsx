@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { boxesToBP, dbBPToBoxes, dbBPDisplay } from '@/utils/boxPieceInput';
+import { boxesToBP } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ const formatReviewQty = (item: any, value: number) => {
   return piecesPerBox > 1 ? boxesToBP(numeric, piecesPerBox) : fmtQty(numeric);
 };
 
-// Compute true numerical difference accounting for B.P storage format.
+// Compute true numerical difference from review records stored as real boxes.
 // Returns { absDiff, sign } where sign is -1 (deficit), 0 (matched), 1 (surplus).
 const computeDiff = (item: any) => {
   const expected = Number(item.expected_quantity || 0);
@@ -256,13 +256,9 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                               }`}>
                                 {isDeficit ? 'عجز' : 'فائض'}
                               </Badge>
-                              <div
-                                className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow"
-                                style={{
-                                  background: isDeficit ? '#c00' : '#e65100',
-                                  color: '#fff',
-                                }}
-                              >
+                              <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
+                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'
+                              }`}>
                                 {isDeficit ? '-' : '+'}{diffStr}
                               </div>
                             </div>
