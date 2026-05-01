@@ -117,7 +117,8 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
   const productItems = itemsWithDiff.filter(i => i.item_type === 'product');
   const damagedItems = itemsWithDiff.filter(i => i.item_type === 'damaged');
   const palletItems = itemsWithDiff.filter(i => i.item_type === 'pallet');
-  const discrepancyItems = itemsWithDiff.filter(i => i._status !== 'matched');
+  const deficitItems = itemsWithDiff.filter(i => i._status === 'deficit');
+  const surplusItems = itemsWithDiff.filter(i => i._status === 'surplus');
   const matchedItemsView = itemsWithDiff.filter(i => i._status === 'matched');
 
   return (
@@ -223,62 +224,75 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                   </div>
                 )}
 
-                {discrepancyItems.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-destructive flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" />
-                      الفوارق ({discrepancyItems.length})
-                    </p>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {discrepancyItems.map(item => {
-                        const imgUrl = (item.product as any)?.image_url as string | null | undefined;
-                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (getProductDisplayName(item.product as any) || '—');
-                        const isDeficit = item._status === 'deficit';
-                        const diffStr = formatDiffDisplay(item, item._diff.absDiff, item._diff.piecesPerBox);
-                        return (
-                          <div
-                            key={item.id}
-                            className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${
-                              isDeficit
-                                ? 'bg-destructive/5 border-destructive'
-                                : 'bg-amber-50 dark:bg-amber-950/10 border-amber-500'
-                            }`}
-                          >
-                            <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                              {item.item_type === 'pallet' ? (
-                                <img src={palletImage} alt="الباليطات" className="w-full h-full object-cover" loading="lazy" />
-                              ) : imgUrl ? (
-                                <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
-                              ) : (
-                                <Package className="w-10 h-10 text-muted-foreground/50" />
-                              )}
-                              <Badge className={`absolute top-1.5 start-1.5 text-[10px] shadow ${
-                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-400 text-black'
-                              }`}>
-                                {isDeficit ? 'عجز' : 'فائض'}
-                              </Badge>
-                              <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
-                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-400 text-black'
-                              }`}>
-                                {isDeficit ? '-' : '+'}{diffStr}
+                {(deficitItems.length > 0 || surplusItems.length > 0) && (() => {
+                  const renderGroup = (items: any[], label: string, isDeficit: boolean) => (
+                    items.length > 0 && (
+                      <div className="space-y-2">
+                        <p className={`text-xs font-semibold flex items-center gap-1 ${isDeficit ? 'text-destructive' : 'text-amber-600'}`}>
+                          <AlertTriangle className="w-3 h-3" />
+                          {label} ({items.length})
+                        </p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {items.map(item => {
+                            const imgUrl = (item.product as any)?.image_url as string | null | undefined;
+                            const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (getProductDisplayName(item.product as any) || '—');
+                            const diffStr = formatDiffDisplay(item, item._diff.absDiff, item._diff.piecesPerBox);
+                            return (
+                              <div
+                                key={item.id}
+                                className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${
+                                  isDeficit
+                                    ? 'bg-destructive/5 border-destructive'
+                                    : 'bg-amber-50 dark:bg-amber-950/10 border-amber-500'
+                                }`}
+                              >
+                                <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                                  {item.item_type === 'pallet' ? (
+                                    <img src={palletImage} alt="الباليطات" className="w-full h-full object-cover" loading="lazy" />
+                                  ) : imgUrl ? (
+                                    <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                                  ) : (
+                                    <Package className="w-10 h-10 text-muted-foreground/50" />
+                                  )}
+                                  <Badge className={`absolute top-1.5 start-1.5 text-[10px] shadow ${
+                                    isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-400 text-black'
+                                  }`}>
+                                    {isDeficit ? 'عجز' : 'فائض'}
+                                  </Badge>
+                                  <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
+                                    isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-400 text-black'
+                                  }`}>
+                                    {isDeficit ? '-' : '+'}{diffStr}
+                                  </div>
+                                </div>
+                                <div className="p-2 space-y-1.5">
+                                  <p className="text-[12px] font-bold leading-tight line-clamp-2 min-h-[30px] text-center">
+                                    {productName}
+                                    {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
+                                  </p>
+                                  <div className="flex items-center justify-center gap-1 flex-wrap">
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-semibold bg-background">
+                                      متوقع: {formatReviewQty(item, item.expected_quantity)}
+                                    </Badge>
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-semibold bg-background">
+                                      فعلي: {formatReviewQty(item, item.actual_quantity)}
+                                    </Badge>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                            <div className="p-2 space-y-1">
-                              <p className="text-[11px] font-semibold leading-tight line-clamp-2 min-h-[28px]">
-                                {productName}
-                                {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
-                              </p>
-                              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                                <span>متوقع: <b className="text-foreground">{formatReviewQty(item, item.expected_quantity)}</b></span>
-                                <span>فعلي: <b className="text-foreground">{formatReviewQty(item, item.actual_quantity)}</b></span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )
+                  );
+                  return (
+                    <>
+                      {renderGroup(deficitItems, 'العجز', true)}
+                      {renderGroup(surplusItems, 'الفائض', false)}
+                    </>
+                  );
+                })()}
 
                 {matchedItemsView.length > 0 && (
                   <div className="space-y-2">
