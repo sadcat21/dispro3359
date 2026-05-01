@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import palletImage from '@/assets/pallet.png';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
