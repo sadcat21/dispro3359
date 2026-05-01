@@ -216,8 +216,28 @@ const BranchManagerHome: React.FC = () => {
               accent={kpis?.pendingInvoices ? 'alert' : 'blue'}
               onClick={() => navigate('/branch-invoice-approvals')}
             />
-          </div>
+          {/* زر الموافقات البارز */}
+          <button
+            onClick={() => navigate('/branch-approvals')}
+            className="mt-4 w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-5 py-4 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.01] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center ring-2 ring-white/30">
+                <ShieldCheck className="w-7 h-7" />
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold">مركز الموافقات</div>
+                <div className="text-xs text-white/85">جميع الموافقات في مكان واحد</div>
+              </div>
+            </div>
+            {((kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0)) > 0 && (
+              <Badge className="bg-white text-red-600 hover:bg-white text-base font-bold px-3 py-1">
+                {(kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0)}
+              </Badge>
+            )}
+          </button>
         </div>
+      </div>
       </div>
 
       {/* Sections */}
