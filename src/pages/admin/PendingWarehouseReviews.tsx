@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePendingReviewItems, useApplyManagerDecision, type ReviewItemMeta } from '@/hooks/useWarehouseReviewDecisions';
-import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPToBoxes, parseBP } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import ReviewCardMovementBadge from '@/components/warehouse/ReviewCardMovementBadge';
@@ -32,6 +32,12 @@ const fmtPlain = (n: number) => {
 };
 
 const fmtQty = (n: number, ppb: number) => (ppb > 1 ? boxesToBP(n, ppb) : fmtPlain(n));
+const toDbBP = (quantityInBoxes: number, ppb: number) => (
+  ppb > 1 ? parseFloat(boxesToBP(quantityInBoxes, ppb)) : quantityInBoxes
+);
+const partsToDbBP = (boxes = 0, pieces = 0, ppb: number) => (
+  ppb > 1 ? parseFloat(parseBP(`${boxes}.${String(pieces).padStart(2, '0')}`, ppb).display) : boxes
+);
 
 const PendingWarehouseReviews: React.FC = () => {
   const navigate = useNavigate();
@@ -153,14 +159,15 @@ const PendingWarehouseReviews: React.FC = () => {
   const applyMatched = async (item: any, details: ProductReviewDetails) => {
     const ppb = item.product?.pieces_per_box || 1;
     const newActual = Number(item.actual_quantity || 0);
+    const goodTotal = (details.boxes || 0) + (details.pieces || 0) / ppb;
     const newStockQty = item.item_type === 'product'
-      ? (ppb > 1 ? parseFloat(boxesToBP(newActual, ppb)) : newActual)
+      ? toDbBP(goodTotal, ppb)
       : null;
     // كمية التالف بصيغة DB B.P
     const dmgBoxes = details.damagedBoxes || 0;
     const dmgPieces = details.damagedPieces || 0;
-    const newDamagedStockQty = item.item_type === 'product' && (dmgBoxes > 0 || dmgPieces > 0)
-      ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
+    const newDamagedStockQty = item.item_type === 'product'
+      ? partsToDbBP(dmgBoxes, dmgPieces, ppb)
       : 0;
     try {
       await applyDecision.mutateAsync({
@@ -248,24 +255,26 @@ const PendingWarehouseReviews: React.FC = () => {
     let surplusQty = 0;
     let deficitQty = 0;
     if (itemType === 'product') {
-      const actualForDb = ppb > 1 ? parseFloat(boxesToBP(actual, ppb)) : actual;
-      newStockQty = actualForDb;
+      const goodBoxes = override?.details.boxes ?? Number(dialogItem.boxes_quantity || 0);
+      const goodPieces = override?.details.pieces ?? Number(dialogItem.pieces_quantity || 0);
+      const actualGood = goodBoxes + goodPieces / ppb;
+      newStockQty = chosenDecision === 'accept_surplus'
+        ? toDbBP(expected, ppb)
+        : toDbBP(actualGood, ppb);
       // التالف بصيغة DB B.P (من override أو من البند الأصلي)
       const dmgBoxes = override?.details.damagedBoxes ?? 0;
       const dmgPieces = override?.details.damagedPieces ?? 0;
       if (override) {
-        newDamagedStockQty = (dmgBoxes > 0 || dmgPieces > 0)
-          ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
-          : 0;
+        newDamagedStockQty = partsToDbBP(dmgBoxes, dmgPieces, ppb);
       } else {
         // استخدم القيمة المخزنة في بند المراجعة كما هي
         newDamagedStockQty = Number(dialogItem.damaged_quantity || 0);
       }
       // الفائض/العجز يُكتب فقط عند قبول الفائض أو امتصاص العجز (وليس rejection أو charge)
       if (chosenDecision === 'accept_surplus' && diffBoxes > 0) {
-        surplusQty = ppb > 1 ? parseFloat(boxesToBP(diffBoxes, ppb)) : diffBoxes;
+        surplusQty = toDbBP(diffBoxes, ppb);
       } else if (chosenDecision === 'absorb_deficit' && diffBoxes < 0) {
-        deficitQty = ppb > 1 ? parseFloat(boxesToBP(-diffBoxes, ppb)) : -diffBoxes;
+        deficitQty = toDbBP(-diffBoxes, ppb);
       }
     }
 
