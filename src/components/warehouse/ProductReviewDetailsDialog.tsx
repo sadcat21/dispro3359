@@ -217,9 +217,11 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                    <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5">
                     المتوقع: {boxesToBP(expected, ppb)}
                   </Badge>
-                   <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
-                    {ppb} قطعة / صندوق
-                  </Badge>
+                   {!simpleMode && (
+                     <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
+                      {ppb} قطعة / صندوق
+                    </Badge>
+                   )}
                   {reviewerName && (
                     <Badge className="text-[10px] font-bold px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
                       مدخلات: {reviewerName}
