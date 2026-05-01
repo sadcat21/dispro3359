@@ -76,7 +76,7 @@ const BranchManagerApprovals: React.FC = () => {
       title: t('nav.warehouse_review') || 'مراجعة فروقات المخزون',
       description: 'البت في الزيادات والنواقص بعد مراجعة مخزون العامل',
       icon: ClipboardCheck,
-      path: '/warehouse-review',
+      path: '/warehouse-pending-reviews',
       badge: counts?.warehouseReviews,
       color: 'from-amber-500 to-orange-600',
     },
