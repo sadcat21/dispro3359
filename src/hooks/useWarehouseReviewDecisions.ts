@@ -85,6 +85,10 @@ export const useApplyManagerDecision = () => {
       newBoxesQuantity?: number | null;
       newPiecesQuantity?: number | null;
       newDamagedQuantity?: number | null;
+      // كميات المخزون لكتابتها في warehouse_stock + stock_discrepancies (بصيغة B.P)
+      newDamagedStockQty?: number | null;
+      surplusQty?: number | null;
+      deficitQty?: number | null;
     }) => {
       let workerDebtId: string | null = null;
 
