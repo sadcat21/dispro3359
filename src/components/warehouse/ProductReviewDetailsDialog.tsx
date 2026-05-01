@@ -102,32 +102,48 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   const totalCombinedBoxes = Math.floor(totalPiecesCombined / ppb);
   const totalCombinedPieces = totalPiecesCombined % ppb;
   const diff = grandTotal - expected;
-  const isMatch = Math.abs(diff) < 0.01 && grandTotal > 0;
+
+  // المتوقع الصالح بعد الحركة
+  const expectedGoodAdjusted = Math.max(0, expected - expectedDamaged + (movementsNetChange || 0));
+  // فجوة منفصلة للصالح والتالف
+  const goodDiff = goodParsed.totalBoxes - expectedGoodAdjusted;
+  const damagedDiff = damagedParsed.totalBoxes - expectedDamaged;
+  const hasGoodGap = Math.abs(goodDiff) >= 0.01;
+  const hasDamagedGap = Math.abs(damagedDiff) >= 0.01;
+  const isMatch = !hasGoodGap && !hasDamagedGap && grandTotal > 0;
   const isSurplus = diff > 0.01;
   const hasInput = grandTotal > 0;
 
   const sectionStyles = {
     good: {
-      container: isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
-        : isSurplus ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
+      container: !hasGoodGap && hasInput ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
+        : goodDiff > 0 ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
         : 'border-primary/30 bg-primary/5',
-      icon: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-primary',
-      title: isMatch ? 'text-green-700 dark:text-green-400' : isSurplus ? 'text-amber-700 dark:text-amber-400' : 'text-primary',
-      border: isMatch ? 'border-green-300/40' : isSurplus ? 'border-amber-300/40' : 'border-primary/20',
-      value: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-primary',
+      icon: !hasGoodGap && hasInput ? 'text-green-600' : goodDiff > 0 ? 'text-amber-600' : 'text-primary',
+      title: !hasGoodGap && hasInput ? 'text-green-700 dark:text-green-400' : goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-primary',
+      border: !hasGoodGap && hasInput ? 'border-green-300/40' : goodDiff > 0 ? 'border-amber-300/40' : 'border-primary/20',
+      value: !hasGoodGap && hasInput ? 'text-green-600' : goodDiff > 0 ? 'text-amber-600' : 'text-primary',
     },
     damaged: {
-      container: isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
-        : isSurplus ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
+      container: !hasDamagedGap && hasInput ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
+        : damagedDiff > 0 ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
         : 'border-destructive/30 bg-destructive/5',
-      icon: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-destructive',
-      title: isMatch ? 'text-green-700 dark:text-green-400' : isSurplus ? 'text-amber-700 dark:text-amber-400' : 'text-destructive',
-      border: isMatch ? 'border-green-300/40' : isSurplus ? 'border-amber-300/40' : 'border-destructive/20',
-      value: isMatch ? 'text-green-600' : isSurplus ? 'text-amber-600' : 'text-destructive',
+      icon: !hasDamagedGap && hasInput ? 'text-green-600' : damagedDiff > 0 ? 'text-amber-600' : 'text-destructive',
+      title: !hasDamagedGap && hasInput ? 'text-green-700 dark:text-green-400' : damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive',
+      border: !hasDamagedGap && hasInput ? 'border-green-300/40' : damagedDiff > 0 ? 'border-amber-300/40' : 'border-destructive/20',
+      value: !hasDamagedGap && hasInput ? 'text-green-600' : damagedDiff > 0 ? 'text-amber-600' : 'text-destructive',
     },
   };
 
-  // حساب الفائض/العجز بالصناديق والقطع
+  // حساب الفجوة بالصناديق والقطع لكل قسم
+  const partsOf = (val: number) => {
+    const total = Math.round(Math.abs(val) * ppb);
+    return { boxes: Math.floor(total / ppb), pieces: total % ppb };
+  };
+  const goodGapParts = partsOf(goodDiff);
+  const damagedGapParts = partsOf(damagedDiff);
+
+  // (للتوافق مع ملخص الإجمالي الكلي)
   const diffAbs = Math.abs(diff);
   const diffTotalPieces = Math.round(diffAbs * ppb);
   const diffBoxes = Math.floor(diffTotalPieces / ppb);
@@ -322,8 +338,8 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
             {/* ملخص الإجمالي */}
             <div className={`rounded-lg p-2 border-2 ${
               isMatch ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20' :
-              diff > 0 ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' :
-              'border-destructive/40 bg-destructive/5'
+              (hasGoodGap || hasDamagedGap) ? 'border-destructive/50 bg-destructive/5' :
+              'border-border bg-muted/30'
             }`}>
               <div className="flex items-center justify-between text-xs gap-2">
                 <span className="font-medium">الإجمالي الفعلي (صالح + تالف):</span>
@@ -332,19 +348,53 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
               <div className="mt-1 text-lg font-black text-center">
                 = {totalCombinedBoxes} صندوق + {totalCombinedPieces} قطعة
               </div>
-              {Math.abs(diff) >= 0.01 && (
-                <div className={`mt-2 rounded-lg p-2 ${diff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20' : 'bg-destructive/10'}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`text-sm font-bold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
-                      {diff > 0 ? 'فائض:' : 'عجز:'}
-                    </span>
-                    <span className={`text-lg font-extrabold ${diff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
-                      {diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}
-                    </span>
+
+              {/* تفصيل الفجوة: الصالح + التالف منفصلين */}
+              {(hasGoodGap || hasDamagedGap) && (
+                <div className="mt-2 space-y-1.5">
+                  <div className="text-[11px] font-bold text-destructive flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    تفصيل الفجوة:
                   </div>
-                  <div className={`text-base font-black text-center mt-1 ${diff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
-                    = {diffBoxes} صندوق + {diffPieces} قطعة
-                  </div>
+
+                  {hasGoodGap && (
+                    <div className={`rounded-lg p-2 ${goodDiff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20 border border-amber-400/40' : 'bg-destructive/10 border border-destructive/30'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`text-xs font-bold ${goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                          الصالح — {goodDiff > 0 ? 'فائض' : 'عجز'}:
+                        </span>
+                        <span className={`text-base font-extrabold ${goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                          {goodDiff > 0 ? '+' : '-'}{formatBPFromParts(goodGapParts.boxes, goodGapParts.pieces)}
+                        </span>
+                      </div>
+                      <div className={`text-xs font-black text-center mt-0.5 ${goodDiff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
+                        = {goodGapParts.boxes} صندوق + {goodGapParts.pieces} قطعة
+                      </div>
+                    </div>
+                  )}
+
+                  {hasDamagedGap && (
+                    <div className={`rounded-lg p-2 ${damagedDiff > 0 ? 'bg-amber-100/60 dark:bg-amber-900/20 border border-amber-400/40' : 'bg-destructive/10 border border-destructive/30'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`text-xs font-bold ${damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                          التالف — {damagedDiff > 0 ? 'فائض' : 'عجز'}:
+                        </span>
+                        <span className={`text-base font-extrabold ${damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive'}`}>
+                          {damagedDiff > 0 ? '+' : '-'}{formatBPFromParts(damagedGapParts.boxes, damagedGapParts.pieces)}
+                        </span>
+                      </div>
+                      <div className={`text-xs font-black text-center mt-0.5 ${damagedDiff > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-destructive/80'}`}>
+                        = {damagedGapParts.boxes} صندوق + {damagedGapParts.pieces} قطعة
+                      </div>
+                    </div>
+                  )}
+
+                  {/* الفرق الإجمالي للمعلومة */}
+                  {Math.abs(diff) >= 0.01 && (
+                    <div className="text-[10px] text-muted-foreground text-center pt-1 border-t border-border/40">
+                      الفرق الإجمالي: {diff > 0 ? '+' : '-'}{formatBPFromParts(diffBoxes, diffPieces)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
