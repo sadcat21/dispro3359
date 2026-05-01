@@ -12,9 +12,10 @@ import { toast } from "sonner";
 import { 
   Database, Download, Upload, Image, Settings, CheckCircle, 
   XCircle, Loader2, CloudUpload, RefreshCw, ArrowLeft, Copy, Info,
-  ExternalLink, Clock, History, FileSpreadsheet, Play, ArrowLeftRight
+  ExternalLink, Clock, History, FileSpreadsheet, Play, ArrowLeftRight, FileCode
 } from "lucide-react";
 import CloneProjectTab from "@/components/backup/CloneProjectTab";
+import SchemaScriptTab from "@/components/backup/SchemaScriptTab";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -515,7 +516,7 @@ function doGet(e) {
       </div>
 
       <Tabs defaultValue="export" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 h-auto">
+        <TabsList className="grid w-full grid-cols-6 h-auto">
           <TabsTrigger value="export" className="text-xs py-2">
             <CloudUpload className="h-3 w-3 ml-1" />
             تصدير
@@ -531,6 +532,10 @@ function doGet(e) {
           <TabsTrigger value="clone" className="text-xs py-2">
             <ArrowLeftRight className="h-3 w-3 ml-1" />
             نسخ مشروع
+          </TabsTrigger>
+          <TabsTrigger value="schema" className="text-xs py-2">
+            <FileCode className="h-3 w-3 ml-1" />
+            سكربت SQL
           </TabsTrigger>
           <TabsTrigger value="logs" className="text-xs py-2">
             <History className="h-3 w-3 ml-1" />
@@ -763,6 +768,11 @@ function doGet(e) {
         {/* Clone Project Tab */}
         <TabsContent value="clone" className="space-y-4">
           <CloneProjectTab />
+        </TabsContent>
+
+        {/* SQL Schema Script Tab */}
+        <TabsContent value="schema" className="space-y-4">
+          <SchemaScriptTab />
         </TabsContent>
 
         {/* Logs Tab */}
