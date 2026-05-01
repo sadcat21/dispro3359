@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import palletImage from '@/assets/pallet.png';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -329,9 +330,11 @@ const PendingWarehouseReviews: React.FC = () => {
               const actual = Number(item.actual_quantity || 0);
               const meta: ReviewItemMeta = item.meta;
               const isDecided = meta.decision_status !== 'pending' && meta.decision_status !== 'auto_approved';
-              const imgUrl = item.product?.image_url as string | undefined;
+              const imgUrl = item.item_type === 'pallet'
+                ? palletImage
+                : (item.product?.image_url as string | undefined);
               const productName =
-                item.item_type === 'pallet' ? '🪵 الباليطات' :
+                item.item_type === 'pallet' ? 'الباليطات' :
                 item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
                 item.product?.name || '—';
 
@@ -371,7 +374,7 @@ const PendingWarehouseReviews: React.FC = () => {
                 >
                   <div className="relative h-20 sm:h-24 md:aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {imgUrl ? (
-                      <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={imgUrl} alt={productName} className="w-full h-full object-contain p-1" loading="lazy" />
                     ) : (
                       <Package className="w-10 h-10 text-muted-foreground/50" />
                     )}
