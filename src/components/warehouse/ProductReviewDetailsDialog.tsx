@@ -195,6 +195,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                       onBlur={() => applyNormalizedValues(goodBoxes, goodPieces, setGoodBoxes, setGoodPieces)}
                       className="text-center text-base font-bold h-9"
                     />
+                    <ReviewerHint value={reviewerValues?.goodBoxes} />
                   </div>
                   <div className="space-y-0.5">
                     <Label className="text-[11px] text-muted-foreground">قطع</Label>
