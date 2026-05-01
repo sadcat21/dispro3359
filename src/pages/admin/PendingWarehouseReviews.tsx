@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePendingReviewItems, useApplyManagerDecision, type ReviewItemMeta } from '@/hooks/useWarehouseReviewDecisions';
 import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
+import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import { format } from 'date-fns';
 
 const fmtPlain = (n: number) => {
@@ -33,7 +34,10 @@ const PendingWarehouseReviews: React.FC = () => {
   const applyDecision = useApplyManagerDecision();
 
   const [showDecided, setShowDecided] = useState(false);
+  const [reviewItem, setReviewItem] = useState<any | null>(null); // للنافذة الأولى (تعديل الكميات)
   const [dialogItem, setDialogItem] = useState<any | null>(null);
+  // الكميات التي عدّلها المدير لكل عنصر (overrides)
+  const [overrides, setOverrides] = useState<Record<string, { actual: number; status: 'matched' | 'surplus' | 'deficit'; details: ProductReviewDetails }>>({});
   const [chosenDecision, setChosenDecision] = useState<'accept_surplus' | 'reject_surplus' | 'charge_worker' | 'absorb_deficit' | null>(null);
   const [unitPrice, setUnitPrice] = useState<string>('');
   const [managerNotes, setManagerNotes] = useState('');
@@ -43,7 +47,69 @@ const PendingWarehouseReviews: React.FC = () => {
 
   const visible = showDecided ? decided : pending;
 
-  const openDialog = (item: any) => {
+  // فتح نافذة مراجعة المنتج (الكميات) — يجب أن تُفتح أولاً قبل القرار
+  const openReview = (item: any) => {
+    setReviewItem(item);
+  };
+
+  // عند حفظ تعديلات الكميات من نافذة المراجعة
+  const handleReviewSave = (details: ProductReviewDetails) => {
+    if (!reviewItem) return;
+    const ppb = reviewItem.product?.pieces_per_box || 1;
+    const expected = Number(reviewItem.expected_quantity || 0);
+    // الإجمالي = الصالح + التالف بالصناديق الكسرية
+    const totalPieces = (details.boxes * ppb + details.pieces) + ((details.damagedBoxes || 0) * ppb + (details.damagedPieces || 0));
+    const newActual = ppb > 1 ? totalPieces / ppb : totalPieces;
+    const diff = newActual - expected;
+    const newStatus: 'matched' | 'surplus' | 'deficit' =
+      Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
+
+    setOverrides(prev => ({
+      ...prev,
+      [reviewItem.id]: { actual: newActual, status: newStatus, details },
+    }));
+
+    // نُغلق نافذة المراجعة ونفتح نافذة القرار بناءً على الحالة الجديدة
+    const updatedItem = { ...reviewItem, actual_quantity: newActual, status: newStatus };
+    setReviewItem(null);
+
+    if (newStatus === 'matched') {
+      // مطابق → نطبّق القرار تلقائياً (لا حاجة لاختيار)
+      applyMatched(updatedItem, details);
+    } else {
+      openDecisionDialog(updatedItem);
+    }
+  };
+
+  const applyMatched = async (item: any, details: ProductReviewDetails) => {
+    const ppb = item.product?.pieces_per_box || 1;
+    const newActual = Number(item.actual_quantity || 0);
+    const newStockQty = item.item_type === 'product'
+      ? (ppb > 1 ? parseFloat(boxesToBP(newActual, ppb)) : newActual)
+      : null;
+    try {
+      await applyDecision.mutateAsync({
+        itemId: item.id,
+        productId: item.product_id,
+        itemType: item.item_type,
+        currentMeta: item.meta as ReviewItemMeta,
+        decision: 'absorb_deficit', // أي قرار غير reject — نستعمله كـ "موافق"
+        managerNotes: 'تمت المراجعة — مطابق بعد إعادة العد',
+        branchId: item.session?.branch_id || activeBranch?.id || null,
+        newStockQty,
+        newActualQuantity: newActual,
+        newStatus: 'matched',
+        newBoxesQuantity: details.boxes,
+        newPiecesQuantity: details.pieces,
+        newDamagedQuantity: details.damaged,
+      });
+      toast.success('تم اعتماد المنتج كمطابق ✅');
+    } catch (err: any) {
+      toast.error(err.message || 'فشل الحفظ');
+    }
+  };
+
+  const openDecisionDialog = (item: any) => {
     setDialogItem(item);
     setChosenDecision(null);
     setManagerNotes('');
@@ -66,24 +132,19 @@ const PendingWarehouseReviews: React.FC = () => {
     const itemType = dialogItem.item_type;
     const expected = Number(dialogItem.expected_quantity || 0);
     const actual = Number(dialogItem.actual_quantity || 0);
-    const diffBoxes = actual - expected; // بالـ boxes (للمنتج) أو بالوحدات (للباليت)
+    const diffBoxes = actual - expected;
+    const override = overrides[dialogItem.id];
 
-    // المخزون الجديد بصيغة DB BP
     let newStockQty: number | null = null;
     if (itemType === 'product') {
-      // للمنتج: نخزن في DB بصيغة BP
-      // accept_surplus / charge_worker / absorb_deficit → نضع الفعلي
-      // reject_surplus → لا نُحدّث (سيتم تجاهل التحديث في hook)
       const actualForDb = ppb > 1 ? parseFloat(boxesToBP(actual, ppb)) : actual;
       newStockQty = actualForDb;
     }
 
-    // مبلغ الدين عند خصم على المسؤول
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
       const price = parseFloat(unitPrice) || 0;
-      const deficitBoxes = Math.abs(diffBoxes); // عجز
-      // السعر لكل صندوق
+      const deficitBoxes = Math.abs(diffBoxes);
       debtAmount = price * deficitBoxes;
       if (debtAmount <= 0) {
         toast.error('أدخل سعر الوحدة لاحتساب قيمة الدين');
@@ -104,6 +165,12 @@ const PendingWarehouseReviews: React.FC = () => {
         debtDescription: `عجز في مراجعة المخزون - ${dialogItem.product?.name || dialogItem.item_type} (${fmtQty(Math.abs(diffBoxes), ppb)})`,
         branchId: dialogItem.session?.branch_id || activeBranch?.id || null,
         newStockQty,
+        // إذا كان هناك override، نحدّث الكميات في DB
+        newActualQuantity: override ? override.actual : null,
+        newStatus: override ? override.status : null,
+        newBoxesQuantity: override ? override.details.boxes : null,
+        newPiecesQuantity: override ? override.details.pieces : null,
+        newDamagedQuantity: override ? override.details.damaged : null,
       });
       toast.success('تم تطبيق القرار بنجاح');
       closeDialog();
@@ -246,13 +313,37 @@ const PendingWarehouseReviews: React.FC = () => {
                   )}
 
                   {!isDecided && (
-                    <Button
-                      size="sm"
-                      onClick={() => openDialog(item)}
-                      className="w-full gap-1 h-9 text-xs"
-                    >
-                      اتخاذ قرار
-                    </Button>
+                    <div className="space-y-1.5">
+                      {overrides[item.id] && (
+                        <div className="text-[10px] bg-primary/10 border border-primary/30 rounded p-1.5 text-center">
+                          ✓ تمت إعادة المراجعة — الكمية الجديدة: <b>{fmtQty(overrides[item.id].actual, ppb)}</b>
+                          {' '}({overrides[item.id].status === 'matched' ? 'مطابق' : overrides[item.id].status === 'surplus' ? 'فائض' : 'عجز'})
+                        </div>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openReview(item)}
+                        disabled={item.item_type !== 'product'}
+                        className="w-full gap-1 h-9 text-xs"
+                      >
+                        <ClipboardCheck className="w-3.5 h-3.5" />
+                        مراجعة كميات المنتج
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => openDecisionDialog(item)}
+                        disabled={item.item_type === 'product' && !overrides[item.id]}
+                        className="w-full gap-1 h-9 text-xs"
+                      >
+                        اتخاذ قرار
+                      </Button>
+                      {item.item_type === 'product' && !overrides[item.id] && (
+                        <p className="text-[9px] text-muted-foreground text-center">
+                          يجب أولاً مراجعة كميات المنتج قبل اتخاذ القرار
+                        </p>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -369,6 +460,20 @@ const PendingWarehouseReviews: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة مراجعة كميات المنتج (للمدير) — مطابقة لنافذة مسؤول المخزن */}
+      {reviewItem && (
+        <ProductReviewDetailsDialog
+          open={!!reviewItem}
+          onOpenChange={(o) => { if (!o) setReviewItem(null); }}
+          productName={reviewItem.product?.name || '—'}
+          imageUrl={reviewItem.product?.image_url}
+          piecesPerBox={reviewItem.product?.pieces_per_box || 1}
+          expected={Number(reviewItem.expected_quantity || 0)}
+          initial={overrides[reviewItem.id]?.details}
+          onSave={handleReviewSave}
+        />
+      )}
     </div>
   );
 };

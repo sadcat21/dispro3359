@@ -80,6 +80,12 @@ export const useApplyManagerDecision = () => {
       // كميات لتعديل المخزون
       branchId?: string | null;
       newStockQty?: number | null;
+      // تحديث الكميات الفعلية (إذا أعاد المدير المراجعة)
+      newActualQuantity?: number | null;
+      newStatus?: 'matched' | 'surplus' | 'deficit' | null;
+      newBoxesQuantity?: number | null;
+      newPiecesQuantity?: number | null;
+      newDamagedQuantity?: number | null;
     }) => {
       let workerDebtId: string | null = null;
 
@@ -117,9 +123,19 @@ export const useApplyManagerDecision = () => {
         worker_debt_id: workerDebtId,
       };
 
+      // إذا تم تعديل الكميات الفعلية من طرف المدير، نحدّثها أيضاً في عنصر المراجعة
+      const itemUpdate: any = { notes: stringifyMeta(newMeta) };
+      if (params.newActualQuantity !== null && params.newActualQuantity !== undefined) {
+        itemUpdate.actual_quantity = params.newActualQuantity;
+      }
+      if (params.newStatus) itemUpdate.status = params.newStatus;
+      if (params.newBoxesQuantity !== null && params.newBoxesQuantity !== undefined) itemUpdate.boxes_quantity = params.newBoxesQuantity;
+      if (params.newPiecesQuantity !== null && params.newPiecesQuantity !== undefined) itemUpdate.pieces_quantity = params.newPiecesQuantity;
+      if (params.newDamagedQuantity !== null && params.newDamagedQuantity !== undefined) itemUpdate.damaged_quantity = params.newDamagedQuantity;
+
       const { error: updErr } = await supabase
         .from('warehouse_review_items')
-        .update({ notes: stringifyMeta(newMeta) })
+        .update(itemUpdate)
         .eq('id', params.itemId);
       if (updErr) throw updErr;
 
