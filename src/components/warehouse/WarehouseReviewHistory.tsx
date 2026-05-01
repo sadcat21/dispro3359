@@ -106,11 +106,17 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
   }
 
   const viewSession = sessions.find(s => s.id === viewSessionId);
-  const productItems = sessionItems.filter(i => i.item_type === 'product');
-  const damagedItems = sessionItems.filter(i => i.item_type === 'damaged');
-  const palletItems = sessionItems.filter(i => i.item_type === 'pallet');
-  const discrepancyItems = sessionItems.filter(i => i.status !== 'matched');
-  const matchedItemsView = sessionItems.filter(i => i.status === 'matched');
+  // Recompute status using B.P-aware diff to avoid false discrepancies caused by legacy decimal-based saves
+  const itemsWithDiff = sessionItems.map((i: any) => {
+    const d = computeDiff(i);
+    const recomputedStatus = d.sign === 0 ? 'matched' : d.sign > 0 ? 'surplus' : 'deficit';
+    return { ...i, _diff: d, _status: recomputedStatus };
+  });
+  const productItems = itemsWithDiff.filter(i => i.item_type === 'product');
+  const damagedItems = itemsWithDiff.filter(i => i.item_type === 'damaged');
+  const palletItems = itemsWithDiff.filter(i => i.item_type === 'pallet');
+  const discrepancyItems = itemsWithDiff.filter(i => i._status !== 'matched');
+  const matchedItemsView = itemsWithDiff.filter(i => i._status === 'matched');
 
   return (
     <div className="space-y-3">
