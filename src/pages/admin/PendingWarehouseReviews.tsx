@@ -374,7 +374,7 @@ const PendingWarehouseReviews: React.FC = () => {
                 >
                   <div className="relative h-20 sm:h-24 md:aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {imgUrl ? (
-                      <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={imgUrl} alt={productName} className="w-full h-full object-contain p-1" loading="lazy" />
                     ) : (
                       <Package className="w-10 h-10 text-muted-foreground/50" />
                     )}
