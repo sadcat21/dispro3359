@@ -197,7 +197,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
 
       {/* Session details dialog */}
       <Dialog open={!!viewSessionId} onOpenChange={open => { if (!open) setViewSessionId(null); }}>
-        <DialogContent className="max-w-md max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <ClipboardCheck className="w-4 h-4 text-primary" />
@@ -222,84 +222,106 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                 )}
 
                 {discrepancyItems.length > 0 && (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <p className="text-xs font-semibold text-destructive flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
                       الفوارق ({discrepancyItems.length})
                     </p>
-                    {discrepancyItems.map(item => {
-                      const imgUrl = (item.product as any)?.image_url as string | null | undefined;
-                      const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
-                      const isDeficit = item._status === 'deficit';
-                      const diffStr = formatDiffDisplay(item, item._diff.absDiff, item._diff.piecesPerBox);
-                      return (
-                        <div key={item.id} className={`rounded-lg px-3 py-2.5 flex gap-3 ${
-                          isDeficit ? 'bg-destructive/10 border border-destructive/30' : 'bg-amber-50 dark:bg-amber-950/10 border border-amber-300'
-                        }`}>
-                          {item.item_type !== 'pallet' && (
-                            <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border/60">
-                              {imgUrl ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {discrepancyItems.map(item => {
+                        const imgUrl = (item.product as any)?.image_url as string | null | undefined;
+                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                        const isDeficit = item._status === 'deficit';
+                        const diffStr = formatDiffDisplay(item, item._diff.absDiff, item._diff.piecesPerBox);
+                        return (
+                          <div
+                            key={item.id}
+                            className={`relative rounded-xl overflow-hidden border flex flex-col ${
+                              isDeficit
+                                ? 'bg-destructive/5 border-destructive/40'
+                                : 'bg-amber-50 dark:bg-amber-950/10 border-amber-300'
+                            }`}
+                          >
+                            <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                              {item.item_type === 'pallet' ? (
+                                <span className="text-4xl">🪵</span>
+                              ) : imgUrl ? (
                                 <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
-                                <Package className="w-5 h-5 text-muted-foreground" />
+                                <Package className="w-10 h-10 text-muted-foreground/50" />
                               )}
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1 gap-2">
-                              <span className="text-sm font-semibold truncate">
-                                {productName}
-                                {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
-                              </span>
-                              <Badge className={`text-[10px] shrink-0 ${isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'}`}>
+                              <Badge className={`absolute top-1.5 start-1.5 text-[10px] shadow ${
+                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'
+                              }`}>
                                 {isDeficit ? 'عجز' : 'فائض'}
                               </Badge>
-                            </div>
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                              <span>المتوقع: <b>{formatReviewQty(item, item.expected_quantity)}</b></span>
-                              <span>الفعلي: <b>{formatReviewQty(item, item.actual_quantity)}</b></span>
-                              <span className="font-bold" style={{ color: isDeficit ? '#c00' : '#e65100' }}>
+                              <div
+                                className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow"
+                                style={{
+                                  background: isDeficit ? '#c00' : '#e65100',
+                                  color: '#fff',
+                                }}
+                              >
                                 {isDeficit ? '-' : '+'}{diffStr}
-                              </span>
+                              </div>
+                            </div>
+                            <div className="p-2 space-y-1">
+                              <p className="text-[11px] font-semibold leading-tight line-clamp-2 min-h-[28px]">
+                                {productName}
+                                {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
+                              </p>
+                              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                <span>متوقع: <b className="text-foreground">{formatReviewQty(item, item.expected_quantity)}</b></span>
+                                <span>فعلي: <b className="text-foreground">{formatReviewQty(item, item.actual_quantity)}</b></span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
                 {matchedItemsView.length > 0 && (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="text-xs font-semibold text-primary flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
                       مطابق ({matchedItemsView.length})
                     </p>
-                    {matchedItemsView.map(item => {
-                      const imgUrl = (item.product as any)?.image_url as string | null | undefined;
-                      const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
-                      return (
-                        <div key={item.id} className="bg-muted/40 border border-border rounded-lg px-3 py-2 flex items-center gap-2">
-                          {item.item_type !== 'pallet' && (
-                            <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border/60">
-                              {imgUrl ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {matchedItemsView.map(item => {
+                        const imgUrl = (item.product as any)?.image_url as string | null | undefined;
+                        const productName = item.item_type === 'pallet' ? '🪵 الباليطات' : (item.product as any)?.name || '—';
+                        return (
+                          <div
+                            key={item.id}
+                            className="relative rounded-xl overflow-hidden border border-border bg-muted/30 flex flex-col"
+                          >
+                            <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                              {item.item_type === 'pallet' ? (
+                                <span className="text-4xl">🪵</span>
+                              ) : imgUrl ? (
                                 <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
-                                <Package className="w-4 h-4 text-muted-foreground" />
+                                <Package className="w-10 h-10 text-muted-foreground/50" />
                               )}
+                              <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-primary text-primary-foreground shadow">
+                                مطابق
+                              </Badge>
+                              <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow bg-primary/90 text-primary-foreground">
+                                {formatReviewQty(item, item.expected_quantity)}
+                              </div>
                             </div>
-                          )}
-                          <span className="text-sm flex-1 truncate">
-                            {productName}
-                            {item.item_type === 'damaged' && <span className="text-[10px] text-muted-foreground ms-1">(تالف)</span>}
-                          </span>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs text-muted-foreground">{formatReviewQty(item, item.expected_quantity)}</span>
-                            <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                            <div className="p-2">
+                              <p className="text-[11px] font-medium leading-tight line-clamp-2 min-h-[28px]">
+                                {productName}
+                                {item.item_type === 'damaged' && <span className="text-[9px] text-muted-foreground ms-1">(تالف)</span>}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
