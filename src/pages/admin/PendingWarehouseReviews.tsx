@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import palletImage from '@/assets/pallet.png';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -333,10 +334,11 @@ const PendingWarehouseReviews: React.FC = () => {
               const imgUrl = item.item_type === 'pallet'
                 ? palletImage
                 : (item.product?.image_url as string | undefined);
+              const displayName = getProductDisplayName(item.product) || '—';
               const productName =
                 item.item_type === 'pallet' ? 'الباليطات' :
-                item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
-                item.product?.name || '—';
+                item.item_type === 'damaged' ? `${displayName} (تالف)` :
+                displayName;
 
               // فصل فجوة الصالح عن فجوة التالف
               const expectedDamaged = item.product_id ? dbBPToBoxes(Number(stockMap?.[item.product_id] || 0), ppb) : 0;
@@ -452,7 +454,7 @@ const PendingWarehouseReviews: React.FC = () => {
               قرار المدير
             </DialogTitle>
             <DialogDescription>
-              {dialogItem?.item_type === 'pallet' ? 'الباليطات' : dialogItem?.product?.name}
+              {dialogItem?.item_type === 'pallet' ? 'الباليطات' : getProductDisplayName(dialogItem?.product)}
             </DialogDescription>
           </DialogHeader>
 
@@ -612,7 +614,7 @@ const PendingWarehouseReviews: React.FC = () => {
         <ProductReviewDetailsDialog
           open={!!reviewItem}
           onOpenChange={(o) => { if (!o) setReviewItem(null); }}
-          productName={reviewItem.product?.name || '—'}
+          productName={getProductDisplayName(reviewItem.product) || '—'}
           imageUrl={reviewItem.product?.image_url}
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
