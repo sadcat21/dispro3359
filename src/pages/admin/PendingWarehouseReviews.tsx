@@ -313,7 +313,7 @@ const PendingWarehouseReviews: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 pt-3 space-y-2">
+      <div className="px-2 sm:px-4 pt-3 space-y-2">
         {visible.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-sm text-muted-foreground">
@@ -322,7 +322,7 @@ const PendingWarehouseReviews: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {visible.map((item: any) => {
               const ppb = item.product?.pieces_per_box || 1;
               const expected = Number(item.expected_quantity || 0);
