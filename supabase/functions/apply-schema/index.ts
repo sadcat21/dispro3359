@@ -120,58 +120,44 @@ serve(async (req) => {
       // STEP 1: APPLY SCHEMA
       // ============================================================
       if (step === "apply") {
-        if (!sql || typeof sql !== "string") {
-          return json({ ok: false, error: "السكربت SQL مطلوب" }, 400);
+        // The frontend now sends pre-split statements as `statements: string[]`
+        // in small batches to stay under the edge-function CPU limit.
+        // Backward-compat: if `sql` is sent, split it here.
+        const incoming: string[] = Array.isArray(body?.statements)
+          ? body.statements
+          : (typeof sql === "string" ? splitSql(sql) : []);
+
+        if (!incoming.length) {
+          return json({ ok: false, error: "لا توجد جمل SQL للتنفيذ" }, 400);
         }
 
-        const statements = splitSql(sql);
-        const total = statements.length;
         let executed = 0;
         let skipped = 0;
+        const errors: { index: number; statement: string; error: string }[] = [];
 
-        // Track pending statements (index + sql) and retry across passes.
-        // Many failures are ordering issues (FK to not-yet-created table,
-        // index on missing column, trigger referencing missing function).
-        // Re-running pending statements after each pass resolves them.
-        let pending: { index: number; stmt: string; error: string }[] =
-          statements.map((stmt, index) => ({ index, stmt, error: "" }));
-
-        const MAX_PASSES = 6;
-        for (let pass = 0; pass < MAX_PASSES && pending.length > 0; pass++) {
-          const next: typeof pending = [];
-          for (const item of pending) {
-            try {
-              await client.queryArray(item.stmt);
-              executed++;
-            } catch (e: any) {
-              const msg = String(e?.message || e);
-              if (/already exists|duplicate/i.test(msg)) {
-                skipped++;
-              } else {
-                next.push({ index: item.index, stmt: item.stmt, error: msg });
-              }
+        for (let i = 0; i < incoming.length; i++) {
+          const stmt = incoming[i];
+          try {
+            await client.queryArray(stmt);
+            executed++;
+          } catch (e: any) {
+            const msg = String(e?.message || e);
+            if (/already exists|duplicate/i.test(msg)) {
+              skipped++;
+            } else {
+              errors.push({ index: i, statement: stmt.slice(0, 200), error: msg });
             }
           }
-          // If nothing changed this pass, no point retrying further.
-          if (next.length === pending.length) {
-            pending = next;
-            break;
-          }
-          pending = next;
         }
-
-        const errors = pending.map((p) => ({
-          index: p.index,
-          statement: p.stmt.slice(0, 200),
-          error: p.error,
-        }));
 
         return json({
           ok: true,
-          total,
+          total: incoming.length,
           executed,
           skipped,
           errors,
+          // Return failed statements in full so the client can retry them.
+          failed_statements: errors.map((e) => incoming[e.index]),
         });
       }
 
