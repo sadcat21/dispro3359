@@ -256,7 +256,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
-                  {hasGoodGap && hasInput && (
+                  {hasGoodGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
                       goodDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                     }`}>
@@ -315,7 +315,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
-                  {hasDamagedGap && hasInput && (
+                  {hasDamagedGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
                       damagedDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                     }`}>
