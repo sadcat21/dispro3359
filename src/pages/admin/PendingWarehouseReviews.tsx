@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePendingReviewItems, useApplyManagerDecision, type ReviewItemMeta } from '@/hooks/useWarehouseReviewDecisions';
 import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
+import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import { format } from 'date-fns';
 
 const fmtPlain = (n: number) => {
