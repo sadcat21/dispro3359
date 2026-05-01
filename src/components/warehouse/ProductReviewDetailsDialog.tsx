@@ -189,7 +189,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                   <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
                 </div>
-                <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0.5">
+                <Badge className="text-[10px] font-bold px-1.5 py-0.5 bg-green-600 text-white hover:bg-green-600 border-0">
                   المتوقع: {boxesToBP(Math.max(0, expected - expectedDamaged), ppb)}
                 </Badge>
               </div>
