@@ -21,6 +21,7 @@ import { boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { toast } from 'sonner';
 import ProductReviewDetailsDialog, { ProductReviewDetails } from '@/components/warehouse/ProductReviewDetailsDialog';
 import ReviewCardMovementBadge from '@/components/warehouse/ReviewCardMovementBadge';
+import { useReviewItemMovements, movementTypeLabel, type MovementRow } from '@/hooks/useReviewItemMovements';
 import { format } from 'date-fns';
 
 const fmtPlain = (n: number) => {
