@@ -134,6 +134,16 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
     onOpenChange(false);
   };
 
+  const ReviewerHint: React.FC<{ value?: number }> = ({ value }) => {
+    if (!reviewerValues) return null;
+    return (
+      <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
+        <span className="opacity-70">المخزني:</span>
+        <span className="font-bold text-foreground">{value ?? 0}</span>
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
        <DialogContent className="max-w-md max-h-[92dvh] overflow-hidden flex flex-col p-0" dir="rtl">
