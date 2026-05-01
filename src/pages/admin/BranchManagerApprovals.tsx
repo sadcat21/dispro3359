@@ -35,17 +35,15 @@ const BranchManagerApprovals: React.FC = () => {
     queryKey: ['branch-approvals-counts', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [invoices, warehouseReviews, stockReceipts, factoryDeliveries, debtCollections] = await Promise.all([
+      const [invoices, warehouseReviews, stockReceipts, factoryDeliveries] = await Promise.all([
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('status', 'pending_branch'),
-        supabase.from('worker_stock_review_items').select('id', { count: 'exact', head: true })
+        supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true })
           .eq('decision_status', 'pending'),
         supabase.from('stock_receipts').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
         supabase.from('factory_orders').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('order_type', 'sending').eq('status', 'pending_approval'),
-        supabase.from('debt_collections').select('id', { count: 'exact', head: true })
-          .eq('status', 'pending_approval' as any).then(r => r).catch(() => ({ count: 0 } as any)),
       ]);
       return {
         invoices: invoices.count || 0,
