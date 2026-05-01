@@ -50,7 +50,6 @@ const BranchManagerApprovals: React.FC = () => {
         warehouseReviews: warehouseReviews.count || 0,
         stockReceipts: stockReceipts.count || 0,
         factoryDeliveries: factoryDeliveries.count || 0,
-        debtCollections: (debtCollections as any)?.count || 0,
       };
     },
     staleTime: 30_000,
