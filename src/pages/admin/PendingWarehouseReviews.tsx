@@ -421,7 +421,7 @@ const PendingWarehouseReviews: React.FC = () => {
                     <AlertTriangle className="w-3 h-3" />فجوة
                   </Badge>;
 
-              const clickable = !isDecided && (item.item_type === 'product' || item.item_type === 'pallet');
+              const clickable = !isDecided && (item.item_type === 'product' || item.item_type === 'pallet' || item.item_type === 'damaged');
               return (
                 <div
                   key={item.id}
@@ -445,11 +445,6 @@ const PendingWarehouseReviews: React.FC = () => {
                         sinceIso={item.created_at}
                         piecesPerBox={ppb}
                       />
-                    )}
-                    {hasGap && (
-                      <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold shadow bg-destructive text-destructive-foreground">
-                        فجوة
-                      </div>
                     )}
                   </div>
 
