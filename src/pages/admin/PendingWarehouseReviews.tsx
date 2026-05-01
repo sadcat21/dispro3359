@@ -101,7 +101,7 @@ const PendingWarehouseReviews: React.FC = () => {
     piecesPerBox: reviewItem?.product?.pieces_per_box || 1,
     enabled: !!reviewItem,
   });
-  const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending' && i.meta.decision_status !== 'auto_approved'), [items]);
+  const decided = useMemo(() => items.filter(i => i.meta.decision_status !== 'pending'), [items]);
 
   const visible = useMemo(() => {
     const base = showDecided ? decided : pending;
