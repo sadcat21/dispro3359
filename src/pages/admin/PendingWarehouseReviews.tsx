@@ -518,14 +518,57 @@ const PendingWarehouseReviews: React.FC = () => {
           {dialogItem && (() => {
             const isSurplus = dialogItem.status === 'surplus';
             const ppb = dialogItem.product?.pieces_per_box || 1;
-            const diff = Math.abs(Number(dialogItem.actual_quantity) - Number(dialogItem.expected_quantity));
+            const expectedQty = Number(dialogItem.expected_quantity);
+            const actualQty = Number(dialogItem.actual_quantity);
+            const diff = Math.abs(actualQty - expectedQty);
+
+            // الكمية الجديدة المتوقعة بعد القرار
+            let newQty: number | null = null;
+            let newQtyLabel = '';
+            let newQtyTone: 'green' | 'amber' | 'red' = 'green';
+            if (chosenDecision === 'accept_surplus') {
+              newQty = actualQty;
+              newQtyLabel = 'تُضاف الكمية للمخزون';
+              newQtyTone = 'amber';
+            } else if (chosenDecision === 'reject_surplus') {
+              newQty = expectedQty;
+              newQtyLabel = 'تبقى الكمية كما هي (المتوقع)';
+              newQtyTone = 'green';
+            } else if (chosenDecision === 'charge_worker' || chosenDecision === 'absorb_deficit') {
+              newQty = actualQty;
+              newQtyLabel = chosenDecision === 'charge_worker'
+                ? 'تُخصم الكمية ويُسجَّل دين على المسؤول'
+                : 'تُخصم الكمية (تحمّل العجز)';
+              newQtyTone = 'red';
+            }
+            const toneClasses = {
+              green: 'border-green-500/40 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300',
+              amber: 'border-amber-400/60 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300',
+              red: 'border-destructive/40 bg-destructive/5 text-destructive',
+            }[newQtyTone];
+
             return (
               <div className="space-y-3">
                 <div className={`rounded-lg p-2.5 text-center text-sm ${isSurplus ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                   <span className="font-semibold">
                     {isSurplus ? 'فائض' : 'عجز'}: {fmtQty(diff, ppb)}
                   </span>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                    المتوقع: <b className="text-foreground">{fmtQty(expectedQty, ppb)}</b>
+                    {' • '}
+                    الفعلي: <b className="text-foreground">{fmtQty(actualQty, ppb)}</b>
+                  </div>
                 </div>
+
+                {newQty !== null && (
+                  <div className={`rounded-lg p-2.5 border-2 ${toneClasses}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">الكمية الجديدة بعد القرار:</span>
+                      <span className="text-base font-extrabold">{fmtQty(newQty, ppb)}</span>
+                    </div>
+                    <div className="text-[10px] opacity-80 mt-0.5">{newQtyLabel}</div>
+                  </div>
+                )}
 
                 {isSurplus ? (
                   <div className="grid grid-cols-2 gap-2">
