@@ -125,34 +125,54 @@ serve(async (req) => {
         }
 
         const statements = splitSql(sql);
-        const results = {
-          total: statements.length,
-          executed: 0,
-          skipped: 0,
-          errors: [] as { index: number; statement: string; error: string }[],
-        };
+        const total = statements.length;
+        let executed = 0;
+        let skipped = 0;
 
-        for (let i = 0; i < statements.length; i++) {
-          const stmt = statements[i];
-          try {
-            await client.queryArray(stmt);
-            results.executed++;
-          } catch (e: any) {
-            const msg = String(e?.message || e);
-            // Skip "already exists" errors silently
-            if (/already exists|duplicate/i.test(msg)) {
-              results.skipped++;
-            } else {
-              results.errors.push({
-                index: i,
-                statement: stmt.slice(0, 200),
-                error: msg,
-              });
+        // Track pending statements (index + sql) and retry across passes.
+        // Many failures are ordering issues (FK to not-yet-created table,
+        // index on missing column, trigger referencing missing function).
+        // Re-running pending statements after each pass resolves them.
+        let pending: { index: number; stmt: string; error: string }[] =
+          statements.map((stmt, index) => ({ index, stmt, error: "" }));
+
+        const MAX_PASSES = 6;
+        for (let pass = 0; pass < MAX_PASSES && pending.length > 0; pass++) {
+          const next: typeof pending = [];
+          for (const item of pending) {
+            try {
+              await client.queryArray(item.stmt);
+              executed++;
+            } catch (e: any) {
+              const msg = String(e?.message || e);
+              if (/already exists|duplicate/i.test(msg)) {
+                skipped++;
+              } else {
+                next.push({ index: item.index, stmt: item.stmt, error: msg });
+              }
             }
           }
+          // If nothing changed this pass, no point retrying further.
+          if (next.length === pending.length) {
+            pending = next;
+            break;
+          }
+          pending = next;
         }
 
-        return json({ ok: true, ...results });
+        const errors = pending.map((p) => ({
+          index: p.index,
+          statement: p.stmt.slice(0, 200),
+          error: p.error,
+        }));
+
+        return json({
+          ok: true,
+          total,
+          executed,
+          skipped,
+          errors,
+        });
       }
 
       // ============================================================
