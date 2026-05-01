@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { boxesToBP, dbBPToBoxes, dbBPDisplay } from '@/utils/boxPieceInput';
+import { boxesToBP } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, CheckCircle, AlertTriangle, Package, ClipboardCheck, TrendingUp, TrendingDown, History } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import palletImage from '@/assets/pallet.png';
 
 const fmtQty = (n: number) => {
   const rounded = Math.round(n * 100) / 100;
@@ -20,11 +21,11 @@ const formatReviewQty = (item: any, value: number) => {
   const numeric = Number(value || 0);
   if (item.item_type === 'pallet') return fmtQty(numeric);
   const piecesPerBox = Number((item.product as any)?.pieces_per_box || 1);
-  // DB stores quantities in B.P format (decimal part = pieces count, not fraction)
-  return piecesPerBox > 1 ? dbBPDisplay(numeric, piecesPerBox) : fmtQty(numeric);
+  // Review records store product quantities as real boxes; display them in B.P format.
+  return piecesPerBox > 1 ? boxesToBP(numeric, piecesPerBox) : fmtQty(numeric);
 };
 
-// Compute true numerical difference accounting for B.P storage format.
+// Compute true numerical difference from review records stored as real boxes.
 // Returns { absDiff, sign } where sign is -1 (deficit), 0 (matched), 1 (surplus).
 const computeDiff = (item: any) => {
   const expected = Number(item.expected_quantity || 0);
@@ -37,8 +38,8 @@ const computeDiff = (item: any) => {
     expectedReal = expected;
     actualReal = actual;
   } else {
-    expectedReal = dbBPToBoxes(expected, piecesPerBox);
-    actualReal = dbBPToBoxes(actual, piecesPerBox);
+    expectedReal = expected;
+    actualReal = actual;
   }
 
   const diff = actualReal - expectedReal;
@@ -197,7 +198,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
 
       {/* Session details dialog */}
       <Dialog open={!!viewSessionId} onOpenChange={open => { if (!open) setViewSessionId(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-2xl h-[90dvh] overflow-hidden flex flex-col p-4 sm:p-6" dir="rtl">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <ClipboardCheck className="w-4 h-4 text-primary" />
@@ -210,8 +211,8 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
           ) : (
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="space-y-3 pe-1 pb-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pe-1 pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="space-y-3">
                 {viewSession && (
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="text-muted-foreground">التاريخ:</div>
@@ -244,7 +245,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                           >
                             <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                               {item.item_type === 'pallet' ? (
-                                <span className="text-4xl">🪵</span>
+                                <img src={palletImage} alt="الباليطات" className="w-full h-full object-cover" loading="lazy" />
                               ) : imgUrl ? (
                                 <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
@@ -255,13 +256,9 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                               }`}>
                                 {isDeficit ? 'عجز' : 'فائض'}
                               </Badge>
-                              <div
-                                className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow"
-                                style={{
-                                  background: isDeficit ? '#c00' : '#e65100',
-                                  color: '#fff',
-                                }}
-                              >
+                              <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
+                                isDeficit ? 'bg-destructive text-destructive-foreground' : 'bg-amber-500 text-white'
+                              }`}>
                                 {isDeficit ? '-' : '+'}{diffStr}
                               </div>
                             </div>
@@ -299,7 +296,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                           >
                             <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
                               {item.item_type === 'pallet' ? (
-                                <span className="text-4xl">🪵</span>
+                                <img src={palletImage} alt="الباليطات" className="w-full h-full object-cover" loading="lazy" />
                               ) : imgUrl ? (
                                 <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
@@ -331,7 +328,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>
