@@ -313,13 +313,37 @@ const PendingWarehouseReviews: React.FC = () => {
                   )}
 
                   {!isDecided && (
-                    <Button
-                      size="sm"
-                      onClick={() => openDialog(item)}
-                      className="w-full gap-1 h-9 text-xs"
-                    >
-                      اتخاذ قرار
-                    </Button>
+                    <div className="space-y-1.5">
+                      {overrides[item.id] && (
+                        <div className="text-[10px] bg-primary/10 border border-primary/30 rounded p-1.5 text-center">
+                          ✓ تمت إعادة المراجعة — الكمية الجديدة: <b>{fmtQty(overrides[item.id].actual, ppb)}</b>
+                          {' '}({overrides[item.id].status === 'matched' ? 'مطابق' : overrides[item.id].status === 'surplus' ? 'فائض' : 'عجز'})
+                        </div>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openReview(item)}
+                        disabled={item.item_type !== 'product'}
+                        className="w-full gap-1 h-9 text-xs"
+                      >
+                        <ClipboardCheck className="w-3.5 h-3.5" />
+                        مراجعة كميات المنتج
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => openDecisionDialog(item)}
+                        disabled={item.item_type === 'product' && !overrides[item.id]}
+                        className="w-full gap-1 h-9 text-xs"
+                      >
+                        اتخاذ قرار
+                      </Button>
+                      {item.item_type === 'product' && !overrides[item.id] && (
+                        <p className="text-[9px] text-muted-foreground text-center">
+                          يجب أولاً مراجعة كميات المنتج قبل اتخاذ القرار
+                        </p>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>
