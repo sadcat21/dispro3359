@@ -123,19 +123,18 @@ const PendingWarehouseReviews: React.FC = () => {
     return map[tier] || 0;
   };
 
-  // يحوّل سعر الوحدة (حسب pricing_unit) إلى سعر الصندوق وسعر القطعة
-  const computePrices = (product: any, unitPriceVal: number) => {
+  // تُحسب على ضوء ما يمثله السعر المُدخل (basis) وعدد الوحدات في الصندوق
+  const computePrices = (product: any, unitPriceVal: number, basis: 'box' | 'kg' | 'unit', wpbOverride: number) => {
     const ppb = Math.max(1, Number(product?.pieces_per_box || 1));
-    const pricingUnit = product?.pricing_unit || 'box';
-    const weightPerBox = Number(product?.weight_per_box || 0);
+    const weightPerBox = wpbOverride > 0 ? wpbOverride : Number(product?.weight_per_box || 0);
     let boxPrice = unitPriceVal;
-    if (pricingUnit === 'kg' && weightPerBox > 0) {
-      boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × كغ/صندوق
-    } else if (pricingUnit === 'unit') {
-      boxPrice = unitPriceVal * ppb; // سعر/قطعة × قطعة/صندوق
+    if (basis === 'kg' && weightPerBox > 0) {
+      boxPrice = unitPriceVal * weightPerBox; // سعر/كغ × عدد الكغ في الصندوق
+    } else if (basis === 'unit') {
+      boxPrice = unitPriceVal * ppb; // سعر/قطعة × عدد القطع في الصندوق
     }
     const piecePrice = ppb > 0 ? boxPrice / ppb : boxPrice;
-    return { boxPrice, piecePrice, ppb, pricingUnit, weightPerBox };
+    return { boxPrice, piecePrice, ppb, weightPerBox };
   };
 
   const openDecisionDialog = (item: any) => {
@@ -143,12 +142,14 @@ const PendingWarehouseReviews: React.FC = () => {
     setChosenDecision(null);
     setManagerNotes('');
     const product = item.product;
-    // افتراضي: سعر الفاتورة إن وُجد، وإلا الجملة
     const defaultTier: 'invoice' | 'retail' | 'gros' | 'super_gros' =
       product?.price_invoice ? 'invoice' :
       product?.price_gros ? 'gros' :
       product?.price_super_gros ? 'super_gros' : 'retail';
     setPriceTier(defaultTier);
+    // الافتراضي: السعر المخزّن يُعتبر سعر الصندوق (كما هو معتمد في باقي النظام)
+    setPriceBasis('box');
+    setWeightPerBoxInput(String(product?.weight_per_box || ''));
     setUnitPrice(String(getProductTierPrice(product, defaultTier)));
   };
 
