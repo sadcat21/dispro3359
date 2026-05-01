@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save } from 'lucide-react';
+import { Save, CheckCircle2 } from 'lucide-react';
 import palletImage from '@/assets/pallet.png';
 
 interface Props {
@@ -108,9 +108,18 @@ const PalletReviewDialog: React.FC<Props> = ({ open, onOpenChange, expected, ini
         </div>
 
         <DialogFooter className="shrink-0 border-t border-border bg-background px-4 py-2 sticky bottom-0">
-          <div className="flex gap-2 w-full">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-9">إلغاء</Button>
-            <Button onClick={handleSave} className="gap-1.5 flex-1 h-9">
+          <div className="flex gap-2 w-full flex-wrap">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 min-w-[80px] h-9">إلغاء</Button>
+            <Button
+              type="button"
+              onClick={() => setActual(String(expected))}
+              className="gap-1.5 flex-1 min-w-[100px] h-9 bg-green-600 hover:bg-green-700 text-white border-0"
+              title="إدراج العدد المتوقع في الحقل"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              تأكيد المتوقع
+            </Button>
+            <Button onClick={handleSave} className="gap-1.5 flex-1 min-w-[80px] h-9">
               <Save className="w-4 h-4" />
               حفظ
             </Button>
