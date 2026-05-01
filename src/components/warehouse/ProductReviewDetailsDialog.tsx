@@ -114,25 +114,37 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   const isSurplus = diff > 0.01;
   const hasInput = grandTotal > 0;
 
+  // كل قسم يأخذ لونه المستقل: مطابق=أخضر، فائض=أصفر، عجز=أحمر
+  const styleFor = (gap: number, hasGap: boolean) => {
+    if (!hasGap) {
+      return {
+        container: 'border-green-500/50 bg-green-50 dark:bg-green-950/20',
+        icon: 'text-green-600',
+        title: 'text-green-700 dark:text-green-400',
+        border: 'border-green-300/40',
+        value: 'text-green-600',
+      };
+    }
+    if (gap > 0) {
+      return {
+        container: 'border-amber-400/60 bg-amber-50 dark:bg-amber-950/20',
+        icon: 'text-amber-600',
+        title: 'text-amber-700 dark:text-amber-400',
+        border: 'border-amber-300/40',
+        value: 'text-amber-600',
+      };
+    }
+    return {
+      container: 'border-destructive/50 bg-destructive/5',
+      icon: 'text-destructive',
+      title: 'text-destructive',
+      border: 'border-destructive/20',
+      value: 'text-destructive',
+    };
+  };
   const sectionStyles = {
-    good: {
-      container: !hasGoodGap && hasInput ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
-        : goodDiff > 0 ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
-        : 'border-primary/30 bg-primary/5',
-      icon: !hasGoodGap && hasInput ? 'text-green-600' : goodDiff > 0 ? 'text-amber-600' : 'text-primary',
-      title: !hasGoodGap && hasInput ? 'text-green-700 dark:text-green-400' : goodDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-primary',
-      border: !hasGoodGap && hasInput ? 'border-green-300/40' : goodDiff > 0 ? 'border-amber-300/40' : 'border-primary/20',
-      value: !hasGoodGap && hasInput ? 'text-green-600' : goodDiff > 0 ? 'text-amber-600' : 'text-primary',
-    },
-    damaged: {
-      container: !hasDamagedGap && hasInput ? 'border-green-500/40 bg-green-50 dark:bg-green-950/20'
-        : damagedDiff > 0 ? 'border-amber-400/40 bg-amber-50 dark:bg-amber-950/20'
-        : 'border-destructive/30 bg-destructive/5',
-      icon: !hasDamagedGap && hasInput ? 'text-green-600' : damagedDiff > 0 ? 'text-amber-600' : 'text-destructive',
-      title: !hasDamagedGap && hasInput ? 'text-green-700 dark:text-green-400' : damagedDiff > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-destructive',
-      border: !hasDamagedGap && hasInput ? 'border-green-300/40' : damagedDiff > 0 ? 'border-amber-300/40' : 'border-destructive/20',
-      value: !hasDamagedGap && hasInput ? 'text-green-600' : damagedDiff > 0 ? 'text-amber-600' : 'text-destructive',
-    },
+    good: styleFor(goodDiff, hasGoodGap),
+    damaged: styleFor(damagedDiff, hasDamagedGap),
   };
 
   // حساب الفجوة بالصناديق والقطع لكل قسم
@@ -244,7 +256,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <CheckCircle2 className={`w-3.5 h-3.5 ${sectionStyles.good.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.good.title}`}>الكمية الصالحة</h3>
-                  {hasGoodGap && hasInput && (
+                  {hasGoodGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
                       goodDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                     }`}>
@@ -303,7 +315,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <AlertTriangle className={`w-3.5 h-3.5 ${sectionStyles.damaged.icon}`} />
                   <h3 className={`text-xs font-bold ${sectionStyles.damaged.title}`}>الكمية التالفة</h3>
-                  {hasDamagedGap && hasInput && (
+                  {hasDamagedGap && (
                     <Badge className={`text-[10px] font-bold px-1.5 py-0.5 border-0 ${
                       damagedDiff > 0 ? 'bg-amber-500 text-white hover:bg-amber-500' : 'bg-destructive text-destructive-foreground hover:bg-destructive'
                     }`}>
