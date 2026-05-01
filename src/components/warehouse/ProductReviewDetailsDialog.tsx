@@ -30,6 +30,9 @@ interface Props {
   piecesPerBox: number;
   expected: number; // متوقع بالصناديق (كسري)
   initial?: ProductReviewDetails;
+  /** قيم مسؤول المخزن — لتظهر للمدير كاشارة أسفل كل حقل */
+  reviewerValues?: { goodBoxes?: number; goodPieces?: number; damagedBoxes?: number; damagedPieces?: number };
+  reviewerName?: string;
   onSave: (details: ProductReviewDetails) => void;
 }
 
