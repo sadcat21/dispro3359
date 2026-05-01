@@ -237,10 +237,10 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
                         return (
                           <div
                             key={item.id}
-                            className={`relative rounded-xl overflow-hidden border flex flex-col ${
+                            className={`relative rounded-xl overflow-hidden border-4 flex flex-col ${
                               isDeficit
-                                ? 'bg-destructive/5 border-destructive/40'
-                                : 'bg-amber-50 dark:bg-amber-950/10 border-amber-300'
+                                ? 'bg-destructive/5 border-destructive'
+                                : 'bg-amber-50 dark:bg-amber-950/10 border-amber-500'
                             }`}
                           >
                             <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
