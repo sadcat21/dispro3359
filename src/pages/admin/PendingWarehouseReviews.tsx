@@ -569,7 +569,7 @@ const PendingWarehouseReviews: React.FC = () => {
           imageUrl={reviewItem.product?.image_url}
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
-          expectedDamaged={Number((reviewItemStock as any)?.damaged_quantity || 0)}
+          expectedDamaged={dbBPToBoxes(Number((reviewItemStock as any)?.damaged_quantity || 0), reviewItem.product?.pieces_per_box || 1)}
           initial={overrides[reviewItem.id]?.details}
           reviewerName={reviewItem.session?.reviewer?.full_name || undefined}
           reviewerValues={(() => {
