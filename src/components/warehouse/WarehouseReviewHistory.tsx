@@ -213,7 +213,7 @@ const WarehouseReviewHistory: React.FC<WarehouseReviewHistoryProps> = ({ branchI
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pe-1 pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pe-1 pb-1 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <div className="space-y-3">
                 {viewSession && (
                   <div className="grid grid-cols-2 gap-2 text-sm">
