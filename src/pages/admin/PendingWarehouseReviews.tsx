@@ -460,6 +460,20 @@ const PendingWarehouseReviews: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة مراجعة كميات المنتج (للمدير) — مطابقة لنافذة مسؤول المخزن */}
+      {reviewItem && (
+        <ProductReviewDetailsDialog
+          open={!!reviewItem}
+          onOpenChange={(o) => { if (!o) setReviewItem(null); }}
+          productName={reviewItem.product?.name || '—'}
+          imageUrl={reviewItem.product?.image_url}
+          piecesPerBox={reviewItem.product?.pieces_per_box || 1}
+          expected={Number(reviewItem.expected_quantity || 0)}
+          initial={overrides[reviewItem.id]?.details}
+          onSave={handleReviewSave}
+        />
+      )}
     </div>
   );
 };
