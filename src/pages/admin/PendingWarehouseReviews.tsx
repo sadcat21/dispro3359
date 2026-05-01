@@ -175,9 +175,13 @@ const PendingWarehouseReviews: React.FC = () => {
 
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
-      const price = parseFloat(unitPrice) || 0;
-      const deficitBoxes = Math.abs(diffBoxes);
-      debtAmount = price * deficitBoxes;
+      const unitPriceVal = parseFloat(unitPrice) || 0;
+      const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal);
+      const deficitTotalBoxes = Math.abs(diffBoxes); // كسري بالصناديق
+      const totalPiecesDiff = Math.round(deficitTotalBoxes * ppb);
+      const fullBoxes = Math.floor(totalPiecesDiff / ppb);
+      const remPieces = totalPiecesDiff % ppb;
+      debtAmount = fullBoxes * boxPrice + remPieces * piecePrice;
       if (debtAmount <= 0) {
         toast.error('أدخل سعر الوحدة لاحتساب قيمة الدين');
         return;
