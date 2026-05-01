@@ -329,7 +329,6 @@ const PendingWarehouseReviews: React.FC = () => {
               const ppb = item.product?.pieces_per_box || 1;
               const expected = Number(item.expected_quantity || 0);
               const actual = Number(item.actual_quantity || 0);
-              const diff = Math.abs(actual - expected);
               const meta: ReviewItemMeta = item.meta;
               const isDecided = meta.decision_status !== 'pending' && meta.decision_status !== 'auto_approved';
               const imgUrl = item.product?.image_url as string | undefined;
@@ -338,17 +337,29 @@ const PendingWarehouseReviews: React.FC = () => {
                 item.item_type === 'damaged' ? `${item.product?.name || '—'} (تالف)` :
                 item.product?.name || '—';
 
+              // فصل فجوة الصالح عن فجوة التالف
+              const expectedDamaged = item.product_id ? dbBPToBoxes(Number(stockMap?.[item.product_id] || 0), ppb) : 0;
+              const expectedGood = Math.max(0, expected - expectedDamaged);
+              const actualDamagedRaw = Number(item.damaged_quantity || 0); // مخزّن بصيغة BP عشرية
+              const actualDamaged = ppb > 1 ? dbBPToBoxes(actualDamagedRaw, ppb) : actualDamagedRaw;
+              const actualGood = Math.max(0, actual - actualDamaged);
+
+              const goodDiff = actualGood - expectedGood;
+              const damagedDiff = actualDamaged - expectedDamaged;
+              const hasGoodGap = Math.abs(goodDiff) >= 0.01;
+              const hasDamagedGap = Math.abs(damagedDiff) >= 0.01;
+              const hasGap = hasGoodGap || hasDamagedGap;
+              const isMatched = !hasGap;
+
               const borderClass = isMatched
                 ? 'border-green-500 bg-green-50/40 dark:bg-green-950/10'
-                : isSurplus
-                ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/10'
                 : 'border-destructive bg-destructive/5';
 
               const statusBadge = isMatched
                 ? <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-green-600 text-white shadow">مطابق</Badge>
-                : isSurplus
-                ? <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-amber-500 text-white shadow">فائض</Badge>
-                : <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-destructive text-destructive-foreground shadow">عجز</Badge>;
+                : <Badge className="absolute top-1.5 start-1.5 text-[10px] bg-destructive text-destructive-foreground shadow gap-1">
+                    <AlertTriangle className="w-3 h-3" />فجوة
+                  </Badge>;
 
               const clickable = !isDecided && item.item_type === 'product';
               return (
@@ -375,11 +386,9 @@ const PendingWarehouseReviews: React.FC = () => {
                         piecesPerBox={ppb}
                       />
                     )}
-                    {!isMatched && (
-                      <div className={`absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-xs font-bold shadow ${
-                        isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'
-                      }`}>
-                        {isSurplus ? '+' : '-'}{fmtQty(diff, ppb)}
+                    {hasGap && (
+                      <div className="absolute bottom-1.5 end-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold shadow bg-destructive text-destructive-foreground">
+                        فجوة
                       </div>
                     )}
                   </div>
@@ -391,18 +400,20 @@ const PendingWarehouseReviews: React.FC = () => {
 
                     {isMatched ? (
                       <Badge className="w-full text-[12px] px-2 py-1 font-bold justify-center bg-green-600 text-white border-0">
-                        الكمية: {fmtQty(expected, ppb)}
+                        مطابق: {fmtQty(expected, ppb)}
                       </Badge>
                     ) : (
                       <div className="flex flex-col gap-1">
-                        <Badge className="text-[11px] px-2 py-1 font-bold justify-center bg-green-600 text-white border-0">
-                          متوقع: {fmtQty(expected, ppb)}
-                        </Badge>
-                        <Badge className={`text-[11px] px-2 py-1 font-bold justify-center border-0 ${
-                          isSurplus ? 'bg-amber-500 text-white' : 'bg-destructive text-destructive-foreground'
-                        }`}>
-                          فعلي: {fmtQty(actual, ppb)}
-                        </Badge>
+                        {hasGoodGap && (
+                          <Badge className="text-[10px] px-2 py-1 font-bold justify-center border-0 bg-destructive text-destructive-foreground">
+                            صالح: {goodDiff > 0 ? '+' : ''}{fmtQty(Math.abs(goodDiff), ppb)}
+                          </Badge>
+                        )}
+                        {hasDamagedGap && (
+                          <Badge className="text-[10px] px-2 py-1 font-bold justify-center border-0 bg-destructive/80 text-destructive-foreground">
+                            تالف: {damagedDiff > 0 ? '+' : ''}{fmtQty(Math.abs(damagedDiff), ppb)}
+                          </Badge>
+                        )}
                       </div>
                     )}
 
