@@ -553,6 +553,13 @@ const PendingWarehouseReviews: React.FC = () => {
           piecesPerBox={reviewItem.product?.pieces_per_box || 1}
           expected={Number(reviewItem.expected_quantity || 0)}
           initial={overrides[reviewItem.id]?.details}
+          reviewerName={reviewItem.session?.reviewer?.full_name || undefined}
+          reviewerValues={{
+            goodBoxes: Number(reviewItem.boxes_quantity || 0),
+            goodPieces: Number(reviewItem.pieces_quantity || 0),
+            damagedBoxes: Number(reviewItem.damaged_boxes_quantity ?? 0),
+            damagedPieces: Number(reviewItem.damaged_pieces_quantity ?? reviewItem.damaged_quantity ?? 0),
+          }}
           onSave={handleReviewSave}
         />
       )}
