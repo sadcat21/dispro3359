@@ -9,8 +9,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Copy, Download, FileCode, Loader2, ExternalLink, RefreshCw,
-  Play, CheckCircle2, XCircle, Eye, EyeOff, ShieldCheck
+  Play, CheckCircle2, XCircle, Eye, EyeOff, ShieldCheck, Trash2
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 const SCRIPT_URL = "/backup/aroma2_schema.sql";
 
@@ -43,6 +48,7 @@ const SchemaScriptTab = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [applying, setApplying] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [applyResult, setApplyResult] = useState<ApplyResult | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
 
@@ -122,6 +128,21 @@ const SchemaScriptTab = () => {
     } catch (e: any) {
       toast.error(e.message || "فشل التحقق");
     } finally { setVerifying(false); }
+  };
+
+  const handleReset = async () => {
+    if (!targetUrl || !targetPwd) { toast.error("أدخل بيانات المشروع الهدف"); return; }
+    setResetting(true); setApplyResult(null); setVerifyResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("apply-schema", {
+        body: { step: "reset", target: { url: targetUrl, db_password: targetPwd } },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.ok) throw new Error(data?.error || "فشل التفريغ");
+      toast.success("تم تفريغ قاعدة البيانات بنجاح");
+    } catch (e: any) {
+      toast.error(e.message || "فشل التفريغ");
+    } finally { setResetting(false); }
   };
 
   return (
@@ -222,6 +243,28 @@ const SchemaScriptTab = () => {
               {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
               التحقق من الإنشاء
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={resetting} variant="destructive" className="gap-2">
+                  {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  تفريغ قاعدة البيانات
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>تأكيد تفريغ قاعدة البيانات</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    سيتم حذف جميع الجداول والدوال والسياسات والبيانات في schema <code>public</code> من المشروع الهدف بشكل نهائي ولا يمكن التراجع. هل أنت متأكد من المتابعة؟
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    نعم، تفريغ
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
 
           {/* Apply result */}
