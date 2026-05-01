@@ -39,7 +39,7 @@ interface Props {
 const sanitizeInt = (v: string): string => v.replace(/[^0-9]/g, '');
 
 export const ProductReviewDetailsDialog: React.FC<Props> = ({
-  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, onSave,
+  open, onOpenChange, productName, imageUrl, piecesPerBox, expected, initial, reviewerValues, reviewerName, onSave,
 }) => {
   const ppb = Math.max(1, piecesPerBox || 1);
 
