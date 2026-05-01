@@ -130,6 +130,21 @@ const SchemaScriptTab = () => {
     } finally { setVerifying(false); }
   };
 
+  const handleReset = async () => {
+    if (!targetUrl || !targetPwd) { toast.error("أدخل بيانات المشروع الهدف"); return; }
+    setResetting(true); setApplyResult(null); setVerifyResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("apply-schema", {
+        body: { step: "reset", target: { url: targetUrl, db_password: targetPwd } },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.ok) throw new Error(data?.error || "فشل التفريغ");
+      toast.success("تم تفريغ قاعدة البيانات بنجاح");
+    } catch (e: any) {
+      toast.error(e.message || "فشل التفريغ");
+    } finally { setResetting(false); }
+  };
+
   return (
     <div className="space-y-4">
       {/* Script viewer card */}
