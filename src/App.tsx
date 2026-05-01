@@ -55,6 +55,7 @@ import ShareTarget from "./pages/ShareTarget";
 import SharedInvoices from "./pages/admin/SharedInvoices";
 import AssistantApprovals from "./pages/admin/AssistantApprovals";
 import BranchInvoiceApprovals from "./pages/admin/BranchInvoiceApprovals";
+import BranchManagerApprovals from "./pages/admin/BranchManagerApprovals";
 import SurplusDeficitTreasury from "./pages/admin/SurplusDeficitTreasury";
 import Rewards from "./pages/admin/Rewards";
 import WorkerRewards from "./pages/WorkerRewards";
@@ -443,6 +444,12 @@ const AppRoutes = () => {
       <Route path="/branch-invoice-approvals" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <BranchInvoiceApprovals />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/branch-approvals" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
+          <BranchManagerApprovals />
         </ProtectedRoute>
       } />
 

@@ -134,6 +134,7 @@ export const useNavigation = () => {
           { path: '/accounting', icon: Calculator, label: t('accounting.title') },
           { path: '/manager-treasury', icon: Vault, label: t('nav.manager_treasury') },
           { path: '/shared-invoices', icon: FolderOpen, label: t('nav.shared_invoices') },
+          { path: '/branch-approvals', icon: ShieldCheck, label: 'الموافقات' },
           { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
           { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
