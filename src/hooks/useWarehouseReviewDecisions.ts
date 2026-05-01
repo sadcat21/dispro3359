@@ -154,7 +154,7 @@ export const useApplyManagerDecision = () => {
         params.decision !== 'reject_surplus'
       ) {
         // تحديث الكمية الصالحة والتالفة في مخزون الفرع
-        const stockUpdate: Record<string, any> = {};
+        const stockUpdate: { quantity?: number; damaged_quantity?: number } = {};
         if (params.newStockQty !== null && params.newStockQty !== undefined) {
           stockUpdate.quantity = params.newStockQty;
         }
