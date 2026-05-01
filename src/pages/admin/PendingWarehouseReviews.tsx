@@ -146,9 +146,6 @@ const PendingWarehouseReviews: React.FC = () => {
       product?.price_gros ? 'gros' :
       product?.price_super_gros ? 'super_gros' : 'retail';
     setPriceTier(defaultTier);
-    // الافتراضي: السعر المخزّن يُعتبر سعر الصندوق (كما هو معتمد في باقي النظام)
-    setPriceBasis('box');
-    setWeightPerBoxInput(String(product?.weight_per_box || ''));
     setUnitPrice(String(getProductTierPrice(product, defaultTier)));
   };
 
