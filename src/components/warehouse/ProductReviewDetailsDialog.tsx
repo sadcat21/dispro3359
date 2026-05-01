@@ -41,6 +41,8 @@ interface Props {
   movements?: Array<{ id: string; movement_type: string; sign: 1 | -1; qtyBoxes: number; created_at: string; notes?: string | null }>;
   /** ترجمة نوع الحركة */
   movementTypeLabel?: (t: string) => string;
+  /** وضع مبسّط (للباليطات): كمية واحدة فقط، بدون تالف ولا قطع */
+  simpleMode?: boolean;
   onSave: (details: ProductReviewDetails) => void;
 }
 
@@ -50,6 +52,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
   open, onOpenChange, productName, imageUrl, piecesPerBox, expected, expectedDamaged = 0,
   initial, reviewerValues, reviewerName,
   movementsNetChange = 0, movements = [], movementTypeLabel: getMoveLabel,
+  simpleMode = false,
   onSave,
 }) => {
   const ppb = Math.max(1, piecesPerBox || 1);
