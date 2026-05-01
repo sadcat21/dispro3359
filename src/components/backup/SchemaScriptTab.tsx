@@ -48,6 +48,7 @@ const SchemaScriptTab = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [applying, setApplying] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [applyResult, setApplyResult] = useState<ApplyResult | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
 
