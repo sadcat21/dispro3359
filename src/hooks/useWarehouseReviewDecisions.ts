@@ -85,6 +85,10 @@ export const useApplyManagerDecision = () => {
       newBoxesQuantity?: number | null;
       newPiecesQuantity?: number | null;
       newDamagedQuantity?: number | null;
+      // كميات المخزون لكتابتها في warehouse_stock + stock_discrepancies (بصيغة B.P)
+      newDamagedStockQty?: number | null;
+      surplusQty?: number | null;
+      deficitQty?: number | null;
     }) => {
       let workerDebtId: string | null = null;
 
@@ -147,16 +151,52 @@ export const useApplyManagerDecision = () => {
         params.productId &&
         params.branchId &&
         params.itemType === 'product' &&
-        params.newStockQty !== null &&
-        params.newStockQty !== undefined &&
         params.decision !== 'reject_surplus'
       ) {
-        const { error: stockErr } = await supabase
-          .from('warehouse_stock')
-          .update({ quantity: params.newStockQty })
+        // تحديث الكمية الصالحة والتالفة في مخزون الفرع
+        const stockUpdate: { quantity?: number; damaged_quantity?: number } = {};
+        if (params.newStockQty !== null && params.newStockQty !== undefined) {
+          stockUpdate.quantity = params.newStockQty;
+        }
+        if (params.newDamagedStockQty !== null && params.newDamagedStockQty !== undefined) {
+          stockUpdate.damaged_quantity = params.newDamagedStockQty;
+        }
+        if (Object.keys(stockUpdate).length > 0) {
+          const { error: stockErr } = await supabase
+            .from('warehouse_stock')
+            .update(stockUpdate)
+            .eq('branch_id', params.branchId)
+            .eq('product_id', params.productId);
+          if (stockErr) throw stockErr;
+        }
+
+        // تحديث جدول الفائض/العجز ليظهر في حقول "الفائض" و"العجز"
+        await supabase
+          .from('stock_discrepancies')
+          .delete()
           .eq('branch_id', params.branchId)
           .eq('product_id', params.productId);
-        if (stockErr) throw stockErr;
+
+        const discRows: any[] = [];
+        if ((params.surplusQty || 0) > 0) {
+          discRows.push({
+            branch_id: params.branchId,
+            product_id: params.productId,
+            discrepancy_type: 'surplus',
+            quantity: params.surplusQty,
+          });
+        }
+        if ((params.deficitQty || 0) > 0) {
+          discRows.push({
+            branch_id: params.branchId,
+            product_id: params.productId,
+            discrepancy_type: 'deficit',
+            quantity: params.deficitQty,
+          });
+        }
+        if (discRows.length > 0) {
+          await supabase.from('stock_discrepancies').insert(discRows);
+        }
       }
 
       return { workerDebtId };

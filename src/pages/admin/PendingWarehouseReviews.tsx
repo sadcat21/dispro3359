@@ -156,16 +156,25 @@ const PendingWarehouseReviews: React.FC = () => {
     const newStockQty = item.item_type === 'product'
       ? (ppb > 1 ? parseFloat(boxesToBP(newActual, ppb)) : newActual)
       : null;
+    // كمية التالف بصيغة DB B.P
+    const dmgBoxes = details.damagedBoxes || 0;
+    const dmgPieces = details.damagedPieces || 0;
+    const newDamagedStockQty = item.item_type === 'product' && (dmgBoxes > 0 || dmgPieces > 0)
+      ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
+      : 0;
     try {
       await applyDecision.mutateAsync({
         itemId: item.id,
         productId: item.product_id,
         itemType: item.item_type,
         currentMeta: item.meta as ReviewItemMeta,
-        decision: 'absorb_deficit', // أي قرار غير reject — نستعمله كـ "موافق"
+        decision: 'absorb_deficit',
         managerNotes: 'تمت المراجعة — مطابق بعد إعادة العد',
         branchId: item.session?.branch_id || activeBranch?.id || null,
         newStockQty,
+        newDamagedStockQty,
+        surplusQty: 0,
+        deficitQty: 0,
         newActualQuantity: newActual,
         newStatus: 'matched',
         newBoxesQuantity: details.boxes,
@@ -235,16 +244,36 @@ const PendingWarehouseReviews: React.FC = () => {
     const override = overrides[dialogItem.id];
 
     let newStockQty: number | null = null;
+    let newDamagedStockQty: number | null = null;
+    let surplusQty = 0;
+    let deficitQty = 0;
     if (itemType === 'product') {
       const actualForDb = ppb > 1 ? parseFloat(boxesToBP(actual, ppb)) : actual;
       newStockQty = actualForDb;
+      // التالف بصيغة DB B.P (من override أو من البند الأصلي)
+      const dmgBoxes = override?.details.damagedBoxes ?? 0;
+      const dmgPieces = override?.details.damagedPieces ?? 0;
+      if (override) {
+        newDamagedStockQty = (dmgBoxes > 0 || dmgPieces > 0)
+          ? parseFloat(`${dmgBoxes}.${String(dmgPieces).padStart(2, '0')}`)
+          : 0;
+      } else {
+        // استخدم القيمة المخزنة في بند المراجعة كما هي
+        newDamagedStockQty = Number(dialogItem.damaged_quantity || 0);
+      }
+      // الفائض/العجز يُكتب فقط عند قبول الفائض أو امتصاص العجز (وليس rejection أو charge)
+      if (chosenDecision === 'accept_surplus' && diffBoxes > 0) {
+        surplusQty = ppb > 1 ? parseFloat(boxesToBP(diffBoxes, ppb)) : diffBoxes;
+      } else if (chosenDecision === 'absorb_deficit' && diffBoxes < 0) {
+        deficitQty = ppb > 1 ? parseFloat(boxesToBP(-diffBoxes, ppb)) : -diffBoxes;
+      }
     }
 
     let debtAmount = 0;
     if (chosenDecision === 'charge_worker') {
       const unitPriceVal = parseFloat(unitPrice) || 0;
       const { boxPrice, piecePrice } = computePrices(dialogItem.product, unitPriceVal);
-      const deficitTotalBoxes = Math.abs(diffBoxes); // كسري بالصناديق
+      const deficitTotalBoxes = Math.abs(diffBoxes);
       const totalPiecesDiff = Math.round(deficitTotalBoxes * ppb);
       const fullBoxes = Math.floor(totalPiecesDiff / ppb);
       const remPieces = totalPiecesDiff % ppb;
@@ -268,7 +297,9 @@ const PendingWarehouseReviews: React.FC = () => {
         debtDescription: `عجز في مراجعة المخزون - ${dialogItem.product?.name || dialogItem.item_type} (${fmtQty(Math.abs(diffBoxes), ppb)})`,
         branchId: dialogItem.session?.branch_id || activeBranch?.id || null,
         newStockQty,
-        // إذا كان هناك override، نحدّث الكميات في DB
+        newDamagedStockQty,
+        surplusQty,
+        deficitQty,
         newActualQuantity: override ? override.actual : null,
         newStatus: override ? override.status : null,
         newBoxesQuantity: override ? override.details.boxes : null,
