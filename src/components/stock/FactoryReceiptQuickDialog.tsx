@@ -773,7 +773,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
               <Button onClick={handleSave} disabled={isSaving} className="w-full bg-lime-600 hover:bg-lime-700">
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+                {editReceiptId ? 'حفظ التعديلات' : (isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام')}
               </Button>
             </div>
           ) : (
