@@ -36,6 +36,7 @@ interface GiftsPrintViewProps {
   workerNames?: string[];
   workerName?: string;
   dateRange?: string;
+  offerPeriod?: string;
   productFilter?: string;
   isVisible?: boolean;
   visibleColumns?: GiftPrintColumnKey[];
