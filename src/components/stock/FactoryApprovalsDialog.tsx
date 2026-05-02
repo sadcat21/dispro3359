@@ -19,6 +19,8 @@ import { formatDate } from '@/utils/formatters';
 import { parseReceiptItemBreakdown, parseReceiptMeta } from '@/utils/stockReceipt';
 import { boxesToBP, dbBPDisplay, dbBPToBoxes, parseBP } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import WorkflowStatusBadge from '@/components/stock/WorkflowStatusBadge';
+import { useApproveFactoryOrder, useRejectFactoryOrder } from '@/hooks/useFactoryOrderWorkflow';
 
 interface Props {
   open: boolean;
