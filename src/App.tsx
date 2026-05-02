@@ -41,6 +41,7 @@ import WarehouseStock from "./pages/admin/WarehouseStock";
 import WarehouseReview from "./pages/admin/WarehouseReview";
 import PendingWarehouseReviews from "./pages/admin/PendingWarehouseReviews";
 import StockReceipts from "./pages/admin/StockReceipts";
+import StockMovementsLedger from "./pages/admin/StockMovementsLedger";
 import LoadStock from "./pages/admin/LoadStock";
 import CustomerDebts from "./pages/admin/CustomerDebts";
 import AccountingSessions from "./pages/admin/AccountingSessions";
@@ -359,6 +360,12 @@ const AppRoutes = () => {
       <Route path="/stock-receipts" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <StockReceipts />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/stock-movements" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']} allowedCustomRoles={['warehouse_manager', 'company_manager']}>
+          <StockMovementsLedger />
         </ProtectedRoute>
       } />
 
