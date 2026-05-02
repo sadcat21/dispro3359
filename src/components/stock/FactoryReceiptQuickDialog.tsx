@@ -154,7 +154,55 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
     supabase.from('products').select('id, name, app_name, image_url, pieces_per_box').eq('is_active', true).order('name')
       .then(({ data }) => setProducts(data || []));
     fetchPendingReceipts();
-  }, [open, branchId]);
+
+    if (editReceiptId) {
+      (async () => {
+        const { data: r } = await supabase.from('stock_receipts').select('*').eq('id', editReceiptId).maybeSingle();
+        if (!r) return;
+        setInvoiceNumber(r.invoice_number || '');
+        setPalletCount(Number((r as any).pallet_count) || 0);
+        if (Array.isArray((r as any).expenses_breakdown)) {
+          setExpenseLines((r as any).expenses_breakdown as any[]);
+        }
+        const meta = parseReceiptMeta(r.notes);
+        setNotes(meta.text || '');
+        setReceiptSource(meta.source || 'factory');
+        setDriverName(meta.driver_name || '');
+        setDriverPhone(meta.driver_phone || '');
+        setLicensePlate(meta.license_plate || '');
+        if (r.invoice_photo_url) setPhotoPreview(r.invoice_photo_url);
+
+        const { data: rItems } = await supabase.from('stock_receipt_items')
+          .select('*, product:products(pieces_per_box)').eq('receipt_id', editReceiptId);
+        const grouped = new Map<string, ReceiptItem>();
+        (rItems || []).forEach((it: any) => {
+          const ppb = it.product?.pieces_per_box || 1;
+          const breakdown = parseReceiptItemBreakdown(it);
+          const newQ = fromDbQuantity(Number(breakdown.new_qty) || 0, ppb);
+          const compQ = fromDbQuantity(Number(breakdown.comp_qty) || 0, ppb);
+          const coQ = fromDbQuantity(Number(breakdown.comp_offers_qty) || 0, ppb);
+          const existing = grouped.get(it.product_id);
+          if (existing) {
+            existing.new_quantity += newQ;
+            existing.compensation_quantity += compQ;
+            existing.compensation_offers_quantity += coQ;
+          } else {
+            grouped.set(it.product_id, {
+              product_id: it.product_id,
+              new_quantity: newQ,
+              compensation_quantity: compQ,
+              compensation_offers_quantity: coQ,
+              lot_number: it.lot_number || null,
+              manufacturing_date: it.manufacturing_date || null,
+              manufacturing_time: it.manufacturing_time || null,
+              delivery_date: it.delivery_date || null,
+            });
+          }
+        });
+        setItems(Array.from(grouped.values()));
+      })();
+    }
+  }, [open, branchId, editReceiptId]);
 
   const fetchPendingReceipts = async () => {
     if (!branchId) return;
