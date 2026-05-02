@@ -795,16 +795,11 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!workerId || d.frozen_at) return;
     setProcessingId(d.id);
     try {
-      // مدير الفرع يحوّل التسليم للإدارة العليا — لا تطبيق نهائي للحركات هنا
-      await supabase.from('factory_orders').update({
-        status: 'pending_assistant',
-        branch_approved_by: workerId,
-        branch_approved_at: new Date().toISOString(),
-      }).eq('id', d.id);
-      toast.success('تم إرسال طلب التسليم للإدارة العليا');
+      // Uses approve_factory_order RPC — auto-detects current stage and writes to ledger/transitions
+      await approveFactoryOrder.mutateAsync({ orderId: d.id });
       await fetchData();
     } catch (e: any) {
-      toast.error(e.message || 'خطأ');
+      // toast handled inside the hook
     } finally { setProcessingId(null); }
   };
 
