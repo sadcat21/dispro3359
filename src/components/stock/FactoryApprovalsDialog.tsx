@@ -169,12 +169,36 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <tbody>${itemsRows}</tbody>
         </table>
 
-        <div class="box">
-          <h3>Détails supplémentaires</h3>
-          <div class="row"><span class="label">Nombre de palettes:</span> <strong>${r.pallet_count ?? 0}</strong></div>
-          <div class="row"><span class="label">Frais de réception:</span> <strong>${(r.receipt_expenses ?? 0).toLocaleString()} DA</strong></div>
-          ${r.expenses_description ? `<div class="row"><span class="label">Description des frais:</span> ${r.expenses_description}</div>` : ''}
-        </div>
+        ${(() => {
+          const breakdown = (Array.isArray((r as any).expenses_breakdown) && (r as any).expenses_breakdown.length > 0)
+            ? (r as any).expenses_breakdown as { description: string; amount: number }[]
+            : ((r.receipt_expenses ?? 0) > 0
+                ? [{ description: r.expenses_description || '-', amount: Number(r.receipt_expenses) || 0 }]
+                : []);
+          const total = breakdown.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+          const expensesHtml = breakdown.length > 0 ? `
+            <h3 style="margin-top:8px">Frais de réception</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Description</th>
+                  <th style="text-align:center">Montant (DA)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${breakdown.map((l, i) => `<tr><td>${i + 1}</td><td>${l.description || '-'}</td><td style="text-align:center">${Number(l.amount || 0).toLocaleString()}</td></tr>`).join('')}
+                <tr><td colspan="2" style="text-align:right;font-weight:bold">Total</td><td style="text-align:center;font-weight:bold">${total.toLocaleString()} DA</td></tr>
+              </tbody>
+            </table>
+          ` : '';
+          return `
+            <div class="box">
+              <h3>Détails supplémentaires</h3>
+              <div class="row"><span class="label">Nombre de palettes:</span> <strong>${r.pallet_count ?? 0}</strong></div>
+              ${expensesHtml}
+            </div>
+          `;
+        })()}
 
         ${linkedD ? `
           <div class="box">
