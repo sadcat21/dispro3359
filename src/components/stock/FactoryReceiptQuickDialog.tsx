@@ -406,7 +406,6 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       const { data: rItems } = await supabase.from('stock_receipt_items').select('*, product:products(pieces_per_box)').eq('receipt_id', receiptId);
       await supabase.from('stock_receipts').update({
         status: 'confirmed',
-        confirmed_at: new Date().toISOString(),
         approved_by: workerId,
         approved_at: new Date().toISOString(),
       }).eq('id', receiptId);
