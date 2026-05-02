@@ -421,7 +421,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const rawGift = Number(item.gift_quantity || 0);
         const isDirectSale = String(order?.notes || '').includes('بيع مباشر');
         const giftPieces = (isDirectSale || piecesPerBox <= 1) ? rawGift : rawGift * piecesPerBox;
-        const soldQty = Math.max(0, Number(item.quantity || 0) - (piecesPerBox > 0 ? giftPieces / piecesPerBox : 0));
+        const soldQty = Math.max(0, Number(item.quantity || 0));
 
         const offerId = item.gift_offer_id || 'unknown';
         const offerRules = offerRulesMap[offerId] || [];
