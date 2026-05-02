@@ -87,14 +87,15 @@ const chunkRows = <T,>(items: T[], size: number): T[][] => {
   return chunks.length ? chunks : [[]];
 };
 
-const formatGiftTotalBoxPiece = (rows: GiftPrintRow[]): string => {
+const formatTotalBoxPiece = (rows: GiftPrintRow[], field: 'giftQuantity' | 'venteQuantity'): string => {
   if (!rows.length) return '0.00';
   let totalPieces = 0;
   let ppb = rows[0]?.piecesPerBox || 1;
   const ppbMap = new Map<number, number>();
   rows.forEach(r => {
-    ppbMap.set(r.piecesPerBox, (ppbMap.get(r.piecesPerBox) || 0) + r.giftQuantity);
-    totalPieces += r.giftQuantity;
+    const v = r[field] as number;
+    ppbMap.set(r.piecesPerBox, (ppbMap.get(r.piecesPerBox) || 0) + v);
+    totalPieces += v;
   });
   let maxCount = 0;
   ppbMap.forEach((count, key) => {
@@ -105,6 +106,9 @@ const formatGiftTotalBoxPiece = (rows: GiftPrintRow[]): string => {
   const rem = totalPieces % ppb;
   return `${boxes}.${String(rem).padStart(2, '0')}`;
 };
+
+const formatGiftTotalBoxPiece = (rows: GiftPrintRow[]): string => formatTotalBoxPiece(rows, 'giftQuantity');
+const formatVenteTotalBoxPiece = (rows: GiftPrintRow[]): string => formatTotalBoxPiece(rows, 'venteQuantity');
 
 const formatBoxPiece = (pieces: number, ppb: number): string => {
   if (ppb <= 1) return `${pieces}.00`;
