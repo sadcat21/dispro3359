@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, RefreshCw, Download, AlertTriangle, ArrowDownLeft, ArrowUpRight, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
@@ -196,6 +197,7 @@ const StockMovementsLedger: React.FC = () => {
           <Button variant="outline" size="sm" onClick={exportCsv}>
             <Download className="h-4 w-4 ml-2" /> تصدير CSV
           </Button>
+          <LedgerAdminActions kind="stock" onDone={() => refetch()} />
         </div>
       </div>
 
