@@ -551,6 +551,11 @@ const AssistantApprovals: React.FC = () => {
         onOpenChange={(v) => { if (!v) setReviewRequestId(null); }}
         requestId={reviewRequestId}
       />
+
+      <ReceiptDetailsDialog
+        receiptId={detailsReceiptId}
+        onOpenChange={(v) => { if (!v) setDetailsReceiptId(null); }}
+      />
     </div>
   );
 };
