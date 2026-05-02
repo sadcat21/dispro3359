@@ -480,6 +480,10 @@ const WorkerHome: React.FC = () => {
           if ((isSupervisor || isAdminAssistant) && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
             quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-6 h-6" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions') });
           }
+          // Promo Tracking for supervisor and admin assistant
+          if (isSupervisor || isAdminAssistant) {
+            quickActions.push({ key: 'promo-tracking', icon: <Gift className="w-6 h-6" />, label: t('admin.promo_tracking'), onClick: () => navigate('/promo-tracking') });
+          }
           // Worker Actions for regular workers (self-view) — removed per user request
 
           const itemColors: Record<string, { bg: string; icon: string; border: string }> = {
