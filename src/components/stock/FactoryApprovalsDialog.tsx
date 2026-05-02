@@ -93,6 +93,8 @@ const fmt = (qty: number, ppb: number): string => ppb > 1 ? dbBPDisplay(qty, ppb
 
 const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const { workerId, activeBranch } = useAuth();
+  const approveFactoryOrder = useApproveFactoryOrder();
+  const rejectFactoryOrder = useRejectFactoryOrder();
   const [branchId, setBranchId] = useState<string | null>(null);
   const [tab, setTab] = useState<'receipts' | 'deliveries'>('receipts');
   const [receipts, setReceipts] = useState<ReceiptRecord[]>([]);
