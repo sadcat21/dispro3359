@@ -661,41 +661,32 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       for (const item of orderItems) {
         const ws = stockItems.find(s => s.product_id === item.productId);
         if (ws) {
-          // Calculate gift deduction in box.pieces format
-          const giftInPieces = item.giftPieces || item.giftQuantity || 0;
-          let totalDeduction = item.quantity;
-          if (giftInPieces > 0) {
-            const product = allProducts.find(p => p.id === item.productId);
-            const piecesPerBox = product?.pieces_per_box || 20;
-            // Convert gift pieces to box.pieces format
-            const giftBoxes = Math.floor(giftInPieces / piecesPerBox);
-            const giftRemainingPieces = Math.round(giftInPieces % piecesPerBox);
-            const giftInBoxFormat = giftBoxes + giftRemainingPieces / 100;
-            // Convert current stock and sold qty to total pieces, add gift, convert back
-            const stockPieces = (() => {
-              const boxes = Math.floor(Math.round(ws.quantity * 100) / 100);
-              const dec = Math.round((Math.round(ws.quantity * 100) / 100 - boxes) * 100);
-              return boxes * piecesPerBox + dec;
-            })();
-            const soldPieces = (() => {
-              const boxes = Math.floor(Math.round(item.quantity * 100) / 100);
-              const dec = Math.round((Math.round(item.quantity * 100) / 100 - boxes) * 100);
-              return boxes * piecesPerBox + dec;
-            })();
-            const remainingPieces = stockPieces - soldPieces;
-            const newBoxes = Math.floor(remainingPieces / piecesPerBox);
-            const newRemaining = Math.round(remainingPieces % piecesPerBox);
-            const newQty = newBoxes + newRemaining / 100;
+          const product = allProducts.find(p => p.id === item.productId);
+          const piecesPerBox = product?.pieces_per_box || 20;
+          const giftBoxesQty = Number(item.giftQuantity || 0);
+          const giftPiecesQty = Number(item.giftPieces || 0);
+          const hasGift = giftBoxesQty > 0 || giftPiecesQty > 0;
 
-            const stockTable = stockSource === 'warehouse' ? 'warehouse_stock' : 'worker_stock';
-            await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
-          } else {
-            if (stockSource === 'warehouse') {
-              await supabase.from('warehouse_stock').update({ quantity: ws.quantity - item.quantity }).eq('id', ws.id);
-            } else {
-              await supabase.from('worker_stock').update({ quantity: ws.quantity - item.quantity }).eq('id', ws.id);
-            }
-          }
+          // Convert sold quantity (box.pieces format) to total pieces
+          const soldBoxes = Math.floor(Math.round(Number(item.quantity || 0) * 100) / 100);
+          const soldDec = Math.round((Math.round(Number(item.quantity || 0) * 100) / 100 - soldBoxes) * 100);
+          const soldPieces = soldBoxes * piecesPerBox + soldDec;
+
+          // Total gift pieces (boxes converted + loose pieces)
+          const giftTotalPieces = giftBoxesQty * piecesPerBox + giftPiecesQty;
+
+          // Convert current stock to total pieces
+          const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
+          const stockDec = Math.round((Math.round(ws.quantity * 100) / 100 - stockBoxes) * 100);
+          const stockPieces = stockBoxes * piecesPerBox + stockDec;
+
+          const remainingPieces = Math.max(0, stockPieces - soldPieces - giftTotalPieces);
+          const newBoxes = Math.floor(remainingPieces / piecesPerBox);
+          const newRemaining = Math.round(remainingPieces % piecesPerBox);
+          const newQty = newBoxes + newRemaining / 100;
+
+          const stockTable = stockSource === 'warehouse' ? 'warehouse_stock' : 'worker_stock';
+          await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
         }
         await supabase.from('stock_movements').insert({
           product_id: item.productId,
@@ -706,7 +697,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           created_by: workerId!,
           worker_id: workerId!,
           order_id: order.id,
-          notes: isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة'),
+          notes: (isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة'))
+            + (((item.giftQuantity || 0) > 0 || (item.giftPieces || 0) > 0) ? ' - شامل هدية محسوبة' : ''),
         });
       }
 
