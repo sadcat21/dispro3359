@@ -433,6 +433,10 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const key = `${item.product_id}_${offerId}_${appliedOfferDetail || 'default'}`;
 
         if (!agg[key]) {
+          const period = offerPeriodByOfferId[offerId];
+          const periodLabel = period && (period.start || period.end)
+            ? `${period.start ? format(new Date(period.start), 'dd/MM/yy') : '-'} → ${period.end ? format(new Date(period.end), 'dd/MM/yy') : '-'}`
+            : '';
           agg[key] = {
             productId: item.product_id,
             productName: (item as any).product?.name || 'منتج غير معروف',
@@ -442,6 +446,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             totalQuantitySold: 0,
             offerName: offerNamesMap[offerId] || '',
             offerDetails: appliedOfferDetail ? [appliedOfferDetail] : [],
+            offerPeriod: periodLabel,
             customers: [],
           };
         }
