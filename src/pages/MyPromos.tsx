@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus } from 'lucide-react';
+import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart } from 'lucide-react';
 import AddPromoDialog from '@/components/promo/AddPromoDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -266,66 +266,81 @@ const MyPromosContent: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredPromos.map((promo) => (
-                  <Card key={promo.id} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm font-bold">
-                              {promo.vente_quantity} {t('common.sales')}
-                            </span>
-                            {promo.gratuite_quantity > 0 && (
-                              <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-md text-sm font-bold">
-                                {promo.gratuite_quantity} {t('common.free')}
-                              </span>
-                            )}
-                            <span className="font-bold">{promo.product?.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="w-4 h-4" />
-                            <span>{promo.customer?.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}
-                            </span>
-                          </div>
-                          {promo.notes && (
-                            <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded">
-                              {promo.notes}
-                            </p>
-                          )}
+                {filteredPromos.map((promo) => {
+                  const storeName = (language === 'fr' && promo.customer?.store_name_fr)
+                    ? promo.customer?.store_name_fr
+                    : promo.customer?.store_name;
+                  return (
+                  <Card key={promo.id} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
+                    <CardContent className="p-0">
+                      {/* Header: Product name */}
+                      <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Package className="w-4 h-4 text-primary shrink-0" />
+                          <span className="font-bold text-base truncate">{promo.product?.name}</span>
                         </div>
-                        
-                        {/* Action buttons */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-1 shrink-0">
                           {!isEditPromoHidden && (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleEdit(promo)}
-                            >
-                              <Pencil className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)}>
+                              <Pencil className="w-3.5 h-3.5" />
                             </Button>
                           )}
                           {!isDeletePromoHidden && (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => setDeletePromo(promo)}
-                            >
-                              <Trash2 className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)}>
+                              <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           )}
                         </div>
                       </div>
+
+                      {/* Body */}
+                      <div className="p-4 space-y-3">
+                        {/* Quantities */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                            <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')}</p>
+                              <p className="font-bold text-primary leading-none">{promo.vente_quantity}</p>
+                            </div>
+                          </div>
+                          <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
+                            <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                            <div className="min-w-0">
+                              <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')}</p>
+                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>{promo.gratuite_quantity}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Customer info */}
+                        <div className="space-y-1.5 bg-muted/30 rounded-lg p-2.5">
+                          {storeName && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Store className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span className="font-semibold truncate">{storeName}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <User className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{promo.customer?.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Calendar className="w-3.5 h-3.5 shrink-0" />
+                            <span>{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
+                          </div>
+                        </div>
+
+                        {promo.notes && (
+                          <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded border-r-2 border-muted-foreground/30">
+                            {promo.notes}
+                          </p>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
