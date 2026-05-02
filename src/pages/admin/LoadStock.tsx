@@ -1167,61 +1167,35 @@ const LoadStock: React.FC = () => {
       if (sessionError) throw sessionError;
 
       // 2) Persist session item rows (audit) — stock changes are handled atomically by the RPC
-      const sessionItemRows: any[] = [];
-      const workerStockUpdates: any[] = [];
-      const warehouseUpserts: any[] = [];
-      const movementRows: any[] = [];
-
-      for (const item of itemsToReturn) {
+      // Insert audit rows for the unload session items (no direct stock writes here)
+      const sessionItemRows = itemsToReturn.map(item => {
         const ppb = item.piecesPerBox;
-        const returnQty = item.returnQty;
-        const newWorkerQty = subtractCustomQty(item.quantity, returnQty, ppb);
-
-        sessionItemRows.push({
+        const newWorkerQty = subtractCustomQty(item.quantity, item.returnQty, ppb);
+        return {
           session_id: unloadSession.id,
           product_id: item.product_id,
-          quantity: returnQty,
+          quantity: item.returnQty,
           gift_quantity: 0,
           surplus_quantity: 0,
           previous_quantity: item.quantity,
-          notes: `تفريغ ${fmtQty(returnQty)} من ${fmtQty(item.quantity)} - متبقي: ${fmtQty(newWorkerQty)}`,
-        });
+          notes: `تفريغ ${fmtQty(item.returnQty)} من ${fmtQty(item.quantity)} - متبقي: ${fmtQty(newWorkerQty)}`,
+        };
+      });
 
-        workerStockUpdates.push(supabase.from('worker_stock').update({ quantity: newWorkerQty }).eq('id', item.id));
-
-        const existingWarehouse = warehouseStock.find(s => s.product_id === item.product_id);
-        if (existingWarehouse) {
-          const newWhQty = addCustomQty(existingWarehouse.quantity, returnQty, ppb);
-          warehouseUpserts.push(supabase.from('warehouse_stock').update({ quantity: newWhQty }).eq('id', existingWarehouse.id));
-        } else {
-          warehouseUpserts.push(supabase.from('warehouse_stock').insert({
-            branch_id: branchId,
-            product_id: item.product_id,
-            quantity: returnQty,
-          }));
-        }
-
-        movementRows.push({
-          product_id: item.product_id,
-          branch_id: branchId,
-          quantity: returnQty,
-          movement_type: 'return',
-          status: 'approved',
-          created_by: currentWorkerId,
-          worker_id: selectedWorker,
-          notes: `تفريغ ${fmtQty(returnQty)} من ${item.product_name} (متبقي في الشاحنة ${fmtQty(newWorkerQty)})`,
-        });
-      }
-
-      const [{ error: itemsError }, ...stockResults] = await Promise.all([
-        supabase.from('loading_session_items').insert(sessionItemRows),
-        ...workerStockUpdates,
-        ...warehouseUpserts,
-        supabase.from('stock_movements').insert(movementRows),
-      ] as any[]);
+      const { error: itemsError } = await supabase
+        .from('loading_session_items')
+        .insert(sessionItemRows);
       if (itemsError) throw itemsError;
-      const failed = stockResults.find((res: any) => res?.error);
-      if (failed?.error) throw failed.error;
+
+      // 3) Atomic ledger-aware unload: subtracts from worker, adds to warehouse, writes stock_movements
+      const { error: rpcErr } = await (supabase.rpc as any)('unload_session_atomic', {
+        p_session_id: unloadSession.id,
+        p_items: itemsToReturn.map(it => ({
+          product_id: it.product_id,
+          return_qty: it.returnQty,
+        })),
+      });
+      if (rpcErr) throw rpcErr;
 
       setSessionItems([]);
       setActiveSessionId(null);
