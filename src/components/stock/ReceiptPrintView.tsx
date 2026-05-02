@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import { boxesToBP } from '@/utils/boxPieceInput';
+import { dbBPDisplay, dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
 import { formatDate } from '@/utils/formatters';
 
 interface ReceiptPrintItem {
@@ -128,15 +128,18 @@ const ReceiptPrintView: React.FC<Props> = ({
             </thead>
             <tbody>
               {items.map((item, i) => {
-                const total = item.new_qty + item.comp_qty + item.comp_offers_qty;
+                const totalBoxes =
+                  dbBPToBoxes(item.new_qty, item.pieces_per_box) +
+                  dbBPToBoxes(item.comp_qty, item.pieces_per_box) +
+                  dbBPToBoxes(item.comp_offers_qty, item.pieces_per_box);
                 return (
                   <tr key={i}>
                     <td style={{ border: '1px solid #000', padding: '6px 10px', color: '#000' }}>{i + 1}</td>
                     <td style={{ border: '1px solid #000', padding: '6px 10px', color: '#000' }}>{item.product_name}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.new_qty > 0 ? boxesToBP(item.new_qty, item.pieces_per_box) : '-'}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_qty > 0 ? boxesToBP(item.comp_qty, item.pieces_per_box) : '-'}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_offers_qty > 0 ? boxesToBP(item.comp_offers_qty, item.pieces_per_box) : '-'}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{boxesToBP(total, item.pieces_per_box)}</td>
+                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.new_qty > 0 ? dbBPDisplay(item.new_qty, item.pieces_per_box) : '-'}</td>
+                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_qty > 0 ? dbBPDisplay(item.comp_qty, item.pieces_per_box) : '-'}</td>
+                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_offers_qty > 0 ? dbBPDisplay(item.comp_offers_qty, item.pieces_per_box) : '-'}</td>
+                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{boxesToBP(totalBoxes, item.pieces_per_box)}</td>
                   </tr>
                 );
               })}
