@@ -5721,15 +5721,24 @@ export type Database = {
           branch_id: string | null
           created_at: string
           created_by: string
+          from_location_id: string | null
+          from_location_type: string | null
           id: string
           movement_type: string
           notes: string | null
           order_id: string | null
           product_id: string
           quantity: number
+          reason: string | null
           receipt_id: string | null
+          reference_id: string | null
+          reference_type: string | null
           return_reason: string | null
+          running_balance: number | null
+          signed_quantity: number | null
           status: string
+          to_location_id: string | null
+          to_location_type: string | null
           worker_id: string | null
         }
         Insert: {
@@ -5738,15 +5747,24 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by: string
+          from_location_id?: string | null
+          from_location_type?: string | null
           id?: string
           movement_type: string
           notes?: string | null
           order_id?: string | null
           product_id: string
           quantity: number
+          reason?: string | null
           receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
           return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
           status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
           worker_id?: string | null
         }
         Update: {
@@ -5755,15 +5773,24 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          from_location_id?: string | null
+          from_location_type?: string | null
           id?: string
           movement_type?: string
           notes?: string | null
           order_id?: string | null
           product_id?: string
           quantity?: number
+          reason?: string | null
           receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
           return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
           status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
           worker_id?: string | null
         }
         Relationships: [
@@ -7513,6 +7540,36 @@ export type Database = {
       }
     }
     Views: {
+      v_stock_reconciliation: {
+        Row: {
+          branch_id: string | null
+          branch_name: string | null
+          computed_from_movements: number | null
+          current_stock: number | null
+          last_movement_at: string | null
+          movements_count: number | null
+          product_id: string | null
+          product_name: string | null
+          status: string | null
+          variance: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_stock_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_stock_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workers_safe: {
         Row: {
           bonus_cap_percentage: number | null
@@ -7715,6 +7772,35 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_running_balance: {
+        Args: { p_branch_id: string; p_product_id: string }
+        Returns: Json
+      }
+      record_customer_return_atomic: {
+        Args: {
+          p_branch_id: string
+          p_customer_id: string
+          p_destination: string
+          p_destination_id: string
+          p_notes?: string
+          p_product_id: string
+          p_quantity: number
+          p_reason?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
+      record_stock_adjustment_atomic: {
+        Args: {
+          p_branch_id: string
+          p_delta: number
+          p_notes?: string
+          p_product_id: string
+          p_reason?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
@@ -7724,6 +7810,15 @@ export type Database = {
       set_worker_session: { Args: { p_worker_id: string }; Returns: undefined }
       start_loading_session_atomic: {
         Args: { p_notes?: string; p_worker_id: string }
+        Returns: Json
+      }
+      transfer_between_branches_atomic: {
+        Args: {
+          p_from_branch: string
+          p_items: Json
+          p_notes?: string
+          p_to_branch: string
+        }
         Returns: Json
       }
       verify_customer_password: {
