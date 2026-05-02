@@ -487,13 +487,28 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       const promoProductIds = [...new Set((promosData || []).map(p => p.product_id))];
       let offerUnitMap: Record<string, string> = {};
+      const offerPeriodsMap: Record<string, { start: string | null; end: string | null }> = {};
       if (promoProductIds.length > 0) {
         const { data: productOffers } = await supabase
           .from('product_offers')
-          .select('id, product_id, gift_quantity_unit')
+          .select('id, product_id, gift_quantity_unit, start_date, end_date')
           .in('product_id', promoProductIds)
           .eq('is_active', true);
-        (productOffers || []).forEach(o => { offerUnitMap[o.product_id] = o.gift_quantity_unit || 'piece'; });
+        (productOffers || []).forEach(o => {
+          offerUnitMap[o.product_id] = o.gift_quantity_unit || 'piece';
+          // Keep widest period per product if multiple active offers
+          const prev = offerPeriodsMap[o.product_id];
+          const start = (o as any).start_date || null;
+          const end = (o as any).end_date || null;
+          if (!prev) {
+            offerPeriodsMap[o.product_id] = { start, end };
+          } else {
+            offerPeriodsMap[o.product_id] = {
+              start: prev.start && start ? (prev.start < start ? prev.start : start) : (prev.start || start),
+              end: prev.end && end ? (prev.end > end ? prev.end : end) : (prev.end || end),
+            };
+          }
+        });
       }
 
       const orderGiftsByProduct: Record<string, number> = {};
@@ -556,7 +571,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       const sorted = Object.values(agg).sort((a, b) => b.totalGiftPieces - a.totalGiftPieces);
       const totalGifts = sorted.reduce((s, i) => s + i.totalGiftPieces, 0);
 
-      return { items: sorted, totalGifts };
+      return { items: sorted, totalGifts, offerPeriods: offerPeriodsMap };
     },
     enabled: open,
     refetchInterval: open ? 15000 : false,
@@ -721,6 +736,24 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
   const printProductLabel = useMemo(() => {
     if (!printSettings || printSettings.productFilter === 'all') return 'Tous les produits';
     return giftsData?.items?.find(i => i.productId === printSettings.productFilter)?.productName || '';
+  }, [printSettings, giftsData]);
+
+  const offerPeriodLabel = useMemo(() => {
+    const periods = giftsData?.offerPeriods || {};
+    const productIds = printSettings && printSettings.productFilter !== 'all'
+      ? [printSettings.productFilter]
+      : Object.keys(periods);
+    let minStart: string | null = null;
+    let maxEnd: string | null = null;
+    for (const pid of productIds) {
+      const p = periods[pid];
+      if (!p) continue;
+      if (p.start && (!minStart || p.start < minStart)) minStart = p.start;
+      if (p.end && (!maxEnd || p.end > maxEnd)) maxEnd = p.end;
+    }
+    if (!minStart && !maxEnd) return '';
+    const fmt = (d: string | null) => d ? format(new Date(d), 'dd/MM/yyyy') : '...';
+    return `${fmt(minStart)} → ${fmt(maxEnd)}`;
   }, [printSettings, giftsData]);
 
   const handleA4Print = useCallback((settings: GiftPrintSettings) => {
@@ -1025,6 +1058,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         workerNames={summaryWorkerNames}
         workerName={allWorkers ? 'Tous les employés' : effectiveWorkerName}
         dateRange={periodDateLabel}
+        offerPeriod={offerPeriodLabel}
         productFilter={printProductLabel}
         isVisible={showPrintView}
         visibleColumns={printSettings?.columns}

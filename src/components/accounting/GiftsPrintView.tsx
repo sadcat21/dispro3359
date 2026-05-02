@@ -36,6 +36,7 @@ interface GiftsPrintViewProps {
   workerNames?: string[];
   workerName?: string;
   dateRange?: string;
+  offerPeriod?: string;
   productFilter?: string;
   isVisible?: boolean;
   visibleColumns?: GiftPrintColumnKey[];
@@ -139,7 +140,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
 };
 
 const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
-  ({ rows, summaryRows, workerNames, workerName, dateRange, productFilter, isVisible = false, visibleColumns, separateByProduct = true, printSummary = false, summaryOnly = false, isTemplate = false, templatePageCount = 2, templateProductName = '', templateOfferDetail = '' }, ref) => {
+  ({ rows, summaryRows, workerNames, workerName, dateRange, offerPeriod, productFilter, isVisible = false, visibleColumns, separateByProduct = true, printSummary = false, summaryOnly = false, isTemplate = false, templatePageCount = 2, templateProductName = '', templateOfferDetail = '' }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
     const isSingleWorker = !!workerName && workerName !== 'Tous les employés' && workerName !== 'جميع العمال';
@@ -183,6 +184,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
     if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
     if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
     headerInfo.push({ label: 'Période', value: dateRange || '-' });
+    if (offerPeriod) headerInfo.push({ label: "Période d'offre", value: offerPeriod });
     const filterCriteria = headerInfo.map(h => `${h.label}: ${h.value}`).join('  |  ');
 
     const pages = useMemo((): PrintPage[] => {
