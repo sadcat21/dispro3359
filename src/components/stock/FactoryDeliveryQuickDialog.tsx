@@ -212,20 +212,35 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
           })
         : (notes || null);
 
-      const { data: order, error: orderError } = await supabase
-        .from('factory_orders')
-        .insert({
-          order_type: 'sending',
-          branch_id: branchId,
-          status,
+      let orderId: string;
+
+      if (editDeliveryId) {
+        // UPDATE mode: update header, replace items
+        const { error: upErr } = await supabase.from('factory_orders').update({
           notes: finalNotes,
-          created_by: workerId,
-          confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
           pallet_count: palletCount,
-        } as any)
-        .select()
-        .single();
-      if (orderError) throw orderError;
+        } as any).eq('id', editDeliveryId);
+        if (upErr) throw upErr;
+
+        await supabase.from('factory_order_items').delete().eq('factory_order_id', editDeliveryId);
+        orderId = editDeliveryId;
+      } else {
+        const { data: order, error: orderError } = await supabase
+          .from('factory_orders')
+          .insert({
+            order_type: 'sending',
+            branch_id: branchId,
+            status,
+            notes: finalNotes,
+            created_by: workerId,
+            confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
+            pallet_count: palletCount,
+          } as any)
+          .select()
+          .single();
+        if (orderError) throw orderError;
+        orderId = order.id;
+      }
 
       // Insert items - convert pieces to box.piece format
       if (validItems.length > 0) {
@@ -233,7 +248,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
           const ppb = getPiecesPerBox(i.product_id);
           const boxQty = piecesToBoxFormat(i.quantity, ppb);
           return {
-            factory_order_id: order.id,
+            factory_order_id: orderId,
             product_id: i.product_id,
             product_quantity: boxQty,
             pallet_quantity: 0,
@@ -247,19 +262,22 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
         if (itemsError) throw itemsError;
       }
 
-      if (status === 'confirmed') {
+      if (editDeliveryId) {
+        toast.success('تم حفظ التعديلات');
+      } else if (status === 'confirmed') {
         // Convert items to box format for stock operations
         const convertedItems = validItems.map(i => ({
           product_id: i.product_id,
           quantity: piecesToBoxFormat(i.quantity, getPiecesPerBox(i.product_id)),
         }));
-        await applyDeliveryStock(order.id, convertedItems, palletCount, branchId);
+        await applyDeliveryStock(orderId, convertedItems, palletCount, branchId);
         toast.success('تم تأكيد التسليم للمصنع');
       } else {
         toast.success('تم إرسال طلب التسليم للموافقة');
       }
 
       resetForm();
+      onSaved?.();
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
