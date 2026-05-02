@@ -55,6 +55,7 @@ interface GiftProductAgg {
   totalQuantitySold: number;
   offerName: string;
   offerDetails: string[];  // each tier as separate entry
+  offerPeriod?: string;
   customers: GiftCustomerDetail[];
 }
 
@@ -341,15 +342,17 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       (items || []).forEach(i => { if (i.gift_offer_id) giftOfferIds.add(i.gift_offer_id); });
       const offerNamesMap: Record<string, string> = {};
       const offerRulesMap: Record<string, OfferTierRule[]> = {};
+      const offerPeriodByOfferId: Record<string, { start: string | null; end: string | null }> = {};
 
       if (giftOfferIds.size > 0) {
         const offerIds = Array.from(giftOfferIds);
         const { data: offers } = await supabase
           .from('product_offers')
-          .select('id, name, min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit')
+          .select('id, name, min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, start_date, end_date')
           .in('id', offerIds);
 
         (offers || []).forEach((o: any) => {
+          offerPeriodByOfferId[o.id] = { start: o.start_date || null, end: o.end_date || null };
           offerNamesMap[o.id] = o.name;
           const minQuantityUnit = normalizeOfferUnit(o.min_quantity_unit);
           const giftQuantityUnit = normalizeOfferUnit(o.gift_quantity_unit);
@@ -430,6 +433,10 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const key = `${item.product_id}_${offerId}_${appliedOfferDetail || 'default'}`;
 
         if (!agg[key]) {
+          const period = offerPeriodByOfferId[offerId];
+          const periodLabel = period && (period.start || period.end)
+            ? `${period.start ? format(new Date(period.start), 'dd/MM/yy') : '-'} → ${period.end ? format(new Date(period.end), 'dd/MM/yy') : '-'}`
+            : '';
           agg[key] = {
             productId: item.product_id,
             productName: (item as any).product?.name || 'منتج غير معروف',
@@ -439,6 +446,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             totalQuantitySold: 0,
             offerName: offerNamesMap[offerId] || '',
             offerDetails: appliedOfferDetail ? [appliedOfferDetail] : [],
+            offerPeriod: periodLabel,
             customers: [],
           };
         }
@@ -671,6 +679,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           phone: c.customerPhone || '',
           productName: item.productName,
           offerDetail: item.offerDetails?.[0] || '',
+          offerPeriod: item.offerPeriod || '',
           venteQuantity: Math.round(c.quantitySold),
           giftQuantity: c.giftPieces,
           giftBoxPiece: formatGiftDisplay(c.giftPieces, ppb),

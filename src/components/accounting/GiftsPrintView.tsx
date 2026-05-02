@@ -15,6 +15,7 @@ export interface GiftPrintRow {
   phone: string;
   productName: string;
   offerDetail: string;
+  offerPeriod?: string;
   venteQuantity: number;
   giftQuantity: number;
   giftBoxPiece: string;
@@ -63,6 +64,7 @@ const COLUMN_CONFIG: Record<GiftPrintColumnKey, { header: string; width?: string
   phone: { header: 'Téléphone', width: '95px', className: 'ltr-text' },
   productName: { header: 'Produit', className: '' },
   tranche: { header: 'Tranche', width: '90px', className: 'small-text center bold' },
+  offerPeriod: { header: "Période d'offre", width: '110px', className: 'small-text center' },
   venteQuantity: { header: 'Ventes', width: '45px', className: 'center bold' },
   giftQuantity: { header: 'Gratuit', width: '45px', className: 'center bold' },
   giftBoxPiece: { header: 'Gratuit B.P', width: '55px', className: 'center bold' },
@@ -132,6 +134,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
     case 'phone': return row.phone;
     case 'productName': return row.productName;
     case 'tranche': return row.offerDetail || '-';
+    case 'offerPeriod': return row.offerPeriod || '-';
     case 'venteQuantity': return formatBoxPiece(row.venteQuantity, row.piecesPerBox);
     case 'giftQuantity': return row.giftQuantity;
     case 'giftBoxPiece': return row.giftBoxPiece;

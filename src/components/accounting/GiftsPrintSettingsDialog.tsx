@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 export type GiftPrintColumnKey =
   | 'number' | 'customerName' | 'customerNameFr' | 'storeName' | 'storeNameFr'
   | 'sector' | 'address' | 'wilaya' | 'phone'
-  | 'productName' | 'tranche' | 'venteQuantity' | 'giftQuantity' | 'giftBoxPiece'
+  | 'productName' | 'tranche' | 'offerPeriod' | 'venteQuantity' | 'giftQuantity' | 'giftBoxPiece'
   | 'workerName' | 'date';
 
 export interface GiftPrintColumn {
@@ -33,6 +33,7 @@ export const ALL_PRINT_COLUMNS: GiftPrintColumn[] = [
   { key: 'wilaya', label: 'Wilaya / الولاية', defaultVisible: false },
   { key: 'productName', label: 'Produit / المنتج', defaultVisible: true },
   { key: 'tranche', label: 'Tranche / الشريحة', defaultVisible: true },
+  { key: 'offerPeriod', label: "Période d'offre / فترة العرض", defaultVisible: true },
   { key: 'venteQuantity', label: 'Ventes / المبيعات', defaultVisible: true },
   { key: 'giftQuantity', label: 'Gratuit (pièces) / الهدايا قطع', defaultVisible: false },
   { key: 'giftBoxPiece', label: 'Gratuit (Box.Pcs) / الهدايا صندوق.قطع', defaultVisible: true },
@@ -94,7 +95,7 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
           .maybeSingle();
         
         const allKeys = ALL_PRINT_COLUMNS.map(c => c.key);
-        const NEW_DEFAULT_ON: GiftPrintColumnKey[] = ['tranche'];
+        const NEW_DEFAULT_ON: GiftPrintColumnKey[] = ['tranche', 'offerPeriod'];
         const mergeOrder = (saved: GiftPrintColumnKey[]) => {
           const filtered = saved.filter(k => allKeys.includes(k));
           const missing = allKeys.filter(k => !filtered.includes(k));
@@ -124,6 +125,7 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
           const parsed: GiftPrintColumnKey[] = JSON.parse(savedCols);
           const filtered = parsed.filter(k => allKeys.includes(k));
           if (!filtered.includes('tranche')) filtered.push('tranche');
+          if (!filtered.includes('offerPeriod')) filtered.push('offerPeriod');
           setSelectedColumns(filtered);
         }
         const savedSep = localStorage.getItem(SEPARATE_KEY);
