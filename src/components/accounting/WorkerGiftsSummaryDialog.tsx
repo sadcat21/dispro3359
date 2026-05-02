@@ -313,7 +313,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       // Fetch delivered orders
       let ordersQuery = supabase
         .from('orders')
-        .select('id, customer_id, assigned_worker_id, created_by, updated_at, notes, customer:customers(name, name_fr, store_name, store_name_fr, phone, address, wilaya, sector:sectors(name, name_fr))')
+        .select('id, customer_id, assigned_worker_id, created_by, updated_at, notes, customer:customers(name, name_fr, store_name, store_name_fr, phone, address, wilaya, sector:sectors(name, name_fr)), assigned_worker:workers!orders_assigned_worker_id_fkey(id, full_name), created_by_worker:workers!orders_created_by_fkey(id, full_name)')
         .in('status', ['delivered', 'completed', 'confirmed'])
         .gte('updated_at', periodStartTz)
         .lte('updated_at', periodEndTz);
@@ -455,8 +455,9 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         agg[key].totalQuantitySold += soldQty;
 
         const deliveryWorkerId = order.assigned_worker_id || order.created_by;
+        const resolvedWorkerName = (order as any).assigned_worker?.full_name || (order as any).created_by_worker?.full_name || workersMap[deliveryWorkerId] || '';
 
-        const existing = agg[key].customers.find(c => c.customerId === order.customer_id && c.workerName === (workersMap[deliveryWorkerId] || ''));
+        const existing = agg[key].customers.find(c => c.customerId === order.customer_id && c.workerName === resolvedWorkerName);
         if (existing) {
           existing.giftPieces += giftPieces;
           existing.quantitySold += soldQty;
@@ -472,7 +473,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             customerWilaya: (order.customer as any)?.wilaya || '',
             sectorName: order.customer?.sector?.name || '',
             sectorNameFr: (order.customer?.sector as any)?.name_fr || '',
-            workerName: workersMap[deliveryWorkerId] || '',
+            workerName: resolvedWorkerName,
             giftPieces,
             quantitySold: soldQty,
             piecesPerBox,
