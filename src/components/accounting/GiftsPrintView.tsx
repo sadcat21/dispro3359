@@ -174,12 +174,12 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
     const workerLabel = workerName === 'جميع العمال' ? 'Tous les employés' : (workerName || 'Tous les employés');
     const productLabel = (!productFilter || productFilter === 'جميع المنتجات' || productFilter === 'Tous les produits') ? 'Tous les produits' : productFilter;
 
-    const filterParts = [`Employé: ${workerLabel}`];
-    if (!separateByProduct) {
-      filterParts.push(`Produit: ${productLabel}`);
-    }
-    filterParts.push(`Période: ${dateRange || ''}`);
-    const filterCriteria = filterParts.join('  |  ');
+    // Header info as grid items (avoid duplicating Employé when isSingleWorker)
+    const headerInfo: { label: string; value: string }[] = [];
+    if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
+    if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
+    headerInfo.push({ label: 'Période', value: dateRange || '-' });
+    const filterCriteria = headerInfo.map(h => `${h.label}: ${h.value}`).join('  |  ');
 
     const pages = useMemo((): PrintPage[] => {
       if (!rows.length && !isTemplate) {
