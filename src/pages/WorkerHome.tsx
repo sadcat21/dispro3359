@@ -87,6 +87,7 @@ const WorkerHome: React.FC = () => {
   const isWarehouseStockButtonHidden = useIsElementHidden('button', 'home_warehouse_stock');
   const isTodayCustomersHidden = useIsElementHidden('button', 'home_today_customers');
   const isSupervisor = role === 'supervisor';
+  const isAdminAssistant = role === 'admin_assistant';
   const isSalesRole = activeRole?.custom_role_code === 'sales_rep';
   const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
