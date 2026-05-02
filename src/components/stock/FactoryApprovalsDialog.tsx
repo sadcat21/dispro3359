@@ -43,6 +43,10 @@ interface DeliveryItemDetail {
   image_url?: string | null;
   pieces_per_box: number;
   quantity: number;
+  lot_number?: string | null;
+  manufacturing_date?: string | null;
+  manufacturing_time?: string | null;
+  delivery_date?: string | null;
 }
 
 interface ReceiptRecord {
