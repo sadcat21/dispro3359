@@ -171,15 +171,26 @@ const WorkerHome: React.FC = () => {
   });
 
   const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['customers-for-order-picker'],
+    queryKey: ['customers-for-order-picker', effectiveBranchId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('customers')
         .select('*')
         .eq('status', 'active')
         .order('name');
+      if (effectiveBranchId) {
+        query = query.or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
+      }
+      const { data, error } = await query;
       if (error) throw error;
-      return data as Customer[];
+      // De-duplicate by id (in case of join/RLS overlap)
+      const seen = new Set<string>();
+      const unique = (data as Customer[]).filter(c => {
+        if (seen.has(c.id)) return false;
+        seen.add(c.id);
+        return true;
+      });
+      return unique;
     },
     enabled: showCustomerPickerForOrder,
   });
