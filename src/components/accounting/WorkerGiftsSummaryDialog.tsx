@@ -1058,6 +1058,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         workerNames={summaryWorkerNames}
         workerName={allWorkers ? 'Tous les employés' : effectiveWorkerName}
         dateRange={periodDateLabel}
+        offerPeriod={offerPeriodLabel}
         productFilter={printProductLabel}
         isVisible={showPrintView}
         visibleColumns={printSettings?.columns}
