@@ -12,7 +12,7 @@ import { isAdminRole } from '@/lib/utils';
 import { formatDate } from '@/utils/formatters';
 import { parseBP, boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
-import { buildReceiptItemRows, parseReceiptItemBreakdown, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
+import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
 
 interface ReceiptItem {
   product_id: string;
