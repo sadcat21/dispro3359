@@ -243,6 +243,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
           : group.productName;
         const totals = {
           vente: productRows.reduce((s, r) => s + r.venteQuantity, 0),
+          venteBoxPiece: formatVenteTotalBoxPiece(productRows),
           gift: productRows.reduce((s, r) => s + r.giftQuantity, 0),
           giftBoxPiece: formatGiftTotalBoxPiece(productRows),
         };
