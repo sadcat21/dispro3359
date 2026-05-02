@@ -89,7 +89,7 @@ const ProductOffers: React.FC = () => {
   const activeOffers = filteredOffers.filter(o => o.is_active && !isExpired(o));
   const expiredOffers = filteredOffers.filter(o => isExpired(o));
   const inactiveOffers = filteredOffers.filter(o => !o.is_active && !isExpired(o));
-  const [statusTab, setStatusTab] = useState<'active' | 'inactive' | 'expired'>('active');
+  const [statusTab, setStatusTab] = useState<'active' | 'inactive' | 'expired' | 'all'>('active');
 
   const handleEdit = (offer: ProductOfferWithDetails) => {
     setEditOffer(offer);
@@ -157,7 +157,7 @@ const ProductOffers: React.FC = () => {
         </div>
 
         {/* Status Tabs */}
-        <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive' | 'expired')}>
+        <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive' | 'expired' | 'all')}>
           <TabsList>
             <TabsTrigger value="active">
               {t('common.active') || 'النشطة'} ({activeOffers.length})
@@ -168,10 +168,16 @@ const ProductOffers: React.FC = () => {
             <TabsTrigger value="expired">
               منتهية ({expiredOffers.length})
             </TabsTrigger>
+            <TabsTrigger value="all">
+              الكل ({filteredOffers.length})
+            </TabsTrigger>
           </TabsList>
 
-          {(['active', 'inactive', 'expired'] as const).map((tabKey) => {
-            const list = tabKey === 'active' ? activeOffers : tabKey === 'expired' ? expiredOffers : inactiveOffers;
+          {(['active', 'inactive', 'expired', 'all'] as const).map((tabKey) => {
+            const list = tabKey === 'active' ? activeOffers
+              : tabKey === 'expired' ? expiredOffers
+              : tabKey === 'inactive' ? inactiveOffers
+              : filteredOffers;
             return (
               <TabsContent key={tabKey} value={tabKey} className="space-y-3">
                 {isLoading ? (

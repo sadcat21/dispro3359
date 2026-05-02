@@ -166,7 +166,16 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       .select('*')
       .eq('is_active', true)
       .order('name');
-    setProducts(data || []);
+    let list: any[] = data || [];
+    if (editOffer?.product_id && !list.find((p: any) => p.id === editOffer.product_id)) {
+      const { data: extra } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', editOffer.product_id)
+        .maybeSingle();
+      if (extra) list = [extra, ...list];
+    }
+    setProducts(list);
   };
 
   const fetchBranches = async () => {
