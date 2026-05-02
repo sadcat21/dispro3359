@@ -347,10 +347,11 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const offerIds = Array.from(giftOfferIds);
         const { data: offers } = await supabase
           .from('product_offers')
-          .select('id, name, min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit')
+          .select('id, name, min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, start_date, end_date')
           .in('id', offerIds);
 
         (offers || []).forEach((o: any) => {
+          offerPeriodByOfferId[o.id] = { start: o.start_date || null, end: o.end_date || null };
           offerNamesMap[o.id] = o.name;
           const minQuantityUnit = normalizeOfferUnit(o.min_quantity_unit);
           const giftQuantityUnit = normalizeOfferUnit(o.gift_quantity_unit);
