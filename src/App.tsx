@@ -74,6 +74,7 @@ import Training from "./pages/admin/Training";
 import ComponentsReference from "./pages/admin/ComponentsReference";
 import BackupRestore from "./pages/admin/BackupRestore";
 import ManagerSalesSummaryPage from "./pages/admin/ManagerSalesSummaryPage";
+import PromoTracking from "./pages/admin/PromoTracking";
 import ManagerAccountingReview from "./pages/admin/ManagerAccountingReview";
 import WorkerRounds from "./pages/admin/WorkerRounds";
 import WorkerRolesManagement from "./pages/admin/WorkerRolesManagement";
@@ -567,6 +568,12 @@ const AppRoutes = () => {
       <Route path="/chat" element={
         <ProtectedRoute>
           <Chat />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/promo-tracking" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'branch_admin', 'admin_assistant', 'supervisor']} allowedCustomRoles={['internal_supervisor', 'company_manager']}>
+          <PromoTracking />
         </ProtectedRoute>
       } />
 
