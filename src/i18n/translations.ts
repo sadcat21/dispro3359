@@ -868,6 +868,18 @@ export const translations: Translations = {
   'print.promo.all_workers': { ar: 'جميع العمال', fr: 'Tous les employés', en: 'All Workers' },
   'print.promo.product_filter': { ar: 'المنتج', fr: 'Produit', en: 'Product' },
   'print.promo.all_products': { ar: 'جميع المنتجات', fr: 'Tous les produits', en: 'All Products' },
+  'print.promo.details_title': { ar: 'تفاصيل العروض المسلمة', fr: 'Détails des offres livrées', en: 'Delivered Offers Details' },
+  'print.promo.row_num': { ar: 'رقم', fr: 'N°', en: 'No.' },
+  'print.promo.store_customer': { ar: 'المحل / العميل', fr: 'Magasin / Client', en: 'Store / Customer' },
+  'print.promo.address_col': { ar: 'العنوان', fr: 'Adresse', en: 'Address' },
+  'print.promo.qty_bought': { ar: 'الكمية المشتراة', fr: 'Qté achetée', en: 'Qty Bought' },
+  'print.promo.gift_delivered': { ar: 'العرض المسلم', fr: 'Offre livrée', en: 'Gift Delivered' },
+  'print.promo.date_time': { ar: 'التاريخ والتوقيت', fr: 'Date et heure', en: 'Date & Time' },
+  'print.promo.print_date': { ar: 'تاريخ الطباعة', fr: 'Date d\'impression', en: 'Print Date' },
+  'print.promo.period': { ar: 'الفترة', fr: 'Période', en: 'Period' },
+  'print.promo.offer_summary': { ar: 'العرض المطبق', fr: 'Offre appliquée', en: 'Applied Offer' },
+  'print.promo.no_promos': { ar: 'لا توجد عروض مطبقة في هذه الفترة', fr: 'Aucune offre appliquée durant cette période', en: 'No offers applied during this period' },
+  'print.promo.total_label': { ar: 'المجموع', fr: 'Total', en: 'Total' },
 
   // ==================== Product Offers ====================
   'nav.available_offers': { ar: 'العروض المتاحة', fr: 'Offres disponibles', en: 'Available Offers' },

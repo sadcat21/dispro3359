@@ -575,7 +575,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     </StepSection>
                     {calc && calc.promoTracking.length > 0 && (
                       <StepSection step={9} title="تتبع العروض" color="purple" badge="C">
-                        <PromoTrackingSummary items={calc.promoTracking} />
+                        <PromoTrackingSummary items={calc.promoTracking} periodStart={periodStart} periodEnd={periodEnd} />
                       </StepSection>
                     )}
                   </>

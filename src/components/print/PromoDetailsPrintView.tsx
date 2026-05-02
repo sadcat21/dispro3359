@@ -11,6 +11,10 @@ interface PromoDetailsPrintViewProps {
   piecesPerBox: number;
   customerDetails: PromoCustomerDetail[];
   isVisible?: boolean;
+  periodStart?: string;
+  periodEnd?: string;
+  offerName?: string;
+  offerDescription?: string;
 }
 
 const formatGiftDisplay = (giftPieces: number, piecesPerBox: number): string => {
@@ -21,22 +25,35 @@ const formatGiftDisplay = (giftPieces: number, piecesPerBox: number): string => 
   return `${boxes}.${piecesStr}`;
 };
 
-const formatGiftLabel = (giftPieces: number, _piecesPerBox: number): string => {
-  if (giftPieces <= 0) return '0';
-  return `${giftPieces} قطعة`;
-};
-
 const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewProps>(
-  ({ productName, workerName, piecesPerBox, customerDetails, isVisible = false }, ref) => {
+  ({ productName, workerName, piecesPerBox, customerDetails, isVisible = false, periodStart, periodEnd, offerName, offerDescription }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const { tp, printDir } = useLanguage();
+    const { tp, language } = useLanguage();
+
+    const formatGiftLabel = (giftPieces: number): string => {
+      if (giftPieces <= 0) return '0';
+      if (language === 'fr') return `${giftPieces} pcs`;
+      if (language === 'en') return `${giftPieces} pcs`;
+      return `${giftPieces} قطعة`;
+    };
+
+    const formatPeriod = (s?: string, e?: string): string => {
+      if (!s || !e) return '-';
+      try {
+        return `${format(new Date(s), 'dd/MM/yyyy')} → ${format(new Date(e), 'dd/MM/yyyy')}`;
+      } catch {
+        return `${s} → ${e}`;
+      }
+    };
 
     const totalSold = customerDetails.reduce((sum, cd) => sum + cd.quantitySold, 0);
     const totalGiftPieces = customerDetails.reduce((sum, cd) => sum + cd.giftPieces, 0);
 
-    const minRows = 20;
+    const minRows = 18;
     const emptyRowsCount = Math.max(0, minRows - customerDetails.length);
+
+    const offerSummary = offerDescription || offerName || '';
 
     useLayoutEffect(() => {
       if (typeof document === 'undefined') return;
@@ -53,11 +70,13 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
       };
     }, []);
 
+    const isRtl = language === 'ar';
+
     const content = (
       <div
         ref={ref}
         className="print-container"
-        dir="rtl"
+        dir={isRtl ? 'rtl' : 'ltr'}
         style={{
           display: isVisible ? 'block' : 'none',
           position: 'relative',
@@ -83,11 +102,21 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
             <img src={logoImage} alt="Laser Food" />
           </div>
           <div className="print-title-section">
-            <h1>تفاصيل العروض المسلمة</h1>
+            <h1>{tp('print.promo.details_title')}</h1>
             <p style={{ fontSize: '11pt', fontWeight: 600, marginTop: '5px' }}>
-              المنتج: {productName}
-              {workerName && ` | العامل: ${workerName}`}
+              {tp('print.promo.product')}: {productName}
+              {workerName && ` | ${tp('print.promo.worker')}: ${workerName}`}
             </p>
+            {(periodStart || periodEnd) && (
+              <p style={{ fontSize: '10pt', fontWeight: 500, marginTop: '3px' }}>
+                {tp('print.promo.period')}: {formatPeriod(periodStart, periodEnd)}
+              </p>
+            )}
+            {offerSummary && (
+              <p style={{ fontSize: '10pt', fontWeight: 600, marginTop: '3px', color: '#1f4e79' }}>
+                {tp('print.promo.offer_summary')}: {offerSummary}
+              </p>
+            )}
           </div>
           <div className="print-logo">
             <img src={logoImage} alt="Laser Food" />
@@ -98,13 +127,13 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
         <table className="word-table" style={{ position: 'relative', zIndex: 1 }}>
           <thead>
             <tr>
-              <th style={{ width: '35px' }}>رقم</th>
-              <th>المحل / العميل</th>
-              <th style={{ width: '100px' }}>الهاتف</th>
-              <th>العنوان</th>
-              <th style={{ width: '70px' }}>الكمية المشتراة</th>
-              <th style={{ width: '90px' }}>العرض المسلم</th>
-              <th style={{ width: '100px' }}>التاريخ والتوقيت</th>
+              <th style={{ width: '35px' }}>{tp('print.promo.row_num')}</th>
+              <th>{tp('print.promo.store_customer')}</th>
+              <th style={{ width: '100px' }}>{tp('print.promo.phone')}</th>
+              <th>{tp('print.promo.address_col')}</th>
+              <th style={{ width: '70px' }}>{tp('print.promo.qty_bought')}</th>
+              <th style={{ width: '90px' }}>{tp('print.promo.gift_delivered')}</th>
+              <th style={{ width: '100px' }}>{tp('print.promo.date_time')}</th>
             </tr>
           </thead>
           <tbody>
@@ -123,7 +152,7 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
                 <td className="center bold">
                   <div>{formatGiftDisplay(cd.giftPieces, piecesPerBox)}</div>
                   <div style={{ fontSize: '7pt', fontWeight: 'normal', opacity: 0.7 }}>
-                    {formatGiftLabel(cd.giftPieces, piecesPerBox)}
+                    {formatGiftLabel(cd.giftPieces)}
                   </div>
                 </td>
                 <td className="small-text center">
@@ -147,12 +176,12 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
 
             {/* Totals */}
             <tr className="totals-row">
-              <td colSpan={4} className="totals-label">المجموع</td>
+              <td colSpan={4} className="totals-label">{tp('print.promo.total_label')}</td>
               <td className="center bold">{totalSold}</td>
               <td className="center bold">
                 <div>{formatGiftDisplay(totalGiftPieces, piecesPerBox)}</div>
                 <div style={{ fontSize: '7pt', fontWeight: 'normal', opacity: 0.7 }}>
-                  {formatGiftLabel(totalGiftPieces, piecesPerBox)}
+                  {formatGiftLabel(totalGiftPieces)}
                 </div>
               </td>
               <td></td>
@@ -162,7 +191,7 @@ const PromoDetailsPrintView = forwardRef<HTMLDivElement, PromoDetailsPrintViewPr
 
         {/* Footer */}
         <div className="print-footer">
-          <span>تاريخ الطباعة: {format(new Date(), 'dd/MM/yyyy HH:mm')}</span>
+          <span>{tp('print.promo.print_date')}: {format(new Date(), 'dd/MM/yyyy HH:mm')}</span>
           <span>Laser Food</span>
         </div>
       </div>
