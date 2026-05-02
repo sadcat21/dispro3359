@@ -1170,6 +1170,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-sm font-semibold">تسليم تالف للمصنع</span>
+                <WorkflowStatusBadge documentType="factory_order" statusCode={d.status} className="text-[10px]" />
                 {d.frozen_at && <Badge className="bg-blue-600 text-white text-[10px]"><Lock className="w-2.5 h-2.5 ml-0.5" />مؤجّل</Badge>}
               </div>
               <div className="text-[10px] text-muted-foreground">
