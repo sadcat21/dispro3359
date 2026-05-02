@@ -10,7 +10,7 @@ import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
   Activity, UserCheck, ShoppingCart, Radar, FileSpreadsheet, UserCog,
   Navigation, LucideIcon, Warehouse, Truck, ClipboardCheck, ClipboardList,
-  Wallet, FileText, Vault, Scale,
+  Wallet, FileText, Vault, Scale, Gift,
 } from 'lucide-react';
 
 interface Item {
@@ -106,6 +106,7 @@ const InternalSupervisorHome: React.FC = () => {
       items: [
         { key: 'sales_summary', label: t('admin_home.item.manager_sales_summary'), icon: BarChart3, path: '/manager-sales-summary' },
         { key: 'promo_table', label: t('nav.table'), icon: FileSpreadsheet, path: '/promo-table' },
+        { key: 'promo_tracking', label: t('admin.promo_tracking'), icon: Gift, path: '/promo-tracking' },
       ],
     },
   ];

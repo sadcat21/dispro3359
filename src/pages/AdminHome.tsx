@@ -378,7 +378,7 @@ const AdminHome: React.FC = () => {
         { path: '/my-promos', icon: BarChart3, label: t('nav.my_promos') },
         { path: '/promo-splits', icon: Split, label: t('admin_home.item.promo_splits') },
         { path: '/manual-promo', icon: Gift, label: t('admin.manual_promo'), action: () => setManualPromoOpen(true) },
-        ...(isSuperAdminRole(role) ? [{ path: '/gifts-tracking', icon: Gift, label: t('admin.promo_tracking'), action: () => { setGiftsWorkerIdx(0); setGiftsOpen(true); } }] : []),
+        { path: '/promo-tracking', icon: Gift, label: t('admin.promo_tracking') },
       ],
     },
     // 6. الموارد البشرية
