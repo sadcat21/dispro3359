@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import { boxesToBP } from '@/utils/boxPieceInput';
+import { dbBPDisplay, dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
 import { formatDate } from '@/utils/formatters';
 
 interface ReceiptPrintItem {
