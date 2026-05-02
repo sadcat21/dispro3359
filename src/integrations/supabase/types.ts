@@ -6428,6 +6428,133 @@ export type Database = {
           },
         ]
       }
+      stock_workflow_definitions: {
+        Row: {
+          allowed_custom_role_codes: string[]
+          allowed_roles: string[]
+          created_at: string
+          description: string | null
+          document_type: string
+          from_status: string
+          id: string
+          is_active: boolean
+          is_rejection: boolean
+          is_terminal: boolean
+          requires_reason: boolean
+          sort_order: number
+          to_status: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_custom_role_codes?: string[]
+          allowed_roles?: string[]
+          created_at?: string
+          description?: string | null
+          document_type: string
+          from_status: string
+          id?: string
+          is_active?: boolean
+          is_rejection?: boolean
+          is_terminal?: boolean
+          requires_reason?: boolean
+          sort_order?: number
+          to_status: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_custom_role_codes?: string[]
+          allowed_roles?: string[]
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          from_status?: string
+          id?: string
+          is_active?: boolean
+          is_rejection?: boolean
+          is_terminal?: boolean
+          requires_reason?: boolean
+          sort_order?: number
+          to_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stock_workflow_transitions: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          document_id: string
+          document_type: string
+          from_status: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          performed_by: string | null
+          performed_custom_role: string | null
+          performed_role: Database["public"]["Enums"]["app_role"] | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          to_status: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          document_id: string
+          document_type: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          performed_by?: string | null
+          performed_custom_role?: string | null
+          performed_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          to_status: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          document_id?: string
+          document_type?: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          performed_by?: string | null
+          performed_custom_role?: string | null
+          performed_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_workflow_transitions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_workflow_transitions_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_workflow_transitions_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supervisor_workers: {
         Row: {
           created_at: string
@@ -8085,6 +8212,16 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: Json
       }
+      get_allowed_next_statuses: {
+        Args: { p_document_type: string; p_from_status: string }
+        Returns: {
+          description: string
+          is_rejection: boolean
+          is_terminal: boolean
+          requires_reason: boolean
+          to_status: string
+        }[]
+      }
       get_customer_account_id: { Args: never; Returns: string }
       get_customer_sales_rep_statuses: {
         Args: {
@@ -8260,6 +8397,22 @@ export type Database = {
         }
         Returns: Json
       }
+      record_workflow_transition: {
+        Args: {
+          p_branch_id?: string
+          p_document_id: string
+          p_document_type: string
+          p_from_status: string
+          p_metadata?: Json
+          p_notes?: string
+          p_reason?: string
+          p_reference_id?: string
+          p_reference_type?: string
+          p_skip_validation?: boolean
+          p_to_status: string
+        }
+        Returns: string
+      }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
@@ -8290,6 +8443,16 @@ export type Database = {
           p_reason?: string
           p_to_account_id: string
           p_to_account_type: string
+        }
+        Returns: Json
+      }
+      validate_workflow_transition: {
+        Args: {
+          p_actor_role?: Database["public"]["Enums"]["app_role"]
+          p_actor_worker_id?: string
+          p_document_type: string
+          p_from_status: string
+          p_to_status: string
         }
         Returns: Json
       }
