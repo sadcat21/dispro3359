@@ -148,160 +148,175 @@ const ProductOffers: React.FC = () => {
           />
         </div>
 
-        {/* Offers List */}
-        <div className="space-y-3">
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {t('common.loading')}
-            </div>
-          ) : filteredOffers.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <Gift className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>{t('offers.no_offers')}</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredOffers.map((offer) => (
-              <Card key={offer.id} className={!offer.is_active ? 'opacity-60' : ''}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {offer.name}
-                        {offer.is_stackable && (
-                          <Badge variant="outline" className="text-xs">
-                            <Layers className="w-3 h-3 me-1" />
-                            {t('offers.stackable')}
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                        <Package className="w-3 h-3" />
-                        {offer.product?.name}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={offer.is_active}
-                      onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
-                    />
+        {/* Status Tabs */}
+        <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive')}>
+          <TabsList>
+            <TabsTrigger value="active">
+              {t('common.active') || 'النشطة'} ({activeOffers.length})
+            </TabsTrigger>
+            <TabsTrigger value="inactive">
+              {t('common.inactive') || 'غير النشطة'} ({inactiveOffers.length})
+            </TabsTrigger>
+          </TabsList>
+
+          {(['active', 'inactive'] as const).map((tabKey) => {
+            const list = tabKey === 'active' ? activeOffers : inactiveOffers;
+            return (
+              <TabsContent key={tabKey} value={tabKey} className="space-y-3">
+                {isLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {t('common.loading')}
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Tiers */}
-                  <div className="space-y-2">
-                    {(offer.tiers && offer.tiers.length > 0 ? offer.tiers : [{
-                      min_quantity: offer.min_quantity,
-                      max_quantity: offer.max_quantity,
-                      gift_type: offer.gift_type,
-                      gift_quantity: offer.gift_quantity,
-                      gift_product: offer.gift_product,
-                      discount_percentage: offer.discount_percentage,
-                      worker_reward_type: offer.worker_reward_type,
-                      worker_reward_amount: offer.worker_reward_amount,
-                    }]).map((tier: any, index: number) => (
-                      <div key={index} className="flex flex-wrap items-center gap-2 p-2 bg-muted/50 rounded">
-                        <Badge variant="outline" className="text-xs">
-                          {t('offers.tier')} {index + 1}
-                        </Badge>
-                        <Badge variant="secondary">
-                          {t('offers.buy')} {tier.min_quantity}
-                          {tier.max_quantity ? `-${tier.max_quantity}` : '+'}
-                        </Badge>
-                        <Badge className="bg-accent text-accent-foreground">
-                          → {tier.gift_type === 'same_product' 
-                            ? `${tier.gift_quantity} ${t('offers.free_units')}`
-                            : tier.gift_type === 'different_product' && tier.gift_product
-                            ? `${tier.gift_quantity} ${tier.gift_product.name}`
-                            : `${tier.discount_percentage}% ${t('offers.discount')}`}
-                        </Badge>
-                        {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            <Users className="w-3 h-3 me-1" />
-                            {tier.worker_reward_type === 'fixed' 
-                              ? `${tier.worker_reward_amount} ${t('currency.dzd')}`
-                              : `${tier.worker_reward_amount}%`}
-                          </Badge>
+                ) : list.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      <Gift className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>{t('offers.no_offers')}</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  list.map((offer) => (
+                    <Card key={offer.id} className={!offer.is_active ? 'opacity-60' : ''}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              {offer.name}
+                              {offer.is_stackable && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Layers className="w-3 h-3 me-1" />
+                                  {t('offers.stackable')}
+                                </Badge>
+                              )}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <Package className="w-3 h-3" />
+                              {offer.product?.name}
+                            </p>
+                          </div>
+                          <Switch
+                            checked={offer.is_active}
+                            onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {/* Tiers */}
+                        <div className="space-y-2">
+                          {(offer.tiers && offer.tiers.length > 0 ? offer.tiers : [{
+                            min_quantity: offer.min_quantity,
+                            max_quantity: offer.max_quantity,
+                            gift_type: offer.gift_type,
+                            gift_quantity: offer.gift_quantity,
+                            gift_product: offer.gift_product,
+                            discount_percentage: offer.discount_percentage,
+                            worker_reward_type: offer.worker_reward_type,
+                            worker_reward_amount: offer.worker_reward_amount,
+                          }]).map((tier: any, index: number) => (
+                            <div key={index} className="flex flex-wrap items-center gap-2 p-2 bg-muted/50 rounded">
+                              <Badge variant="outline" className="text-xs">
+                                {t('offers.tier')} {index + 1}
+                              </Badge>
+                              <Badge variant="secondary">
+                                {t('offers.buy')} {tier.min_quantity}
+                                {tier.max_quantity ? `-${tier.max_quantity}` : '+'}
+                              </Badge>
+                              <Badge className="bg-accent text-accent-foreground">
+                                → {tier.gift_type === 'same_product'
+                                  ? `${tier.gift_quantity} ${t('offers.free_units')}`
+                                  : tier.gift_type === 'different_product' && tier.gift_product
+                                  ? `${tier.gift_quantity} ${tier.gift_product.name}`
+                                  : `${tier.discount_percentage}% ${t('offers.discount')}`}
+                              </Badge>
+                              {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Users className="w-3 h-3 me-1" />
+                                  {tier.worker_reward_type === 'fixed'
+                                    ? `${tier.worker_reward_amount} ${t('currency.dzd')}`
+                                    : `${tier.worker_reward_amount}%`}
+                                </Badge>
+                              )}
+                              {tier.id && canManage && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs ms-auto"
+                                  onClick={() => setExtendTarget({
+                                    offerId: offer.id,
+                                    offerName: offer.name,
+                                    tierId: tier.id,
+                                    tierLabel: `${t('offers.tier')} ${index + 1}`,
+                                    mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                                  })}
+                                >
+                                  {isOfferRunning(offer) ? (
+                                    <><Clock className="w-3 h-3 me-1" />تمديد</>
+                                  ) : (
+                                    <><PlayCircle className="w-3 h-3 me-1" />استئناف</>
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Dates */}
+                        {(offer.start_date || offer.end_date) && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4" />
+                            {offer.start_date && format(new Date(offer.start_date), 'dd MMM yyyy', { locale: dateLocale })}
+                            {offer.start_date && offer.end_date && ' - '}
+                            {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
+                          </div>
                         )}
-                        {tier.id && canManage && (
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 pt-2 border-t">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            className="h-6 px-2 text-xs ms-auto"
-                            onClick={() => setExtendTarget({
-                              offerId: offer.id,
-                              offerName: offer.name,
-                              tierId: tier.id,
-                              tierLabel: `${t('offers.tier')} ${index + 1}`,
-                              mode: isOfferRunning(offer) ? 'extend' : 'resume',
-                            })}
+                            className="flex-1"
+                            onClick={() => handleEdit(offer)}
                           >
-                            {isOfferRunning(offer) ? (
-                              <><Clock className="w-3 h-3 me-1" />تمديد</>
-                            ) : (
-                              <><PlayCircle className="w-3 h-3 me-1" />استئناف</>
-                            )}
+                            <Edit2 className="w-4 h-4 me-2" />
+                            {t('common.edit')}
                           </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-
-                  {/* Dates */}
-                  {(offer.start_date || offer.end_date) && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      {offer.start_date && format(new Date(offer.start_date), 'dd MMM yyyy', { locale: dateLocale })}
-                      {offer.start_date && offer.end_date && ' - '}
-                      {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleEdit(offer)}
-                    >
-                      <Edit2 className="w-4 h-4 me-2" />
-                      {t('common.edit')}
-                    </Button>
-                    {canManage && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setExtendTarget({
-                          offerId: offer.id,
-                          offerName: offer.name,
-                          tierId: null,
-                          tierLabel: null,
-                          mode: isOfferRunning(offer) ? 'extend' : 'resume',
-                        })}
-                      >
-                        {isOfferRunning(offer) ? (
-                          <><Clock className="w-4 h-4 me-2" />تمديد العرض</>
-                        ) : (
-                          <><PlayCircle className="w-4 h-4 me-2" />استئناف العرض</>
-                        )}
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => setDeleteConfirm(offer.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                          {canManage && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setExtendTarget({
+                                offerId: offer.id,
+                                offerName: offer.name,
+                                tierId: null,
+                                tierLabel: null,
+                                mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                              })}
+                            >
+                              {isOfferRunning(offer) ? (
+                                <><Clock className="w-4 h-4 me-2" />تمديد العرض</>
+                              ) : (
+                                <><PlayCircle className="w-4 h-4 me-2" />استئناف العرض</>
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => setDeleteConfirm(offer.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </TabsContent>
+            );
+          })}
+        </Tabs>
       </div>
 
       {/* Create/Edit Dialog */}
