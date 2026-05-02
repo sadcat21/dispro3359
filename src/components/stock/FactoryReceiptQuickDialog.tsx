@@ -593,11 +593,11 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowDownToLine className="w-5 h-5 text-lime-600" />
-              استلام مخزون
+              {editReceiptId ? 'تعديل وصل الاستلام' : 'استلام مخزون'}
             </DialogTitle>
           </DialogHeader>
 
-          {isAdmin && (
+          {isAdmin && !editReceiptId && (
             <div className="flex gap-2 mb-2">
               <Button variant={tab === 'create' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setTab('create')}>
                 <Plus className="w-4 h-4 ml-1" /> إنشاء وصل
