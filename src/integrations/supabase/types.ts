@@ -8481,6 +8481,10 @@ export type Database = {
         Args: { p_branch_id: string }
         Returns: boolean
       }
+      delete_promo_ledger_entries: {
+        Args: { p_promo_id: string }
+        Returns: undefined
+      }
       forward_manual_invoice_request_to_management: {
         Args: { p_request_id: string }
         Returns: Json
@@ -8549,6 +8553,18 @@ export type Database = {
         }[]
       }
       has_custom_role: { Args: { p_role_code: string }; Returns: boolean }
+      insert_promo_ledger_entry: {
+        Args: {
+          p_created_by: string
+          p_customer_id: string
+          p_movement_subtype: string
+          p_product_id: string
+          p_promo_id: string
+          p_quantity: number
+          p_worker_id: string
+        }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_admin_of_branch: { Args: { p_branch_id: string }; Returns: boolean }
       is_approved_customer: { Args: never; Returns: boolean }
