@@ -32,6 +32,16 @@ const getDateLocale = (language: string) => {
   }
 };
 
+// Format pieces as box.pieces (b.p) — e.g. 25 pieces with ppb=20 → "1.05"
+const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
+  const ppb = Number(piecesPerBox || 0);
+  const p = Number(pieces || 0);
+  if (!ppb || ppb <= 1) return String(p);
+  const boxes = Math.floor(p / ppb);
+  const rem = p % ppb;
+  return `${boxes}.${String(rem).padStart(2, '0')}`;
+};
+
 const MyPromosContent: React.FC = () => {
   const [deletePromo, setDeletePromo] = useState<PromoWithDetails | null>(null);
   const { workerId, activeBranch } = useAuth();
