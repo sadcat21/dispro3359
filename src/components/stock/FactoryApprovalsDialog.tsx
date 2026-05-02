@@ -10,6 +10,8 @@ import {
   Edit, Save, X, AlertTriangle, Boxes, Sparkles, Wrench, FileText, User, Phone, Car, Printer,
 } from 'lucide-react';
 import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
+import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
+import FactoryDeliveryQuickDialog from '@/components/stock/FactoryDeliveryQuickDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
