@@ -562,8 +562,49 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div><div class="sig-line">Signature distributeur/client</div></div>
         </div>
 
-      </body></html>
-    `);
+        ${(d.pallet_count ?? 0) > 0 ? `
+        <div class="page-break"></div>
+
+        <div class="header">
+          <div class="logo">AROMA<i>Café</i></div>
+          <div class="title">SARL ALGOFOOD<br/>BON DE RETOUR PALETTES</div>
+          <div class="date-box"><b>Date</b> ${dateStr}</div>
+        </div>
+
+        <div class="field"><b>CONSTAT ETABLI PAR :</b> ${constatBy}</div>
+        <div class="field"><b>AFFECTATION :</b> ${affectation}</div>
+
+        <div class="pallet-h1">Bon de retour palettes</div>
+
+        <table class="pallet-table">
+          <tr>
+            <th>Désignation</th>
+            <th style="text-align:center">Quantité</th>
+          </tr>
+          <tr>
+            <td style="font-size:16px;font-weight:bold;vertical-align:middle">Palette</td>
+            <td class="qty">${d.pallet_count}</td>
+          </tr>
+        </table>
+
+        <div class="pallet-sigs">
+          <div class="sig">
+            <div class="sig-title">Signature superviseur</div>
+            <div class="sig-line">&nbsp;</div>
+          </div>
+          <div class="sig">
+            <div class="sig-title">cachet distributeur</div>
+            <div class="sig-line">&nbsp;</div>
+          </div>
+        </div>
+
+        <div class="center-sig">
+          <div class="sig-title">Signature chauffeur</div>
+          <div class="sig-line">&nbsp;</div>
+        </div>
+        ` : ''}
+
+      </body></html>`);
     w.document.close();
     w.print();
   };
