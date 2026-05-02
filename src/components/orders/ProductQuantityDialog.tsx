@@ -137,6 +137,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         return Number(product.price_super_gros || product.price_no_invoice || 0);
       case 'retail':
         return Number(product.price_retail || 0);
+      case 'retail':
+        return Number(product.price_retail || product.price_no_invoice || 0);
       default:
         return Number(product.price_gros || product.price_no_invoice || 0);
     }
