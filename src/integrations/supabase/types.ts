@@ -523,6 +523,81 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_movements_archive: {
+        Row: {
+          account_id: string | null
+          account_type: string
+          amount: number
+          archived_at: string
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          from_account_id: string | null
+          from_account_type: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_balance: number | null
+          signed_amount: number | null
+          to_account_id: string | null
+          to_account_type: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          account_type: string
+          amount: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          account_type?: string
+          amount?: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       coin_exchange_returns: {
         Row: {
           amount: number
@@ -1530,6 +1605,72 @@ export type Database = {
         }
         Update: {
           amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id?: string
+          debtor_type?: string
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
+      debt_movements_archive: {
+        Row: {
+          amount: number
+          archived_at: string
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          debt_id: string | null
+          debtor_id: string
+          debtor_type: string
+          id: string
+          movement_type: string
+          notes: string | null
+          payment_method: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_debt_balance: number | null
+          signed_amount: number | null
+          worker_id: string | null
+        }
+        Insert: {
+          amount: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id: string
+          debtor_type: string
+          id?: string
+          movement_type: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Update: {
+          amount?: number
+          archived_at?: string
+          archived_by?: string | null
           branch_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -5995,6 +6136,93 @@ export type Database = {
           },
         ]
       }
+      stock_movements_archive: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string
+          from_location_id: string | null
+          from_location_type: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          order_id: string | null
+          product_id: string
+          quantity: number
+          reason: string | null
+          receipt_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          return_reason: string | null
+          running_balance: number | null
+          signed_quantity: number | null
+          status: string
+          to_location_id: string | null
+          to_location_type: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by: string
+          from_location_id?: string | null
+          from_location_type?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          order_id?: string | null
+          product_id: string
+          quantity: number
+          reason?: string | null
+          receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
+          status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string
+          from_location_id?: string | null
+          from_location_type?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          order_id?: string | null
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
+          status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       stock_receipt_items: {
         Row: {
           created_at: string
@@ -7801,6 +8029,9 @@ export type Database = {
         Args: { p_receipt_id: string; p_stage: string }
         Returns: Json
       }
+      archive_cash_movements: { Args: never; Returns: Json }
+      archive_debt_movements: { Args: never; Returns: Json }
+      archive_stock_movements: { Args: never; Returns: Json }
       can_create_stock_confirmation_for_session: {
         Args: {
           _branch_id: string
@@ -7922,6 +8153,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_cash_movements: { Args: never; Returns: Json }
+      purge_debt_movements: { Args: never; Returns: Json }
+      purge_stock_movements: { Args: never; Returns: Json }
       recalculate_running_balance: {
         Args: { p_branch_id: string; p_product_id: string }
         Returns: Json
