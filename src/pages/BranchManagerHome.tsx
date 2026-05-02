@@ -124,6 +124,7 @@ const BranchManagerHome: React.FC = () => {
       items: [
         { key: 'promo_table', label: t('nav.table'), icon: ClipboardList, path: '/promo-table' },
         { key: 'product_offers', label: t('nav.product_offers'), icon: Eye, path: '/product-offers' },
+        { key: 'promo_tracking', label: t('admin.promo_tracking'), icon: Gift, path: '/promo-tracking' },
       ],
     },
     {
