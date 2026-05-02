@@ -48,6 +48,8 @@ interface ProductOption {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editReceiptId?: string | null;
+  onSaved?: () => void;
 }
 
 interface QuantityFields {
