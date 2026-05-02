@@ -3655,6 +3655,77 @@ export type Database = {
           },
         ]
       }
+      product_offer_periods: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          offer_id: string
+          period_end: string
+          period_start: string
+          period_type: string
+          sold_quantity_pieces: number
+          tier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          offer_id: string
+          period_end: string
+          period_start: string
+          period_type?: string
+          sold_quantity_pieces?: number
+          tier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          offer_id?: string
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          sold_quantity_pieces?: number
+          tier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_offer_periods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_offer_periods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_offer_periods_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_offer_periods_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "product_offer_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_offer_tiers: {
         Row: {
           conditions: Json | null
@@ -8484,6 +8555,17 @@ export type Database = {
       delete_promo_ledger_entries: {
         Args: { p_promo_id: string }
         Returns: undefined
+      }
+      extend_offer_period: {
+        Args: {
+          p_new_end: string
+          p_new_start: string
+          p_notes?: string
+          p_offer_id: string
+          p_period_type?: string
+          p_tier_id: string
+        }
+        Returns: string
       }
       forward_manual_invoice_request_to_management: {
         Args: { p_request_id: string }
