@@ -434,15 +434,16 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
                   ) : (
                     <div dir="ltr" style={{ marginTop: '4px', fontSize: '9.5pt', textAlign: 'left' }}>
                       <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                        gap: '2px 12px',
+                        display: 'flex',
+                        flexWrap: 'nowrap',
+                        gap: '16px',
+                        whiteSpace: 'nowrap',
                       }}>
                         {isSingleWorker && (
-                          <div><strong>Employé:</strong> {workerName}</div>
+                          <div><strong>Employé:</strong> <span style={{ unicodeBidi: 'plaintext' }}>{workerName}</span></div>
                         )}
                         {headerInfo.map(h => (
-                          <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
+                          <div key={h.label}><strong>{h.label}:</strong> <span style={{ unicodeBidi: 'plaintext' }}>{h.value}</span></div>
                         ))}
                       </div>
                       <div style={{
