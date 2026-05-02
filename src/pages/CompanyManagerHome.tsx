@@ -111,7 +111,7 @@ const CompanyManagerHome: React.FC = () => {
       ],
     },
     {
-      titleKey: 'company_manager.section_executive',
+      titleKey: 'سجلات الحركة (Ledgers)',
       icon: BookOpen,
       items: [
         { key: 'cash_ledger', label: 'سجل حركة الأموال', icon: Coins, path: '/cash-ledger' },
