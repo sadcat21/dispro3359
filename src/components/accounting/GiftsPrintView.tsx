@@ -211,6 +211,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       if (!separateByProduct) {
         const totals = {
           vente: rows.reduce((s, r) => s + r.venteQuantity, 0),
+          venteBoxPiece: formatVenteTotalBoxPiece(rows),
           gift: rows.reduce((s, r) => s + r.giftQuantity, 0),
           giftBoxPiece: formatGiftTotalBoxPiece(rows),
         };
