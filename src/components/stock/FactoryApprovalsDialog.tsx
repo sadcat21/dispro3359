@@ -339,8 +339,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         if (parsed && typeof parsed === 'object' && parsed.__nc) nc = parsed;
       }
     } catch { /* ignore */ }
-    const constatBy = nc.constat_by || d.creator_name || '';
-    const affectation = nc.affectation || branchName;
+    const constatBy = nc.constat_by ?? '';
+    const affectation = nc.affectation ?? '';
 
     w.document.write(`
       <html dir="ltr"><head><title>Bon de Retour Palettes</title>
