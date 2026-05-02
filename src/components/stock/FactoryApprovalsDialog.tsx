@@ -967,7 +967,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <FileText className="w-3.5 h-3.5 ml-1" /> طباعة تفاصيل التسليم
               </Button>
             )}
-            {kind === 'delivery' && (
+            {kind === 'delivery' && (record as DeliveryRecord).items.length > 0 && (
               <Button size="sm" variant="outline" className="border-red-500 text-red-700"
                 onClick={() => printFactoryNonConformity(record as DeliveryRecord)}>
                 <Printer className="w-3.5 h-3.5 ml-1" /> طباعة للمصنع (Non Conformité)
@@ -1177,11 +1177,22 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
           {isExpanded && (
             <div className="p-3 pt-0 space-y-3">
-              {d.notes && (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-2 text-[11px]">
-                  <FileText className="w-3 h-3 inline ml-1" />{d.notes}
-                </div>
-              )}
+              {(() => {
+                let displayNote = d.notes || '';
+                try {
+                  if (displayNote.trim().startsWith('{')) {
+                    const parsed = JSON.parse(displayNote);
+                    if (parsed && typeof parsed === 'object' && parsed.__nc) {
+                      displayNote = parsed.description || '';
+                    }
+                  }
+                } catch { /* ignore */ }
+                return displayNote ? (
+                  <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-2 text-[11px]">
+                    <FileText className="w-3 h-3 inline ml-1" />{displayNote}
+                  </div>
+                ) : null;
+              })()}
 
               {/* Pallets */}
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-2 flex items-center justify-between">
