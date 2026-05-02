@@ -714,6 +714,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                     items={promoData.promoTracking}
                     totalGiftValue={promoData.giftOfferValue}
                     workerName={workerName}
+                    periodStart={periodFrom || undefined}
+                    periodEnd={periodTo || undefined}
                   />
                 ) : (
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-muted-foreground">
