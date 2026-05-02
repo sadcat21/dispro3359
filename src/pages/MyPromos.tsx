@@ -305,20 +305,24 @@ const MyPromosContent: React.FC = () => {
 
                       {/* Body */}
                       <div className="p-4 space-y-3">
-                        {/* Quantities */}
+                        {/* Quantities (b.p format = boxes.pieces) */}
                         <div className="grid grid-cols-2 gap-2">
                           <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
                             <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                             <div className="min-w-0">
                               <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')}</p>
-                              <p className="font-bold text-primary leading-none">{promo.vente_quantity}</p>
+                              <p className="font-bold text-primary leading-none" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                                {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
+                              </p>
                             </div>
                           </div>
                           <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
                             <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
                             <div className="min-w-0">
                               <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')}</p>
-                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>{promo.gratuite_quantity}</p>
+                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`} title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                                {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
+                              </p>
                             </div>
                           </div>
                         </div>
