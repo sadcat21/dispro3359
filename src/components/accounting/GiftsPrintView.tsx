@@ -39,6 +39,8 @@ interface GiftsPrintViewProps {
   dateRange?: string;
   offerPeriod?: string;
   productFilter?: string;
+  branchName?: string;
+  branchWilaya?: string;
   isVisible?: boolean;
   visibleColumns?: GiftPrintColumnKey[];
   separateByProduct?: boolean;
