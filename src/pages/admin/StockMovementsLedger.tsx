@@ -13,6 +13,7 @@ import { Loader2, RefreshCw, Download, AlertTriangle, ArrowDownLeft, ArrowUpRigh
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
+import { STOCK_MOVEMENT_LABELS, LOCATION_TYPE_LABELS, REASON_LABELS, tr } from '@/lib/ledgerLabels';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
@@ -312,7 +313,7 @@ const StockMovementsLedger: React.FC = () => {
                       return (
                         <TableRow key={m.id}>
                           <TableCell className="text-xs whitespace-nowrap">{format(new Date(m.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
-                          <TableCell><Badge variant={typeColor(m.movement_type) as any}>{m.movement_type}</Badge></TableCell>
+                          <TableCell><Badge variant={typeColor(m.movement_type) as any}>{tr(STOCK_MOVEMENT_LABELS, m.movement_type)}</Badge></TableCell>
                           <TableCell className="max-w-[180px] truncate">{productMap[m.product_id] ?? '—'}</TableCell>
                           <TableCell>{branchMap[m.branch_id] ?? '—'}</TableCell>
                           <TableCell className="text-center font-mono">{Number(m.quantity).toFixed(2)}</TableCell>
@@ -321,9 +322,9 @@ const StockMovementsLedger: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-center font-mono">{m.running_balance != null ? Number(m.running_balance).toFixed(2) : '—'}</TableCell>
                           <TableCell className="text-xs">
-                            {m.from_location_type ?? '—'} → {m.to_location_type ?? '—'}
+                            {tr(LOCATION_TYPE_LABELS, m.from_location_type)} → {tr(LOCATION_TYPE_LABELS, m.to_location_type)}
                           </TableCell>
-                          <TableCell className="text-xs">{m.reason ?? '—'}</TableCell>
+                          <TableCell className="text-xs">{tr(REASON_LABELS, m.reason)}</TableCell>
                           <TableCell className="text-xs">{workerMap[m.worker_id] ?? workerMap[m.created_by] ?? '—'}</TableCell>
                         </TableRow>
                       );
