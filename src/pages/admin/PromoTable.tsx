@@ -36,6 +36,16 @@ const PromoTable: React.FC = () => {
       default: return ar;
     }
   };
+
+  // Format pieces as box.pieces (b.p) — e.g. 25 pieces with ppb=20 → "1.05"
+  const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
+    const ppb = Number(piecesPerBox || 0);
+    const p = Number(pieces || 0);
+    if (!ppb || ppb <= 1) return String(p);
+    const boxes = Math.floor(p / ppb);
+    const rem = p % ppb;
+    return `${boxes}.${String(rem).padStart(2, '0')}`;
+  };
   const [promos, setPromos] = useState<PromoWithDetails[]>([]);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -246,8 +256,8 @@ const PromoTable: React.FC = () => {
       promo.customer?.wilaya || '',
       promo.customer?.phone || '',
       promo.product?.name || '',
-      promo.vente_quantity,
-      promo.gratuite_quantity,
+      formatBP(promo.vente_quantity, promo.product?.pieces_per_box),
+      formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box),
       promo.worker?.full_name || '',
       format(new Date(promo.promo_date), 'dd/MM/yyyy')
     ]);
@@ -505,13 +515,13 @@ const PromoTable: React.FC = () => {
                     <TableCell className="text-sm" dir="ltr">{promo.customer?.phone || '-'}</TableCell>
                     <TableCell className="font-medium">{promo.product?.name || '-'}</TableCell>
                     <TableCell className="text-center">
-                      <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold">
-                        {promo.vente_quantity}
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                        {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold">
-                        {promo.gratuite_quantity}
+                      <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold" title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                        {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{promo.worker?.full_name || '-'}</TableCell>

@@ -87,6 +87,7 @@ const WorkerHome: React.FC = () => {
   const isWarehouseStockButtonHidden = useIsElementHidden('button', 'home_warehouse_stock');
   const isTodayCustomersHidden = useIsElementHidden('button', 'home_today_customers');
   const isSupervisor = role === 'supervisor';
+  const isAdminAssistant = role === 'admin_assistant';
   const isSalesRole = activeRole?.custom_role_code === 'sales_rep';
   const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
@@ -475,8 +476,8 @@ const WorkerHome: React.FC = () => {
           }
           quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements') });
           // Rewards button removed from worker home page
-          // Worker Actions for supervisor or warehouse_manager
-          if (isSupervisor && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
+          // Worker Actions for supervisor, admin assistant, or warehouse_manager
+          if ((isSupervisor || isAdminAssistant) && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
             quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-6 h-6" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions') });
           }
           // Worker Actions for regular workers (self-view) — removed per user request
