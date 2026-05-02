@@ -454,6 +454,75 @@ export type Database = {
           },
         ]
       }
+      cash_movements: {
+        Row: {
+          account_id: string | null
+          account_type: string
+          amount: number
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          from_account_id: string | null
+          from_account_type: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_balance: number | null
+          signed_amount: number | null
+          to_account_id: string | null
+          to_account_type: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          account_type: string
+          amount: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          account_type?: string
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       coin_exchange_returns: {
         Row: {
           amount: number
@@ -1419,6 +1488,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      debt_movements: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          debt_id: string | null
+          debtor_id: string
+          debtor_type: string
+          id: string
+          movement_type: string
+          notes: string | null
+          payment_method: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_debt_balance: number | null
+          signed_amount: number | null
+          worker_id: string | null
+        }
+        Insert: {
+          amount: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id: string
+          debtor_type: string
+          id?: string
+          movement_type: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id?: string
+          debtor_type?: string
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Relationships: []
       }
       debt_payments: {
         Row: {
@@ -7540,6 +7669,27 @@ export type Database = {
       }
     }
     Views: {
+      v_cash_reconciliation: {
+        Row: {
+          account_id: string | null
+          account_type: string | null
+          last_movement_at: string | null
+          ledger_balance: number | null
+          movements_count: number | null
+        }
+        Relationships: []
+      }
+      v_debt_reconciliation: {
+        Row: {
+          actual_remaining: number | null
+          debt_id: string | null
+          debtor_id: string | null
+          debtor_type: string | null
+          ledger_balance: number | null
+          variance: number | null
+        }
+        Relationships: []
+      }
       v_stock_reconciliation: {
         Row: {
           branch_id: string | null
@@ -7776,6 +7926,21 @@ export type Database = {
         Args: { p_branch_id: string; p_product_id: string }
         Returns: Json
       }
+      record_cash_collection_atomic: {
+        Args: {
+          p_account_id: string
+          p_account_type: string
+          p_amount: number
+          p_branch_id?: string
+          p_from_account_id?: string
+          p_from_account_type?: string
+          p_notes?: string
+          p_reason?: string
+          p_reference_id?: string
+          p_reference_type?: string
+        }
+        Returns: Json
+      }
       record_customer_return_atomic: {
         Args: {
           p_branch_id: string
@@ -7785,6 +7950,57 @@ export type Database = {
           p_notes?: string
           p_product_id: string
           p_quantity: number
+          p_reason?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
+      record_debt_creation_atomic: {
+        Args: {
+          p_amount: number
+          p_branch_id?: string
+          p_debt_id: string
+          p_debtor_id: string
+          p_debtor_type: string
+          p_notes?: string
+          p_reason?: string
+          p_reference_id?: string
+          p_reference_type?: string
+        }
+        Returns: Json
+      }
+      record_debt_payment_atomic: {
+        Args: {
+          p_amount: number
+          p_branch_id?: string
+          p_debt_id: string
+          p_debtor_id: string
+          p_debtor_type: string
+          p_is_full?: boolean
+          p_notes?: string
+          p_payment_method?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
+      record_debt_writeoff_atomic: {
+        Args: {
+          p_amount: number
+          p_debt_id: string
+          p_debtor_id: string
+          p_debtor_type: string
+          p_notes?: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      record_expense_atomic: {
+        Args: {
+          p_account_id: string
+          p_account_type: string
+          p_amount: number
+          p_branch_id?: string
+          p_notes?: string
           p_reason?: string
           p_reference_id?: string
         }
@@ -7818,6 +8034,19 @@ export type Database = {
           p_items: Json
           p_notes?: string
           p_to_branch: string
+        }
+        Returns: Json
+      }
+      transfer_cash_atomic: {
+        Args: {
+          p_amount: number
+          p_branch_id?: string
+          p_from_account_id: string
+          p_from_account_type: string
+          p_notes?: string
+          p_reason?: string
+          p_to_account_id: string
+          p_to_account_type: string
         }
         Returns: Json
       }
