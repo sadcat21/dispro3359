@@ -432,8 +432,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       }
     } catch { /* ignore */ }
 
-    const constatBy = nc.constat_by || d.creator_name || '';
-    const affectation = nc.affectation || branchName;
+    const constatBy = nc.constat_by ?? '';
+    const affectation = nc.affectation ?? '';
     const clientName = nc.client_name || '';
     const clientContact = nc.client_contact || '';
     const ncType = nc.nc_type || 'interne'; // 'interne' | 'externe' | 'reclamation'
