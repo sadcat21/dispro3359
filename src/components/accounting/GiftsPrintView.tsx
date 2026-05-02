@@ -264,7 +264,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       return builtPages;
     }, [rows, separateByProduct, isTemplate, templatePageCount]);
 
-    const buildTotalsRow = (totals: { vente: number; gift: number; giftBoxPiece: string }) => {
+    const buildTotalsRow = (totals: { vente: number; venteBoxPiece: string; gift: number; giftBoxPiece: string }) => {
       const totalIndices = [venteColIdx, giftColIdx, giftBPColIdx].filter(i => i >= 0);
       if (totalIndices.length === 0) {
         return <td colSpan={columns.length} className="totals-label">Total</td>;
