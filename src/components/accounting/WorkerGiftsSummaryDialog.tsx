@@ -341,6 +341,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       (items || []).forEach(i => { if (i.gift_offer_id) giftOfferIds.add(i.gift_offer_id); });
       const offerNamesMap: Record<string, string> = {};
       const offerRulesMap: Record<string, OfferTierRule[]> = {};
+      const offerPeriodByOfferId: Record<string, { start: string | null; end: string | null }> = {};
 
       if (giftOfferIds.size > 0) {
         const offerIds = Array.from(giftOfferIds);
