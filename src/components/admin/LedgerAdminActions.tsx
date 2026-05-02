@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Archive, Trash2, Loader2 } from 'lucide-react';
+import { Archive, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,9 +27,11 @@ const RPC_MAP: Record<LedgerKind, { archive: string; purge: string; label: strin
 interface Props {
   kind: LedgerKind;
   onDone?: () => void;
+  showArchive?: boolean;
+  onToggleArchive?: () => void;
 }
 
-export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone }) => {
+export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive, onToggleArchive }) => {
   const { role } = useAuth();
   const [busy, setBusy] = useState<'archive' | 'purge' | null>(null);
 
@@ -70,6 +72,17 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone }) => {
 
   return (
     <>
+      {onToggleArchive && (
+        <Button
+          variant={showArchive ? 'default' : 'outline'}
+          size="sm"
+          onClick={onToggleArchive}
+        >
+          {showArchive ? <EyeOff className="h-4 w-4 ml-2" /> : <Eye className="h-4 w-4 ml-2" />}
+          {showArchive ? 'إخفاء الأرشيف' : 'عرض من الأرشيف'}
+        </Button>
+      )}
+
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant="secondary" size="sm" disabled={busy !== null}>

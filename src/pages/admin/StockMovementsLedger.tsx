@@ -58,6 +58,7 @@ const StockMovementsLedger: React.FC = () => {
   const [productId, setProductId] = useState<string>('all');
   const [branchId, setBranchId] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
+  const [showArchive, setShowArchive] = useState(false);
 
   const { data: branches } = useQuery({
     queryKey: ['branches-list'],
@@ -91,10 +92,11 @@ const StockMovementsLedger: React.FC = () => {
   const workerMap = useMemo(() => Object.fromEntries((workers ?? []).map((w: any) => [w.id, w.full_name])), [workers]);
 
   const { data: movements, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['stock-movements-ledger', from, to, movementType, productId, branchId],
+    queryKey: ['stock-movements-ledger', from, to, movementType, productId, branchId, showArchive],
     queryFn: async () => {
+      const table = showArchive ? 'stock_movements_archive' : 'stock_movements';
       let q = supabase
-        .from('stock_movements')
+        .from(table as any)
         .select('*')
         .gte('created_at', `${from}T00:00:00`)
         .lte('created_at', `${to}T23:59:59`)
@@ -197,7 +199,7 @@ const StockMovementsLedger: React.FC = () => {
           <Button variant="outline" size="sm" onClick={exportCsv}>
             <Download className="h-4 w-4 ml-2" /> تصدير CSV
           </Button>
-          <LedgerAdminActions kind="stock" onDone={() => refetch()} />
+          <LedgerAdminActions kind="stock" onDone={() => refetch()} showArchive={showArchive} onToggleArchive={() => setShowArchive(v => !v)} />
         </div>
       </div>
 
