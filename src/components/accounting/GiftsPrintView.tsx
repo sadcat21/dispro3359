@@ -184,6 +184,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
     if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
     if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
     headerInfo.push({ label: 'Période', value: dateRange || '-' });
+    if (offerPeriod) headerInfo.push({ label: "Période d'offre", value: offerPeriod });
     const filterCriteria = headerInfo.map(h => `${h.label}: ${h.value}`).join('  |  ');
 
     const pages = useMemo((): PrintPage[] => {
