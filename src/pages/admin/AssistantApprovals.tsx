@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
+import ReceiptDetailsDialog from '@/components/admin/ReceiptDetailsDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -55,6 +56,7 @@ const AssistantApprovals: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
+  const [detailsReceiptId, setDetailsReceiptId] = useState<string | null>(null);
   const branchFilter = searchParams.get('branch');
 
   // اسم الفرع المختار للعرض
@@ -263,10 +265,20 @@ const AssistantApprovals: React.FC = () => {
     );
   };
 
-  const ActionButtons: React.FC<{ onApprove: () => void; onReject: () => void; pending?: boolean }> = ({
-    onApprove, onReject, pending,
-  }) => (
-    <div className="flex gap-2">
+  const ActionButtons: React.FC<{
+    onApprove: () => void;
+    onReject: () => void;
+    pending?: boolean;
+    onDetails?: () => void;
+  }> = ({ onApprove, onReject, pending, onDetails }) => (
+    <div className="flex gap-2 flex-wrap">
+      {onDetails && (
+        <Button size="sm" variant="outline" onClick={onDetails} disabled={pending}
+          className="border-slate-300">
+          <Info className="w-4 h-4 me-1" />
+          عرض التفاصيل
+        </Button>
+      )}
       <Button size="sm" onClick={onApprove} disabled={pending}
         className="bg-green-600 hover:bg-green-700 text-white">
         <CheckCircle2 className="w-4 h-4 me-1" />
@@ -364,6 +376,7 @@ const AssistantApprovals: React.FC = () => {
                         onApprove={() => approveReceipt.mutate(r.id)}
                         onReject={() => rejectReceipt.mutate(r.id)}
                         pending={approveReceipt.isPending || rejectReceipt.isPending}
+                        onDetails={() => setDetailsReceiptId(r.id)}
                       />
                     </CardContent>
                   </Card>
@@ -537,6 +550,11 @@ const AssistantApprovals: React.FC = () => {
         open={!!reviewRequestId}
         onOpenChange={(v) => { if (!v) setReviewRequestId(null); }}
         requestId={reviewRequestId}
+      />
+
+      <ReceiptDetailsDialog
+        receiptId={detailsReceiptId}
+        onOpenChange={(v) => { if (!v) setDetailsReceiptId(null); }}
       />
     </div>
   );
