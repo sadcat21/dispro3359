@@ -13,6 +13,7 @@ import { Loader2, RefreshCw, Download, Receipt, AlertTriangle } from 'lucide-rea
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
+import { DEBT_MOVEMENT_LABELS, DEBTOR_TYPE_LABELS, PAYMENT_METHOD_LABELS, REASON_LABELS, tr } from '@/lib/ledgerLabels';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
