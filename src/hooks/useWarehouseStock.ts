@@ -279,7 +279,14 @@ export const useWarehouseStock = () => {
           movement_type: 'receipt',
           status: 'approved',
           created_by: workerId,
+          approved_by: workerId,
+          approved_at: new Date().toISOString(),
           receipt_id: receipt.id,
+          reference_id: receipt.id,
+          reference_type: 'stock_receipt',
+          from_location_type: 'external',
+          to_location_type: 'warehouse',
+          reason: 'manual',
           notes: `استلام من المصنع - فاتورة: ${receiptData.invoice_number || 'بدون'}`,
         });
 
@@ -366,7 +373,14 @@ export const useWarehouseStock = () => {
         movement_type: 'receipt',
         status: 'approved',
         created_by: workerId,
+        approved_by: workerId,
+        approved_at: new Date().toISOString(),
         receipt_id: receiptId,
+        reference_id: receiptId,
+        reference_type: 'stock_receipt',
+        from_location_type: 'external',
+        to_location_type: 'warehouse',
+        reason: 'manual',
         notes: `موافقة على استلام من المصنع - فاتورة: ${receipt.invoice_number || 'بدون'}`,
       });
 

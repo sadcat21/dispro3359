@@ -66,6 +66,11 @@ const formatGiftDisplay = (giftPieces: number, piecesPerBox: number): string => 
   return `${boxes}.${String(remainingPieces).padStart(2, '0')}`;
 };
 
+const formatPromoBoxesLabel = (venteQuantity: number): string => {
+  const qty = Math.max(0, Number(venteQuantity || 0));
+  return `${Number.isInteger(qty) ? qty : qty.toFixed(2)} cartons`;
+};
+
 const ARABIC_TO_LATIN: Record<string, string> = {
   'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th',
   'ج': 'dj', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
@@ -571,8 +576,8 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           piecesPerBox: Number(product?.pieces_per_box || 1),
           totalGiftPieces: extra,
           totalQuantitySold: promoAgg.totalVente,
-          offerName: 'عرض ترويجي',
-          offerDetails: ['Directe'],
+          offerName: 'Promo cadeau',
+          offerDetails: [formatPromoBoxesLabel(promoAgg.totalVente)],
           customers: promoAgg.customers,
         };
       }
