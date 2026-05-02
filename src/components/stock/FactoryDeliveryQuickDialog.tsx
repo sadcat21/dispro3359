@@ -88,8 +88,57 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
       .then(({ data }) => {
         const qty = data?.quantity || 0;
         setCurrentPallets(qty);
-        setPalletCount(qty);
+        if (!editDeliveryId) setPalletCount(qty);
       });
+
+    if (editDeliveryId) {
+      // Load existing delivery for editing
+      (async () => {
+        const { data: order } = await supabase.from('factory_orders').select('*').eq('id', editDeliveryId).maybeSingle();
+        if (!order) return;
+        setPalletCount(Number((order as any).pallet_count) || 0);
+
+        // Parse NC metadata if present
+        let descNotes = order.notes || '';
+        try {
+          if (order.notes && order.notes.trim().startsWith('{')) {
+            const parsed = JSON.parse(order.notes);
+            if (parsed && parsed.__nc) {
+              setNcConstatBy(parsed.constat_by || '');
+              setNcAffectation(parsed.affectation || '');
+              setNcType(parsed.nc_type || 'interne');
+              setNcClientName(parsed.client_name || '');
+              setNcClientContact(parsed.client_contact || '');
+              setNcDescription(parsed.description || '');
+              setNcActions(parsed.actions || '');
+              descNotes = parsed.description || '';
+            }
+          }
+        } catch { /* ignore */ }
+        setNotes(descNotes);
+
+        const { data: oItems } = await supabase.from('factory_order_items')
+          .select('*, product:products(pieces_per_box)').eq('factory_order_id', editDeliveryId);
+        const loaded = (oItems || []).map((it: any) => {
+          const ppb = it.product?.pieces_per_box || 1;
+          const dbQty = Number(it.product_quantity) || 0;
+          // Convert box.piece DB format -> total pieces
+          const boxes = Math.floor(dbQty);
+          const pieces = Math.round((dbQty - boxes) * 100);
+          const totalPieces = boxes * ppb + pieces;
+          return {
+            product_id: it.product_id,
+            quantity: totalPieces,
+            lot_number: it.lot_number || '',
+            manufacturing_date: it.manufacturing_date || '',
+            manufacturing_time: it.manufacturing_time || '',
+            delivery_date: it.delivery_date || '',
+          };
+        });
+        setItems(loaded.length > 0 ? loaded : [{ product_id: '', quantity: 0 }]);
+      })();
+      return;
+    }
 
     // Auto-suggest damaged products
     supabase.from('warehouse_stock')
@@ -108,7 +157,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
       });
 
     fetchPendingDeliveries();
-  }, [open, branchId]);
+  }, [open, branchId, editDeliveryId]);
 
   const fetchPendingDeliveries = async () => {
     if (!branchId) return;
