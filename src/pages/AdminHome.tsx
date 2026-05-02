@@ -7,7 +7,8 @@ import {
   CalendarDays, Gift, ArrowDownToLine, Truck, ClipboardCheck, Building2, Warehouse, Package,
   Wallet, FileText, Vault, FolderOpen, MapPin, Activity, Store, UserCheck, UserCog, Settings,
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
-  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck
+  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck,
+  BookOpen as LedgerIcon, Coins, HandCoins, PackageSearch
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
