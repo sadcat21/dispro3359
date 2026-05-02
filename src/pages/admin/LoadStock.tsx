@@ -1150,15 +1150,15 @@ const LoadStock: React.FC = () => {
         remaining_qty: subtractCustomQty(item.quantity, item.returnQty, item.piecesPerBox),
       }));
 
+      // 1) Create the unload session shell first (status will be flipped to 'unloaded' by the RPC)
       const { data: unloadSession, error: sessionError } = await supabase
         .from('loading_sessions')
         .insert({
           worker_id: selectedWorker,
           manager_id: currentWorkerId,
           branch_id: branchId,
-          status: 'unloaded',
+          status: 'open',
           notes: isFullUnload ? 'تفريغ كلي للشاحنة' : 'تفريغ جزئي للشاحنة',
-          completed_at: new Date().toISOString(),
           unloading_details: unloadingDetails,
         } as any)
         .select()
@@ -1166,6 +1166,7 @@ const LoadStock: React.FC = () => {
 
       if (sessionError) throw sessionError;
 
+      // 2) Persist session item rows (audit) — stock changes are handled atomically by the RPC
       const sessionItemRows: any[] = [];
       const workerStockUpdates: any[] = [];
       const warehouseUpserts: any[] = [];
