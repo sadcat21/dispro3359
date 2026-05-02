@@ -106,6 +106,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [rejectNote, setRejectNote] = useState('');
   const [summaryReceipt, setSummaryReceipt] = useState<ReceiptRecord | null>(null);
   const [printReceipt, setPrintReceipt] = useState<ReceiptRecord | null>(null);
+  const [fullEditReceiptId, setFullEditReceiptId] = useState<string | null>(null);
+  const [fullEditDeliveryId, setFullEditDeliveryId] = useState<string | null>(null);
 
   const printReceiptDetails = (r: ReceiptRecord) => {
     const linkedD = r.linked_delivery_id ? deliveries.find(d => d.id === r.linked_delivery_id) : null;
