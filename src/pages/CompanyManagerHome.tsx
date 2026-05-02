@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Crown, ShieldCheck, Split, FileText, BarChart3, Warehouse, Truck, ClipboardCheck,
   Package, Gift, Users, Building2, Settings, Database, Shield, FileSpreadsheet,
-  TrendingUp, Wallet, Banknote, Pencil, LucideIcon
+  TrendingUp, Wallet, Banknote, Pencil, Coins, HandCoins, PackageSearch, BookOpen, LucideIcon
 } from 'lucide-react';
 import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
