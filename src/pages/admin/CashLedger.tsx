@@ -53,6 +53,7 @@ const CashLedger: React.FC = () => {
   const [accountType, setAccountType] = useState('all');
   const [branchId, setBranchId] = useState('all');
   const [search, setSearch] = useState('');
+  const [showArchive, setShowArchive] = useState(false);
 
   const { data: branches } = useQuery({
     queryKey: ['branches-list'],
@@ -91,10 +92,11 @@ const CashLedger: React.FC = () => {
   };
 
   const { data: movements, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['cash-movements', from, to, movementType, accountType, branchId],
+    queryKey: ['cash-movements', from, to, movementType, accountType, branchId, showArchive],
     queryFn: async () => {
+      const table = showArchive ? 'cash_movements_archive' : 'cash_movements';
       let q = supabase
-        .from('cash_movements')
+        .from(table as any)
         .select('*')
         .gte('created_at', `${from}T00:00:00`)
         .lte('created_at', `${to}T23:59:59`)
@@ -170,7 +172,7 @@ const CashLedger: React.FC = () => {
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? 'animate-spin' : ''}`} /> تحديث
           </Button>
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 ml-2" /> تصدير CSV</Button>
-          <LedgerAdminActions kind="cash" onDone={() => refetch()} />
+          <LedgerAdminActions kind="cash" onDone={() => refetch()} showArchive={showArchive} onToggleArchive={() => setShowArchive(v => !v)} />
         </div>
       </div>
 
