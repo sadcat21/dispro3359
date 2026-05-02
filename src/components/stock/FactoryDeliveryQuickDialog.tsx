@@ -33,9 +33,11 @@ interface PendingDelivery {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editDeliveryId?: string | null;
+  onSaved?: () => void;
 }
 
-const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
+const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editDeliveryId, onSaved }) => {
   const { workerId, role, activeRole, activeBranch } = useAuth();
   const [items, setItems] = useState<DeliveryItem[]>([{ product_id: '', quantity: 0 }]);
   const [palletCount, setPalletCount] = useState(0);
@@ -86,8 +88,57 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
       .then(({ data }) => {
         const qty = data?.quantity || 0;
         setCurrentPallets(qty);
-        setPalletCount(qty);
+        if (!editDeliveryId) setPalletCount(qty);
       });
+
+    if (editDeliveryId) {
+      // Load existing delivery for editing
+      (async () => {
+        const { data: order } = await supabase.from('factory_orders').select('*').eq('id', editDeliveryId).maybeSingle();
+        if (!order) return;
+        setPalletCount(Number((order as any).pallet_count) || 0);
+
+        // Parse NC metadata if present
+        let descNotes = order.notes || '';
+        try {
+          if (order.notes && order.notes.trim().startsWith('{')) {
+            const parsed = JSON.parse(order.notes);
+            if (parsed && parsed.__nc) {
+              setNcConstatBy(parsed.constat_by || '');
+              setNcAffectation(parsed.affectation || '');
+              setNcType(parsed.nc_type || 'interne');
+              setNcClientName(parsed.client_name || '');
+              setNcClientContact(parsed.client_contact || '');
+              setNcDescription(parsed.description || '');
+              setNcActions(parsed.actions || '');
+              descNotes = parsed.description || '';
+            }
+          }
+        } catch { /* ignore */ }
+        setNotes(descNotes);
+
+        const { data: oItems } = await supabase.from('factory_order_items')
+          .select('*, product:products(pieces_per_box)').eq('factory_order_id', editDeliveryId);
+        const loaded = (oItems || []).map((it: any) => {
+          const ppb = it.product?.pieces_per_box || 1;
+          const dbQty = Number(it.product_quantity) || 0;
+          // Convert box.piece DB format -> total pieces
+          const boxes = Math.floor(dbQty);
+          const pieces = Math.round((dbQty - boxes) * 100);
+          const totalPieces = boxes * ppb + pieces;
+          return {
+            product_id: it.product_id,
+            quantity: totalPieces,
+            lot_number: it.lot_number || '',
+            manufacturing_date: it.manufacturing_date || '',
+            manufacturing_time: it.manufacturing_time || '',
+            delivery_date: it.delivery_date || '',
+          };
+        });
+        setItems(loaded.length > 0 ? loaded : [{ product_id: '', quantity: 0 }]);
+      })();
+      return;
+    }
 
     // Auto-suggest damaged products
     supabase.from('warehouse_stock')
@@ -106,7 +157,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
       });
 
     fetchPendingDeliveries();
-  }, [open, branchId]);
+  }, [open, branchId, editDeliveryId]);
 
   const fetchPendingDeliveries = async () => {
     if (!branchId) return;
@@ -161,20 +212,35 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
           })
         : (notes || null);
 
-      const { data: order, error: orderError } = await supabase
-        .from('factory_orders')
-        .insert({
-          order_type: 'sending',
-          branch_id: branchId,
-          status,
+      let orderId: string;
+
+      if (editDeliveryId) {
+        // UPDATE mode: update header, replace items
+        const { error: upErr } = await supabase.from('factory_orders').update({
           notes: finalNotes,
-          created_by: workerId,
-          confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
           pallet_count: palletCount,
-        } as any)
-        .select()
-        .single();
-      if (orderError) throw orderError;
+        } as any).eq('id', editDeliveryId);
+        if (upErr) throw upErr;
+
+        await supabase.from('factory_order_items').delete().eq('factory_order_id', editDeliveryId);
+        orderId = editDeliveryId;
+      } else {
+        const { data: order, error: orderError } = await supabase
+          .from('factory_orders')
+          .insert({
+            order_type: 'sending',
+            branch_id: branchId,
+            status,
+            notes: finalNotes,
+            created_by: workerId,
+            confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
+            pallet_count: palletCount,
+          } as any)
+          .select()
+          .single();
+        if (orderError) throw orderError;
+        orderId = order.id;
+      }
 
       // Insert items - convert pieces to box.piece format
       if (validItems.length > 0) {
@@ -182,7 +248,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
           const ppb = getPiecesPerBox(i.product_id);
           const boxQty = piecesToBoxFormat(i.quantity, ppb);
           return {
-            factory_order_id: order.id,
+            factory_order_id: orderId,
             product_id: i.product_id,
             product_quantity: boxQty,
             pallet_quantity: 0,
@@ -196,19 +262,22 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
         if (itemsError) throw itemsError;
       }
 
-      if (status === 'confirmed') {
+      if (editDeliveryId) {
+        toast.success('تم حفظ التعديلات');
+      } else if (status === 'confirmed') {
         // Convert items to box format for stock operations
         const convertedItems = validItems.map(i => ({
           product_id: i.product_id,
           quantity: piecesToBoxFormat(i.quantity, getPiecesPerBox(i.product_id)),
         }));
-        await applyDeliveryStock(order.id, convertedItems, palletCount, branchId);
+        await applyDeliveryStock(orderId, convertedItems, palletCount, branchId);
         toast.success('تم تأكيد التسليم للمصنع');
       } else {
         toast.success('تم إرسال طلب التسليم للموافقة');
       }
 
       resetForm();
+      onSaved?.();
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
@@ -340,11 +409,11 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Truck className="w-5 h-5 text-destructive" />
-            تسليم للمصنع
+            {editDeliveryId ? 'تعديل تسليم المصنع' : 'تسليم للمصنع'}
           </DialogTitle>
         </DialogHeader>
 
-        {isAdmin && (
+        {isAdmin && !editDeliveryId && (
           <div className="flex gap-2 mb-2">
             <Button variant={tab === 'create' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setTab('create')}>
               <Plus className="w-4 h-4 ml-1" /> إنشاء تسليم
@@ -471,7 +540,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={isSaving} variant="outline" className="flex-1">
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                تخطّي وحفظ
+                {editDeliveryId ? 'حفظ التعديلات' : 'تخطّي وحفظ'}
               </Button>
               <Button
                 onClick={() => {
@@ -557,7 +626,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
                   </Button>
                   <Button onClick={handleSave} disabled={isSaving} variant="destructive" className="flex-1">
                     {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                    {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد التسليم'}
+                    {editDeliveryId ? 'حفظ التعديلات' : (isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد التسليم')}
                   </Button>
                 </div>
               </div>

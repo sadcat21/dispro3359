@@ -12,7 +12,7 @@ import { isAdminRole } from '@/lib/utils';
 import { formatDate } from '@/utils/formatters';
 import { parseBP, boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
-import { buildReceiptItemRows, parseReceiptItemBreakdown, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
+import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
 
 interface ReceiptItem {
   product_id: string;
@@ -48,6 +48,8 @@ interface ProductOption {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editReceiptId?: string | null;
+  onSaved?: () => void;
 }
 
 interface QuantityFields {
@@ -87,7 +89,7 @@ const formatDbQuantity = (quantity: number, piecesPerBox: number): string => {
   return piecesPerBox > 1 ? dbBPDisplay(quantity, piecesPerBox) : String(quantity);
 };
 
-const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
+const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editReceiptId, onSaved }) => {
   const { workerId, role, activeRole, activeBranch } = useAuth();
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -152,7 +154,55 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     supabase.from('products').select('id, name, app_name, image_url, pieces_per_box').eq('is_active', true).order('name')
       .then(({ data }) => setProducts(data || []));
     fetchPendingReceipts();
-  }, [open, branchId]);
+
+    if (editReceiptId) {
+      (async () => {
+        const { data: r } = await supabase.from('stock_receipts').select('*').eq('id', editReceiptId).maybeSingle();
+        if (!r) return;
+        setInvoiceNumber(r.invoice_number || '');
+        setPalletCount(Number((r as any).pallet_count) || 0);
+        if (Array.isArray((r as any).expenses_breakdown)) {
+          setExpenseLines((r as any).expenses_breakdown as any[]);
+        }
+        const meta = parseReceiptMeta(r.notes);
+        setNotes(meta.text || '');
+        setReceiptSource(meta.source || 'factory');
+        setDriverName(meta.driver_name || '');
+        setDriverPhone(meta.driver_phone || '');
+        setLicensePlate(meta.license_plate || '');
+        if (r.invoice_photo_url) setPhotoPreview(r.invoice_photo_url);
+
+        const { data: rItems } = await supabase.from('stock_receipt_items')
+          .select('*, product:products(pieces_per_box)').eq('receipt_id', editReceiptId);
+        const grouped = new Map<string, ReceiptItem>();
+        (rItems || []).forEach((it: any) => {
+          const ppb = it.product?.pieces_per_box || 1;
+          const breakdown = parseReceiptItemBreakdown(it);
+          const newQ = fromDbQuantity(Number(breakdown.new_qty) || 0, ppb);
+          const compQ = fromDbQuantity(Number(breakdown.comp_qty) || 0, ppb);
+          const coQ = fromDbQuantity(Number(breakdown.comp_offers_qty) || 0, ppb);
+          const existing = grouped.get(it.product_id);
+          if (existing) {
+            existing.new_quantity += newQ;
+            existing.compensation_quantity += compQ;
+            existing.compensation_offers_quantity += coQ;
+          } else {
+            grouped.set(it.product_id, {
+              product_id: it.product_id,
+              new_quantity: newQ,
+              compensation_quantity: compQ,
+              compensation_offers_quantity: coQ,
+              lot_number: it.lot_number || null,
+              manufacturing_date: it.manufacturing_date || null,
+              manufacturing_time: it.manufacturing_time || null,
+              delivery_date: it.delivery_date || null,
+            });
+          }
+        });
+        setItems(Array.from(grouped.values()));
+      })();
+    }
+  }, [open, branchId, editReceiptId]);
 
   const fetchPendingReceipts = async () => {
     if (!branchId) return;
@@ -224,13 +274,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         };
       });
 
-      const { data: receipt, error: receiptError } = await supabase
-        .from('stock_receipts')
-        .insert({
-          branch_id: branchId,
-          created_by: workerId,
+      let receiptId: string;
+
+      if (editReceiptId) {
+        // UPDATE existing receipt header
+        const updatePayload: any = {
           invoice_number: invoiceNumber || null,
-          invoice_photo_url: photoUrl || null,
           notes: stringifyReceiptMeta({
             text: notes,
             source: receiptSource,
@@ -243,17 +292,48 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           receipt_expenses: totalExpenses || 0,
           expenses_description: expensesDescription || null,
           expenses_breakdown: expenseLines.filter(l => l.description || l.amount) as any,
-          status,
-        })
-        .select()
-        .single();
-      if (receiptError) throw receiptError;
+        };
+        if (photoUrl) updatePayload.invoice_photo_url = photoUrl;
+        const { error: upErr } = await supabase.from('stock_receipts').update(updatePayload).eq('id', editReceiptId);
+        if (upErr) throw upErr;
+        // Replace items
+        await supabase.from('stock_receipt_items').delete().eq('receipt_id', editReceiptId);
+        receiptId = editReceiptId;
+      } else {
+        const { data: receipt, error: receiptError } = await supabase
+          .from('stock_receipts')
+          .insert({
+            branch_id: branchId,
+            created_by: workerId,
+            invoice_number: invoiceNumber || null,
+            invoice_photo_url: photoUrl || null,
+            notes: stringifyReceiptMeta({
+              text: notes,
+              source: receiptSource,
+              driver_name: driverName || null,
+              driver_phone: driverPhone || null,
+              license_plate: licensePlate || null,
+            }),
+            total_items: validItems.length,
+            pallet_count: palletCount || 0,
+            receipt_expenses: totalExpenses || 0,
+            expenses_description: expensesDescription || null,
+            expenses_breakdown: expenseLines.filter(l => l.description || l.amount) as any,
+            status,
+          })
+          .select()
+          .single();
+        if (receiptError) throw receiptError;
+        receiptId = receipt.id;
+      }
 
-      const receiptItems = buildReceiptItemRows(receipt.id, dbValidItems);
+      const receiptItems = buildReceiptItemRows(receiptId, dbValidItems);
       const { error: itemsError } = await supabase.from('stock_receipt_items').insert(receiptItems);
       if (itemsError) throw itemsError;
 
-      if (status === 'confirmed') {
+      if (editReceiptId) {
+        toast.success('تم حفظ التعديلات');
+      } else if (status === 'confirmed') {
         for (const item of validItems) {
           const ppb = getProduct(item.product_id)?.pieces_per_box || 1;
           const totalQty = item.new_quantity + item.compensation_quantity + item.compensation_offers_quantity;
@@ -261,7 +341,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           await supabase.from('stock_movements').insert({
             product_id: item.product_id, branch_id: branchId, quantity: totalQtyDb,
             movement_type: 'receipt', status: 'approved', created_by: workerId,
-            receipt_id: receipt.id,
+            receipt_id: receiptId,
             notes: `استلام من ${receiptSource === 'factory' ? 'المصنع' : 'فرع'} - جديد: ${boxesToBP(item.new_quantity, ppb)} تعويض تلف: ${boxesToBP(item.compensation_quantity, ppb)} تعويض عروض: ${boxesToBP(item.compensation_offers_quantity, ppb)}`,
           });
 
@@ -300,7 +380,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           const { data: bp } = await supabase.from('branch_pallets').select('id, quantity').eq('branch_id', branchId).maybeSingle();
           if (bp) { await supabase.from('branch_pallets').update({ quantity: bp.quantity + palletCount }).eq('id', bp.id); }
           else { await supabase.from('branch_pallets').insert({ branch_id: branchId, quantity: palletCount }); }
-          await supabase.from('pallet_movements').insert({ branch_id: branchId, quantity: palletCount, movement_type: 'receipt', reference_id: receipt.id, notes: `استلام باليطات`, created_by: workerId });
+          await supabase.from('pallet_movements').insert({ branch_id: branchId, quantity: palletCount, movement_type: 'receipt', reference_id: receiptId, notes: `استلام باليطات`, created_by: workerId });
         }
         toast.success('تم تأكيد الاستلام');
       } else {
@@ -308,6 +388,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       }
 
       resetForm();
+      onSaved?.();
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
@@ -512,11 +593,11 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowDownToLine className="w-5 h-5 text-lime-600" />
-              استلام مخزون
+              {editReceiptId ? 'تعديل وصل الاستلام' : 'استلام مخزون'}
             </DialogTitle>
           </DialogHeader>
 
-          {isAdmin && (
+          {isAdmin && !editReceiptId && (
             <div className="flex gap-2 mb-2">
               <Button variant={tab === 'create' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setTab('create')}>
                 <Plus className="w-4 h-4 ml-1" /> إنشاء وصل
@@ -692,7 +773,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
               <Button onClick={handleSave} disabled={isSaving} className="w-full bg-lime-600 hover:bg-lime-700">
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+                {editReceiptId ? 'حفظ التعديلات' : (isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام')}
               </Button>
             </div>
           ) : (

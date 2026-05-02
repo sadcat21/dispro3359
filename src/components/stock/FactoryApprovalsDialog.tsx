@@ -10,6 +10,8 @@ import {
   Edit, Save, X, AlertTriangle, Boxes, Sparkles, Wrench, FileText, User, Phone, Car, Printer,
 } from 'lucide-react';
 import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
+import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
+import FactoryDeliveryQuickDialog from '@/components/stock/FactoryDeliveryQuickDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -104,6 +106,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [rejectNote, setRejectNote] = useState('');
   const [summaryReceipt, setSummaryReceipt] = useState<ReceiptRecord | null>(null);
   const [printReceipt, setPrintReceipt] = useState<ReceiptRecord | null>(null);
+  const [fullEditReceiptId, setFullEditReceiptId] = useState<string | null>(null);
+  const [fullEditDeliveryId, setFullEditDeliveryId] = useState<string | null>(null);
 
   const printReceiptDetails = (r: ReceiptRecord) => {
     const linkedD = r.linked_delivery_id ? deliveries.find(d => d.id === r.linked_delivery_id) : null;
@@ -987,7 +991,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
               )}
 
-              {renderActionsBar('receipt', r, () => setSummaryReceipt(r), () => saveReceiptEdits(r), () => startEditReceipt(r))}
+              {renderActionsBar('receipt', r, () => setSummaryReceipt(r), () => saveReceiptEdits(r), () => setFullEditReceiptId(r.id))}
             </div>
           )}
         </div>
@@ -1081,7 +1085,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
               )}
 
-              {renderActionsBar('delivery', d, () => approveDelivery(d), () => saveDeliveryEdits(d), () => startEditDelivery(d))}
+              {renderActionsBar('delivery', d, () => approveDelivery(d), () => saveDeliveryEdits(d), () => setFullEditDeliveryId(d.id))}
             </div>
           )}
         </div>
@@ -1260,6 +1264,24 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             license_plate: printReceipt.meta.license_plate,
           }}
           notes={printReceipt.meta.text}
+        />
+      )}
+
+      {/* فتح نافذة الإنشاء الكاملة في وضع التعديل */}
+      {fullEditReceiptId && (
+        <FactoryReceiptQuickDialog
+          open={!!fullEditReceiptId}
+          onOpenChange={(o) => { if (!o) setFullEditReceiptId(null); }}
+          editReceiptId={fullEditReceiptId}
+          onSaved={() => { setFullEditReceiptId(null); fetchData(); }}
+        />
+      )}
+      {fullEditDeliveryId && (
+        <FactoryDeliveryQuickDialog
+          open={!!fullEditDeliveryId}
+          onOpenChange={(o) => { if (!o) setFullEditDeliveryId(null); }}
+          editDeliveryId={fullEditDeliveryId}
+          onSaved={() => { setFullEditDeliveryId(null); fetchData(); }}
         />
       )}
     </>
