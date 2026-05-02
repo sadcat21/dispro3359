@@ -53,6 +53,16 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [branchId, setBranchId] = useState<string | null>(null);
 
+  // Step management for the create flow: 1 = products, 2 = optional NC sheet metadata
+  const [step, setStep] = useState<1 | 2>(1);
+  const [ncConstatBy, setNcConstatBy] = useState('');
+  const [ncAffectation, setNcAffectation] = useState('');
+  const [ncType, setNcType] = useState<'interne' | 'externe' | 'reclamation'>('interne');
+  const [ncClientName, setNcClientName] = useState('');
+  const [ncClientContact, setNcClientContact] = useState('');
+  const [ncDescription, setNcDescription] = useState('');
+  const [ncActions, setNcActions] = useState('');
+
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const isAdmin = isAdminRole(role);
 
@@ -136,13 +146,28 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     try {
       const status = isWarehouseManager && !isAdmin ? 'pending_approval' : 'confirmed';
 
+      // If user filled any NC field, embed metadata as JSON in notes for the print dialog to consume
+      const ncFilled = !!(ncConstatBy || ncAffectation || ncClientName || ncClientContact || ncDescription || ncActions || ncType !== 'interne');
+      const finalNotes = ncFilled
+        ? JSON.stringify({
+            __nc: true,
+            constat_by: ncConstatBy || null,
+            affectation: ncAffectation || null,
+            nc_type: ncType,
+            client_name: ncClientName || null,
+            client_contact: ncClientContact || null,
+            description: notes || ncDescription || '',
+            actions: ncActions || '',
+          })
+        : (notes || null);
+
       const { data: order, error: orderError } = await supabase
         .from('factory_orders')
         .insert({
           order_type: 'sending',
           branch_id: branchId,
           status,
-          notes: notes || null,
+          notes: finalNotes,
           created_by: workerId,
           confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
           pallet_count: palletCount,
@@ -288,6 +313,14 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     setItems([{ product_id: '', quantity: 0 }]);
     setPalletCount(0);
     setNotes('');
+    setStep(1);
+    setNcConstatBy('');
+    setNcAffectation('');
+    setNcType('interne');
+    setNcClientName('');
+    setNcClientContact('');
+    setNcDescription('');
+    setNcActions('');
   };
 
   const getProductName = (id: string) => products.find(p => p.id === id)?.name || 'اختر منتج';
@@ -329,6 +362,14 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
 
         {tab === 'create' ? (
           <div className="space-y-3">
+            {/* Stepper indicator */}
+            <div className="flex items-center justify-center gap-2 text-[11px]">
+              <span className={`px-2 py-0.5 rounded-full font-bold ${step === 1 ? 'bg-destructive text-white' : 'bg-muted text-muted-foreground'}`}>1. المنتجات</span>
+              <span className="text-muted-foreground">←</span>
+              <span className={`px-2 py-0.5 rounded-full font-bold ${step === 2 ? 'bg-destructive text-white' : 'bg-muted text-muted-foreground'}`}>2. ورقة المصنع (اختياري)</span>
+            </div>
+
+            {step === 1 && (<>
             {isWarehouseManager && !isAdmin && (
               <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 rounded-lg p-2.5 text-xs text-amber-800 dark:text-amber-200">
                 ⚠️ سيتم إرسال الطلب لمدير الفرع للموافقة قبل تطبيق التغييرات
@@ -427,10 +468,100 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
               <Input value={notes} onChange={e => setNotes(e.target.value)} className="text-right h-8 text-sm" />
             </div>
 
-            <Button onClick={handleSave} disabled={isSaving} variant="destructive" className="w-full">
-              {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد التسليم'}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleSave} disabled={isSaving} variant="outline" className="flex-1">
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+                تخطّي وحفظ
+              </Button>
+              <Button
+                onClick={() => {
+                  setNcConstatBy(prev => prev || ''); // keep
+                  setNcAffectation(prev => prev || (activeBranch?.name || ''));
+                  setStep(2);
+                }}
+                disabled={isSaving}
+                variant="destructive"
+                className="flex-1">
+                التالي: ورقة المصنع ←
+              </Button>
+            </div>
+            </>)}
+
+            {step === 2 && (
+              <div className="space-y-3">
+                <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 rounded-lg p-2.5 text-xs text-purple-800 dark:text-purple-200">
+                  📝 تعبئة بيانات ورقة <b>FICHE DE NON CONFORMITÉ</b> اختيارية — تظهر مباشرة عند الطباعة للمصنع.
+                </div>
+
+                <div className="grid grid-cols-1 gap-2">
+                  <div>
+                    <Label className="text-xs">CONSTAT ETABLI PAR (اسم محرر التقرير)</Label>
+                    <Input value={ncConstatBy} onChange={e => setNcConstatBy(e.target.value)}
+                      className="text-right h-8 text-sm" placeholder="مثال: Ouak Mohamed" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">AFFECTATION (الجهة)</Label>
+                    <Input value={ncAffectation} onChange={e => setNcAffectation(e.target.value)}
+                      className="text-right h-8 text-sm" placeholder="مثال: فرع مستغانم" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">1. Détection de la non-conformité</Label>
+                  <div className="grid grid-cols-3 gap-1.5 mt-1">
+                    {[
+                      { v: 'interne', label: 'NC Interne' },
+                      { v: 'externe', label: 'NC Externe' },
+                      { v: 'reclamation', label: 'Réclamation Client' },
+                    ].map(o => (
+                      <Button
+                        key={o.v}
+                        type="button"
+                        size="sm"
+                        variant={ncType === o.v ? 'default' : 'outline'}
+                        className="text-[11px] h-8"
+                        onClick={() => setNcType(o.v as any)}>
+                        {ncType === o.v ? '✗ ' : ''}{o.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">Coordonnés du client</Label>
+                  <div className="grid grid-cols-2 gap-1.5 mt-1">
+                    <Input value={ncClientName} onChange={e => setNcClientName(e.target.value)}
+                      className="text-right h-8 text-sm" placeholder="اسم العميل" />
+                    <Input value={ncClientContact} onChange={e => setNcClientContact(e.target.value)}
+                      className="text-right h-8 text-sm" placeholder="هاتف / عنوان" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">Description de la non-conformité / réclamation client</Label>
+                  <textarea value={ncDescription} onChange={e => setNcDescription(e.target.value)}
+                    className="w-full text-right text-sm border rounded p-2 mt-1 min-h-[60px]"
+                    placeholder="وصف مفصّل لحالة عدم المطابقة..." />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">Actions correctives</Label>
+                  <textarea value={ncActions} onChange={e => setNcActions(e.target.value)}
+                    className="w-full text-right text-sm border rounded p-2 mt-1 min-h-[60px]"
+                    placeholder="الإجراءات التصحيحية المتخذة..." />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)} disabled={isSaving}>
+                    → رجوع
+                  </Button>
+                  <Button onClick={handleSave} disabled={isSaving} variant="destructive" className="flex-1">
+                    {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+                    {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد التسليم'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

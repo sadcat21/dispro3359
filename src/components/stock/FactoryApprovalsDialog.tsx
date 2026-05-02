@@ -326,24 +326,38 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     const dateStr = new Date(d.created_at).toLocaleDateString('fr');
     const branchName = activeBranch?.name || '';
 
-    const productsHeader = d.items.map(it =>
-      `<th style="text-align:center;min-width:90px">${it.product_app_name || it.product_name}</th>`
-    ).join('');
-    const dateFabRow = d.items.map(it =>
-      `<td style="text-align:center">${it.manufacturing_date ? new Date(it.manufacturing_date).toLocaleDateString('fr') : '-'}</td>`
-    ).join('');
-    const lotRow = d.items.map(it =>
-      `<td style="text-align:center">${it.lot_number || '-'}</td>`
-    ).join('');
-    const heureRow = d.items.map(it =>
-      `<td style="text-align:center">${it.manufacturing_time || '-'}</td>`
-    ).join('');
-    const qtyRow = d.items.map(it =>
-      `<td style="text-align:center;font-weight:bold">${dbBPDisplay(it.quantity, it.pieces_per_box || 1)}</td>`
-    ).join('');
-    const dateLivRow = d.items.map(it =>
-      `<td style="text-align:center">${it.delivery_date ? new Date(it.delivery_date).toLocaleDateString('fr') : dateStr}</td>`
-    ).join('');
+    // Parse NC metadata embedded in notes (if available)
+    let nc: any = {};
+    let descNotes = d.notes || '';
+    try {
+      if (d.notes && d.notes.trim().startsWith('{')) {
+        const parsed = JSON.parse(d.notes);
+        if (parsed && typeof parsed === 'object' && parsed.__nc) {
+          nc = parsed;
+          descNotes = parsed.description || '';
+        }
+      }
+    } catch { /* ignore */ }
+
+    const constatBy = nc.constat_by || d.creator_name || '';
+    const affectation = nc.affectation || branchName;
+    const clientName = nc.client_name || '';
+    const clientContact = nc.client_contact || '';
+    const ncType = nc.nc_type || 'interne'; // 'interne' | 'externe' | 'reclamation'
+    const actions = nc.actions || '';
+    const mark = (cond: boolean) => cond ? '✗' : '';
+
+    // Rows = products, Columns = attributes
+    const productRows = d.items.map(it => `
+      <tr>
+        <td style="text-align:right;font-weight:bold">${it.product_app_name || it.product_name}</td>
+        <td style="text-align:center">${it.manufacturing_date ? new Date(it.manufacturing_date).toLocaleDateString('fr') : '-'}</td>
+        <td style="text-align:center">${it.lot_number || '-'}</td>
+        <td style="text-align:center">${it.manufacturing_time || '-'}</td>
+        <td style="text-align:center;font-weight:bold">${dbBPDisplay(it.quantity, it.pieces_per_box || 1)}</td>
+        <td style="text-align:center">${it.delivery_date ? new Date(it.delivery_date).toLocaleDateString('fr') : dateStr}</td>
+      </tr>
+    `).join('');
 
     w.document.write(`
       <html dir="ltr"><head><title>Fiche de Non Conformité - Usine</title>
@@ -364,9 +378,9 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         table{width:100%;border-collapse:collapse}
         .nc-table th,.nc-table td{border:1px solid #000;padding:8px;text-align:center;font-size:12px;height:28px}
         .client-table td{border:1px solid #000;padding:8px;font-size:12px;height:28px;width:50%}
-        .product-table th,.product-table td{border:1px solid #000;padding:5px 6px;font-size:11px}
-        .product-table th{background:#fafafa;font-weight:bold;text-align:left;width:140px}
-        .desc-box{min-height:55px;padding:6px 8px}
+        .product-table th,.product-table td{border:1px solid #000;padding:6px 8px;font-size:11px}
+        .product-table th{background:#fafafa;font-weight:bold;text-align:center}
+        .desc-box{min-height:55px;padding:6px 8px;white-space:pre-wrap}
         .signatures{display:flex;justify-content:space-between;margin-top:30px}
         .signatures div{text-align:center;width:45%}
         .sig-line{border-top:1px solid #000;margin-top:55px;padding-top:5px;font-size:12px}
@@ -378,15 +392,15 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div class="date-box"><b>Date</b> ${dateStr}</div>
         </div>
 
-        <div class="field"><b>CONSTAT ETABLI PAR :</b> ${d.creator_name || ''}</div>
-        <div class="field"><b>AFFECTATION :</b> ${branchName}</div>
+        <div class="field"><b>CONSTAT ETABLI PAR :</b> ${constatBy}</div>
+        <div class="field"><b>AFFECTATION :</b> ${affectation}</div>
 
         <div class="section">
           <div class="section-title">1. Détection de la non-conformité</div>
           <div class="section-body">
             <table class="nc-table">
               <tr><th>NC Interne</th><th>NC Externe</th><th>Réclamation Client</th></tr>
-              <tr><td>✗</td><td></td><td></td></tr>
+              <tr><td>${mark(ncType === 'interne')}</td><td>${mark(ncType === 'externe')}</td><td>${mark(ncType === 'reclamation')}</td></tr>
             </table>
           </div>
         </div>
@@ -395,7 +409,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div class="section-title">Coordonnés du client</div>
           <div class="section-body">
             <table class="client-table">
-              <tr><td>${branchName}</td><td></td></tr>
+              <tr><td>${clientName || branchName}</td><td>${clientContact}</td></tr>
             </table>
           </div>
         </div>
@@ -404,24 +418,29 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div class="section-title">Désignation et référence du produit incriminé</div>
           <div class="section-body">
             <table class="product-table">
-              <tr><th>• Produit concerné</th>${productsHeader}</tr>
-              <tr><th>• Date de Fabrication</th>${dateFabRow}</tr>
-              <tr><th>• N° de LOT</th>${lotRow}</tr>
-              <tr><th>• Heure de fabrication</th>${heureRow}</tr>
-              <tr><th>• Quantité (B.P)</th>${qtyRow}</tr>
-              <tr><th>• Date de livraison</th>${dateLivRow}</tr>
+              <thead>
+                <tr>
+                  <th style="min-width:140px">Produit concerné</th>
+                  <th>Date de Fabrication</th>
+                  <th>N° de LOT</th>
+                  <th>Heure de fabrication</th>
+                  <th>Quantité (B.P)</th>
+                  <th>Date de livraison</th>
+                </tr>
+              </thead>
+              <tbody>${productRows}</tbody>
             </table>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">Description de la non-conformité / réclamation client</div>
-          <div class="desc-box">${d.notes || ''}</div>
+          <div class="desc-box">${descNotes}</div>
         </div>
 
         <div class="section">
           <div class="section-title">Actions correctives</div>
-          <div class="desc-box"></div>
+          <div class="desc-box">${actions}</div>
         </div>
 
         <div class="signatures">
