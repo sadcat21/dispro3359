@@ -188,6 +188,8 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
 
     // Split header into two rows: text info + dedicated dates row
     const headerInfo: { label: string; value: string }[] = [];
+    if (branchName) headerInfo.push({ label: 'Filiale', value: branchName });
+    if (branchWilaya) headerInfo.push({ label: 'Wilaya', value: branchWilaya });
     if (!isSingleWorker && workerLabel !== 'Tous les employés' && workerLabel !== 'جميع العمال') {
       headerInfo.push({ label: 'Employé', value: workerLabel });
     }
