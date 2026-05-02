@@ -487,13 +487,28 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       const promoProductIds = [...new Set((promosData || []).map(p => p.product_id))];
       let offerUnitMap: Record<string, string> = {};
+      const offerPeriodsMap: Record<string, { start: string | null; end: string | null }> = {};
       if (promoProductIds.length > 0) {
         const { data: productOffers } = await supabase
           .from('product_offers')
-          .select('id, product_id, gift_quantity_unit')
+          .select('id, product_id, gift_quantity_unit, start_date, end_date')
           .in('product_id', promoProductIds)
           .eq('is_active', true);
-        (productOffers || []).forEach(o => { offerUnitMap[o.product_id] = o.gift_quantity_unit || 'piece'; });
+        (productOffers || []).forEach(o => {
+          offerUnitMap[o.product_id] = o.gift_quantity_unit || 'piece';
+          // Keep widest period per product if multiple active offers
+          const prev = offerPeriodsMap[o.product_id];
+          const start = (o as any).start_date || null;
+          const end = (o as any).end_date || null;
+          if (!prev) {
+            offerPeriodsMap[o.product_id] = { start, end };
+          } else {
+            offerPeriodsMap[o.product_id] = {
+              start: prev.start && start ? (prev.start < start ? prev.start : start) : (prev.start || start),
+              end: prev.end && end ? (prev.end > end ? prev.end : end) : (prev.end || end),
+            };
+          }
+        });
       }
 
       const orderGiftsByProduct: Record<string, number> = {};
