@@ -807,15 +807,20 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!rejectNote.trim()) { toast.error('اكتب سبب الرفض'); return; }
     setProcessingId(id);
     try {
-      const table = kind === 'receipt' ? 'stock_receipts' : 'factory_orders';
-      await supabase.from(table).update({
-        status: 'rejected', rejection_note: rejectNote.trim(),
-      }).eq('id', id);
-      toast.success('تم الرفض');
+      if (kind === 'delivery') {
+        // Uses reject_factory_order RPC — records reason in workflow transitions
+        await rejectFactoryOrder.mutateAsync({ orderId: id, reason: rejectNote.trim() });
+      } else {
+        await supabase.from('stock_receipts').update({
+          status: 'rejected', rejection_note: rejectNote.trim(),
+        }).eq('id', id);
+        toast.success('تم الرفض');
+      }
       setRejectingId(null); setRejectNote('');
       await fetchData();
     } catch (e: any) {
-      toast.error(e.message || 'خطأ');
+      // toast handled in hook for delivery case
+      if (kind === 'receipt') toast.error(e.message || 'خطأ');
     } finally { setProcessingId(null); }
   };
 
