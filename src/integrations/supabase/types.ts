@@ -454,6 +454,150 @@ export type Database = {
           },
         ]
       }
+      cash_movements: {
+        Row: {
+          account_id: string | null
+          account_type: string
+          amount: number
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          from_account_id: string | null
+          from_account_type: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_balance: number | null
+          signed_amount: number | null
+          to_account_id: string | null
+          to_account_type: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          account_type: string
+          amount: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          account_type?: string
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
+      cash_movements_archive: {
+        Row: {
+          account_id: string | null
+          account_type: string
+          amount: number
+          archived_at: string
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          from_account_id: string | null
+          from_account_type: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_balance: number | null
+          signed_amount: number | null
+          to_account_id: string | null
+          to_account_type: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          account_type: string
+          amount: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          account_type?: string
+          amount?: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          from_account_id?: string | null
+          from_account_type?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_balance?: number | null
+          signed_amount?: number | null
+          to_account_id?: string | null
+          to_account_type?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       coin_exchange_returns: {
         Row: {
           amount: number
@@ -1420,6 +1564,132 @@ export type Database = {
           },
         ]
       }
+      debt_movements: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          debt_id: string | null
+          debtor_id: string
+          debtor_type: string
+          id: string
+          movement_type: string
+          notes: string | null
+          payment_method: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_debt_balance: number | null
+          signed_amount: number | null
+          worker_id: string | null
+        }
+        Insert: {
+          amount: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id: string
+          debtor_type: string
+          id?: string
+          movement_type: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id?: string
+          debtor_type?: string
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
+      debt_movements_archive: {
+        Row: {
+          amount: number
+          archived_at: string
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          debt_id: string | null
+          debtor_id: string
+          debtor_type: string
+          id: string
+          movement_type: string
+          notes: string | null
+          payment_method: string | null
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_debt_balance: number | null
+          signed_amount: number | null
+          worker_id: string | null
+        }
+        Insert: {
+          amount: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id: string
+          debtor_type: string
+          id?: string
+          movement_type: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Update: {
+          amount?: number
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          debt_id?: string | null
+          debtor_id?: string
+          debtor_type?: string
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_debt_balance?: number | null
+          signed_amount?: number | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       debt_payments: {
         Row: {
           amount: number
@@ -1861,8 +2131,12 @@ export type Database = {
       factory_order_items: {
         Row: {
           created_at: string
+          delivery_date: string | null
           factory_order_id: string
           id: string
+          lot_number: string | null
+          manufacturing_date: string | null
+          manufacturing_time: string | null
           notes: string | null
           pallet_quantity: number
           product_id: string
@@ -1870,8 +2144,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delivery_date?: string | null
           factory_order_id: string
           id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          manufacturing_time?: string | null
           notes?: string | null
           pallet_quantity?: number
           product_id: string
@@ -1879,8 +2157,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delivery_date?: string | null
           factory_order_id?: string
           id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          manufacturing_time?: string | null
           notes?: string | null
           pallet_quantity?: number
           product_id?: string
@@ -1905,42 +2187,94 @@ export type Database = {
       }
       factory_orders: {
         Row: {
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
           branch_id: string | null
           confirmed_at: string | null
           created_at: string
           created_by: string | null
+          frozen_at: string | null
+          frozen_by: string | null
           id: string
+          linked_receipt_id: string | null
           notes: string | null
           order_type: string
           pallet_count: number | null
+          rejection_note: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
+          linked_receipt_id?: string | null
           notes?: string | null
           order_type?: string
           pallet_count?: number | null
+          rejection_note?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
+          linked_receipt_id?: string | null
           notes?: string | null
           order_type?: string
           pallet_count?: number | null
+          rejection_note?: string | null
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "factory_orders_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "factory_orders_branch_id_fkey"
             columns: ["branch_id"]
@@ -2490,51 +2824,136 @@ export type Database = {
       }
       manual_invoice_requests: {
         Row: {
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
           branch_id: string | null
           created_at: string
+          created_by_role: string | null
           customer_id: string
           id: string
+          invoice_file_name: string | null
+          invoice_file_url: string | null
           invoice_number: string | null
+          invoice_scope: string | null
+          invoice_uploaded_at: string | null
+          invoice_uploaded_by: string | null
+          is_merged_parent: boolean | null
+          merged_into_request_id: string | null
+          merged_request_ids: string[] | null
           notes: string | null
+          order_id: string | null
           payment_method: string | null
+          postponed_at: string | null
+          postponed_by: string | null
           products: Json
           received_at: string | null
+          received_by_assistant_at: string | null
+          received_by_assistant_id: string | null
           sent_at: string
           status: string
+          total_amount: number | null
           whatsapp_contact: string | null
           worker_id: string
         }
         Insert: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
+          created_by_role?: string | null
           customer_id: string
           id?: string
+          invoice_file_name?: string | null
+          invoice_file_url?: string | null
           invoice_number?: string | null
+          invoice_scope?: string | null
+          invoice_uploaded_at?: string | null
+          invoice_uploaded_by?: string | null
+          is_merged_parent?: boolean | null
+          merged_into_request_id?: string | null
+          merged_request_ids?: string[] | null
           notes?: string | null
+          order_id?: string | null
           payment_method?: string | null
+          postponed_at?: string | null
+          postponed_by?: string | null
           products?: Json
           received_at?: string | null
+          received_by_assistant_at?: string | null
+          received_by_assistant_id?: string | null
           sent_at?: string
           status?: string
+          total_amount?: number | null
           whatsapp_contact?: string | null
           worker_id: string
         }
         Update: {
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
+          created_by_role?: string | null
           customer_id?: string
           id?: string
+          invoice_file_name?: string | null
+          invoice_file_url?: string | null
           invoice_number?: string | null
+          invoice_scope?: string | null
+          invoice_uploaded_at?: string | null
+          invoice_uploaded_by?: string | null
+          is_merged_parent?: boolean | null
+          merged_into_request_id?: string | null
+          merged_request_ids?: string[] | null
           notes?: string | null
+          order_id?: string | null
           payment_method?: string | null
+          postponed_at?: string | null
+          postponed_by?: string | null
           products?: Json
           received_at?: string | null
+          received_by_assistant_at?: string | null
+          received_by_assistant_id?: string | null
           sent_at?: string
           status?: string
+          total_amount?: number | null
           whatsapp_contact?: string | null
           worker_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "manual_invoice_requests_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "manual_invoice_requests_branch_id_fkey"
             columns: ["branch_id"]
@@ -2547,6 +2966,20 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_merged_into_request_id_fkey"
+            columns: ["merged_into_request_id"]
+            isOneToOne: false
+            referencedRelation: "manual_invoice_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invoice_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -4618,6 +5051,8 @@ export type Database = {
       sector_coverage: {
         Row: {
           absent_worker_id: string
+          approval_notes: string | null
+          approval_status: string
           branch_id: string | null
           coverage_mode: string
           coverage_type: string
@@ -4626,15 +5061,21 @@ export type Database = {
           end_date: string
           id: string
           is_active: boolean
+          manager_approved_at: string | null
+          manager_approved_by: string | null
           reason: string | null
           schedule_type: string
           sector_id: string
           start_date: string
           substitute_worker_id: string
+          system_approved_at: string | null
+          system_approved_by: string | null
           updated_at: string
         }
         Insert: {
           absent_worker_id: string
+          approval_notes?: string | null
+          approval_status?: string
           branch_id?: string | null
           coverage_mode?: string
           coverage_type?: string
@@ -4643,15 +5084,21 @@ export type Database = {
           end_date: string
           id?: string
           is_active?: boolean
+          manager_approved_at?: string | null
+          manager_approved_by?: string | null
           reason?: string | null
           schedule_type?: string
           sector_id: string
           start_date: string
           substitute_worker_id: string
+          system_approved_at?: string | null
+          system_approved_by?: string | null
           updated_at?: string
         }
         Update: {
           absent_worker_id?: string
+          approval_notes?: string | null
+          approval_status?: string
           branch_id?: string | null
           coverage_mode?: string
           coverage_type?: string
@@ -4660,11 +5107,15 @@ export type Database = {
           end_date?: string
           id?: string
           is_active?: boolean
+          manager_approved_at?: string | null
+          manager_approved_by?: string | null
           reason?: string | null
           schedule_type?: string
           sector_id?: string
           start_date?: string
           substitute_worker_id?: string
+          system_approved_at?: string | null
+          system_approved_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -5022,6 +5473,93 @@ export type Database = {
           },
         ]
       }
+      shared_invoices: {
+        Row: {
+          created_at: string
+          customer_name: string
+          downloaded_at: string | null
+          downloaded_by: string | null
+          id: string
+          invoice_date: string
+          invoice_number: string
+          notes: string | null
+          pdf_path: string
+          pdf_url: string
+          printed_at: string | null
+          target_branch_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          downloaded_at?: string | null
+          downloaded_by?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          notes?: string | null
+          pdf_path: string
+          pdf_url: string
+          printed_at?: string | null
+          target_branch_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          downloaded_at?: string | null
+          downloaded_by?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          notes?: string | null
+          pdf_path?: string
+          pdf_url?: string
+          printed_at?: string | null
+          target_branch_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_invoices_downloaded_by_fkey"
+            columns: ["downloaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_downloaded_by_fkey"
+            columns: ["downloaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_target_branch_id_fkey"
+            columns: ["target_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_invoices_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stamp_price_tiers: {
         Row: {
           created_at: string
@@ -5117,6 +5655,8 @@ export type Database = {
           amendment_note: string | null
           branch_id: string | null
           created_at: string
+          frozen_at: string | null
+          frozen_by: string | null
           id: string
           items: Json
           manager_id: string
@@ -5134,6 +5674,8 @@ export type Database = {
           amendment_note?: string | null
           branch_id?: string | null
           created_at?: string
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           items?: Json
           manager_id: string
@@ -5151,6 +5693,8 @@ export type Database = {
           amendment_note?: string | null
           branch_id?: string | null
           created_at?: string
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           items?: Json
           manager_id?: string
@@ -5170,6 +5714,20 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_frozen_by_fkey"
+            columns: ["frozen_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_confirmations_frozen_by_fkey"
+            columns: ["frozen_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
             referencedColumns: ["id"]
           },
           {
@@ -5433,15 +5991,24 @@ export type Database = {
           branch_id: string | null
           created_at: string
           created_by: string
+          from_location_id: string | null
+          from_location_type: string | null
           id: string
           movement_type: string
           notes: string | null
           order_id: string | null
           product_id: string
           quantity: number
+          reason: string | null
           receipt_id: string | null
+          reference_id: string | null
+          reference_type: string | null
           return_reason: string | null
+          running_balance: number | null
+          signed_quantity: number | null
           status: string
+          to_location_id: string | null
+          to_location_type: string | null
           worker_id: string | null
         }
         Insert: {
@@ -5450,15 +6017,24 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by: string
+          from_location_id?: string | null
+          from_location_type?: string | null
           id?: string
           movement_type: string
           notes?: string | null
           order_id?: string | null
           product_id: string
           quantity: number
+          reason?: string | null
           receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
           return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
           status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
           worker_id?: string | null
         }
         Update: {
@@ -5467,15 +6043,24 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          from_location_id?: string | null
+          from_location_type?: string | null
           id?: string
           movement_type?: string
           notes?: string | null
           order_id?: string | null
           product_id?: string
           quantity?: number
+          reason?: string | null
           receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
           return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
           status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
           worker_id?: string | null
         }
         Relationships: [
@@ -5551,10 +6136,101 @@ export type Database = {
           },
         ]
       }
+      stock_movements_archive: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string
+          from_location_id: string | null
+          from_location_type: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          order_id: string | null
+          product_id: string
+          quantity: number
+          reason: string | null
+          receipt_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          return_reason: string | null
+          running_balance: number | null
+          signed_quantity: number | null
+          status: string
+          to_location_id: string | null
+          to_location_type: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by: string
+          from_location_id?: string | null
+          from_location_type?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          order_id?: string | null
+          product_id: string
+          quantity: number
+          reason?: string | null
+          receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
+          status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string
+          from_location_id?: string | null
+          from_location_type?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          order_id?: string | null
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          receipt_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          return_reason?: string | null
+          running_balance?: number | null
+          signed_quantity?: number | null
+          status?: string
+          to_location_id?: string | null
+          to_location_type?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       stock_receipt_items: {
         Row: {
           created_at: string
+          delivery_date: string | null
           id: string
+          lot_number: string | null
+          manufacturing_date: string | null
+          manufacturing_time: string | null
           notes: string | null
           pallet_quantity: number
           product_id: string
@@ -5563,7 +6239,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delivery_date?: string | null
           id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          manufacturing_time?: string | null
           notes?: string | null
           pallet_quantity?: number
           product_id: string
@@ -5572,7 +6252,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delivery_date?: string | null
           id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          manufacturing_time?: string | null
           notes?: string | null
           pallet_quantity?: number
           product_id?: string
@@ -5600,14 +6284,26 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
           branch_id: string | null
           created_at: string
           created_by: string
+          expenses_breakdown: Json
+          expenses_description: string | null
+          frozen_at: string | null
+          frozen_by: string | null
           id: string
           invoice_number: string | null
           invoice_photo_url: string | null
+          linked_delivery_id: string | null
           notes: string | null
+          pallet_count: number
           receipt_date: string
+          receipt_expenses: number
+          rejection_note: string | null
           status: string
           total_items: number | null
           updated_at: string
@@ -5615,14 +6311,26 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
           created_by: string
+          expenses_breakdown?: Json
+          expenses_description?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           invoice_number?: string | null
           invoice_photo_url?: string | null
+          linked_delivery_id?: string | null
           notes?: string | null
+          pallet_count?: number
           receipt_date?: string
+          receipt_expenses?: number
+          rejection_note?: string | null
           status?: string
           total_items?: number | null
           updated_at?: string
@@ -5630,14 +6338,26 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          assistant_approved_at?: string | null
+          assistant_approved_by?: string | null
+          branch_approved_at?: string | null
+          branch_approved_by?: string | null
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          expenses_breakdown?: Json
+          expenses_description?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
           id?: string
           invoice_number?: string | null
           invoice_photo_url?: string | null
+          linked_delivery_id?: string | null
           notes?: string | null
+          pallet_count?: number
           receipt_date?: string
+          receipt_expenses?: number
+          rejection_note?: string | null
           status?: string
           total_items?: number | null
           updated_at?: string
@@ -5653,6 +6373,34 @@ export type Database = {
           {
             foreignKeyName: "stock_receipts_approved_by_fkey"
             columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_receipts_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
             isOneToOne: false
             referencedRelation: "workers_safe"
             referencedColumns: ["id"]
@@ -6139,36 +6887,48 @@ export type Database = {
       warehouse_review_items: {
         Row: {
           actual_quantity: number
+          boxes_quantity: number
           created_at: string
+          damaged_quantity: number
           difference: number | null
           expected_quantity: number
+          hall_quantity: number
           id: string
           item_type: string
           notes: string | null
+          pieces_quantity: number
           product_id: string | null
           session_id: string
           status: string
         }
         Insert: {
           actual_quantity?: number
+          boxes_quantity?: number
           created_at?: string
+          damaged_quantity?: number
           difference?: number | null
           expected_quantity?: number
+          hall_quantity?: number
           id?: string
           item_type?: string
           notes?: string | null
+          pieces_quantity?: number
           product_id?: string | null
           session_id: string
           status?: string
         }
         Update: {
           actual_quantity?: number
+          boxes_quantity?: number
           created_at?: string
+          damaged_quantity?: number
           difference?: number | null
           expected_quantity?: number
+          hall_quantity?: number
           id?: string
           item_type?: string
           notes?: string | null
+          pieces_quantity?: number
           product_id?: string | null
           session_id?: string
           status?: string
@@ -6874,27 +7634,45 @@ export type Database = {
       }
       worker_roles: {
         Row: {
+          assigned_by: string | null
           branch_id: string | null
           created_at: string
           custom_role_id: string | null
           id: string
+          is_active: boolean
+          is_primary: boolean
+          notes: string | null
           role: Database["public"]["Enums"]["app_role"]
+          valid_from: string | null
+          valid_until: string | null
           worker_id: string
         }
         Insert: {
+          assigned_by?: string | null
           branch_id?: string | null
           created_at?: string
           custom_role_id?: string | null
           id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          notes?: string | null
           role: Database["public"]["Enums"]["app_role"]
+          valid_from?: string | null
+          valid_until?: string | null
           worker_id: string
         }
         Update: {
+          assigned_by?: string | null
           branch_id?: string | null
           created_at?: string
           custom_role_id?: string | null
           id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          notes?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          valid_from?: string | null
+          valid_until?: string | null
           worker_id?: string
         }
         Relationships: [
@@ -7122,6 +7900,57 @@ export type Database = {
       }
     }
     Views: {
+      v_cash_reconciliation: {
+        Row: {
+          account_id: string | null
+          account_type: string | null
+          last_movement_at: string | null
+          ledger_balance: number | null
+          movements_count: number | null
+        }
+        Relationships: []
+      }
+      v_debt_reconciliation: {
+        Row: {
+          actual_remaining: number | null
+          debt_id: string | null
+          debtor_id: string | null
+          debtor_type: string | null
+          ledger_balance: number | null
+          variance: number | null
+        }
+        Relationships: []
+      }
+      v_stock_reconciliation: {
+        Row: {
+          branch_id: string | null
+          branch_name: string | null
+          computed_from_movements: number | null
+          current_stock: number | null
+          last_movement_at: string | null
+          movements_count: number | null
+          product_id: string | null
+          product_name: string | null
+          status: string | null
+          variance: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_stock_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_stock_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workers_safe: {
         Row: {
           bonus_cap_percentage: number | null
@@ -7199,12 +8028,61 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
+      approve_stock_receipt_two_stage: {
+        Args: { p_receipt_id: string; p_stage: string }
+        Returns: Json
+      }
+      archive_cash_movements: { Args: never; Returns: Json }
+      archive_debt_movements: { Args: never; Returns: Json }
+      archive_stock_movements: { Args: never; Returns: Json }
+      can_create_stock_confirmation_for_session: {
+        Args: {
+          _branch_id: string
+          _manager_id: string
+          _source_session_id: string
+          _worker_id: string
+        }
+        Returns: boolean
+      }
+      can_finalize_sector_coverage: { Args: never; Returns: boolean }
+      can_insert_stock_confirmation:
+        | {
+            Args: {
+              _branch_id: string
+              _manager_id: string
+              _source_session_id: string
+              _worker_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _branch_id: string
+              _manager_id: string
+              _operation_type?: string
+              _source_session_id: string
+              _worker_id: string
+            }
+            Returns: boolean
+          }
       can_manage_product_offers: {
         Args: { p_worker_id: string }
         Returns: boolean
       }
+      can_manage_sector_coverage_branch: {
+        Args: { p_branch_id: string }
+        Returns: boolean
+      }
       confirm_loading_session_atomic: {
         Args: { p_session_id: string }
+        Returns: Json
+      }
+      current_worker_manages_branch: {
+        Args: { p_branch_id: string }
+        Returns: boolean
+      }
+      forward_manual_invoice_request_to_management: {
+        Args: { p_request_id: string }
         Returns: Json
       }
       get_customer_account_id: { Args: never; Returns: string }
@@ -7235,6 +8113,19 @@ export type Database = {
           resource: string
         }[]
       }
+      get_worker_permissions_for_role: {
+        Args: {
+          p_base_role?: Database["public"]["Enums"]["app_role"]
+          p_custom_role_code?: string
+          p_worker_id: string
+        }
+        Returns: {
+          category: string
+          permission_code: string
+          permission_name: string
+          resource: string
+        }[]
+      }
       get_worker_roles: {
         Args: { p_worker_id: string }
         Returns: {
@@ -7243,6 +8134,7 @@ export type Database = {
           custom_role_code: string
           custom_role_id: string
           custom_role_name: string
+          is_primary: boolean
           role: Database["public"]["Enums"]["app_role"]
         }[]
       }
@@ -7256,6 +8148,118 @@ export type Database = {
         Returns: boolean
       }
       is_worker: { Args: never; Returns: boolean }
+      is_worker_role_active: {
+        Args: {
+          p_is_active: boolean
+          p_valid_from: string
+          p_valid_until: string
+        }
+        Returns: boolean
+      }
+      purge_cash_movements: { Args: never; Returns: Json }
+      purge_cash_movements_all: { Args: never; Returns: Json }
+      purge_cash_movements_archive: { Args: never; Returns: Json }
+      purge_debt_movements: { Args: never; Returns: Json }
+      purge_debt_movements_all: { Args: never; Returns: Json }
+      purge_debt_movements_archive: { Args: never; Returns: Json }
+      purge_stock_movements: { Args: never; Returns: Json }
+      purge_stock_movements_all: { Args: never; Returns: Json }
+      purge_stock_movements_archive: { Args: never; Returns: Json }
+      recalculate_running_balance: {
+        Args: { p_branch_id: string; p_product_id: string }
+        Returns: Json
+      }
+      record_cash_collection_atomic: {
+        Args: {
+          p_account_id: string
+          p_account_type: string
+          p_amount: number
+          p_branch_id?: string
+          p_from_account_id?: string
+          p_from_account_type?: string
+          p_notes?: string
+          p_reason?: string
+          p_reference_id?: string
+          p_reference_type?: string
+        }
+        Returns: Json
+      }
+      record_customer_return_atomic: {
+        Args: {
+          p_branch_id: string
+          p_customer_id: string
+          p_destination: string
+          p_destination_id: string
+          p_notes?: string
+          p_product_id: string
+          p_quantity: number
+          p_reason?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
+      record_debt_creation_atomic: {
+        Args: {
+          p_amount: number
+          p_branch_id?: string
+          p_debt_id: string
+          p_debtor_id: string
+          p_debtor_type: string
+          p_notes?: string
+          p_reason?: string
+          p_reference_id?: string
+          p_reference_type?: string
+        }
+        Returns: Json
+      }
+      record_debt_payment_atomic: {
+        Args: {
+          p_amount: number
+          p_branch_id?: string
+          p_debt_id: string
+          p_debtor_id: string
+          p_debtor_type: string
+          p_is_full?: boolean
+          p_notes?: string
+          p_payment_method?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
+      record_debt_writeoff_atomic: {
+        Args: {
+          p_amount: number
+          p_debt_id: string
+          p_debtor_id: string
+          p_debtor_type: string
+          p_notes?: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      record_expense_atomic: {
+        Args: {
+          p_account_id: string
+          p_account_type: string
+          p_amount: number
+          p_branch_id?: string
+          p_notes?: string
+          p_reason?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
+      record_stock_adjustment_atomic: {
+        Args: {
+          p_branch_id: string
+          p_delta: number
+          p_notes?: string
+          p_product_id: string
+          p_reason?: string
+          p_reference_id?: string
+        }
+        Returns: Json
+      }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
@@ -7265,6 +8269,28 @@ export type Database = {
       set_worker_session: { Args: { p_worker_id: string }; Returns: undefined }
       start_loading_session_atomic: {
         Args: { p_notes?: string; p_worker_id: string }
+        Returns: Json
+      }
+      transfer_between_branches_atomic: {
+        Args: {
+          p_from_branch: string
+          p_items: Json
+          p_notes?: string
+          p_to_branch: string
+        }
+        Returns: Json
+      }
+      transfer_cash_atomic: {
+        Args: {
+          p_amount: number
+          p_branch_id?: string
+          p_from_account_id: string
+          p_from_account_type: string
+          p_notes?: string
+          p_reason?: string
+          p_to_account_id: string
+          p_to_account_type: string
+        }
         Returns: Json
       }
       verify_customer_password: {
@@ -7293,6 +8319,10 @@ export type Database = {
           username: string
         }[]
       }
+      worker_has_custom_role: {
+        Args: { p_role_code: string; p_worker_id: string }
+        Returns: boolean
+      }
       worker_has_permission: {
         Args: { p_permission_code: string; p_worker_id: string }
         Returns: boolean
@@ -7308,6 +8338,8 @@ export type Database = {
         | "accountant"
         | "admin_assistant"
         | "warehouse_manager"
+        | "company_manager"
+        | "internal_supervisor"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "doing" | "done"
       task_type: "task" | "request"
@@ -7447,6 +8479,8 @@ export const Constants = {
         "accountant",
         "admin_assistant",
         "warehouse_manager",
+        "company_manager",
+        "internal_supervisor",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "doing", "done"],
