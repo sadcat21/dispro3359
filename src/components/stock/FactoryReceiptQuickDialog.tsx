@@ -97,8 +97,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [invoicePhoto, setInvoicePhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [palletCount, setPalletCount] = useState(0);
-  const [receiptExpenses, setReceiptExpenses] = useState(0);
-  const [expensesDescription, setExpensesDescription] = useState('');
+  const [expenseLines, setExpenseLines] = useState<{ description: string; amount: number }[]>([]);
+  const totalExpenses = expenseLines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const expensesDescription = expenseLines
+    .filter(l => l.description || l.amount)
+    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} دج`)
+    .join(' • ');
   const [tab, setTab] = useState<'create' | 'pending'>('create');
   const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
   const [isLoadingPending, setIsLoadingPending] = useState(false);

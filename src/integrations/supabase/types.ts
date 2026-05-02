@@ -6291,6 +6291,7 @@ export type Database = {
           branch_id: string | null
           created_at: string
           created_by: string
+          expenses_breakdown: Json
           expenses_description: string | null
           frozen_at: string | null
           frozen_by: string | null
@@ -6317,6 +6318,7 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by: string
+          expenses_breakdown?: Json
           expenses_description?: string | null
           frozen_at?: string | null
           frozen_by?: string | null
@@ -6343,6 +6345,7 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          expenses_breakdown?: Json
           expenses_description?: string | null
           frozen_at?: string | null
           frozen_by?: string | null
