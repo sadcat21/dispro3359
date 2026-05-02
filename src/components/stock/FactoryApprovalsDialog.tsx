@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDate } from '@/utils/formatters';
 import { parseReceiptItemBreakdown, parseReceiptMeta } from '@/utils/stockReceipt';
-import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 
 interface Props {
