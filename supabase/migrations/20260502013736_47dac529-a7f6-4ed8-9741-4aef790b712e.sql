@@ -1,0 +1,1 @@
+ALTER VIEW public.v_stock_reconciliation SET (security_invoker = true);
