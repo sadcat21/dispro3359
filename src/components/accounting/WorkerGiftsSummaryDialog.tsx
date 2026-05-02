@@ -435,7 +435,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         if (!agg[key]) {
           const period = offerPeriodByOfferId[offerId];
           const periodLabel = period && (period.start || period.end)
-            ? `${period.start ? format(new Date(period.start), 'dd/MM/yy') : '-'} → ${period.end ? format(new Date(period.end), 'dd/MM/yy') : '-'}`
+            ? `${period.start ? format(new Date(period.start), 'dd/MM') : '-'}→${period.end ? format(new Date(period.end), 'dd/MM') : '-'}`
             : '';
           agg[key] = {
             productId: item.product_id,
