@@ -33,9 +33,11 @@ interface PendingDelivery {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editDeliveryId?: string | null;
+  onSaved?: () => void;
 }
 
-const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
+const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editDeliveryId, onSaved }) => {
   const { workerId, role, activeRole, activeBranch } = useAuth();
   const [items, setItems] = useState<DeliveryItem[]>([{ product_id: '', quantity: 0 }]);
   const [palletCount, setPalletCount] = useState(0);
