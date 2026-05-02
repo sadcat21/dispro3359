@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
+import ReceiptDetailsDialog from '@/components/admin/ReceiptDetailsDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -55,6 +56,7 @@ const AssistantApprovals: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
+  const [detailsReceiptId, setDetailsReceiptId] = useState<string | null>(null);
   const branchFilter = searchParams.get('branch');
 
   // اسم الفرع المختار للعرض
@@ -364,6 +366,7 @@ const AssistantApprovals: React.FC = () => {
                         onApprove={() => approveReceipt.mutate(r.id)}
                         onReject={() => rejectReceipt.mutate(r.id)}
                         pending={approveReceipt.isPending || rejectReceipt.isPending}
+                        onDetails={() => setDetailsReceiptId(r.id)}
                       />
                     </CardContent>
                   </Card>
