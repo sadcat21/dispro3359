@@ -397,6 +397,10 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           image_url: it.product?.image_url,
           pieces_per_box: it.product?.pieces_per_box || 1,
           quantity: Number(it.product_quantity) || 0,
+          lot_number: it.lot_number || null,
+          manufacturing_date: it.manufacturing_date || null,
+          manufacturing_time: it.manufacturing_time || null,
+          delivery_date: it.delivery_date || null,
         })),
       }));
 
