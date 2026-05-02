@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Crown, ShieldCheck, Split, FileText, BarChart3, Warehouse, Truck, ClipboardCheck,
   Package, Gift, Users, Building2, Settings, Database, Shield, FileSpreadsheet,
-  TrendingUp, Wallet, Banknote, Pencil, LucideIcon
+  TrendingUp, Wallet, Banknote, Pencil, Coins, HandCoins, PackageSearch, BookOpen, LucideIcon
 } from 'lucide-react';
 import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
@@ -107,6 +107,16 @@ const CompanyManagerHome: React.FC = () => {
         { key: 'warehouse', label: t('stock.warehouse_stock'), icon: Warehouse, path: '/warehouse' },
         { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardCheck, path: '/warehouse-review' },
         { key: 'manual_stock', label: t('company_manager.manual_stock'), icon: Pencil, path: '/warehouse' },
+        { key: 'stock_movements', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
+      ],
+    },
+    {
+      titleKey: 'سجلات الحركة (Ledgers)',
+      icon: BookOpen,
+      items: [
+        { key: 'cash_ledger', label: 'سجل حركة الأموال', icon: Coins, path: '/cash-ledger' },
+        { key: 'debt_ledger', label: 'سجل حركة الديون', icon: HandCoins, path: '/debt-ledger' },
+        { key: 'stock_movements_2', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
       ],
     },
     {

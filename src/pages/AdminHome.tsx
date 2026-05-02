@@ -7,7 +7,8 @@ import {
   CalendarDays, Gift, ArrowDownToLine, Truck, ClipboardCheck, Building2, Warehouse, Package,
   Wallet, FileText, Vault, FolderOpen, MapPin, Activity, Store, UserCheck, UserCog, Settings,
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
-  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck
+  CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck,
+  BookOpen as LedgerIcon, Coins, HandCoins, PackageSearch
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
@@ -317,6 +318,8 @@ const AdminHome: React.FC = () => {
         ...(isAdminRole(role) ? [{ path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') }] : []),
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
         ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
+        { path: '/cash-ledger', icon: Coins, label: 'سجل حركة الأموال' },
+        { path: '/debt-ledger', icon: HandCoins, label: 'سجل حركة الديون' },
       ],
     },
     // 2. الطلبات والتوصيل
@@ -348,6 +351,7 @@ const AdminHome: React.FC = () => {
         { path: '/factory-receipt', icon: ArrowDownToLine, label: t('admin_home.item.factory_receipt'), action: () => setFactoryReceiptOpen(true) },
         { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
         ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
+        { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
       ],
     }] : []),
     // 4. العملاء

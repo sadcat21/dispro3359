@@ -12,6 +12,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
+  Coins, HandCoins, PackageSearch,
 } from 'lucide-react';
 
 interface BMItem {
@@ -159,6 +160,9 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'expenses_management', label: t('branch_manager.expenses_management'), icon: Receipt, path: '/expenses-management' },
         { key: 'shared_invoices', label: t('nav.shared_invoices'), icon: FileText, path: '/shared-invoices' },
+        { key: 'cash_ledger', label: 'سجل حركة الأموال', icon: Coins, path: '/cash-ledger' },
+        { key: 'debt_ledger', label: 'سجل حركة الديون', icon: HandCoins, path: '/debt-ledger' },
+        { key: 'stock_movements', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
       ],
     },
     {
