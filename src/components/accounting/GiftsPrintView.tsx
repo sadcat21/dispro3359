@@ -73,7 +73,7 @@ type PrintPage = {
   rows: GiftPrintRow[];
   rowOffset: number;
   showTotals: boolean;
-  totals: { vente: number; gift: number; giftBoxPiece: string };
+  totals: { vente: number; venteBoxPiece: string; gift: number; giftBoxPiece: string };
   pageNum: number;
   totalPages: number;
 };
@@ -87,14 +87,15 @@ const chunkRows = <T,>(items: T[], size: number): T[][] => {
   return chunks.length ? chunks : [[]];
 };
 
-const formatGiftTotalBoxPiece = (rows: GiftPrintRow[]): string => {
+const formatTotalBoxPiece = (rows: GiftPrintRow[], field: 'giftQuantity' | 'venteQuantity'): string => {
   if (!rows.length) return '0.00';
   let totalPieces = 0;
   let ppb = rows[0]?.piecesPerBox || 1;
   const ppbMap = new Map<number, number>();
   rows.forEach(r => {
-    ppbMap.set(r.piecesPerBox, (ppbMap.get(r.piecesPerBox) || 0) + r.giftQuantity);
-    totalPieces += r.giftQuantity;
+    const v = r[field] as number;
+    ppbMap.set(r.piecesPerBox, (ppbMap.get(r.piecesPerBox) || 0) + v);
+    totalPieces += v;
   });
   let maxCount = 0;
   ppbMap.forEach((count, key) => {
@@ -105,6 +106,9 @@ const formatGiftTotalBoxPiece = (rows: GiftPrintRow[]): string => {
   const rem = totalPieces % ppb;
   return `${boxes}.${String(rem).padStart(2, '0')}`;
 };
+
+const formatGiftTotalBoxPiece = (rows: GiftPrintRow[]): string => formatTotalBoxPiece(rows, 'giftQuantity');
+const formatVenteTotalBoxPiece = (rows: GiftPrintRow[]): string => formatTotalBoxPiece(rows, 'venteQuantity');
 
 const formatBoxPiece = (pieces: number, ppb: number): string => {
   if (ppb <= 1) return `${pieces}.00`;
@@ -125,7 +129,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
     case 'wilaya': return row.wilaya;
     case 'phone': return row.phone;
     case 'productName': return row.productName;
-    case 'venteQuantity': return row.venteQuantity;
+    case 'venteQuantity': return formatBoxPiece(row.venteQuantity, row.piecesPerBox);
     case 'giftQuantity': return row.giftQuantity;
     case 'giftBoxPiece': return row.giftBoxPiece;
     case 'workerName': return row.workerName;
@@ -174,16 +178,16 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
     const workerLabel = workerName === 'جميع العمال' ? 'Tous les employés' : (workerName || 'Tous les employés');
     const productLabel = (!productFilter || productFilter === 'جميع المنتجات' || productFilter === 'Tous les produits') ? 'Tous les produits' : productFilter;
 
-    const filterParts = [`Employé: ${workerLabel}`];
-    if (!separateByProduct) {
-      filterParts.push(`Produit: ${productLabel}`);
-    }
-    filterParts.push(`Période: ${dateRange || ''}`);
-    const filterCriteria = filterParts.join('  |  ');
+    // Header info as grid items (avoid duplicating Employé when isSingleWorker)
+    const headerInfo: { label: string; value: string }[] = [];
+    if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
+    if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
+    headerInfo.push({ label: 'Période', value: dateRange || '-' });
+    const filterCriteria = headerInfo.map(h => `${h.label}: ${h.value}`).join('  |  ');
 
     const pages = useMemo((): PrintPage[] => {
       if (!rows.length && !isTemplate) {
-        return [{ productName: null, rows: [], rowOffset: 0, showTotals: true, totals: { vente: 0, gift: 0, giftBoxPiece: '0.00' }, pageNum: 1, totalPages: 1 }];
+        return [{ productName: null, rows: [], rowOffset: 0, showTotals: true, totals: { vente: 0, venteBoxPiece: '0.00', gift: 0, giftBoxPiece: '0.00' }, pageNum: 1, totalPages: 1 }];
       }
 
       // Template mode: generate empty pages
@@ -196,7 +200,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
             rows: [],
             rowOffset: i * ROWS_PER_PAGE,
             showTotals: true,
-            totals: { vente: 0, gift: 0, giftBoxPiece: '' },
+            totals: { vente: 0, venteBoxPiece: '', gift: 0, giftBoxPiece: '' },
             pageNum: i + 1,
             totalPages: numTemplatePages,
           });
@@ -207,6 +211,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       if (!separateByProduct) {
         const totals = {
           vente: rows.reduce((s, r) => s + r.venteQuantity, 0),
+          venteBoxPiece: formatVenteTotalBoxPiece(rows),
           gift: rows.reduce((s, r) => s + r.giftQuantity, 0),
           giftBoxPiece: formatGiftTotalBoxPiece(rows),
         };
@@ -238,6 +243,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
           : group.productName;
         const totals = {
           vente: productRows.reduce((s, r) => s + r.venteQuantity, 0),
+          venteBoxPiece: formatVenteTotalBoxPiece(productRows),
           gift: productRows.reduce((s, r) => s + r.giftQuantity, 0),
           giftBoxPiece: formatGiftTotalBoxPiece(productRows),
         };
@@ -258,7 +264,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       return builtPages;
     }, [rows, separateByProduct, isTemplate, templatePageCount]);
 
-    const buildTotalsRow = (totals: { vente: number; gift: number; giftBoxPiece: string }) => {
+    const buildTotalsRow = (totals: { vente: number; venteBoxPiece: string; gift: number; giftBoxPiece: string }) => {
       const totalIndices = [venteColIdx, giftColIdx, giftBPColIdx].filter(i => i >= 0);
       if (totalIndices.length === 0) {
         return <td colSpan={columns.length} className="totals-label">Total</td>;
@@ -276,7 +282,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       for (let i = firstTotalIdx; i < columns.length; i++) {
         const col = columns[i];
         if (col === 'venteQuantity') {
-          cells.push(<td key={col} className="center bold">{totals.vente}</td>);
+          cells.push(<td key={col} className="center bold">{totals.venteBoxPiece || totals.vente}</td>);
         } else if (col === 'giftQuantity') {
           cells.push(<td key={col} className="center bold">{totals.gift}</td>);
         } else if (col === 'giftBoxPiece') {
@@ -408,13 +414,29 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
               <div className="print-header-with-logo" style={{ position: 'relative', zIndex: 1, marginBottom: isTemplate ? '4px' : '10px', paddingBottom: isTemplate ? '4px' : '8px' }}>
                 <div className="print-logo" style={isTemplate ? { width: '55px' } : undefined}><img src={logoImage} alt="Laser Food" /></div>
                 <div className="print-title-section" style={isTemplate ? { padding: '0 10px' } : undefined}>
-                  <h1 style={{ fontSize: isTemplate ? '12pt' : (page.productName ? '14pt' : '18pt'), marginBottom: isTemplate ? '2px' : '8px' }}>{pageTitle}</h1>
-                  {isSingleWorker && !isTemplate && (
-                    <p style={{ fontSize: '11pt', fontWeight: 700, marginTop: '2px', marginBottom: '2px' }}>Employé: {workerName}</p>
-                  )}
-                  <p style={{ fontSize: isTemplate ? '8pt' : '10pt', fontWeight: 600, marginTop: '2px' }} dir="ltr">{templateFilterLine}</p>
-                  {!isTemplate && (
-                    <p style={{ fontSize: '8pt', color: '#666', marginTop: '2px' }}>Date d'impression: {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+                  <h1 style={{ fontSize: isTemplate ? '12pt' : (page.productName ? '14pt' : '18pt'), marginBottom: isTemplate ? '2px' : '6px' }}>{pageTitle}</h1>
+                  {isTemplate ? (
+                    <p style={{ fontSize: '8pt', fontWeight: 600, marginTop: '2px' }} dir="ltr">{templateFilterLine}</p>
+                  ) : (
+                    <div
+                      dir="ltr"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                        gap: '2px 12px',
+                        fontSize: '9.5pt',
+                        marginTop: '4px',
+                        textAlign: 'left',
+                      }}
+                    >
+                      {isSingleWorker && (
+                        <div><strong>Employé:</strong> {workerName}</div>
+                      )}
+                      {headerInfo.map(h => (
+                        <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
+                      ))}
+                      <div style={{ color: '#666' }}><strong>Imprimé:</strong> {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+                    </div>
                   )}
                 </div>
                 <div className="print-logo" style={isTemplate ? { width: '55px' } : undefined}><img src={logoImage} alt="Laser Food" /></div>
