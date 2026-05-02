@@ -29,7 +29,7 @@ export const translations: Translations = {
   'nav.home': { ar: 'الرئيسية', fr: 'Accueil', en: 'Home' },
   'nav.table': { ar: 'الجدول', fr: 'Tableau', en: 'Table' },
   'nav.customers': { ar: 'العملاء', fr: 'Clients', en: 'Customers' },
-  'nav.workers': { ar: 'العمال', fr: 'Employés', en: 'Workers' },
+  'nav.workers': { ar: 'إدارة العمال', fr: 'Gestion des employés', en: 'Workers Management' },
   'nav.products': { ar: 'المنتجات', fr: 'Produits', en: 'Products' },
   'nav.stats': { ar: 'الإحصائيات', fr: 'Statistiques', en: 'Statistics' },
   'nav.settings': { ar: 'الإعدادات', fr: 'Paramètres', en: 'Settings' },
