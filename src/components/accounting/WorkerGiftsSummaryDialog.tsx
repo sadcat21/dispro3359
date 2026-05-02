@@ -681,7 +681,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           productName: item.productName,
           offerDetail: item.offerDetails?.[0] || '',
           offerPeriod: item.offerPeriod || '',
-          venteQuantity: Math.round(c.quantitySold),
+          venteQuantity: Math.round(c.quantitySold * ppb),
           giftQuantity: c.giftPieces,
           giftBoxPiece: formatGiftDisplay(c.giftPieces, ppb),
           workerName: c.workerName || '-',
