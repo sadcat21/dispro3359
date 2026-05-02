@@ -371,6 +371,18 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/cash-ledger" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']} allowedCustomRoles={['company_manager', 'accountant', 'warehouse_manager']}>
+          <CashLedger />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/debt-ledger" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']} allowedCustomRoles={['company_manager', 'accountant']}>
+          <DebtLedger />
+        </ProtectedRoute>
+      } />
+
       <Route path="/load-stock" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin', 'supervisor']} allowedCustomRoles={['warehouse_manager']}>
           <LoadStock />
