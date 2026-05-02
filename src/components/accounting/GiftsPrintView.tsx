@@ -73,7 +73,7 @@ type PrintPage = {
   rows: GiftPrintRow[];
   rowOffset: number;
   showTotals: boolean;
-  totals: { vente: number; gift: number; giftBoxPiece: string };
+  totals: { vente: number; venteBoxPiece: string; gift: number; giftBoxPiece: string };
   pageNum: number;
   totalPages: number;
 };
