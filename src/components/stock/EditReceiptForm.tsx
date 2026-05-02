@@ -255,12 +255,30 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
         license_plate: licensePlate || null,
       });
 
+      let photoUrl: string | undefined;
+      if (invoicePhoto) {
+        const ext = invoicePhoto.name.split('.').pop();
+        const fileName = `invoice_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('receipts').upload(fileName, invoicePhoto);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
+        photoUrl = urlData.publicUrl;
+      }
+
+      const filteredExpenses = expenseLines.filter(l => l.description || l.amount);
+
       const { error: receiptError } = await supabase
         .from('stock_receipts')
         .update({
           notes: metaString,
           total_items: validItems.length,
-        })
+          invoice_number: invoiceNumber || null,
+          pallet_count: palletCount || 0,
+          receipt_expenses: totalExpenses || 0,
+          expenses_description: expensesDescriptionStr || null,
+          expenses_breakdown: filteredExpenses as any,
+          ...(photoUrl ? { invoice_photo_url: photoUrl } : {}),
+        } as any)
         .eq('id', receipt.id);
       if (receiptError) throw receiptError;
 
