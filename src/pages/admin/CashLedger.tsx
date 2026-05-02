@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, RefreshCw, Download, Wallet, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
@@ -169,6 +170,7 @@ const CashLedger: React.FC = () => {
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? 'animate-spin' : ''}`} /> تحديث
           </Button>
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 ml-2" /> تصدير CSV</Button>
+          <LedgerAdminActions kind="cash" onDone={() => refetch()} />
         </div>
       </div>
 
