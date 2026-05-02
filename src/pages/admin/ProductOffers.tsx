@@ -79,9 +79,17 @@ const ProductOffers: React.FC = () => {
     offer.product?.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeOffers = filteredOffers.filter(o => o.is_active);
-  const inactiveOffers = filteredOffers.filter(o => !o.is_active);
-  const [statusTab, setStatusTab] = useState<'active' | 'inactive'>('active');
+  const isExpired = (o: ProductOfferWithDetails) => {
+    if (!o.end_date) return false;
+    const end = new Date(o.end_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return end < today;
+  };
+  const activeOffers = filteredOffers.filter(o => o.is_active && !isExpired(o));
+  const expiredOffers = filteredOffers.filter(o => isExpired(o));
+  const inactiveOffers = filteredOffers.filter(o => !o.is_active && !isExpired(o));
+  const [statusTab, setStatusTab] = useState<'active' | 'inactive' | 'expired'>('active');
 
   const handleEdit = (offer: ProductOfferWithDetails) => {
     setEditOffer(offer);
