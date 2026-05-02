@@ -200,7 +200,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
             rows: [],
             rowOffset: i * ROWS_PER_PAGE,
             showTotals: true,
-            totals: { vente: 0, gift: 0, giftBoxPiece: '' },
+            totals: { vente: 0, venteBoxPiece: '', gift: 0, giftBoxPiece: '' },
             pageNum: i + 1,
             totalPages: numTemplatePages,
           });
