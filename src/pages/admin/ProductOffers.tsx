@@ -218,6 +218,26 @@ const ProductOffers: React.FC = () => {
                               : `${tier.worker_reward_amount}%`}
                           </Badge>
                         )}
+                        {tier.id && canManage && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs ms-auto"
+                            onClick={() => setExtendTarget({
+                              offerId: offer.id,
+                              offerName: offer.name,
+                              tierId: tier.id,
+                              tierLabel: `${t('offers.tier')} ${index + 1}`,
+                              mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                            })}
+                          >
+                            {isOfferRunning(offer) ? (
+                              <><Clock className="w-3 h-3 me-1" />تمديد</>
+                            ) : (
+                              <><PlayCircle className="w-3 h-3 me-1" />استئناف</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -244,6 +264,25 @@ const ProductOffers: React.FC = () => {
                       <Edit2 className="w-4 h-4 me-2" />
                       {t('common.edit')}
                     </Button>
+                    {canManage && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setExtendTarget({
+                          offerId: offer.id,
+                          offerName: offer.name,
+                          tierId: null,
+                          tierLabel: null,
+                          mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                        })}
+                      >
+                        {isOfferRunning(offer) ? (
+                          <><Clock className="w-4 h-4 me-2" />تمديد العرض</>
+                        ) : (
+                          <><PlayCircle className="w-4 h-4 me-2" />استئناف العرض</>
+                        )}
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
