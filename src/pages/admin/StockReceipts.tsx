@@ -878,6 +878,10 @@ const StockReceipts: React.FC = () => {
           notes={(() => {
             try { const n = JSON.parse(viewReceipt.notes || '{}'); return n.text; } catch { return viewReceipt.notes; }
           })()}
+          palletCount={(viewReceipt as any).pallet_count}
+          receiptExpenses={(viewReceipt as any).receipt_expenses}
+          expensesDescription={(viewReceipt as any).expenses_description}
+          expensesBreakdown={(viewReceipt as any).expenses_breakdown}
         />
       )}
 
