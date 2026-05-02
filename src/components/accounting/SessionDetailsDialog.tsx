@@ -488,6 +488,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 <PromoTrackingSummary
                   items={liveCalc.promoTracking}
                   workerName={session.worker?.full_name}
+                  periodStart={session.period_start}
+                  periodEnd={session.period_end}
                 />
               </CollapsibleSection>
             )}
