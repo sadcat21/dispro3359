@@ -27,11 +27,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
-import { isAdminRole } from '@/lib/utils';
+import { isAdminRole, isCompanyManagerRole } from '@/lib/utils';
 
 const ProductOffers: React.FC = () => {
   const { t, language, dir } = useLanguage();
-  const { role } = useAuth();
+  const { role, activeRole } = useAuth();
   const navigate = useNavigate();
   const { offers, isLoading, fetchOffers, deleteOffer, toggleOfferStatus } = useProductOffers();
   
@@ -44,7 +44,8 @@ const ProductOffers: React.FC = () => {
   
   const isAdmin = isAdminRole(role);
   const isBranchAdmin = role === 'branch_admin';
-  const canManage = isAdmin || isBranchAdmin;
+  const isCompanyManager = isCompanyManagerRole(activeRole?.custom_role_code);
+  const canManage = isAdmin || isBranchAdmin || isCompanyManager;
   const isAddOfferHidden = useIsElementHidden('button', 'add_offer');
 
   useEffect(() => {
