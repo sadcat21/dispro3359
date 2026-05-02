@@ -313,6 +313,14 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     setItems([{ product_id: '', quantity: 0 }]);
     setPalletCount(0);
     setNotes('');
+    setStep(1);
+    setNcConstatBy('');
+    setNcAffectation('');
+    setNcType('interne');
+    setNcClientName('');
+    setNcClientContact('');
+    setNcDescription('');
+    setNcActions('');
   };
 
   const getProductName = (id: string) => products.find(p => p.id === id)?.name || 'اختر منتج';
