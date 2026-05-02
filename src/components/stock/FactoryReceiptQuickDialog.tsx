@@ -577,23 +577,38 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
               </div>
 
-              {/* Receipt Expenses (e.g., external worker fee) */}
+              {/* Receipt Expenses (multi) */}
               <div className="border rounded-lg p-2.5 bg-amber-50/40 dark:bg-amber-950/20 space-y-2">
-                <Label className="text-xs font-semibold">💰 مصاريف الاستلام</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-[10px] text-muted-foreground">المبلغ (دج)</Label>
-                    <Input type="number" min={0} value={receiptExpenses}
-                      onChange={e => setReceiptExpenses(parseFloat(e.target.value) || 0)}
-                      className="text-center h-8 text-sm" placeholder="0" />
-                  </div>
-                  <div>
-                    <Label className="text-[10px] text-muted-foreground">الوصف</Label>
-                    <Input value={expensesDescription}
-                      onChange={e => setExpensesDescription(e.target.value)}
-                      className="h-8 text-xs" placeholder="مثال: عامل خارجي" />
-                  </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold">💰 مصاريف الاستلام</Label>
+                  <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+                    onClick={() => setExpenseLines(prev => [...prev, { description: '', amount: 0 }])}>
+                    <Plus className="w-3 h-3 ml-1" /> إضافة مصروف
+                  </Button>
                 </div>
+                {expenseLines.length === 0 ? (
+                  <p className="text-[10px] text-muted-foreground text-center py-1">لا توجد مصاريف</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {expenseLines.map((line, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <Input value={line.description}
+                          onChange={e => setExpenseLines(prev => prev.map((l, i) => i === idx ? { ...l, description: e.target.value } : l))}
+                          className="h-8 text-xs flex-1" placeholder="الوصف (مثال: عامل خارجي)" />
+                        <Input type="number" min={0} value={line.amount || ''}
+                          onChange={e => setExpenseLines(prev => prev.map((l, i) => i === idx ? { ...l, amount: parseFloat(e.target.value) || 0 } : l))}
+                          className="h-8 text-xs w-24 text-center" placeholder="المبلغ" />
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                          onClick={() => setExpenseLines(prev => prev.filter((_, i) => i !== idx))}>
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="text-[11px] font-bold text-amber-700 text-end pt-1 border-t">
+                      الإجمالي: {totalExpenses.toLocaleString()} دج
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Driver Info */}
