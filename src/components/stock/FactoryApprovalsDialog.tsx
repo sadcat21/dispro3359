@@ -19,6 +19,8 @@ import { formatDate } from '@/utils/formatters';
 import { parseReceiptItemBreakdown, parseReceiptMeta } from '@/utils/stockReceipt';
 import { boxesToBP, dbBPDisplay, dbBPToBoxes, parseBP } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import WorkflowStatusBadge from '@/components/stock/WorkflowStatusBadge';
+import { useApproveFactoryOrder, useRejectFactoryOrder } from '@/hooks/useFactoryOrderWorkflow';
 
 interface Props {
   open: boolean;
@@ -91,6 +93,8 @@ const fmt = (qty: number, ppb: number): string => ppb > 1 ? dbBPDisplay(qty, ppb
 
 const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const { workerId, activeBranch } = useAuth();
+  const approveFactoryOrder = useApproveFactoryOrder();
+  const rejectFactoryOrder = useRejectFactoryOrder();
   const [branchId, setBranchId] = useState<string | null>(null);
   const [tab, setTab] = useState<'receipts' | 'deliveries'>('receipts');
   const [receipts, setReceipts] = useState<ReceiptRecord[]>([]);
@@ -684,7 +688,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         .select('*')
         .eq('branch_id', branchId)
         .eq('order_type', 'sending')
-        .eq('status', 'pending_approval')
+        .in('status', ['pending_approval', 'pending_branch_manager', 'pending_assistant_gm', 'pending_system_manager'])
         .order('created_at', { ascending: false });
 
       const dIds = (dData || []).map(d => d.id);
@@ -791,16 +795,11 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!workerId || d.frozen_at) return;
     setProcessingId(d.id);
     try {
-      // مدير الفرع يحوّل التسليم للإدارة العليا — لا تطبيق نهائي للحركات هنا
-      await supabase.from('factory_orders').update({
-        status: 'pending_assistant',
-        branch_approved_by: workerId,
-        branch_approved_at: new Date().toISOString(),
-      }).eq('id', d.id);
-      toast.success('تم إرسال طلب التسليم للإدارة العليا');
+      // Uses approve_factory_order RPC — auto-detects current stage and writes to ledger/transitions
+      await approveFactoryOrder.mutateAsync({ orderId: d.id });
       await fetchData();
     } catch (e: any) {
-      toast.error(e.message || 'خطأ');
+      // toast handled inside the hook
     } finally { setProcessingId(null); }
   };
 
@@ -808,15 +807,20 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!rejectNote.trim()) { toast.error('اكتب سبب الرفض'); return; }
     setProcessingId(id);
     try {
-      const table = kind === 'receipt' ? 'stock_receipts' : 'factory_orders';
-      await supabase.from(table).update({
-        status: 'rejected', rejection_note: rejectNote.trim(),
-      }).eq('id', id);
-      toast.success('تم الرفض');
+      if (kind === 'delivery') {
+        // Uses reject_factory_order RPC — records reason in workflow transitions
+        await rejectFactoryOrder.mutateAsync({ orderId: id, reason: rejectNote.trim() });
+      } else {
+        await supabase.from('stock_receipts').update({
+          status: 'rejected', rejection_note: rejectNote.trim(),
+        }).eq('id', id);
+        toast.success('تم الرفض');
+      }
       setRejectingId(null); setRejectNote('');
       await fetchData();
     } catch (e: any) {
-      toast.error(e.message || 'خطأ');
+      // toast handled in hook for delivery case
+      if (kind === 'receipt') toast.error(e.message || 'خطأ');
     } finally { setProcessingId(null); }
   };
 
@@ -1166,6 +1170,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-sm font-semibold">تسليم تالف للمصنع</span>
+                <WorkflowStatusBadge documentType="factory_order" statusCode={d.status} className="text-[10px]" />
                 {d.frozen_at && <Badge className="bg-blue-600 text-white text-[10px]"><Lock className="w-2.5 h-2.5 ml-0.5" />مؤجّل</Badge>}
               </div>
               <div className="text-[10px] text-muted-foreground">

@@ -8736,6 +8736,10 @@ export type Database = {
         }
         Returns: Json
       }
+      unload_session_atomic: {
+        Args: { p_items: Json; p_session_id: string }
+        Returns: Json
+      }
       validate_workflow_transition: {
         Args: {
           p_actor_role?: Database["public"]["Enums"]["app_role"]
