@@ -93,10 +93,23 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
           .eq('key', DB_SETTINGS_KEY)
           .maybeSingle();
         
+        const allKeys = ALL_PRINT_COLUMNS.map(c => c.key);
+        const NEW_DEFAULT_ON: GiftPrintColumnKey[] = ['tranche'];
+        const mergeOrder = (saved: GiftPrintColumnKey[]) => {
+          const filtered = saved.filter(k => allKeys.includes(k));
+          const missing = allKeys.filter(k => !filtered.includes(k));
+          return [...filtered, ...missing];
+        };
+        const mergeSelected = (saved: GiftPrintColumnKey[]) => {
+          const filtered = saved.filter(k => allKeys.includes(k));
+          NEW_DEFAULT_ON.forEach(k => { if (!filtered.includes(k)) filtered.push(k); });
+          return filtered;
+        };
+
         if (data?.value) {
           const parsed = JSON.parse(data.value);
-          if (parsed.columns?.length) setSelectedColumns(parsed.columns);
-          if (parsed.columnOrder?.length) setColumnOrder(parsed.columnOrder);
+          if (parsed.columns?.length) setSelectedColumns(mergeSelected(parsed.columns));
+          if (parsed.columnOrder?.length) setColumnOrder(mergeOrder(parsed.columnOrder));
           if (typeof parsed.separateByProduct === 'boolean') setSeparateByProduct(parsed.separateByProduct);
           setLoaded(true);
           return;
@@ -105,8 +118,14 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
 
       // Fallback to localStorage
       try {
+        const allKeys = ALL_PRINT_COLUMNS.map(c => c.key);
         const savedCols = localStorage.getItem(STORAGE_KEY);
-        if (savedCols) setSelectedColumns(JSON.parse(savedCols));
+        if (savedCols) {
+          const parsed: GiftPrintColumnKey[] = JSON.parse(savedCols);
+          const filtered = parsed.filter(k => allKeys.includes(k));
+          if (!filtered.includes('tranche')) filtered.push('tranche');
+          setSelectedColumns(filtered);
+        }
         const savedSep = localStorage.getItem(SEPARATE_KEY);
         if (savedSep !== null) setSeparateByProduct(JSON.parse(savedSep));
       } catch {}
