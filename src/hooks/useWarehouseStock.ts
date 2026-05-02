@@ -34,6 +34,10 @@ export interface StockReceipt {
   total_items: number | null;
   status: string;
   created_at: string;
+  pallet_count?: number | null;
+  receipt_expenses?: number | null;
+  expenses_description?: string | null;
+  expenses_breakdown?: any;
   items?: StockReceiptItem[];
   creator?: { full_name: string };
 }

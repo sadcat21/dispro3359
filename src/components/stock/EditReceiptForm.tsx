@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Trash2, Plus, Truck, User, Phone, Car } from 'lucide-react';
+import { Loader2, Package, Trash2, Plus, Truck, User, Phone, Car, Camera, ArrowDownToLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { parseBP, boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
@@ -72,18 +72,47 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
     });
   };
 
+  const initialBreakdown: { description: string; amount: number }[] = useMemo(() => {
+    const raw = (receipt as any).expenses_breakdown;
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((l: any) => ({ description: String(l?.description || ''), amount: Number(l?.amount || 0) }));
+    }
+    const legacyAmt = Number((receipt as any).receipt_expenses) || 0;
+    const legacyDesc = String((receipt as any).expenses_description || '');
+    if (legacyAmt > 0 || legacyDesc) {
+      return [{ description: legacyDesc, amount: legacyAmt }];
+    }
+    return [];
+  }, [receipt]);
+
   const [editItems, setEditItems] = useState<EditItem[]>(() => convertDbItemsToEditItems(initialItems));
   const [receiptSource, setReceiptSource] = useState<'factory' | 'branch'>(receiptMeta.source || 'factory');
   const [driverName, setDriverName] = useState(receiptMeta.driver_name || '');
   const [driverPhone, setDriverPhone] = useState(receiptMeta.driver_phone || '');
   const [licensePlate, setLicensePlate] = useState(receiptMeta.license_plate || '');
   const [notesText, setNotesText] = useState(receiptMeta.text || '');
+  const [invoiceNumber, setInvoiceNumber] = useState(receipt.invoice_number || '');
+  const [palletCount, setPalletCount] = useState<number>(Number((receipt as any).pallet_count) || 0);
+  const [expenseLines, setExpenseLines] = useState<{ description: string; amount: number }[]>(initialBreakdown);
+  const [invoicePhoto, setInvoicePhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(receipt.invoice_photo_url || null);
   const [isSaving, setIsSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
   const [newQtyFields, setNewQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compQtyFields, setCompQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compOffersQtyFields, setCompOffersQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+
+  const totalExpenses = expenseLines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const expensesDescriptionStr = expenseLines
+    .filter(l => l.description || l.amount)
+    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} دج`)
+    .join(' • ');
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setInvoicePhoto(file); setPhotoPreview(URL.createObjectURL(file)); }
+  };
   const [lotNumber, setLotNumber] = useState('');
   const [manufacturingDate, setManufacturingDate] = useState('');
   const [manufacturingTime, setManufacturingTime] = useState('');
@@ -226,12 +255,30 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
         license_plate: licensePlate || null,
       });
 
+      let photoUrl: string | undefined;
+      if (invoicePhoto) {
+        const ext = invoicePhoto.name.split('.').pop();
+        const fileName = `invoice_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('receipts').upload(fileName, invoicePhoto);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
+        photoUrl = urlData.publicUrl;
+      }
+
+      const filteredExpenses = expenseLines.filter(l => l.description || l.amount);
+
       const { error: receiptError } = await supabase
         .from('stock_receipts')
         .update({
           notes: metaString,
           total_items: validItems.length,
-        })
+          invoice_number: invoiceNumber || null,
+          pallet_count: palletCount || 0,
+          receipt_expenses: totalExpenses || 0,
+          expenses_description: expensesDescriptionStr || null,
+          expenses_breakdown: filteredExpenses as any,
+          ...(photoUrl ? { invoice_photo_url: photoUrl } : {}),
+        } as any)
         .eq('id', receipt.id);
       if (receiptError) throw receiptError;
 
@@ -305,7 +352,12 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
           ...receipt,
           notes: metaString,
           total_items: validItems.length,
-        },
+          invoice_number: invoiceNumber || null,
+          pallet_count: palletCount || 0,
+          receipt_expenses: totalExpenses || 0,
+          expenses_description: expensesDescriptionStr || null,
+          expenses_breakdown: filteredExpenses,
+        } as any,
       });
     } catch (err: any) {
       console.error(err);
@@ -317,12 +369,71 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
 
   return (
     <div className="space-y-4" dir="rtl">
+      <div className="flex items-center gap-2 text-sm font-semibold text-lime-700">
+        <ArrowDownToLine className="w-4 h-4" /> استلام مخزون
+      </div>
+
       <div>
         <Label className="text-xs font-semibold">مصدر الاستلام</Label>
         <div className="mt-1 grid grid-cols-2 gap-2">
           <Button type="button" variant={receiptSource === 'factory' ? 'default' : 'outline'} onClick={() => setReceiptSource('factory')}>🏭 المصنع</Button>
           <Button type="button" variant={receiptSource === 'branch' ? 'default' : 'outline'} onClick={() => setReceiptSource('branch')}>🏢 فرع آخر</Button>
         </div>
+      </div>
+
+      {/* Invoice & Pallets */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label className="text-xs">رقم الفاتورة</Label>
+          <Input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} className="text-right h-8 text-sm" />
+        </div>
+        <div>
+          <Label className="text-xs">🪵 باليطات</Label>
+          <Input type="number" min={0} value={palletCount}
+            onChange={e => setPalletCount(parseInt(e.target.value) || 0)}
+            className="text-center h-8 text-sm" />
+        </div>
+      </div>
+
+      {/* Multi Expenses */}
+      <div className="rounded-lg border bg-amber-50/40 dark:bg-amber-950/20 p-2.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-semibold">💰 مصاريف الاستلام</Label>
+          <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+            onClick={() => setExpenseLines(prev => [...prev, { description: '', amount: 0 }])}>
+            <Plus className="w-3 h-3 ml-1" /> إضافة مصروف
+          </Button>
+        </div>
+        {expenseLines.length === 0 ? (
+          <p className="text-[10px] text-muted-foreground text-center py-1">لا توجد مصاريف</p>
+        ) : (
+          <div className="space-y-1.5">
+            {expenseLines.map((line, idx) => (
+              <div key={idx} className="flex items-center gap-1.5">
+                <Input value={line.description}
+                  onChange={e => setExpenseLines(prev => prev.map((l, i) => i === idx ? { ...l, description: e.target.value } : l))}
+                  className="h-8 text-xs flex-1" placeholder="الوصف (مثال: عامل خارجي)" />
+                <Input type="number" min={0} value={line.amount || ''}
+                  onChange={e => setExpenseLines(prev => prev.map((l, i) => i === idx ? { ...l, amount: parseFloat(e.target.value) || 0 } : l))}
+                  className="h-8 text-xs w-24 text-center" placeholder="المبلغ" />
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                  onClick={() => setExpenseLines(prev => prev.filter((_, i) => i !== idx))}>
+                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                </Button>
+              </div>
+            ))}
+            <div className="text-[11px] font-bold text-amber-700 text-end pt-1 border-t">
+              الإجمالي: {totalExpenses.toLocaleString()} دج
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Photo */}
+      <div>
+        <Label className="text-xs flex items-center gap-1"><Camera className="w-3 h-3" /> صورة الفاتورة</Label>
+        <Input type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} className="text-xs h-8" />
+        {photoPreview && <img src={photoPreview} className="mt-1 w-full h-24 object-cover rounded-lg" alt="preview" />}
       </div>
 
       <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
