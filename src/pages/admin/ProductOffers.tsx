@@ -89,7 +89,7 @@ const ProductOffers: React.FC = () => {
   const activeOffers = filteredOffers.filter(o => o.is_active && !isExpired(o));
   const expiredOffers = filteredOffers.filter(o => isExpired(o));
   const inactiveOffers = filteredOffers.filter(o => !o.is_active && !isExpired(o));
-  const [statusTab, setStatusTab] = useState<'active' | 'inactive' | 'expired'>('active');
+  const [statusTab, setStatusTab] = useState<'active' | 'inactive' | 'expired' | 'all'>('active');
 
   const handleEdit = (offer: ProductOfferWithDetails) => {
     setEditOffer(offer);
