@@ -233,14 +233,27 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!w) return;
     const dateStr = new Date(d.created_at).toLocaleString('fr');
 
-    const itemsRows = d.items.map((it, i) => `
+    const itemsRows = d.items.map((it, i) => {
+      const ppb = it.pieces_per_box || 1;
+      const parsed = parseBP(Number(it.quantity || 0).toFixed(2), ppb);
+      return `
       <tr>
         <td>${i + 1}</td>
         <td>${it.product_app_name || it.product_name}</td>
-        <td style="text-align:center">${it.pieces_per_box}</td>
-        <td style="text-align:center;font-weight:bold">${fmt(it.quantity, it.pieces_per_box)}</td>
+        <td style="text-align:center">${it.lot_number || '-'}</td>
+        <td style="text-align:center">${it.manufacturing_date || '-'}</td>
+        <td style="text-align:center">${it.manufacturing_time || '-'}</td>
+        <td style="text-align:center">${it.delivery_date || '-'}</td>
+        <td style="text-align:center">${parsed.boxes}</td>
+        <td style="text-align:center">${parsed.pieces}</td>
+        <td style="text-align:center;font-weight:bold">${parsed.display}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
+
+    const totalBoxesSum = d.items.reduce((s, it) => s + dbBPToBoxes(it.quantity, it.pieces_per_box || 1), 0);
+    const totalAvgPpb = d.items.length > 0 ? (d.items[0].pieces_per_box || 1) : 1;
+    const totalDisplay = boxesToBP(totalBoxesSum, totalAvgPpb);
 
     w.document.write(`
       <html dir="ltr"><head><title>Bon de Livraison Usine - Détails</title>
@@ -253,7 +266,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         .row{font-size:13px;margin:4px 0}
         .label{color:#555}
         table{width:100%;border-collapse:collapse;margin-top:6px}
-        th,td{border:1px solid #000;padding:5px 8px;font-size:12px;text-align:left}
+        th,td{border:1px solid #000;padding:5px 6px;font-size:11px;text-align:left}
         th{background:#f0f0f0}
         .signature{display:flex;justify-content:space-between;margin-top:40px}
         .signature div{text-align:center;width:40%}
@@ -274,12 +287,24 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <table>
             <thead>
               <tr>
-                <th>#</th><th>Produit</th>
-                <th style="text-align:center">Pièces/Carton</th>
-                <th style="text-align:center">Quantité</th>
+                <th>#</th>
+                <th>Produit</th>
+                <th style="text-align:center">N° de LOT</th>
+                <th style="text-align:center">Date fab.</th>
+                <th style="text-align:center">Heure fab.</th>
+                <th style="text-align:center">Date liv.</th>
+                <th style="text-align:center">Cartons</th>
+                <th style="text-align:center">Pièces</th>
+                <th style="text-align:center">Total (B.P)</th>
               </tr>
             </thead>
-            <tbody>${itemsRows}</tbody>
+            <tbody>
+              ${itemsRows}
+              <tr>
+                <td colspan="8" style="text-align:right;font-weight:bold">Total général (B.P)</td>
+                <td style="text-align:center;font-weight:bold">${totalDisplay}</td>
+              </tr>
+            </tbody>
           </table>
         ` : ''}
 
