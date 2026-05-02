@@ -738,6 +738,24 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
     return giftsData?.items?.find(i => i.productId === printSettings.productFilter)?.productName || '';
   }, [printSettings, giftsData]);
 
+  const offerPeriodLabel = useMemo(() => {
+    const periods = giftsData?.offerPeriods || {};
+    const productIds = printSettings && printSettings.productFilter !== 'all'
+      ? [printSettings.productFilter]
+      : Object.keys(periods);
+    let minStart: string | null = null;
+    let maxEnd: string | null = null;
+    for (const pid of productIds) {
+      const p = periods[pid];
+      if (!p) continue;
+      if (p.start && (!minStart || p.start < minStart)) minStart = p.start;
+      if (p.end && (!maxEnd || p.end > maxEnd)) maxEnd = p.end;
+    }
+    if (!minStart && !maxEnd) return '';
+    const fmt = (d: string | null) => d ? format(new Date(d), 'dd/MM/yyyy') : '...';
+    return `${fmt(minStart)} → ${fmt(maxEnd)}`;
+  }, [printSettings, giftsData]);
+
   const handleA4Print = useCallback((settings: GiftPrintSettings) => {
     if (settings.isTemplate) {
       // Open template dialog instead of printing directly
