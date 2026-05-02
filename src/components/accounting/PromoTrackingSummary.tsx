@@ -9,6 +9,8 @@ interface PromoTrackingSummaryProps {
   items: PromoTrackingItem[];
   totalGiftValue?: number;
   workerName?: string;
+  periodStart?: string;
+  periodEnd?: string;
 }
 
 const formatGiftDisplay = (giftPieces: number, piecesPerBox: number): string => {
@@ -19,26 +21,28 @@ const formatGiftDisplay = (giftPieces: number, piecesPerBox: number): string => 
   return `${boxes}.${piecesStr}`;
 };
 
-const formatGiftLabel = (giftPieces: number, _piecesPerBox: number): string => {
-  if (giftPieces <= 0) return '0';
-  return `${giftPieces} قطعة`;
-};
-
-const formatDate = (dateStr: string): string => {
-  if (!dateStr) return '-';
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ar-DZ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return dateStr;
-  }
-};
-
-const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, totalGiftValue, workerName }) => {
-  const { t } = useLanguage();
+const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, totalGiftValue, workerName, periodStart, periodEnd }) => {
+  const { t, tp, language } = useLanguage();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [printingIdx, setPrintingIdx] = useState<number | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const formatGiftLabel = (giftPieces: number): string => {
+    if (giftPieces <= 0) return '0';
+    if (language === 'fr' || language === 'en') return `${giftPieces} pcs`;
+    return `${giftPieces} قطعة`;
+  };
+
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(dateStr);
+      const locale = language === 'fr' ? 'fr-FR' : language === 'en' ? 'en-US' : 'ar-DZ';
+      return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return dateStr;
+    }
+  };
 
   const handlePrint = useCallback((idx: number) => {
     setPrintingIdx(idx);
@@ -51,7 +55,7 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
   if (items.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-3 text-sm">
-        لا توجد عروض مطبقة في هذه الفترة
+        {tp('print.promo.no_promos')}
       </p>
     );
   }
@@ -60,13 +64,13 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
 
   return (
     <div className="space-y-2">
-      {/* Promo items table */}
+      {/* Promo items table - shown first */}
       <div className="bg-muted/30 rounded-lg overflow-hidden">
         <div className="grid grid-cols-12 gap-1 text-[10px] text-muted-foreground font-medium p-2 border-b">
-          <span className="col-span-4">{t('stock.product') || 'المنتج'}</span>
-          <span className="col-span-2 text-center">المبيعات</span>
-          <span className="col-span-3 text-center">الهدايا</span>
-          <span className="col-span-3 text-end">العرض</span>
+          <span className="col-span-4">{t('stock.product') || tp('print.promo.product')}</span>
+          <span className="col-span-2 text-center">{tp('print.promo.sales')}</span>
+          <span className="col-span-3 text-center">{tp('print.promo.gift_delivered')}</span>
+          <span className="col-span-3 text-end">{tp('print.promo.offer_summary')}</span>
         </div>
         {items.map((item, idx) => {
           const isExpanded = expandedIdx === idx;
@@ -87,11 +91,11 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
                 </div>
                 <span className="col-span-2 text-center font-bold">{item.quantitySold}</span>
                 <div className="col-span-3 text-center">
-                  <span className="font-bold text-purple-600" title={formatGiftLabel(item.giftQuantity, item.piecesPerBox)}>
+                  <span className="font-bold text-purple-600" title={formatGiftLabel(item.giftQuantity)}>
                     {formatGiftDisplay(item.giftQuantity, item.piecesPerBox)} 🎁
                   </span>
                   <div className="text-[9px] text-muted-foreground">
-                    {formatGiftLabel(item.giftQuantity, item.piecesPerBox)}
+                    {formatGiftLabel(item.giftQuantity)}
                   </div>
                 </div>
                 <div className="col-span-3 text-end">
@@ -108,26 +112,42 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
               {/* Expanded customer details */}
               {isExpanded && hasDetails && (
                 <div className="bg-accent/30 border-t border-border">
-                  {/* Print button */}
-                  <div className="flex justify-end px-3 pt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1.5 text-[10px] h-7 rounded-lg print:hidden"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePrint(idx);
-                      }}
-                    >
-                      <Printer className="w-3 h-3" />
-                      طباعة
-                    </Button>
-                  </div>
+                  {/* Period + offer summary banner */}
+                  {(periodStart || periodEnd || item.offerDescription || item.offerName) && (
+                    <div className="px-3 py-2 bg-primary/5 border-b border-border/50 flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                        {(periodStart || periodEnd) && (
+                          <span className="text-muted-foreground">
+                            <strong className="text-foreground">{tp('print.promo.period')}:</strong>{' '}
+                            {periodStart ? formatDate(periodStart) : '-'} → {periodEnd ? formatDate(periodEnd) : '-'}
+                          </span>
+                        )}
+                        {(item.offerDescription || item.offerName) && (
+                          <span className="text-muted-foreground">
+                            <strong className="text-foreground">{tp('print.promo.offer_summary')}:</strong>{' '}
+                            <span className="text-primary font-semibold">{item.offerDescription || item.offerName}</span>
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 text-[10px] h-7 rounded-lg print:hidden"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePrint(idx);
+                        }}
+                      >
+                        <Printer className="w-3 h-3" />
+                        {t('common.print') || (language === 'fr' ? 'Imprimer' : 'طباعة')}
+                      </Button>
+                    </div>
+                  )}
                   <div className="grid grid-cols-12 gap-1 text-[9px] text-muted-foreground font-medium px-3 py-1.5 border-b border-border/50">
-                    <span className="col-span-4">العميل</span>
-                    <span className="col-span-2 text-center">الكمية</span>
-                    <span className="col-span-3 text-center">العرض</span>
-                    <span className="col-span-3 text-end">التاريخ</span>
+                    <span className="col-span-4">{tp('print.promo.store_customer')}</span>
+                    <span className="col-span-2 text-center">{tp('print.promo.qty_bought')}</span>
+                    <span className="col-span-3 text-center">{tp('print.promo.gift_delivered')}</span>
+                    <span className="col-span-3 text-end">{tp('print.promo.date_time')}</span>
                   </div>
                   {item.customerDetails.map((cd, cdIdx) => (
                     <div key={cdIdx} className="grid grid-cols-12 gap-1 text-[11px] px-3 py-1.5 border-b border-dashed border-border/30 last:border-0 items-center">
@@ -150,7 +170,7 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
                           {formatGiftDisplay(cd.giftPieces, item.piecesPerBox)}
                         </span>
                         <div className="text-[8px] text-muted-foreground">
-                          {formatGiftLabel(cd.giftPieces, item.piecesPerBox)}
+                          {formatGiftLabel(cd.giftPieces)}
                         </div>
                       </div>
                       <div className="col-span-3 text-end flex items-center justify-end gap-0.5 text-muted-foreground">
@@ -175,6 +195,10 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
           piecesPerBox={printItem.piecesPerBox}
           customerDetails={printItem.customerDetails}
           isVisible={printingIdx !== null}
+          periodStart={periodStart}
+          periodEnd={periodEnd}
+          offerName={printItem.offerName}
+          offerDescription={printItem.offerDescription}
         />
       )}
     </div>
