@@ -62,6 +62,7 @@ const COLUMN_CONFIG: Record<GiftPrintColumnKey, { header: string; width?: string
   wilaya: { header: 'Wilaya', width: '65px' },
   phone: { header: 'Téléphone', width: '95px', className: 'ltr-text' },
   productName: { header: 'Produit', className: '' },
+  tranche: { header: 'Tranche', width: '90px', className: 'small-text center bold' },
   venteQuantity: { header: 'Ventes', width: '45px', className: 'center bold' },
   giftQuantity: { header: 'Gratuit', width: '45px', className: 'center bold' },
   giftBoxPiece: { header: 'Gratuit B.P', width: '55px', className: 'center bold' },
