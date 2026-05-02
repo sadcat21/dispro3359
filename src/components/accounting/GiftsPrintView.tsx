@@ -39,6 +39,8 @@ interface GiftsPrintViewProps {
   dateRange?: string;
   offerPeriod?: string;
   productFilter?: string;
+  branchName?: string;
+  branchWilaya?: string;
   isVisible?: boolean;
   visibleColumns?: GiftPrintColumnKey[];
   separateByProduct?: boolean;
@@ -145,7 +147,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
 };
 
 const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
-  ({ rows, summaryRows, workerNames, workerName, dateRange, offerPeriod, productFilter, isVisible = false, visibleColumns, separateByProduct = true, printSummary = false, summaryOnly = false, isTemplate = false, templatePageCount = 2, templateProductName = '', templateOfferDetail = '' }, ref) => {
+  ({ rows, summaryRows, workerNames, workerName, dateRange, offerPeriod, productFilter, branchName, branchWilaya, isVisible = false, visibleColumns, separateByProduct = true, printSummary = false, summaryOnly = false, isTemplate = false, templatePageCount = 2, templateProductName = '', templateOfferDetail = '' }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
     const isSingleWorker = !!workerName && workerName !== 'Tous les employés' && workerName !== 'جميع العمال';
@@ -186,6 +188,8 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
 
     // Split header into two rows: text info + dedicated dates row
     const headerInfo: { label: string; value: string }[] = [];
+    if (branchName) headerInfo.push({ label: 'Filiale', value: branchName });
+    if (branchWilaya) headerInfo.push({ label: 'Wilaya', value: branchWilaya });
     if (!isSingleWorker && workerLabel !== 'Tous les employés' && workerLabel !== 'جميع العمال') {
       headerInfo.push({ label: 'Employé', value: workerLabel });
     }
