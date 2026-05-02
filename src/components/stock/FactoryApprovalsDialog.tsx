@@ -925,6 +925,12 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <Printer className="w-3.5 h-3.5 ml-1" /> طباعة للمصنع (Non Conformité)
               </Button>
             )}
+            {kind === 'delivery' && (
+              <Button size="sm" variant="outline" className="border-amber-600 text-amber-700"
+                onClick={() => printPalletReturn(record as DeliveryRecord)}>
+                <Printer className="w-3.5 h-3.5 ml-1" /> Bon de retour palettes
+              </Button>
+            )}
             <Button size="sm" variant="outline" disabled={isProcessing}
               className={isFrozen ? 'border-blue-500 text-blue-700' : 'border-amber-500 text-amber-700'}
               onClick={() => toggleFreeze(kind, record.id, !isFrozen)}>
