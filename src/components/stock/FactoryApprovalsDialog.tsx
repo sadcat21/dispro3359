@@ -483,6 +483,19 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         .signatures{display:flex;justify-content:space-between;margin-top:30px}
         .signatures div{text-align:center;width:45%}
         .sig-line{border-top:1px solid #000;margin-top:55px;padding-top:5px;font-size:12px}
+        .page-break{page-break-before:always}
+        .pallet-h1{text-align:center;font-size:22px;margin:28px 0 22px 0;text-decoration:underline;font-weight:bold}
+        .pallet-table{width:75%;margin:0 auto;border-collapse:collapse}
+        .pallet-table th,.pallet-table td{border:1.5px solid #000;padding:10px 12px;font-size:14px}
+        .pallet-table th{background:#f5f5f5;font-weight:bold;text-align:left;width:50%}
+        .pallet-table td.qty{text-align:center;font-size:32px;font-weight:bold;height:110px;vertical-align:middle}
+        .pallet-sigs{display:flex;justify-content:space-between;margin-top:70px;padding:0 30px}
+        .pallet-sigs .sig{text-align:center;width:40%}
+        .pallet-sigs .sig-title{font-size:13px;margin-bottom:55px}
+        .pallet-sigs .sig-line{border-top:1px solid #000;margin-top:0;padding-top:4px;font-size:12px}
+        .center-sig{text-align:center;margin-top:35px}
+        .center-sig .sig-title{margin-bottom:55px;font-size:13px}
+        .center-sig .sig-line{display:inline-block;border-top:1px solid #000;padding-top:4px;min-width:240px;margin-top:0}
       </style></head><body>
 
         <div class="header">
