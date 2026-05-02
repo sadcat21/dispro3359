@@ -135,7 +135,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
     case 'productName': return row.productName;
     case 'tranche': return row.offerDetail || '-';
     case 'offerPeriod': return row.offerPeriod ? <span style={{ whiteSpace: 'nowrap' }}>{row.offerPeriod}</span> : '-';
-    case 'venteQuantity': return formatBoxPiece(row.venteQuantity, row.piecesPerBox);
+    case 'venteQuantity': return formatBoxPiece(row.venteQuantity * (row.piecesPerBox || 1), row.piecesPerBox);
     case 'giftQuantity': return row.giftQuantity;
     case 'giftBoxPiece': return row.giftBoxPiece;
     case 'workerName': return row.workerName;
