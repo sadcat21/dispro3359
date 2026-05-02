@@ -551,7 +551,10 @@ const StockReceipts: React.FC = () => {
                             {aggregated.map((agg) => {
                               const prod = productMap.get(agg.product_id);
                               const ppb = prod?.pieces_per_box || 20;
-                              const total = agg.new_quantity + agg.compensation_quantity + agg.compensation_offers_quantity;
+                              const totalBoxes =
+                                dbBPToBoxes(agg.new_quantity, ppb) +
+                                dbBPToBoxes(agg.compensation_quantity, ppb) +
+                                dbBPToBoxes(agg.compensation_offers_quantity, ppb);
                               return (
                                 <tr key={agg.product_id} className="border-b last:border-b-0">
                                   <td className="p-2 text-right">
@@ -564,10 +567,10 @@ const StockReceipts: React.FC = () => {
                                       <span className="font-medium truncate">{getProductDisplayName(prod) || prod?.name || agg.product_id}</span>
                                     </div>
                                   </td>
-                                  <td className="p-2 text-center font-semibold text-blue-700">{agg.new_quantity > 0 ? boxesToBP(agg.new_quantity, ppb) : '-'}</td>
-                                  <td className="p-2 text-center font-semibold text-red-700">{agg.compensation_quantity > 0 ? boxesToBP(agg.compensation_quantity, ppb) : '-'}</td>
-                                  <td className="p-2 text-center font-semibold text-amber-700">{agg.compensation_offers_quantity > 0 ? boxesToBP(agg.compensation_offers_quantity, ppb) : '-'}</td>
-                                  <td className="p-2 text-center font-bold text-primary">{boxesToBP(total, ppb)}</td>
+                                  <td className="p-2 text-center font-semibold text-blue-700">{agg.new_quantity > 0 ? dbBPDisplay(agg.new_quantity, ppb) : '-'}</td>
+                                  <td className="p-2 text-center font-semibold text-red-700">{agg.compensation_quantity > 0 ? dbBPDisplay(agg.compensation_quantity, ppb) : '-'}</td>
+                                  <td className="p-2 text-center font-semibold text-amber-700">{agg.compensation_offers_quantity > 0 ? dbBPDisplay(agg.compensation_offers_quantity, ppb) : '-'}</td>
+                                  <td className="p-2 text-center font-bold text-primary">{boxesToBP(totalBoxes, ppb)}</td>
                                 </tr>
                               );
                             })}
