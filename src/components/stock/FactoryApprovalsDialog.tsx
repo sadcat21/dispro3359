@@ -973,7 +973,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <Printer className="w-3.5 h-3.5 ml-1" /> طباعة للمصنع (Non Conformité)
               </Button>
             )}
-            {kind === 'delivery' && (
+            {kind === 'delivery' && ((record as DeliveryRecord).pallet_count ?? 0) > 0 && (
               <Button size="sm" variant="outline" className="border-amber-600 text-amber-700"
                 onClick={() => printPalletReturn(record as DeliveryRecord)}>
                 <Printer className="w-3.5 h-3.5 ml-1" /> Bon de retour palettes
