@@ -125,6 +125,7 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
           const parsed: GiftPrintColumnKey[] = JSON.parse(savedCols);
           const filtered = parsed.filter(k => allKeys.includes(k));
           if (!filtered.includes('tranche')) filtered.push('tranche');
+          if (!filtered.includes('offerPeriod')) filtered.push('offerPeriod');
           setSelectedColumns(filtered);
         }
         const savedSep = localStorage.getItem(SEPARATE_KEY);
