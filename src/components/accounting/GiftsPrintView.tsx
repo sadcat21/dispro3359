@@ -186,12 +186,13 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
 
     // Split header into two rows: text info + dedicated dates row
     const headerInfo: { label: string; value: string }[] = [];
-    if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
+    if (!isSingleWorker && workerLabel !== 'Tous les employés' && workerLabel !== 'جميع العمال') {
+      headerInfo.push({ label: 'Employé', value: workerLabel });
+    }
     if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
 
     const dateInfo: { label: string; value: string }[] = [];
     dateInfo.push({ label: 'Période', value: dateRange || '-' });
-    if (offerPeriod) dateInfo.push({ label: "Période d'offre", value: offerPeriod });
     dateInfo.push({ label: 'Imprimé', value: format(new Date(), 'dd/MM/yyyy HH:mm') });
 
     const filterCriteria = [...headerInfo, ...dateInfo].map(h => `${h.label}: ${h.value}`).join('  |  ');
