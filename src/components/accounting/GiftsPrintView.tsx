@@ -147,7 +147,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
 };
 
 const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
-  ({ rows, summaryRows, workerNames, workerName, dateRange, offerPeriod, productFilter, isVisible = false, visibleColumns, separateByProduct = true, printSummary = false, summaryOnly = false, isTemplate = false, templatePageCount = 2, templateProductName = '', templateOfferDetail = '' }, ref) => {
+  ({ rows, summaryRows, workerNames, workerName, dateRange, offerPeriod, productFilter, branchName, branchWilaya, isVisible = false, visibleColumns, separateByProduct = true, printSummary = false, summaryOnly = false, isTemplate = false, templatePageCount = 2, templateProductName = '', templateOfferDetail = '' }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
     const isSingleWorker = !!workerName && workerName !== 'Tous les employés' && workerName !== 'جميع العمال';
