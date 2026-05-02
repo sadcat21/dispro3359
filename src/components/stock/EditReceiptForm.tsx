@@ -72,18 +72,47 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
     });
   };
 
+  const initialBreakdown: { description: string; amount: number }[] = useMemo(() => {
+    const raw = (receipt as any).expenses_breakdown;
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((l: any) => ({ description: String(l?.description || ''), amount: Number(l?.amount || 0) }));
+    }
+    const legacyAmt = Number((receipt as any).receipt_expenses) || 0;
+    const legacyDesc = String((receipt as any).expenses_description || '');
+    if (legacyAmt > 0 || legacyDesc) {
+      return [{ description: legacyDesc, amount: legacyAmt }];
+    }
+    return [];
+  }, [receipt]);
+
   const [editItems, setEditItems] = useState<EditItem[]>(() => convertDbItemsToEditItems(initialItems));
   const [receiptSource, setReceiptSource] = useState<'factory' | 'branch'>(receiptMeta.source || 'factory');
   const [driverName, setDriverName] = useState(receiptMeta.driver_name || '');
   const [driverPhone, setDriverPhone] = useState(receiptMeta.driver_phone || '');
   const [licensePlate, setLicensePlate] = useState(receiptMeta.license_plate || '');
   const [notesText, setNotesText] = useState(receiptMeta.text || '');
+  const [invoiceNumber, setInvoiceNumber] = useState(receipt.invoice_number || '');
+  const [palletCount, setPalletCount] = useState<number>(Number((receipt as any).pallet_count) || 0);
+  const [expenseLines, setExpenseLines] = useState<{ description: string; amount: number }[]>(initialBreakdown);
+  const [invoicePhoto, setInvoicePhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(receipt.invoice_photo_url || null);
   const [isSaving, setIsSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
   const [newQtyFields, setNewQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compQtyFields, setCompQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
   const [compOffersQtyFields, setCompOffersQtyFields] = useState<BoxPieceFields>({ boxes: '0', pieces: '000' });
+
+  const totalExpenses = expenseLines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  const expensesDescriptionStr = expenseLines
+    .filter(l => l.description || l.amount)
+    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} دج`)
+    .join(' • ');
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setInvoicePhoto(file); setPhotoPreview(URL.createObjectURL(file)); }
+  };
   const [lotNumber, setLotNumber] = useState('');
   const [manufacturingDate, setManufacturingDate] = useState('');
   const [manufacturingTime, setManufacturingTime] = useState('');
