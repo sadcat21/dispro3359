@@ -15,6 +15,7 @@ export interface GiftPrintRow {
   phone: string;
   productName: string;
   offerDetail: string;
+  offerPeriod?: string;
   venteQuantity: number;
   giftQuantity: number;
   giftBoxPiece: string;
