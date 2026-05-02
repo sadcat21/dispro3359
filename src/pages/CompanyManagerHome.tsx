@@ -107,6 +107,16 @@ const CompanyManagerHome: React.FC = () => {
         { key: 'warehouse', label: t('stock.warehouse_stock'), icon: Warehouse, path: '/warehouse' },
         { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardCheck, path: '/warehouse-review' },
         { key: 'manual_stock', label: t('company_manager.manual_stock'), icon: Pencil, path: '/warehouse' },
+        { key: 'stock_movements', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
+      ],
+    },
+    {
+      titleKey: 'company_manager.section_executive',
+      icon: BookOpen,
+      items: [
+        { key: 'cash_ledger', label: 'سجل حركة الأموال', icon: Coins, path: '/cash-ledger' },
+        { key: 'debt_ledger', label: 'سجل حركة الديون', icon: HandCoins, path: '/debt-ledger' },
+        { key: 'stock_movements_2', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
       ],
     },
     {
