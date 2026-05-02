@@ -61,6 +61,7 @@ interface ReceiptRecord {
   pallet_count?: number;
   receipt_expenses?: number;
   expenses_description?: string | null;
+  expenses_breakdown?: { description: string; amount: number }[] | null;
   items: ReceiptItemDetail[];
   meta: ReturnType<typeof parseReceiptMeta>;
 }
