@@ -13,6 +13,7 @@ import { Loader2, RefreshCw, Download, Wallet, ArrowDownLeft, ArrowUpRight } fro
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
+import { CASH_MOVEMENT_LABELS, ACCOUNT_TYPE_LABELS, REASON_LABELS, tr } from '@/lib/ledgerLabels';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
