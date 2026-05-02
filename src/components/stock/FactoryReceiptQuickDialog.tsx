@@ -240,8 +240,9 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           }),
           total_items: validItems.length,
           pallet_count: palletCount || 0,
-          receipt_expenses: receiptExpenses || 0,
+          receipt_expenses: totalExpenses || 0,
           expenses_description: expensesDescription || null,
+          expenses_breakdown: expenseLines.filter(l => l.description || l.amount) as any,
           status,
         })
         .select()
