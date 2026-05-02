@@ -1058,8 +1058,8 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                       items={aggregate.calc.promoTracking}
                       totalGiftValue={aggregate.calc.giftOfferValue}
                       workerName={selectedWorkerId !== 'all' ? workerButtons.find(w => w.id === selectedWorkerId)?.full_name : undefined}
-                      periodStart={periodStart}
-                      periodEnd={periodEnd}
+                      periodStart={periodFrom}
+                      periodEnd={periodTo}
                     />
                   ) : (
                     <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 text-slate-400">
