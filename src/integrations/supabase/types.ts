@@ -2177,6 +2177,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "factory_order_items_factory_order_id_fkey"
+            columns: ["factory_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_factory_orders_localized"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "factory_order_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -2192,18 +2199,31 @@ export type Database = {
           branch_approved_at: string | null
           branch_approved_by: string | null
           branch_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          closed_at: string | null
           confirmed_at: string | null
           created_at: string
           created_by: string | null
+          delivered_at: string | null
           frozen_at: string | null
           frozen_by: string | null
           id: string
+          in_production_at: string | null
           linked_receipt_id: string | null
           notes: string | null
           order_type: string
           pallet_count: number | null
+          ready_for_delivery_at: string | null
+          reference_no: number
+          rejected_at: string | null
+          rejected_by: string | null
           rejection_note: string | null
+          rejection_stage: string | null
           status: string
+          system_manager_approved_at: string | null
+          system_manager_approved_by: string | null
           updated_at: string
         }
         Insert: {
@@ -2212,18 +2232,31 @@ export type Database = {
           branch_approved_at?: string | null
           branch_approved_by?: string | null
           branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          closed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
+          delivered_at?: string | null
           frozen_at?: string | null
           frozen_by?: string | null
           id?: string
+          in_production_at?: string | null
           linked_receipt_id?: string | null
           notes?: string | null
           order_type?: string
           pallet_count?: number | null
+          ready_for_delivery_at?: string | null
+          reference_no?: number
+          rejected_at?: string | null
+          rejected_by?: string | null
           rejection_note?: string | null
+          rejection_stage?: string | null
           status?: string
+          system_manager_approved_at?: string | null
+          system_manager_approved_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -2232,18 +2265,31 @@ export type Database = {
           branch_approved_at?: string | null
           branch_approved_by?: string | null
           branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          closed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
+          delivered_at?: string | null
           frozen_at?: string | null
           frozen_by?: string | null
           id?: string
+          in_production_at?: string | null
           linked_receipt_id?: string | null
           notes?: string | null
           order_type?: string
           pallet_count?: number | null
+          ready_for_delivery_at?: string | null
+          reference_no?: number
+          rejected_at?: string | null
+          rejected_by?: string | null
           rejection_note?: string | null
+          rejection_stage?: string | null
           status?: string
+          system_manager_approved_at?: string | null
+          system_manager_approved_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2283,6 +2329,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "factory_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "factory_orders_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -2292,6 +2352,34 @@ export type Database = {
           {
             foreignKeyName: "factory_orders_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_system_manager_approved_by_fkey"
+            columns: ["system_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_system_manager_approved_by_fkey"
+            columns: ["system_manager_approved_by"]
             isOneToOne: false
             referencedRelation: "workers_safe"
             referencedColumns: ["id"]
@@ -6479,6 +6567,54 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_workflow_status_labels: {
+        Row: {
+          category: string
+          color: string
+          created_at: string
+          description: string | null
+          document_type: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          label: string
+          locale: string
+          sort_order: number
+          status_code: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          document_type: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          locale?: string
+          sort_order?: number
+          status_code: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          locale?: string
+          sort_order?: number
+          status_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stock_workflow_transitions: {
         Row: {
           branch_id: string | null
@@ -8048,6 +8184,139 @@ export type Database = {
         }
         Relationships: []
       }
+      v_factory_orders_localized: {
+        Row: {
+          assistant_approved_at: string | null
+          assistant_approved_by: string | null
+          branch_approved_at: string | null
+          branch_approved_by: string | null
+          branch_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          closed_at: string | null
+          confirmed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          delivered_at: string | null
+          frozen_at: string | null
+          frozen_by: string | null
+          id: string | null
+          in_production_at: string | null
+          linked_receipt_id: string | null
+          notes: string | null
+          order_type: string | null
+          pallet_count: number | null
+          ready_for_delivery_at: string | null
+          reference_no: number | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_note: string | null
+          rejection_stage: string | null
+          status: string | null
+          status_category: string | null
+          status_color: string | null
+          status_icon: string | null
+          status_label_ar: string | null
+          status_label_en: string | null
+          system_manager_approved_at: string | null
+          system_manager_approved_by: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "factory_orders_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_assistant_approved_by_fkey"
+            columns: ["assistant_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_approved_by_fkey"
+            columns: ["branch_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_system_manager_approved_by_fkey"
+            columns: ["system_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factory_orders_system_manager_approved_by_fkey"
+            columns: ["system_manager_approved_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_stock_reconciliation: {
         Row: {
           branch_id: string | null
@@ -8155,6 +8424,10 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
+      approve_factory_order: {
+        Args: { p_notes?: string; p_order_id: string }
+        Returns: Json
+      }
       approve_stock_receipt_two_stage: {
         Args: { p_receipt_id: string; p_stage: string }
         Returns: Json
@@ -8413,6 +8686,10 @@ export type Database = {
         }
         Returns: string
       }
+      reject_factory_order: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: Json
+      }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
@@ -8422,6 +8699,10 @@ export type Database = {
       set_worker_session: { Args: { p_worker_id: string }; Returns: undefined }
       start_loading_session_atomic: {
         Args: { p_notes?: string; p_worker_id: string }
+        Returns: Json
+      }
+      submit_factory_order_for_approval: {
+        Args: { p_order_id: string }
         Returns: Json
       }
       transfer_between_branches_atomic: {
@@ -8443,6 +8724,15 @@ export type Database = {
           p_reason?: string
           p_to_account_id: string
           p_to_account_type: string
+        }
+        Returns: Json
+      }
+      transition_factory_order_status: {
+        Args: {
+          p_notes?: string
+          p_order_id: string
+          p_reason?: string
+          p_to_status: string
         }
         Returns: Json
       }
