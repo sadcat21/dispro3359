@@ -95,7 +95,7 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
           .maybeSingle();
         
         const allKeys = ALL_PRINT_COLUMNS.map(c => c.key);
-        const NEW_DEFAULT_ON: GiftPrintColumnKey[] = ['tranche'];
+        const NEW_DEFAULT_ON: GiftPrintColumnKey[] = ['tranche', 'offerPeriod'];
         const mergeOrder = (saved: GiftPrintColumnKey[]) => {
           const filtered = saved.filter(k => allKeys.includes(k));
           const missing = allKeys.filter(k => !filtered.includes(k));
