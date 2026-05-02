@@ -404,17 +404,23 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       const { data: receiptData } = await supabase.from('stock_receipts').select('*').eq('id', receiptId).single();
       if (!receiptData || receiptData.status !== 'pending_approval') { toast.error('هذا الوصل تمت معالجته'); return; }
       const { data: rItems } = await supabase.from('stock_receipt_items').select('*, product:products(pieces_per_box)').eq('receipt_id', receiptId);
-      await supabase.from('stock_receipts').update({ status: 'confirmed', approved_by: workerId, approved_at: new Date().toISOString() }).eq('id', receiptId);
+      await supabase.from('stock_receipts').update({
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString(),
+        approved_by: workerId,
+        approved_at: new Date().toISOString(),
+      }).eq('id', receiptId);
       for (const item of (rItems || [])) {
         const ppb = item.product?.pieces_per_box || 1;
         const breakdown = parseReceiptItemBreakdown(item);
         const itemQuantity = fromDbQuantity(Number(item.quantity) || 0, ppb);
         const compensationQuantity = fromDbQuantity(Number(breakdown.comp_qty) || 0, ppb);
-        await supabase.from('stock_movements').insert({
+        const { error: movementError } = await supabase.from('stock_movements').insert({
           product_id: item.product_id, branch_id: receiptData.branch_id, quantity: item.quantity,
           movement_type: 'receipt', status: 'approved', created_by: workerId,
           receipt_id: receiptId, notes: `موافقة على استلام`,
         });
+        if (movementError) throw movementError;
         const { data: existing } = await supabase.from('warehouse_stock')
           .select('id, quantity, compensation_quantity, factory_return_quantity').eq('branch_id', receiptData.branch_id).eq('product_id', item.product_id).maybeSingle();
         const existingQuantity = fromDbQuantity(Number(existing?.quantity) || 0, ppb);
