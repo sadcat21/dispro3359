@@ -571,7 +571,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       const sorted = Object.values(agg).sort((a, b) => b.totalGiftPieces - a.totalGiftPieces);
       const totalGifts = sorted.reduce((s, i) => s + i.totalGiftPieces, 0);
 
-      return { items: sorted, totalGifts };
+      return { items: sorted, totalGifts, offerPeriods: offerPeriodsMap };
     },
     enabled: open,
     refetchInterval: open ? 15000 : false,
