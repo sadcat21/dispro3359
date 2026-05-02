@@ -216,14 +216,14 @@ const DebtLedger: React.FC = () => {
                     return (
                       <TableRow key={m.id}>
                         <TableCell className="text-xs whitespace-nowrap">{format(new Date(m.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
-                        <TableCell><Badge variant={typeColor(m.movement_type) as any}>{m.movement_type}</Badge></TableCell>
-                        <TableCell className="text-xs"><div className="font-medium">{debtorName(m.debtor_type, m.debtor_id)}</div><div className="text-muted-foreground">{m.debtor_type}</div></TableCell>
+                        <TableCell><Badge variant={typeColor(m.movement_type) as any}>{tr(DEBT_MOVEMENT_LABELS, m.movement_type)}</Badge></TableCell>
+                        <TableCell className="text-xs"><div className="font-medium">{debtorName(m.debtor_type, m.debtor_id)}</div><div className="text-muted-foreground">{tr(DEBTOR_TYPE_LABELS, m.debtor_type)}</div></TableCell>
                         <TableCell className="text-xs">{branchMap[m.branch_id] ?? '—'}</TableCell>
                         <TableCell className="text-center font-mono">{Number(m.amount).toFixed(2)}</TableCell>
                         <TableCell className={`text-center font-mono font-bold ${signed > 0 ? 'text-red-600' : 'text-green-600'}`}>{signed > 0 ? '+' : ''}{signed.toFixed(2)}</TableCell>
                         <TableCell className="text-center font-mono font-bold">{m.running_debt_balance != null ? Number(m.running_debt_balance).toFixed(2) : '—'}</TableCell>
-                        <TableCell className="text-xs">{m.payment_method ?? '—'}</TableCell>
-                        <TableCell className="text-xs">{m.reason ?? '—'}</TableCell>
+                        <TableCell className="text-xs">{tr(PAYMENT_METHOD_LABELS, m.payment_method)}</TableCell>
+                        <TableCell className="text-xs">{tr(REASON_LABELS, m.reason)}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -252,7 +252,7 @@ const DebtLedger: React.FC = () => {
                       return (
                         <TableRow key={i} className={Math.abs(variance) > 0.01 ? 'bg-red-50 dark:bg-red-950/20' : ''}>
                           <TableCell>{debtorName(r.debtor_type, r.debtor_id)}</TableCell>
-                          <TableCell>{r.debtor_type}</TableCell>
+                          <TableCell>{tr(DEBTOR_TYPE_LABELS, r.debtor_type)}</TableCell>
                           <TableCell className="text-center font-mono">{Number(r.actual_remaining ?? 0).toFixed(2)}</TableCell>
                           <TableCell className="text-center font-mono">{Number(r.ledger_balance ?? 0).toFixed(2)}</TableCell>
                           <TableCell className={`text-center font-mono font-bold ${Math.abs(variance) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>{variance.toFixed(2)}</TableCell>
