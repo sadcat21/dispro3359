@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Package, Trash2, Plus, Truck, User, Phone, Car } from 'lucide-react';
+import { Loader2, Package, Trash2, Plus, Truck, User, Phone, Car, Camera, ArrowDownToLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { parseBP, boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
