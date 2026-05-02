@@ -295,7 +295,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
   const { data: workersMap = {} } = useQuery({
     queryKey: ['workers-names-map', activeBranch?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('workers').select('id, full_name').eq('is_active', true);
+      const { data } = await supabase.from('workers').select('id, full_name');
       const map: Record<string, string> = {};
       (data || []).forEach(w => { map[w.id] = w.full_name; });
       return map;
