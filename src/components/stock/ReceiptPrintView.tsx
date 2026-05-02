@@ -152,6 +152,55 @@ const ReceiptPrintView: React.FC<Props> = ({
             </tbody>
           </table>
 
+          {(() => {
+            const lines = (expensesBreakdown && expensesBreakdown.length > 0)
+              ? expensesBreakdown
+              : (receiptExpenses && receiptExpenses > 0)
+                ? [{ description: expensesDescription || '-', amount: Number(receiptExpenses) || 0 }]
+                : [];
+            const showPallets = !!(palletCount && palletCount > 0);
+            if (lines.length === 0 && !showPallets) return null;
+            const totalExp = lines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+            return (
+              <div style={{ margin: '15px 0' }}>
+                {showPallets && (
+                  <div style={{ fontSize: '12px', margin: '4px 0', color: '#000' }}>
+                    Nombre de palettes: <strong>{palletCount}</strong>
+                  </div>
+                )}
+                {lines.length > 0 && (
+                  <>
+                    <div style={{ fontSize: '13px', fontWeight: 'bold', margin: '8px 0 4px', color: '#000' }}>
+                      Frais de réception
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'left', color: '#000' }}>#</th>
+                          <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'left', color: '#000' }}>Description</th>
+                          <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', color: '#000' }}>Montant (DA)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lines.map((l, i) => (
+                          <tr key={i}>
+                            <td style={{ border: '1px solid #000', padding: '5px 8px', color: '#000' }}>{i + 1}</td>
+                            <td style={{ border: '1px solid #000', padding: '5px 8px', color: '#000' }}>{l.description || '-'}</td>
+                            <td style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', color: '#000' }}>{Number(l.amount || 0).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                        <tr>
+                          <td colSpan={2} style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', color: '#000' }}>Total</td>
+                          <td style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{totalExp.toLocaleString()} DA</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+
           {notes && (
             <div style={{ fontSize: '12px', margin: '10px 0', color: '#000' }}>
               Remarques: {notes}
