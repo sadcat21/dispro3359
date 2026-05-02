@@ -540,7 +540,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={isSaving} variant="outline" className="flex-1">
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                تخطّي وحفظ
+                {editDeliveryId ? 'حفظ التعديلات' : 'تخطّي وحفظ'}
               </Button>
               <Button
                 onClick={() => {
