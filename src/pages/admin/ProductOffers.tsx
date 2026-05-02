@@ -313,6 +313,20 @@ const ProductOffers: React.FC = () => {
         editOffer={editOffer}
       />
 
+      {/* Extend / Resume Dialog */}
+      {extendTarget && (
+        <ExtendOfferDialog
+          open={!!extendTarget}
+          onOpenChange={(open) => { if (!open) setExtendTarget(null); }}
+          offerId={extendTarget.offerId}
+          offerName={extendTarget.offerName}
+          tierId={extendTarget.tierId}
+          tierLabel={extendTarget.tierLabel}
+          mode={extendTarget.mode}
+          onSuccess={() => fetchOffers()}
+        />
+      )}
+
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent dir={dir}>
