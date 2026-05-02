@@ -195,21 +195,34 @@ const ProductOffers: React.FC = () => {
                   list.map((offer) => (
                     <Card key={offer.id} className={!offer.is_active ? 'opacity-60' : ''}>
                       <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-base flex items-center gap-2">
-                              {offer.name}
-                              {offer.is_stackable && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Layers className="w-3 h-3 me-1" />
-                                  {t('offers.stackable')}
-                                </Badge>
-                              )}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                              <Package className="w-3 h-3" />
-                              {offer.product?.name}
-                            </p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            {(offer.product as any)?.image_url ? (
+                              <img
+                                src={(offer.product as any).image_url}
+                                alt={offer.product?.name || ''}
+                                className="w-14 h-14 rounded-lg object-cover border shrink-0"
+                              />
+                            ) : (
+                              <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                <Package className="w-6 h-6 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-base flex items-center gap-2 flex-wrap">
+                                {offer.name}
+                                {offer.is_stackable && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <Layers className="w-3 h-3 me-1" />
+                                    {t('offers.stackable')}
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                <Package className="w-3 h-3" />
+                                {offer.product?.name}
+                              </p>
+                            </div>
                           </div>
                           <Switch
                             checked={offer.is_active}

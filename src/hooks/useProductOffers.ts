@@ -16,14 +16,14 @@ export const useProductOffers = () => {
         .from('product_offers')
         .select(`
           *,
-          product:products!product_offers_product_id_fkey(id, name, pieces_per_box),
-          gift_product:products!product_offers_gift_product_id_fkey(id, name),
+          product:products!product_offers_product_id_fkey(id, name, image_url, pieces_per_box),
+          gift_product:products!product_offers_gift_product_id_fkey(id, name, image_url),
           branch:branches(id, name),
           tiers:product_offer_tiers(
             id, offer_id, min_quantity, max_quantity, min_quantity_unit,
             gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
             discount_percentage, discount_amount, discount_prices, worker_reward_type, worker_reward_amount, tier_order, is_stackable, conditions,
-            gift_product:products(id, name)
+            gift_product:products(id, name, image_url)
           )
         `)
         .order('priority', { ascending: false })
@@ -55,14 +55,14 @@ export const useProductOffers = () => {
         .from('product_offers')
         .select(`
           *,
-          product:products!product_offers_product_id_fkey(id, name, pieces_per_box),
-          gift_product:products!product_offers_gift_product_id_fkey(id, name),
+          product:products!product_offers_product_id_fkey(id, name, image_url, pieces_per_box),
+          gift_product:products!product_offers_gift_product_id_fkey(id, name, image_url),
           branch:branches(id, name),
           tiers:product_offer_tiers(
             id, offer_id, min_quantity, max_quantity, min_quantity_unit,
             gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
             discount_percentage, discount_amount, discount_prices, worker_reward_type, worker_reward_amount, tier_order, is_stackable, conditions,
-            gift_product:products(id, name)
+            gift_product:products(id, name, image_url)
           )
         `)
         .eq('is_active', true)
