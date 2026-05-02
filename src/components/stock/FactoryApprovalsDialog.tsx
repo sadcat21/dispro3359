@@ -320,6 +320,121 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     w.print();
   };
 
+  const printFactoryNonConformity = (d: DeliveryRecord) => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const dateStr = new Date(d.created_at).toLocaleDateString('fr');
+    const branchName = activeBranch?.name || '';
+
+    const productsHeader = d.items.map(it =>
+      `<th style="text-align:center;min-width:90px">${it.product_app_name || it.product_name}</th>`
+    ).join('');
+    const dateFabRow = d.items.map(it =>
+      `<td style="text-align:center">${it.manufacturing_date ? new Date(it.manufacturing_date).toLocaleDateString('fr') : '-'}</td>`
+    ).join('');
+    const lotRow = d.items.map(it =>
+      `<td style="text-align:center">${it.lot_number || '-'}</td>`
+    ).join('');
+    const heureRow = d.items.map(it =>
+      `<td style="text-align:center">${it.manufacturing_time || '-'}</td>`
+    ).join('');
+    const qtyRow = d.items.map(it =>
+      `<td style="text-align:center;font-weight:bold">${dbBPDisplay(it.quantity, it.pieces_per_box || 1)}</td>`
+    ).join('');
+    const dateLivRow = d.items.map(it =>
+      `<td style="text-align:center">${it.delivery_date ? new Date(it.delivery_date).toLocaleDateString('fr') : dateStr}</td>`
+    ).join('');
+
+    w.document.write(`
+      <html dir="ltr"><head><title>Fiche de Non Conformité - Usine</title>
+      <style>
+        @page { size: A4; margin: 15mm; }
+        body{font-family:Arial,sans-serif;color:#000;font-size:12px}
+        .header{display:flex;align-items:stretch;border:1.5px solid #000;margin-bottom:12px}
+        .logo{padding:8px 14px;font-weight:bold;font-size:22px;border-right:1.5px solid #000;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000;color:#fff;min-width:120px}
+        .logo i{font-style:italic;font-size:13px;font-weight:normal}
+        .title{flex:1;padding:8px 14px;font-weight:bold;text-align:center;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1.4}
+        .date-box{border-left:1.5px solid #000;padding:8px 14px;display:flex;align-items:center;min-width:160px}
+        .date-box b{margin-right:8px}
+        .field{margin:6px 0;font-size:13px}
+        .field b{text-decoration:underline}
+        .section{border:1.5px solid #000;margin-top:8px}
+        .section-title{font-weight:bold;padding:5px 8px;border-bottom:1.5px solid #000;background:#f5f5f5}
+        .section-body{padding:6px 8px}
+        table{width:100%;border-collapse:collapse}
+        .nc-table th,.nc-table td{border:1px solid #000;padding:8px;text-align:center;font-size:12px;height:28px}
+        .client-table td{border:1px solid #000;padding:8px;font-size:12px;height:28px;width:50%}
+        .product-table th,.product-table td{border:1px solid #000;padding:5px 6px;font-size:11px}
+        .product-table th{background:#fafafa;font-weight:bold;text-align:left;width:140px}
+        .desc-box{min-height:55px;padding:6px 8px}
+        .signatures{display:flex;justify-content:space-between;margin-top:30px}
+        .signatures div{text-align:center;width:45%}
+        .sig-line{border-top:1px solid #000;margin-top:55px;padding-top:5px;font-size:12px}
+      </style></head><body>
+
+        <div class="header">
+          <div class="logo">AROMA<i>Café</i></div>
+          <div class="title">FICHE DE NON CONFORMITÉ,<br/>RÉCLAMATION CLIENT ET<br/>D'ACTIONS CORRECTIVES</div>
+          <div class="date-box"><b>Date</b> ${dateStr}</div>
+        </div>
+
+        <div class="field"><b>CONSTAT ETABLI PAR :</b> ${d.creator_name || ''}</div>
+        <div class="field"><b>AFFECTATION :</b> ${branchName}</div>
+
+        <div class="section">
+          <div class="section-title">1. Détection de la non-conformité</div>
+          <div class="section-body">
+            <table class="nc-table">
+              <tr><th>NC Interne</th><th>NC Externe</th><th>Réclamation Client</th></tr>
+              <tr><td>✗</td><td></td><td></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Coordonnés du client</div>
+          <div class="section-body">
+            <table class="client-table">
+              <tr><td>${branchName}</td><td></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Désignation et référence du produit incriminé</div>
+          <div class="section-body">
+            <table class="product-table">
+              <tr><th>• Produit concerné</th>${productsHeader}</tr>
+              <tr><th>• Date de Fabrication</th>${dateFabRow}</tr>
+              <tr><th>• N° de LOT</th>${lotRow}</tr>
+              <tr><th>• Heure de fabrication</th>${heureRow}</tr>
+              <tr><th>• Quantité (B.P)</th>${qtyRow}</tr>
+              <tr><th>• Date de livraison</th>${dateLivRow}</tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Description de la non-conformité / réclamation client</div>
+          <div class="desc-box">${d.notes || ''}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Actions correctives</div>
+          <div class="desc-box"></div>
+        </div>
+
+        <div class="signatures">
+          <div><div class="sig-line">Signature interne</div></div>
+          <div><div class="sig-line">Signature distributeur/client</div></div>
+        </div>
+
+      </body></html>
+    `);
+    w.document.close();
+    w.print();
+  };
+
   useEffect(() => {
     if (!open) return;
     if (activeBranch?.id) setBranchId(activeBranch.id);
