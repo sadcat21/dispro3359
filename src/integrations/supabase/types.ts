@@ -8154,8 +8154,14 @@ export type Database = {
         Returns: boolean
       }
       purge_cash_movements: { Args: never; Returns: Json }
+      purge_cash_movements_all: { Args: never; Returns: Json }
+      purge_cash_movements_archive: { Args: never; Returns: Json }
       purge_debt_movements: { Args: never; Returns: Json }
+      purge_debt_movements_all: { Args: never; Returns: Json }
+      purge_debt_movements_archive: { Args: never; Returns: Json }
       purge_stock_movements: { Args: never; Returns: Json }
+      purge_stock_movements_all: { Args: never; Returns: Json }
+      purge_stock_movements_archive: { Args: never; Returns: Json }
       recalculate_running_balance: {
         Args: { p_branch_id: string; p_product_id: string }
         Returns: Json
