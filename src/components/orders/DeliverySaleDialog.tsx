@@ -661,8 +661,21 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
 
       // Deduct from stock (warehouse_stock for warehouse manager, worker_stock for regular workers)
       for (const item of activeItems) {
-        const giftPieces = Number((item as any).giftPieces || 0);
-        const stockDeduction = Number(item.quantity || 0) + (giftPieces / 100);
+        const ppb = Number(item.piecesPerBox || 1);
+        const paidQty = Math.max(0, Number(item.quantity || 0) - Number(item.giftQuantity || 0));
+        // Recalculate gift to ensure piece-level gifts are deducted even when not pre-set in UI
+        const recalculated = recalcGift(item.productId, Math.floor(paidQty), ppb);
+        const storedGiftPieces = Number((item as any).giftPieces || 0);
+        const storedGiftBoxes = Number(item.giftQuantity || 0);
+        const storedTotalGiftPieces = storedGiftBoxes * ppb + storedGiftPieces;
+        const recalcTotalGiftPieces = recalculated.giftBoxes * ppb + recalculated.giftPieces;
+        const useRecalc = recalcTotalGiftPieces > storedTotalGiftPieces;
+        const effGiftBoxes = useRecalc ? recalculated.giftBoxes : storedGiftBoxes;
+        const effGiftPieces = useRecalc ? recalculated.giftPieces : storedGiftPieces;
+        // item.quantity already includes gift boxes (paidBoxes + giftBoxes). Add only the extra gift pieces.
+        // If we recalculated extra gift boxes beyond stored ones, include them too.
+        const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
+        const stockDeduction = Number(item.quantity || 0) + extraGiftBoxes + (effGiftPieces / 100);
         const ws = stockItems?.find(s => s.product_id === item.productId);
         if (ws) {
           if (isWarehouseManager) {
@@ -685,7 +698,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           created_by: workerId!,
           worker_id: workerId!,
           order_id: order.id,
-          notes: 'بيع بالتوصيل',
+          notes: 'بيع بالتوصيل' + (useRecalc && (effGiftBoxes + effGiftPieces > 0) ? ' (شامل هدية محسوبة تلقائياً)' : ''),
         });
       }
 
