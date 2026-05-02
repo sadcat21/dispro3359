@@ -426,11 +426,13 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <table class="product-table">
               <thead>
                 <tr>
-                  <th style="min-width:140px">Produit concerné</th>
+                  <th style="min-width:140px;text-align:left">Produit concerné</th>
                   <th>Date de Fabrication</th>
                   <th>N° de LOT</th>
                   <th>Heure de fabrication</th>
-                  <th>Quantité (B.P)</th>
+                  <th>Boîtes</th>
+                  <th>Pièces</th>
+                  <th>Total (B.P)</th>
                   <th>Date de livraison</th>
                 </tr>
               </thead>
