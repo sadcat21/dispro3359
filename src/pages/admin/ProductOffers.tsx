@@ -157,7 +157,7 @@ const ProductOffers: React.FC = () => {
         </div>
 
         {/* Status Tabs */}
-        <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive')}>
+        <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive' | 'expired')}>
           <TabsList>
             <TabsTrigger value="active">
               {t('common.active') || 'النشطة'} ({activeOffers.length})
@@ -165,10 +165,13 @@ const ProductOffers: React.FC = () => {
             <TabsTrigger value="inactive">
               {t('common.inactive') || 'غير النشطة'} ({inactiveOffers.length})
             </TabsTrigger>
+            <TabsTrigger value="expired">
+              منتهية ({expiredOffers.length})
+            </TabsTrigger>
           </TabsList>
 
-          {(['active', 'inactive'] as const).map((tabKey) => {
-            const list = tabKey === 'active' ? activeOffers : inactiveOffers;
+          {(['active', 'inactive', 'expired'] as const).map((tabKey) => {
+            const list = tabKey === 'active' ? activeOffers : tabKey === 'expired' ? expiredOffers : inactiveOffers;
             return (
               <TabsContent key={tabKey} value={tabKey} className="space-y-3">
                 {isLoading ? (
