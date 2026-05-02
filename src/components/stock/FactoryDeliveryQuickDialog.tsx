@@ -409,11 +409,11 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Truck className="w-5 h-5 text-destructive" />
-            تسليم للمصنع
+            {editDeliveryId ? 'تعديل تسليم المصنع' : 'تسليم للمصنع'}
           </DialogTitle>
         </DialogHeader>
 
-        {isAdmin && (
+        {isAdmin && !editDeliveryId && (
           <div className="flex gap-2 mb-2">
             <Button variant={tab === 'create' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setTab('create')}>
               <Plus className="w-4 h-4 ml-1" /> إنشاء تسليم
