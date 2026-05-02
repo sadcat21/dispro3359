@@ -426,24 +426,33 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
                   {isTemplate ? (
                     <p style={{ fontSize: '8pt', fontWeight: 600, marginTop: '2px' }} dir="ltr">{templateFilterLine}</p>
                   ) : (
-                    <div
-                      dir="ltr"
-                      style={{
+                    <div dir="ltr" style={{ marginTop: '4px', fontSize: '9.5pt', textAlign: 'left' }}>
+                      <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                         gap: '2px 12px',
-                        fontSize: '9.5pt',
-                        marginTop: '4px',
-                        textAlign: 'left',
-                      }}
-                    >
-                      {isSingleWorker && (
-                        <div><strong>Employé:</strong> {workerName}</div>
-                      )}
-                      {headerInfo.map(h => (
-                        <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
-                      ))}
-                      <div style={{ color: '#666' }}><strong>Imprimé:</strong> {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+                      }}>
+                        {isSingleWorker && (
+                          <div><strong>Employé:</strong> {workerName}</div>
+                        )}
+                        {headerInfo.map(h => (
+                          <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
+                        ))}
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${dateInfo.length}, 1fr)`,
+                        gap: '2px 12px',
+                        marginTop: '3px',
+                        paddingTop: '3px',
+                        borderTop: '1px dashed #ccc',
+                      }}>
+                        {dateInfo.map(h => (
+                          <div key={h.label} style={h.label === 'Imprimé' ? { color: '#666' } : undefined}>
+                            <strong>{h.label}:</strong> {h.value}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
