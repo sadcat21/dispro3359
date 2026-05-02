@@ -51,11 +51,16 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [autoExpand, setAutoExpand] = useState(false);
 
-  // Self-fetch sectors when not provided via props
+  // Self-fetch sectors when not provided via props — restrict to sectors actually used by the visible customers
+  const customerSectorIds = useMemo(
+    () => Array.from(new Set(customers.map(c => c.sector_id).filter(Boolean))) as string[],
+    [customers],
+  );
   const { data: fetchedSectors } = useQuery({
-    queryKey: ['sectors-for-picker', activeBranch?.id],
+    queryKey: ['sectors-for-picker', activeBranch?.id, customerSectorIds.sort().join(',')],
     queryFn: async () => {
-      let query = supabase.from('sectors').select('*').order('name');
+      if (customerSectorIds.length === 0) return [] as Sector[];
+      let query = supabase.from('sectors').select('*').in('id', customerSectorIds).order('name');
       if (activeBranch) {
         query = query.eq('branch_id', activeBranch.id);
       }
