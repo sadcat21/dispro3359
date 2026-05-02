@@ -13,6 +13,7 @@ import { Loader2, RefreshCw, Download, Wallet, ArrowDownLeft, ArrowUpRight } fro
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
+import { CASH_MOVEMENT_LABELS, ACCOUNT_TYPE_LABELS, REASON_LABELS, tr } from '@/lib/ledgerLabels';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
@@ -235,14 +236,14 @@ const CashLedger: React.FC = () => {
                     return (
                       <TableRow key={m.id}>
                         <TableCell className="text-xs whitespace-nowrap">{format(new Date(m.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
-                        <TableCell><Badge variant={typeColor(m.movement_type) as any}>{m.movement_type}</Badge></TableCell>
-                        <TableCell className="text-xs"><div className="font-medium">{accountName(m.account_type, m.account_id)}</div><div className="text-muted-foreground">{m.account_type}</div></TableCell>
+                        <TableCell><Badge variant={typeColor(m.movement_type) as any}>{tr(CASH_MOVEMENT_LABELS, m.movement_type)}</Badge></TableCell>
+                        <TableCell className="text-xs"><div className="font-medium">{accountName(m.account_type, m.account_id)}</div><div className="text-muted-foreground">{tr(ACCOUNT_TYPE_LABELS, m.account_type)}</div></TableCell>
                         <TableCell className="text-xs">{branchMap[m.branch_id] ?? '—'}</TableCell>
                         <TableCell className="text-center font-mono">{Number(m.amount).toFixed(2)}</TableCell>
                         <TableCell className={`text-center font-mono font-bold ${signed > 0 ? 'text-green-600' : signed < 0 ? 'text-red-600' : ''}`}>{signed > 0 ? '+' : ''}{signed.toFixed(2)}</TableCell>
                         <TableCell className="text-center font-mono">{m.running_balance != null ? Number(m.running_balance).toFixed(2) : '—'}</TableCell>
-                        <TableCell className="text-xs">{m.from_account_type ?? '—'} → {m.to_account_type ?? '—'}</TableCell>
-                        <TableCell className="text-xs">{m.reason ?? '—'}</TableCell>
+                        <TableCell className="text-xs">{tr(ACCOUNT_TYPE_LABELS, m.from_account_type)} → {tr(ACCOUNT_TYPE_LABELS, m.to_account_type)}</TableCell>
+                        <TableCell className="text-xs">{tr(REASON_LABELS, m.reason)}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -268,7 +269,7 @@ const CashLedger: React.FC = () => {
                     {!reconciliation || reconciliation.length === 0 ? <TableRow><TableCell colSpan={5} className="text-center p-8 text-muted-foreground">اضغط على التبويب لتحميل البيانات</TableCell></TableRow>
                     : (reconciliation as any[]).map((r: any, i: number) => (
                       <TableRow key={i}>
-                        <TableCell>{r.account_type}</TableCell>
+                        <TableCell>{tr(ACCOUNT_TYPE_LABELS, r.account_type)}</TableCell>
                         <TableCell>{accountName(r.account_type, r.account_id)}</TableCell>
                         <TableCell className={`text-center font-mono font-bold ${Number(r.ledger_balance) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{Number(r.ledger_balance ?? 0).toFixed(2)}</TableCell>
                         <TableCell className="text-center">{r.movements_count}</TableCell>
