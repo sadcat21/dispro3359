@@ -64,7 +64,7 @@ const COLUMN_CONFIG: Record<GiftPrintColumnKey, { header: string; width?: string
   phone: { header: 'Téléphone', width: '95px', className: 'ltr-text' },
   productName: { header: 'Produit', className: '' },
   tranche: { header: 'Tranche', width: '90px', className: 'small-text center bold' },
-  offerPeriod: { header: "Période d'offre", width: '110px', className: 'small-text center' },
+  offerPeriod: { header: "Période d'offre", width: '95px', className: 'small-text center nowrap' },
   venteQuantity: { header: 'Ventes', width: '45px', className: 'center bold' },
   giftQuantity: { header: 'Gratuit', width: '45px', className: 'center bold' },
   giftBoxPiece: { header: 'Gratuit B.P', width: '55px', className: 'center bold' },
@@ -134,7 +134,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
     case 'phone': return row.phone;
     case 'productName': return row.productName;
     case 'tranche': return row.offerDetail || '-';
-    case 'offerPeriod': return row.offerPeriod || '-';
+    case 'offerPeriod': return row.offerPeriod ? <span style={{ whiteSpace: 'nowrap' }}>{row.offerPeriod}</span> : '-';
     case 'venteQuantity': return formatBoxPiece(row.venteQuantity, row.piecesPerBox);
     case 'giftQuantity': return row.giftQuantity;
     case 'giftBoxPiece': return row.giftBoxPiece;
@@ -186,12 +186,13 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
 
     // Split header into two rows: text info + dedicated dates row
     const headerInfo: { label: string; value: string }[] = [];
-    if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
+    if (!isSingleWorker && workerLabel !== 'Tous les employés' && workerLabel !== 'جميع العمال') {
+      headerInfo.push({ label: 'Employé', value: workerLabel });
+    }
     if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
 
     const dateInfo: { label: string; value: string }[] = [];
     dateInfo.push({ label: 'Période', value: dateRange || '-' });
-    if (offerPeriod) dateInfo.push({ label: "Période d'offre", value: offerPeriod });
     dateInfo.push({ label: 'Imprimé', value: format(new Date(), 'dd/MM/yyyy HH:mm') });
 
     const filterCriteria = [...headerInfo, ...dateInfo].map(h => `${h.label}: ${h.value}`).join('  |  ');
@@ -249,9 +250,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       const builtPages: PrintPage[] = [];
       for (const [, group] of grouped.entries()) {
         const productRows = group.rows;
-        const tierLabel = group.offerDetail
-          ? `${group.productName} — ${group.offerDetail}`
-          : group.productName;
+        const tierLabel = group.productName;
         const totals = {
           vente: productRows.reduce((s, r) => s + r.venteQuantity, 0),
           venteBoxPiece: formatVenteTotalBoxPiece(productRows),
