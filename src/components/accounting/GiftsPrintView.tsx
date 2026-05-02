@@ -414,13 +414,29 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
               <div className="print-header-with-logo" style={{ position: 'relative', zIndex: 1, marginBottom: isTemplate ? '4px' : '10px', paddingBottom: isTemplate ? '4px' : '8px' }}>
                 <div className="print-logo" style={isTemplate ? { width: '55px' } : undefined}><img src={logoImage} alt="Laser Food" /></div>
                 <div className="print-title-section" style={isTemplate ? { padding: '0 10px' } : undefined}>
-                  <h1 style={{ fontSize: isTemplate ? '12pt' : (page.productName ? '14pt' : '18pt'), marginBottom: isTemplate ? '2px' : '8px' }}>{pageTitle}</h1>
-                  {isSingleWorker && !isTemplate && (
-                    <p style={{ fontSize: '11pt', fontWeight: 700, marginTop: '2px', marginBottom: '2px' }}>Employé: {workerName}</p>
-                  )}
-                  <p style={{ fontSize: isTemplate ? '8pt' : '10pt', fontWeight: 600, marginTop: '2px' }} dir="ltr">{templateFilterLine}</p>
-                  {!isTemplate && (
-                    <p style={{ fontSize: '8pt', color: '#666', marginTop: '2px' }}>Date d'impression: {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+                  <h1 style={{ fontSize: isTemplate ? '12pt' : (page.productName ? '14pt' : '18pt'), marginBottom: isTemplate ? '2px' : '6px' }}>{pageTitle}</h1>
+                  {isTemplate ? (
+                    <p style={{ fontSize: '8pt', fontWeight: 600, marginTop: '2px' }} dir="ltr">{templateFilterLine}</p>
+                  ) : (
+                    <div
+                      dir="ltr"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                        gap: '2px 12px',
+                        fontSize: '9.5pt',
+                        marginTop: '4px',
+                        textAlign: 'left',
+                      }}
+                    >
+                      {isSingleWorker && (
+                        <div><strong>Employé:</strong> {workerName}</div>
+                      )}
+                      {headerInfo.map(h => (
+                        <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
+                      ))}
+                      <div style={{ color: '#666' }}><strong>Imprimé:</strong> {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+                    </div>
                   )}
                 </div>
                 <div className="print-logo" style={isTemplate ? { width: '55px' } : undefined}><img src={logoImage} alt="Laser Food" /></div>
