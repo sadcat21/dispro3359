@@ -26,6 +26,11 @@ interface DeliveryDetail {
   notes?: string | null;
 }
 
+interface ExpenseLine {
+  description: string;
+  amount: number;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,12 +44,13 @@ interface Props {
   palletCount?: number | null;
   receiptExpenses?: number | null;
   expensesDescription?: string | null;
+  expensesBreakdown?: ExpenseLine[] | null;
   deliveryDetail?: DeliveryDetail | null;
 }
 
 const ReceiptPrintView: React.FC<Props> = ({
   open, onOpenChange, type, invoiceNumber, date, items, driverInfo, notes, branchName,
-  palletCount, receiptExpenses, expensesDescription, deliveryDetail,
+  palletCount, receiptExpenses, expensesDescription, expensesBreakdown, deliveryDetail,
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
 
