@@ -146,13 +146,28 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     try {
       const status = isWarehouseManager && !isAdmin ? 'pending_approval' : 'confirmed';
 
+      // If user filled any NC field, embed metadata as JSON in notes for the print dialog to consume
+      const ncFilled = !!(ncConstatBy || ncAffectation || ncClientName || ncClientContact || ncDescription || ncActions || ncType !== 'interne');
+      const finalNotes = ncFilled
+        ? JSON.stringify({
+            __nc: true,
+            constat_by: ncConstatBy || null,
+            affectation: ncAffectation || null,
+            nc_type: ncType,
+            client_name: ncClientName || null,
+            client_contact: ncClientContact || null,
+            description: notes || ncDescription || '',
+            actions: ncActions || '',
+          })
+        : (notes || null);
+
       const { data: order, error: orderError } = await supabase
         .from('factory_orders')
         .insert({
           order_type: 'sending',
           branch_id: branchId,
           status,
-          notes: notes || null,
+          notes: finalNotes,
           created_by: workerId,
           confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
           pallet_count: palletCount,
