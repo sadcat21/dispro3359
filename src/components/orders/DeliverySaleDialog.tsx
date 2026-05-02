@@ -334,6 +334,37 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     setShowQuantityDialog(true);
   };
 
+  const computeUnitPriceForPricing = (
+    product: any,
+    perItemPricing: any,
+    isUnitSale: boolean,
+    fallbackUnitPrice: number,
+  ): number => {
+    if (perItemPricing?.customUnitPrice !== undefined) {
+      return resolveCustomSalePrice(product, perItemPricing.customUnitPrice, isUnitSale);
+    }
+    if (perItemPricing?.paymentType) {
+      let basePrice = 0;
+      if (perItemPricing.paymentType === 'with_invoice') {
+        basePrice = Number(product.price_invoice || 0);
+      } else {
+        switch (perItemPricing.priceSubType) {
+          case 'super_gros': basePrice = Number(product.price_super_gros || product.price_no_invoice || 0); break;
+          case 'retail': basePrice = Number(product.price_retail || product.price_no_invoice || 0); break;
+          default: basePrice = Number(product.price_gros || product.price_no_invoice || 0);
+        }
+      }
+      const piecesPerBox = product.pieces_per_box || 1;
+      const weightPerBox = product.weight_per_box || 1;
+      const pricingUnit = product.pricing_unit || 'box';
+      let boxPrice = basePrice;
+      if (pricingUnit === 'kg') boxPrice = basePrice * weightPerBox;
+      else if (pricingUnit === 'unit') boxPrice = basePrice * piecesPerBox;
+      return isUnitSale ? boxPrice / piecesPerBox : boxPrice;
+    }
+    return fallbackUnitPrice;
+  };
+
   const handleEditProductWithQuantity = (
     productId: string,
     quantity: number,
@@ -348,9 +379,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     const giftPieces = giftInfo?.giftPieces || 0;
     const paidQuantity = Math.max(0, quantity - giftQuantity);
     const baseUnitPrice = saleItems.find(i => i.productId === productId)?.unitPrice || 0;
-    const unitPrice = perItemPricing?.customUnitPrice !== undefined
-      ? resolveCustomSalePrice(product, perItemPricing.customUnitPrice, !!isUnitSale)
-      : baseUnitPrice;
+    const unitPrice = computeUnitPriceForPricing(product, perItemPricing, !!isUnitSale, baseUnitPrice);
     const totalPrice = paidQuantity * unitPrice;
 
     setSaleItems(prev => prev.map(item => {
