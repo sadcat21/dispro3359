@@ -256,7 +256,6 @@ const PromoTable: React.FC = () => {
       promo.customer?.wilaya || '',
       promo.customer?.phone || '',
       promo.product?.name || '',
-      promo.product?.name || '',
       formatBP(promo.vente_quantity, promo.product?.pieces_per_box),
       formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box),
       promo.worker?.full_name || '',
