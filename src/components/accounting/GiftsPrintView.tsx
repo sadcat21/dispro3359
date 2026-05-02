@@ -187,7 +187,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
 
     const pages = useMemo((): PrintPage[] => {
       if (!rows.length && !isTemplate) {
-        return [{ productName: null, rows: [], rowOffset: 0, showTotals: true, totals: { vente: 0, gift: 0, giftBoxPiece: '0.00' }, pageNum: 1, totalPages: 1 }];
+        return [{ productName: null, rows: [], rowOffset: 0, showTotals: true, totals: { vente: 0, venteBoxPiece: '0.00', gift: 0, giftBoxPiece: '0.00' }, pageNum: 1, totalPages: 1 }];
       }
 
       // Template mode: generate empty pages
