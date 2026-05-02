@@ -282,7 +282,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       for (let i = firstTotalIdx; i < columns.length; i++) {
         const col = columns[i];
         if (col === 'venteQuantity') {
-          cells.push(<td key={col} className="center bold">{totals.vente}</td>);
+          cells.push(<td key={col} className="center bold">{totals.venteBoxPiece || totals.vente}</td>);
         } else if (col === 'giftQuantity') {
           cells.push(<td key={col} className="center bold">{totals.gift}</td>);
         } else if (col === 'giftBoxPiece') {
