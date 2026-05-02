@@ -626,7 +626,7 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange, editD
                   </Button>
                   <Button onClick={handleSave} disabled={isSaving} variant="destructive" className="flex-1">
                     {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                    {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد التسليم'}
+                    {editDeliveryId ? 'حفظ التعديلات' : (isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد التسليم')}
                   </Button>
                 </div>
               </div>
