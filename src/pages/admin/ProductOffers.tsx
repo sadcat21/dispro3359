@@ -7,13 +7,14 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { 
   Gift, Plus, Search, Edit2, Trash2, Package, 
-  Calendar, Users, Layers, ArrowLeft
+  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import CreateOfferDialog from '@/components/offers/CreateOfferDialog';
+import ExtendOfferDialog from '@/components/offers/ExtendOfferDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import {
@@ -39,8 +40,26 @@ const ProductOffers: React.FC = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editOffer, setEditOffer] = useState<ProductOfferWithDetails | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [extendTarget, setExtendTarget] = useState<{
+    offerId: string;
+    offerName: string;
+    tierId: string | null;
+    tierLabel: string | null;
+    mode: 'extend' | 'resume';
+  } | null>(null);
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
+
+  /** هل العرض ما زال شغّالاً ضمن فترته؟ */
+  const isOfferRunning = (offer: ProductOfferWithDetails): boolean => {
+    if (!offer.is_active) return false;
+    const now = new Date();
+    const start = offer.start_date ? new Date(offer.start_date) : null;
+    const end = offer.end_date ? new Date(offer.end_date) : null;
+    if (start && now < start) return false;
+    if (end && now > end) return false;
+    return true;
+  };
   
   const isAdmin = isAdminRole(role);
   const isBranchAdmin = role === 'branch_admin';
