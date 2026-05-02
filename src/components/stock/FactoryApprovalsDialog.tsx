@@ -1266,6 +1266,24 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           notes={printReceipt.meta.text}
         />
       )}
+
+      {/* فتح نافذة الإنشاء الكاملة في وضع التعديل */}
+      {fullEditReceiptId && (
+        <FactoryReceiptQuickDialog
+          open={!!fullEditReceiptId}
+          onOpenChange={(o) => { if (!o) setFullEditReceiptId(null); }}
+          editReceiptId={fullEditReceiptId}
+          onSaved={() => { setFullEditReceiptId(null); fetchData(); }}
+        />
+      )}
+      {fullEditDeliveryId && (
+        <FactoryDeliveryQuickDialog
+          open={!!fullEditDeliveryId}
+          onOpenChange={(o) => { if (!o) setFullEditDeliveryId(null); }}
+          editDeliveryId={fullEditDeliveryId}
+          onSaved={() => { setFullEditDeliveryId(null); fetchData(); }}
+        />
+      )}
     </>
   );
 };
