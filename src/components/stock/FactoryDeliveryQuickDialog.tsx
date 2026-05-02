@@ -53,6 +53,16 @@ const FactoryDeliveryQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [branchId, setBranchId] = useState<string | null>(null);
 
+  // Step management for the create flow: 1 = products, 2 = optional NC sheet metadata
+  const [step, setStep] = useState<1 | 2>(1);
+  const [ncConstatBy, setNcConstatBy] = useState('');
+  const [ncAffectation, setNcAffectation] = useState('');
+  const [ncType, setNcType] = useState<'interne' | 'externe' | 'reclamation'>('interne');
+  const [ncClientName, setNcClientName] = useState('');
+  const [ncClientContact, setNcClientContact] = useState('');
+  const [ncDescription, setNcDescription] = useState('');
+  const [ncActions, setNcActions] = useState('');
+
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const isAdmin = isAdminRole(role);
 
