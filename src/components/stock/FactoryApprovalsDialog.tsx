@@ -339,8 +339,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         if (parsed && typeof parsed === 'object' && parsed.__nc) nc = parsed;
       }
     } catch { /* ignore */ }
-    const constatBy = nc.constat_by || d.creator_name || '';
-    const affectation = nc.affectation || branchName;
+    const constatBy = nc.constat_by ?? '';
+    const affectation = nc.affectation ?? '';
 
     w.document.write(`
       <html dir="ltr"><head><title>Bon de Retour Palettes</title>
@@ -432,8 +432,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       }
     } catch { /* ignore */ }
 
-    const constatBy = nc.constat_by || d.creator_name || '';
-    const affectation = nc.affectation || branchName;
+    const constatBy = nc.constat_by ?? '';
+    const affectation = nc.affectation ?? '';
     const clientName = nc.client_name || '';
     const clientContact = nc.client_contact || '';
     const ncType = nc.nc_type || 'interne'; // 'interne' | 'externe' | 'reclamation'
@@ -483,6 +483,19 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         .signatures{display:flex;justify-content:space-between;margin-top:30px}
         .signatures div{text-align:center;width:45%}
         .sig-line{border-top:1px solid #000;margin-top:55px;padding-top:5px;font-size:12px}
+        .page-break{page-break-before:always}
+        .pallet-h1{text-align:center;font-size:22px;margin:28px 0 22px 0;text-decoration:underline;font-weight:bold}
+        .pallet-table{width:75%;margin:0 auto;border-collapse:collapse}
+        .pallet-table th,.pallet-table td{border:1.5px solid #000;padding:10px 12px;font-size:14px}
+        .pallet-table th{background:#f5f5f5;font-weight:bold;text-align:left;width:50%}
+        .pallet-table td.qty{text-align:center;font-size:32px;font-weight:bold;height:110px;vertical-align:middle}
+        .pallet-sigs{display:flex;justify-content:space-between;margin-top:70px;padding:0 30px}
+        .pallet-sigs .sig{text-align:center;width:40%}
+        .pallet-sigs .sig-title{font-size:13px;margin-bottom:55px}
+        .pallet-sigs .sig-line{border-top:1px solid #000;margin-top:0;padding-top:4px;font-size:12px}
+        .center-sig{text-align:center;margin-top:35px}
+        .center-sig .sig-title{margin-bottom:55px;font-size:13px}
+        .center-sig .sig-line{display:inline-block;border-top:1px solid #000;padding-top:4px;min-width:240px;margin-top:0}
       </style></head><body>
 
         <div class="header">
@@ -549,8 +562,49 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div><div class="sig-line">Signature distributeur/client</div></div>
         </div>
 
-      </body></html>
-    `);
+        ${(d.pallet_count ?? 0) > 0 ? `
+        <div class="page-break"></div>
+
+        <div class="header">
+          <div class="logo">AROMA<i>Café</i></div>
+          <div class="title">SARL ALGOFOOD<br/>BON DE RETOUR PALETTES</div>
+          <div class="date-box"><b>Date</b> ${dateStr}</div>
+        </div>
+
+        <div class="field"><b>CONSTAT ETABLI PAR :</b> ${constatBy}</div>
+        <div class="field"><b>AFFECTATION :</b> ${affectation}</div>
+
+        <div class="pallet-h1">Bon de retour palettes</div>
+
+        <table class="pallet-table">
+          <tr>
+            <th>Désignation</th>
+            <th style="text-align:center">Quantité</th>
+          </tr>
+          <tr>
+            <td style="font-size:16px;font-weight:bold;vertical-align:middle">Palette</td>
+            <td class="qty">${d.pallet_count}</td>
+          </tr>
+        </table>
+
+        <div class="pallet-sigs">
+          <div class="sig">
+            <div class="sig-title">Signature superviseur</div>
+            <div class="sig-line">&nbsp;</div>
+          </div>
+          <div class="sig">
+            <div class="sig-title">cachet distributeur</div>
+            <div class="sig-line">&nbsp;</div>
+          </div>
+        </div>
+
+        <div class="center-sig">
+          <div class="sig-title">Signature chauffeur</div>
+          <div class="sig-line">&nbsp;</div>
+        </div>
+        ` : ''}
+
+      </body></html>`);
     w.document.close();
     w.print();
   };
@@ -919,7 +973,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 <Printer className="w-3.5 h-3.5 ml-1" /> طباعة للمصنع (Non Conformité)
               </Button>
             )}
-            {kind === 'delivery' && (
+            {kind === 'delivery' && ((record as DeliveryRecord).pallet_count ?? 0) > 0 && (
               <Button size="sm" variant="outline" className="border-amber-600 text-amber-700"
                 onClick={() => printPalletReturn(record as DeliveryRecord)}>
                 <Printer className="w-3.5 h-3.5 ml-1" /> Bon de retour palettes
