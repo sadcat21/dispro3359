@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 export type GiftPrintColumnKey =
   | 'number' | 'customerName' | 'customerNameFr' | 'storeName' | 'storeNameFr'
   | 'sector' | 'address' | 'wilaya' | 'phone'
-  | 'productName' | 'venteQuantity' | 'giftQuantity' | 'giftBoxPiece'
+  | 'productName' | 'tranche' | 'venteQuantity' | 'giftQuantity' | 'giftBoxPiece'
   | 'workerName' | 'date';
 
 export interface GiftPrintColumn {
