@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { isAdminRole, isCompanyManagerRole } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const ProductOffers: React.FC = () => {
   const { t, language, dir } = useLanguage();
