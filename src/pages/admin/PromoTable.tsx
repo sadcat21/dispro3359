@@ -515,13 +515,13 @@ const PromoTable: React.FC = () => {
                     <TableCell className="text-sm" dir="ltr">{promo.customer?.phone || '-'}</TableCell>
                     <TableCell className="font-medium">{promo.product?.name || '-'}</TableCell>
                     <TableCell className="text-center">
-                      <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold">
-                        {promo.vente_quantity}
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                        {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold">
-                        {promo.gratuite_quantity}
+                      <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold" title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                        {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{promo.worker?.full_name || '-'}</TableCell>
