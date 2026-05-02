@@ -392,8 +392,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     setInvoicePhoto(null);
     setPhotoPreview(null);
     setPalletCount(0);
-    setReceiptExpenses(0);
-    setExpensesDescription('');
+    setExpenseLines([]);
     setReceiptSource('factory');
     setDriverName('');
     setDriverPhone('');
