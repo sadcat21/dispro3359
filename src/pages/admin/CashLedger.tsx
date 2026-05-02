@@ -269,7 +269,7 @@ const CashLedger: React.FC = () => {
                     {!reconciliation || reconciliation.length === 0 ? <TableRow><TableCell colSpan={5} className="text-center p-8 text-muted-foreground">اضغط على التبويب لتحميل البيانات</TableCell></TableRow>
                     : (reconciliation as any[]).map((r: any, i: number) => (
                       <TableRow key={i}>
-                        <TableCell>{r.account_type}</TableCell>
+                        <TableCell>{tr(ACCOUNT_TYPE_LABELS, r.account_type)}</TableCell>
                         <TableCell>{accountName(r.account_type, r.account_id)}</TableCell>
                         <TableCell className={`text-center font-mono font-bold ${Number(r.ledger_balance) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{Number(r.ledger_balance ?? 0).toFixed(2)}</TableCell>
                         <TableCell className="text-center">{r.movements_count}</TableCell>
