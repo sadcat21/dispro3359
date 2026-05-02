@@ -32,6 +32,7 @@ export const ALL_PRINT_COLUMNS: GiftPrintColumn[] = [
   { key: 'address', label: 'Adresse / العنوان', defaultVisible: false },
   { key: 'wilaya', label: 'Wilaya / الولاية', defaultVisible: false },
   { key: 'productName', label: 'Produit / المنتج', defaultVisible: true },
+  { key: 'tranche', label: 'Tranche / الشريحة', defaultVisible: true },
   { key: 'venteQuantity', label: 'Ventes / المبيعات', defaultVisible: true },
   { key: 'giftQuantity', label: 'Gratuit (pièces) / الهدايا قطع', defaultVisible: false },
   { key: 'giftBoxPiece', label: 'Gratuit (Box.Pcs) / الهدايا صندوق.قطع', defaultVisible: true },
