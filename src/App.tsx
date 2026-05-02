@@ -42,6 +42,8 @@ import WarehouseReview from "./pages/admin/WarehouseReview";
 import PendingWarehouseReviews from "./pages/admin/PendingWarehouseReviews";
 import StockReceipts from "./pages/admin/StockReceipts";
 import StockMovementsLedger from "./pages/admin/StockMovementsLedger";
+import CashLedger from "./pages/admin/CashLedger";
+import DebtLedger from "./pages/admin/DebtLedger";
 import LoadStock from "./pages/admin/LoadStock";
 import CustomerDebts from "./pages/admin/CustomerDebts";
 import AccountingSessions from "./pages/admin/AccountingSessions";
