@@ -352,7 +352,12 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
           ...receipt,
           notes: metaString,
           total_items: validItems.length,
-        },
+          invoice_number: invoiceNumber || null,
+          pallet_count: palletCount || 0,
+          receipt_expenses: totalExpenses || 0,
+          expenses_description: expensesDescriptionStr || null,
+          expenses_breakdown: filteredExpenses,
+        } as any,
       });
     } catch (err: any) {
       console.error(err);
