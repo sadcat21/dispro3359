@@ -348,16 +348,22 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     const mark = (cond: boolean) => cond ? '✗' : '';
 
     // Rows = products, Columns = attributes
-    const productRows = d.items.map(it => `
+    const productRows = d.items.map(it => {
+      const ppb = it.pieces_per_box || 1;
+      const parsed = parseBP(Number(it.quantity || 0).toFixed(2), ppb);
+      return `
       <tr>
-        <td style="text-align:right;font-weight:bold">${it.product_app_name || it.product_name}</td>
+        <td style="text-align:left;font-weight:bold">${it.product_app_name || it.product_name}</td>
         <td style="text-align:center">${it.manufacturing_date ? new Date(it.manufacturing_date).toLocaleDateString('fr') : '-'}</td>
         <td style="text-align:center">${it.lot_number || '-'}</td>
         <td style="text-align:center">${it.manufacturing_time || '-'}</td>
-        <td style="text-align:center;font-weight:bold">${dbBPDisplay(it.quantity, it.pieces_per_box || 1)}</td>
+        <td style="text-align:center">${parsed.boxes}</td>
+        <td style="text-align:center">${parsed.pieces}</td>
+        <td style="text-align:center;font-weight:bold">${parsed.display}</td>
         <td style="text-align:center">${it.delivery_date ? new Date(it.delivery_date).toLocaleDateString('fr') : dateStr}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
 
     w.document.write(`
       <html dir="ltr"><head><title>Fiche de Non Conformité - Usine</title>
