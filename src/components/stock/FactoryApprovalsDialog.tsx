@@ -109,14 +109,17 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     const hasDriver = drv.driver_name || drv.driver_phone || drv.license_plate;
 
     const itemsRows = r.items.map((it, i) => {
-      const total = it.new_qty + it.comp_qty + it.comp_offers_qty;
+      const totalBoxes =
+        dbBPToBoxes(it.new_qty, it.pieces_per_box) +
+        dbBPToBoxes(it.comp_qty, it.pieces_per_box) +
+        dbBPToBoxes(it.comp_offers_qty, it.pieces_per_box);
       return `<tr>
         <td>${i + 1}</td>
         <td>${it.product_app_name || it.product_name}</td>
-        <td style="text-align:center">${it.new_qty > 0 ? boxesToBP(it.new_qty, it.pieces_per_box) : '-'}</td>
-        <td style="text-align:center">${it.comp_qty > 0 ? boxesToBP(it.comp_qty, it.pieces_per_box) : '-'}</td>
-        <td style="text-align:center">${it.comp_offers_qty > 0 ? boxesToBP(it.comp_offers_qty, it.pieces_per_box) : '-'}</td>
-        <td style="text-align:center;font-weight:bold">${boxesToBP(total, it.pieces_per_box)}</td>
+        <td style="text-align:center">${it.new_qty > 0 ? dbBPDisplay(it.new_qty, it.pieces_per_box) : '-'}</td>
+        <td style="text-align:center">${it.comp_qty > 0 ? dbBPDisplay(it.comp_qty, it.pieces_per_box) : '-'}</td>
+        <td style="text-align:center">${it.comp_offers_qty > 0 ? dbBPDisplay(it.comp_offers_qty, it.pieces_per_box) : '-'}</td>
+        <td style="text-align:center;font-weight:bold">${boxesToBP(totalBoxes, it.pieces_per_box)}</td>
       </tr>`;
     }).join('');
 
