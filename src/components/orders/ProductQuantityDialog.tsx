@@ -10,8 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Minus, Package, Gift, Check, Settings2, Receipt, ReceiptText } from 'lucide-react';
+import { Plus, Minus, Package, Gift, Check, Settings2 } from 'lucide-react';
 import { Product, PaymentType, PriceSubType } from '@/types/database';
 import { InvoicePaymentMethod } from '@/types/stamp';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -137,6 +136,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         return Number(product.price_super_gros || product.price_no_invoice || 0);
       case 'retail':
         return Number(product.price_retail || 0);
+      case 'retail':
+        return Number(product.price_retail || product.price_no_invoice || 0);
       default:
         return Number(product.price_gros || product.price_no_invoice || 0);
     }
@@ -366,16 +367,82 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               </div>
             )}
 
+            {/* Direct pricing buttons F1 / D / SG / G + custom gear */}
             {canCustomizePrices && (
-              <div className="flex items-center justify-between gap-2">
-                <Button type="button" variant="outline" size="sm" className="h-8 text-[11px] gap-1" onClick={() => setCustomPriceOpen(true)}>
-                  <Settings2 className="w-3.5 h-3.5" />
-                  {safeT('orders.custom_unit_price', 'تخصيص سعر الوحدة')}
-                </Button>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1 h-9 text-xs font-bold"
+                    onClick={() => {
+                      setItemPaymentType('with_invoice');
+                      if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
+                    }}
+                    disabled={!invoiceSaleAllowed}
+                    title={t('orders.with_invoice')}
+                  >
+                    F1
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'super_gros' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1 h-9 text-xs font-bold"
+                    onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('super_gros'); }}
+                    title={t('products.price_super_gros')}
+                  >
+                    SG
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'gros' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1 h-9 text-xs font-bold"
+                    onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('gros'); }}
+                    title={t('products.price_gros')}
+                  >
+                    G
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'retail' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1 h-9 text-xs font-bold"
+                    onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('retail'); }}
+                    title={t('products.price_retail')}
+                  >
+                    D
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={hasCustomUnitPrice ? 'default' : 'outline'}
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => setCustomPriceOpen(true)}
+                    title={safeT('orders.custom_unit_price', 'تخصيص سعر الوحدة')}
+                  >
+                    <Settings2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                {itemPaymentType === 'with_invoice' && invoiceSaleAllowed && (
+                  <InvoicePaymentMethodSelect
+                    value={itemInvoicePaymentMethod}
+                    onChange={setItemInvoicePaymentMethod}
+                  />
+                )}
                 {hasCustomUnitPrice && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    {customUnitPriceValue.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
-                  </Badge>
+                  <div className="flex items-center justify-end">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {customUnitPriceValue.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
+                    </Badge>
+                  </div>
+                )}
+                {!invoiceSaleAllowed && (
+                  <p className="text-[11px] text-amber-600 text-center">
+                    {safeT('products.invoice1_disabled_hint', 'هذا المنتج غير مسموح ببيعه عبر Facture 1 من إدارة المنتجات.')}
+                  </p>
                 )}
               </div>
             )}
@@ -508,72 +575,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               </div>
             )}
 
-            {/* Per-Item Pricing Override */}
-            <Collapsible open={showPricingOverride} onOpenChange={setShowPricingOverride}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground gap-1">
-                  <Settings2 className="w-3.5 h-3.5" />
-                  {showPricingOverride ? t('orders.hide_pricing_options') || 'إخفاء خيارات التسعير' : t('orders.custom_pricing') || 'تسعير مخصص لهذا المنتج'}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
-                <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      type="button"
-                      variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-9 flex items-center gap-1 text-xs"
-                      onClick={() => setItemPaymentType('with_invoice')}
-                      disabled={!invoiceSaleAllowed}
-                    >
-                      <Receipt className="w-3.5 h-3.5" />
-                      {t('orders.with_invoice')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={itemPaymentType === 'without_invoice' ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-9 flex items-center gap-1 text-xs"
-                      onClick={() => setItemPaymentType('without_invoice')}
-                    >
-                      <ReceiptText className="w-3.5 h-3.5" />
-                      {t('orders.without_invoice')}
-                    </Button>
-                  </div>
-
-                  {!invoiceSaleAllowed && (
-                    <p className="text-[11px] text-amber-600">
-                      {safeT('products.invoice1_disabled_hint', 'هذا المنتج غير مسموح ببيعه عبر Facture 1 من إدارة المنتجات.')}
-                    </p>
-                  )}
-
-                  {itemPaymentType === 'without_invoice' && (
-                    <div className="grid grid-cols-3 gap-1">
-                      {(['super_gros', 'gros', 'retail'] as PriceSubType[]).map((pst) => (
-                        <Button
-                          key={pst}
-                          type="button"
-                          variant={itemPriceSubType === pst ? 'default' : 'outline'}
-                          size="sm"
-                          className="h-8 text-[10px]"
-                          onClick={() => setItemPriceSubType(pst)}
-                        >
-                          {pst === 'super_gros' ? t('products.price_super_gros') : pst === 'gros' ? t('products.price_gros') : t('products.price_retail')}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-
-                  {itemPaymentType === 'with_invoice' && (
-                    <InvoicePaymentMethodSelect
-                      value={itemInvoicePaymentMethod}
-                      onChange={setItemInvoicePaymentMethod}
-                    />
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            {/* Per-item pricing now exposed via direct buttons above */}
           </div>
         </div>
 
