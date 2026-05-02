@@ -117,6 +117,7 @@ const SIDEBAR_GROUP_BY_PATH: Record<string, string> = {
   '/product-offers': 'العروض والترويج',
   '/my-promos': 'العروض والترويج',
   '/promo-splits': 'العروض والترويج',
+  '/promo-tracking': 'العروض والترويج',
   '/workers': 'الموارد البشرية',
   '/worker-actions': 'الموارد البشرية',
   '/worker-tracking': 'الموارد البشرية',
