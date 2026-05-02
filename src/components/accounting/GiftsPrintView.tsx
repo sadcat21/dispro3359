@@ -181,13 +181,17 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
     const workerLabel = workerName === 'جميع العمال' ? 'Tous les employés' : (workerName || 'Tous les employés');
     const productLabel = (!productFilter || productFilter === 'جميع المنتجات' || productFilter === 'Tous les produits') ? 'Tous les produits' : productFilter;
 
-    // Header info as grid items (avoid duplicating Employé when isSingleWorker)
+    // Split header into two rows: text info + dedicated dates row
     const headerInfo: { label: string; value: string }[] = [];
     if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
     if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
-    headerInfo.push({ label: 'Période', value: dateRange || '-' });
-    if (offerPeriod) headerInfo.push({ label: "Période d'offre", value: offerPeriod });
-    const filterCriteria = headerInfo.map(h => `${h.label}: ${h.value}`).join('  |  ');
+
+    const dateInfo: { label: string; value: string }[] = [];
+    dateInfo.push({ label: 'Période', value: dateRange || '-' });
+    if (offerPeriod) dateInfo.push({ label: "Période d'offre", value: offerPeriod });
+    dateInfo.push({ label: 'Imprimé', value: format(new Date(), 'dd/MM/yyyy HH:mm') });
+
+    const filterCriteria = [...headerInfo, ...dateInfo].map(h => `${h.label}: ${h.value}`).join('  |  ');
 
     const pages = useMemo((): PrintPage[] => {
       if (!rows.length && !isTemplate) {
