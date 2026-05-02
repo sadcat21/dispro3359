@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
+import { parseBP as parseBPUtil, boxesToBP } from '@/utils/boxPieceInput';
 
 type UnitType = 'box' | 'piece';
 
@@ -66,25 +67,28 @@ const buildOfferDetail = (tier: OfferTierOption) => {
   return `${tier.min_quantity}${minUnit}+${tier.gift_quantity}${giftUnit}`;
 };
 
-/** Parse B.P value: integer part = boxes, decimal part = pieces (raw). e.g. 8.03 = 8 boxes + 3 pieces */
-const parseBP = (value: string): { boxes: number; pieces: number; raw: number } => {
-  const num = parseFloat(value || '0');
-  if (isNaN(num) || num < 0) return { boxes: 0, pieces: 0, raw: 0 };
-  const boxes = Math.floor(num);
-  // Extract exact decimal digits to avoid floating point issues
-  const parts = value.split('.');
-  const pieces = parts.length > 1 ? parseInt(parts[1].padEnd(2, '0').substring(0, 2), 10) : 0;
-  return { boxes, pieces, raw: num };
+/**
+ * Parse a B.P entry using the central util so it respects pieces_per_box
+ * (auto-rolls overflow pieces into boxes per product settings).
+ */
+const parseBPLocal = (value: string, piecesPerBox: number) => {
+  const parsed = parseBPUtil(value, piecesPerBox);
+  return {
+    boxes: parsed.boxes,
+    pieces: parsed.pieces,
+    totalBoxes: parsed.totalBoxes,
+    totalPieces: parsed.totalPieces,
+    /** raw numeric value normalized as B.P (boxes.pieces) ready for DB storage */
+    raw: parsed.totalPieces > 0
+      ? parseFloat(boxesToBP(parsed.totalBoxes, piecesPerBox))
+      : 0,
+  };
 };
 
-/** Convert B.P to total units (boxes or pieces) given pieces_per_box */
+/** Convert a B.P entry to total units (boxes or pieces) honoring product settings */
 const bpToTotal = (value: string, unit: UnitType, piecesPerBox: number): number => {
-  const { boxes, pieces } = parseBP(value);
-  if (unit === 'piece') {
-    return boxes * piecesPerBox + pieces;
-  }
-  // unit === 'box' — treat as total boxes (decimal is pieces, convert to fractional boxes)
-  return piecesPerBox > 0 ? boxes + (pieces / piecesPerBox) : boxes;
+  const parsed = parseBPLocal(value, piecesPerBox);
+  return unit === 'piece' ? parsed.totalPieces : parsed.totalBoxes;
 };
 
 const computeGift = (
@@ -388,18 +392,22 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     setIsSaving(true);
     try {
       const detail = buildOfferDetail(selectedTier);
-      const payloads = validEntries.map((entry) => ({
-        worker_id: workerId,
-        customer_id: entry.customerId,
-        product_id: selectedProductId,
-        vente_quantity: parseBP(entry.soldQuantity).raw,
-        gratuite_quantity: entry.giftQuantity,
-        gift_quantity_unit: selectedTier.gift_quantity_unit || 'piece',
-        offer_id: selectedOffer.id,
-        offer_tier_id: selectedTier.id || null,
-        offer_detail: detail,
-        notes: notes.trim() || null,
-      }));
+      const payloads = validEntries.map((entry) => {
+        const parsedSold = parseBPLocal(entry.soldQuantity, piecesPerBox);
+        return {
+          worker_id: workerId,
+          customer_id: entry.customerId,
+          product_id: selectedProductId,
+          // تخزين البيع دائماً بصيغة b.p بعد التطبيع وفق pieces_per_box
+          vente_quantity: parsedSold.raw,
+          gratuite_quantity: entry.giftQuantity,
+          gift_quantity_unit: selectedTier.gift_quantity_unit || 'piece',
+          offer_id: selectedOffer.id,
+          offer_tier_id: selectedTier.id || null,
+          offer_detail: detail,
+          notes: notes.trim() || null,
+        };
+      });
 
       const { error } = await supabase.from('promos').insert(payloads as any);
       if (error) throw error;
