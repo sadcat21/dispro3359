@@ -250,9 +250,7 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
       const builtPages: PrintPage[] = [];
       for (const [, group] of grouped.entries()) {
         const productRows = group.rows;
-        const tierLabel = group.offerDetail
-          ? `${group.productName} — ${group.offerDetail}`
-          : group.productName;
+        const tierLabel = group.productName;
         const totals = {
           vente: productRows.reduce((s, r) => s + r.venteQuantity, 0),
           venteBoxPiece: formatVenteTotalBoxPiece(productRows),
