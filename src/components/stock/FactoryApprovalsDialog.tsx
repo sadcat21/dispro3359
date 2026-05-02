@@ -324,6 +324,101 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     w.print();
   };
 
+  const printPalletReturn = (d: DeliveryRecord) => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const dateStr = new Date(d.created_at).toLocaleDateString('fr');
+    const palletCount = d.pallet_count ?? 0;
+    const branchName = activeBranch?.name || '';
+
+    w.document.write(`
+      <html dir="ltr"><head><title>Bon de Retour Palettes</title>
+      <style>
+        @page { size: A4; margin: 18mm; }
+        body{font-family:Arial,sans-serif;color:#000;font-size:13px}
+        .header{display:flex;align-items:stretch;border:1.5px solid #000;margin-bottom:8px}
+        .logo{padding:10px 16px;font-weight:bold;font-size:24px;border-right:1.5px solid #000;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000;color:#fff;min-width:130px}
+        .logo i{font-style:italic;font-size:13px;font-weight:normal}
+        .company{flex:1;padding:8px 14px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+        .company .name{font-weight:bold;font-size:18px;text-decoration:underline}
+        .company .cap{font-size:12px;margin-top:2px}
+        .company .addr{font-size:10.5px;margin-top:6px;line-height:1.4}
+        .iso{padding:8px 12px;border-left:1.5px solid #000;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:10px;text-align:center;min-width:140px}
+        .iso b{font-size:11px}
+        .date-line{text-align:right;margin:25px 0 10px 0;font-size:14px}
+        .date-line b{margin-right:8px}
+        h1{text-align:center;font-size:22px;margin:30px 0 25px 0;text-decoration:underline;font-weight:bold}
+        table.main{width:75%;margin:0 auto;border-collapse:collapse}
+        table.main th,table.main td{border:1.5px solid #000;padding:10px 12px;font-size:14px}
+        table.main th{background:#f5f5f5;font-weight:bold;text-align:left;width:50%}
+        table.main td.qty{text-align:center;font-size:32px;font-weight:bold;height:110px;vertical-align:middle}
+        .info-row{display:flex;justify-content:space-between;width:75%;margin:8px auto;font-size:12px;color:#444}
+        .signatures{display:flex;justify-content:space-between;margin-top:80px;padding:0 30px}
+        .signatures .sig{text-align:center;width:40%}
+        .sig-title{font-size:13px;margin-bottom:60px}
+        .sig-line{border-top:1px solid #000;padding-top:4px;font-size:12px}
+        .center-sig{text-align:center;margin-top:40px}
+        .center-sig .sig-title{margin-bottom:60px}
+        .center-sig .sig-line{display:inline-block;border-top:1px solid #000;padding-top:4px;min-width:240px}
+        .footer{position:fixed;bottom:8mm;left:0;right:0;text-align:center;border-top:1px solid #000;padding-top:4px;font-size:10px;color:#333}
+      </style></head><body>
+
+        <div class="header">
+          <div class="logo">AROMA<i>Café</i></div>
+          <div class="company">
+            <div class="name">SARL ALGOFOOD</div>
+            <div class="cap">Sarl au Capital de 127 684 000,00 DA</div>
+            <div class="addr">HAOUCH BEN YOUB, Section 7 - Lot N°20 -I- Amiratte - BARAKI - ALGER - ALGÉRIE<br/>
+            Tel: +213 (0) 23903328 / Fax: 023903327 / Mobile: +213 (0) 561 75 65 02<br/>
+            E-mail: contact@cafearoma-dz.com</div>
+          </div>
+          <div class="iso">
+            <b>ISO 22000 VERSION 2005</b>
+            <span>HCCP N°17/08/07-01</span>
+          </div>
+        </div>
+
+        <div class="date-line"><b>DATE :</b> ${dateStr}</div>
+
+        <h1>Bon de retour palettes</h1>
+
+        <table class="main">
+          <tr>
+            <th>Désignation</th>
+            <th style="text-align:center">Quantité</th>
+          </tr>
+          <tr>
+            <td style="font-size:16px;font-weight:bold;vertical-align:middle">Palette</td>
+            <td class="qty">${palletCount}</td>
+          </tr>
+        </table>
+
+        ${branchName ? `<div class="info-row"><span><b>Branche :</b> ${branchName}</span>${d.creator_name ? `<span><b>Livré par :</b> ${d.creator_name}</span>` : ''}</div>` : ''}
+
+        <div class="signatures">
+          <div class="sig">
+            <div class="sig-title">Signature superviseur</div>
+            <div class="sig-line">&nbsp;</div>
+          </div>
+          <div class="sig">
+            <div class="sig-title">cachet distributeur</div>
+            <div class="sig-line">&nbsp;</div>
+          </div>
+        </div>
+
+        <div class="center-sig">
+          <div class="sig-title">Signature chauffeur</div>
+          <div class="sig-line">&nbsp;</div>
+        </div>
+
+        <div class="footer">R.C : 10B0981677-16/00 - BP : L78 Baraki, ALGER - Web: www.cafearoma-dz.com</div>
+
+      </body></html>
+    `);
+    w.document.close();
+    w.print();
+  };
+
   const printFactoryNonConformity = (d: DeliveryRecord) => {
     const w = window.open('', '_blank');
     if (!w) return;
