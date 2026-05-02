@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 export type GiftPrintColumnKey =
   | 'number' | 'customerName' | 'customerNameFr' | 'storeName' | 'storeNameFr'
   | 'sector' | 'address' | 'wilaya' | 'phone'
-  | 'productName' | 'venteQuantity' | 'giftQuantity' | 'giftBoxPiece'
+  | 'productName' | 'tranche' | 'venteQuantity' | 'giftQuantity' | 'giftBoxPiece'
   | 'workerName' | 'date';
 
 export interface GiftPrintColumn {
@@ -32,6 +32,7 @@ export const ALL_PRINT_COLUMNS: GiftPrintColumn[] = [
   { key: 'address', label: 'Adresse / العنوان', defaultVisible: false },
   { key: 'wilaya', label: 'Wilaya / الولاية', defaultVisible: false },
   { key: 'productName', label: 'Produit / المنتج', defaultVisible: true },
+  { key: 'tranche', label: 'Tranche / الشريحة', defaultVisible: true },
   { key: 'venteQuantity', label: 'Ventes / المبيعات', defaultVisible: true },
   { key: 'giftQuantity', label: 'Gratuit (pièces) / الهدايا قطع', defaultVisible: false },
   { key: 'giftBoxPiece', label: 'Gratuit (Box.Pcs) / الهدايا صندوق.قطع', defaultVisible: true },

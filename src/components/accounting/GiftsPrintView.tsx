@@ -62,6 +62,7 @@ const COLUMN_CONFIG: Record<GiftPrintColumnKey, { header: string; width?: string
   wilaya: { header: 'Wilaya', width: '65px' },
   phone: { header: 'Téléphone', width: '95px', className: 'ltr-text' },
   productName: { header: 'Produit', className: '' },
+  tranche: { header: 'Tranche', width: '90px', className: 'small-text center bold' },
   venteQuantity: { header: 'Ventes', width: '45px', className: 'center bold' },
   giftQuantity: { header: 'Gratuit', width: '45px', className: 'center bold' },
   giftBoxPiece: { header: 'Gratuit B.P', width: '55px', className: 'center bold' },
@@ -130,6 +131,7 @@ const getCellValue = (row: GiftPrintRow, col: GiftPrintColumnKey, rowNumber: num
     case 'wilaya': return row.wilaya;
     case 'phone': return row.phone;
     case 'productName': return row.productName;
+    case 'tranche': return row.offerDetail || '-';
     case 'venteQuantity': return formatBoxPiece(row.venteQuantity, row.piecesPerBox);
     case 'giftQuantity': return row.giftQuantity;
     case 'giftBoxPiece': return row.giftBoxPiece;
@@ -179,13 +181,17 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
     const workerLabel = workerName === 'جميع العمال' ? 'Tous les employés' : (workerName || 'Tous les employés');
     const productLabel = (!productFilter || productFilter === 'جميع المنتجات' || productFilter === 'Tous les produits') ? 'Tous les produits' : productFilter;
 
-    // Header info as grid items (avoid duplicating Employé when isSingleWorker)
+    // Split header into two rows: text info + dedicated dates row
     const headerInfo: { label: string; value: string }[] = [];
     if (!isSingleWorker) headerInfo.push({ label: 'Employé', value: workerLabel });
     if (!separateByProduct) headerInfo.push({ label: 'Produit', value: productLabel });
-    headerInfo.push({ label: 'Période', value: dateRange || '-' });
-    if (offerPeriod) headerInfo.push({ label: "Période d'offre", value: offerPeriod });
-    const filterCriteria = headerInfo.map(h => `${h.label}: ${h.value}`).join('  |  ');
+
+    const dateInfo: { label: string; value: string }[] = [];
+    dateInfo.push({ label: 'Période', value: dateRange || '-' });
+    if (offerPeriod) dateInfo.push({ label: "Période d'offre", value: offerPeriod });
+    dateInfo.push({ label: 'Imprimé', value: format(new Date(), 'dd/MM/yyyy HH:mm') });
+
+    const filterCriteria = [...headerInfo, ...dateInfo].map(h => `${h.label}: ${h.value}`).join('  |  ');
 
     const pages = useMemo((): PrintPage[] => {
       if (!rows.length && !isTemplate) {
@@ -420,24 +426,33 @@ const GiftsPrintView = forwardRef<HTMLDivElement, GiftsPrintViewProps>(
                   {isTemplate ? (
                     <p style={{ fontSize: '8pt', fontWeight: 600, marginTop: '2px' }} dir="ltr">{templateFilterLine}</p>
                   ) : (
-                    <div
-                      dir="ltr"
-                      style={{
+                    <div dir="ltr" style={{ marginTop: '4px', fontSize: '9.5pt', textAlign: 'left' }}>
+                      <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                         gap: '2px 12px',
-                        fontSize: '9.5pt',
-                        marginTop: '4px',
-                        textAlign: 'left',
-                      }}
-                    >
-                      {isSingleWorker && (
-                        <div><strong>Employé:</strong> {workerName}</div>
-                      )}
-                      {headerInfo.map(h => (
-                        <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
-                      ))}
-                      <div style={{ color: '#666' }}><strong>Imprimé:</strong> {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+                      }}>
+                        {isSingleWorker && (
+                          <div><strong>Employé:</strong> {workerName}</div>
+                        )}
+                        {headerInfo.map(h => (
+                          <div key={h.label}><strong>{h.label}:</strong> {h.value}</div>
+                        ))}
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${dateInfo.length}, 1fr)`,
+                        gap: '2px 12px',
+                        marginTop: '3px',
+                        paddingTop: '3px',
+                        borderTop: '1px dashed #ccc',
+                      }}>
+                        {dateInfo.map(h => (
+                          <div key={h.label} style={h.label === 'Imprimé' ? { color: '#666' } : undefined}>
+                            <strong>{h.label}:</strong> {h.value}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
