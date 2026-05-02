@@ -79,6 +79,10 @@ const ProductOffers: React.FC = () => {
     offer.product?.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const activeOffers = filteredOffers.filter(o => o.is_active);
+  const inactiveOffers = filteredOffers.filter(o => !o.is_active);
+  const [statusTab, setStatusTab] = useState<'active' | 'inactive'>('active');
+
   const handleEdit = (offer: ProductOfferWithDetails) => {
     setEditOffer(offer);
     setShowCreateDialog(true);
