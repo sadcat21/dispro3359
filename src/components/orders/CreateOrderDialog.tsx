@@ -93,6 +93,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [offerProductIds, setOfferProductIds] = useState<Set<string>>(new Set());
   const [warehouseStockProductIds, setWarehouseStockProductIds] = useState<Set<string>>(new Set());
 
+  // Wizard step (1-4)
+  const [currentStep, setCurrentStep] = useState(1);
+
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [orderItems, setOrderItems] = useState<OrderItemWithPrice[]>([]);
