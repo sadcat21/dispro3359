@@ -1297,7 +1297,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       {/* Sub-dialogs */}
       <ProductQuantityDialog
         open={showQuantityDialog}
-        onOpenChange={setShowQuantityDialog}
+        onOpenChange={(o) => {
+          setShowQuantityDialog(o);
+          if (!o) setEditingProductMode(false);
+        }}
         product={selectedProduct}
         onConfirm={handleAddProductWithQuantity}
         unitPrice={selectedProduct ? getProductPrice(selectedProduct) : 0}
@@ -1307,6 +1310,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         defaultInvoicePaymentMethod={invoicePaymentMethod}
         initialQuantity={editingInitialQuantity}
         initialCustomUnitPrice={editingCustomUnitPrice}
+        initialIsUnitSale={editingIsUnitSale}
+        mode={editingProductMode ? 'edit' : 'add'}
       />
 
       <AddCustomerDialog
