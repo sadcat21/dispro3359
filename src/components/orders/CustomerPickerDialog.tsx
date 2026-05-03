@@ -413,8 +413,8 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                     const rStyle = sectorStyle(region, rIdx);
                     return (
                       <div key={region}>
-                        <div className="grid grid-cols-2 gap-2">
-                          {list.map((customer) => {
+                        <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                          {list.map((customer, cIdx) => {
                             const isSelected = selectedCustomerId === customer.id;
                             const storeName = (language !== 'ar' && (customer as any).store_name_fr)
                               ? (customer as any).store_name_fr
