@@ -394,7 +394,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
           {(activeRole?.custom_role_code === 'delivery_rep'
             || activeRole?.custom_role_code === 'warehouse_manager'
-            || (availableRoles || []).some(r => r.custom_role_code === 'delivery_rep' || r.custom_role_code === 'warehouse_manager')
           ) && <StockConfirmationsPopover />}
           
           
