@@ -241,6 +241,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     setInvoicePaymentMethod(null);
     setSelectedDeliveryWorker('');
     setCustomerDropdownOpen(false);
+    setCurrentStep(1);
   }, []);
 
   const handleClose = useCallback((isOpen: boolean) => {
