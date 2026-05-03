@@ -111,6 +111,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [savedOrderId, setSavedOrderId] = useState('');
   const [savedCustomerBranchId, setSavedCustomerBranchId] = useState<string | null>(null);
   const [savedDefaultDeliveryWorkerId, setSavedDefaultDeliveryWorkerId] = useState<string | null>(null);
+  const [deliveryWorkers, setDeliveryWorkers] = useState<Worker[]>([]);
+  const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
+  const [workerSearch, setWorkerSearch] = useState('');
 
   // Search and dialogs
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
