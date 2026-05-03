@@ -50,8 +50,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { t, dir, language } = useLanguage();
   const { activeBranch } = useAuth();
   const [search, setSearch] = useState('');
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
-  const [autoExpand, setAutoExpand] = useState(false);
+  const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
 
   // Self-fetch sectors when not provided via props — restrict to sectors actually used by the visible customers
   const customerSectorIds = useMemo(
