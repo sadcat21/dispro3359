@@ -23,7 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCreateOrder, useMyOrders } from '@/hooks/useOrders';
 import { useTrackVisit } from '@/hooks/useVisitTracking';
-import { Customer, Product, PaymentType, PriceSubType, Sector } from '@/types/database';
+import { Customer, Product, PaymentType, PriceSubType, Sector, Worker } from '@/types/database';
 import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog, { PerItemPricing } from './ProductQuantityDialog';
