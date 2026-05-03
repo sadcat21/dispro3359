@@ -4,9 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Search, UserPlus, User, ChevronLeft, ChevronDown, ChevronUp, Loader2, X, Banknote } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+
+import { Search, UserPlus, User, ChevronLeft, ChevronRight, Loader2, X, Banknote, MapPin, Store, Building2, Home, Map as MapIcon, Navigation, Compass, Landmark, Tent, TreePine, Mountain, Waves, Sun, Star, Users } from 'lucide-react';
 import { Customer, Sector } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getLocalizedName } from '@/utils/sectorName';
@@ -51,8 +50,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { t, dir, language } = useLanguage();
   const { activeBranch } = useAuth();
   const [search, setSearch] = useState('');
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
-  const [autoExpand, setAutoExpand] = useState(false);
+  const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
 
   // Self-fetch sectors when not provided via props — restrict to sectors actually used by the visible customers
   const customerSectorIds = useMemo(
@@ -142,20 +140,10 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     enabled: open,
   });
 
-  const toggleGroup = (key: string) => {
-    setOpenGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
   useEffect(() => {
     if (open) {
       setSearch('');
-      setAutoExpand(false);
-      setOpenGroups(new Set());
+      setActiveSectorKey(null);
     }
   }, [open]);
 
@@ -229,15 +217,27 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     });
   }, [filteredCustomers, sectorMap]);
 
-  // When autoExpand changes, sync openGroups (only react to autoExpand toggle, not groupedCustomers changes)
-  useEffect(() => {
-    if (autoExpand) {
-      const allKeys = groupedCustomers.map(g => g.key);
-      setOpenGroups(new Set(allKeys));
-    }
-    // Only clear when autoExpand is explicitly turned off (not on every groupedCustomers change)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoExpand]);
+  // Sector visual styles (icon + color) — deterministic by index
+  const SECTOR_STYLES = useMemo(() => ([
+    { icon: MapPin, bg: 'bg-rose-500/10', text: 'text-rose-600', border: 'border-rose-500/30' },
+    { icon: Store, bg: 'bg-amber-500/10', text: 'text-amber-600', border: 'border-amber-500/30' },
+    { icon: Building2, bg: 'bg-sky-500/10', text: 'text-sky-600', border: 'border-sky-500/30' },
+    { icon: Home, bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500/30' },
+    { icon: MapIcon, bg: 'bg-violet-500/10', text: 'text-violet-600', border: 'border-violet-500/30' },
+    { icon: Navigation, bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-600', border: 'border-fuchsia-500/30' },
+    { icon: Compass, bg: 'bg-cyan-500/10', text: 'text-cyan-600', border: 'border-cyan-500/30' },
+    { icon: Landmark, bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-500/30' },
+    { icon: Tent, bg: 'bg-lime-500/10', text: 'text-lime-600', border: 'border-lime-500/30' },
+    { icon: TreePine, bg: 'bg-green-500/10', text: 'text-green-600', border: 'border-green-500/30' },
+    { icon: Mountain, bg: 'bg-stone-500/10', text: 'text-stone-600', border: 'border-stone-500/30' },
+    { icon: Waves, bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-500/30' },
+    { icon: Sun, bg: 'bg-yellow-500/10', text: 'text-yellow-600', border: 'border-yellow-500/30' },
+    { icon: Star, bg: 'bg-pink-500/10', text: 'text-pink-600', border: 'border-pink-500/30' },
+  ]), []);
+  const sectorStyle = (key: string, index: number) => SECTOR_STYLES[index % SECTOR_STYLES.length];
+
+  const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
+  const visibleCustomers = search.trim() ? filteredCustomers : (activeGroup?.customers || []);
 
   const getSectorName = (sectorId: string | null | undefined) => {
     if (!sectorId) return '';
@@ -272,10 +272,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               autoFocus
             />
           </div>
-          <div className="flex items-center justify-between">
-            <label htmlFor="auto-expand" className="text-xs text-muted-foreground">{t('customer_picker.auto_expand')}</label>
-            <Switch id="auto-expand" checked={autoExpand} onCheckedChange={setAutoExpand} />
-          </div>
+          {activeSectorKey && !search.trim() && (
+            <button
+              onClick={() => setActiveSectorKey(null)}
+              className="flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <ChevronRight className="w-4 h-4" />
+              {t('customer_picker.title')}
+            </button>
+          )}
         </div>
 
         {/* Customers List */}
@@ -302,89 +307,95 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                 </Button>
               )}
             </div>
-          ) : (
-            <div>
-              {groupedCustomers.map((group) => {
-                const groupKey = group.key;
-                const isOpen = search.trim() ? true : openGroups.has(groupKey);
+          ) : !activeSectorKey && !search.trim() ? (
+            // Sector grid
+            <div className="grid grid-cols-2 gap-2 p-3">
+              {groupedCustomers.map((group, idx) => {
+                const style = sectorStyle(group.key, idx);
+                const Icon = style.icon;
                 return (
-                  <Collapsible key={groupKey} open={isOpen} onOpenChange={() => toggleGroup(groupKey)}>
-                    {/* Sector header */}
-                    <CollapsibleTrigger asChild>
-                      <button className="sticky top-0 z-10 w-full bg-muted/80 backdrop-blur-sm px-4 py-2 border-b border-t flex items-center justify-between">
-                        <p className="text-xs font-bold text-primary">
-                          {group.sectorName} ({group.customers.length})
-                        </p>
-                        {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                      </button>
-                    </CollapsibleTrigger>
-                    {/* Customers in this sector */}
-                    <CollapsibleContent>
-                      <div className="divide-y divide-border">
-                        {group.customers.map((customer) => {
-                          const isSelected = selectedCustomerId === customer.id;
-                          const subtitle = [customer.store_name, customer.phone].filter(Boolean).join(' • ');
-                          const debtInfo = customerDebtsMap?.[customer.id];
-                          const trustInfo = customerTrustMap?.[customer.id];
-                          return (
-                            <button
-                              key={customer.id}
-                              className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
-                                "hover:bg-accent/50 active:bg-accent",
-                                isSelected && "bg-primary/5"
-                              )}
-                              onClick={() => {
-                                onSelect(customer);
-                                onOpenChange(false);
-                              }}
-                            >
-                              <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
-                              <div className="flex-1 min-w-0 text-right">
-                                <CustomerSummary
-                                  customer={{
-                                    name: (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name,
-                                    store_name: (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name,
-                                    customer_type: customer.customer_type,
-                                    sector_name: getSectorName(customer.sector_id),
-                                    phone: customer.phone,
-                                    wilaya: customer.wilaya,
-                                  }}
-                                  compact
-                                  showAvatar={false}
-                                  showMeta={false}
-                                />
-                                {trustInfo ? (
-                                  <div className="mt-1">
-                                    <ClientTrustBadge trust={trustInfo} compact />
-                                  </div>
-                                ) : null}
-                                {debtInfo && debtInfo.total > 0 && (
-                                  <div className="flex items-center gap-1 mt-0.5">
-                                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
-                                      <Banknote className="w-2.5 h-2.5" />
-                                      {t('customer_picker.debt')}: {debtInfo.total.toLocaleString()} DA
-                                    </Badge>
-                                    {debtInfo.lastDate && (
-                                      <span className="text-[10px] text-muted-foreground">
-                                        {t('customer_picker.last')}: {new Date(debtInfo.lastDate).toLocaleDateString(language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US')}
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              <div className={cn(
-                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                                isSelected ? "bg-primary/10 text-primary" : debtInfo && debtInfo.total > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-                              )}>
-                                <User className="w-5 h-5" />
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+                  <button
+                    key={group.key}
+                    onClick={() => setActiveSectorKey(group.key)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95",
+                      style.bg, style.border
+                    )}
+                  >
+                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center bg-background", style.text)}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <p className={cn("text-xs font-bold text-center line-clamp-2", style.text)}>
+                      {group.sectorName}
+                    </p>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
+                      <Users className="w-2.5 h-2.5" />
+                      {group.customers.length}
+                    </Badge>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {visibleCustomers.map((customer) => {
+                const isSelected = selectedCustomerId === customer.id;
+                const debtInfo = customerDebtsMap?.[customer.id];
+                const trustInfo = customerTrustMap?.[customer.id];
+                return (
+                  <button
+                    key={customer.id}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
+                      "hover:bg-accent/50 active:bg-accent",
+                      isSelected && "bg-primary/5"
+                    )}
+                    onClick={() => {
+                      onSelect(customer);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0 text-right">
+                      <CustomerSummary
+                        customer={{
+                          name: (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name,
+                          store_name: (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name,
+                          customer_type: customer.customer_type,
+                          sector_name: getSectorName(customer.sector_id),
+                          phone: customer.phone,
+                          wilaya: customer.wilaya,
+                        }}
+                        compact
+                        showAvatar={false}
+                        showMeta={false}
+                      />
+                      {trustInfo ? (
+                        <div className="mt-1">
+                          <ClientTrustBadge trust={trustInfo} compact />
+                        </div>
+                      ) : null}
+                      {debtInfo && debtInfo.total > 0 && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
+                            <Banknote className="w-2.5 h-2.5" />
+                            {t('customer_picker.debt')}: {debtInfo.total.toLocaleString()} DA
+                          </Badge>
+                          {debtInfo.lastDate && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {t('customer_picker.last')}: {new Date(debtInfo.lastDate).toLocaleDateString(language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US')}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                      isSelected ? "bg-primary/10 text-primary" : debtInfo && debtInfo.total > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+                    )}>
+                      <User className="w-5 h-5" />
+                    </div>
+                  </button>
                 );
               })}
             </div>
