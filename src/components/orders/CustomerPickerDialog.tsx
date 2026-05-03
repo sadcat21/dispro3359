@@ -343,31 +343,21 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
           ) : !activeSectorKey && !search.trim() ? (
             // Sector grid - بدون أيقونات، شارة عدد بالأحمر
             <div className="grid grid-cols-2 gap-2 p-3">
-              {groupedCustomers.map((group, idx) => {
-                const style = sectorStyle(group.key, idx);
-                return (
-                  <button
-                    key={group.key}
-                    dir={dir}
-                    onClick={() => setActiveSectorKey(group.key)}
-                    className={cn(
-                      "relative flex flex-row items-center justify-center gap-2 ps-3 pe-10 py-2 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[40px] overflow-hidden",
-                      style.bg, style.border
-                    )}
-                  >
-                    <p className={cn("text-sm font-bold text-center line-clamp-1", style.text)}>
-                      {group.sectorName}
-                    </p>
-                    <span className={cn(
-                      "absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold",
-                      "rounded-s-[18px]",
-                      style.text.replace('text-', 'bg-')
-                    )}>
-                      {group.customers.length}
-                    </span>
-                  </button>
-                );
-              })}
+              {groupedCustomers.map((group) => (
+                <button
+                  key={group.key}
+                  dir={dir}
+                  onClick={() => setActiveSectorKey(group.key)}
+                  className="relative flex flex-row items-center justify-center gap-2 ps-3 pe-12 py-2 rounded-xl border-2 border-destructive bg-background transition-all hover:scale-105 active:scale-95 min-h-[40px] overflow-hidden"
+                >
+                  <p className="text-sm font-bold text-foreground text-center line-clamp-1">
+                    {group.sectorName}
+                  </p>
+                  <span className="absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold bg-destructive rounded-s-[18px]">
+                    {group.customers.length}
+                  </span>
+                </button>
+              ))}
             </div>
           ) : (
             // Customers — مقسمة حسب منطقة السكتور (sector_zones) داخل القسم
