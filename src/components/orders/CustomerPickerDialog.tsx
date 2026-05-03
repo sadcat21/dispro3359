@@ -230,7 +230,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   // When autoExpand changes, sync openGroups (only react to autoExpand toggle, not groupedCustomers changes)
   useEffect(() => {
     if (autoExpand) {
-      const allKeys = groupedCustomers.map(g => g.sectorId || 'no-sector');
+      const allKeys = groupedCustomers.map(g => g.key);
       setOpenGroups(new Set(allKeys));
     }
     // Only clear when autoExpand is explicitly turned off (not on every groupedCustomers change)
@@ -303,7 +303,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
           ) : (
             <div>
               {groupedCustomers.map((group) => {
-                const groupKey = group.sectorId || 'no-sector';
+                const groupKey = group.key;
                 const isOpen = search.trim() ? true : openGroups.has(groupKey);
                 return (
                   <Collapsible key={groupKey} open={isOpen} onOpenChange={() => toggleGroup(groupKey)}>
