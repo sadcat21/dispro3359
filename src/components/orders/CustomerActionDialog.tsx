@@ -35,7 +35,8 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
     directAction,
 }) => {
     const { t, dir } = useLanguage();
-    const { activeBranch } = useAuth();
+    const { activeBranch, activeRole, user } = useAuth();
+    const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || user?.branch_id || null;
 
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [sectors, setSectors] = useState<Sector[]>([]);
@@ -49,14 +50,14 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
         } else {
             setSelectedCustomer(null);
         }
-    }, [open, activeBranch]);
+    }, [open, effectiveBranchId]);
 
     const fetchCustomers = async () => {
         setIsLoading(true);
         try {
             let query = supabase.from('customers').select('*').eq('status', 'active').order('name');
-            if (activeBranch) {
-                query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+            if (effectiveBranchId) {
+                query = query.or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
             }
             const { data, error } = await query;
             if (error) throw error;
@@ -72,8 +73,8 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
     const fetchSectors = async () => {
         try {
             let query = supabase.from('sectors').select('*').order('name');
-            if (activeBranch) {
-                query = query.eq('branch_id', activeBranch.id);
+            if (effectiveBranchId) {
+                query = query.eq('branch_id', effectiveBranchId);
             }
             const { data, error } = await query;
             if (error) throw error;
