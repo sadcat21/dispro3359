@@ -422,20 +422,24 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                             const displayName = (language !== 'ar' && (customer as any).name_fr)
                               ? (customer as any).name_fr
                               : customer.name;
+                            const hasDebt = (customerDebtsMap?.[customer.id]?.total || 0) > 0;
+                            const accentClass = hasDebt ? "border-destructive" : "border-foreground";
+                            const headerBg = hasDebt ? "bg-destructive" : "bg-foreground";
+                            const headerText = hasDebt ? "text-destructive-foreground" : "text-background";
                             return (
                               <button
                                 key={customer.id}
                                 className={cn(
                                   "flex flex-col items-stretch rounded-lg overflow-hidden border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[52px] shadow-sm",
-                                  isSelected ? "border-primary ring-2 ring-primary/40" : "border-destructive"
+                                  isSelected ? "border-primary ring-2 ring-primary/40" : accentClass
                                 )}
                                 onClick={() => {
                                   onSelect(customer);
                                   onOpenChange(false);
                                 }}
                               >
-                                <div className="bg-destructive px-2 py-1">
-                                  <p className="text-sm font-bold text-destructive-foreground line-clamp-1 leading-tight">
+                                <div className={cn("px-2 py-1", headerBg)}>
+                                  <p className={cn("text-sm font-bold line-clamp-1 leading-tight", headerText)}>
                                     {storeName || displayName}
                                   </p>
                                 </div>
