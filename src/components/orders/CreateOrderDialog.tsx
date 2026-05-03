@@ -623,7 +623,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         </Badge>
                       )}
                       {deliveryDay && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 text-primary">
+                        <Badge className="text-[10px] px-1.5 py-0 bg-blue-600 text-white hover:bg-blue-600 border-transparent">
                           {deliveryDay}
                         </Badge>
                       )}
@@ -1120,7 +1120,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       {Array.from({ length: 7 }, (_, i) => {
                         const d = addDays(new Date(), i);
                         const dateStr = format(d, 'yyyy-MM-dd');
-                        const dayName = ['أحد', 'إثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'][d.getDay()];
+                        const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getDay()];
                         const isSelected = deliveryDate === dateStr;
                         return (
                           <button
@@ -1132,8 +1132,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               isSelected ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent"
                             )}
                           >
-                            <span className="font-bold">{i === 0 ? 'اليوم' : i === 1 ? 'غداً' : dayName}</span>
-                            <span className="text-[9px] opacity-80">{format(d, 'dd/MM')}</span>
+                            <span className="font-bold text-[9px]">{i === 0 ? 'اليوم' : i === 1 ? 'غداً' : dayName}</span>
+                            <span className="text-[8px] opacity-80">{format(d, 'dd/MM')}</span>
                           </button>
                         );
                       })}
