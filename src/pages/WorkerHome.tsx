@@ -380,6 +380,22 @@ const WorkerHome: React.FC = () => {
         </div>
       )}
 
+      {/* Warehouse Manager: Final Review (always visible) */}
+      {isWarehouseManager && (
+        <div className="px-4 mt-3">
+          <div
+            onClick={() => setShowFinalReviewPicker(true)}
+            className="relative overflow-hidden rounded-xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-100 p-4 cursor-pointer active:scale-[0.97] transition-all hover:shadow-lg flex items-center gap-3"
+          >
+            <ClipboardCheck className="w-8 h-8 text-blue-600 shrink-0" />
+            <div>
+              <p className="font-bold text-sm text-blue-900">المراجعة النهائية</p>
+              <p className="text-xs text-blue-700">مراجعة شاملة للشحن والتفريغ قبل جلسة المحاسبة</p>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {hasPromoAccess ? (
         <>
