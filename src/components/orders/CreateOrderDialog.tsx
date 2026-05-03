@@ -1114,92 +1114,58 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {/* ═══════ STEP 4: Delivery Date + Notes ═══════ */}
               {currentStep === 4 && (
                 <>
-                  <section className="space-y-2">
-                    <Label className="text-sm">{t('orders.delivery_date')} ({t('common.optional')})</Label>
-                    
-                    <div className="flex gap-1.5">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={deliveryDate === format(new Date(), 'yyyy-MM-dd') ? 'default' : 'outline'}
-                        onClick={() => {
-                          const today = format(new Date(), 'yyyy-MM-dd');
-                          setDeliveryDate(deliveryDate === today ? '' : today);
-                        }}
-                        className="flex-1 h-9"
-                      >
-                        اليوم
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={deliveryDate === format(addDays(new Date(), 1), 'yyyy-MM-dd') ? 'default' : 'outline'}
-                        onClick={() => {
-                          const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-                          setDeliveryDate(deliveryDate === tomorrow ? '' : tomorrow);
-                        }}
-                        className="flex-1 h-9"
-                      >
-                        غداً
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-1.5">
+                  <section className="space-y-1.5">
+                    <Label className="text-[11px] text-muted-foreground">{t('orders.delivery_date')}</Label>
+                    <div className="grid grid-cols-7 gap-1">
                       {Array.from({ length: 7 }, (_, i) => {
                         const d = addDays(new Date(), i);
                         const dateStr = format(d, 'yyyy-MM-dd');
-                        const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getDay()];
+                        const dayName = ['أحد', 'إثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'][d.getDay()];
                         const isSelected = deliveryDate === dateStr;
                         return (
-                          <Button
+                          <button
                             key={dateStr}
                             type="button"
-                            size="sm"
-                            variant={isSelected ? 'default' : 'outline'}
                             onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
-                            className="flex flex-col items-center h-auto py-1 text-[11px]"
+                            className={cn(
+                              "flex flex-col items-center rounded-md border py-1 text-[10px] transition-colors",
+                              isSelected ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent"
+                            )}
                           >
-                            <span className="font-bold">{dayName}</span>
+                            <span className="font-bold">{i === 0 ? 'اليوم' : i === 1 ? 'غداً' : dayName}</span>
                             <span className="text-[9px] opacity-80">{format(d, 'dd/MM')}</span>
-                          </Button>
+                          </button>
                         );
                       })}
                     </div>
-
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-0.5">
-                        <Label className="text-[11px]">التاريخ</Label>
-                        <Input
-                          type="date"
-                          value={deliveryDate}
-                          onChange={(e) => setDeliveryDate(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
-                      <div className="space-y-0.5">
-                        <Label className="text-[11px]">الوقت</Label>
-                        <Input
-                          type="time"
-                          value={deliveryTime}
-                          onChange={(e) => setDeliveryTime(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
+                      <Input
+                        type="date"
+                        value={deliveryDate}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                      <Input
+                        type="time"
+                        value={deliveryTime}
+                        onChange={(e) => setDeliveryTime(e.target.value)}
+                        className="h-8 text-xs"
+                      />
                     </div>
                   </section>
 
-                  <section className="space-y-1.5">
-                    <Label className="text-sm">{t('common.notes')} ({t('common.optional')})</Label>
+                  <section className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">{t('common.notes')}</Label>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder={t('orders.add_notes')}
-                      rows={2}
-                      className="min-h-[60px]"
+                      rows={1}
+                      className="min-h-[36px] text-xs"
                     />
                   </section>
 
-                  <section className="space-y-1.5">
+                  <section>
                     <InlineDeliveryWorkerPicker
                       customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
                       customerSectorId={(selectedCustomer as any)?.sector_id || null}
