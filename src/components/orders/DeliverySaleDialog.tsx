@@ -1354,7 +1354,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   </Alert>
                 </section>
               )}
+              </>)}
 
+              {currentStep === 3 && (<>
               {/* Summary */}
               {saleItems.some(i => i.quantity > 0) && (
                 <section className="bg-muted/50 rounded-lg p-3 space-y-1">
