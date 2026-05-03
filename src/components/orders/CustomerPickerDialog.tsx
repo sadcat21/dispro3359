@@ -388,16 +388,17 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                       return (
                         <button
                           key={region}
+                          dir={dir}
                           onClick={() => setActiveRegionKey(region)}
                           style={{ animationDelay: `${rIdx * 40}ms` }}
                           className={cn(
-                            "group relative flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-2 shadow-sm min-h-[40px]",
+                            "group relative flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-2 shadow-sm min-h-[40px] text-right",
                             "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                             "animate-in fade-in zoom-in-95 fill-mode-both",
                             rStyle.bg, rStyle.border
                           )}
                         >
-                          <span className={cn("text-sm font-bold truncate min-w-0", rStyle.text)}>
+                          <span className={cn("text-sm font-bold truncate min-w-0 flex-1 text-right", rStyle.text)}>
                             {region}
                           </span>
                           <span className="inline-flex items-center justify-center min-w-[28px] h-5 px-2 rounded-full bg-muted text-foreground text-xs font-bold shrink-0">
