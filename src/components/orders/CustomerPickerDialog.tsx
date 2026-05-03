@@ -453,12 +453,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
                                   isSelected ? "border-primary ring-2 ring-primary/40" : borderClass
                                 )}
-                                onClick={() => handleClick(customer)}
-                                onPointerDown={() => handlePointerDown(customer)}
-                                onPointerUp={handlePointerUp}
-                                onPointerLeave={handlePointerUp}
-                                onPointerCancel={handlePointerUp}
-                                onContextMenu={(e) => e.preventDefault()}
+                                onClick={() => { onSelect(customer); onOpenChange(false); }}
                               >
                                 <div className={cn(
                                   "px-2 py-1",
