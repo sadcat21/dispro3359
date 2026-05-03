@@ -553,6 +553,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
+        assignedWorkerId: selectedDeliveryWorker || defaultWorkerId || undefined,
       });
 
       toast.success(t('orders.created_success'));
