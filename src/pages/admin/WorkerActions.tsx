@@ -787,6 +787,8 @@ const WorkerActions: React.FC = () => {
         setExchangeDamagedOpen(true);
       } else if (action.key === 'accounting_sessions') {
         setAccountingSessionsOpen(true);
+      } else if (action.key === 'final_review') {
+        setFinalReviewOpen(true);
       }
       return;
     }
