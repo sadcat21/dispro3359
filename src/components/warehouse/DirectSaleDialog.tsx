@@ -185,7 +185,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     setIsLoadingData(true);
     try {
       let customersQuery = supabase.from('customers').select('*').eq('status', 'active').order('name');
-      if (activeBranch) customersQuery = customersQuery.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+      if (activeBranch) customersQuery = customersQuery.eq('branch_id', activeBranch.id);
 
       let sectorsQuery = supabase.from('sectors').select('*').order('name');
       if (activeBranch) sectorsQuery = sectorsQuery.eq('branch_id', activeBranch.id);
