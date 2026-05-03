@@ -600,8 +600,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden" dir={dir}>
-          <DialogHeader className="px-3 py-2 border-b">
+        <DialogContent className="max-w-lg h-[95vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
+          <DialogHeader className="px-3 py-2 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <ShoppingCart className="w-4 h-4" />
               {t('orders.create_new')}
@@ -627,7 +627,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             </div>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 max-h-[calc(95vh-8rem)]">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="px-3">
             <div className="py-2 space-y-3">
 
@@ -1186,7 +1186,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
           </ScrollArea>
 
           {/* Footer with navigation */}
-          <div className="px-3 py-2 border-t bg-background">
+          <div className="px-3 py-2 border-t bg-background shrink-0">
             <div className="flex gap-2">
               {currentStep > 1 && (
                 <Button
