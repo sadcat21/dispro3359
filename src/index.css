@@ -60,6 +60,52 @@
     --brand-gray: 0 0% 45%;
   }
 
+  /* Soft / Neumorphic Cream theme — applied via .theme-soft on <html> */
+  .theme-soft {
+    --background: 35 30% 96%;
+    --foreground: 24 12% 18%;
+
+    --card: 36 35% 97%;
+    --card-foreground: 24 12% 18%;
+
+    --popover: 36 35% 97%;
+    --popover-foreground: 24 12% 18%;
+
+    --primary: 16 85% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 36 25% 92%;
+    --secondary-foreground: 24 12% 20%;
+
+    --muted: 36 28% 93%;
+    --muted-foreground: 24 8% 40%;
+
+    --accent: 16 85% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 32 20% 88%;
+    --input: 32 20% 88%;
+    --ring: 16 85% 60%;
+
+    --radius: 1.25rem;
+  }
+
+  .theme-soft .soft-card,
+  .theme-soft [data-soft-card] {
+    background: hsl(var(--card));
+    border-radius: 1.25rem;
+    box-shadow:
+      8px 8px 20px hsl(30 20% 80% / 0.55),
+      -8px -8px 20px hsl(0 0% 100% / 0.85);
+    border: none;
+  }
+
+  .theme-soft .soft-pressed {
+    box-shadow:
+      inset 4px 4px 10px hsl(30 20% 80% / 0.55),
+      inset -4px -4px 10px hsl(0 0% 100% / 0.85);
+  }
+
   .dark {
     --background: 0 0% 5%;
     --foreground: 0 0% 95%;
