@@ -145,8 +145,8 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
                   type="button"
                   key={w.id}
                   onClick={() => onChange(w.id)}
-                  className={`relative flex flex-col items-center justify-center rounded-md border px-1.5 py-1.5 text-center transition-colors min-h-[44px] ${
-                    isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent border-border'
+                  className={`relative flex flex-col items-center justify-center rounded-md border-2 border-primary px-1.5 py-1.5 text-center transition-colors min-h-[44px] ${
+                    isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10 bg-background'
                   }`}
                 >
                   <div className="font-semibold text-[11px] leading-tight truncate w-full">{w.full_name}</div>
