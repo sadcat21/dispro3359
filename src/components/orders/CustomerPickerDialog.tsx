@@ -426,22 +426,24 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <button
                                 key={customer.id}
                                 className={cn(
-                                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[48px]",
-                                  isSelected ? "bg-primary/10 border-primary" : cn(rStyle.bg, rStyle.border, "hover:brightness-95")
+                                  "flex flex-col items-stretch rounded-lg overflow-hidden border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[52px] shadow-sm",
+                                  isSelected ? "border-primary ring-2 ring-primary/40" : "border-destructive"
                                 )}
                                 onClick={() => {
                                   onSelect(customer);
                                   onOpenChange(false);
                                 }}
                               >
-                                <p className="text-sm font-bold text-foreground line-clamp-1 w-full text-center leading-tight">
-                                  {storeName || displayName}
-                                </p>
-                                {storeName && displayName && (
-                                  <p className="text-[10px] font-medium text-muted-foreground line-clamp-1 w-full text-center leading-tight">
-                                    {displayName}
+                                <div className="bg-destructive px-2 py-1">
+                                  <p className="text-sm font-bold text-destructive-foreground line-clamp-1 leading-tight">
+                                    {storeName || displayName}
                                   </p>
-                                )}
+                                </div>
+                                <div className="bg-background px-2 py-0.5 flex-1 flex items-center justify-center">
+                                  <p className="text-[11px] font-medium text-foreground line-clamp-1 leading-tight">
+                                    {storeName ? displayName : ''}
+                                  </p>
+                                </div>
                               </button>
                             );
                           })}
