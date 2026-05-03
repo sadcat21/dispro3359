@@ -618,22 +618,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       {(parsed.boxes > 0 || parsed.pieces > 0) && (
                         <span className="text-[10px] text-muted-foreground">سيُحفظ: <strong className="text-foreground">{displayBP}</strong></span>
                       )}
-                      {isEditMode && onRemoveProduct && singleProductId && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => {
-                            onRemoveProduct(singleProductId);
-                            setSingleProductId(null);
-                            setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-                            setMode('browse');
-                            setIsEditMode(false);
-                          }}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -672,9 +656,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
                       <Button
                         type="button"
-                        variant={isOfferActivated ? 'destructive' : 'default'}
                         size="sm"
-                        className="h-6 px-2 text-[10px]"
+                        className={`h-6 px-2 text-[10px] text-white ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                         onClick={() => {
                           if (isOfferActivated) {
                             setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
@@ -739,21 +722,26 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
               {/* Sticky footer */}
               <div className="border-t bg-background p-2 shrink-0 flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 h-11 text-sm font-semibold"
-                  onClick={() => {
-                    setSingleProductId(null);
-                    setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-                    setMode('browse');
-                  }}
-                >
-                  إلغاء
-                </Button>
+                {isEditMode && onRemoveProduct && singleProductId && (
+                  <Button
+                    variant="destructive"
+                    className="flex-1 h-11 text-sm font-semibold"
+                    onClick={() => {
+                      onRemoveProduct(singleProductId);
+                      setSingleProductId(null);
+                      setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
+                      setMode('browse');
+                      setIsEditMode(false);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 me-1.5" />
+                    حذف من الشحن
+                  </Button>
+                )}
                 <Button
                   onClick={handleConfirmSingle}
                   disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0}
-                  className="flex-[2] h-11 text-sm font-bold"
+                  className={`flex-[2] h-11 text-sm font-bold text-white ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
                   <Check className="w-4 h-4 me-1.5" />
                   {totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد')}
