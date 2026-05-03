@@ -566,7 +566,7 @@ const WorkerHome: React.FC = () => {
           id: s.id,
           product_id: s.product_id,
           quantity: s.quantity,
-          product: (s as any).product,
+          product: (s as { product?: Product }).product,
         }))}
       />
 
