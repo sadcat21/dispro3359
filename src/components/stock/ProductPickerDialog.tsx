@@ -642,71 +642,65 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <div className="text-center text-[11px] text-muted-foreground">سيُحفظ: {displayBP}</div>
               </div>
 
-              {singleOffer && suggestedGift.qty > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center gap-2 text-xs bg-destructive/5 border border-destructive/20 rounded-md p-2">
-                    <Gift className="w-3.5 h-3.5 text-destructive shrink-0" />
-                    <span>عرض: <strong>{singleOffer.giftQty} {singleOffer.giftUnit === 'piece' ? 'قطعة' : 'صندوق'}</strong> لكل <strong>{singleOffer.minQty}</strong></span>
-                  </div>
-                  {singleGiftQty === 0 ? (
+              <div className="space-y-1 border rounded-lg p-2.5 bg-green-500/5 border-green-500/30">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold flex items-center gap-1 text-green-700">
+                    <Gift className="w-3.5 h-3.5" />
+                    الهدية (صندوق.قطع)
+                  </Label>
+                  {singleOffer && suggestedGift.qty > 0 && (
                     <Button
                       type="button"
-                      variant="outline"
-                      className="w-full border-green-500 text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-[10px] text-green-700 hover:bg-green-500/10"
                       onClick={() => {
-                        setSingleGiftQty(suggestedGift.qty);
-                        setSingleGiftUnit(suggestedGift.unit);
-                        // Add gift to the appropriate field (pieces or boxes)
                         if (suggestedGift.unit === 'piece') {
-                          setSingleQtyFields(prev => ({
-                            ...prev,
-                            pieces: String(Number(prev.pieces || '0') + suggestedGift.qty),
-                          }));
+                          setSingleGiftFields({ boxes: '', pieces: String(suggestedGift.qty) });
                         } else {
-                          setSingleQtyFields(prev => ({
-                            ...prev,
-                            boxes: String(Number(prev.boxes || '0') + suggestedGift.qty),
-                          }));
+                          setSingleGiftFields({ boxes: String(suggestedGift.qty), pieces: '' });
                         }
                       }}
                     >
-                      <Gift className="w-4 h-4 me-2 text-green-600" />
-                      إضافة الهدايا المقترحة ({suggestedGift.qty} {suggestedGift.unit === 'piece' ? 'قطعة' : 'صندوق'})
+                      اقتراح: {suggestedGift.qty} {suggestedGift.unit === 'piece' ? 'قطعة' : 'صندوق'}
                     </Button>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2 text-sm bg-primary/10 border border-primary/20 rounded-md p-2.5">
-                      <div className="flex items-center gap-2">
-                        <Gift className="w-4 h-4 text-primary shrink-0" />
-                        <span>هدايا: <strong className="text-primary text-base">{singleGiftQty}</strong> {singleGiftUnit === 'piece' ? 'قطعة' : 'صندوق'}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-xs text-destructive hover:text-destructive"
-                        onClick={() => {
-                          // Remove gift from the appropriate field
-                          if (singleGiftUnit === 'piece') {
-                            setSingleQtyFields(prev => ({
-                              ...prev,
-                              pieces: String(Math.max(0, Number(prev.pieces || '0') - singleGiftQty)),
-                            }));
-                          } else {
-                            setSingleQtyFields(prev => ({
-                              ...prev,
-                              boxes: String(Math.max(0, Number(prev.boxes || '0') - singleGiftQty)),
-                            }));
-                          }
-                          setSingleGiftQty(0);
-                          setSingleGiftUnit('piece');
-                        }}
-                      >
-                        إزالة
-                      </Button>
-                    </div>
                   )}
                 </div>
-              )}
+                {singleOffer && (
+                  <div className="text-[10px] text-muted-foreground text-center">
+                    عرض: {singleOffer.giftQty} {singleOffer.giftUnit === 'piece' ? 'قطعة' : 'صندوق'} لكل {singleOffer.minQty}
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">الصندوق</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={singleGiftFields.boxes}
+                      onChange={e => setSingleGiftFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
+                      onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
+                      className="h-11 text-center text-lg font-bold [font-variant-numeric:tabular-nums]"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">القطع</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={singleGiftFields.pieces}
+                      onChange={e => setSingleGiftFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
+                      onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
+                      className="h-11 text-center text-lg font-bold [font-variant-numeric:tabular-nums]"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                {(parsedGift.boxes > 0 || parsedGift.pieces > 0) && (
+                  <div className="text-center text-[11px] text-green-700">هدية: {displayGiftBP}</div>
+                )}
+              </div>
 
               <div className="space-y-2">
                 <Button onClick={handleConfirmSingle} disabled={parsed.totalBoxes <= 0} className="w-full h-11 text-sm font-bold">
