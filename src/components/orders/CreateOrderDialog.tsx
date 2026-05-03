@@ -265,17 +265,19 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     if (shortageProductIds.has(product.id) || !warehouseStockProductIds.has(product.id)) {
       toast.warning(t('stock.product_unavailable_warning'), { duration: 5000 });
     }
-    // Check if product already in cart - open in edit mode
-    const existingItem = orderItems.find(item => item.productId === product.id && !item.isUnitSale);
+    // Check if product already in cart - open in edit mode (any item, including unit sale)
+    const existingItem = orderItems.find(item => item.productId === product.id);
     if (existingItem) {
       setEditingProductMode(true);
       const existingPaidQuantity = Math.max(1, existingItem.quantity - (existingItem.giftQuantity || 0));
       setEditingInitialQuantity(existingPaidQuantity);
       setEditingCustomUnitPrice(existingItem.customUnitPrice);
+      setEditingIsUnitSale(!!existingItem.isUnitSale);
     } else {
       setEditingProductMode(false);
       setEditingInitialQuantity(1);
       setEditingCustomUnitPrice(undefined);
+      setEditingIsUnitSale(false);
     }
     setSelectedProduct(product);
     setShowQuantityDialog(true);
