@@ -931,15 +931,15 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {currentStep === 3 && (
                 <>
                   {orderItems.length > 0 ? (
-                    <section className="space-y-3">
+                    <section className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label className="text-base font-semibold">{t('orders.cart')}</Label>
-                        <Badge variant="secondary" className="text-xs">
+                        <Label className="text-sm font-semibold">{t('orders.cart')}</Label>
+                        <Badge variant="secondary" className="text-[11px]">
                           <Package className="w-3 h-3 ms-1" />
                           {orderTotals.totalItems} {t('common.piece')}
                         </Badge>
                       </div>
-                      <div className="space-y-2 bg-muted/50 rounded-lg p-3">
+                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2">
                         {orderItems.map((item, idx) => (
                           <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
