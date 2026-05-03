@@ -416,7 +416,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                         <div className="grid grid-cols-2 gap-2">
                           {list.map((customer) => {
                             const isSelected = selectedCustomerId === customer.id;
-                            const debtInfo = customerDebtsMap?.[customer.id];
                             const storeName = (language !== 'ar' && (customer as any).store_name_fr)
                               ? (customer as any).store_name_fr
                               : customer.store_name;
@@ -427,7 +426,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <button
                                 key={customer.id}
                                 className={cn(
-                                  "relative flex flex-col items-start gap-0 px-2.5 py-1.5 rounded-lg border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[40px]",
+                                  "flex items-center justify-center px-2.5 py-1.5 rounded-lg border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[36px]",
                                   isSelected ? "bg-primary/10 border-primary" : cn(rStyle.bg, rStyle.border, "hover:brightness-95")
                                 )}
                                 onClick={() => {
@@ -435,19 +434,9 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   onOpenChange(false);
                                 }}
                               >
-                                <p className="text-sm font-bold text-foreground line-clamp-2 w-full text-right">
+                                <p className="text-sm font-bold text-foreground line-clamp-1 w-full text-center">
                                   {storeName || displayName}
                                 </p>
-                                {storeName && displayName && (
-                                  <p className="text-[10px] text-muted-foreground line-clamp-1 w-full text-right">
-                                    {displayName}
-                                  </p>
-                                )}
-                                {debtInfo && debtInfo.total > 0 && (
-                                  <span className="absolute top-1 left-1 inline-flex items-center justify-center px-1.5 h-4 rounded-full bg-destructive text-white text-[9px] font-bold">
-                                    {debtInfo.total.toLocaleString()} DA
-                                  </span>
-                                )}
                               </button>
                             );
                           })}
