@@ -266,30 +266,31 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh] p-0 gap-0 rounded-2xl" dir={dir}>
-        {/* Header */}
-        <DialogHeader className="p-4 pb-3 border-b">
-          <DialogTitle className="text-center text-base font-bold">
-            {t('customer_picker.title')}
-          </DialogTitle>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute top-4 left-4 text-destructive hover:text-destructive/80 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        {/* Hidden title for accessibility */}
+        <DialogHeader className="sr-only">
+          <DialogTitle>{t('customer_picker.title')}</DialogTitle>
         </DialogHeader>
 
-        {/* Search */}
-        <div className="px-4 pt-3 pb-2 space-y-2">
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('customer_picker.search_placeholder')}
-              className="pr-10 h-11 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
-              autoFocus
-            />
+        {/* Search + close (instead of header) */}
+        <div className="px-3 pt-3 pb-2 space-y-2 border-b">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="shrink-0 w-8 h-8 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90 transition-colors"
+              aria-label="close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('customer_picker.search_placeholder')}
+                className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
+                autoFocus
+              />
+            </div>
           </div>
           {activeSectorKey && !search.trim() && (
             <div className="flex items-center gap-2 text-xs">
