@@ -26,8 +26,6 @@ interface CustomerPickerDialogProps {
   selectedCustomerId?: string;
   onSelect: (customer: Customer) => void;
   onAddNew?: () => void;
-  onLongPress?: (customer: Customer) => void;
-  onDoubleClick?: (customer: Customer) => void;
 }
 
 interface SectorGroup {
@@ -48,49 +46,8 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   selectedCustomerId,
   onSelect,
   onAddNew,
-  onLongPress,
-  onDoubleClick,
 }) => {
   const { t, dir, language } = useLanguage();
-  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressFired = React.useRef(false);
-  const clickTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearLongPress = () => {
-    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-  };
-  const handlePointerDown = (customer: Customer) => {
-    longPressFired.current = false;
-    clearLongPress();
-    longPressTimer.current = setTimeout(() => {
-      longPressFired.current = true;
-      if (onLongPress) {
-        onLongPress(customer);
-        onOpenChange(false);
-      }
-    }, 500);
-  };
-  const handlePointerUp = () => clearLongPress();
-  const handleClick = (customer: Customer) => {
-    if (longPressFired.current) return;
-    if (onDoubleClick) {
-      if (clickTimer.current) {
-        clearTimeout(clickTimer.current);
-        clickTimer.current = null;
-        onDoubleClick(customer);
-        onOpenChange(false);
-        return;
-      }
-      clickTimer.current = setTimeout(() => {
-        clickTimer.current = null;
-        onSelect(customer);
-        onOpenChange(false);
-      }, 220);
-    } else {
-      onSelect(customer);
-      onOpenChange(false);
-    }
-  };
   const { activeBranch } = useAuth();
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
@@ -496,12 +453,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
                                   isSelected ? "border-primary ring-2 ring-primary/40" : borderClass
                                 )}
-                                onClick={() => handleClick(customer)}
-                                onPointerDown={() => handlePointerDown(customer)}
-                                onPointerUp={handlePointerUp}
-                                onPointerLeave={handlePointerUp}
-                                onPointerCancel={handlePointerUp}
-                                onContextMenu={(e) => e.preventDefault()}
+                                onClick={() => { onSelect(customer); onOpenChange(false); }}
                               >
                                 <div className={cn(
                                   "px-2 py-1",
