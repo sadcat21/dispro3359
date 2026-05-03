@@ -962,7 +962,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               </span>
                               {item.unitPrice > 0 && (
                                 <span className="text-xs text-muted-foreground">
-                                  {item.unitPrice.toLocaleString()} دج × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} دج
+                                  {item.unitPrice.toLocaleString()} {t('common.currency')} × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} {t('common.currency')}
                                 </span>
                               )}
                             </div>
@@ -1230,7 +1230,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
-                      {orderTotals.totalAmount.toLocaleString()} دج
+                      {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
                     </Badge>
                   ) : orderItems.length > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">

@@ -151,7 +151,7 @@ export const translations: Translations = {
   'common.pieces': { ar: 'قطع', fr: 'Pièces', en: 'Pieces' },
   'common.amount': { ar: 'المبلغ', fr: 'Montant', en: 'Amount' },
   'common.quantity': { ar: 'الكمية', fr: 'Quantité', en: 'Quantity' },
-  'common.currency': { ar: 'دج', fr: 'DA', en: 'DZD' },
+  'common.currency': { ar: 'DA', fr: 'DA', en: 'DZD' },
   'common.welcome': { ar: 'مرحباً', fr: 'Bienvenue', en: 'Welcome' },
   'common.quick_actions': { ar: 'الإجراءات السريعة', fr: 'Actions rapides', en: 'Quick Actions' },
   'common.loading_permissions': { ar: 'جاري تحميل الصلاحيات...', fr: 'Chargement des permissions...', en: 'Loading permissions...' },
