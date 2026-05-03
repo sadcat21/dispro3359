@@ -391,7 +391,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                           onClick={() => setActiveRegionKey(region)}
                           style={{ animationDelay: `${rIdx * 40}ms` }}
                           className={cn(
-                            "group relative flex items-center justify-between gap-1.5 px-2.5 py-2 rounded-2xl border-2 shadow-sm min-h-[56px]",
+                            "group relative flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border-2 shadow-sm min-h-[36px]",
                             "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                             "animate-in fade-in zoom-in-95 fill-mode-both",
                             rStyle.bg, rStyle.border
