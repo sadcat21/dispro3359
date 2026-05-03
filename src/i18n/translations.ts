@@ -1835,6 +1835,7 @@ export const translations: Translations = {
   'worker_actions.orders_summary': { ar: 'تجميع الطلبيات', fr: 'Résumé des commandes', en: 'Orders Summary' },
   'worker_actions.exchange_damaged': { ar: 'استبدال تالف', fr: 'Échange endommagé', en: 'Exchange Damaged' },
   'worker_actions.accounting_sessions': { ar: 'سجل جلسات المحاسبة', fr: 'Historique comptabilité', en: 'Accounting Sessions' },
+  'worker_actions.final_review': { ar: 'المراجعة النهائية', fr: 'Révision finale', en: 'Final Review' },
   'worker_actions.delivery_sectors': { ar: 'توصيل:', fr: 'Livraison:', en: 'Delivery:' },
   'worker_actions.sales_sectors': { ar: 'طلبيات:', fr: 'Commandes:', en: 'Orders:' },
   'worker_actions.truck_balance': { ar: 'رصيد شاحنة', fr: 'Stock camion de', en: 'Truck stock of' },
