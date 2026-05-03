@@ -668,7 +668,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden" dir={dir}>
+        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
           <DialogHeader className="px-3 py-2 border-b">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <ShoppingCart className="w-4 h-4" />
