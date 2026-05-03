@@ -495,9 +495,11 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
   // Calculate totals including stamp price for invoice payments when cash method is selected
   const orderTotals = useMemo(() => {
-    const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalBoxes = orderItems.reduce((sum, item) => sum + (item.isUnitSale ? 0 : item.quantity), 0);
+    const totalUnitPieces = orderItems.reduce((sum, item) => sum + (item.isUnitSale ? item.quantity : 0), 0);
+    const totalItems = totalBoxes + totalUnitPieces;
     const totalGiftBoxes = orderItems.reduce((sum, item) => sum + (item.giftQuantity || 0), 0);
-    const totalPaidItems = totalItems - totalGiftBoxes;
+    const totalPaidItems = totalBoxes - totalGiftBoxes;
     const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
     // Calculate stamp amount only for invoice payments with cash method
@@ -509,7 +511,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     }
 
     const totalAmount = subtotal + stampAmount;
-    return { totalItems, totalGiftBoxes, totalPaidItems, subtotal, stampAmount, totalAmount };
+    return { totalItems, totalBoxes, totalUnitPieces, totalGiftBoxes, totalPaidItems, subtotal, stampAmount, totalAmount };
   }, [orderItems, paymentType, invoicePaymentMethod, stampTiers]);
 
   // Customer handlers
@@ -631,9 +633,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         const subMap: Record<string, string> = { gros: 'G', super_gros: 'SG', detail: 'D' };
                         const code = `${paymentType === 'with_invoice' ? 'F ' : ''}${subMap[priceSubType] || ''}`.trim();
                         return (
-                          <Badge className="text-sm px-2.5 py-1 bg-primary text-white hover:bg-primary border-transparent font-bold w-full justify-center mt-1">
-                            {code && <span className="me-1.5 opacity-90">{code}</span>}
-                            {t('common.currency')} {orderTotals.totalAmount.toLocaleString()}
+                          <Badge className="text-[10px] px-1.5 py-0 bg-primary text-white hover:bg-primary border-transparent font-bold">
+                            {code && <span className="me-1 opacity-90">{code}</span>}
+                            {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
                           </Badge>
                         );
                       })()}
@@ -1030,7 +1032,17 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{t('common.quantity')}:</span>
-                            <span className="font-medium">{orderTotals.totalPaidItems} {orderTotals.totalPaidItems > 1 ? t('common.boxes') : t('common.box')}</span>
+                            <span className="font-medium">
+                              {orderTotals.totalPaidItems > 0 && (
+                                <>{orderTotals.totalPaidItems} {orderTotals.totalPaidItems > 1 ? t('common.boxes') : t('common.box')}</>
+                              )}
+                              {orderTotals.totalUnitPieces > 0 && (
+                                <>
+                                  {orderTotals.totalPaidItems > 0 ? ' + ' : ''}
+                                  {orderTotals.totalUnitPieces} {t('common.piece')}
+                                </>
+                              )}
+                            </span>
                           </div>
                           {orderTotals.subtotal > 0 && (
                             <div className="flex items-center justify-between text-sm">
