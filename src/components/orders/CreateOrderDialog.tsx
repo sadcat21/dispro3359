@@ -816,9 +816,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
               {/* ═══════ STEP 2: Products ═══════ */}
               {currentStep === 2 && (
-                <section className="space-y-3">
-                  <Label className="text-base font-semibold">{t('products.title')}</Label>
-                  <div className="grid grid-cols-2 gap-3 p-1">
+                <section className="space-y-2">
+                  <Label className="text-sm font-semibold">{t('products.title')}</Label>
+                  <div className="grid grid-cols-2 gap-2">
                     {products.map((product) => {
                       const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
                       const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
