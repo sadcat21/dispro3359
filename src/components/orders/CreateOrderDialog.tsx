@@ -1092,10 +1092,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {/* ═══════ STEP 4: Delivery Date + Notes ═══════ */}
               {currentStep === 4 && (
                 <>
-                  <section className="space-y-3">
-                    <Label>{t('orders.delivery_date')} ({t('common.optional')})</Label>
+                  <section className="space-y-2">
+                    <Label className="text-sm">{t('orders.delivery_date')} ({t('common.optional')})</Label>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <Button
                         type="button"
                         size="sm"
@@ -1104,7 +1104,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           const today = format(new Date(), 'yyyy-MM-dd');
                           setDeliveryDate(deliveryDate === today ? '' : today);
                         }}
-                        className="flex-1"
+                        className="flex-1 h-9"
                       >
                         اليوم
                       </Button>
@@ -1116,13 +1116,13 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
                           setDeliveryDate(deliveryDate === tomorrow ? '' : tomorrow);
                         }}
-                        className="flex-1"
+                        className="flex-1 h-9"
                       >
                         غداً
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5">
                       {Array.from({ length: 7 }, (_, i) => {
                         const d = addDays(new Date(), i);
                         const dateStr = format(d, 'yyyy-MM-dd');
@@ -1135,10 +1135,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                             size="sm"
                             variant={isSelected ? 'default' : 'outline'}
                             onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
-                            className="flex flex-col items-center h-auto py-1.5 text-xs"
+                            className="flex flex-col items-center h-auto py-1 text-[11px]"
                           >
                             <span className="font-bold">{dayName}</span>
-                            <span className="text-[10px] opacity-80">{format(d, 'dd/MM')}</span>
+                            <span className="text-[9px] opacity-80">{format(d, 'dd/MM')}</span>
                           </Button>
                         );
                       })}
