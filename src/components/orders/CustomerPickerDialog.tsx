@@ -345,11 +345,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               })}
             </div>
           ) : (
-            // Customers — مقسمة حسب المنطقة (wilaya) داخل القسم، بدون شارات
+            // Customers — مقسمة حسب منطقة السكتور (sector_zones) داخل القسم
             (() => {
               const groupsByRegion = new Map<string, Customer[]>();
               visibleCustomers.forEach((c) => {
-                const key = c.wilaya || 'بدون منطقة';
+                const zoneId = (c as any).zone_id as string | null | undefined;
+                const zone = zoneId ? zonesMap?.[zoneId] : null;
+                const key = zone
+                  ? ((language !== 'ar' && zone.name_fr) ? zone.name_fr : zone.name)
+                  : 'بدون منطقة';
                 if (!groupsByRegion.has(key)) groupsByRegion.set(key, []);
                 groupsByRegion.get(key)!.push(c);
               });
