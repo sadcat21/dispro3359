@@ -51,6 +51,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { activeBranch } = useAuth();
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
+  const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
 
   // Self-fetch sectors when not provided via props — restrict to sectors actually used by the visible customers
   const customerSectorIds = useMemo(
@@ -157,8 +158,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     if (open) {
       setSearch('');
       setActiveSectorKey(null);
+      setActiveRegionKey(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    setActiveRegionKey(null);
+  }, [activeSectorKey]);
 
   
 
@@ -286,13 +292,26 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             />
           </div>
           {activeSectorKey && !search.trim() && (
-            <button
-              onClick={() => setActiveSectorKey(null)}
-              className="flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              <ChevronRight className="w-4 h-4" />
-              {t('customer_picker.title')}
-            </button>
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                onClick={() => { setActiveSectorKey(null); setActiveRegionKey(null); }}
+                className="flex items-center gap-1 text-primary hover:underline"
+              >
+                <ChevronRight className="w-4 h-4" />
+                {t('customer_picker.title')}
+              </button>
+              {activeRegionKey && (
+                <>
+                  <ChevronLeft className="w-3 h-3 text-muted-foreground" />
+                  <button
+                    onClick={() => setActiveRegionKey(null)}
+                    className="text-primary hover:underline"
+                  >
+                    {activeRegionKey}
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
 
@@ -360,9 +379,42 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               const regionEntries = Array.from(groupsByRegion.entries()).sort((a, b) =>
                 a[0].localeCompare(b[0], 'ar')
               );
+              // إذا لم تُختر منطقة بعد ولم يكن هناك بحث: اعرض شبكة أزرار المناطق
+              if (!activeRegionKey && !search.trim()) {
+                return (
+                  <div className="grid grid-cols-2 gap-2 p-3">
+                    {regionEntries.map(([region, list], rIdx) => {
+                      const rStyle = sectorStyle(region, rIdx);
+                      return (
+                        <button
+                          key={region}
+                          onClick={() => setActiveRegionKey(region)}
+                          className={cn(
+                            "flex flex-row items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[56px]",
+                            rStyle.bg, rStyle.border
+                          )}
+                        >
+                          <MapPin className={cn("w-4 h-4 shrink-0", rStyle.text)} />
+                          <p className={cn("text-sm font-bold text-center line-clamp-1", rStyle.text)}>
+                            {region}
+                          </p>
+                          <span className="inline-flex items-center justify-center min-w-[28px] h-5 px-2 rounded-full bg-destructive text-white text-xs font-bold shrink-0">
+                            {list.length}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              }
+
+              // اعرض المجموعات (إما كلها عند البحث، أو منطقة واحدة فقط)
+              const visibleRegions = search.trim()
+                ? regionEntries
+                : regionEntries.filter(([r]) => r === activeRegionKey);
               return (
                 <div className="p-3 space-y-5">
-                  {regionEntries.map(([region, list], rIdx) => {
+                  {visibleRegions.map(([region, list], rIdx) => {
                     const rStyle = sectorStyle(region, rIdx);
                     return (
                       <div key={region}>
