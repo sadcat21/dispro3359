@@ -74,6 +74,19 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const effectiveSectors = sectors.length > 0 ? sectors : (fetchedSectors || []);
 
+  // Fetch sector zones (regions) to group customers by zone within a sector
+  const { data: zonesMap } = useQuery({
+    queryKey: ['sector-zones-map'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('sector_zones').select('id, name, name_fr');
+      if (error) throw error;
+      const map: Record<string, { name: string; name_fr: string | null }> = {};
+      (data || []).forEach((z: any) => { map[z.id] = { name: z.name, name_fr: z.name_fr }; });
+      return map;
+    },
+    enabled: open,
+  });
+
   // Fetch active debts for all customers
   const { data: customerDebtsMap } = useQuery({
     queryKey: ['customer-debts-summary-all'],
@@ -332,11 +345,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               })}
             </div>
           ) : (
-            // Customers — مقسمة حسب المنطقة (wilaya) داخل القسم، بدون شارات
+            // Customers — مقسمة حسب منطقة السكتور (sector_zones) داخل القسم
             (() => {
               const groupsByRegion = new Map<string, Customer[]>();
               visibleCustomers.forEach((c) => {
-                const key = c.wilaya || 'بدون منطقة';
+                const zoneId = (c as any).zone_id as string | null | undefined;
+                const zone = zoneId ? zonesMap?.[zoneId] : null;
+                const key = zone
+                  ? ((language !== 'ar' && zone.name_fr) ? zone.name_fr : zone.name)
+                  : 'بدون منطقة';
                 if (!groupsByRegion.has(key)) groupsByRegion.set(key, []);
                 groupsByRegion.get(key)!.push(c);
               });
