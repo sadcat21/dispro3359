@@ -440,7 +440,10 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               ? (customer as any).name_fr
                               : customer.name;
                             const hasDebt = (customerDebtsMap?.[customer.id]?.total || 0) > 0;
-                            const borderClass = hasDebt ? "border-destructive" : "border-foreground";
+                            const hasPendingOrder = pendingOrderCustomers?.has(customer.id);
+                            const borderClass = hasDebt
+                              ? "border-destructive"
+                              : hasPendingOrder ? "border-green-600" : "border-foreground";
                             return (
                               <button
                                 key={customer.id}
@@ -455,8 +458,14 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   onOpenChange(false);
                                 }}
                               >
-                                <div className="bg-foreground px-2 py-1">
-                                  <p className="text-sm font-bold line-clamp-1 leading-tight text-background">
+                                <div className={cn(
+                                  "px-2 py-1",
+                                  hasPendingOrder ? "bg-green-500" : "bg-foreground"
+                                )}>
+                                  <p className={cn(
+                                    "text-sm font-bold line-clamp-1 leading-tight",
+                                    hasPendingOrder ? "text-foreground" : "text-background"
+                                  )}>
                                     {storeName || displayName}
                                   </p>
                                 </div>
