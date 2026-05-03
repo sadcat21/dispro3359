@@ -28,6 +28,7 @@ import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog, { PerItemPricing } from './ProductQuantityDialog';
 import AssignWorkerAfterSaveDialog from './AssignWorkerAfterSaveDialog';
+import DeliveryWorkerSelect from './DeliveryWorkerSelect';
 import AddCustomerDialog from '@/components/promo/AddCustomerDialog';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import EditCustomerDialog from './EditCustomerDialog';
@@ -589,15 +590,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       // Track visit GPS
       trackVisit({ customerId: selectedCustomerId, operationType: 'order', operationId: order.id });
 
-      // Save info for assign dialog and close create dialog
-      const branchId = selectedCustomer?.branch_id || activeBranch?.id || null;
-      setSavedOrderId(order.id);
-      setSavedCustomerBranchId(branchId);
-      setSavedDefaultDeliveryWorkerId(defaultWorkerId || null);
       handleClose(false);
-
-      // Always show assign worker dialog (with pre-selection if default exists)
-      setShowAssignWorkerDialog(true);
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     }
