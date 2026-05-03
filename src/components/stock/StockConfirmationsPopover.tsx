@@ -10,7 +10,7 @@ import { useManagerConfirmations } from '@/hooks/useManagerConfirmations';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStockDisputes } from '@/hooks/useStockDisputes';
+
 import { useWarehouseStock, WarehouseStockItem } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
 
@@ -472,11 +472,6 @@ const OutgoingTab: React.FC<{
                       <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
                     </Button>
                   )}
-                  {conf.status === 'rejected' && onRaiseDispute && (
-                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-primary text-primary hover:bg-primary/10" onClick={() => onRaiseDispute(conf)}>
-                      <Scale className="w-3.5 h-3.5 me-1" />رفع خلاف للمدير
-                    </Button>
-                  )}
                 </>
               </div>
             )}
@@ -557,7 +552,6 @@ const StockConfirmationsPopover: React.FC = () => {
   const workerHook = useStockConfirmations();
   const managerHook = useManagerConfirmations();
   const { activeRole, workerId: currentWorkerId, activeBranch } = useAuth();
-  const { createDispute } = useStockDisputes();
   const [open, setOpen] = useState(false);
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
 
@@ -624,50 +618,6 @@ const StockConfirmationsPopover: React.FC = () => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
   };
 
-  const handleRaiseDispute = async (conf: StockConfirmation) => {
-    if (!currentWorkerId) return;
-
-    // Mark the confirmation as 'disputed' so it moves to history
-    const { supabase } = await import('@/integrations/supabase/client');
-    await supabase
-      .from('stock_confirmations')
-      .update({ status: 'disputed' })
-      .eq('id', conf.id);
-
-    // Parse mismatches from rejection note to create individual disputes
-    const mismatches = parseMismatches(conf.rejection_note);
-    if (mismatches.length === 0) {
-      createDispute.mutate({
-        branch_id: conf.branch_id || activeBranch?.id,
-        warehouse_worker_id: conf.manager_id,
-        delivery_worker_id: conf.worker_id,
-        session_type: conf.operation_type,
-        session_id: conf.source_session_id || undefined,
-        warehouse_qty: conf.items.reduce((s, i) => s + i.quantity, 0),
-        delivery_qty: 0,
-        notes: conf.rejection_note || 'خلاف على عملية ' + (OPERATION_LABELS[conf.operation_type] || conf.operation_type),
-      });
-    } else {
-      const firstItem = conf.items[0];
-      const firstMismatch = mismatches[0];
-      createDispute.mutate({
-        branch_id: conf.branch_id || activeBranch?.id,
-        warehouse_worker_id: conf.manager_id,
-        delivery_worker_id: conf.worker_id,
-        session_type: conf.operation_type,
-        session_id: conf.source_session_id || undefined,
-        product_id: firstItem?.product_id,
-        product_name: firstMismatch.product,
-        warehouse_qty: parseFloat(firstMismatch.expected) || 0,
-        delivery_qty: parseFloat(firstMismatch.actual) || 0,
-        notes: `خلاف على: ${mismatches.map(m => `${m.product}: المخزن=${m.expected} التوصيل=${m.actual}`).join(' | ')}`,
-      });
-    }
-
-    // Refresh confirmations lists
-    workerHook.refetch();
-    managerHook.refetch();
-  };
 
   return (
     <>
