@@ -40,6 +40,7 @@ import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
+import { cn } from '@/lib/utils';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -166,6 +167,8 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [partialDeliveryAction, setPartialDeliveryAction] = useState<'none' | 'create_order' | 'deliver_only'>('none');
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  useEffect(() => { if (open) setCurrentStep(1); }, [open]);
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
   // Fetch products for adding
@@ -1048,17 +1051,40 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const content = (
     <>
       {!hideHeader && (
-        <DialogHeader className="p-4 pb-2 border-b">
+        <DialogHeader className="p-4 pb-2 border-b space-y-2">
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5" />
               {t('orders.delivery_sale') || 'بيع بالتوصيل'}
             </DialogTitle>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { n: 1 as const, label: 'العميل' },
+                { n: 2 as const, label: 'المنتجات' },
+                { n: 3 as const, label: 'الملخص' },
+              ].map((s) => {
+                const reached = s.n <= currentStep;
+                return (
+                  <button
+                    key={s.n}
+                    type="button"
+                    onClick={() => setCurrentStep(s.n)}
+                    className={cn(
+                      "h-7 rounded-md text-[10px] font-semibold transition-colors px-1 truncate",
+                      reached ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    )}
+                  >
+                    {s.n}. {s.label}
+                  </button>
+                );
+              })}
+            </div>
         </DialogHeader>
       )}
 
       <ScrollArea className={embedded ? "flex-1 min-h-0" : "max-h-[calc(90vh-8rem)]"}>
         <div className="px-4">
         <div className="py-4 space-y-5">
+              {currentStep === 1 && (<>
               {/* Customer Info */}
               <div className="p-3 bg-muted/50 rounded-lg">
                 <CustomerSummary
@@ -1123,7 +1149,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   </AlertDescription>
                 </Alert>
               )}
+              </>)}
 
+              {currentStep === 2 && (<>
               {/* Current Items */}
               <section ref={productsSectionRef} className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
@@ -1326,7 +1354,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   </Alert>
                 </section>
               )}
+              </>)}
 
+              {currentStep === 3 && (<>
               {/* Summary */}
               {saleItems.some(i => i.quantity > 0) && (
                 <section className="bg-muted/50 rounded-lg p-3 space-y-1">
@@ -1428,29 +1458,51 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   rows={2}
                 />
               </section>
+              </>)}
             </div>
             </div>
           </ScrollArea>
 
           {/* Footer */}
-          <div className="p-4 border-t bg-background">
-            <Button
-              onClick={handleProceedToPayment}
-              className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
-              disabled={isSaving || !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
-            >
-              {isSaving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <CheckCircle className="w-5 h-5 ms-2" />
-              )}
-              {t('orders.confirm_delivery') || 'تأكيد التوصيل'}
-              {totals.amountAfterPrepaid > 0 && (
-                <Badge variant="secondary" className="mr-2 bg-white/20">
-                  {totals.amountAfterPrepaid.toLocaleString()} {t('common.currency')}
-                </Badge>
-              )}
-            </Button>
+          <div className="p-4 border-t bg-background flex items-center gap-2">
+            {currentStep > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 px-4"
+                onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
+              >
+                السابق
+              </Button>
+            )}
+            {currentStep < 3 ? (
+              <Button
+                type="button"
+                className="flex-1 h-12 text-base"
+                onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
+                disabled={currentStep === 2 && !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
+              >
+                التالي
+              </Button>
+            ) : (
+              <Button
+                onClick={handleProceedToPayment}
+                className="flex-1 h-12 text-base bg-green-600 hover:bg-green-700"
+                disabled={isSaving || !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
+              >
+                {isSaving ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-5 h-5 ms-2" />
+                )}
+                {t('orders.confirm_delivery') || 'تأكيد التوصيل'}
+                {totals.amountAfterPrepaid > 0 && (
+                  <Badge variant="secondary" className="mr-2 bg-white/20">
+                    {totals.amountAfterPrepaid.toLocaleString()} {t('common.currency')}
+                  </Badge>
+                )}
+              </Button>
+            )}
           </div>
     </>
   );
