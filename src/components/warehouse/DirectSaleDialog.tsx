@@ -1176,7 +1176,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   })}
                 </div>
               </section>
+              </>)}
 
+              {currentStep === 3 && (<>
               {/* Cart / Selected Items */}
               {orderItems.length > 0 && (
                 <section className="space-y-3">
@@ -1301,32 +1303,54 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   rows={2}
                 />
               </section>
+              </>)}
             </div>
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t bg-background">
-            <Button
-              onClick={handleSave}
-              className="w-full h-12 text-base"
-              disabled={isSaving || !selectedCustomerId || orderItems.length === 0}
-            >
-              {isSaving ? (
-                <Loader2 className="w-5 h-5 ms-2 animate-spin" />
-              ) : (
-                <Truck className="w-5 h-5 ms-2" />
-              )}
-              {t('stock.confirm_sale')}
-              {orderTotals.totalAmount > 0 ? (
-                <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
-                  {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
-                </Badge>
-              ) : orderItems.length > 0 ? (
-                <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
-                  {orderTotals.totalItems}
-                </Badge>
-              ) : null}
-            </Button>
+          <div className="p-4 border-t bg-background flex items-center gap-2">
+            {currentStep > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 px-4"
+                onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
+              >
+                السابق
+              </Button>
+            )}
+            {currentStep < 3 ? (
+              <Button
+                type="button"
+                className="flex-1 h-12 text-base"
+                onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
+                disabled={(currentStep === 1 && !selectedCustomerId) || (currentStep === 2 && orderItems.length === 0)}
+              >
+                التالي
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSave}
+                className="flex-1 h-12 text-base"
+                disabled={isSaving || !selectedCustomerId || orderItems.length === 0}
+              >
+                {isSaving ? (
+                  <Loader2 className="w-5 h-5 ms-2 animate-spin" />
+                ) : (
+                  <Truck className="w-5 h-5 ms-2" />
+                )}
+                {t('stock.confirm_sale')}
+                {orderTotals.totalAmount > 0 ? (
+                  <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                    {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
+                  </Badge>
+                ) : orderItems.length > 0 ? (
+                  <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                    {orderTotals.totalItems}
+                  </Badge>
+                ) : null}
+              </Button>
+            )}
           </div>
     </>
   );
