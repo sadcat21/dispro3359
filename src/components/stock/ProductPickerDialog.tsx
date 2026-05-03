@@ -120,6 +120,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   // Single product quantity entry
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
   const [singleQtyFields, setSingleQtyFields] = useState<QuantityFields>(() => createDefaultSingleFields());
+  const [singleGiftFields, setSingleGiftFields] = useState<QuantityFields>(() => createDefaultSingleFields());
   const [singleGiftQty, setSingleGiftQty] = useState(0);
   const [singleGiftUnit, setSingleGiftUnit] = useState('piece');
   const [isEditMode, setIsEditMode] = useState(false);
