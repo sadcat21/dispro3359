@@ -27,7 +27,7 @@ import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
 // DebtCollectionsPopover moved into SectorCustomersPopover
 import SectorCustomersPopover from '@/components/sectors/SectorCustomersPopover';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
-import DebtCollectionsPopover from '@/components/debts/DebtCollectionsPopover';
+
 import DocumentCollectionsPopover from '@/components/documents/DocumentCollectionsPopover';
 import ReceiptModificationsNotification from '@/components/printing/ReceiptModificationsNotification';
 import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
@@ -400,7 +400,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
-          {!isTodayCustomersHidden && (isFieldWorker ? <DebtCollectionsPopover /> : <SectorCustomersPopover />)}
+          {!isTodayCustomersHidden && !isFieldWorker && <SectorCustomersPopover />}
           {!isReceiptModsHidden && <ReceiptModificationsNotification />}
           {!isStockAlertsHidden && <StockAlertsNotification />}
           {!isOffersHidden && <OffersNotification />}
