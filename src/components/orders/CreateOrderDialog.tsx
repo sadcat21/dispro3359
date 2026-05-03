@@ -122,6 +122,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [editingProductMode, setEditingProductMode] = useState(false);
   const [editingInitialQuantity, setEditingInitialQuantity] = useState(1);
   const [editingCustomUnitPrice, setEditingCustomUnitPrice] = useState<number | undefined>(undefined);
+  const [editingIsUnitSale, setEditingIsUnitSale] = useState(false);
 
   // Derived data
   const selectedCustomer = useMemo(() =>
@@ -265,17 +266,19 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     if (shortageProductIds.has(product.id) || !warehouseStockProductIds.has(product.id)) {
       toast.warning(t('stock.product_unavailable_warning'), { duration: 5000 });
     }
-    // Check if product already in cart - open in edit mode
-    const existingItem = orderItems.find(item => item.productId === product.id && !item.isUnitSale);
+    // Check if product already in cart - open in edit mode (any item, including unit sale)
+    const existingItem = orderItems.find(item => item.productId === product.id);
     if (existingItem) {
       setEditingProductMode(true);
       const existingPaidQuantity = Math.max(1, existingItem.quantity - (existingItem.giftQuantity || 0));
       setEditingInitialQuantity(existingPaidQuantity);
       setEditingCustomUnitPrice(existingItem.customUnitPrice);
+      setEditingIsUnitSale(!!existingItem.isUnitSale);
     } else {
       setEditingProductMode(false);
       setEditingInitialQuantity(1);
       setEditingCustomUnitPrice(undefined);
+      setEditingIsUnitSale(false);
     }
     setSelectedProduct(product);
     setShowQuantityDialog(true);
@@ -340,21 +343,30 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       const piecePrice = customSalePrice ?? basePiecePrice;
       const totalPrice = piecePrice * quantity;
 
+      const newUnitItem = {
+        productId,
+        quantity,
+        unitPrice: piecePrice,
+        totalPrice,
+        customUnitPrice: customUnitPrice,
+        isUnitSale: true,
+        itemPaymentType: perItemPricing?.paymentType || paymentType,
+        itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
+        itemPriceSubType: perItemPricing?.priceSubType || priceSubType,
+        pricingUnit: product.pricing_unit || 'box',
+        weightPerBox: product.weight_per_box,
+        piecesPerBox: product.pieces_per_box,
+      };
       setOrderItems(prev => {
-        return [...prev, {
-          productId,
-          quantity,
-          unitPrice: piecePrice,
-          totalPrice,
-          customUnitPrice: customUnitPrice,
-          isUnitSale: true,
-          itemPaymentType: perItemPricing?.paymentType || paymentType,
-          itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
-          itemPriceSubType: perItemPricing?.priceSubType || priceSubType,
-          pricingUnit: product.pricing_unit || 'box',
-          weightPerBox: product.weight_per_box,
-          piecesPerBox: product.pieces_per_box,
-        }];
+        if (editingProductMode) {
+          const idx = prev.findIndex(item => item.productId === productId && item.isUnitSale);
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = newUnitItem;
+            return updated;
+          }
+        }
+        return [...prev, newUnitItem];
       });
       setEditingProductMode(false);
       return;
@@ -1294,7 +1306,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       {/* Sub-dialogs */}
       <ProductQuantityDialog
         open={showQuantityDialog}
-        onOpenChange={setShowQuantityDialog}
+        onOpenChange={(o) => {
+          setShowQuantityDialog(o);
+          if (!o) setEditingProductMode(false);
+        }}
         product={selectedProduct}
         onConfirm={handleAddProductWithQuantity}
         unitPrice={selectedProduct ? getProductPrice(selectedProduct) : 0}
@@ -1304,6 +1319,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         defaultInvoicePaymentMethod={invoicePaymentMethod}
         initialQuantity={editingInitialQuantity}
         initialCustomUnitPrice={editingCustomUnitPrice}
+        initialIsUnitSale={editingIsUnitSale}
+        mode={editingProductMode ? 'edit' : 'add'}
       />
 
       <AddCustomerDialog
