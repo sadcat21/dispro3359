@@ -373,20 +373,22 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             {canCustomizePrices && (
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <Button
-                    type="button"
-                    variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1 h-9 text-xs font-bold"
-                    onClick={() => {
-                      setItemPaymentType('with_invoice');
-                      if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
-                    }}
-                    disabled={!invoiceSaleAllowed}
-                    title={t('orders.with_invoice')}
-                  >
-                    F1
-                  </Button>
+                  {!hideInvoiceOption && (
+                    <Button
+                      type="button"
+                      variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1 h-9 text-xs font-bold"
+                      onClick={() => {
+                        setItemPaymentType('with_invoice');
+                        if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
+                      }}
+                      disabled={!invoiceSaleAllowed}
+                      title={t('orders.with_invoice')}
+                    >
+                      F1
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'super_gros' ? 'default' : 'outline'}
