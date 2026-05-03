@@ -423,9 +423,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               ? (customer as any).name_fr
                               : customer.name;
                             const hasDebt = (customerDebtsMap?.[customer.id]?.total || 0) > 0;
-                            const accentClass = hasDebt ? "border-destructive" : "border-foreground";
-                            const headerBg = hasDebt ? "bg-destructive" : "bg-foreground";
-                            const headerText = hasDebt ? "text-destructive-foreground" : "text-background";
+                            const borderClass = hasDebt ? "border-destructive" : "border-foreground";
                             return (
                               <button
                                 key={customer.id}
@@ -433,20 +431,26 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 className={cn(
                                   "flex flex-col items-stretch rounded-lg overflow-hidden border-2 text-center transition-all hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md active:scale-95 min-h-[52px] shadow-sm",
                                   "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
-                                  isSelected ? "border-primary ring-2 ring-primary/40" : accentClass
+                                  isSelected ? "border-primary ring-2 ring-primary/40" : borderClass
                                 )}
                                 onClick={() => {
                                   onSelect(customer);
                                   onOpenChange(false);
                                 }}
                               >
-                                <div className={cn("px-2 py-1", headerBg)}>
-                                  <p className={cn("text-sm font-bold line-clamp-1 leading-tight", headerText)}>
+                                <div className="bg-foreground px-2 py-1">
+                                  <p className="text-sm font-bold line-clamp-1 leading-tight text-background">
                                     {storeName || displayName}
                                   </p>
                                 </div>
-                                <div className="bg-background px-2 py-0.5 flex-1 flex items-center justify-center">
-                                  <p className="text-[11px] font-medium text-foreground line-clamp-1 leading-tight">
+                                <div className={cn(
+                                  "px-2 py-0.5 flex-1 flex items-center justify-center",
+                                  hasDebt ? "bg-destructive" : "bg-background"
+                                )}>
+                                  <p className={cn(
+                                    "text-[11px] font-medium line-clamp-1 leading-tight",
+                                    hasDebt ? "text-destructive-foreground" : "text-foreground"
+                                  )}>
                                     {storeName ? displayName : ''}
                                   </p>
                                 </div>
