@@ -651,7 +651,6 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {currentStep === 1 && `١/٤ — ${t('orders.customer')} و ${t('orders.purchase_method')}`}
               {currentStep === 2 && `٢/٤ — ${t('products.title')}`}
               {currentStep === 3 && `٣/٤ — ${t('orders.cart')}`}
-              {currentStep === 4 && `٤/٤ — ${t('orders.delivery_date')} و التعيين`}
             </div>
           </DialogHeader>
 
@@ -1132,7 +1131,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               isSelected ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent"
                             )}
                           >
-                            <span className="font-bold text-[9px]">{i === 0 ? 'اليوم' : i === 1 ? 'غداً' : dayName}</span>
+                            <span className="font-bold text-[9px]">{i === 0 ? 'اليوم' : dayName}</span>
                             <span className="text-[8px] opacity-80">{format(d, 'dd/MM')}</span>
                           </button>
                         );

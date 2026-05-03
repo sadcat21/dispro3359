@@ -149,7 +149,7 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
                     isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10 bg-background'
                   }`}
                 >
-                  <div className="font-semibold text-[11px] leading-tight truncate w-full">{w.full_name}</div>
+                  <div className="font-semibold text-[11px] leading-tight w-full break-words line-clamp-2">{w.full_name}</div>
                   {(isSuggested || isDefault) && (
                     <span className={`text-[9px] ${isSelected ? 'text-primary-foreground/80' : 'text-primary'}`}>
                       {isSuggested ? 'مقترح' : 'افتراضي'}
