@@ -611,7 +611,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                 };
                 const deliveryDay = sector?.visit_day_delivery ? dayMap[sector.visit_day_delivery.toLowerCase()] : null;
                 return (
-                  <DialogTitle className="text-sm leading-tight">
+                  <DialogTitle className="text-sm leading-tight pe-10">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-muted-foreground text-xs">طلبية:</span>
                       <span className="font-bold text-primary">
@@ -631,8 +631,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         const subMap: Record<string, string> = { gros: 'G', super_gros: 'SG', detail: 'D' };
                         const code = `${paymentType === 'with_invoice' ? 'F ' : ''}${subMap[priceSubType] || ''}`.trim();
                         return (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-primary text-white hover:bg-primary border-transparent ms-auto">
-                            {code && <span className="me-1">{code}</span>}
+                          <Badge className="text-sm px-2.5 py-1 bg-primary text-white hover:bg-primary border-transparent font-bold w-full justify-center mt-1">
+                            {code && <span className="me-1.5 opacity-90">{code}</span>}
                             {t('common.currency')} {orderTotals.totalAmount.toLocaleString()}
                           </Badge>
                         );
