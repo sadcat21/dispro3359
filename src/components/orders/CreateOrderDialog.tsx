@@ -174,7 +174,50 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     }
   }, [selectedCustomer, sectors]);
 
-  const fetchData = async () => {
+  // Fetch delivery workers when reaching step 4
+  useEffect(() => {
+    if (currentStep === 4) {
+      const fetchWorkers = async () => {
+        setIsLoadingWorkers(true);
+        try {
+          let query = supabase
+            .from('worker_roles')
+            .select(`worker_id, custom_roles!inner(code)`)
+            .in('custom_roles.code', ['delivery_rep', 'warehouse_manager']);
+          if (selectedCustomer?.branch_id) {
+            query = query.eq('branch_id', selectedCustomer.branch_id);
+          }
+          const { data: workerRoles } = await query;
+          if (workerRoles && workerRoles.length > 0) {
+            const workerIds = workerRoles.map(wr => wr.worker_id);
+            const { data: workers } = await supabase
+              .from('workers')
+              .select('*')
+              .in('id', workerIds)
+              .eq('is_active', true)
+              .order('full_name');
+            setDeliveryWorkers(workers || []);
+            // Pre-select default delivery worker
+            if (selectedCustomer?.default_delivery_worker_id) {
+              const exists = (workers || []).some(w => w.id === selectedCustomer.default_delivery_worker_id);
+              if (exists && !selectedDeliveryWorker) {
+                setSelectedDeliveryWorker(selectedCustomer.default_delivery_worker_id!);
+              }
+            }
+          } else {
+            setDeliveryWorkers([]);
+          }
+        } catch (error) {
+          console.error('Error fetching delivery workers:', error);
+        } finally {
+          setIsLoadingWorkers(false);
+        }
+      };
+      fetchWorkers();
+    }
+  }, [currentStep, selectedCustomer?.branch_id]);
+
+
     setIsLoadingData(true);
     try {
       let customersQuery = supabase.from('customers').select('*').eq('status', 'active').order('name');
