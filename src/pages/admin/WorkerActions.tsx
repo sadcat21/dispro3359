@@ -59,6 +59,7 @@ import SectorScheduleDialog from '@/components/sectors/SectorScheduleDialog';
 import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
 import ExchangeSessionDialog from '@/components/stock/ExchangeSessionDialog';
 import WorkerAccountingSessionsDialog from '@/components/accounting/WorkerAccountingSessionsDialog';
+import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { isAdminRole, isSuperAdminRole } from '@/lib/utils';
 
 const workerActions = [
