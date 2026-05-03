@@ -313,6 +313,44 @@ const BranchManagerHome: React.FC = () => {
         })}
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
+
+      <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-emerald-600" />
+              اختر عامل التوصيل للمراجعة النهائية
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+            {deliveryWorkers.length === 0 ? (
+              <p className="col-span-2 text-center text-sm text-muted-foreground py-6">لا يوجد عمال نشطون</p>
+            ) : deliveryWorkers.map(w => (
+              <button
+                key={w.id}
+                onClick={() => {
+                  setFinalReviewWorker({ id: w.id, name: w.full_name });
+                  setFinalReviewPickerOpen(false);
+                }}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 hover:border-emerald-400 active:scale-95 transition-all"
+              >
+                <HardHat className="w-6 h-6 text-emerald-600" />
+                <span className="text-xs font-bold text-center">{w.full_name}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {finalReviewWorker && (
+        <FinalReviewDialog
+          open={!!finalReviewWorker}
+          onOpenChange={(o) => { if (!o) setFinalReviewWorker(null); }}
+          workerId={finalReviewWorker.id}
+          workerName={finalReviewWorker.name}
+          branchId={branchId || null}
+        />
+      )}
     </div>
   );
 };
