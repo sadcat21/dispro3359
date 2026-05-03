@@ -232,18 +232,36 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     : `${parsedGift.boxes}`;
   const singleOffer = singleProductId ? offersMap[singleProductId] : undefined;
 
-  // Calculate suggested gift based on quantity and offer tiers
+  // Calculate suggested gift based on regular quantity and offer tiers
   const suggestedGift = React.useMemo(() => {
-    if (!singleOffer || toCustomFormat(parsed) <= 0) return { qty: 0, unit: 'piece' };
+    if (!singleOffer || toCustomFormat(parsed) <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
     const qty = toCustomFormat(parsed);
     const sortedTiers = [...singleOffer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
       if (qty >= tier.minQty) {
-        return { qty: Math.floor(qty / tier.minQty) * tier.giftQty, unit: tier.giftUnit };
+        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
+        const totalPieces = tier.giftUnit === 'box' ? gQty * singlePPB : gQty;
+        return { qty: gQty, unit: tier.giftUnit, totalPieces };
       }
     }
-    return { qty: 0, unit: 'piece' };
-  }, [singleOffer, parsed.boxes, parsed.pieces]);
+    return { qty: 0, unit: 'piece', totalPieces: 0 };
+  }, [singleOffer, parsed.boxes, parsed.pieces, singlePPB]);
+
+  const suggestedSplit = React.useMemo(() => {
+    const boxes = Math.floor(suggestedGift.totalPieces / singlePPB);
+    const pieces = suggestedGift.totalPieces % singlePPB;
+    return { boxes, pieces };
+  }, [suggestedGift.totalPieces, singlePPB]);
+
+  // Total = regular + gift (in pieces, then formatted as B.P)
+  const totalPiecesCombined = parsed.totalPieces + parsedGift.totalPieces;
+  const totalDisplayBP = (() => {
+    const b = Math.floor(totalPiecesCombined / singlePPB);
+    const p = totalPiecesCombined % singlePPB;
+    return p > 0 ? `${b}.${String(p).padStart(2, '0')}` : `${b}`;
+  })();
+
+  const isOfferActivated = singleProductId ? !!offerActivated[singleProductId] : false;
 
   const handleConfirmSingle = () => {
     if (!singleProductId || (parsed.boxes === 0 && parsed.pieces === 0 && parsedGift.boxes === 0 && parsedGift.pieces === 0)) return;
