@@ -140,20 +140,10 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     enabled: open,
   });
 
-  const toggleGroup = (key: string) => {
-    setOpenGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
   useEffect(() => {
     if (open) {
       setSearch('');
-      setAutoExpand(false);
-      setOpenGroups(new Set());
+      setActiveSectorKey(null);
     }
   }, [open]);
 
