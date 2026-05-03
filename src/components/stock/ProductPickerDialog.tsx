@@ -672,9 +672,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
                       <Button
                         type="button"
-                        variant={isOfferActivated ? 'destructive' : 'default'}
                         size="sm"
-                        className="h-6 px-2 text-[10px]"
+                        className={`h-6 px-2 text-[10px] text-white ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                         onClick={() => {
                           if (isOfferActivated) {
                             setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
