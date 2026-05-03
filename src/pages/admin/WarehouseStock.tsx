@@ -272,20 +272,9 @@ const WarehouseStock: React.FC = () => {
           {t('stock.warehouse_stock')}
         </h2>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
-        <Button size="sm" variant="outline" onClick={() => navigate('/stock-receipts')}>
-          <ClipboardList className="w-4 h-4 ml-1" />
-          {t('warehouse.receipt_delivery')}
-        </Button>
-        <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={() => setShowEmptyDialog(true)}>
-          <Trash2 className="w-4 h-4 ml-1" />
-          التفريغ
-        </Button>
-      </div>
-
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className={`w-full grid ${isWarehouseManager ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <Tabs value={activeTab === 'today' ? 'stock' : activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="stock" className="text-xs gap-1">
             <Package className="w-3.5 h-3.5" />
             {t('warehouse.stock_tab')}
@@ -294,12 +283,6 @@ const WarehouseStock: React.FC = () => {
             <ClipboardCheck className="w-3.5 h-3.5" />
             {t('warehouse.reviews_tab')}
           </TabsTrigger>
-          {isWarehouseManager && (
-            <TabsTrigger value="today" className="text-xs gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              إنجازات اليوم
-            </TabsTrigger>
-          )}
         </TabsList>
 
         <TabsContent value="stock" className="space-y-4 mt-3">
