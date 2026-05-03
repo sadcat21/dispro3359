@@ -382,7 +382,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               // إذا لم تُختر منطقة بعد ولم يكن هناك بحث: اعرض شبكة أزرار المناطق
               if (!activeRegionKey && !search.trim()) {
                 return (
-                  <div className="grid grid-cols-3 gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                  <div className="grid grid-cols-2 gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
                     {regionEntries.map(([region, list], rIdx) => {
                       const rStyle = sectorStyle(region, rIdx);
                       return (
@@ -391,16 +391,16 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                           onClick={() => setActiveRegionKey(region)}
                           style={{ animationDelay: `${rIdx * 40}ms` }}
                           className={cn(
-                            "group relative flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border-2 shadow-sm min-h-[36px]",
+                            "group relative flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-2 shadow-sm min-h-[40px]",
                             "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                             "animate-in fade-in zoom-in-95 fill-mode-both",
                             rStyle.bg, rStyle.border
                           )}
                         >
-                          <span className={cn("text-xs font-semibold truncate min-w-0", rStyle.text)}>
+                          <span className={cn("text-sm font-bold truncate min-w-0", rStyle.text)}>
                             {region}
                           </span>
-                          <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 rounded-full bg-muted text-foreground text-[10px] font-bold shrink-0">
+                          <span className="inline-flex items-center justify-center min-w-[28px] h-5 px-2 rounded-full bg-muted text-foreground text-xs font-bold shrink-0">
                             {list.length}
                           </span>
                         </button>
