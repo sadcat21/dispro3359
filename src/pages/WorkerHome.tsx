@@ -339,30 +339,6 @@ const WorkerHome: React.FC = () => {
               {getWelcomeMessage()}
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <AttendanceButton />
-            <button
-              onClick={() => setShowPalletCalculator(true)}
-              className="bg-white/20 hover:bg-white/30 rounded-xl p-2.5 transition-colors"
-              title={t('worker.pallet_calculator')}
-            >
-              <Package className="w-5 h-5" />
-            </button>
-            <Link
-              to="/chat"
-              className="bg-white/20 hover:bg-white/30 rounded-xl p-2.5 transition-colors"
-              title={t('worker.chat')}
-            >
-              <MessageCircle className="w-5 h-5" />
-            </Link>
-            <button
-              onClick={() => setShowHandoverPreview(true)}
-              className="bg-white/20 hover:bg-white/30 rounded-xl p-2.5 transition-colors"
-              title={t('worker.handover_summary')}
-            >
-              <ClipboardList className="w-5 h-5" />
-            </button>
-          </div>
         </div>
       </div>
 
