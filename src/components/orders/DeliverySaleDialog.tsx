@@ -166,6 +166,8 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [partialDeliveryAction, setPartialDeliveryAction] = useState<'none' | 'create_order' | 'deliver_only'>('none');
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  useEffect(() => { if (open) setCurrentStep(1); }, [open]);
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
   // Fetch products for adding
