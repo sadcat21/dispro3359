@@ -345,7 +345,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     </Badge>
                   )}
                   {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
-                    <Badge className="text-[10px] px-1.5 py-0 bg-amber-500 text-white hover:bg-amber-500 border-transparent">
+                    <Badge className="text-[10px] px-1.5 py-0 bg-amber-400 text-black hover:bg-amber-400 border-transparent">
                       {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}/{pricingUnitLabel}
                     </Badge>
                   )}
