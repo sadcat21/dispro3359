@@ -748,25 +748,25 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   </section>
 
                   {/* Payment Type */}
-                  <section className="space-y-3">
-                    <Label className="text-base font-semibold">{t('orders.purchase_method')}</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                  <section className="space-y-2">
+                    <Label className="text-sm font-semibold">{t('orders.purchase_method')}</Label>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         type="button"
                         variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                        className={`h-16 flex flex-col gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                        className={`h-11 flex flex-row items-center gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
                         onClick={() => setPaymentType('with_invoice')}
                       >
-                        <Receipt className="w-5 h-5" />
+                        <Receipt className="w-4 h-4" />
                         <span className="text-sm">{t('orders.with_invoice')}</span>
                       </Button>
                       <Button
                         type="button"
                         variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                        className={`h-16 flex flex-col gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
+                        className={`h-11 flex flex-row items-center gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
                         onClick={() => setPaymentType('without_invoice')}
                       >
-                        <ReceiptText className="w-5 h-5" />
+                        <ReceiptText className="w-4 h-4" />
                         <span className="text-sm">{t('orders.without_invoice')}</span>
                       </Button>
                     </div>
