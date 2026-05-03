@@ -460,24 +460,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             })()
           )}
         </ScrollArea>
-
-        {/* Footer */}
-        <div className="border-t px-4 py-2.5 flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            {filteredCustomers.length} {t('customer_picker.count')}
-          </p>
-          {onAddNew && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-xs text-primary hover:text-primary gap-1"
-              onClick={onAddNew}
-            >
-              <UserPlus className="w-4 h-4" />
-              {t('customer_picker.new')}
-            </Button>
-          )}
-        </div>
       </DialogContent>
     </Dialog>
   );
