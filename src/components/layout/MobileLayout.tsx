@@ -428,7 +428,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             title={uiTheme === 'soft' ? 'تصميم كلاسيكي' : 'تصميم ناعم'}
             className={cn(
               'flex items-center justify-center w-8 h-8 shrink-0 rounded-lg transition-colors',
-              uiTheme === 'soft' ? 'bg-orange-400/90 hover:bg-orange-400 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+              uiTheme === 'soft' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
             )}
           >
             <Palette className="w-4 h-4" />
