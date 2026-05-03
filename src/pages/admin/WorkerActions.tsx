@@ -123,6 +123,7 @@ const WorkerActions: React.FC = () => {
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
   const [exchangeDamagedOpen, setExchangeDamagedOpen] = useState(false);
   const [accountingSessionsOpen, setAccountingSessionsOpen] = useState(false);
+  const [finalReviewOpen, setFinalReviewOpen] = useState(false);
 
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   // Warehouse manager sees admin-style worker list (like supervisor)
