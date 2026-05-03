@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 import { Search, UserPlus, User, ChevronLeft, Loader2, X, Banknote, MapPin, Store, Building2, Home, Map as MapIcon, Navigation, Compass, Landmark, Tent, TreePine, Mountain, Waves, Sun, Star } from 'lucide-react';
 import { Customer, Sector } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
