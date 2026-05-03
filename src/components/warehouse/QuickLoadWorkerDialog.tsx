@@ -149,10 +149,13 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
     }
   };
 
-  const availableProducts = products.map(p => {
-    const ws = warehouseStock.find(s => s.product_id === p.id);
-    return { id: p.id, name: `${p.name} (${ws?.quantity || 0})` };
-  });
+  const availableProducts = products
+    .map(p => {
+      const ws = warehouseStock.find(s => s.product_id === p.id);
+      return { id: p.id, name: `${p.name} (${ws?.quantity || 0})`, _qty: ws?.quantity || 0 };
+    })
+    .filter(p => p._qty > 0)
+    .map(({ _qty, ...rest }) => rest);
 
   const selectedShipmentProductIds = items.filter(item => item.product_id).map(item => item.product_id);
 
