@@ -107,6 +107,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const resetPickerState = () => {
     setSingleProductId(null);
     setSingleQtyFields(createDefaultSingleFields());
+    setSingleGiftFields(createDefaultSingleFields());
     setMultiSelected(new Set());
     setMode('browse');
     setUniformQty(true);
