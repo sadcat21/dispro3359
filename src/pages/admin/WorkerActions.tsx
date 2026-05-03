@@ -881,7 +881,7 @@ const WorkerActions: React.FC = () => {
               const warehouseAllowed = new Set([
                 'load_stock', 'unload_truck', 'truck_stock', 'stock_review', 'session_history',
                 'exchange_damaged', 'achievements', 'orders', 'today_customers', 'tracking',
-                'attendance_log', 'sector_schedule', 'sector_coverage',
+                'attendance_log', 'sector_schedule', 'sector_coverage', 'final_review',
               ]);
               return warehouseAllowed.has(action.key);
             }
