@@ -222,9 +222,13 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const singleProduct = singleProductId ? products.find(pr => pr.id === singleProductId) : null;
   const singlePPB = singleProduct?.pieces_per_box || 1;
   const parsed = parseBP(`${singleQtyFields.boxes || '0'}.${singleQtyFields.pieces || '0'}`, singlePPB);
+  const parsedGift = parseBP(`${singleGiftFields.boxes || '0'}.${singleGiftFields.pieces || '0'}`, singlePPB);
   const displayBP = parsed.pieces > 0
     ? `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`
     : `${parsed.boxes}`;
+  const displayGiftBP = parsedGift.pieces > 0
+    ? `${parsedGift.boxes}.${String(parsedGift.pieces).padStart(2, '0')}`
+    : `${parsedGift.boxes}`;
   const singleOffer = singleProductId ? offersMap[singleProductId] : undefined;
 
   // Calculate suggested gift based on quantity and offer tiers
@@ -241,12 +245,14 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   }, [singleOffer, parsed.boxes, parsed.pieces]);
 
   const handleConfirmSingle = () => {
-    if (!singleProductId || (parsed.boxes === 0 && parsed.pieces === 0)) return;
+    if (!singleProductId || (parsed.boxes === 0 && parsed.pieces === 0 && parsedGift.boxes === 0 && parsedGift.pieces === 0)) return;
+    const regularQty = toCustomFormat(parsed);
+    const giftQty = toCustomFormat(parsedGift);
     const item = {
       productId: singleProductId,
-      quantity: toCustomFormat(parsed),
-      giftQuantity: singleGiftQty,
-      giftUnit: singleGiftUnit,
+      quantity: regularQty + giftQty,
+      giftQuantity: giftQty,
+      giftUnit: parsedGift.boxes > 0 && parsedGift.pieces === 0 ? 'box' : 'piece',
     };
     if (isEditMode && onEditProduct) {
       onEditProduct(item);
@@ -255,6 +261,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     }
     setSingleProductId(null);
     setSingleQtyFields(createDefaultSingleFields());
+    setSingleGiftFields(createDefaultSingleFields());
     setMode('browse');
     setSingleGiftQty(0);
     setSingleGiftUnit('piece');
