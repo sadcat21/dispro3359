@@ -26,6 +26,8 @@ interface CustomerPickerDialogProps {
   selectedCustomerId?: string;
   onSelect: (customer: Customer) => void;
   onAddNew?: () => void;
+  onLongPress?: (customer: Customer) => void;
+  onDoubleClick?: (customer: Customer) => void;
 }
 
 interface SectorGroup {
