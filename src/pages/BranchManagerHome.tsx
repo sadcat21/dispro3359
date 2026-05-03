@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
+import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -12,7 +14,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
-  Coins, HandCoins, PackageSearch,
+  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat,
 } from 'lucide-react';
 
 interface BMItem {
