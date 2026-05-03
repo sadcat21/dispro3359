@@ -697,7 +697,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                     />
 
                     {selectedCustomer && (
-                      <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+                      <div className="p-2 bg-muted/50 rounded-lg space-y-2">
                         <CustomerSummary
                           customer={{
                             name: selectedCustomer.name,
