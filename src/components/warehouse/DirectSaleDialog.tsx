@@ -1071,7 +1071,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                 </div>
                 )}
               </section>
+              </>)}
 
+              {currentStep === 2 && (<>
               {/* Products - Grid like CreateOrderDialog */}
               <section className="space-y-3">
                 <Label className="text-base font-semibold">{t('products.title')}</Label>
