@@ -575,190 +575,195 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
           }
         }}
       >
-        <DialogContent className="max-w-sm" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
+        <DialogContent className="max-w-sm w-[95vw] max-h-[92dvh] p-0 gap-0 flex flex-col overflow-hidden" dir="rtl">
+          <DialogHeader className="px-3 pt-3 pb-2 border-b shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-sm">
               <Package className="w-4 h-4 text-primary" />
               {isEditMode ? 'تعديل كمية المنتج' : 'إضافة منتج للشاحنة'}
             </DialogTitle>
           </DialogHeader>
 
           {singleProduct && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
-                {singleProduct.image_url ? (
-                  <img src={singleProduct.image_url} alt={getProductDisplayName(singleProduct)} className="w-14 h-14 rounded-lg object-cover shrink-0" />
-                ) : (
-                  <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <Package className="w-6 h-6 text-muted-foreground/40" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-base text-primary truncate">{getProductDisplayName(singleProduct)}</h3>
-                  <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground mt-0.5">
-                    <span>المتاح: <strong className="text-foreground">{fmtQty(singleProduct.warehouseQty)}</strong></span>
-                    {(loadedQtyMap[singleProduct.id] || 0) > 0 && (
-                      <span>في الشاحنة: <strong className="text-green-600">{fmtQty(loadedQtyMap[singleProduct.id])}</strong></span>
-                    )}
-                    {(needsMap[singleProduct.id] || 0) > 0 && (
-                      <span>يحتاج: <strong className="text-destructive">{fmtQty(needsMap[singleProduct.id])}</strong></span>
-                    )}
-                  </div>
-                  {singlePPB > 1 && (
-                    <p className="text-xs text-muted-foreground mt-1">الصندوق = {singlePPB} قطعة</p>
+            <>
+              <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2">
+                {/* Product header */}
+                <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-2">
+                  {singleProduct.image_url ? (
+                    <img src={singleProduct.image_url} alt={getProductDisplayName(singleProduct)} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Package className="w-5 h-5 text-muted-foreground/40" />
+                    </div>
                   )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-extrabold text-sm text-primary truncate">{getProductDisplayName(singleProduct)}</h3>
+                    <div className="flex items-center gap-2 flex-wrap text-[10px] text-muted-foreground mt-0.5">
+                      <span>المتاح: <strong className="text-foreground">{fmtQty(singleProduct.warehouseQty)}</strong></span>
+                      {(loadedQtyMap[singleProduct.id] || 0) > 0 && (
+                        <span>الشاحنة: <strong className="text-green-600">{fmtQty(loadedQtyMap[singleProduct.id])}</strong></span>
+                      )}
+                      {(needsMap[singleProduct.id] || 0) > 0 && (
+                        <span>يحتاج: <strong className="text-destructive">{fmtQty(needsMap[singleProduct.id])}</strong></span>
+                      )}
+                      {singlePPB > 1 && <span>الصندوق={singlePPB}</span>}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1 border rounded-lg p-2.5 bg-muted/40">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">الكمية (صندوق.قطع)</Label>
-                  {isEditMode && onRemoveProduct && singleProductId && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        onRemoveProduct(singleProductId);
-                        setSingleProductId(null);
-                        setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-                        setSingleGiftQty(0);
-                        setSingleGiftUnit('piece');
-                        setMode('browse');
-                        setIsEditMode(false);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">الصندوق</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={singleQtyFields.boxes}
-                      onChange={e => setSingleQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
-                      onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
-                      className="h-11 text-center text-lg font-bold [font-variant-numeric:tabular-nums]"
-                      placeholder="00000"
-                    />
+                {/* Regular qty */}
+                <div className="space-y-1.5 border rounded-lg p-2 bg-muted/40">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] font-semibold">الكمية (صندوق.قطع)</Label>
+                    <div className="flex items-center gap-2">
+                      {(parsed.boxes > 0 || parsed.pieces > 0) && (
+                        <span className="text-[10px] text-muted-foreground">سيُحفظ: <strong className="text-foreground">{displayBP}</strong></span>
+                      )}
+                      {isEditMode && onRemoveProduct && singleProductId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            onRemoveProduct(singleProductId);
+                            setSingleProductId(null);
+                            setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
+                            setMode('browse');
+                            setIsEditMode(false);
+                          }}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">القطع</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={singleQtyFields.pieces}
-                      onChange={e => setSingleQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
-                      onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
-                      className="h-11 text-center text-lg font-bold [font-variant-numeric:tabular-nums]"
-                      placeholder="000"
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">الصندوق</Label>
+                      <Input
+                        type="text" inputMode="numeric"
+                        value={singleQtyFields.boxes}
+                        onChange={e => setSingleQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
+                        onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
+                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">القطع</Label>
+                      <Input
+                        type="text" inputMode="numeric"
+                        value={singleQtyFields.pieces}
+                        onChange={e => setSingleQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
+                        onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
+                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        placeholder="0"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="text-center text-[11px] text-muted-foreground">سيُحفظ: {displayBP}</div>
-              </div>
 
-              <div className="space-y-1 border rounded-lg p-2.5 bg-green-500/5 border-green-500/30">
-                <div className="flex items-center justify-between gap-2">
-                  <Label className="text-xs font-semibold flex items-center gap-1 text-green-700">
-                    <Gift className="w-3.5 h-3.5" />
-                    الهدية (صندوق.قطع)
-                  </Label>
-                  {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
-                    <Button
-                      type="button"
-                      variant={isOfferActivated ? 'destructive' : 'default'}
-                      size="sm"
-                      className="h-7 px-2 text-[10px]"
-                      onClick={() => {
-                        if (isOfferActivated) {
-                          setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
-                          setSingleGiftFields(createDefaultSingleFields());
-                        } else {
-                          setOfferActivated(prev => ({ ...prev, [singleProductId]: true }));
-                          setSingleGiftFields({
-                            boxes: suggestedSplit.boxes > 0 ? String(suggestedSplit.boxes) : '',
-                            pieces: suggestedSplit.pieces > 0 ? String(suggestedSplit.pieces) : '',
-                          });
-                        }
-                      }}
-                    >
-                      {isOfferActivated ? 'إلغاء تفعيل العرض' : 'تفعيل العرض'}
-                    </Button>
-                  )}
-                </div>
-                {singleOffer && (
-                  <div className="text-[10px] text-muted-foreground text-center">
-                    عرض: {singleOffer.giftQty} {singleOffer.giftUnit === 'piece' ? 'قطعة' : 'صندوق'} لكل {singleOffer.minQty}
-                    {suggestedGift.totalPieces > 0 && (
-                      <> · اقتراح: {suggestedSplit.boxes > 0 ? `${suggestedSplit.boxes} صندوق` : ''}{suggestedSplit.boxes > 0 && suggestedSplit.pieces > 0 ? ' و' : ''}{suggestedSplit.pieces > 0 ? `${suggestedSplit.pieces} قطعة` : ''}</>
+                {/* Gift qty */}
+                <div className="space-y-1.5 border-2 rounded-lg p-2 bg-green-500/5 border-green-500/40">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="text-[11px] font-bold flex items-center gap-1 text-green-700">
+                      <Gift className="w-3.5 h-3.5" />
+                      الهدية
+                    </Label>
+                    {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
+                      <Button
+                        type="button"
+                        variant={isOfferActivated ? 'destructive' : 'default'}
+                        size="sm"
+                        className="h-6 px-2 text-[10px]"
+                        onClick={() => {
+                          if (isOfferActivated) {
+                            setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
+                            setSingleGiftFields(createDefaultSingleFields());
+                          } else {
+                            setOfferActivated(prev => ({ ...prev, [singleProductId]: true }));
+                            setSingleGiftFields({
+                              boxes: suggestedSplit.boxes > 0 ? String(suggestedSplit.boxes) : '',
+                              pieces: suggestedSplit.pieces > 0 ? String(suggestedSplit.pieces) : '',
+                            });
+                          }
+                        }}
+                      >
+                        {isOfferActivated ? 'إلغاء التفعيل' : 'تفعيل العرض'}
+                      </Button>
                     )}
                   </div>
-                )}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">الصندوق</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={singleGiftFields.boxes}
-                      onChange={e => setSingleGiftFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
-                      onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
-                      className="h-11 text-center text-lg font-bold [font-variant-numeric:tabular-nums]"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">القطع</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={singleGiftFields.pieces}
-                      onChange={e => setSingleGiftFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
-                      onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
-                      className="h-11 text-center text-lg font-bold [font-variant-numeric:tabular-nums]"
-                      placeholder="0"
-                    />
+                  {singleOffer && (
+                    <div className="rounded-md bg-green-500/10 px-2 py-1 text-[11px] font-semibold text-green-800 text-center">
+                      <span className="text-green-700">العرض:</span> {singleOffer.giftQty} {singleOffer.giftUnit === 'piece' ? 'قطعة' : 'صندوق'} لكل {singleOffer.minQty}
+                      {suggestedGift.totalPieces > 0 && (
+                        <span className="block text-[10px] mt-0.5 text-green-700/80">
+                          الاقتراح: {suggestedSplit.boxes > 0 ? `${suggestedSplit.boxes} صندوق` : ''}{suggestedSplit.boxes > 0 && suggestedSplit.pieces > 0 ? ' و ' : ''}{suggestedSplit.pieces > 0 ? `${suggestedSplit.pieces} قطعة` : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">الصندوق</Label>
+                      <Input
+                        type="text" inputMode="numeric"
+                        value={singleGiftFields.boxes}
+                        onChange={e => setSingleGiftFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
+                        onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
+                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">القطع</Label>
+                      <Input
+                        type="text" inputMode="numeric"
+                        value={singleGiftFields.pieces}
+                        onChange={e => setSingleGiftFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
+                        onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
+                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        placeholder="0"
+                      />
+                    </div>
                   </div>
                 </div>
-                {(parsedGift.boxes > 0 || parsedGift.pieces > 0) && (
-                  <div className="text-center text-[11px] text-green-700">هدية: {displayGiftBP}</div>
+
+                {/* Total */}
+                {totalPiecesCombined > 0 && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5 flex items-center justify-between">
+                    <span className="text-[11px] text-muted-foreground">المجموع (عادي + هدية)</span>
+                    <span className="text-base font-extrabold text-primary [font-variant-numeric:tabular-nums]">{totalDisplayBP}</span>
+                  </div>
                 )}
               </div>
 
-              {totalPiecesCombined > 0 && (
-                <div className="rounded-lg border border-primary/30 bg-primary/5 p-2 text-center">
-                  <div className="text-[10px] text-muted-foreground">مجموع الشحن (عادي + هدية)</div>
-                  <div className="text-base font-extrabold text-primary [font-variant-numeric:tabular-nums]">{totalDisplayBP}</div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Button onClick={handleConfirmSingle} disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0} className="w-full h-11 text-sm font-bold">
-                  <Plus className="w-4 h-4 me-2" />
-                  {isEditMode ? 'تعديل الكمية' : 'إضافة للشاحنة'}
-                </Button>
+              {/* Sticky footer */}
+              <div className="border-t bg-background p-2 shrink-0 flex gap-2">
                 <Button
                   variant="outline"
-                  className="w-full h-9 text-xs"
+                  className="flex-1 h-11 text-sm font-semibold"
                   onClick={() => {
                     setSingleProductId(null);
                     setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-                    setSingleGiftQty(0);
-                    setSingleGiftUnit('piece');
                     setMode('browse');
                   }}
                 >
                   إلغاء
                 </Button>
+                <Button
+                  onClick={handleConfirmSingle}
+                  disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0}
+                  className="flex-[2] h-11 text-sm font-bold"
+                >
+                  <Check className="w-4 h-4 me-1.5" />
+                  {totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد')}
+                </Button>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
+
     </>
   );
 };
