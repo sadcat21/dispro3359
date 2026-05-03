@@ -290,6 +290,34 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     return unitSale ? boxPrice / piecesPerBox : boxPrice;
   }, []);
 
+  // Compute price for an item taking per-item pricing override into account
+  const computeItemPrice = useCallback((product: Product, perItemPricing: PerItemPricing | undefined, unitSale: boolean): { unitPrice: number; subType: PriceSubType; payType: PaymentType } => {
+    const effective = getEffectiveProduct(product.id) || product;
+    const payType = perItemPricing?.paymentType ?? paymentType;
+    const subType = (perItemPricing?.priceSubType ?? priceSubType) as PriceSubType;
+
+    if (perItemPricing?.customUnitPrice !== undefined) {
+      return { unitPrice: resolveCustomSalePrice(product, perItemPricing.customUnitPrice, unitSale), subType, payType };
+    }
+
+    let basePrice = 0;
+    if (payType === 'with_invoice') {
+      basePrice = effective.price_invoice || 0;
+    } else {
+      switch (subType) {
+        case 'super_gros': basePrice = effective.price_super_gros || effective.price_no_invoice || 0; break;
+        case 'retail': basePrice = effective.price_retail || effective.price_no_invoice || 0; break;
+        case 'gros':
+        default: basePrice = effective.price_gros || effective.price_no_invoice || 0;
+      }
+    }
+    let boxPrice = basePrice;
+    if (effective.pricing_unit === 'kg' && effective.weight_per_box) boxPrice = basePrice * effective.weight_per_box;
+    else if (effective.pricing_unit === 'unit' && effective.pieces_per_box > 1) boxPrice = basePrice * effective.pieces_per_box;
+    const piecesPerBox = effective.pieces_per_box || 1;
+    return { unitPrice: unitSale ? boxPrice / piecesPerBox : boxPrice, subType, payType };
+  }, [paymentType, priceSubType, getEffectiveProduct, resolveCustomSalePrice]);
+
   const getAvailable = (productId: string) =>
     stockItems.find(s => s.product_id === productId)?.quantity || 0;
 
