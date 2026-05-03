@@ -623,10 +623,20 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         </Badge>
                       )}
                       {deliveryDay && (
-                        <Badge className="text-[10px] px-1.5 py-0 bg-blue-600 text-white hover:bg-blue-600 border-transparent">
+                        <Badge className="text-[10px] px-1.5 py-0 bg-yellow-400 text-black hover:bg-yellow-400 border-transparent">
                           {deliveryDay}
                         </Badge>
                       )}
+                      {orderTotals.totalAmount > 0 && (() => {
+                        const subMap: Record<string, string> = { gros: 'G', super_gros: 'SG', detail: 'D' };
+                        const code = `${paymentType === 'with_invoice' ? 'F ' : ''}${subMap[priceSubType] || ''}`.trim();
+                        return (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-primary text-white hover:bg-primary border-transparent ms-auto">
+                            {code && <span className="me-1">{code}</span>}
+                            {t('common.currency')} {orderTotals.totalAmount.toLocaleString()}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                   </DialogTitle>
                 );
@@ -637,10 +647,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             {/* Step indicator */}
             <div className="grid grid-cols-4 gap-1 pt-1">
               {[
-                { n: 1, label: t('orders.customer') },
-                { n: 2, label: t('products.title') },
-                { n: 3, label: t('orders.cart') },
-                { n: 4, label: t('orders.delivery_date') },
+                { n: 1, label: 'العميل' },
+                { n: 2, label: 'المنتجات' },
+                { n: 3, label: 'الملخص' },
+                { n: 4, label: 'التوصيل' },
               ].map((s) => {
                 const reached = s.n <= currentStep;
                 return (
