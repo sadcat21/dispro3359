@@ -286,6 +286,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     setPriceSubType('gros');
     setInvoicePaymentMethod(null);
     setSelectedDeliveryWorker('');
+    setWorkerSearch('');
     setCustomerDropdownOpen(false);
     setCurrentStep(1);
   }, []);
