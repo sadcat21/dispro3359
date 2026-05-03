@@ -109,6 +109,23 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     enabled: open,
   });
 
+  // العملاء الذين لديهم طلبية لم تُسلَّم ولم ينتهِ أجلها
+  const { data: pendingOrderCustomers } = useQuery({
+    queryKey: ['customers-with-pending-orders'],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('orders')
+        .select('customer_id, status, delivery_date')
+        .not('status', 'in', '(delivered,cancelled,returned)')
+        .gte('delivery_date', today);
+      const set = new Set<string>();
+      (data || []).forEach((o: any) => { if (o.customer_id) set.add(o.customer_id); });
+      return set;
+    },
+    enabled: open,
+  });
+
   const { data: customerTrustMap } = useQuery({
     queryKey: ['customer-trust-summary-all'],
     queryFn: async () => {
