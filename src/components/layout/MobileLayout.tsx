@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
+import RoleSelectionDialog from '@/components/auth/RoleSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
 import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
 import StockDisputesPopover from '@/components/stock/StockDisputesPopover';
@@ -160,7 +161,7 @@ const SIDEBAR_GROUP_META: Record<string, { i18n: string; icon: React.ComponentTy
 };
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
-  const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole } = useAuth();
+  const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole, availableRoles, switchRole, showRoleSelection, selectRole } = useAuth();
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
@@ -483,6 +484,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                       : '∞'}
                   </span>
                   <span className="text-sm">{activeBranch ? activeBranch.name : t('branches.all_branches')}</span>
+                </DropdownMenuItem>
+              )}
+              {availableRoles && availableRoles.length > 1 && (
+                <DropdownMenuItem
+                  onClick={switchRole}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <UserCog className="w-4 h-4 text-primary" />
+                  <span className="text-sm">تبديل الدور ({availableRoles.length})</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -835,6 +845,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       <BranchSelectionDialog
         open={showBranchSelection}
         onSelectBranch={selectBranch}
+      />
+
+      {/* Role Selection Dialog (for switching roles without logging out) */}
+      <RoleSelectionDialog
+        open={showRoleSelection}
+        roles={availableRoles}
+        onSelectRole={selectRole}
       />
       
       {showInvoiceButton && (
