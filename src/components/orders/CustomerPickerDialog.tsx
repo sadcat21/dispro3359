@@ -74,6 +74,19 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const effectiveSectors = sectors.length > 0 ? sectors : (fetchedSectors || []);
 
+  // Fetch sector zones (regions) to group customers by zone within a sector
+  const { data: zonesMap } = useQuery({
+    queryKey: ['sector-zones-map'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('sector_zones').select('id, name, name_fr');
+      if (error) throw error;
+      const map: Record<string, { name: string; name_fr: string | null }> = {};
+      (data || []).forEach((z: any) => { map[z.id] = { name: z.name, name_fr: z.name_fr }; });
+      return map;
+    },
+    enabled: open,
+  });
+
   // Fetch active debts for all customers
   const { data: customerDebtsMap } = useQuery({
     queryKey: ['customer-debts-summary-all'],
