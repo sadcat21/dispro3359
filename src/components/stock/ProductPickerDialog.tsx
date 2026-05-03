@@ -738,21 +738,26 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
               {/* Sticky footer */}
               <div className="border-t bg-background p-2 shrink-0 flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 h-11 text-sm font-semibold"
-                  onClick={() => {
-                    setSingleProductId(null);
-                    setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-                    setMode('browse');
-                  }}
-                >
-                  إلغاء
-                </Button>
+                {isEditMode && onRemoveProduct && singleProductId && (
+                  <Button
+                    variant="destructive"
+                    className="flex-1 h-11 text-sm font-semibold"
+                    onClick={() => {
+                      onRemoveProduct(singleProductId);
+                      setSingleProductId(null);
+                      setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
+                      setMode('browse');
+                      setIsEditMode(false);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 me-1.5" />
+                    حذف من الشحن
+                  </Button>
+                )}
                 <Button
                   onClick={handleConfirmSingle}
                   disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0}
-                  className="flex-[2] h-11 text-sm font-bold"
+                  className={`flex-[2] h-11 text-sm font-bold text-white ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
                   <Check className="w-4 h-4 me-1.5" />
                   {totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد')}
