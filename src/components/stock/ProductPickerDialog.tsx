@@ -225,12 +225,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const singlePPB = singleProduct?.pieces_per_box || 1;
   const parsed = parseBP(`${singleQtyFields.boxes || '0'}.${singleQtyFields.pieces || '0'}`, singlePPB);
   const parsedGift = parseBP(`${singleGiftFields.boxes || '0'}.${singleGiftFields.pieces || '0'}`, singlePPB);
-  const displayBP = parsed.pieces > 0
-    ? `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`
-    : `${parsed.boxes}`;
-  const displayGiftBP = parsedGift.pieces > 0
-    ? `${parsedGift.boxes}.${String(parsedGift.pieces).padStart(2, '0')}`
-    : `${parsedGift.boxes}`;
+  const displayBP = `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`;
+  const displayGiftBP = `${parsedGift.boxes}.${String(parsedGift.pieces).padStart(2, '0')}`;
   const singleOffer = singleProductId ? offersMap[singleProductId] : undefined;
 
   // Calculate suggested gift based on regular quantity and offer tiers
