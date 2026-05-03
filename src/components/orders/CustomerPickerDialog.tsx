@@ -308,93 +308,80 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               )}
             </div>
           ) : !activeSectorKey && !search.trim() ? (
-            // Sector grid
+            // Sector grid - بدون أيقونات، شارة عدد بالأحمر
             <div className="grid grid-cols-2 gap-2 p-3">
               {groupedCustomers.map((group, idx) => {
                 const style = sectorStyle(group.key, idx);
-                const Icon = style.icon;
                 return (
                   <button
                     key={group.key}
                     onClick={() => setActiveSectorKey(group.key)}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95",
+                      "relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[88px]",
                       style.bg, style.border
                     )}
                   >
-                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center bg-background", style.text)}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <p className={cn("text-xs font-bold text-center line-clamp-2", style.text)}>
+                    <p className={cn("text-sm font-bold text-center line-clamp-2", style.text)}>
                       {group.sectorName}
                     </p>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
-                      <Users className="w-2.5 h-2.5" />
+                    <span className="inline-flex items-center justify-center min-w-[32px] h-6 px-2 rounded-full bg-destructive text-white text-xs font-bold">
                       {group.customers.length}
-                    </Badge>
+                    </span>
                   </button>
                 );
               })}
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            // Customers grid (داخل قسم أو نتائج بحث)
+            <div className="grid grid-cols-2 gap-2 p-3">
               {visibleCustomers.map((customer) => {
                 const isSelected = selectedCustomerId === customer.id;
                 const debtInfo = customerDebtsMap?.[customer.id];
-                const trustInfo = customerTrustMap?.[customer.id];
+                const sectorName = getSectorName(customer.sector_id);
+                const storeName = (language !== 'ar' && (customer as any).store_name_fr)
+                  ? (customer as any).store_name_fr
+                  : customer.store_name;
+                const displayName = (language !== 'ar' && (customer as any).name_fr)
+                  ? (customer as any).name_fr
+                  : customer.name;
                 return (
                   <button
                     key={customer.id}
                     className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
-                      "hover:bg-accent/50 active:bg-accent",
-                      isSelected && "bg-primary/5"
+                      "relative flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[100px]",
+                      isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:border-primary/40"
                     )}
                     onClick={() => {
                       onSelect(customer);
                       onOpenChange(false);
                     }}
                   >
-                    <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0 text-right">
-                      <CustomerSummary
-                        customer={{
-                          name: (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name,
-                          store_name: (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name,
-                          customer_type: customer.customer_type,
-                          sector_name: getSectorName(customer.sector_id),
-                          phone: customer.phone,
-                          wilaya: customer.wilaya,
-                        }}
-                        compact
-                        showAvatar={false}
-                        showMeta={false}
-                      />
-                      {trustInfo ? (
-                        <div className="mt-1">
-                          <ClientTrustBadge trust={trustInfo} compact />
-                        </div>
-                      ) : null}
-                      {debtInfo && debtInfo.total > 0 && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
-                            <Banknote className="w-2.5 h-2.5" />
-                            {t('customer_picker.debt')}: {debtInfo.total.toLocaleString()} DA
-                          </Badge>
-                          {debtInfo.lastDate && (
-                            <span className="text-[10px] text-muted-foreground">
-                              {t('customer_picker.last')}: {new Date(debtInfo.lastDate).toLocaleDateString(language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US')}
-                            </span>
-                          )}
-                        </div>
+                    <p className="text-sm font-bold text-foreground line-clamp-2 w-full text-right">
+                      {storeName || displayName}
+                    </p>
+                    {storeName && displayName && (
+                      <p className="text-[10px] text-muted-foreground line-clamp-1 w-full text-right">
+                        {displayName}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1 mt-auto w-full justify-end">
+                      {sectorName && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                          {sectorName}
+                        </Badge>
+                      )}
+                      {customer.wilaya && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
+                          <MapPin className="w-2.5 h-2.5" />
+                          {customer.wilaya}
+                        </Badge>
                       )}
                     </div>
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                      isSelected ? "bg-primary/10 text-primary" : debtInfo && debtInfo.total > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-                    )}>
-                      <User className="w-5 h-5" />
-                    </div>
+                    {debtInfo && debtInfo.total > 0 && (
+                      <span className="absolute top-1 left-1 inline-flex items-center justify-center px-1.5 h-4 rounded-full bg-destructive text-white text-[9px] font-bold">
+                        {debtInfo.total.toLocaleString()} DA
+                      </span>
+                    )}
                   </button>
                 );
               })}
