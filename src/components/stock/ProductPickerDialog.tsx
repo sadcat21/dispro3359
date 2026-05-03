@@ -700,7 +700,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Button onClick={handleConfirmSingle} disabled={parsed.totalBoxes <= 0} className="w-full h-11 text-sm font-bold">
+                <Button onClick={handleConfirmSingle} disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0} className="w-full h-11 text-sm font-bold">
                   <Plus className="w-4 h-4 me-2" />
                   {isEditMode ? 'تعديل الكمية' : 'إضافة للشاحنة'}
                 </Button>
