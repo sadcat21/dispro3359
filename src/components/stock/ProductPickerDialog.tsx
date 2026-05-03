@@ -755,11 +755,11 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   return (
                 <Button
                   onClick={handleConfirmSingle}
-                  disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0}
+                  disabled={(parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0) || promoMissing}
                   className={`flex-[2] h-11 text-sm font-bold text-white ${promoMissing ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
                   <Check className="w-4 h-4 me-1.5" />
-                  {totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد')}
+                  {promoMissing ? 'فعّل العرض أولاً' : (totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد'))}
                 </Button>
                   );
                 })()}
