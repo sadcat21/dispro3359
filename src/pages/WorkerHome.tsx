@@ -336,7 +336,7 @@ const WorkerHome: React.FC = () => {
   return (
     <div className="pb-24 touch-pan-y">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground p-6">
+      <div className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground p-6 [.theme-soft_&]:bg-none [.theme-soft_&]:bg-background [.theme-soft_&]:text-foreground">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold mb-1">{t('common.welcome')} {user?.full_name} 👋</h2>
