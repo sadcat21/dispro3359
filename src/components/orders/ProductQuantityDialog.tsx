@@ -50,6 +50,7 @@ interface ProductQuantityDialogProps {
   initialGiftPieces?: number;
   initialGiftOfferId?: string;
   initialOfferApplied?: boolean;
+  hideInvoiceOption?: boolean;
 }
 
 const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
