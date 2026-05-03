@@ -217,15 +217,27 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     });
   }, [filteredCustomers, sectorMap]);
 
-  // When autoExpand changes, sync openGroups (only react to autoExpand toggle, not groupedCustomers changes)
-  useEffect(() => {
-    if (autoExpand) {
-      const allKeys = groupedCustomers.map(g => g.key);
-      setOpenGroups(new Set(allKeys));
-    }
-    // Only clear when autoExpand is explicitly turned off (not on every groupedCustomers change)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoExpand]);
+  // Sector visual styles (icon + color) — deterministic by index
+  const SECTOR_STYLES = useMemo(() => ([
+    { icon: MapPin, bg: 'bg-rose-500/10', text: 'text-rose-600', border: 'border-rose-500/30' },
+    { icon: Store, bg: 'bg-amber-500/10', text: 'text-amber-600', border: 'border-amber-500/30' },
+    { icon: Building2, bg: 'bg-sky-500/10', text: 'text-sky-600', border: 'border-sky-500/30' },
+    { icon: Home, bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500/30' },
+    { icon: MapIcon, bg: 'bg-violet-500/10', text: 'text-violet-600', border: 'border-violet-500/30' },
+    { icon: Navigation, bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-600', border: 'border-fuchsia-500/30' },
+    { icon: Compass, bg: 'bg-cyan-500/10', text: 'text-cyan-600', border: 'border-cyan-500/30' },
+    { icon: Landmark, bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-500/30' },
+    { icon: Tent, bg: 'bg-lime-500/10', text: 'text-lime-600', border: 'border-lime-500/30' },
+    { icon: TreePine, bg: 'bg-green-500/10', text: 'text-green-600', border: 'border-green-500/30' },
+    { icon: Mountain, bg: 'bg-stone-500/10', text: 'text-stone-600', border: 'border-stone-500/30' },
+    { icon: Waves, bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-500/30' },
+    { icon: Sun, bg: 'bg-yellow-500/10', text: 'text-yellow-600', border: 'border-yellow-500/30' },
+    { icon: Star, bg: 'bg-pink-500/10', text: 'text-pink-600', border: 'border-pink-500/30' },
+  ]), []);
+  const sectorStyle = (key: string, index: number) => SECTOR_STYLES[index % SECTOR_STYLES.length];
+
+  const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
+  const visibleCustomers = search.trim() ? filteredCustomers : (activeGroup?.customers || []);
 
   const getSectorName = (sectorId: string | null | undefined) => {
     if (!sectorId) return '';
