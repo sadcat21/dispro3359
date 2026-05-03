@@ -289,33 +289,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const selectRole = (roleData: WorkerRole) => {
     setShowRoleSelection(false);
-    
-    if (!pendingWorker) return;
+
+    // Use pendingWorker (initial login) OR currently logged-in user (role switching)
+    const worker = pendingWorker || authState.user;
+    if (!worker) return;
 
     // Set active role
     setActiveRole(roleData);
 
     // If admin role selected, show branch selection (except branch_admin auto-locks)
     if (isAdminRole(roleData.role) || roleData.custom_role_code === 'company_manager') {
-      if (roleData.role === 'branch_admin' && pendingWorker.branch_id) {
+      if (roleData.role === 'branch_admin' && worker.branch_id) {
         // Auto-lock branch_admin to their branch
-        supabase.from('branches').select('*').eq('id', pendingWorker.branch_id).maybeSingle().then(({ data: branchData }) => {
-          completeLogin(pendingWorker!, roleData.role, branchData || null, roleData);
+        supabase.from('branches').select('*').eq('id', worker.branch_id).maybeSingle().then(({ data: branchData }) => {
+          completeLogin(worker, roleData.role, branchData || null, roleData);
         });
         return;
       }
       setAuthState({
-        user: pendingWorker,
+        user: worker,
         role: roleData.role,
         isLoading: false,
-        isAuthenticated: false,
+        isAuthenticated: !!authState.isAuthenticated,
       });
       setShowBranchSelection(true);
       return;
     }
 
     // Complete login with selected role
-    completeLogin(pendingWorker, roleData.role, roleData.branch_id ? { id: roleData.branch_id, name: roleData.branch_name || '' } as Branch : null, roleData);
+    completeLogin(worker, roleData.role, roleData.branch_id ? { id: roleData.branch_id, name: roleData.branch_name || '' } as Branch : null, roleData);
   };
 
   const selectBranch = (branch: Branch | null) => {
