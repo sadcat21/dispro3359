@@ -344,11 +344,16 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                       {selectedPiecePrice.toLocaleString()} {t('common.currency')}/{t('offers.unit_piece')}
                     </Badge>
                   )}
+                  {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
+                    <Badge className="text-[10px] px-1.5 py-0 bg-amber-500 text-white hover:bg-amber-500 border-transparent">
+                      {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}/{pricingUnitLabel}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
 
-            {product.allow_unit_sale && product.pieces_per_box > 1 && (
+            {product.pieces_per_box > 1 && (
               <div className="flex items-center justify-center gap-3">
                 <Label htmlFor="unit-sale-switch" className="text-xs cursor-pointer">
                   {t('offers.unit_box')}
