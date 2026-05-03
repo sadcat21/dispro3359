@@ -158,8 +158,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     if (open) {
       setSearch('');
       setActiveSectorKey(null);
+      setActiveRegionKey(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    setActiveRegionKey(null);
+  }, [activeSectorKey]);
 
   
 
