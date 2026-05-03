@@ -1170,6 +1170,14 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       className="min-h-[60px]"
                     />
                   </section>
+
+                  <section className="space-y-1.5">
+                    <DeliveryWorkerSelect
+                      customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
+                      value={selectedDeliveryWorker}
+                      onChange={setSelectedDeliveryWorker}
+                    />
+                  </section>
                 </>
               )}
 
