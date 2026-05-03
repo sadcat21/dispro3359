@@ -265,7 +265,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] p-0 gap-0 rounded-2xl" dir={dir}>
+      <DialogContent className="max-w-md mx-auto h-[95vh] max-h-[95vh] p-0 gap-0 rounded-2xl flex flex-col" dir={dir}>
         {/* Hidden title for accessibility */}
         <DialogHeader className="sr-only">
           <DialogTitle>{t('customer_picker.title')}</DialogTitle>
@@ -317,7 +317,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         </div>
 
         {/* Customers List */}
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="flex-1 min-h-0">
           {isLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -426,7 +426,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <button
                                 key={customer.id}
                                 className={cn(
-                                  "flex items-center justify-center px-2.5 py-1.5 rounded-lg border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[36px]",
+                                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[48px]",
                                   isSelected ? "bg-primary/10 border-primary" : cn(rStyle.bg, rStyle.border, "hover:brightness-95")
                                 )}
                                 onClick={() => {
@@ -434,9 +434,14 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   onOpenChange(false);
                                 }}
                               >
-                                <p className="text-sm font-bold text-foreground line-clamp-1 w-full text-center">
+                                <p className="text-sm font-bold text-foreground line-clamp-1 w-full text-center leading-tight">
                                   {storeName || displayName}
                                 </p>
+                                {storeName && displayName && (
+                                  <p className="text-[10px] font-medium text-muted-foreground line-clamp-1 w-full text-center leading-tight">
+                                    {displayName}
+                                  </p>
+                                )}
                               </button>
                             );
                           })}
