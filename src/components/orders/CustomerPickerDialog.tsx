@@ -307,89 +307,95 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                 </Button>
               )}
             </div>
-          ) : (
-            <div>
-              {groupedCustomers.map((group) => {
-                const groupKey = group.key;
-                const isOpen = search.trim() ? true : openGroups.has(groupKey);
+          ) : !activeSectorKey && !search.trim() ? (
+            // Sector grid
+            <div className="grid grid-cols-2 gap-2 p-3">
+              {groupedCustomers.map((group, idx) => {
+                const style = sectorStyle(group.key, idx);
+                const Icon = style.icon;
                 return (
-                  <Collapsible key={groupKey} open={isOpen} onOpenChange={() => toggleGroup(groupKey)}>
-                    {/* Sector header */}
-                    <CollapsibleTrigger asChild>
-                      <button className="sticky top-0 z-10 w-full bg-muted/80 backdrop-blur-sm px-4 py-2 border-b border-t flex items-center justify-between">
-                        <p className="text-xs font-bold text-primary">
-                          {group.sectorName} ({group.customers.length})
-                        </p>
-                        {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                      </button>
-                    </CollapsibleTrigger>
-                    {/* Customers in this sector */}
-                    <CollapsibleContent>
-                      <div className="divide-y divide-border">
-                        {group.customers.map((customer) => {
-                          const isSelected = selectedCustomerId === customer.id;
-                          const subtitle = [customer.store_name, customer.phone].filter(Boolean).join(' • ');
-                          const debtInfo = customerDebtsMap?.[customer.id];
-                          const trustInfo = customerTrustMap?.[customer.id];
-                          return (
-                            <button
-                              key={customer.id}
-                              className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
-                                "hover:bg-accent/50 active:bg-accent",
-                                isSelected && "bg-primary/5"
-                              )}
-                              onClick={() => {
-                                onSelect(customer);
-                                onOpenChange(false);
-                              }}
-                            >
-                              <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
-                              <div className="flex-1 min-w-0 text-right">
-                                <CustomerSummary
-                                  customer={{
-                                    name: (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name,
-                                    store_name: (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name,
-                                    customer_type: customer.customer_type,
-                                    sector_name: getSectorName(customer.sector_id),
-                                    phone: customer.phone,
-                                    wilaya: customer.wilaya,
-                                  }}
-                                  compact
-                                  showAvatar={false}
-                                  showMeta={false}
-                                />
-                                {trustInfo ? (
-                                  <div className="mt-1">
-                                    <ClientTrustBadge trust={trustInfo} compact />
-                                  </div>
-                                ) : null}
-                                {debtInfo && debtInfo.total > 0 && (
-                                  <div className="flex items-center gap-1 mt-0.5">
-                                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
-                                      <Banknote className="w-2.5 h-2.5" />
-                                      {t('customer_picker.debt')}: {debtInfo.total.toLocaleString()} DA
-                                    </Badge>
-                                    {debtInfo.lastDate && (
-                                      <span className="text-[10px] text-muted-foreground">
-                                        {t('customer_picker.last')}: {new Date(debtInfo.lastDate).toLocaleDateString(language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US')}
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              <div className={cn(
-                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                                isSelected ? "bg-primary/10 text-primary" : debtInfo && debtInfo.total > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-                              )}>
-                                <User className="w-5 h-5" />
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+                  <button
+                    key={group.key}
+                    onClick={() => setActiveSectorKey(group.key)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95",
+                      style.bg, style.border
+                    )}
+                  >
+                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center bg-background", style.text)}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <p className={cn("text-xs font-bold text-center line-clamp-2", style.text)}>
+                      {group.sectorName}
+                    </p>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
+                      <Users className="w-2.5 h-2.5" />
+                      {group.customers.length}
+                    </Badge>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {visibleCustomers.map((customer) => {
+                const isSelected = selectedCustomerId === customer.id;
+                const debtInfo = customerDebtsMap?.[customer.id];
+                const trustInfo = customerTrustMap?.[customer.id];
+                return (
+                  <button
+                    key={customer.id}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-3 text-right transition-colors",
+                      "hover:bg-accent/50 active:bg-accent",
+                      isSelected && "bg-primary/5"
+                    )}
+                    onClick={() => {
+                      onSelect(customer);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0 text-right">
+                      <CustomerSummary
+                        customer={{
+                          name: (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name,
+                          store_name: (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name,
+                          customer_type: customer.customer_type,
+                          sector_name: getSectorName(customer.sector_id),
+                          phone: customer.phone,
+                          wilaya: customer.wilaya,
+                        }}
+                        compact
+                        showAvatar={false}
+                        showMeta={false}
+                      />
+                      {trustInfo ? (
+                        <div className="mt-1">
+                          <ClientTrustBadge trust={trustInfo} compact />
+                        </div>
+                      ) : null}
+                      {debtInfo && debtInfo.total > 0 && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
+                            <Banknote className="w-2.5 h-2.5" />
+                            {t('customer_picker.debt')}: {debtInfo.total.toLocaleString()} DA
+                          </Badge>
+                          {debtInfo.lastDate && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {t('customer_picker.last')}: {new Date(debtInfo.lastDate).toLocaleDateString(language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US')}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                      isSelected ? "bg-primary/10 text-primary" : debtInfo && debtInfo.total > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+                    )}>
+                      <User className="w-5 h-5" />
+                    </div>
+                  </button>
                 );
               })}
             </div>
