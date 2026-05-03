@@ -811,7 +811,11 @@ const MyAchievements: React.FC = () => {
   };
 
   return (
-    <div className="p-2 sm:p-3 flex h-[100dvh] flex-col gap-1.5 overflow-hidden" dir="rtl">
+    <div
+      className="p-2 sm:p-3 flex h-[100dvh] flex-col gap-1.5 overflow-hidden"
+      style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
+      dir="rtl"
+    >
       {/* Hero section – compact grid */}
       <div className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1">
         {/* Title + worker name */}
