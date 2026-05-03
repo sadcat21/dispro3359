@@ -106,7 +106,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
   const resetPickerState = () => {
     setSingleProductId(null);
-    setSingleQtyFields(createDefaultSingleFields());
+    setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
     setSingleGiftFields(createDefaultSingleFields());
     setMultiSelected(new Set());
     setMode('browse');
@@ -209,7 +209,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     } else {
       // Add mode: always start with empty fields
       setSingleProductId(p.id);
-      setSingleQtyFields(createDefaultSingleFields());
+      setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
       setSingleGiftFields(createDefaultSingleFields());
       setSingleGiftQty(0);
       setSingleGiftUnit('piece');
@@ -260,7 +260,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       onAddProducts([item]);
     }
     setSingleProductId(null);
-    setSingleQtyFields(createDefaultSingleFields());
+    setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
     setSingleGiftFields(createDefaultSingleFields());
     setMode('browse');
     setSingleGiftQty(0);
@@ -549,7 +549,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
         onOpenChange={(v) => {
           if (!v) {
             setSingleProductId(null);
-            setSingleQtyFields(createDefaultSingleFields());
+            setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
             setSingleGiftQty(0);
             setSingleGiftUnit('piece');
             setMode('browse');
@@ -602,7 +602,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       onClick={() => {
                         onRemoveProduct(singleProductId);
                         setSingleProductId(null);
-                        setSingleQtyFields(createDefaultSingleFields());
+                        setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
                         setSingleGiftQty(0);
                         setSingleGiftUnit('piece');
                         setMode('browse');
@@ -712,7 +712,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   className="w-full h-9 text-xs"
                   onClick={() => {
                     setSingleProductId(null);
-                    setSingleQtyFields(createDefaultSingleFields());
+                    setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
                     setSingleGiftQty(0);
                     setSingleGiftUnit('piece');
                     setMode('browse');
