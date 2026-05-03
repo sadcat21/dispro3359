@@ -1032,7 +1032,17 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{t('common.quantity')}:</span>
-                            <span className="font-medium">{orderTotals.totalPaidItems} {orderTotals.totalPaidItems > 1 ? t('common.boxes') : t('common.box')}</span>
+                            <span className="font-medium">
+                              {orderTotals.totalPaidItems > 0 && (
+                                <>{orderTotals.totalPaidItems} {orderTotals.totalPaidItems > 1 ? t('common.boxes') : t('common.box')}</>
+                              )}
+                              {orderTotals.totalUnitPieces > 0 && (
+                                <>
+                                  {orderTotals.totalPaidItems > 0 ? ' + ' : ''}
+                                  {orderTotals.totalUnitPieces} {t('common.piece')}
+                                </>
+                              )}
+                            </span>
                           </div>
                           {orderTotals.subtotal > 0 && (
                             <div className="flex items-center justify-between text-sm">
