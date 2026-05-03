@@ -635,22 +635,30 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               <DialogTitle className="text-sm">{t('orders.create_new')}</DialogTitle>
             )}
             {/* Step indicator */}
-            <div className="flex items-center gap-1 pt-1">
-              {[1, 2, 3, 4].map((step) => (
-                <div key={step} className="flex items-center flex-1">
-                  <div
+            <div className="grid grid-cols-4 gap-1 pt-1">
+              {[
+                { n: 1, label: t('orders.customer') },
+                { n: 2, label: t('products.title') },
+                { n: 3, label: t('orders.cart') },
+                { n: 4, label: t('orders.delivery_date') },
+              ].map((s) => {
+                const reached = s.n <= currentStep;
+                return (
+                  <button
+                    key={s.n}
+                    type="button"
+                    onClick={() => setCurrentStep(s.n)}
                     className={cn(
-                      "w-full h-1 rounded-full transition-colors",
-                      step <= currentStep ? 'bg-primary' : 'bg-muted'
+                      "h-7 rounded-md text-[10px] font-semibold transition-colors px-1 truncate",
+                      reached
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
                     )}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="text-[11px] text-muted-foreground text-center">
-              {currentStep === 1 && `١/٤ — ${t('orders.customer')} و ${t('orders.purchase_method')}`}
-              {currentStep === 2 && `٢/٤ — ${t('products.title')}`}
-              {currentStep === 3 && `٣/٤ — ${t('orders.cart')}`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
             </div>
           </DialogHeader>
 
@@ -1115,28 +1123,48 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                 <>
                   <section className="space-y-1.5">
                     <Label className="text-[11px] text-muted-foreground">{t('orders.delivery_date')}</Label>
-                    <div className="grid grid-cols-7 gap-1">
-                      {Array.from({ length: 7 }, (_, i) => {
-                        const d = addDays(new Date(), i);
-                        const dateStr = format(d, 'yyyy-MM-dd');
-                        const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getDay()];
-                        const isSelected = deliveryDate === dateStr;
-                        return (
-                          <button
-                            key={dateStr}
-                            type="button"
-                            onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
-                            className={cn(
-                              "flex flex-col items-center rounded-md border py-1 text-[10px] transition-colors",
-                              isSelected ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent"
-                            )}
-                          >
-                            <span className="font-bold text-[9px]">{i === 0 ? 'اليوم' : dayName}</span>
-                            <span className="text-[8px] opacity-80">{format(d, 'dd/MM')}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {(() => {
+                      const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                      const items: { key: string; label: string; date: string }[] = [];
+                      const today = new Date();
+                      const todayStr = format(today, 'yyyy-MM-dd');
+                      const tomorrow = addDays(today, 1);
+                      const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+                      items.push({ key: 'today', label: 'اليوم', date: todayStr });
+                      items.push({ key: 'tomorrow', label: 'غداً', date: tomorrowStr });
+                      // Next work days (Sat..Thu, skip Friday=5), starting day-after-tomorrow, until 8 total
+                      let cursor = addDays(today, 2);
+                      while (items.length < 8) {
+                        if (cursor.getDay() !== 5) {
+                          const ds = format(cursor, 'yyyy-MM-dd');
+                          if (ds !== todayStr && ds !== tomorrowStr) {
+                            items.push({ key: ds, label: dayNames[cursor.getDay()], date: ds });
+                          }
+                        }
+                        cursor = addDays(cursor, 1);
+                      }
+                      return (
+                        <div className="grid grid-cols-4 gap-1">
+                          {items.map((it) => {
+                            const isSelected = deliveryDate === it.date;
+                            return (
+                              <button
+                                key={it.key}
+                                type="button"
+                                onClick={() => setDeliveryDate(isSelected ? '' : it.date)}
+                                className={cn(
+                                  "flex flex-col items-center rounded-md border py-1 text-[10px] transition-colors",
+                                  isSelected ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent"
+                                )}
+                              >
+                                <span className="font-bold text-[10px]">{it.label}</span>
+                                <span className="text-[9px] opacity-80">{format(new Date(it.date), 'dd/MM')}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         type="date"
@@ -1226,8 +1254,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   )}
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
-                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
-                       {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
+                    <Badge variant="secondary" className="mr-2 bg-white text-black hover:bg-white text-[12px] font-bold">
+                      {t('common.currency')} {orderTotals.totalAmount.toLocaleString()}
                     </Badge>
                   ) : orderItems.length > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
