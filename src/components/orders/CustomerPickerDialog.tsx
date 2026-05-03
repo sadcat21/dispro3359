@@ -386,7 +386,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                         onClick={() => setActiveRegionKey(region)}
                         style={{ animationDelay: `${rIdx * 40}ms` }}
                         className={cn(
-                          "group relative flex items-center ps-3 pe-12 py-2 rounded-xl border-2 border-destructive bg-background shadow-sm min-h-[40px] text-right overflow-hidden",
+                          "group relative flex items-center ps-3 pe-12 py-2 rounded-xl border-2 border-foreground bg-background shadow-sm min-h-[40px] text-right overflow-hidden",
                           "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                           "animate-in fade-in zoom-in-95 fill-mode-both"
                         )}
@@ -394,7 +394,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                         <span className="text-sm font-bold truncate min-w-0 flex-1 text-right text-foreground">
                           {region}
                         </span>
-                        <span className="absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold rounded-s-[18px] bg-destructive">
+                        <span className="absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-background text-xs font-bold rounded-s-[18px] bg-foreground">
                           {list.length}
                         </span>
                       </button>
