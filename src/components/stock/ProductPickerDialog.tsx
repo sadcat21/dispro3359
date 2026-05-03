@@ -194,11 +194,14 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const isAlreadyAdded = selectedProductIds.includes(p.id);
     
     if (isAlreadyAdded) {
-      // Edit mode: pre-fill with current loaded quantity
+      // Edit mode: pre-fill with current loaded quantity (excluding existing gift)
       const currentQty = loadedQtyMap[p.id] || 0;
+      const currentGift = giftQtyMap[p.id] || 0;
       const ppbVal = p.pieces_per_box || 1;
+      const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
-      setSingleQtyFields(currentQty > 0 ? quantityToFields(currentQty, ppbVal) : createDefaultSingleFields());
+      setSingleQtyFields(regularQty > 0 ? quantityToFields(regularQty, ppbVal) : createDefaultSingleFields());
+      setSingleGiftFields(currentGift > 0 ? quantityToFields(currentGift, ppbVal) : createDefaultSingleFields());
       setSingleGiftQty(0);
       setSingleGiftUnit('piece');
       setIsEditMode(true);
@@ -207,6 +210,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       // Add mode: always start with empty fields
       setSingleProductId(p.id);
       setSingleQtyFields(createDefaultSingleFields());
+      setSingleGiftFields(createDefaultSingleFields());
       setSingleGiftQty(0);
       setSingleGiftUnit('piece');
       setIsEditMode(false);
