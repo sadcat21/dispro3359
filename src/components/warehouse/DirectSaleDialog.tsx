@@ -86,6 +86,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 }) => {
   const { workerId, activeBranch, user, activeRole } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
+  const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || user?.branch_id || null;
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
   const { t, dir } = useLanguage();
   const queryClient = useQueryClient();
@@ -167,7 +168,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         setSelectedCustomerId(initialCustomerId);
       }
     }
-  }, [open, workerId, activeBranch, initialCustomerId]);
+  }, [open, workerId, effectiveBranchId, initialCustomerId]);
 
   // Apply customer defaults when selectedCustomer changes (e.g. from initialCustomerId)
   useEffect(() => {
@@ -185,10 +186,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     setIsLoadingData(true);
     try {
       let customersQuery = supabase.from('customers').select('*').eq('status', 'active').order('name');
-      if (activeBranch) customersQuery = customersQuery.eq('branch_id', activeBranch.id);
+      if (effectiveBranchId) customersQuery = customersQuery.eq('branch_id', effectiveBranchId);
 
       let sectorsQuery = supabase.from('sectors').select('*').order('name');
-      if (activeBranch) sectorsQuery = sectorsQuery.eq('branch_id', activeBranch.id);
+      if (effectiveBranchId) sectorsQuery = sectorsQuery.eq('branch_id', effectiveBranchId);
 
       const [customersRes, mappingsRes, productsRes, sectorsRes] = await Promise.all([
         customersQuery,
