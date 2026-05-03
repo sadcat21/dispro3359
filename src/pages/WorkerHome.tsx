@@ -35,7 +35,7 @@ import WorkerSalesSummaryCard from '@/components/workers/WorkerSalesSummaryCard'
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 
 const WorkerHome: React.FC = () => {
-  const { user, workerId, role, activeRole, activeBranch } = useAuth();
+  const { user, workerId, role, activeRole, activeBranch, availableRoles } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { setSelectedWorker: setContextWorker } = useSelectedWorker();
@@ -92,7 +92,9 @@ const WorkerHome: React.FC = () => {
   const isSupervisor = role === 'supervisor';
   const isAdminAssistant = role === 'admin_assistant';
   const isSalesRole = activeRole?.custom_role_code === 'sales_rep';
-  const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
+  // Delivery role from primary OR any secondary role assigned to this worker
+  const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep'
+    || (availableRoles || []).some(r => r.custom_role_code === 'delivery_rep');
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
 
   const JS_DAY_TO_NAME: Record<number, string> = {
