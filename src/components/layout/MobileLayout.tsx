@@ -160,7 +160,7 @@ const SIDEBAR_GROUP_META: Record<string, { i18n: string; icon: React.ComponentTy
 };
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
-  const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole } = useAuth();
+  const { role, user, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole, availableRoles, switchRole } = useAuth();
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
@@ -483,6 +483,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                       : '∞'}
                   </span>
                   <span className="text-sm">{activeBranch ? activeBranch.name : t('branches.all_branches')}</span>
+                </DropdownMenuItem>
+              )}
+              {availableRoles && availableRoles.length > 1 && (
+                <DropdownMenuItem
+                  onClick={switchRole}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <UserCog className="w-4 h-4 text-primary" />
+                  <span className="text-sm">تبديل الدور ({availableRoles.length})</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
