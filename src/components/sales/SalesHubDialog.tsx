@@ -133,7 +133,15 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
     }
   };
 
-  const tabCount = [!hideDirectTab, true, true].filter(Boolean).length;
+  const showWarehouseTab = isWarehouseManager;
+  const tabCount = [!hideDirectTab, true, showWarehouseTab].filter(Boolean).length;
+
+  // If non-warehouse-manager lands on warehouse tab, switch to a valid one
+  useEffect(() => {
+    if (!showWarehouseTab && activeTab === 'warehouse') {
+      setActiveTab(hideDirectTab ? 'delivery' : 'direct');
+    }
+  }, [showWarehouseTab, activeTab, hideDirectTab]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,6 +161,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
               setActiveTab('delivery');
               return;
             }
+            if (next === 'warehouse' && !showWarehouseTab) return;
             setActiveTab(next);
             if (next !== 'delivery') setSelectedDeliveryOrder(null);
           }}
@@ -169,10 +178,12 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
               <Truck className="w-3.5 h-3.5" />
               {t('orders.delivery_sale')}
             </TabsTrigger>
-            <TabsTrigger value="warehouse" className="gap-1 text-xs px-2">
-              <Warehouse className="w-3.5 h-3.5" />
-              {t('sales.warehouse_sale')}
-            </TabsTrigger>
+            {showWarehouseTab && (
+              <TabsTrigger value="warehouse" className="gap-1 text-xs px-2">
+                <Warehouse className="w-3.5 h-3.5" />
+                {t('sales.warehouse_sale')}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {!hideDirectTab && (
