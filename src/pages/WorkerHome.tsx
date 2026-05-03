@@ -59,6 +59,8 @@ const WorkerHome: React.FC = () => {
   const [showStockManagement, setShowStockManagement] = useState(false);
   const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
+  const [showFinalReviewPicker, setShowFinalReviewPicker] = useState(false);
+  const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
 
   const { trackVisit } = useTrackVisit();
   const isDirectSaleHidden = useIsElementHidden('button', 'home_direct_sale');
