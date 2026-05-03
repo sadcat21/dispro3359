@@ -28,7 +28,7 @@ import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
 import SectorCustomersPopover from '@/components/sectors/SectorCustomersPopover';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 
-import DocumentCollectionsPopover from '@/components/documents/DocumentCollectionsPopover';
+
 import ReceiptModificationsNotification from '@/components/printing/ReceiptModificationsNotification';
 import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
 import { useChat } from '@/hooks/useChat';
@@ -404,7 +404,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {!isReceiptModsHidden && <ReceiptModificationsNotification />}
           {!isStockAlertsHidden && <StockAlertsNotification />}
           {!isOffersHidden && <OffersNotification />}
-          {!isDocCollectionsHidden && <DocumentCollectionsPopover />}
+          
 
           {/* Chat */}
           {!isChatHidden && (
