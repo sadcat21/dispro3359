@@ -670,6 +670,28 @@ const WorkerHome: React.FC = () => {
           navigate('/load-stock');
         }}
       />
+
+      {/* Final Review picker + dialog */}
+      <WorkerPickerDialog
+        open={showFinalReviewPicker}
+        onOpenChange={setShowFinalReviewPicker}
+        workers={loadWorkersList}
+        selectedWorkerId=""
+        onSelect={(wId) => {
+          const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
+          setFinalReviewWorker({ id: wId, name: w?.full_name || '' });
+          setShowFinalReviewPicker(false);
+        }}
+      />
+      {finalReviewWorker && (
+        <FinalReviewDialog
+          open={!!finalReviewWorker}
+          onOpenChange={(o) => { if (!o) setFinalReviewWorker(null); }}
+          workerId={finalReviewWorker.id}
+          workerName={finalReviewWorker.name}
+          branchId={activeBranch?.id || null}
+        />
+      )}
     </div>
   );
 };
