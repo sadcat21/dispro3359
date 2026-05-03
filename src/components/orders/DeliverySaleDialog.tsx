@@ -40,6 +40,7 @@ import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
+import { cn } from '@/lib/utils';
 
 interface DeliverySaleDialogProps {
   open: boolean;
