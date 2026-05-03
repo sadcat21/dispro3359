@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette } from 'lucide-react';
+import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
@@ -165,6 +166,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
   const { t, dir, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { uiTheme, toggleUITheme } = useUITheme();
   type ViewMode = 'desktop' | 'mobile' | 'auto';
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') return 'auto';
@@ -419,6 +421,18 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               )}
             </Link>
           )}
+
+          {/* UI theme variant toggle (Classic / Soft) */}
+          <button
+            onClick={toggleUITheme}
+            title={uiTheme === 'soft' ? 'تصميم كلاسيكي' : 'تصميم ناعم'}
+            className={cn(
+              'flex items-center justify-center w-8 h-8 shrink-0 rounded-lg transition-colors',
+              uiTheme === 'soft' ? 'bg-orange-400/90 hover:bg-orange-400 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+            )}
+          >
+            <Palette className="w-4 h-4" />
+          </button>
 
           {/* Settings dropdown */}
           <DropdownMenu>
