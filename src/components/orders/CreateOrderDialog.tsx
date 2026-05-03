@@ -612,575 +612,633 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               <ShoppingCart className="w-5 h-5" />
               {t('orders.create_new')}
             </DialogTitle>
+            {/* Step indicator */}
+            <div className="flex items-center gap-1 pt-2">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className="flex items-center flex-1">
+                  <div
+                    className={cn(
+                      "w-full h-1.5 rounded-full transition-colors",
+                      step <= currentStep ? 'bg-primary' : 'bg-muted'
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-muted-foreground text-center pt-1">
+              {currentStep === 1 && `١/٤ — ${t('orders.customer')} و ${t('orders.purchase_method')}`}
+              {currentStep === 2 && `٢/٤ — ${t('products.title')}`}
+              {currentStep === 3 && `٣/٤ — ${t('orders.cart')}`}
+              {currentStep === 4 && `٤/٤ — ${t('orders.delivery_date')} و التعيين`}
+            </div>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[calc(90vh-8rem)]">
+          <ScrollArea className="max-h-[calc(90vh-12rem)]">
             <div className="px-4">
             <div className="py-4 space-y-5">
-              {/* Customer Section */}
-              <section className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">{t('orders.customer')}</Label>
-                </div>
 
-                {/* Customer Selection Button - opens dialog */}
-                <Button
-                  variant="outline"
-                  className="w-full justify-between h-11"
-                  disabled={isLoadingData}
-                  onClick={() => setCustomerDropdownOpen(true)}
-                >
-                  {isLoadingData ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {t('common.loading')}
-                    </span>
-                  ) : selectedCustomer ? (
-                    <CustomerSummary
-                      customer={{
-                        name: selectedCustomer.name,
-                        store_name: selectedCustomer.store_name,
-                        customer_type: selectedCustomer.customer_type,
-                        sector_name: selectedCustomer.sector_id ? sectors.find(s => s.id === selectedCustomer.sector_id)?.name : undefined,
+              {/* ═══════ STEP 1: Customer + Payment ═══════ */}
+              {currentStep === 1 && (
+                <>
+                  {/* Customer Section */}
+                  <section className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">{t('orders.customer')}</Label>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between h-11"
+                      disabled={isLoadingData}
+                      onClick={() => setCustomerDropdownOpen(true)}
+                    >
+                      {isLoadingData ? (
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {t('common.loading')}
+                        </span>
+                      ) : selectedCustomer ? (
+                        <CustomerSummary
+                          customer={{
+                            name: selectedCustomer.name,
+                            store_name: selectedCustomer.store_name,
+                            customer_type: selectedCustomer.customer_type,
+                            sector_name: selectedCustomer.sector_id ? sectors.find(s => s.id === selectedCustomer.sector_id)?.name : undefined,
+                          }}
+                          compact
+                          hideBadges
+                          avatarSize="sm"
+                          showMeta={false}
+                        />
+                      ) : (
+                        <span className="text-muted-foreground">{t('orders.select_customer')}</span>
+                      )}
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+
+                    <CustomerPickerDialog
+                      open={customerDropdownOpen}
+                      onOpenChange={setCustomerDropdownOpen}
+                      customers={customers}
+                      sectors={sectors}
+                      isLoading={isLoadingData}
+                      selectedCustomerId={selectedCustomerId}
+                      onSelect={(customer) => {
+                        setSelectedCustomerId(customer.id);
+                        if (customer.default_payment_type) {
+                          setPaymentType(customer.default_payment_type as PaymentType);
+                        }
+                        if (customer.default_price_subtype) {
+                          setPriceSubType(customer.default_price_subtype as PriceSubType);
+                        }
                       }}
-                      compact
-                      hideBadges
-                      avatarSize="sm"
-                      showMeta={false}
+                      onAddNew={() => {
+                        setCustomerDropdownOpen(false);
+                        setShowAddCustomerDialog(true);
+                      }}
                     />
-                  ) : (
-                    <span className="text-muted-foreground">{t('orders.select_customer')}</span>
-                  )}
-                  <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
 
-                <CustomerPickerDialog
-                  open={customerDropdownOpen}
-                  onOpenChange={setCustomerDropdownOpen}
-                  customers={customers}
-                  sectors={sectors}
-                  isLoading={isLoadingData}
-                  selectedCustomerId={selectedCustomerId}
-                  onSelect={(customer) => {
-                    setSelectedCustomerId(customer.id);
-                    if (customer.default_payment_type) {
-                      setPaymentType(customer.default_payment_type as PaymentType);
-                    }
-                    if (customer.default_price_subtype) {
-                      setPriceSubType(customer.default_price_subtype as PriceSubType);
-                    }
-                  }}
-                  onAddNew={() => {
-                    setCustomerDropdownOpen(false);
-                    setShowAddCustomerDialog(true);
-                  }}
-                />
-                {/* Selected Customer Info */}
-                {selectedCustomer && (
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-3">
-                    <CustomerSummary
-                      customer={{
-                        name: selectedCustomer.name,
-                        store_name: selectedCustomer.store_name,
-                        customer_type: selectedCustomer.customer_type,
-                        sector_name: selectedCustomer.sector_id ? sectors.find(s => s.id === selectedCustomer.sector_id)?.name : undefined,
-                        phone: selectedCustomer.phone,
-                        wilaya: selectedCustomer.wilaya,
-                      }}
-                      avatarSize="md"
-                      footer={(
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
-                              selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
-                                selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
-                            }
-                          </Badge>
+                    {selectedCustomer && (
+                      <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+                        <CustomerSummary
+                          customer={{
+                            name: selectedCustomer.name,
+                            store_name: selectedCustomer.store_name,
+                            customer_type: selectedCustomer.customer_type,
+                            sector_name: selectedCustomer.sector_id ? sectors.find(s => s.id === selectedCustomer.sector_id)?.name : undefined,
+                            phone: selectedCustomer.phone,
+                            wilaya: selectedCustomer.wilaya,
+                          }}
+                          avatarSize="md"
+                          footer={(
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
+                                  selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
+                                    selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
+                                }
+                              </Badge>
+                            </div>
+                          )}
+                          rightSlot={(
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => setShowEditCustomerDialog(true)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        />
+
+                        <CustomerDistanceIndicator
+                          customerLatitude={selectedCustomer.latitude}
+                          customerLongitude={selectedCustomer.longitude}
+                        />
+
+                        {orders && orders.length > 0 && (
+                          <CustomerRecentOrders
+                            customerId={selectedCustomerId}
+                            orders={orders}
+                            maxOrders={5}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Payment Type */}
+                  <section className="space-y-3">
+                    <Label className="text-base font-semibold">{t('orders.purchase_method')}</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        type="button"
+                        variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
+                        className={`h-16 flex flex-col gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                        onClick={() => setPaymentType('with_invoice')}
+                      >
+                        <Receipt className="w-5 h-5" />
+                        <span className="text-sm">{t('orders.with_invoice')}</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
+                        className={`h-16 flex flex-col gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
+                        onClick={() => setPaymentType('without_invoice')}
+                      >
+                        <ReceiptText className="w-5 h-5" />
+                        <span className="text-sm">{t('orders.without_invoice')}</span>
+                      </Button>
+                    </div>
+
+                    {paymentType === 'without_invoice' && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">{t('orders.price_type')}</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {([
+                            { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: { active: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 ring-2 ring-indigo-400', inactive: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' } },
+                            { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: { active: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400', inactive: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' } },
+                            { value: 'retail' as PriceSubType, label: t('products.price_retail'), colors: { active: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 ring-2 ring-rose-400', inactive: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600' } },
+                          ]).map((option) => (
+                            <Button
+                              key={option.value}
+                              type="button"
+                              variant={priceSubType === option.value ? 'default' : 'outline'}
+                              size="sm"
+                              className={`h-12 text-sm font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
+                              onClick={() => setPriceSubType(option.value)}
+                            >
+                              {option.label}
+                            </Button>
+                          ))}
                         </div>
-                      )}
-                      rightSlot={(
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => setShowEditCustomerDialog(true)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    />
+                        {selectedCustomer?.default_price_subtype && (
+                          <p className="text-xs text-muted-foreground">
+                            ⓘ {t('orders.customer_default')}: {
+                              selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
+                                selectedCustomer.default_price_subtype === 'gros' ? t('products.price_gros') :
+                                  t('products.price_retail')
+                            }
+                          </p>
+                        )}
+                      </div>
+                    )}
 
-                    <CustomerDistanceIndicator
-                      customerLatitude={selectedCustomer.latitude}
-                      customerLongitude={selectedCustomer.longitude}
-                    />
-
-                    {orders && orders.length > 0 && (
-                      <CustomerRecentOrders
-                        customerId={selectedCustomerId}
-                        orders={orders}
-                        maxOrders={5}
+                    {paymentType === 'with_invoice' && (
+                      <InvoicePaymentMethodSelect
+                        value={invoicePaymentMethod}
+                        onChange={setInvoicePaymentMethod}
                       />
                     )}
-                  </div>
-                )}
-              </section>
+                  </section>
+                </>
+              )}
 
-              {/* Payment Type */}
-              <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('orders.purchase_method')}</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                    className={`h-16 flex flex-col gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
-                    onClick={() => setPaymentType('with_invoice')}
-                  >
-                    <Receipt className="w-5 h-5" />
-                    <span className="text-sm">{t('orders.with_invoice')}</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                    className={`h-16 flex flex-col gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
-                    onClick={() => setPaymentType('without_invoice')}
-                  >
-                    <ReceiptText className="w-5 h-5" />
-                    <span className="text-sm">{t('orders.without_invoice')}</span>
-                  </Button>
-                </div>
-
-                {/* Price Sub-Type Selection for without invoice */}
-                {paymentType === 'without_invoice' && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">{t('orders.price_type')}</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {([
-                        { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: { active: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 ring-2 ring-indigo-400', inactive: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' } },
-                        { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: { active: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400', inactive: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' } },
-                        { value: 'retail' as PriceSubType, label: t('products.price_retail'), colors: { active: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 ring-2 ring-rose-400', inactive: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600' } },
-                      ]).map((option) => (
-                        <Button
-                          key={option.value}
-                          type="button"
-                          variant={priceSubType === option.value ? 'default' : 'outline'}
-                          size="sm"
-                          className={`h-12 text-sm font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
-                          onClick={() => setPriceSubType(option.value)}
-                        >
-                          {option.label}
-                        </Button>
-                      ))}
-                    </div>
-                    {selectedCustomer?.default_price_subtype && (
-                      <p className="text-xs text-muted-foreground">
-                        ⓘ {t('orders.customer_default')}: {
-                          selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
-                            selectedCustomer.default_price_subtype === 'gros' ? t('products.price_gros') :
-                              t('products.price_retail')
-                        }
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Invoice Payment Method Selection */}
-                {paymentType === 'with_invoice' && (
-                  <InvoicePaymentMethodSelect
-                    value={invoicePaymentMethod}
-                    onChange={setInvoicePaymentMethod}
-                  />
-                )}
-              </section>
-
-              {/* Products */}
-              <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('products.title')}</Label>
-                <div className="grid grid-cols-2 gap-3 p-1">
-                  {products.map((product) => {
-                    const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
-                    const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
-                    const isInvoiceRestricted = invoiceDisabled || invoice2Disabled;
-                    const productCartItems = orderItems.filter(item => item.productId === product.id);
-                    const inCart = productCartItems.find(item => !item.isUnitSale) || productCartItems[0];
-                    const totalCartQuantity = productCartItems.reduce((sum, item) => sum + item.quantity, 0);
-                    const totalGiftBoxes = productCartItems.reduce((sum, item) => sum + (item.giftQuantity || 0), 0);
-                    const totalGiftPieces = productCartItems.reduce((sum, item) => sum + (item.giftPieces || 0), 0);
-                    const hasAppliedGift = totalGiftBoxes > 0 || totalGiftPieces > 0;
-                    const price = getProductPrice(product);
-                    const isShortage = shortageProductIds.has(product.id);
-                    const isNotInStock = !warehouseStockProductIds.has(product.id);
-                    const hasOffer = offerProductIds.has(product.id);
-                    return (
-                      <button
-                        key={product.id}
-                        dir="rtl"
-                        onClick={() => handleProductClick(product)}
-                        className={cn(
-                          "flex flex-col rounded-2xl overflow-hidden text-center transition-all relative",
-                          "bg-white shadow-lg border-2",
-                          hasAppliedGift
-                            ? 'border-green-500 ring-2 ring-green-400/40'
-                            : inCart ? 'border-primary ring-2 ring-primary/40' : 'border-red-200 hover:border-primary/60 hover:shadow-xl',
-                          (isShortage || isNotInStock) && !inCart && "border-orange-400/60",
-                          hasOffer && !isShortage && !isNotInStock && !inCart && "border-green-500/50",
-                          isInvoiceRestricted && "opacity-40 grayscale pointer-events-auto"
-                        )}
-                      >
-                        {/* اسم المنتج أعلى الصورة */}
-                        <div className={cn(
-                          "px-2 py-2 border-b",
-                          hasAppliedGift
-                            ? 'bg-green-500 border-green-500'
-                            : inCart ? 'bg-primary border-primary' : 'bg-red-50 border-red-100'
-                        )}>
-                          <span className={cn(
-                            "font-bold leading-tight block text-center truncate text-sm",
-                            inCart ? 'text-white' : 'text-red-900'
-                          )}>
-                            {getProductDisplayName(product)}
-                          </span>
-                          {inCart && (
-                            <span className="text-lg font-extrabold block text-center mt-1 rounded-md px-2 py-0.5 bg-primary text-primary-foreground">
-                              {productCartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0).toLocaleString()} {t('common.currency')}
-                            </span>
+              {/* ═══════ STEP 2: Products ═══════ */}
+              {currentStep === 2 && (
+                <section className="space-y-3">
+                  <Label className="text-base font-semibold">{t('products.title')}</Label>
+                  <div className="grid grid-cols-2 gap-3 p-1">
+                    {products.map((product) => {
+                      const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
+                      const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
+                      const isInvoiceRestricted = invoiceDisabled || invoice2Disabled;
+                      const productCartItems = orderItems.filter(item => item.productId === product.id);
+                      const inCart = productCartItems.find(item => !item.isUnitSale) || productCartItems[0];
+                      const totalCartQuantity = productCartItems.reduce((sum, item) => sum + item.quantity, 0);
+                      const totalGiftBoxes = productCartItems.reduce((sum, item) => sum + (item.giftQuantity || 0), 0);
+                      const totalGiftPieces = productCartItems.reduce((sum, item) => sum + (item.giftPieces || 0), 0);
+                      const hasAppliedGift = totalGiftBoxes > 0 || totalGiftPieces > 0;
+                      const price = getProductPrice(product);
+                      const isShortage = shortageProductIds.has(product.id);
+                      const isNotInStock = !warehouseStockProductIds.has(product.id);
+                      const hasOffer = offerProductIds.has(product.id);
+                      return (
+                        <button
+                          key={product.id}
+                          dir="rtl"
+                          onClick={() => handleProductClick(product)}
+                          className={cn(
+                            "flex flex-col rounded-2xl overflow-hidden text-center transition-all relative",
+                            "bg-white shadow-lg border-2",
+                            hasAppliedGift
+                              ? 'border-green-500 ring-2 ring-green-400/40'
+                              : inCart ? 'border-primary ring-2 ring-primary/40' : 'border-red-200 hover:border-primary/60 hover:shadow-xl',
+                            (isShortage || isNotInStock) && !inCart && "border-orange-400/60",
+                            hasOffer && !isShortage && !isNotInStock && !inCart && "border-green-500/50",
+                            isInvoiceRestricted && "opacity-40 grayscale pointer-events-auto"
                           )}
-                        </div>
+                        >
+                          <div className={cn(
+                            "px-2 py-2 border-b",
+                            hasAppliedGift
+                              ? 'bg-green-500 border-green-500'
+                              : inCart ? 'bg-primary border-primary' : 'bg-red-50 border-red-100'
+                          )}>
+                            <span className={cn(
+                              "font-bold leading-tight block text-center truncate text-sm",
+                              inCart ? 'text-white' : 'text-red-900'
+                            )}>
+                              {getProductDisplayName(product)}
+                            </span>
+                            {inCart && (
+                              <span className="text-lg font-extrabold block text-center mt-1 rounded-md px-2 py-0.5 bg-primary text-primary-foreground">
+                                {productCartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0).toLocaleString()} {t('common.currency')}
+                              </span>
+                            )}
+                          </div>
 
-                        {/* الصورة */}
-                        <div className="flex-1 relative">
-                          {product.image_url ? (
-                            <img 
-                              src={product.image_url} 
-                              alt={getProductDisplayName(product)} 
-                              className="w-full aspect-square object-cover"
-                              loading="lazy"
-                            />
-                          ) : companyInfo.company_logo ? (
-                            <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                          <div className="flex-1 relative">
+                            {product.image_url ? (
                               <img 
-                                src={companyInfo.company_logo} 
-                                alt="logo" 
-                                className="w-3/4 h-3/4 object-contain opacity-40"
+                                src={product.image_url} 
+                                alt={getProductDisplayName(product)} 
+                                className="w-full aspect-square object-cover"
                                 loading="lazy"
                               />
-                            </div>
-                          ) : (
-                            <div className="w-full aspect-square bg-red-50 flex items-center justify-center">
-                              <Plus className="w-10 h-10 text-primary/40" />
-                            </div>
-                          )}
-                          {/* شارات أسفل الصورة */}
-                          <div className="absolute bottom-2 start-2 end-2 flex items-center justify-between">
-                            {hasOffer ? (
-                              <span className="flex items-center gap-1 rounded-full bg-green-500 px-2 py-1 shadow-lg">
-                                <Gift className="w-4 h-4 text-white" />
-                                {hasAppliedGift && (
-                                  <span className="text-white text-xs font-bold">{totalGiftBoxes > 0 ? totalGiftBoxes : totalGiftPieces}</span>
-                                )}
-                              </span>
-                            ) : <span />}
-                            {(isShortage || isNotInStock) && (
-                              <span className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
-                                <AlertTriangle className="w-4 h-4 text-white" />
-                              </span>
-                            )}
-                            {inCart ? (
-                              <Badge variant="default" className="text-sm px-2.5 py-0.5 shadow-lg font-bold">
-                                {totalCartQuantity}
-                              </Badge>
-                            ) : <span />}
-                          </div>
-                        </div>
-
-                        {/* السعر أسفل الصورة */}
-                        <div className={cn(
-                          "px-2 py-2 border-t",
-                          hasAppliedGift
-                            ? 'bg-green-50 border-green-100'
-                            : 'bg-red-50 border-red-100'
-                        )}>
-                          <ProductPriceBadge product={product} boxPrice={price} totalQuantity={totalCartQuantity} giftBoxes={totalGiftBoxes} giftPieces={totalGiftPieces} />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* Selected Items with Order Summary */}
-              {orderItems.length > 0 && (
-                <section className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-semibold">{t('orders.cart')}</Label>
-                    <Badge variant="secondary" className="text-xs">
-                      <Package className="w-3 h-3 ms-1" />
-                      {orderTotals.totalItems} {t('common.piece')}
-                    </Badge>
-                  </div>
-                  <div className="space-y-2 bg-muted/50 rounded-lg p-3">
-                    {orderItems.map((item, idx) => (
-                      <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium text-sm truncate block">
-                            {getProductName(item.productId)}
-                            {item.isUnitSale && (
-                              <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0">
-                                {t('offers.unit_piece')}
-                              </Badge>
-                            )}
-                            {!item.isUnitSale && ((item.giftQuantity && item.giftQuantity > 0) || (item.giftPieces && item.giftPieces > 0)) && (
-                              <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0 border-green-500 text-green-600">
-                                <Gift className="w-3 h-3 ms-0.5" />
-                                {item.giftQuantity && item.giftQuantity > 0 ? `${item.giftQuantity} ${t('offers.unit_box')}` : ''}
-                                {item.giftQuantity && item.giftQuantity > 0 && item.giftPieces && (item.giftPieces % (products.find(p => p.id === item.productId)?.pieces_per_box || 1)) > 0 ? ' + ' : ''}
-                                {item.giftPieces && (item.giftPieces % (products.find(p => p.id === item.productId)?.pieces_per_box || 1)) > 0 ? `${item.giftPieces % (products.find(p => p.id === item.productId)?.pieces_per_box || 1)} ${t('offers.unit_piece')}` : ''}
-                                {' '}{t('common.free')}
-                              </Badge>
-                            )}
-                          </span>
-                          {item.unitPrice > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              {item.unitPrice.toLocaleString()} دج × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} دج
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
-                            {item.isUnitSale ? item.quantity : Math.max(0, item.quantity - (item.giftQuantity || 0))}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => handleRemoveProduct(item.productId)}
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Order Summary */}
-                    <div className="pt-3 mt-3 border-t border-border/50 space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{t('products.total')}:</span>
-                        <span className="font-medium">{orderItems.length} {t('products.title')}</span>
-                      </div>
-
-                      {/* Paid quantity */}
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{t('common.quantity')}:</span>
-                        <span className="font-medium">{orderTotals.totalPaidItems} {orderTotals.totalPaidItems > 1 ? t('common.boxes') : t('common.box')}</span>
-                      </div>
-                      {orderTotals.subtotal > 0 && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">{t('orders.subtotal')}:</span>
-                          <span className="font-medium">{orderTotals.subtotal.toLocaleString()} {t('common.currency')}</span>
-                        </div>
-                      )}
-
-                      {/* Gift quantity */}
-                      {orderTotals.totalGiftBoxes > 0 && (
-                        <div className="mt-2 pt-2 border-t border-green-300/50 dark:border-green-700/50">
-                          <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400">
-                            <span className="flex items-center gap-1">
-                              <Gift className="w-3 h-3" />
-                              {t('offers.gift')}:
-                            </span>
-                            <span className="font-medium">{orderTotals.totalGiftBoxes} {orderTotals.totalGiftBoxes > 1 ? t('common.boxes') : t('common.box')}</span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400">
-                            <span className="text-xs">{t('orders.subtotal')}:</span>
-                            <span className="font-medium">0 {t('common.currency')}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Grand totals */}
-                      {orderTotals.subtotal > 0 && (
-                        <>
-                          {orderTotals.totalGiftBoxes > 0 && (
-                            <div className="mt-2 pt-2 border-t border-border/50">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">{t('orders.total_boxes')}:</span>
-                                <span className="font-medium">{orderTotals.totalItems} {orderTotals.totalItems > 1 ? t('common.boxes') : t('common.box')}</span>
+                            ) : companyInfo.company_logo ? (
+                              <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                                <img 
+                                  src={companyInfo.company_logo} 
+                                  alt="logo" 
+                                  className="w-3/4 h-3/4 object-contain opacity-40"
+                                  loading="lazy"
+                                />
                               </div>
+                            ) : (
+                              <div className="w-full aspect-square bg-red-50 flex items-center justify-center">
+                                <Plus className="w-10 h-10 text-primary/40" />
+                              </div>
+                            )}
+                            <div className="absolute bottom-2 start-2 end-2 flex items-center justify-between">
+                              {hasOffer ? (
+                                <span className="flex items-center gap-1 rounded-full bg-green-500 px-2 py-1 shadow-lg">
+                                  <Gift className="w-4 h-4 text-white" />
+                                  {hasAppliedGift && (
+                                    <span className="text-white text-xs font-bold">{totalGiftBoxes > 0 ? totalGiftBoxes : totalGiftPieces}</span>
+                                  )}
+                                </span>
+                              ) : <span />}
+                              {(isShortage || isNotInStock) && (
+                                <span className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
+                                  <AlertTriangle className="w-4 h-4 text-white" />
+                                </span>
+                              )}
+                              {inCart ? (
+                                <Badge variant="default" className="text-sm px-2.5 py-0.5 shadow-lg font-bold">
+                                  {totalCartQuantity}
+                                </Badge>
+                              ) : <span />}
                             </div>
-                          )}
-                          {orderTotals.stampAmount > 0 && (
-                            <div className="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400">
-                              <span className="flex items-center gap-1">
-                                <Stamp className="w-3 h-3" />
-                                {t('orders.stamp_tax')}:
-                              </span>
-                              <span className="font-medium">{orderTotals.stampAmount.toLocaleString('ar-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center justify-between text-base font-bold mt-2 pt-2 border-t border-border/50">
-                            <span>{t('orders.grand_total')}:</span>
-                            <span className="text-primary">{orderTotals.totalAmount.toLocaleString('ar-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
                           </div>
-                        </>
-                      )}
-                    </div>
+
+                          <div className={cn(
+                            "px-2 py-2 border-t",
+                            hasAppliedGift
+                              ? 'bg-green-50 border-green-100'
+                              : 'bg-red-50 border-red-100'
+                          )}>
+                            <ProductPriceBadge product={product} boxPrice={price} totalQuantity={totalCartQuantity} giftBoxes={totalGiftBoxes} giftPieces={totalGiftPieces} />
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </section>
               )}
 
-              {/* Delivery Worker - removed, now shown after save */}
+              {/* ═══════ STEP 3: Cart + Prepaid ═══════ */}
+              {currentStep === 3 && (
+                <>
+                  {orderItems.length > 0 ? (
+                    <section className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-semibold">{t('orders.cart')}</Label>
+                        <Badge variant="secondary" className="text-xs">
+                          <Package className="w-3 h-3 ms-1" />
+                          {orderTotals.totalItems} {t('common.piece')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2 bg-muted/50 rounded-lg p-3">
+                        {orderItems.map((item, idx) => (
+                          <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-sm truncate block">
+                                {getProductName(item.productId)}
+                                {item.isUnitSale && (
+                                  <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0">
+                                    {t('offers.unit_piece')}
+                                  </Badge>
+                                )}
+                                {!item.isUnitSale && ((item.giftQuantity && item.giftQuantity > 0) || (item.giftPieces && item.giftPieces > 0)) && (
+                                  <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0 border-green-500 text-green-600">
+                                    <Gift className="w-3 h-3 ms-0.5" />
+                                    {item.giftQuantity && item.giftQuantity > 0 ? `${item.giftQuantity} ${t('offers.unit_box')}` : ''}
+                                    {item.giftQuantity && item.giftQuantity > 0 && item.giftPieces && (item.giftPieces % (products.find(p => p.id === item.productId)?.pieces_per_box || 1)) > 0 ? ' + ' : ''}
+                                    {item.giftPieces && (item.giftPieces % (products.find(p => p.id === item.productId)?.pieces_per_box || 1)) > 0 ? `${item.giftPieces % (products.find(p => p.id === item.productId)?.pieces_per_box || 1)} ${t('offers.unit_piece')}` : ''}
+                                    {' '}{t('common.free')}
+                                  </Badge>
+                                )}
+                              </span>
+                              {item.unitPrice > 0 && (
+                                <span className="text-xs text-muted-foreground">
+                                  {item.unitPrice.toLocaleString()} دج × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} دج
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
+                                {item.isUnitSale ? item.quantity : Math.max(0, item.quantity - (item.giftQuantity || 0))}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                onClick={() => handleRemoveProduct(item.productId)}
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
 
-              {/* Prepaid Amount Toggle - moved above delivery date */}
-              <section className="space-y-2">
-                <Button
-                  type="button"
-                  variant={Number(prepaidAmount) > 0 ? 'default' : 'outline'}
-                  className={`w-full h-12 text-sm font-bold gap-2 ${
-                    Number(prepaidAmount) > 0
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400/50'
-                      : 'border-dashed border-2'
-                  }`}
-                  onClick={() => {
-                    if (Number(prepaidAmount) > 0) {
-                      setPrepaidAmount('');
-                    } else {
-                      setPrepaidAmount('1');
-                    }
-                  }}
-                >
-                  <Banknote className="w-5 h-5" />
-                  {Number(prepaidAmount) > 0 ? `💰 دفع مسبق: ${Number(prepaidAmount).toLocaleString()} ${t('common.currency')}` : '💰 إضافة دفع مسبق (عربون)'}
-                </Button>
-                {Number(prepaidAmount) > 0 && (
-                  <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2">
-                    <Label className="text-emerald-700 dark:text-emerald-400 font-semibold text-sm">مبلغ الدفع المسبق</Label>
-                    <Input
-                      type="number"
-                      value={prepaidAmount}
-                      onChange={(e) => setPrepaidAmount(e.target.value)}
-                      placeholder="0"
-                      className="h-11 text-lg font-bold text-center"
-                    />
-                  </div>
-                )}
-              </section>
+                        {/* Order Summary */}
+                        <div className="pt-3 mt-3 border-t border-border/50 space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('products.total')}:</span>
+                            <span className="font-medium">{orderItems.length} {t('products.title')}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{t('common.quantity')}:</span>
+                            <span className="font-medium">{orderTotals.totalPaidItems} {orderTotals.totalPaidItems > 1 ? t('common.boxes') : t('common.box')}</span>
+                          </div>
+                          {orderTotals.subtotal > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{t('orders.subtotal')}:</span>
+                              <span className="font-medium">{orderTotals.subtotal.toLocaleString()} {t('common.currency')}</span>
+                            </div>
+                          )}
+                          {orderTotals.totalGiftBoxes > 0 && (
+                            <div className="mt-2 pt-2 border-t border-green-300/50 dark:border-green-700/50">
+                              <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400">
+                                <span className="flex items-center gap-1">
+                                  <Gift className="w-3 h-3" />
+                                  {t('offers.gift')}:
+                                </span>
+                                <span className="font-medium">{orderTotals.totalGiftBoxes} {orderTotals.totalGiftBoxes > 1 ? t('common.boxes') : t('common.box')}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400">
+                                <span className="text-xs">{t('orders.subtotal')}:</span>
+                                <span className="font-medium">0 {t('common.currency')}</span>
+                              </div>
+                            </div>
+                          )}
+                          {orderTotals.subtotal > 0 && (
+                            <>
+                              {orderTotals.totalGiftBoxes > 0 && (
+                                <div className="mt-2 pt-2 border-t border-border/50">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">{t('orders.total_boxes')}:</span>
+                                    <span className="font-medium">{orderTotals.totalItems} {orderTotals.totalItems > 1 ? t('common.boxes') : t('common.box')}</span>
+                                  </div>
+                                </div>
+                              )}
+                              {orderTotals.stampAmount > 0 && (
+                                <div className="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400">
+                                  <span className="flex items-center gap-1">
+                                    <Stamp className="w-3 h-3" />
+                                    {t('orders.stamp_tax')}:
+                                  </span>
+                                  <span className="font-medium">{orderTotals.stampAmount.toLocaleString('ar-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between text-base font-bold mt-2 pt-2 border-t border-border/50">
+                                <span>{t('orders.grand_total')}:</span>
+                                <span className="text-primary">{orderTotals.totalAmount.toLocaleString('ar-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.currency')}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </section>
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>لا توجد منتجات في السلة</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={() => setCurrentStep(2)}>
+                        العودة لاختيار المنتجات
+                      </Button>
+                    </div>
+                  )}
 
-              {/* Delivery Date */}
-              <section className="space-y-3">
-                <Label>{t('orders.delivery_date')} ({t('common.optional')})</Label>
-                
-                {/* Quick select: اليوم / غداً */}
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={deliveryDate === format(new Date(), 'yyyy-MM-dd') ? 'default' : 'outline'}
-                    onClick={() => {
-                      const today = format(new Date(), 'yyyy-MM-dd');
-                      setDeliveryDate(deliveryDate === today ? '' : today);
-                    }}
-                    className="flex-1"
-                  >
-                    اليوم
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={deliveryDate === format(addDays(new Date(), 1), 'yyyy-MM-dd') ? 'default' : 'outline'}
-                    onClick={() => {
-                      const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-                      setDeliveryDate(deliveryDate === tomorrow ? '' : tomorrow);
-                    }}
-                    className="flex-1"
-                  >
-                    غداً
-                  </Button>
-                </div>
+                  {/* Prepaid Amount */}
+                  <section className="space-y-2">
+                    <Button
+                      type="button"
+                      variant={Number(prepaidAmount) > 0 ? 'default' : 'outline'}
+                      className={`w-full h-12 text-sm font-bold gap-2 ${
+                        Number(prepaidAmount) > 0
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400/50'
+                          : 'border-dashed border-2'
+                      }`}
+                      onClick={() => {
+                        if (Number(prepaidAmount) > 0) {
+                          setPrepaidAmount('');
+                        } else {
+                          setPrepaidAmount('1');
+                        }
+                      }}
+                    >
+                      <Banknote className="w-5 h-5" />
+                      {Number(prepaidAmount) > 0 ? `💰 دفع مسبق: ${Number(prepaidAmount).toLocaleString()} ${t('common.currency')}` : '💰 إضافة دفع مسبق (عربون)'}
+                    </Button>
+                    {Number(prepaidAmount) > 0 && (
+                      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2">
+                        <Label className="text-emerald-700 dark:text-emerald-400 font-semibold text-sm">مبلغ الدفع المسبق</Label>
+                        <Input
+                          type="number"
+                          value={prepaidAmount}
+                          onChange={(e) => setPrepaidAmount(e.target.value)}
+                          placeholder="0"
+                          className="h-11 text-lg font-bold text-center"
+                        />
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
 
-                {/* Week day buttons */}
-                <div className="grid grid-cols-4 gap-2">
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const d = addDays(new Date(), i);
-                    const dateStr = format(d, 'yyyy-MM-dd');
-                    const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getDay()];
-                    const isSelected = deliveryDate === dateStr;
-                    return (
+              {/* ═══════ STEP 4: Delivery Date + Notes ═══════ */}
+              {currentStep === 4 && (
+                <>
+                  <section className="space-y-3">
+                    <Label>{t('orders.delivery_date')} ({t('common.optional')})</Label>
+                    
+                    <div className="flex gap-2">
                       <Button
-                        key={dateStr}
                         type="button"
                         size="sm"
-                        variant={isSelected ? 'default' : 'outline'}
-                        onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
-                        className="flex flex-col items-center h-auto py-1.5 text-xs"
+                        variant={deliveryDate === format(new Date(), 'yyyy-MM-dd') ? 'default' : 'outline'}
+                        onClick={() => {
+                          const today = format(new Date(), 'yyyy-MM-dd');
+                          setDeliveryDate(deliveryDate === today ? '' : today);
+                        }}
+                        className="flex-1"
                       >
-                        <span className="font-bold">{dayName}</span>
-                        <span className="text-[10px] opacity-80">{format(d, 'dd/MM')}</span>
+                        اليوم
                       </Button>
-                    );
-                  })}
-                </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={deliveryDate === format(addDays(new Date(), 1), 'yyyy-MM-dd') ? 'default' : 'outline'}
+                        onClick={() => {
+                          const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+                          setDeliveryDate(deliveryDate === tomorrow ? '' : tomorrow);
+                        }}
+                        className="flex-1"
+                      >
+                        غداً
+                      </Button>
+                    </div>
 
-                {/* Date + Time inputs */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">التاريخ</Label>
-                    <Input
-                      type="date"
-                      value={deliveryDate}
-                      onChange={(e) => setDeliveryDate(e.target.value)}
+                    <div className="grid grid-cols-4 gap-2">
+                      {Array.from({ length: 7 }, (_, i) => {
+                        const d = addDays(new Date(), i);
+                        const dateStr = format(d, 'yyyy-MM-dd');
+                        const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getDay()];
+                        const isSelected = deliveryDate === dateStr;
+                        return (
+                          <Button
+                            key={dateStr}
+                            type="button"
+                            size="sm"
+                            variant={isSelected ? 'default' : 'outline'}
+                            onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
+                            className="flex flex-col items-center h-auto py-1.5 text-xs"
+                          >
+                            <span className="font-bold">{dayName}</span>
+                            <span className="text-[10px] opacity-80">{format(d, 'dd/MM')}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">التاريخ</Label>
+                        <Input
+                          type="date"
+                          value={deliveryDate}
+                          onChange={(e) => setDeliveryDate(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">الوقت</Label>
+                        <Input
+                          type="time"
+                          value={deliveryTime}
+                          onChange={(e) => setDeliveryTime(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-2">
+                    <Label>{t('common.notes')} ({t('common.optional')})</Label>
+                    <Textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder={t('orders.add_notes')}
+                      rows={2}
                     />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">الوقت</Label>
-                    <Input
-                      type="time"
-                      value={deliveryTime}
-                      onChange={(e) => setDeliveryTime(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </section>
+                  </section>
+                </>
+              )}
 
-
-              {/* Notes */}
-              <section className="space-y-2">
-                <Label>{t('common.notes')} ({t('common.optional')})</Label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder={t('orders.add_notes')}
-                  rows={2}
-                />
-              </section>
             </div>
             </div>
           </ScrollArea>
 
-          {/* Footer */}
-          <div className="p-4 border-t bg-background">
-            <Button
-              onClick={handleCreateOrder}
-              className="w-full h-12 text-base"
-              disabled={createOrder.isPending || !selectedCustomerId || orderItems.length === 0}
-            >
-              {createOrder.isPending ? (
-                <Loader2 className="w-5 h-5 ms-2 animate-spin" />
-              ) : (
-                <ShoppingCart className="w-5 h-5 ms-2" />
+          {/* Footer with navigation */}
+          <div className="p-4 border-t bg-background space-y-2">
+            <div className="flex gap-2">
+              {currentStep > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 h-12"
+                  onClick={() => setCurrentStep(prev => prev - 1)}
+                >
+                  السابق
+                </Button>
               )}
-              {t('orders.create')}
-              {orderTotals.totalAmount > 0 ? (
-                <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
-                  {orderTotals.totalAmount.toLocaleString()} دج
-                </Badge>
-              ) : orderItems.length > 0 ? (
-                <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
-                  {orderTotals.totalItems}
-                </Badge>
-              ) : null}
-            </Button>
+              {currentStep < 4 ? (
+                <Button
+                  className="flex-1 h-12 text-base"
+                  disabled={
+                    (currentStep === 1 && !selectedCustomerId) ||
+                    (currentStep === 2 && orderItems.length === 0)
+                  }
+                  onClick={() => setCurrentStep(prev => prev + 1)}
+                >
+                  {currentStep === 2 && orderItems.length > 0 ? (
+                    <>
+                      {t('orders.create')} 🛒
+                      <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                        {orderTotals.totalItems}
+                      </Badge>
+                    </>
+                  ) : (
+                    'التالي'
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleCreateOrder}
+                  className="flex-1 h-12 text-base"
+                  disabled={createOrder.isPending || !selectedCustomerId || orderItems.length === 0}
+                >
+                  {createOrder.isPending ? (
+                    <Loader2 className="w-5 h-5 ms-2 animate-spin" />
+                  ) : (
+                    <ShoppingCart className="w-5 h-5 ms-2" />
+                  )}
+                  {t('orders.create')}
+                  {orderTotals.totalAmount > 0 ? (
+                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                      {orderTotals.totalAmount.toLocaleString()} دج
+                    </Badge>
+                  ) : orderItems.length > 0 ? (
+                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                      {orderTotals.totalItems}
+                    </Badge>
+                  ) : null}
+                </Button>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
