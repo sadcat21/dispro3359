@@ -292,13 +292,26 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             />
           </div>
           {activeSectorKey && !search.trim() && (
-            <button
-              onClick={() => setActiveSectorKey(null)}
-              className="flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              <ChevronRight className="w-4 h-4" />
-              {t('customer_picker.title')}
-            </button>
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                onClick={() => { setActiveSectorKey(null); setActiveRegionKey(null); }}
+                className="flex items-center gap-1 text-primary hover:underline"
+              >
+                <ChevronRight className="w-4 h-4" />
+                {t('customer_picker.title')}
+              </button>
+              {activeRegionKey && (
+                <>
+                  <ChevronLeft className="w-3 h-3 text-muted-foreground" />
+                  <button
+                    onClick={() => setActiveRegionKey(null)}
+                    className="text-primary hover:underline"
+                  >
+                    {activeRegionKey}
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
 
