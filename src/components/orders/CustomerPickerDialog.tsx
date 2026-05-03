@@ -343,31 +343,21 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
           ) : !activeSectorKey && !search.trim() ? (
             // Sector grid - بدون أيقونات، شارة عدد بالأحمر
             <div className="grid grid-cols-2 gap-2 p-3">
-              {groupedCustomers.map((group, idx) => {
-                const style = sectorStyle(group.key, idx);
-                return (
-                  <button
-                    key={group.key}
-                    dir={dir}
-                    onClick={() => setActiveSectorKey(group.key)}
-                    className={cn(
-                      "relative flex flex-row items-center justify-center gap-2 ps-3 pe-10 py-2 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[40px] overflow-hidden",
-                      style.bg, style.border
-                    )}
-                  >
-                    <p className={cn("text-sm font-bold text-center line-clamp-1", style.text)}>
-                      {group.sectorName}
-                    </p>
-                    <span className={cn(
-                      "absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold",
-                      "rounded-s-[18px]",
-                      style.text.replace('text-', 'bg-')
-                    )}>
-                      {group.customers.length}
-                    </span>
-                  </button>
-                );
-              })}
+              {groupedCustomers.map((group) => (
+                <button
+                  key={group.key}
+                  dir={dir}
+                  onClick={() => setActiveSectorKey(group.key)}
+                  className="relative flex flex-row items-center justify-center gap-2 ps-3 pe-12 py-2 rounded-xl border-2 border-destructive bg-background transition-all hover:scale-105 active:scale-95 min-h-[40px] overflow-hidden"
+                >
+                  <p className="text-sm font-bold text-foreground text-center line-clamp-1">
+                    {group.sectorName}
+                  </p>
+                  <span className="absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold bg-destructive rounded-s-[18px]">
+                    {group.customers.length}
+                  </span>
+                </button>
+              ))}
             </div>
           ) : (
             // Customers — مقسمة حسب منطقة السكتور (sector_zones) داخل القسم
@@ -389,33 +379,26 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               if (!activeRegionKey && !search.trim()) {
                 return (
                   <div className="grid grid-cols-2 gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
-                    {regionEntries.map(([region, list], rIdx) => {
-                      const rStyle = sectorStyle(region, rIdx);
-                      return (
-                        <button
-                          key={region}
-                          dir={dir}
-                          onClick={() => setActiveRegionKey(region)}
-                          style={{ animationDelay: `${rIdx * 40}ms` }}
-                          className={cn(
-                            "group relative flex items-center ps-3 pe-12 py-2 rounded-xl border-2 shadow-sm min-h-[40px] text-right overflow-hidden",
-                            "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
-                            "animate-in fade-in zoom-in-95 fill-mode-both",
-                            rStyle.bg, rStyle.border
-                          )}
-                        >
-                          <span className={cn("text-sm font-bold truncate min-w-0 flex-1 text-right", rStyle.text)}>
-                            {region}
-                          </span>
-                          <span className={cn(
-                            "absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold rounded-s-[18px]",
-                            rStyle.text.replace('text-', 'bg-')
-                          )}>
-                            {list.length}
-                          </span>
-                        </button>
-                      );
-                    })}
+                    {regionEntries.map(([region, list], rIdx) => (
+                      <button
+                        key={region}
+                        dir={dir}
+                        onClick={() => setActiveRegionKey(region)}
+                        style={{ animationDelay: `${rIdx * 40}ms` }}
+                        className={cn(
+                          "group relative flex items-center ps-3 pe-12 py-2 rounded-xl border-2 border-destructive bg-background shadow-sm min-h-[40px] text-right overflow-hidden",
+                          "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
+                          "animate-in fade-in zoom-in-95 fill-mode-both"
+                        )}
+                      >
+                        <span className="text-sm font-bold truncate min-w-0 flex-1 text-right text-foreground">
+                          {region}
+                        </span>
+                        <span className="absolute inset-y-0 end-0 flex items-center justify-center min-w-[36px] px-2 text-white text-xs font-bold rounded-s-[18px] bg-destructive">
+                          {list.length}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 );
               }
