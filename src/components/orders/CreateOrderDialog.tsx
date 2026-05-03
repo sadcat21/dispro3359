@@ -1154,6 +1154,16 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                     </div>
                   </section>
 
+                  <section>
+                    <InlineDeliveryWorkerPicker
+                      customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
+                      customerSectorId={(selectedCustomer as any)?.sector_id || null}
+                      defaultWorkerId={selectedCustomer?.default_delivery_worker_id || null}
+                      value={selectedDeliveryWorker}
+                      onChange={setSelectedDeliveryWorker}
+                    />
+                  </section>
+
                   <section className="space-y-1">
                     <Label className="text-[11px] text-muted-foreground">{t('common.notes')}</Label>
                     <Textarea
@@ -1162,16 +1172,6 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       placeholder={t('orders.add_notes')}
                       rows={1}
                       className="min-h-[36px] text-xs"
-                    />
-                  </section>
-
-                  <section>
-                    <InlineDeliveryWorkerPicker
-                      customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
-                      customerSectorId={(selectedCustomer as any)?.sector_id || null}
-                      defaultWorkerId={selectedCustomer?.default_delivery_worker_id || null}
-                      value={selectedDeliveryWorker}
-                      onChange={setSelectedDeliveryWorker}
                     />
                   </section>
                 </>
