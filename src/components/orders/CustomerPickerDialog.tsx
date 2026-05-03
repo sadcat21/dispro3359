@@ -51,6 +51,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { activeBranch } = useAuth();
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
+  const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
 
   // Self-fetch sectors when not provided via props — restrict to sectors actually used by the visible customers
   const customerSectorIds = useMemo(
