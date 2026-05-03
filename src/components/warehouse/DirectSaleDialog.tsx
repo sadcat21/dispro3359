@@ -1161,6 +1161,24 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                       <div key={item.productId} className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <span className="font-medium text-sm truncate block">
+                            {(() => {
+                              const code = item.itemPaymentType === 'with_invoice'
+                                ? 'F1'
+                                : item.priceSubType === 'super_gros' ? 'SG'
+                                : item.priceSubType === 'retail' ? 'D'
+                                : item.priceSubType === 'gros' ? 'G'
+                                : null;
+                              return code ? (
+                                <Badge variant="secondary" className="me-1 text-[10px] px-1 py-0 font-bold">
+                                  {code}
+                                </Badge>
+                              ) : null;
+                            })()}
+                            {item.customUnitPrice !== undefined && (
+                              <Badge variant="outline" className="me-1 text-[10px] px-1 py-0 border-primary text-primary font-bold">
+                                ⚙
+                              </Badge>
+                            )}
                             {getProductName(item.productId)}
                             {item.giftQuantity && item.giftQuantity > 0 && (
                               <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0 border-green-500 text-green-600">
