@@ -446,7 +446,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <button
                                 key={customer.id}
                                 className={cn(
-                                  "relative flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[72px]",
+                                  "relative flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[56px]",
                                   isSelected ? "bg-primary/10 border-primary" : cn(rStyle.bg, rStyle.border, "hover:brightness-95")
                                 )}
                                 onClick={() => {
