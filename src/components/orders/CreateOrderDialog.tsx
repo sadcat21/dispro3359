@@ -495,9 +495,11 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
   // Calculate totals including stamp price for invoice payments when cash method is selected
   const orderTotals = useMemo(() => {
-    const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalBoxes = orderItems.reduce((sum, item) => sum + (item.isUnitSale ? 0 : item.quantity), 0);
+    const totalUnitPieces = orderItems.reduce((sum, item) => sum + (item.isUnitSale ? item.quantity : 0), 0);
+    const totalItems = totalBoxes + totalUnitPieces;
     const totalGiftBoxes = orderItems.reduce((sum, item) => sum + (item.giftQuantity || 0), 0);
-    const totalPaidItems = totalItems - totalGiftBoxes;
+    const totalPaidItems = totalBoxes - totalGiftBoxes;
     const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
     // Calculate stamp amount only for invoice payments with cash method
@@ -509,7 +511,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     }
 
     const totalAmount = subtotal + stampAmount;
-    return { totalItems, totalGiftBoxes, totalPaidItems, subtotal, stampAmount, totalAmount };
+    return { totalItems, totalBoxes, totalUnitPieces, totalGiftBoxes, totalPaidItems, subtotal, stampAmount, totalAmount };
   }, [orderItems, paymentType, invoicePaymentMethod, stampTiers]);
 
   // Customer handlers
