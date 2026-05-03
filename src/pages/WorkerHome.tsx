@@ -598,6 +598,14 @@ const WorkerHome: React.FC = () => {
           setShowCustomerPickerForOrder(false);
           setShowCreateOrderDialog(true);
         }}
+        onLongPress={(customer) => {
+          setSelectedCustomerForAction(customer);
+          setSalesHubTab('direct');
+          setShowSalesHubDialog(true);
+        }}
+        onDoubleClick={(customer) => {
+          window.location.href = `/customer-debts?customer=${customer.id}`;
+        }}
       />
       <WorkerHandoverPreviewDialog
         open={showHandoverPreview}
