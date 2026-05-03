@@ -14,7 +14,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import {
   ShoppingCart, Plus, Loader2, User,
   Receipt, ReceiptText, UserPlus, Edit2, XCircle, Package, Check, ChevronsUpDown, Stamp,
-  AlertTriangle, Gift, Banknote, Truck, Search
+  AlertTriangle, Gift, Banknote
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCreateOrder, useMyOrders } from '@/hooks/useOrders';
 import { useTrackVisit } from '@/hooks/useVisitTracking';
-import { Customer, Product, PaymentType, PriceSubType, Sector, Worker } from '@/types/database';
+import { Customer, Product, PaymentType, PriceSubType, Sector } from '@/types/database';
 import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog, { PerItemPricing } from './ProductQuantityDialog';
@@ -111,9 +111,6 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [savedOrderId, setSavedOrderId] = useState('');
   const [savedCustomerBranchId, setSavedCustomerBranchId] = useState<string | null>(null);
   const [savedDefaultDeliveryWorkerId, setSavedDefaultDeliveryWorkerId] = useState<string | null>(null);
-  const [deliveryWorkers, setDeliveryWorkers] = useState<Worker[]>([]);
-  const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
-  const [workerSearch, setWorkerSearch] = useState('');
 
   // Search and dialogs
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
@@ -174,50 +171,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     }
   }, [selectedCustomer, sectors]);
 
-  // Fetch delivery workers when reaching step 4
-  useEffect(() => {
-    if (currentStep === 4) {
-      const fetchWorkers = async () => {
-        setIsLoadingWorkers(true);
-        try {
-          let query = supabase
-            .from('worker_roles')
-            .select(`worker_id, custom_roles!inner(code)`)
-            .in('custom_roles.code', ['delivery_rep', 'warehouse_manager']);
-          if (selectedCustomer?.branch_id) {
-            query = query.eq('branch_id', selectedCustomer.branch_id);
-          }
-          const { data: workerRoles } = await query;
-          if (workerRoles && workerRoles.length > 0) {
-            const workerIds = workerRoles.map(wr => wr.worker_id);
-            const { data: workers } = await supabase
-              .from('workers')
-              .select('*')
-              .in('id', workerIds)
-              .eq('is_active', true)
-              .order('full_name');
-            setDeliveryWorkers(workers || []);
-            // Pre-select default delivery worker
-            if (selectedCustomer?.default_delivery_worker_id) {
-              const exists = (workers || []).some(w => w.id === selectedCustomer.default_delivery_worker_id);
-              if (exists && !selectedDeliveryWorker) {
-                setSelectedDeliveryWorker(selectedCustomer.default_delivery_worker_id!);
-              }
-            }
-          } else {
-            setDeliveryWorkers([]);
-          }
-        } catch (error) {
-          console.error('Error fetching delivery workers:', error);
-        } finally {
-          setIsLoadingWorkers(false);
-        }
-      };
-      fetchWorkers();
-    }
-  }, [currentStep, selectedCustomer?.branch_id]);
-
-
+  const fetchData = async () => {
     setIsLoadingData(true);
     try {
       let customersQuery = supabase.from('customers').select('*').eq('status', 'active').order('name');
@@ -286,7 +240,6 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     setPriceSubType('gros');
     setInvoicePaymentMethod(null);
     setSelectedDeliveryWorker('');
-    setWorkerSearch('');
     setCustomerDropdownOpen(false);
     setCurrentStep(1);
   }, []);
@@ -643,23 +596,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       setSavedDefaultDeliveryWorkerId(defaultWorkerId || null);
       handleClose(false);
 
-      // If worker was selected inline in step 4, assign directly
-      if (selectedDeliveryWorker) {
-        try {
-          await supabase.from('orders').update({
-            assigned_to: selectedDeliveryWorker,
-            status: 'assigned'
-          }).eq('id', order.id);
-          toast.success('تم تعيين عامل التوصيل');
-        } catch (e) {
-          console.error('Error assigning worker:', e);
-          // Fallback to dialog
-          setShowAssignWorkerDialog(true);
-        }
-      } else {
-        // Show assign worker dialog if no worker selected
-        setShowAssignWorkerDialog(true);
-      }
+      // Always show assign worker dialog (with pre-selection if default exists)
+      setShowAssignWorkerDialog(true);
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     }
@@ -668,7 +606,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
+        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden" dir={dir}>
           <DialogHeader className="px-3 py-2 border-b">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <ShoppingCart className="w-4 h-4" />
@@ -695,7 +633,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             </div>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 8rem)' }}>
+          <ScrollArea className="flex-1 max-h-[calc(95vh-8rem)]">
             <div className="px-3">
             <div className="py-2 space-y-3">
 
@@ -1001,7 +939,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           {orderTotals.totalItems} {t('common.piece')}
                         </Badge>
                       </div>
-                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2" dir="ltr">
+                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2">
                         {orderItems.map((item, idx) => (
                           <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
@@ -1024,7 +962,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               </span>
                               {item.unitPrice > 0 && (
                                 <span className="text-xs text-muted-foreground">
-                                  {item.unitPrice.toLocaleString()} {t('common.currency')} × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} {t('common.currency')}
+                                  {item.unitPrice.toLocaleString()} دج × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} دج
                                 </span>
                               )}
                             </div>
@@ -1238,55 +1176,6 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       className="min-h-[60px]"
                     />
                   </section>
-
-                  {/* Worker Assignment */}
-                  <section className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-1.5">
-                      <Truck className="w-4 h-4" />
-                      تعيين عامل التوصيل ({t('common.optional')})
-                    </Label>
-                    {isLoadingWorkers ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        جاري تحميل العمال...
-                      </div>
-                    ) : deliveryWorkers.length > 0 ? (
-                      <div className="space-y-1.5">
-                        {deliveryWorkers.length > 4 && (
-                          <div className="relative">
-                            <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                            <Input
-                              placeholder="بحث عن عامل..."
-                              value={workerSearch}
-                              onChange={(e) => setWorkerSearch(e.target.value)}
-                              className="h-8 ps-8 text-sm"
-                            />
-                          </div>
-                        )}
-                        <div className="grid grid-cols-2 gap-1.5 max-h-[120px] overflow-y-auto">
-                          {deliveryWorkers
-                            .filter(w => !workerSearch || w.full_name.toLowerCase().includes(workerSearch.toLowerCase()))
-                            .map(worker => (
-                              <Button
-                                key={worker.id}
-                                type="button"
-                                size="sm"
-                                variant={selectedDeliveryWorker === worker.id ? 'default' : 'outline'}
-                                className="h-9 text-xs justify-start gap-1.5"
-                                onClick={() => setSelectedDeliveryWorker(
-                                  selectedDeliveryWorker === worker.id ? '' : worker.id
-                                )}
-                              >
-                                <User className="w-3.5 h-3.5 shrink-0" />
-                                <span className="truncate">{worker.full_name}</span>
-                              </Button>
-                            ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">لا يوجد عمال توصيل متاحون</p>
-                    )}
-                  </section>
                 </>
               )}
 
@@ -1295,7 +1184,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
           </ScrollArea>
 
           {/* Footer with navigation */}
-          <div className="px-3 py-2 border-t bg-background sticky bottom-0 z-10 shrink-0">
+          <div className="px-3 py-2 border-t bg-background">
             <div className="flex gap-2">
               {currentStep > 1 && (
                 <Button
@@ -1341,7 +1230,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
-                      {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
+                      {orderTotals.totalAmount.toLocaleString()} دج
                     </Badge>
                   ) : orderItems.length > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
