@@ -349,7 +349,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                     key={group.key}
                     onClick={() => setActiveSectorKey(group.key)}
                     className={cn(
-                      "flex flex-row items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[56px]",
+                      "flex flex-row items-center justify-center gap-2 px-3 py-2 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[40px]",
                       style.bg, style.border
                     )}
                   >
