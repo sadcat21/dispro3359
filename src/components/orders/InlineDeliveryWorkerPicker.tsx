@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Worker } from '@/types/database';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Truck, Loader2, User, Search, CheckCircle, Sparkles } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 
 interface Props {
   customerBranchId: string | null;
@@ -111,11 +111,8 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
   );
 
   return (
-    <div className="space-y-2">
-      <Label className="flex items-center gap-2 text-sm">
-        <Truck className="w-4 h-4" />
-        عامل التوصيل (اختياري)
-      </Label>
+    <div className="space-y-1.5">
+      <Label className="text-[11px] text-muted-foreground">عامل التوصيل</Label>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
@@ -138,7 +135,7 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
               />
             </div>
           )}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-1.5">
             {filtered.map(w => {
               const isSelected = w.id === value;
               const isSuggested = w.id === suggestedWorkerId;
@@ -148,25 +145,16 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
                   type="button"
                   key={w.id}
                   onClick={() => onChange(w.id)}
-                  className={`relative flex flex-col items-center gap-1 rounded-xl border p-2.5 text-center transition-colors ${
+                  className={`relative flex flex-col items-center justify-center rounded-md border px-1.5 py-1.5 text-center transition-colors min-h-[44px] ${
                     isSelected ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent border-border'
                   }`}
                 >
-                  {isSuggested && !isSelected && (
-                    <span className="absolute top-1 end-1 flex items-center gap-0.5 text-[9px] text-primary">
-                      <Sparkles className="w-2.5 h-2.5" />
-                    </span>
-                  )}
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${isSelected ? 'bg-primary-foreground/20' : 'bg-primary/10'}`}>
-                    <User className={`w-4 h-4 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} />
-                  </div>
                   <div className="font-semibold text-[11px] leading-tight truncate w-full">{w.full_name}</div>
                   {(isSuggested || isDefault) && (
-                    <span className={`text-[9px] ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                      {isSuggested ? 'مقترح (سيكتور)' : 'افتراضي'}
+                    <span className={`text-[9px] ${isSelected ? 'text-primary-foreground/80' : 'text-primary'}`}>
+                      {isSuggested ? 'مقترح' : 'افتراضي'}
                     </span>
                   )}
-                  {isSelected && <CheckCircle className="w-3.5 h-3.5" />}
                 </button>
               );
             })}
