@@ -317,7 +317,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         </div>
 
         {/* Customers List */}
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="flex-1 min-h-0">
           {isLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
