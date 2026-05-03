@@ -391,7 +391,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           <RefreshButton />
           {activeRole?.custom_role_code === 'company_manager' && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
-          {/* StockConfirmationsPopover removed: مرحلة المراجعة بين الشحن والتفريغ ألغيت */}
+          {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
+          {(activeRole?.custom_role_code === 'delivery_rep'
+            || activeRole?.custom_role_code === 'warehouse_manager'
+            || (availableRoles || []).some(r => r.custom_role_code === 'delivery_rep' || r.custom_role_code === 'warehouse_manager')
+          ) && <StockConfirmationsPopover />}
           <StockDisputesPopover />
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
@@ -492,7 +496,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <UserCog className="w-4 h-4 text-primary" />
-                  <span className="text-sm">تبديل الدور ({availableRoles.length})</span>
+                  <span className="text-sm">{getRoleDisplayText() || 'تبديل الدور'} ({availableRoles.length})</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
