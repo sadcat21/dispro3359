@@ -204,6 +204,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       setSingleProductId(p.id);
       setSingleQtyFields(regularQty > 0 ? quantityToFields(regularQty, ppbVal) : createDefaultSingleFields());
       setSingleGiftFields(currentGift > 0 ? quantityToFields(currentGift, ppbVal) : createDefaultSingleFields());
+      if (currentGift > 0) setOfferActivated(prev => ({ ...prev, [p.id]: true }));
       setSingleGiftQty(0);
       setSingleGiftUnit('piece');
       setIsEditMode(true);
