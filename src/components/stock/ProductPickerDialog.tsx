@@ -125,6 +125,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const [singleGiftUnit, setSingleGiftUnit] = useState('piece');
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Offer activation per product (persists in this dialog session)
+  const [offerActivated, setOfferActivated] = useState<Record<string, boolean>>({});
+
   // Multi-select state
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<PickerMode>('browse');
