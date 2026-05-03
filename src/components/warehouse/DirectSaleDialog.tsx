@@ -880,11 +880,37 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         </DialogHeader>
       )}
 
+      <div className="px-4 pt-3 pb-2 border-b bg-background shrink-0">
+        <div className="grid grid-cols-3 gap-1">
+          {[
+            { n: 1 as const, label: 'العميل' },
+            { n: 2 as const, label: 'المنتجات' },
+            { n: 3 as const, label: 'الملخص' },
+          ].map((s) => {
+            const reached = s.n <= currentStep;
+            return (
+              <button
+                key={s.n}
+                type="button"
+                onClick={() => setCurrentStep(s.n)}
+                className={cn(
+                  "h-7 rounded-md text-[10px] font-semibold transition-colors px-1 truncate",
+                  reached ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"
+                )}
+              >
+                {s.n}. {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
        <div
          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4"
-         style={embedded ? { WebkitOverflowScrolling: 'touch' } : { WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 8rem)' }}
+         style={embedded ? { WebkitOverflowScrolling: 'touch' } : { WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 12rem)' }}
        >
             <div className="py-4 space-y-5">
+              {currentStep === 1 && (<>
               {/* Customer Section */}
               <section className="space-y-3">
                 <Label className="text-base font-semibold">{t('orders.customer')}</Label>
