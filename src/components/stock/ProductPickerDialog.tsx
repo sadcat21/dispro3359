@@ -107,7 +107,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const resetPickerState = () => {
     setSingleProductId(null);
     setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-    setSingleGiftFields(createDefaultSingleFields());
     setMultiSelected(new Set());
     setMode('browse');
     setUniformQty(true);
@@ -210,7 +209,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       // Add mode: always start with empty fields
       setSingleProductId(p.id);
       setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-      setSingleGiftFields(createDefaultSingleFields());
       setSingleGiftQty(0);
       setSingleGiftUnit('piece');
       setIsEditMode(false);
@@ -261,7 +259,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     }
     setSingleProductId(null);
     setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-    setSingleGiftFields(createDefaultSingleFields());
     setMode('browse');
     setSingleGiftQty(0);
     setSingleGiftUnit('piece');
