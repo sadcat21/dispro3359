@@ -642,8 +642,23 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       setSavedDefaultDeliveryWorkerId(defaultWorkerId || null);
       handleClose(false);
 
-      // Always show assign worker dialog (with pre-selection if default exists)
-      setShowAssignWorkerDialog(true);
+      // If worker was selected inline in step 4, assign directly
+      if (selectedDeliveryWorker) {
+        try {
+          await supabase.from('orders').update({
+            assigned_to: selectedDeliveryWorker,
+            status: 'assigned'
+          }).eq('id', order.id);
+          toast.success('تم تعيين عامل التوصيل');
+        } catch (e) {
+          console.error('Error assigning worker:', e);
+          // Fallback to dialog
+          setShowAssignWorkerDialog(true);
+        }
+      } else {
+        // Show assign worker dialog if no worker selected
+        setShowAssignWorkerDialog(true);
+      }
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     }
