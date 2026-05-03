@@ -606,26 +606,26 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 overflow-hidden" dir={dir}>
-          <DialogHeader className="p-4 pb-2 border-b">
-            <DialogTitle className="flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
+        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden" dir={dir}>
+          <DialogHeader className="px-3 py-2 border-b">
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <ShoppingCart className="w-4 h-4" />
               {t('orders.create_new')}
             </DialogTitle>
             {/* Step indicator */}
-            <div className="flex items-center gap-1 pt-2">
+            <div className="flex items-center gap-1 pt-1">
               {[1, 2, 3, 4].map((step) => (
                 <div key={step} className="flex items-center flex-1">
                   <div
                     className={cn(
-                      "w-full h-1.5 rounded-full transition-colors",
+                      "w-full h-1 rounded-full transition-colors",
                       step <= currentStep ? 'bg-primary' : 'bg-muted'
                     )}
                   />
                 </div>
               ))}
             </div>
-            <div className="text-xs text-muted-foreground text-center pt-1">
+            <div className="text-[11px] text-muted-foreground text-center">
               {currentStep === 1 && `١/٤ — ${t('orders.customer')} و ${t('orders.purchase_method')}`}
               {currentStep === 2 && `٢/٤ — ${t('products.title')}`}
               {currentStep === 3 && `٣/٤ — ${t('orders.cart')}`}
@@ -633,9 +633,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             </div>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[calc(90vh-12rem)]">
-            <div className="px-4">
-            <div className="py-4 space-y-5">
+          <ScrollArea className="flex-1 max-h-[calc(95vh-8rem)]">
+            <div className="px-3">
+            <div className="py-2 space-y-3">
 
               {/* ═══════ STEP 1: Customer + Payment ═══════ */}
               {currentStep === 1 && (
