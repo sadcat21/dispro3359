@@ -272,23 +272,25 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
             )}
           </TabsContent>
 
-          <TabsContent value="warehouse" className="p-0 mt-3 flex-1 min-h-0 flex flex-col">
-            {isLoadingWarehouseStock ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <DirectSaleDialog
-                embedded
-                hideHeader
-                open={open}
-                onOpenChange={onOpenChange}
-                initialCustomerId={initialCustomerId}
-                stockItems={warehouseStockItems}
-                stockSource="warehouse"
-              />
-            )}
-          </TabsContent>
+          {showWarehouseTab && (
+            <TabsContent value="warehouse" className="p-0 mt-3 flex-1 min-h-0 flex flex-col">
+              {isLoadingWarehouseStock ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                <DirectSaleDialog
+                  embedded
+                  hideHeader
+                  open={open}
+                  onOpenChange={onOpenChange}
+                  initialCustomerId={initialCustomerId}
+                  stockItems={warehouseStockItems}
+                  stockSource="warehouse"
+                />
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>
