@@ -332,60 +332,70 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               })}
             </div>
           ) : (
-            // Customers grid (داخل قسم أو نتائج بحث)
-            <div className="grid grid-cols-2 gap-2 p-3">
-              {visibleCustomers.map((customer) => {
-                const isSelected = selectedCustomerId === customer.id;
-                const debtInfo = customerDebtsMap?.[customer.id];
-                const sectorName = getSectorName(customer.sector_id);
-                const storeName = (language !== 'ar' && (customer as any).store_name_fr)
-                  ? (customer as any).store_name_fr
-                  : customer.store_name;
-                const displayName = (language !== 'ar' && (customer as any).name_fr)
-                  ? (customer as any).name_fr
-                  : customer.name;
-                return (
-                  <button
-                    key={customer.id}
-                    className={cn(
-                      "relative flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[100px]",
-                      isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:border-primary/40"
-                    )}
-                    onClick={() => {
-                      onSelect(customer);
-                      onOpenChange(false);
-                    }}
-                  >
-                    <p className="text-sm font-bold text-foreground line-clamp-2 w-full text-right">
-                      {storeName || displayName}
-                    </p>
-                    {storeName && displayName && (
-                      <p className="text-[10px] text-muted-foreground line-clamp-1 w-full text-right">
-                        {displayName}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-1 mt-auto w-full justify-end">
-                      {sectorName && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
-                          {sectorName}
-                        </Badge>
-                      )}
-                      {customer.wilaya && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-0.5">
-                          <MapPin className="w-2.5 h-2.5" />
-                          {customer.wilaya}
-                        </Badge>
-                      )}
+            // Customers — مقسمة حسب المنطقة (wilaya) داخل القسم، بدون شارات
+            (() => {
+              const groupsByRegion = new Map<string, Customer[]>();
+              visibleCustomers.forEach((c) => {
+                const key = c.wilaya || 'بدون منطقة';
+                if (!groupsByRegion.has(key)) groupsByRegion.set(key, []);
+                groupsByRegion.get(key)!.push(c);
+              });
+              const regionEntries = Array.from(groupsByRegion.entries()).sort((a, b) =>
+                a[0].localeCompare(b[0], 'ar')
+              );
+              return (
+                <div className="p-3 space-y-3">
+                  {regionEntries.map(([region, list]) => (
+                    <div key={region}>
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <MapPin className="w-3.5 h-3.5 text-primary" />
+                        <h3 className="text-xs font-bold text-primary">{region}</h3>
+                        <span className="text-[10px] text-muted-foreground">({list.length})</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {list.map((customer) => {
+                          const isSelected = selectedCustomerId === customer.id;
+                          const debtInfo = customerDebtsMap?.[customer.id];
+                          const storeName = (language !== 'ar' && (customer as any).store_name_fr)
+                            ? (customer as any).store_name_fr
+                            : customer.store_name;
+                          const displayName = (language !== 'ar' && (customer as any).name_fr)
+                            ? (customer as any).name_fr
+                            : customer.name;
+                          return (
+                            <button
+                              key={customer.id}
+                              className={cn(
+                                "relative flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[72px]",
+                                isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:border-primary/40"
+                              )}
+                              onClick={() => {
+                                onSelect(customer);
+                                onOpenChange(false);
+                              }}
+                            >
+                              <p className="text-sm font-bold text-foreground line-clamp-2 w-full text-right">
+                                {storeName || displayName}
+                              </p>
+                              {storeName && displayName && (
+                                <p className="text-[10px] text-muted-foreground line-clamp-1 w-full text-right">
+                                  {displayName}
+                                </p>
+                              )}
+                              {debtInfo && debtInfo.total > 0 && (
+                                <span className="absolute top-1 left-1 inline-flex items-center justify-center px-1.5 h-4 rounded-full bg-destructive text-white text-[9px] font-bold">
+                                  {debtInfo.total.toLocaleString()} DA
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    {debtInfo && debtInfo.total > 0 && (
-                      <span className="absolute top-1 left-1 inline-flex items-center justify-center px-1.5 h-4 rounded-full bg-destructive text-white text-[9px] font-bold">
-                        {debtInfo.total.toLocaleString()} DA
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                  ))}
+                </div>
+              );
+            })()
           )}
         </ScrollArea>
 
