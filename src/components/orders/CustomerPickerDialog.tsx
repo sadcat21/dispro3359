@@ -418,11 +418,9 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                     const rStyle = sectorStyle(region, rIdx);
                     return (
                       <div key={region}>
-                        {/* فاصل احترافي + شارة المنطقة في الوسط */}
-                        <div className="relative flex items-center justify-center my-2">
-                          <div className={cn("absolute inset-x-0 top-1/2 h-px", rStyle.border, "border-t-2 border-dashed")} />
+                        <div className="flex items-center justify-center my-2">
                           <span className={cn(
-                            "relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 text-xs font-bold shadow-sm",
+                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 text-xs font-bold shadow-sm",
                             rStyle.bg, rStyle.border, rStyle.text
                           )}>
                             <MapPin className="w-3.5 h-3.5" />
