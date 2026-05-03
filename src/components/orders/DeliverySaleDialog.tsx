@@ -1084,6 +1084,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       <ScrollArea className={embedded ? "flex-1 min-h-0" : "max-h-[calc(90vh-8rem)]"}>
         <div className="px-4">
         <div className="py-4 space-y-5">
+              {currentStep === 1 && (<>
               {/* Customer Info */}
               <div className="p-3 bg-muted/50 rounded-lg">
                 <CustomerSummary
