@@ -317,14 +317,14 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                     key={group.key}
                     onClick={() => setActiveSectorKey(group.key)}
                     className={cn(
-                      "relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[88px]",
+                      "flex flex-row items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[56px]",
                       style.bg, style.border
                     )}
                   >
-                    <p className={cn("text-sm font-bold text-center line-clamp-2", style.text)}>
+                    <p className={cn("text-sm font-bold text-center line-clamp-1", style.text)}>
                       {group.sectorName}
                     </p>
-                    <span className="inline-flex items-center justify-center min-w-[32px] h-6 px-2 rounded-full bg-destructive text-white text-xs font-bold">
+                    <span className="inline-flex items-center justify-center min-w-[28px] h-5 px-2 rounded-full bg-destructive text-white text-xs font-bold shrink-0">
                       {group.customers.length}
                     </span>
                   </button>
