@@ -933,7 +933,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           {orderTotals.totalItems} {t('common.piece')}
                         </Badge>
                       </div>
-                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2">
+                       <div className="space-y-1.5 bg-muted/50 rounded-lg p-2 text-left" dir="ltr">
                         {orderItems.map((item, idx) => (
                           <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
@@ -956,7 +956,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               </span>
                               {item.unitPrice > 0 && (
                                 <span className="text-xs text-muted-foreground">
-                                  {item.unitPrice.toLocaleString()} دج × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} دج
+                                   {item.unitPrice.toLocaleString()} {t('common.currency')} × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} {t('common.currency')}
                                 </span>
                               )}
                             </div>
@@ -1224,7 +1224,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
-                      {orderTotals.totalAmount.toLocaleString()} دج
+                       {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
                     </Badge>
                   ) : orderItems.length > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
