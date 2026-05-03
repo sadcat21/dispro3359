@@ -658,27 +658,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       <Gift className="w-3.5 h-3.5" />
                       الهدية
                     </Label>
-                    {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        className={`h-6 px-2 text-[10px] text-white ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
-                        onClick={() => {
-                          if (isOfferActivated) {
-                            setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
-                            setSingleGiftFields(createDefaultSingleFields());
-                          } else {
-                            setOfferActivated(prev => ({ ...prev, [singleProductId]: true }));
-                            setSingleGiftFields({
-                              boxes: suggestedSplit.boxes > 0 ? String(suggestedSplit.boxes) : '',
-                              pieces: suggestedSplit.pieces > 0 ? String(suggestedSplit.pieces) : '',
-                            });
-                          }
-                        }}
-                      >
-                        {isOfferActivated ? 'إلغاء التفعيل' : 'تفعيل العرض'}
-                      </Button>
-                    )}
                   </div>
                   {singleOffer && (
                     <div className="rounded-md bg-green-500/10 px-2 py-1 text-[11px] font-semibold text-green-800 text-center">
@@ -690,15 +669,36 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       )}
                     </div>
                   )}
+                  {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
+                    <Button
+                      type="button"
+                      className={`w-full h-11 text-sm font-bold text-white shadow-md ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700 animate-pulse'}`}
+                      onClick={() => {
+                        if (isOfferActivated) {
+                          setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
+                          setSingleGiftFields(createDefaultSingleFields());
+                        } else {
+                          setOfferActivated(prev => ({ ...prev, [singleProductId]: true }));
+                          setSingleGiftFields({
+                            boxes: suggestedSplit.boxes > 0 ? String(suggestedSplit.boxes) : '0',
+                            pieces: suggestedSplit.pieces > 0 ? String(suggestedSplit.pieces) : '0',
+                          });
+                        }
+                      }}
+                    >
+                      <Gift className="w-4 h-4 me-1.5" />
+                      {isOfferActivated ? 'إلغاء التفعيل' : `تطبيق العرض (+${suggestedSplit.boxes > 0 ? `${suggestedSplit.boxes} صندوق` : ''}${suggestedSplit.boxes > 0 && suggestedSplit.pieces > 0 ? ' و ' : ''}${suggestedSplit.pieces > 0 ? `${suggestedSplit.pieces} قطعة` : ''})`}
+                    </Button>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label className="text-[10px] text-muted-foreground">الصندوق</Label>
                       <Input
                         type="text" inputMode="numeric"
                         value={singleGiftFields.boxes}
-                        onChange={e => setSingleGiftFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
-                        onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
-                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        readOnly
+                        tabIndex={-1}
+                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] bg-muted/50 cursor-not-allowed"
                         placeholder="0"
                       />
                     </div>
@@ -707,9 +707,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       <Input
                         type="text" inputMode="numeric"
                         value={singleGiftFields.pieces}
-                        onChange={e => setSingleGiftFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
-                        onBlur={() => setSingleGiftFields(prev => normalizeFields(prev, singlePPB))}
-                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        readOnly
+                        tabIndex={-1}
+                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] bg-muted/50 cursor-not-allowed"
                         placeholder="0"
                       />
                     </div>
