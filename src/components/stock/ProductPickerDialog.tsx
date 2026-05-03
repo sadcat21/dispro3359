@@ -751,6 +751,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <Check className="w-4 h-4 me-1.5" />
                   {totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد')}
                 </Button>
+                  );
+                })()}
               </div>
             </>
           )}
