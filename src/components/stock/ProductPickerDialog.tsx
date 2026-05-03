@@ -610,13 +610,19 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   </div>
                 </div>
 
+                {(() => {
+                  const hasQty = parsed.totalBoxes > 0 || parsed.pieces > 0 || parsed.boxes > 0;
+                  const offerAvailable = !!singleOffer && suggestedGift.totalPieces > 0;
+                  const promoMissing = hasQty && offerAvailable && !isOfferActivated;
+                  return (
+                <>
                 {/* Regular qty */}
-                <div className="space-y-1.5 border rounded-lg p-2 bg-muted/40">
+                <div className={`space-y-1.5 border rounded-lg p-2 ${promoMissing ? 'bg-destructive/5 border-destructive/40' : 'bg-muted/40'}`}>
                   <div className="flex items-center justify-between">
-                    <Label className="text-[11px] font-semibold">الكمية (صندوق.قطع)</Label>
+                    <Label className={`text-[11px] font-semibold ${promoMissing ? 'text-destructive' : ''}`}>الكمية (صندوق.قطع)</Label>
                     <div className="flex items-center gap-2">
                       {(parsed.boxes > 0 || parsed.pieces > 0) && (
-                        <span className="text-[10px] text-muted-foreground">سيُحفظ: <strong className="text-foreground">{displayBP}</strong></span>
+                        <span className="text-[10px] text-muted-foreground">سيُحفظ: <strong className={promoMissing ? 'text-destructive' : 'text-foreground'}>{displayBP}</strong></span>
                       )}
                     </div>
                   </div>
@@ -628,7 +634,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                         value={singleQtyFields.boxes}
                         onChange={e => setSingleQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
                         onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
-                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        className={`h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] ${promoMissing ? 'border-destructive text-destructive' : ''}`}
                         placeholder="0"
                       />
                     </div>
@@ -639,12 +645,15 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                         value={singleQtyFields.pieces}
                         onChange={e => setSingleQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
                         onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
-                        className="h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums]"
+                        className={`h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] ${promoMissing ? 'border-destructive text-destructive' : ''}`}
                         placeholder="0"
                       />
                     </div>
                   </div>
                 </div>
+                </>
+                  );
+                })()}
 
                 {/* Gift qty */}
                 <div className="space-y-1.5 border-2 rounded-lg p-2 bg-green-500/5 border-green-500/40">
