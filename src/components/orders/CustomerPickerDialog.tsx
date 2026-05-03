@@ -36,6 +36,8 @@ interface SectorGroup {
   customers: Customer[];
 }
 
+const normalizeSectorGroupName = (name: string) => name.replace(/\s+/g, ' ').trim();
+
 const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   open,
   onOpenChange,
@@ -190,8 +192,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     effectiveSectors.forEach(s => map.set(s.id, getLocalizedName(s, language)));
     return map;
   }, [effectiveSectors, language]);
-
-  const normalizeSectorGroupName = (name: string) => name.replace(/\s+/g, ' ').trim();
 
   // Group customers by sector
   const groupedCustomers = useMemo((): SectorGroup[] => {
