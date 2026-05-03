@@ -618,22 +618,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       {(parsed.boxes > 0 || parsed.pieces > 0) && (
                         <span className="text-[10px] text-muted-foreground">سيُحفظ: <strong className="text-foreground">{displayBP}</strong></span>
                       )}
-                      {isEditMode && onRemoveProduct && singleProductId && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => {
-                            onRemoveProduct(singleProductId);
-                            setSingleProductId(null);
-                            setSingleQtyFields(createDefaultSingleFields()); setSingleGiftFields(createDefaultSingleFields());
-                            setMode('browse');
-                            setIsEditMode(false);
-                          }}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
