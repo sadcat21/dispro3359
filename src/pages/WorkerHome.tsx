@@ -435,11 +435,11 @@ const WorkerHome: React.FC = () => {
         </>
       ) : (hasOrdersAccess || hasDeliveryAccess || hasDebtAccess || isWarehouseManager) ? (
         (() => {
-          // Build visible actions dynamically
-          const quickActions: { key: string; icon: React.ReactNode; label: string; onClick: () => void }[] = [];
+          type Action = { key: string; icon: React.ReactNode; label: string; onClick: () => void; group: 'sales' | 'delivery' | 'stock' | 'customers' | 'other' };
+          const quickActions: Action[] = [];
 
           if (hasDeliveryAccess && !isDeliveriesPageHidden && !isDeliveriesHidden) {
-            quickActions.push({ key: 'deliveries', icon: <Truck className="w-6 h-6" />, label: t('deliveries.title'), onClick: () => navigate('/my-deliveries') });
+            quickActions.push({ key: 'deliveries', icon: <Truck className="w-6 h-6" />, label: t('deliveries.title'), onClick: () => navigate('/my-deliveries'), group: 'delivery' });
           }
           if ((hasDeliveryAccess || isWarehouseManager) && !isDirectSaleHidden) {
             quickActions.push({
@@ -450,95 +450,109 @@ const WorkerHome: React.FC = () => {
                 setSalesHubTab('direct');
                 setShowActionDialog(true);
               },
+              group: 'sales',
             });
           }
-          // Stock management hub for warehouse manager
           if (isWarehouseManager) {
-            quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true) });
-            quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true) });
-            quickActions.push({ key: 'final-review', icon: <ClipboardCheck className="w-6 h-6" />, label: 'المراجعة النهائية', onClick: () => setShowFinalReviewPicker(true) });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking') });
+            quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true), group: 'stock' });
+            quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true), group: 'stock' });
+            quickActions.push({ key: 'final-review', icon: <ClipboardCheck className="w-6 h-6" />, label: 'المراجعة النهائية', onClick: () => setShowFinalReviewPicker(true), group: 'stock' });
+            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking'), group: 'other' });
           }
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
-            quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock') });
+            quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock'), group: 'stock' });
           }
           if (hasOrdersAccess && !isWarehouseManager && !isOrdersPageHidden && !isCreateOrderHidden) {
-            quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true) });
-            quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking') });
+            quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true), group: 'sales' });
+            quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders'), group: 'sales' });
+            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking'), group: 'other' });
           }
           if (hasOrdersAccess && !hasDeliveryAccess && !isWarehouseManager && !isMyPromosPageHidden) {
-            quickActions.push({ key: 'promos', icon: <Gift className="w-6 h-6" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos') });
+            quickActions.push({ key: 'promos', icon: <Gift className="w-6 h-6" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos'), group: 'sales' });
           }
           if (hasDebtAccess && !isCollectDebtHidden && !isDebtsPageHidden) {
-            quickActions.push({ key: 'debts', icon: <Banknote className="w-6 h-6" />, label: t('debts.title'), onClick: () => navigate('/customer-debts') });
+            quickActions.push({ key: 'debts', icon: <Banknote className="w-6 h-6" />, label: t('debts.title'), onClick: () => navigate('/customer-debts'), group: 'customers' });
           }
           if (hasCustomerAccess && !isCustomersPageHidden && !isAddCustomerHidden) {
-            quickActions.push({ key: 'customers', icon: <Users className="w-6 h-6" />, label: t('nav.customers'), onClick: () => navigate('/customers') });
+            quickActions.push({ key: 'customers', icon: <Users className="w-6 h-6" />, label: t('nav.customers'), onClick: () => navigate('/customers'), group: 'customers' });
           }
           if (hasExpenseAccess && !isExpensesPageHidden && !isExpensesHidden) {
-            quickActions.push({ key: 'expenses', icon: <Wallet className="w-6 h-6" />, label: t('expenses.my_expenses'), onClick: () => navigate('/expenses') });
+            quickActions.push({ key: 'expenses', icon: <Wallet className="w-6 h-6" />, label: t('expenses.my_expenses'), onClick: () => navigate('/expenses'), group: 'other' });
           }
-          // Today's customers
           if (!isTodayCustomersHidden) {
-            quickActions.push({ key: 'today-customers', icon: <MapPin className="w-6 h-6" />, label: todayCustomersLabel, onClick: () => setShowTodayCustomers(true) });
+            quickActions.push({ key: 'today-customers', icon: <MapPin className="w-6 h-6" />, label: todayCustomersLabel, onClick: () => setShowTodayCustomers(true), group: 'customers' });
           }
-          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements') });
-          // Rewards button removed from worker home page
-          // Worker Actions for supervisor, admin assistant, or warehouse_manager
+          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements'), group: 'other' });
           if ((isSupervisor || isAdminAssistant) && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
-            quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-6 h-6" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions') });
+            quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-6 h-6" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions'), group: 'other' });
           }
-          // Promo Tracking for supervisor and admin assistant
           if (isSupervisor || isAdminAssistant) {
-            quickActions.push({ key: 'promo-tracking', icon: <Gift className="w-6 h-6" />, label: t('admin.promo_tracking'), onClick: () => navigate('/promo-tracking') });
+            quickActions.push({ key: 'promo-tracking', icon: <Gift className="w-6 h-6" />, label: t('admin.promo_tracking'), onClick: () => navigate('/promo-tracking'), group: 'other' });
           }
-          // Worker Actions for regular workers (self-view) — removed per user request
 
-          const itemColors: Record<string, { bg: string; icon: string; border: string }> = {
-            deliveries: { bg: 'bg-blue-50', icon: 'text-blue-600', border: 'border-blue-200' },
-            'direct-sale': { bg: 'bg-emerald-50', icon: 'text-emerald-600', border: 'border-emerald-200' },
-            'my-stock': { bg: 'bg-violet-50', icon: 'text-violet-600', border: 'border-violet-200' },
-            orders: { bg: 'bg-indigo-50', icon: 'text-indigo-600', border: 'border-indigo-200' },
-            'create-order': { bg: 'bg-blue-50', icon: 'text-blue-700', border: 'border-blue-200' },
-            'order-tracking': { bg: 'bg-slate-50', icon: 'text-slate-600', border: 'border-slate-200' },
-            promos: { bg: 'bg-amber-50', icon: 'text-amber-600', border: 'border-amber-200' },
-            debts: { bg: 'bg-rose-50', icon: 'text-rose-600', border: 'border-rose-200' },
-            customers: { bg: 'bg-cyan-50', icon: 'text-cyan-600', border: 'border-cyan-200' },
-            expenses: { bg: 'bg-yellow-50', icon: 'text-yellow-600', border: 'border-yellow-200' },
-            'today-customers': { bg: 'bg-sky-50', icon: 'text-sky-600', border: 'border-sky-200' },
-            'my-achievements': { bg: 'bg-violet-50', icon: 'text-violet-600', border: 'border-violet-200' },
-            rewards: { bg: 'bg-amber-50', icon: 'text-amber-600', border: 'border-amber-200' },
-            'worker-actions': { bg: 'bg-indigo-50', icon: 'text-indigo-600', border: 'border-indigo-200' },
-            'stock-management': { bg: 'bg-teal-50', icon: 'text-teal-600', border: 'border-teal-200' },
-            'load-worker': { bg: 'bg-orange-50', icon: 'text-orange-600', border: 'border-orange-200' },
-            'warehouse-stock': { bg: 'bg-emerald-50', icon: 'text-emerald-600', border: 'border-emerald-200' },
-            'factory-receipt': { bg: 'bg-lime-50', icon: 'text-lime-600', border: 'border-lime-200' },
-            'daily-receipts': { bg: 'bg-teal-50', icon: 'text-teal-600', border: 'border-teal-200' },
-            'available-offers': { bg: 'bg-rose-50', icon: 'text-rose-600', border: 'border-rose-200' },
+          const itemColors: Record<string, { icon: string; ring: string; bg: string }> = {
+            deliveries: { icon: 'text-blue-600', ring: 'ring-blue-200', bg: 'bg-blue-50' },
+            'direct-sale': { icon: 'text-emerald-600', ring: 'ring-emerald-200', bg: 'bg-emerald-50' },
+            'my-stock': { icon: 'text-violet-600', ring: 'ring-violet-200', bg: 'bg-violet-50' },
+            orders: { icon: 'text-indigo-600', ring: 'ring-indigo-200', bg: 'bg-indigo-50' },
+            'create-order': { icon: 'text-blue-700', ring: 'ring-blue-200', bg: 'bg-blue-50' },
+            'order-tracking': { icon: 'text-slate-600', ring: 'ring-slate-200', bg: 'bg-slate-50' },
+            promos: { icon: 'text-amber-600', ring: 'ring-amber-200', bg: 'bg-amber-50' },
+            debts: { icon: 'text-rose-600', ring: 'ring-rose-200', bg: 'bg-rose-50' },
+            customers: { icon: 'text-cyan-600', ring: 'ring-cyan-200', bg: 'bg-cyan-50' },
+            expenses: { icon: 'text-yellow-600', ring: 'ring-yellow-200', bg: 'bg-yellow-50' },
+            'today-customers': { icon: 'text-sky-600', ring: 'ring-sky-200', bg: 'bg-sky-50' },
+            'my-achievements': { icon: 'text-violet-600', ring: 'ring-violet-200', bg: 'bg-violet-50' },
+            'worker-actions': { icon: 'text-indigo-600', ring: 'ring-indigo-200', bg: 'bg-indigo-50' },
+            'stock-management': { icon: 'text-teal-600', ring: 'ring-teal-200', bg: 'bg-teal-50' },
+            'load-worker': { icon: 'text-orange-600', ring: 'ring-orange-200', bg: 'bg-orange-50' },
+            'final-review': { icon: 'text-blue-600', ring: 'ring-blue-200', bg: 'bg-blue-50' },
+            'promo-tracking': { icon: 'text-amber-600', ring: 'ring-amber-200', bg: 'bg-amber-50' },
           };
-          const defaultColor = { bg: 'bg-muted/30', icon: 'text-primary', border: 'border-border' };
+          const defaultColor = { icon: 'text-primary', ring: 'ring-border', bg: 'bg-muted/30' };
+
+          const groupLabels: Record<Action['group'], string> = {
+            sales: '🛒 المبيعات',
+            delivery: '🚚 التوصيل',
+            stock: '📦 المخزن',
+            customers: '👥 العملاء',
+            other: '⚙️ أخرى',
+          };
+          const groupOrder: Action['group'][] = ['sales', 'delivery', 'stock', 'customers', 'other'];
+          const grouped = groupOrder
+            .map(g => ({ group: g, items: quickActions.filter(a => a.group === g) }))
+            .filter(s => s.items.length > 0);
+
+          const renderTile = (action: Action) => {
+            const ic = itemColors[action.key] || defaultColor;
+            return (
+              <button
+                key={action.key}
+                onClick={action.onClick}
+                className="group flex flex-col items-center justify-center p-3 gap-2 rounded-2xl bg-card border border-border/60 cursor-pointer active:scale-95 transition-all hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <div className={`w-11 h-11 rounded-xl ${ic.bg} flex items-center justify-center ring-1 ${ic.ring}`}>
+                  {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon}` })}
+                </div>
+                <span className="text-[11px] font-semibold text-center leading-tight text-foreground line-clamp-2">{action.label}</span>
+              </button>
+            );
+          };
 
           return quickActions.length > 0 ? (
-            <div className="p-4 space-y-3">
-              <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
-                <h3 className="text-xs font-bold text-muted-foreground px-1">{t('common.quick_actions')}</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {quickActions.map((action) => {
-                    const ic = itemColors[action.key] || defaultColor;
-                    return (
-                      <button
-                        key={action.key}
-                        onClick={action.onClick}
-                        className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md`}
-                      >
-                        {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon}` })}
-                        <span className="text-[10px] font-medium text-center leading-tight text-foreground">{action.label}</span>
-                      </button>
-                    );
-                  })}
+            <div className="p-4 space-y-4">
+              {grouped.map(({ group, items }) => (
+                <div key={group} className="space-y-2">
+                  <div className="flex items-center gap-2 px-1">
+                    <h3 className="text-xs font-bold text-muted-foreground tracking-wide">{groupLabels[group]}</h3>
+                    <div className="flex-1 h-px bg-border/60" />
+                    <span className="text-[10px] text-muted-foreground/70">{items.length}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {items.map(renderTile)}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           ) : null;
         })()
