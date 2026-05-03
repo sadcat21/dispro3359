@@ -28,7 +28,7 @@ import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog, { PerItemPricing } from './ProductQuantityDialog';
 import AssignWorkerAfterSaveDialog from './AssignWorkerAfterSaveDialog';
-import DeliveryWorkerSelect from './DeliveryWorkerSelect';
+import InlineDeliveryWorkerPicker from './InlineDeliveryWorkerPicker';
 import AddCustomerDialog from '@/components/promo/AddCustomerDialog';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import EditCustomerDialog from './EditCustomerDialog';
@@ -1172,8 +1172,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   </section>
 
                   <section className="space-y-1.5">
-                    <DeliveryWorkerSelect
+                    <InlineDeliveryWorkerPicker
                       customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
+                      customerSectorId={(selectedCustomer as any)?.sector_id || null}
+                      defaultWorkerId={selectedCustomer?.default_delivery_worker_id || null}
                       value={selectedDeliveryWorker}
                       onChange={setSelectedDeliveryWorker}
                     />
