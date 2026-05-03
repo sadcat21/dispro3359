@@ -343,21 +343,30 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       const piecePrice = customSalePrice ?? basePiecePrice;
       const totalPrice = piecePrice * quantity;
 
+      const newUnitItem = {
+        productId,
+        quantity,
+        unitPrice: piecePrice,
+        totalPrice,
+        customUnitPrice: customUnitPrice,
+        isUnitSale: true,
+        itemPaymentType: perItemPricing?.paymentType || paymentType,
+        itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
+        itemPriceSubType: perItemPricing?.priceSubType || priceSubType,
+        pricingUnit: product.pricing_unit || 'box',
+        weightPerBox: product.weight_per_box,
+        piecesPerBox: product.pieces_per_box,
+      };
       setOrderItems(prev => {
-        return [...prev, {
-          productId,
-          quantity,
-          unitPrice: piecePrice,
-          totalPrice,
-          customUnitPrice: customUnitPrice,
-          isUnitSale: true,
-          itemPaymentType: perItemPricing?.paymentType || paymentType,
-          itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
-          itemPriceSubType: perItemPricing?.priceSubType || priceSubType,
-          pricingUnit: product.pricing_unit || 'box',
-          weightPerBox: product.weight_per_box,
-          piecesPerBox: product.pieces_per_box,
-        }];
+        if (editingProductMode) {
+          const idx = prev.findIndex(item => item.productId === productId && item.isUnitSale);
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = newUnitItem;
+            return updated;
+          }
+        }
+        return [...prev, newUnitItem];
       });
       setEditingProductMode(false);
       return;
