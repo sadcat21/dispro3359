@@ -606,26 +606,26 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 overflow-hidden" dir={dir}>
-          <DialogHeader className="p-4 pb-2 border-b">
-            <DialogTitle className="flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
+        <DialogContent className="max-w-lg max-h-[95vh] p-0 gap-0 overflow-hidden" dir={dir}>
+          <DialogHeader className="px-3 py-2 border-b">
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <ShoppingCart className="w-4 h-4" />
               {t('orders.create_new')}
             </DialogTitle>
             {/* Step indicator */}
-            <div className="flex items-center gap-1 pt-2">
+            <div className="flex items-center gap-1 pt-1">
               {[1, 2, 3, 4].map((step) => (
                 <div key={step} className="flex items-center flex-1">
                   <div
                     className={cn(
-                      "w-full h-1.5 rounded-full transition-colors",
+                      "w-full h-1 rounded-full transition-colors",
                       step <= currentStep ? 'bg-primary' : 'bg-muted'
                     )}
                   />
                 </div>
               ))}
             </div>
-            <div className="text-xs text-muted-foreground text-center pt-1">
+            <div className="text-[11px] text-muted-foreground text-center">
               {currentStep === 1 && `١/٤ — ${t('orders.customer')} و ${t('orders.purchase_method')}`}
               {currentStep === 2 && `٢/٤ — ${t('products.title')}`}
               {currentStep === 3 && `٣/٤ — ${t('orders.cart')}`}
@@ -633,22 +633,20 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             </div>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[calc(90vh-12rem)]">
-            <div className="px-4">
-            <div className="py-4 space-y-5">
+          <ScrollArea className="flex-1 max-h-[calc(95vh-8rem)]">
+            <div className="px-3">
+            <div className="py-2 space-y-3">
 
               {/* ═══════ STEP 1: Customer + Payment ═══════ */}
               {currentStep === 1 && (
                 <>
                   {/* Customer Section */}
-                  <section className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-base font-semibold">{t('orders.customer')}</Label>
-                    </div>
+                  <section className="space-y-2">
+                    <Label className="text-sm font-semibold">{t('orders.customer')}</Label>
 
                     <Button
                       variant="outline"
-                      className="w-full justify-between h-11"
+                      className="w-full justify-between h-10"
                       disabled={isLoadingData}
                       onClick={() => setCustomerDropdownOpen(true)}
                     >
@@ -699,7 +697,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                     />
 
                     {selectedCustomer && (
-                      <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+                      <div className="p-2 bg-muted/50 rounded-lg space-y-2">
                         <CustomerSummary
                           customer={{
                             name: selectedCustomer.name,
@@ -750,33 +748,33 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   </section>
 
                   {/* Payment Type */}
-                  <section className="space-y-3">
-                    <Label className="text-base font-semibold">{t('orders.purchase_method')}</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                  <section className="space-y-2">
+                    <Label className="text-sm font-semibold">{t('orders.purchase_method')}</Label>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         type="button"
                         variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                        className={`h-16 flex flex-col gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                        className={`h-11 flex flex-row items-center gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
                         onClick={() => setPaymentType('with_invoice')}
                       >
-                        <Receipt className="w-5 h-5" />
+                        <Receipt className="w-4 h-4" />
                         <span className="text-sm">{t('orders.with_invoice')}</span>
                       </Button>
                       <Button
                         type="button"
                         variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                        className={`h-16 flex flex-col gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
+                        className={`h-11 flex flex-row items-center gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
                         onClick={() => setPaymentType('without_invoice')}
                       >
-                        <ReceiptText className="w-5 h-5" />
+                        <ReceiptText className="w-4 h-4" />
                         <span className="text-sm">{t('orders.without_invoice')}</span>
                       </Button>
                     </div>
 
                     {paymentType === 'without_invoice' && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">{t('orders.price_type')}</Label>
-                        <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium">{t('orders.price_type')}</Label>
+                        <div className="grid grid-cols-3 gap-1.5">
                           {([
                             { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: { active: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 ring-2 ring-indigo-400', inactive: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' } },
                             { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: { active: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400', inactive: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' } },
@@ -787,7 +785,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               type="button"
                               variant={priceSubType === option.value ? 'default' : 'outline'}
                               size="sm"
-                              className={`h-12 text-sm font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
+                              className={`h-9 text-xs font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
                               onClick={() => setPriceSubType(option.value)}
                             >
                               {option.label}
@@ -818,9 +816,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
               {/* ═══════ STEP 2: Products ═══════ */}
               {currentStep === 2 && (
-                <section className="space-y-3">
-                  <Label className="text-base font-semibold">{t('products.title')}</Label>
-                  <div className="grid grid-cols-2 gap-3 p-1">
+                <section className="space-y-2">
+                  <Label className="text-sm font-semibold">{t('products.title')}</Label>
+                  <div className="grid grid-cols-2 gap-2">
                     {products.map((product) => {
                       const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
                       const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
@@ -933,15 +931,15 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {currentStep === 3 && (
                 <>
                   {orderItems.length > 0 ? (
-                    <section className="space-y-3">
+                    <section className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label className="text-base font-semibold">{t('orders.cart')}</Label>
-                        <Badge variant="secondary" className="text-xs">
+                        <Label className="text-sm font-semibold">{t('orders.cart')}</Label>
+                        <Badge variant="secondary" className="text-[11px]">
                           <Package className="w-3 h-3 ms-1" />
                           {orderTotals.totalItems} {t('common.piece')}
                         </Badge>
                       </div>
-                      <div className="space-y-2 bg-muted/50 rounded-lg p-3">
+                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2">
                         {orderItems.map((item, idx) => (
                           <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
@@ -1055,11 +1053,11 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   )}
 
                   {/* Prepaid Amount */}
-                  <section className="space-y-2">
+                  <section className="space-y-1.5">
                     <Button
                       type="button"
                       variant={Number(prepaidAmount) > 0 ? 'default' : 'outline'}
-                      className={`w-full h-12 text-sm font-bold gap-2 ${
+                      className={`w-full h-10 text-sm font-bold gap-2 ${
                         Number(prepaidAmount) > 0
                           ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400/50'
                           : 'border-dashed border-2'
@@ -1072,18 +1070,18 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         }
                       }}
                     >
-                      <Banknote className="w-5 h-5" />
+                      <Banknote className="w-4 h-4" />
                       {Number(prepaidAmount) > 0 ? `💰 دفع مسبق: ${Number(prepaidAmount).toLocaleString()} ${t('common.currency')}` : '💰 إضافة دفع مسبق (عربون)'}
                     </Button>
                     {Number(prepaidAmount) > 0 && (
-                      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2">
-                        <Label className="text-emerald-700 dark:text-emerald-400 font-semibold text-sm">مبلغ الدفع المسبق</Label>
+                      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2 space-y-1">
+                        <Label className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs">مبلغ الدفع المسبق</Label>
                         <Input
                           type="number"
                           value={prepaidAmount}
                           onChange={(e) => setPrepaidAmount(e.target.value)}
                           placeholder="0"
-                          className="h-11 text-lg font-bold text-center"
+                          className="h-9 text-base font-bold text-center"
                         />
                       </div>
                     )}
@@ -1094,10 +1092,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {/* ═══════ STEP 4: Delivery Date + Notes ═══════ */}
               {currentStep === 4 && (
                 <>
-                  <section className="space-y-3">
-                    <Label>{t('orders.delivery_date')} ({t('common.optional')})</Label>
+                  <section className="space-y-2">
+                    <Label className="text-sm">{t('orders.delivery_date')} ({t('common.optional')})</Label>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <Button
                         type="button"
                         size="sm"
@@ -1106,7 +1104,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           const today = format(new Date(), 'yyyy-MM-dd');
                           setDeliveryDate(deliveryDate === today ? '' : today);
                         }}
-                        className="flex-1"
+                        className="flex-1 h-9"
                       >
                         اليوم
                       </Button>
@@ -1118,13 +1116,13 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
                           setDeliveryDate(deliveryDate === tomorrow ? '' : tomorrow);
                         }}
-                        className="flex-1"
+                        className="flex-1 h-9"
                       >
                         غداً
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5">
                       {Array.from({ length: 7 }, (_, i) => {
                         const d = addDays(new Date(), i);
                         const dateStr = format(d, 'yyyy-MM-dd');
@@ -1137,42 +1135,45 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                             size="sm"
                             variant={isSelected ? 'default' : 'outline'}
                             onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
-                            className="flex flex-col items-center h-auto py-1.5 text-xs"
+                            className="flex flex-col items-center h-auto py-1 text-[11px]"
                           >
                             <span className="font-bold">{dayName}</span>
-                            <span className="text-[10px] opacity-80">{format(d, 'dd/MM')}</span>
+                            <span className="text-[9px] opacity-80">{format(d, 'dd/MM')}</span>
                           </Button>
                         );
                       })}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs">التاريخ</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px]">التاريخ</Label>
                         <Input
                           type="date"
                           value={deliveryDate}
                           onChange={(e) => setDeliveryDate(e.target.value)}
+                          className="h-9"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">الوقت</Label>
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px]">الوقت</Label>
                         <Input
                           type="time"
                           value={deliveryTime}
                           onChange={(e) => setDeliveryTime(e.target.value)}
+                          className="h-9"
                         />
                       </div>
                     </div>
                   </section>
 
-                  <section className="space-y-2">
-                    <Label>{t('common.notes')} ({t('common.optional')})</Label>
+                  <section className="space-y-1.5">
+                    <Label className="text-sm">{t('common.notes')} ({t('common.optional')})</Label>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder={t('orders.add_notes')}
                       rows={2}
+                      className="min-h-[60px]"
                     />
                   </section>
                 </>
@@ -1183,13 +1184,13 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
           </ScrollArea>
 
           {/* Footer with navigation */}
-          <div className="p-4 border-t bg-background space-y-2">
+          <div className="px-3 py-2 border-t bg-background">
             <div className="flex gap-2">
               {currentStep > 1 && (
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 h-12"
+                  className="flex-1 h-10"
                   onClick={() => setCurrentStep(prev => prev - 1)}
                 >
                   السابق
@@ -1197,7 +1198,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               )}
               {currentStep < 4 ? (
                 <Button
-                  className="flex-1 h-12 text-base"
+                  className="flex-1 h-10 text-sm"
                   disabled={
                     (currentStep === 1 && !selectedCustomerId) ||
                     (currentStep === 2 && orderItems.length === 0)
@@ -1207,7 +1208,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   {currentStep === 2 && orderItems.length > 0 ? (
                     <>
                       {t('orders.create')} 🛒
-                      <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                      <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
                         {orderTotals.totalItems}
                       </Badge>
                     </>
@@ -1218,21 +1219,21 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               ) : (
                 <Button
                   onClick={handleCreateOrder}
-                  className="flex-1 h-12 text-base"
+                  className="flex-1 h-10 text-sm"
                   disabled={createOrder.isPending || !selectedCustomerId || orderItems.length === 0}
                 >
                   {createOrder.isPending ? (
-                    <Loader2 className="w-5 h-5 ms-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 ms-2 animate-spin" />
                   ) : (
-                    <ShoppingCart className="w-5 h-5 ms-2" />
+                    <ShoppingCart className="w-4 h-4 ms-2" />
                   )}
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
-                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
                       {orderTotals.totalAmount.toLocaleString()} دج
                     </Badge>
                   ) : orderItems.length > 0 ? (
-                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
                       {orderTotals.totalItems}
                     </Badge>
                   ) : null}
