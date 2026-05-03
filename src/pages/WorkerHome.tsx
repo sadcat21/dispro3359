@@ -19,6 +19,7 @@ import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Users, Wallet, ClipboardList, MapPin, Trophy, MessageCircle, HardHat, CalendarCheck, ArrowDownToLine, Warehouse, ClipboardCheck } from 'lucide-react';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
+import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link } from 'react-router-dom';
@@ -58,6 +59,8 @@ const WorkerHome: React.FC = () => {
   const [showStockManagement, setShowStockManagement] = useState(false);
   const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
+  const [showFinalReviewPicker, setShowFinalReviewPicker] = useState(false);
+  const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
 
   const { trackVisit } = useTrackVisit();
   const isDirectSaleHidden = useIsElementHidden('button', 'home_direct_sale');
@@ -435,6 +438,7 @@ const WorkerHome: React.FC = () => {
           if (isWarehouseManager) {
             quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true) });
             quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true) });
+            quickActions.push({ key: 'final-review', icon: <ClipboardCheck className="w-6 h-6" />, label: 'المراجعة النهائية', onClick: () => setShowFinalReviewPicker(true) });
             quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking') });
           }
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
@@ -666,6 +670,28 @@ const WorkerHome: React.FC = () => {
           navigate('/load-stock');
         }}
       />
+
+      {/* Final Review picker + dialog */}
+      <WorkerPickerDialog
+        open={showFinalReviewPicker}
+        onOpenChange={setShowFinalReviewPicker}
+        workers={loadWorkersList}
+        selectedWorkerId=""
+        onSelect={(wId) => {
+          const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
+          setFinalReviewWorker({ id: wId, name: w?.full_name || '' });
+          setShowFinalReviewPicker(false);
+        }}
+      />
+      {finalReviewWorker && (
+        <FinalReviewDialog
+          open={!!finalReviewWorker}
+          onOpenChange={(o) => { if (!o) setFinalReviewWorker(null); }}
+          workerId={finalReviewWorker.id}
+          workerName={finalReviewWorker.name}
+          branchId={activeBranch?.id || null}
+        />
+      )}
     </div>
   );
 };
