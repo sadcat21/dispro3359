@@ -1184,13 +1184,13 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
           </ScrollArea>
 
           {/* Footer with navigation */}
-          <div className="p-4 border-t bg-background space-y-2">
+          <div className="px-3 py-2 border-t bg-background">
             <div className="flex gap-2">
               {currentStep > 1 && (
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 h-12"
+                  className="flex-1 h-10"
                   onClick={() => setCurrentStep(prev => prev - 1)}
                 >
                   السابق
@@ -1198,7 +1198,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               )}
               {currentStep < 4 ? (
                 <Button
-                  className="flex-1 h-12 text-base"
+                  className="flex-1 h-10 text-sm"
                   disabled={
                     (currentStep === 1 && !selectedCustomerId) ||
                     (currentStep === 2 && orderItems.length === 0)
@@ -1208,7 +1208,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   {currentStep === 2 && orderItems.length > 0 ? (
                     <>
                       {t('orders.create')} 🛒
-                      <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                      <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
                         {orderTotals.totalItems}
                       </Badge>
                     </>
@@ -1219,21 +1219,21 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               ) : (
                 <Button
                   onClick={handleCreateOrder}
-                  className="flex-1 h-12 text-base"
+                  className="flex-1 h-10 text-sm"
                   disabled={createOrder.isPending || !selectedCustomerId || orderItems.length === 0}
                 >
                   {createOrder.isPending ? (
-                    <Loader2 className="w-5 h-5 ms-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 ms-2 animate-spin" />
                   ) : (
-                    <ShoppingCart className="w-5 h-5 ms-2" />
+                    <ShoppingCart className="w-4 h-4 ms-2" />
                   )}
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
-                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
                       {orderTotals.totalAmount.toLocaleString()} دج
                     </Badge>
                   ) : orderItems.length > 0 ? (
-                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20">
+                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
                       {orderTotals.totalItems}
                     </Badge>
                   ) : null}
