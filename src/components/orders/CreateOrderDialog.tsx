@@ -122,6 +122,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [editingProductMode, setEditingProductMode] = useState(false);
   const [editingInitialQuantity, setEditingInitialQuantity] = useState(1);
   const [editingCustomUnitPrice, setEditingCustomUnitPrice] = useState<number | undefined>(undefined);
+  const [editingIsUnitSale, setEditingIsUnitSale] = useState(false);
 
   // Derived data
   const selectedCustomer = useMemo(() =>
