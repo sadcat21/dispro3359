@@ -106,6 +106,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  useEffect(() => { if (open) setCurrentStep(1); }, [open]);
 
   // CRITICAL: Frozen state values captured at save time - immune to customer defaults
   const [frozenPaymentType, setFrozenPaymentType] = useState<PaymentType>('without_invoice');
