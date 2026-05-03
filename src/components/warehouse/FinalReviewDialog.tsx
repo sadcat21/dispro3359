@@ -1,0 +1,276 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2, CheckCircle, Package, Save, TrendingUp, TrendingDown, Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+interface FinalReviewDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  workerId: string;
+  workerName: string;
+  branchId: string | null;
+}
+
+interface AggregatedRow {
+  productId: string;
+  productName: string;
+  imageUrl?: string | null;
+  loaded: number;   // مجموع الشحن (موجب)
+  unloaded: number; // مجموع التفريغ (سالب يُطرح)
+  expected: number; // المتوقع المتبقي = loaded - unloaded
+  actual: string;   // ما يُدخله المسؤول
+  ppb: number;
+}
+
+const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
+  open, onOpenChange, workerId, workerName, branchId,
+}) => {
+  const { workerId: actorId } = useAuth();
+  const qc = useQueryClient();
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState<AggregatedRow[]>([]);
+  const [search, setSearch] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [periodStart, setPeriodStart] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !workerId) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        // 1. تاريخ آخر جلسة محاسبة مكتملة لهذا العامل
+        const { data: lastSession } = await supabase
+          .from('accounting_sessions')
+          .select('completed_at, period_end, created_at')
+          .eq('worker_id', workerId)
+          .eq('status', 'completed')
+          .order('completed_at', { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle();
+
+        const sinceTs = lastSession?.completed_at || lastSession?.period_end || lastSession?.created_at || '1970-01-01';
+        if (!cancelled) setPeriodStart(sinceTs);
+
+        // 2. جلسات الشحن للعامل بعد ذلك التاريخ
+        const { data: loadSessions } = await supabase
+          .from('loading_sessions')
+          .select('id')
+          .eq('worker_id', workerId)
+          .gte('created_at', sinceTs);
+        const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
+
+        // 3. بنود الشحن (موجبة)
+        let loadItems: any[] = [];
+        if (loadSessionIds.length > 0) {
+          const { data } = await supabase
+            .from('loading_session_items')
+            .select('product_id, quantity, gift_quantity, product:products(id, name, image_url, pieces_per_box)')
+            .in('session_id', loadSessionIds);
+          loadItems = data || [];
+        }
+
+        // 4. حركات التفريغ (return) من stock_movements للعامل
+        const { data: unloadMoves } = await supabase
+          .from('stock_movements')
+          .select('product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
+          .eq('worker_id', workerId)
+          .eq('movement_type', 'return')
+          .gte('created_at', sinceTs);
+
+        // 5. تجميع
+        const map = new Map<string, AggregatedRow>();
+        for (const it of loadItems) {
+          const pid = it.product_id;
+          const prod = it.product || {};
+          const ex = map.get(pid) || {
+            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
+            loaded: 0, unloaded: 0, expected: 0, actual: '', ppb: prod.pieces_per_box || 1,
+          };
+          ex.loaded += Number(it.quantity || 0);
+          map.set(pid, ex);
+        }
+        for (const m of (unloadMoves || [])) {
+          const pid = m.product_id;
+          const prod = (m as any).product || {};
+          const ex = map.get(pid) || {
+            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
+            loaded: 0, unloaded: 0, expected: 0, actual: '', ppb: prod.pieces_per_box || 1,
+          };
+          ex.unloaded += Number(m.quantity || 0);
+          map.set(pid, ex);
+        }
+        const list = Array.from(map.values()).map(r => ({
+          ...r,
+          expected: Math.max(0, r.loaded - r.unloaded),
+        }));
+        list.sort((a, b) => a.productName.localeCompare(b.productName));
+        if (!cancelled) setRows(list);
+      } catch (e: any) {
+        toast.error(e.message || 'خطأ في جلب بيانات المراجعة');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, workerId]);
+
+  const filtered = useMemo(
+    () => rows.filter(r => !search.trim() || r.productName.includes(search)),
+    [rows, search]
+  );
+
+  const stats = useMemo(() => {
+    let surplus = 0, deficit = 0, matched = 0, untouched = 0;
+    for (const r of rows) {
+      if (r.actual === '') { untouched++; continue; }
+      const a = Number(r.actual) || 0;
+      const diff = a - r.expected;
+      if (Math.abs(diff) < 0.001) matched++;
+      else if (diff > 0) surplus++;
+      else deficit++;
+    }
+    return { surplus, deficit, matched, untouched, total: rows.length };
+  }, [rows]);
+
+  const updateActual = (pid: string, val: string) => {
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actual: val.replace(/[^0-9.]/g, '') } : r));
+  };
+
+  const handleSave = async () => {
+    if (!actorId) return;
+    if (stats.untouched > 0) {
+      toast.error(`أدخل العد الفعلي لكل المنتجات (${stats.untouched} متبقٍ)`);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const discRows: any[] = [];
+      for (const r of rows) {
+        const a = Number(r.actual) || 0;
+        const diff = a - r.expected;
+        if (Math.abs(diff) < 0.001) continue;
+        discRows.push({
+          worker_id: workerId,
+          branch_id: branchId,
+          product_id: r.productId,
+          discrepancy_type: diff > 0 ? 'surplus' : 'deficit',
+          quantity: Math.abs(diff),
+          remaining_quantity: Math.abs(diff),
+          status: 'pending',
+          notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${r.expected}، فعلي ${a}`,
+        });
+      }
+      if (discRows.length > 0) {
+        const { error } = await supabase.from('stock_discrepancies').insert(discRows);
+        if (error) throw error;
+      }
+      qc.invalidateQueries({ queryKey: ['stock-discrepancies'] });
+      toast.success(`تم حفظ المراجعة النهائية: ${stats.surplus} فائض، ${stats.deficit} عجز، ${stats.matched} مطابق. بانتظار موافقة المدير.`);
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error(e.message || 'خطأ في حفظ المراجعة');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[92dvh] flex flex-col" dir="rtl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-primary" />
+            المراجعة النهائية — {workerName}
+          </DialogTitle>
+          {periodStart && (
+            <p className="text-[11px] text-muted-foreground">
+              منذ آخر جلسة محاسبة: {new Date(periodStart).toLocaleString('ar-DZ')}
+            </p>
+          )}
+        </DialogHeader>
+
+        <div className="shrink-0 space-y-2">
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="secondary" className="text-[10px]">{stats.total} منتج</Badge>
+            {stats.untouched > 0 && <Badge variant="outline" className="text-[10px]">{stats.untouched} لم يُدخل</Badge>}
+            <Badge className="bg-primary/80 text-primary-foreground text-[10px]">{stats.matched} مطابق</Badge>
+            {stats.surplus > 0 && <Badge className="bg-amber-500 text-white text-[10px]">{stats.surplus} فائض</Badge>}
+            {stats.deficit > 0 && <Badge variant="destructive" className="text-[10px]">{stats.deficit} عجز</Badge>}
+          </div>
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input placeholder="بحث..." value={search} onChange={e => setSearch(e.target.value)} className="pr-9 h-9 text-sm" />
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1 min-h-0">
+          {loading ? (
+            <div className="py-10 text-center text-muted-foreground">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              لا توجد حركات شحن/تفريغ منذ آخر جلسة محاسبة
+            </div>
+          ) : (
+            <div className="space-y-1.5 pe-1 pb-2">
+              {filtered.map(r => {
+                const a = r.actual === '' ? null : Number(r.actual) || 0;
+                const diff = a === null ? 0 : a - r.expected;
+                const status = a === null ? 'pending' : Math.abs(diff) < 0.001 ? 'match' : diff > 0 ? 'surplus' : 'deficit';
+                const ring =
+                  status === 'match' ? 'border-emerald-400' :
+                  status === 'surplus' ? 'border-amber-400' :
+                  status === 'deficit' ? 'border-destructive' : 'border-border';
+                return (
+                  <div key={r.productId} className={`flex items-center gap-2 p-2 rounded-lg border-2 ${ring}`}>
+                    {r.imageUrl ? (
+                      <img src={r.imageUrl} alt="" className="w-10 h-10 rounded object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{r.productName}</div>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <span className="flex items-center gap-0.5"><TrendingUp className="w-3 h-3 text-blue-500" />{r.loaded}</span>
+                        <span className="flex items-center gap-0.5"><TrendingDown className="w-3 h-3 text-red-500" />{r.unloaded}</span>
+                        <span>= متوقع <strong className="text-foreground">{r.expected}</strong></span>
+                      </div>
+                    </div>
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="الفعلي"
+                      value={r.actual}
+                      onChange={e => updateActual(r.productId, e.target.value)}
+                      className="w-20 h-9 text-center text-sm font-bold"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </ScrollArea>
+
+        <DialogFooter>
+          <Button onClick={handleSave} disabled={isSaving || loading || rows.length === 0} className="w-full gap-2">
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            حفظ المراجعة النهائية
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default FinalReviewDialog;
