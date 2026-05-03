@@ -939,7 +939,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           {orderTotals.totalItems} {t('common.piece')}
                         </Badge>
                       </div>
-                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2">
+                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2" dir="ltr">
                         {orderItems.map((item, idx) => (
                           <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
