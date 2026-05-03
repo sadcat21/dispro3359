@@ -1256,6 +1256,15 @@ const WorkerActions: React.FC = () => {
         workerId={selectedWorker?.id}
         workerName={selectedWorker?.full_name}
       />
+      {selectedWorker && (
+        <FinalReviewDialog
+          open={finalReviewOpen}
+          onOpenChange={setFinalReviewOpen}
+          workerId={selectedWorker.id}
+          workerName={selectedWorker.full_name}
+          branchId={effectiveBranchId}
+        />
+      )}
     </div>
   );
 };
