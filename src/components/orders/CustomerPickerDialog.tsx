@@ -413,18 +413,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                     const rStyle = sectorStyle(region, rIdx);
                     return (
                       <div key={region}>
-                        <div className="flex items-center justify-center my-2">
-                          <span className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 text-xs font-bold shadow-sm",
-                            rStyle.bg, rStyle.border, rStyle.text
-                          )}>
-                            <MapPin className="w-3.5 h-3.5" />
-                            {region}
-                            <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-4 px-1.5 rounded-full bg-background/80 text-[10px]">
-                              {list.length}
-                            </span>
-                          </span>
-                        </div>
                         <div className="grid grid-cols-2 gap-2">
                           {list.map((customer) => {
                             const isSelected = selectedCustomerId === customer.id;
@@ -439,7 +427,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <button
                                 key={customer.id}
                                 className={cn(
-                                  "relative flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[56px]",
+                                  "relative flex flex-col items-start gap-0 px-2.5 py-1.5 rounded-lg border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[40px]",
                                   isSelected ? "bg-primary/10 border-primary" : cn(rStyle.bg, rStyle.border, "hover:brightness-95")
                                 )}
                                 onClick={() => {
