@@ -91,6 +91,7 @@ const workerActions = [
   { key: 'orders_summary', icon: ClipboardList, path: '', labelKey: 'worker_actions.orders_summary', color: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300', isDialog: true },
   { key: 'exchange_damaged', icon: RefreshCw, path: '', labelKey: 'worker_actions.exchange_damaged', color: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300', isDialog: true },
   { key: 'accounting_sessions', icon: Calculator, path: '', labelKey: 'worker_actions.accounting_sessions', color: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300', isDialog: true },
+  { key: 'final_review', icon: ClipboardCheck, path: '', labelKey: 'worker_actions.final_review', color: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300', isDialog: true },
 ];
 
 const WorkerActions: React.FC = () => {
