@@ -738,10 +738,15 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     حذف من الشحن
                   </Button>
                 )}
+                {(() => {
+                  const hasQty = parsed.totalBoxes > 0 || parsed.pieces > 0 || parsed.boxes > 0;
+                  const offerAvailable = !!singleOffer && suggestedGift.totalPieces > 0;
+                  const promoMissing = hasQty && offerAvailable && !isOfferActivated;
+                  return (
                 <Button
                   onClick={handleConfirmSingle}
                   disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0}
-                  className={`flex-[2] h-11 text-sm font-bold text-white ${isOfferActivated ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                  className={`flex-[2] h-11 text-sm font-bold text-white ${promoMissing ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
                   <Check className="w-4 h-4 me-1.5" />
                   {totalPiecesCombined > 0 ? `تأكيد ${totalDisplayBP}` : (isEditMode ? 'تعديل الكمية' : 'تأكيد')}
