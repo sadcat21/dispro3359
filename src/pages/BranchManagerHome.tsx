@@ -159,7 +159,7 @@ const BranchManagerHome: React.FC = () => {
       items: [
         { key: 'all_approvals', label: 'كل الموافقات', icon: ShieldCheck, path: '/branch-approvals', badge: (kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0) },
         { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: FileText, path: '/branch-invoice-approvals', badge: kpis?.pendingInvoices },
-        { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardList, path: '/warehouse-review' },
+        { key: 'final_review', label: 'المراجعة النهائية', icon: ClipboardCheck, onClick: () => setFinalReviewPickerOpen(true) },
         {
           key: 'factory_approvals',
           label: 'موافقات استلام/تسليم المصنع',
