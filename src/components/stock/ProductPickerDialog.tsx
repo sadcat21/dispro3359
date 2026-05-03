@@ -721,12 +721,17 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 </div>
 
                 {/* Total */}
-                {totalPiecesCombined > 0 && (
-                  <div className="rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5 flex items-center justify-between">
+                {totalPiecesCombined > 0 && (() => {
+                  const hasQty = parsed.totalBoxes > 0 || parsed.pieces > 0 || parsed.boxes > 0;
+                  const offerAvailable = !!singleOffer && suggestedGift.totalPieces > 0;
+                  const promoMissing = hasQty && offerAvailable && !isOfferActivated;
+                  return (
+                  <div className={`rounded-lg border px-2 py-1.5 flex items-center justify-between ${promoMissing ? 'border-destructive/40 bg-destructive/5' : 'border-primary/30 bg-primary/5'}`}>
                     <span className="text-[11px] text-muted-foreground">المجموع (عادي + هدية)</span>
-                    <span className="text-base font-extrabold text-primary [font-variant-numeric:tabular-nums]">{totalDisplayBP}</span>
+                    <span className={`text-base font-extrabold [font-variant-numeric:tabular-nums] ${promoMissing ? 'text-destructive' : 'text-primary'}`}>{totalDisplayBP}</span>
                   </div>
-                )}
+                  );
+                })()}
               </div>
 
               {/* Sticky footer */}
