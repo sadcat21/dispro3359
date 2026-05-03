@@ -191,6 +191,8 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     return map;
   }, [effectiveSectors, language]);
 
+  const normalizeSectorGroupName = (name: string) => name.replace(/\s+/g, ' ').trim();
+
   // Group customers by sector
   const groupedCustomers = useMemo((): SectorGroup[] => {
     const groups = new Map<string, SectorGroup>();
@@ -198,11 +200,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     filteredCustomers.forEach((customer) => {
       const sectorId = customer.sector_id || null;
       const sectorName = sectorId
-        ? (sectorMap.get(sectorId)?.trim() || `سكتور غير معروف`)
+        ? (normalizeSectorGroupName(sectorMap.get(sectorId) || '') || `سكتور غير معروف`)
         : 'بدون سكتور';
 
       const groupKey = sectorId
-        ? (sectorMap.get(sectorId)?.trim() ? `name:${sectorName}` : `id:${sectorId}`)
+        ? (normalizeSectorGroupName(sectorMap.get(sectorId) || '') ? `name:${sectorName}` : `id:${sectorId}`)
         : 'no-sector';
 
       const existing = groups.get(groupKey);
