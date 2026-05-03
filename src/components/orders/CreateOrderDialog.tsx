@@ -635,22 +635,30 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               <DialogTitle className="text-sm">{t('orders.create_new')}</DialogTitle>
             )}
             {/* Step indicator */}
-            <div className="flex items-center gap-1 pt-1">
-              {[1, 2, 3, 4].map((step) => (
-                <div key={step} className="flex items-center flex-1">
-                  <div
+            <div className="grid grid-cols-4 gap-1 pt-1">
+              {[
+                { n: 1, label: t('orders.customer') },
+                { n: 2, label: t('products.title') },
+                { n: 3, label: t('orders.cart') },
+                { n: 4, label: t('orders.delivery_date') },
+              ].map((s) => {
+                const reached = s.n <= currentStep;
+                return (
+                  <button
+                    key={s.n}
+                    type="button"
+                    onClick={() => setCurrentStep(s.n)}
                     className={cn(
-                      "w-full h-1 rounded-full transition-colors",
-                      step <= currentStep ? 'bg-primary' : 'bg-muted'
+                      "h-7 rounded-md text-[10px] font-semibold transition-colors px-1 truncate",
+                      reached
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
                     )}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="text-[11px] text-muted-foreground text-center">
-              {currentStep === 1 && `١/٤ — ${t('orders.customer')} و ${t('orders.purchase_method')}`}
-              {currentStep === 2 && `٢/٤ — ${t('products.title')}`}
-              {currentStep === 3 && `٣/٤ — ${t('orders.cart')}`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
             </div>
           </DialogHeader>
 
