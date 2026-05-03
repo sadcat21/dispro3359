@@ -1051,11 +1051,33 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const content = (
     <>
       {!hideHeader && (
-        <DialogHeader className="p-4 pb-2 border-b">
+        <DialogHeader className="p-4 pb-2 border-b space-y-2">
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5" />
               {t('orders.delivery_sale') || 'بيع بالتوصيل'}
             </DialogTitle>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { n: 1 as const, label: 'العميل' },
+                { n: 2 as const, label: 'المنتجات' },
+                { n: 3 as const, label: 'الملخص' },
+              ].map((s) => {
+                const reached = s.n <= currentStep;
+                return (
+                  <button
+                    key={s.n}
+                    type="button"
+                    onClick={() => setCurrentStep(s.n)}
+                    className={cn(
+                      "h-7 rounded-md text-[10px] font-semibold transition-colors px-1 truncate",
+                      reached ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    )}
+                  >
+                    {s.n}. {s.label}
+                  </button>
+                );
+              })}
+            </div>
         </DialogHeader>
       )}
 
