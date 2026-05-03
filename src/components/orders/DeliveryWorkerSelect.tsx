@@ -66,10 +66,6 @@ const DeliveryWorkerSelect: React.FC<DeliveryWorkerSelectProps> = ({
     }
   };
 
-  if (!customerBranchId) {
-    return null;
-  }
-
   const selectedWorker = deliveryWorkers.find(w => w.id === value);
 
   return (
