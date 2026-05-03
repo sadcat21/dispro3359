@@ -70,6 +70,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   initialGiftPieces = 0,
   initialGiftOfferId,
   initialOfferApplied = false,
+  hideInvoiceOption = false,
 }) => {
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
