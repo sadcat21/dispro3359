@@ -1222,6 +1222,55 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       className="min-h-[60px]"
                     />
                   </section>
+
+                  {/* Worker Assignment */}
+                  <section className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Truck className="w-4 h-4" />
+                      تعيين عامل التوصيل ({t('common.optional')})
+                    </Label>
+                    {isLoadingWorkers ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        جاري تحميل العمال...
+                      </div>
+                    ) : deliveryWorkers.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {deliveryWorkers.length > 4 && (
+                          <div className="relative">
+                            <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                            <Input
+                              placeholder="بحث عن عامل..."
+                              value={workerSearch}
+                              onChange={(e) => setWorkerSearch(e.target.value)}
+                              className="h-8 ps-8 text-sm"
+                            />
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-1.5 max-h-[120px] overflow-y-auto">
+                          {deliveryWorkers
+                            .filter(w => !workerSearch || w.full_name.toLowerCase().includes(workerSearch.toLowerCase()))
+                            .map(worker => (
+                              <Button
+                                key={worker.id}
+                                type="button"
+                                size="sm"
+                                variant={selectedDeliveryWorker === worker.id ? 'default' : 'outline'}
+                                className="h-9 text-xs justify-start gap-1.5"
+                                onClick={() => setSelectedDeliveryWorker(
+                                  selectedDeliveryWorker === worker.id ? '' : worker.id
+                                )}
+                              >
+                                <User className="w-3.5 h-3.5 shrink-0" />
+                                <span className="truncate">{worker.full_name}</span>
+                              </Button>
+                            ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">لا يوجد عمال توصيل متاحون</p>
+                    )}
+                  </section>
                 </>
               )}
 
