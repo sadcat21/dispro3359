@@ -602,10 +602,38 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-lg h-[95vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
           <DialogHeader className="px-3 py-2 border-b shrink-0">
-            <DialogTitle className="flex items-center gap-2 text-sm">
-              <ShoppingCart className="w-4 h-4" />
-              {t('orders.create_new')}
-            </DialogTitle>
+            {selectedCustomer ? (
+              (() => {
+                const sector = sectors.find(s => s.id === selectedCustomer.sector_id);
+                const dayMap: Record<string, string> = {
+                  sunday: 'الأحد', monday: 'الإثنين', tuesday: 'الثلاثاء',
+                  wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت',
+                };
+                const deliveryDay = sector?.visit_day_delivery ? dayMap[sector.visit_day_delivery.toLowerCase()] : null;
+                return (
+                  <DialogTitle className="text-sm leading-tight">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-muted-foreground text-xs">طلبية:</span>
+                      <span className="font-bold text-primary">
+                        {selectedCustomer.store_name || selectedCustomer.name}
+                      </span>
+                      {sector?.name && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          {sector.name}
+                        </Badge>
+                      )}
+                      {deliveryDay && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 text-primary">
+                          {deliveryDay}
+                        </Badge>
+                      )}
+                    </div>
+                  </DialogTitle>
+                );
+              })()
+            ) : (
+              <DialogTitle className="text-sm">{t('orders.create_new')}</DialogTitle>
+            )}
             {/* Step indicator */}
             <div className="flex items-center gap-1 pt-1">
               {[1, 2, 3, 4].map((step) => (
