@@ -510,9 +510,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <div className="grid grid-cols-4 gap-1.5">
-                  {products.map(renderProductButton)}
+                  {products.filter(p => p.warehouseQty > 0 || selectedProductIds.includes(p.id)).map(renderProductButton)}
                 </div>
-                {products.length === 0 && (
+                {products.filter(p => p.warehouseQty > 0 || selectedProductIds.includes(p.id)).length === 0 && (
                   <div className="text-center text-sm text-muted-foreground py-4">
                     {t('common.no_results')}
                   </div>
