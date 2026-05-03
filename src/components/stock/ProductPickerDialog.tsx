@@ -255,7 +255,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const totalDisplayBP = (() => {
     const b = Math.floor(totalPiecesCombined / singlePPB);
     const p = totalPiecesCombined % singlePPB;
-    return p > 0 ? `${b}.${String(p).padStart(2, '0')}` : `${b}`;
+    return `${b}.${String(p).padStart(2, '0')}`;
   })();
 
   const isOfferActivated = singleProductId ? !!offerActivated[singleProductId] : false;
