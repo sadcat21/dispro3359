@@ -359,22 +359,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
     const available = getAvailable(productId);
     const customUnitPrice = perItemPricing?.customUnitPrice;
-    const customSalePrice = customUnitPrice !== undefined ? resolveCustomSalePrice(product, customUnitPrice, !!isUnitSale) : undefined;
+    const computed = computeItemPrice(product, perItemPricing, !!isUnitSale);
 
     if (isUnitSale) {
-      const boxPrice = getProductPrice(product);
-      const basePiecePrice = product.pieces_per_box > 0 ? boxPrice / product.pieces_per_box : boxPrice;
-      const piecePrice = customSalePrice ?? basePiecePrice;
-      const totalPrice = piecePrice * quantity;
-      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: piecePrice, totalPrice, customUnitPrice, isUnitSale: true }]);
+      const totalPrice = computed.unitPrice * quantity;
+      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType }]);
       return;
     }
 
     // Check if quantity exceeds available stock
     const baseQuantity = giftInfo?.giftQuantity ? quantity - giftInfo.giftQuantity : quantity;
     if (baseQuantity > available) {
-      // Calculate gift for available quantity using ProductOfferBadge logic
-      const deliveredGiftPieces = 0; // Will be recalculated in overflow dialog
+      const deliveredGiftPieces = 0;
       const deliveredGiftBoxes = 0;
 
       setOverflowData({
@@ -389,22 +385,22 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       return;
     }
 
-    const unitPrice = customSalePrice ?? getProductPrice(product);
+    const unitPrice = computed.unitPrice;
     const giftQuantity = giftInfo?.giftQuantity || 0;
     const paidQuantity = quantity - giftQuantity;
 
     setOrderItems(prev => {
-      const existing = prev.find(item => item.productId === productId && !item.customUnitPrice && !customUnitPrice);
+      const existing = prev.find(item => item.productId === productId && !item.customUnitPrice && !customUnitPrice && item.priceSubType === computed.subType && item.itemPaymentType === computed.payType);
       if (existing) {
         const newQuantity = Math.min(existing.quantity + quantity, available + giftQuantity);
         const newPaid = Math.max(0, newQuantity - giftQuantity);
         return prev.map(item =>
-          item.productId === productId
+          item === existing
             ? { ...item, quantity: newQuantity, totalPrice: newPaid * unitPrice }
             : item
         );
       }
-      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftInfo?.giftPieces || undefined, giftOfferId: giftInfo?.offerId }];
+      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftInfo?.giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType }];
     });
   };
 
@@ -419,12 +415,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     if (!product) return;
 
     const customUnitPrice = perItemPricing?.customUnitPrice;
-    const customSalePrice = customUnitPrice !== undefined ? resolveCustomSalePrice(product, customUnitPrice, !!isUnitSale) : undefined;
+    const computed = computeItemPrice(product, perItemPricing, !!isUnitSale);
 
     if (isUnitSale) {
-      const boxPrice = getProductPrice(product);
-      const basePiecePrice = product.pieces_per_box > 0 ? boxPrice / product.pieces_per_box : boxPrice;
-      const piecePrice = customSalePrice ?? basePiecePrice;
+      const piecePrice = computed.unitPrice;
       const totalPrice = piecePrice * quantity;
       setOrderItems(prev => prev.map(item => item.productId === productId ? {
         ...item,
@@ -436,9 +430,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         giftQuantity: 0,
         giftPieces: 0,
         giftOfferId: undefined,
+        priceSubType: computed.subType,
+        itemPaymentType: computed.payType,
       } : item));
     } else {
-      const unitPrice = customSalePrice ?? getProductPrice(product);
+      const unitPrice = computed.unitPrice;
       const giftQuantity = giftInfo?.giftQuantity || 0;
       const giftPieces = giftInfo?.giftPieces || 0;
       const paidQuantity = Math.max(0, quantity - giftQuantity);
@@ -453,6 +449,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         giftQuantity: giftQuantity || undefined,
         giftPieces: giftPieces || undefined,
         giftOfferId: giftInfo?.offerId ?? item.giftOfferId,
+        priceSubType: computed.subType,
+        itemPaymentType: computed.payType,
       } : item));
     }
 
