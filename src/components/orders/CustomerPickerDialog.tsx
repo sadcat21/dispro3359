@@ -349,7 +349,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                     key={group.key}
                     onClick={() => setActiveSectorKey(group.key)}
                     className={cn(
-                      "flex flex-row items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[56px]",
+                      "flex flex-row items-center justify-center gap-2 px-3 py-2 rounded-xl border-2 transition-all hover:scale-105 active:scale-95 min-h-[40px]",
                       style.bg, style.border
                     )}
                   >
@@ -391,7 +391,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                           onClick={() => setActiveRegionKey(region)}
                           style={{ animationDelay: `${rIdx * 40}ms` }}
                           className={cn(
-                            "group relative flex items-center justify-between gap-1.5 px-2.5 py-2 rounded-2xl border-2 shadow-sm min-h-[56px]",
+                            "group relative flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border-2 shadow-sm min-h-[36px]",
                             "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                             "animate-in fade-in zoom-in-95 fill-mode-both",
                             rStyle.bg, rStyle.border
@@ -446,7 +446,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               <button
                                 key={customer.id}
                                 className={cn(
-                                  "relative flex flex-col items-start gap-1 p-3 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[72px]",
+                                  "relative flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border-2 text-right transition-all hover:scale-[1.02] active:scale-95 min-h-[56px]",
                                   isSelected ? "bg-primary/10 border-primary" : cn(rStyle.bg, rStyle.border, "hover:brightness-95")
                                 )}
                                 onClick={() => {
