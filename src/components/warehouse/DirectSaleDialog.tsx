@@ -71,6 +71,8 @@ interface OrderItemWithPrice {
   pricingUnit?: string;
   weightPerBox?: number | null;
   piecesPerBox?: number;
+  priceSubType?: PriceSubType;
+  itemPaymentType?: PaymentType;
 }
 
 const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
