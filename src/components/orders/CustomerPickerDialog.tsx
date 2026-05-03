@@ -30,6 +30,7 @@ interface CustomerPickerDialogProps {
 }
 
 interface SectorGroup {
+  key: string;
   sectorId: string | null;
   sectorName: string;
   customers: Customer[];
@@ -159,9 +160,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   
 
   const filteredCustomers = useMemo(() => {
-    if (!search.trim()) return customers;
-    const q = search.toLowerCase();
-    return customers.filter(c =>
+    const source = !search.trim()
+      ? customers
+      : customers.filter(c => {
+        const q = search.toLowerCase();
+        return (
       c.name?.toLowerCase().includes(q) ||
       c.name_fr?.toLowerCase().includes(q) ||
       c.store_name?.toLowerCase().includes(q) ||
@@ -170,7 +173,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
       c.wilaya?.toLowerCase().includes(q) ||
       c.internal_name?.toLowerCase().includes(q) ||
       c.address?.toLowerCase().includes(q)
-    );
+        );
+      });
+
+    const seen = new Set<string>();
+    return source.filter((customer) => {
+      if (seen.has(customer.id)) return false;
+      seen.add(customer.id);
+      return true;
+    });
   }, [customers, search]);
 
   // Build sector map for quick lookup
@@ -182,42 +193,38 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   // Group customers by sector
   const groupedCustomers = useMemo((): SectorGroup[] => {
-    const groups = new Map<string | null, Customer[]>();
-    
-    filteredCustomers.forEach(c => {
-      const key = c.sector_id || null;
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key)!.push(c);
-    });
+    const groups = new Map<string, SectorGroup>();
 
-    const result: SectorGroup[] = [];
-    
-    // Add sectors with customers first (ordered by sector name)
-    const sectorIds = Array.from(groups.keys()).filter(k => k !== null) as string[];
-    sectorIds.sort((a, b) => {
-      const nameA = sectorMap.get(a) || '';
-      const nameB = sectorMap.get(b) || '';
-      return nameA.localeCompare(nameB, 'ar');
-    });
+    filteredCustomers.forEach((customer) => {
+      const sectorId = customer.sector_id || null;
+      const sectorName = sectorId
+        ? (sectorMap.get(sectorId)?.trim() || `سكتور غير معروف`)
+        : 'بدون سكتور';
 
-    sectorIds.forEach(sid => {
-      result.push({
-        sectorId: sid,
-        sectorName: sectorMap.get(sid) || 'غير معروف',
-        customers: groups.get(sid)!,
+      const groupKey = sectorId
+        ? (sectorMap.get(sectorId)?.trim() ? `name:${sectorName}` : `id:${sectorId}`)
+        : 'no-sector';
+
+      const existing = groups.get(groupKey);
+      if (existing) {
+        existing.customers.push(customer);
+        if (!existing.sectorId && sectorId) existing.sectorId = sectorId;
+        return;
+      }
+
+      groups.set(groupKey, {
+        key: groupKey,
+        sectorId,
+        sectorName,
+        customers: [customer],
       });
     });
 
-    // Add "no sector" group at the end
-    if (groups.has(null) && groups.get(null)!.length > 0) {
-      result.push({
-        sectorId: null,
-        sectorName: 'بدون سكتور',
-        customers: groups.get(null)!,
-      });
-    }
-
-    return result;
+    return Array.from(groups.values()).sort((a, b) => {
+      if (a.sectorId === null) return 1;
+      if (b.sectorId === null) return -1;
+      return a.sectorName.localeCompare(b.sectorName, 'ar');
+    });
   }, [filteredCustomers, sectorMap]);
 
   // When autoExpand changes, sync openGroups (only react to autoExpand toggle, not groupedCustomers changes)
