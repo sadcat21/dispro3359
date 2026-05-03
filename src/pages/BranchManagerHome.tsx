@@ -39,6 +39,22 @@ const BranchManagerHome: React.FC = () => {
 
   const branchId = activeBranch?.id;
   const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
+  const [finalReviewPickerOpen, setFinalReviewPickerOpen] = useState(false);
+  const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
+
+  const { data: deliveryWorkers = [] } = useQuery({
+    queryKey: ['bm-delivery-workers', branchId],
+    enabled: !!branchId && finalReviewPickerOpen,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('workers')
+        .select('id, full_name')
+        .eq('is_active', true)
+        .eq('branch_id', branchId!)
+        .order('full_name');
+      return (data || []) as { id: string; full_name: string }[];
+    },
+  });
 
   // Realtime: تنبيه فوري عند وصول طلب فاتورة جديد للفرع
   useEffect(() => {
