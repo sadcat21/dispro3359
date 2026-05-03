@@ -662,32 +662,40 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               </div>
 
               <div className="space-y-1 border rounded-lg p-2.5 bg-green-500/5 border-green-500/30">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <Label className="text-xs font-semibold flex items-center gap-1 text-green-700">
                     <Gift className="w-3.5 h-3.5" />
                     الهدية (صندوق.قطع)
                   </Label>
-                  {singleOffer && suggestedGift.qty > 0 && (
+                  {singleOffer && suggestedGift.totalPieces > 0 && singleProductId && (
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant={isOfferActivated ? 'destructive' : 'default'}
                       size="sm"
-                      className="h-7 px-2 text-[10px] text-green-700 hover:bg-green-500/10"
+                      className="h-7 px-2 text-[10px]"
                       onClick={() => {
-                        if (suggestedGift.unit === 'piece') {
-                          setSingleGiftFields({ boxes: '', pieces: String(suggestedGift.qty) });
+                        if (isOfferActivated) {
+                          setOfferActivated(prev => ({ ...prev, [singleProductId]: false }));
+                          setSingleGiftFields(createDefaultSingleFields());
                         } else {
-                          setSingleGiftFields({ boxes: String(suggestedGift.qty), pieces: '' });
+                          setOfferActivated(prev => ({ ...prev, [singleProductId]: true }));
+                          setSingleGiftFields({
+                            boxes: suggestedSplit.boxes > 0 ? String(suggestedSplit.boxes) : '',
+                            pieces: suggestedSplit.pieces > 0 ? String(suggestedSplit.pieces) : '',
+                          });
                         }
                       }}
                     >
-                      اقتراح: {suggestedGift.qty} {suggestedGift.unit === 'piece' ? 'قطعة' : 'صندوق'}
+                      {isOfferActivated ? 'إلغاء تفعيل العرض' : 'تفعيل العرض'}
                     </Button>
                   )}
                 </div>
                 {singleOffer && (
                   <div className="text-[10px] text-muted-foreground text-center">
                     عرض: {singleOffer.giftQty} {singleOffer.giftUnit === 'piece' ? 'قطعة' : 'صندوق'} لكل {singleOffer.minQty}
+                    {suggestedGift.totalPieces > 0 && (
+                      <> · اقتراح: {suggestedSplit.boxes > 0 ? `${suggestedSplit.boxes} صندوق` : ''}{suggestedSplit.boxes > 0 && suggestedSplit.pieces > 0 ? ' و' : ''}{suggestedSplit.pieces > 0 ? `${suggestedSplit.pieces} قطعة` : ''}</>
+                    )}
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-2">
@@ -720,6 +728,13 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <div className="text-center text-[11px] text-green-700">هدية: {displayGiftBP}</div>
                 )}
               </div>
+
+              {totalPiecesCombined > 0 && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-2 text-center">
+                  <div className="text-[10px] text-muted-foreground">مجموع الشحن (عادي + هدية)</div>
+                  <div className="text-base font-extrabold text-primary [font-variant-numeric:tabular-nums]">{totalDisplayBP}</div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Button onClick={handleConfirmSingle} disabled={parsed.totalBoxes <= 0 && parsedGift.totalBoxes <= 0} className="w-full h-11 text-sm font-bold">
