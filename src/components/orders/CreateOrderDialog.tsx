@@ -1254,8 +1254,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   )}
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
-                    <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
-                       {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
+                    <Badge variant="secondary" className="mr-2 bg-white text-black hover:bg-white text-[12px] font-bold">
+                      {t('common.currency')} {orderTotals.totalAmount.toLocaleString()}
                     </Badge>
                   ) : orderItems.length > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
