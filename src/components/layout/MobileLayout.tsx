@@ -19,7 +19,7 @@ import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
 import RoleSelectionDialog from '@/components/auth/RoleSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
 import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
-import StockDisputesPopover from '@/components/stock/StockDisputesPopover';
+
 // ManagerConfirmationsPanel merged into StockConfirmationsPopover
 import StockAlertsNotification from '@/components/stock/StockAlertsNotification';
 import TasksPopover from '@/components/tasks/TasksPopover';
@@ -396,7 +396,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             || activeRole?.custom_role_code === 'warehouse_manager'
             || (availableRoles || []).some(r => r.custom_role_code === 'delivery_rep' || r.custom_role_code === 'warehouse_manager')
           ) && <StockConfirmationsPopover />}
-          <StockDisputesPopover />
+          
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
