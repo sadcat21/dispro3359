@@ -394,7 +394,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                             "group relative flex items-center justify-between gap-2 px-4 py-3 rounded-2xl border-2 shadow-sm min-h-[64px]",
                             "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                             "animate-in fade-in zoom-in-95 fill-mode-both",
-                            rStyle.border
+                            rStyle.bg, rStyle.border
                           )}
                         >
                           <span className="flex items-center gap-2 min-w-0">
