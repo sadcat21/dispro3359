@@ -19,6 +19,7 @@ import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Users, Wallet, ClipboardList, MapPin, Trophy, MessageCircle, HardHat, CalendarCheck, ArrowDownToLine, Warehouse, ClipboardCheck } from 'lucide-react';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
+import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link } from 'react-router-dom';
