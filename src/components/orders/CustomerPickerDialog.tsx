@@ -429,8 +429,10 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                             return (
                               <button
                                 key={customer.id}
+                                style={{ animationDelay: `${cIdx * 30}ms` }}
                                 className={cn(
-                                  "flex flex-col items-stretch rounded-lg overflow-hidden border-2 text-center transition-all hover:scale-[1.02] active:scale-95 min-h-[52px] shadow-sm",
+                                  "flex flex-col items-stretch rounded-lg overflow-hidden border-2 text-center transition-all hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md active:scale-95 min-h-[52px] shadow-sm",
+                                  "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
                                   isSelected ? "border-primary ring-2 ring-primary/40" : accentClass
                                 )}
                                 onClick={() => {
