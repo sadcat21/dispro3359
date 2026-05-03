@@ -390,7 +390,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           <RefreshButton />
           {activeRole?.custom_role_code === 'company_manager' && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
-          <StockConfirmationsPopover />
+          {/* StockConfirmationsPopover removed: مرحلة المراجعة بين الشحن والتفريغ ألغيت */}
           <StockDisputesPopover />
           
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
