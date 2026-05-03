@@ -602,10 +602,38 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-lg h-[95vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
           <DialogHeader className="px-3 py-2 border-b shrink-0">
-            <DialogTitle className="flex items-center gap-2 text-sm">
-              <ShoppingCart className="w-4 h-4" />
-              {t('orders.create_new')}
-            </DialogTitle>
+            {selectedCustomer ? (
+              (() => {
+                const sector = sectors.find(s => s.id === selectedCustomer.sector_id);
+                const dayMap: Record<string, string> = {
+                  sunday: 'الأحد', monday: 'الإثنين', tuesday: 'الثلاثاء',
+                  wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت',
+                };
+                const deliveryDay = sector?.visit_day_delivery ? dayMap[sector.visit_day_delivery.toLowerCase()] : null;
+                return (
+                  <DialogTitle className="text-sm leading-tight">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-muted-foreground text-xs">طلبية:</span>
+                      <span className="font-bold text-primary">
+                        {selectedCustomer.store_name || selectedCustomer.name}
+                      </span>
+                      {sector?.name && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          {sector.name}
+                        </Badge>
+                      )}
+                      {deliveryDay && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 text-primary">
+                          {deliveryDay}
+                        </Badge>
+                      )}
+                    </div>
+                  </DialogTitle>
+                );
+              })()
+            ) : (
+              <DialogTitle className="text-sm">{t('orders.create_new')}</DialogTitle>
+            )}
             {/* Step indicator */}
             <div className="flex items-center gap-1 pt-1">
               {[1, 2, 3, 4].map((step) => (
@@ -1086,92 +1114,58 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {/* ═══════ STEP 4: Delivery Date + Notes ═══════ */}
               {currentStep === 4 && (
                 <>
-                  <section className="space-y-2">
-                    <Label className="text-sm">{t('orders.delivery_date')} ({t('common.optional')})</Label>
-                    
-                    <div className="flex gap-1.5">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={deliveryDate === format(new Date(), 'yyyy-MM-dd') ? 'default' : 'outline'}
-                        onClick={() => {
-                          const today = format(new Date(), 'yyyy-MM-dd');
-                          setDeliveryDate(deliveryDate === today ? '' : today);
-                        }}
-                        className="flex-1 h-9"
-                      >
-                        اليوم
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={deliveryDate === format(addDays(new Date(), 1), 'yyyy-MM-dd') ? 'default' : 'outline'}
-                        onClick={() => {
-                          const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-                          setDeliveryDate(deliveryDate === tomorrow ? '' : tomorrow);
-                        }}
-                        className="flex-1 h-9"
-                      >
-                        غداً
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-1.5">
+                  <section className="space-y-1.5">
+                    <Label className="text-[11px] text-muted-foreground">{t('orders.delivery_date')}</Label>
+                    <div className="grid grid-cols-7 gap-1">
                       {Array.from({ length: 7 }, (_, i) => {
                         const d = addDays(new Date(), i);
                         const dateStr = format(d, 'yyyy-MM-dd');
-                        const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getDay()];
+                        const dayName = ['أحد', 'إثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'][d.getDay()];
                         const isSelected = deliveryDate === dateStr;
                         return (
-                          <Button
+                          <button
                             key={dateStr}
                             type="button"
-                            size="sm"
-                            variant={isSelected ? 'default' : 'outline'}
                             onClick={() => setDeliveryDate(isSelected ? '' : dateStr)}
-                            className="flex flex-col items-center h-auto py-1 text-[11px]"
+                            className={cn(
+                              "flex flex-col items-center rounded-md border py-1 text-[10px] transition-colors",
+                              isSelected ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent"
+                            )}
                           >
-                            <span className="font-bold">{dayName}</span>
+                            <span className="font-bold">{i === 0 ? 'اليوم' : i === 1 ? 'غداً' : dayName}</span>
                             <span className="text-[9px] opacity-80">{format(d, 'dd/MM')}</span>
-                          </Button>
+                          </button>
                         );
                       })}
                     </div>
-
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-0.5">
-                        <Label className="text-[11px]">التاريخ</Label>
-                        <Input
-                          type="date"
-                          value={deliveryDate}
-                          onChange={(e) => setDeliveryDate(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
-                      <div className="space-y-0.5">
-                        <Label className="text-[11px]">الوقت</Label>
-                        <Input
-                          type="time"
-                          value={deliveryTime}
-                          onChange={(e) => setDeliveryTime(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
+                      <Input
+                        type="date"
+                        value={deliveryDate}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                      <Input
+                        type="time"
+                        value={deliveryTime}
+                        onChange={(e) => setDeliveryTime(e.target.value)}
+                        className="h-8 text-xs"
+                      />
                     </div>
                   </section>
 
-                  <section className="space-y-1.5">
-                    <Label className="text-sm">{t('common.notes')} ({t('common.optional')})</Label>
+                  <section className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">{t('common.notes')}</Label>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder={t('orders.add_notes')}
-                      rows={2}
-                      className="min-h-[60px]"
+                      rows={1}
+                      className="min-h-[36px] text-xs"
                     />
                   </section>
 
-                  <section className="space-y-1.5">
+                  <section>
                     <InlineDeliveryWorkerPicker
                       customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
                       customerSectorId={(selectedCustomer as any)?.sector_id || null}
