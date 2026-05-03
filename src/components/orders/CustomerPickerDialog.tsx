@@ -382,7 +382,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               // إذا لم تُختر منطقة بعد ولم يكن هناك بحث: اعرض شبكة أزرار المناطق
               if (!activeRegionKey && !search.trim()) {
                 return (
-                  <div className="flex flex-wrap gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                  <div className="grid grid-cols-2 gap-3 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
                     {regionEntries.map(([region, list], rIdx) => {
                       const rStyle = sectorStyle(region, rIdx);
                       return (
@@ -391,17 +391,19 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                           onClick={() => setActiveRegionKey(region)}
                           style={{ animationDelay: `${rIdx * 40}ms` }}
                           className={cn(
-                            "group relative inline-flex items-center gap-2 ps-3 pe-1 py-1.5 rounded-full border bg-card shadow-sm",
+                            "group relative flex items-center justify-between gap-2 px-4 py-3 rounded-2xl border bg-card shadow-sm min-h-[64px]",
                             "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
                             "animate-in fade-in zoom-in-95 fill-mode-both",
                             rStyle.border
                           )}
                         >
-                          <span className={cn("inline-block w-2 h-2 rounded-full", rStyle.text.replace('text-', 'bg-'))} />
-                          <span className={cn("text-xs font-semibold", rStyle.text)}>
-                            {region}
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className={cn("inline-block w-2.5 h-2.5 rounded-full shrink-0", rStyle.text.replace('text-', 'bg-'))} />
+                            <span className={cn("text-sm font-semibold truncate", rStyle.text)}>
+                              {region}
+                            </span>
                           </span>
-                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-muted text-foreground text-[10px] font-bold">
+                          <span className="inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full bg-muted text-foreground text-xs font-bold shrink-0">
                             {list.length}
                           </span>
                         </button>
