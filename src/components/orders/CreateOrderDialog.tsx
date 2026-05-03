@@ -28,6 +28,7 @@ import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog, { PerItemPricing } from './ProductQuantityDialog';
 import AssignWorkerAfterSaveDialog from './AssignWorkerAfterSaveDialog';
+import DeliveryWorkerSelect from './DeliveryWorkerSelect';
 import AddCustomerDialog from '@/components/promo/AddCustomerDialog';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import EditCustomerDialog from './EditCustomerDialog';
@@ -552,6 +553,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
+        assignedWorkerId: selectedDeliveryWorker || defaultWorkerId || undefined,
       });
 
       toast.success(t('orders.created_success'));
@@ -589,15 +591,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       // Track visit GPS
       trackVisit({ customerId: selectedCustomerId, operationType: 'order', operationId: order.id });
 
-      // Save info for assign dialog and close create dialog
-      const branchId = selectedCustomer?.branch_id || activeBranch?.id || null;
-      setSavedOrderId(order.id);
-      setSavedCustomerBranchId(branchId);
-      setSavedDefaultDeliveryWorkerId(defaultWorkerId || null);
       handleClose(false);
-
-      // Always show assign worker dialog (with pre-selection if default exists)
-      setShowAssignWorkerDialog(true);
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     }
@@ -939,7 +933,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           {orderTotals.totalItems} {t('common.piece')}
                         </Badge>
                       </div>
-                      <div className="space-y-1.5 bg-muted/50 rounded-lg p-2">
+                       <div className="space-y-1.5 bg-muted/50 rounded-lg p-2 text-left" dir="ltr">
                         {orderItems.map((item, idx) => (
                           <div key={`${item.productId}-${item.isUnitSale ? 'unit' : 'box'}-${idx}`} className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
@@ -962,7 +956,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               </span>
                               {item.unitPrice > 0 && (
                                 <span className="text-xs text-muted-foreground">
-                                  {item.unitPrice.toLocaleString()} دج × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} دج
+                                   {item.unitPrice.toLocaleString()} {t('common.currency')} × {item.isUnitSale ? item.quantity : (item.quantity - (item.giftQuantity || 0))} = {item.totalPrice.toLocaleString()} {t('common.currency')}
                                 </span>
                               )}
                             </div>
@@ -1176,6 +1170,14 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       className="min-h-[60px]"
                     />
                   </section>
+
+                  <section className="space-y-1.5">
+                    <DeliveryWorkerSelect
+                      customerBranchId={selectedCustomer?.branch_id || activeBranch?.id || null}
+                      value={selectedDeliveryWorker}
+                      onChange={setSelectedDeliveryWorker}
+                    />
+                  </section>
                 </>
               )}
 
@@ -1230,7 +1232,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   {t('orders.create')}
                   {orderTotals.totalAmount > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
-                      {orderTotals.totalAmount.toLocaleString()} دج
+                       {orderTotals.totalAmount.toLocaleString()} {t('common.currency')}
                     </Badge>
                   ) : orderItems.length > 0 ? (
                     <Badge variant="secondary" className="mr-2 bg-primary-foreground/20 text-[11px]">
