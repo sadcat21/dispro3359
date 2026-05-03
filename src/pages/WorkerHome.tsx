@@ -333,75 +333,122 @@ const WorkerHome: React.FC = () => {
     );
   }
 
+  // Hero primary action based on role
+  const heroAction = (() => {
+    if (isWarehouseManager) {
+      return { label: t('worker_home.stock_management'), sub: 'إدارة شاملة للمخزن والشحن', icon: <Warehouse className="w-7 h-7" />, onClick: () => setShowStockManagement(true), gradient: 'from-teal-500 to-emerald-600' };
+    }
+    if (hasDeliveryAccess) {
+      return { label: t('deliveries.title'), sub: 'الطلبات المخصصة لك اليوم', icon: <Truck className="w-7 h-7" />, onClick: () => navigate('/my-deliveries'), gradient: 'from-blue-500 to-indigo-600' };
+    }
+    if (isSalesRole && hasOrdersAccess) {
+      return { label: t('orders.create_new'), sub: 'إنشاء طلبية لعميل', icon: <ShoppingCart className="w-7 h-7" />, onClick: () => setShowCustomerPickerForOrder(true), gradient: 'from-violet-500 to-purple-600' };
+    }
+    return null;
+  })();
+
+  // Today's spotlight cards (horizontal scroll)
+  const spotlightCards: { key: string; title: string; sub: string; icon: React.ReactNode; onClick: () => void; tone: string }[] = [];
+  if (isSupervisor || isWarehouseManager || hasDeliveryAccess || isSalesRole) {
+    if (!isTodayCustomersHidden) {
+      spotlightCards.push({ key: 'today', title: todayCustomersLabel, sub: t('worker.today_schedule_desc'), icon: <CalendarCheck className="w-6 h-6" />, onClick: () => setShowTodayCustomers(true), tone: 'sky' });
+    }
+  }
+  if (isWarehouseManager) {
+    spotlightCards.push({ key: 'review', title: 'المراجعة النهائية', sub: 'قبل جلسة المحاسبة', icon: <ClipboardCheck className="w-6 h-6" />, onClick: () => setShowFinalReviewPicker(true), tone: 'blue' });
+    spotlightCards.push({ key: 'load', title: t('worker_home.load_worker'), sub: 'شحن مندوب توصيل', icon: <ArrowDownToLine className="w-6 h-6" />, onClick: () => setShowLoadWorkerPicker(true), tone: 'orange' });
+  }
+  if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
+    spotlightCards.push({ key: 'mystock', title: t('stock.my_stock'), sub: 'مخزونك الحالي', icon: <Package className="w-6 h-6" />, onClick: () => navigate('/my-stock'), tone: 'violet' });
+  }
+
+  const toneMap: Record<string, { bg: string; ic: string; ring: string }> = {
+    sky: { bg: 'bg-sky-50', ic: 'text-sky-600', ring: 'ring-sky-200' },
+    blue: { bg: 'bg-blue-50', ic: 'text-blue-600', ring: 'ring-blue-200' },
+    orange: { bg: 'bg-orange-50', ic: 'text-orange-600', ring: 'ring-orange-200' },
+    violet: { bg: 'bg-violet-50', ic: 'text-violet-600', ring: 'ring-violet-200' },
+    emerald: { bg: 'bg-emerald-50', ic: 'text-emerald-600', ring: 'ring-emerald-200' },
+  };
+
   return (
-    <div className="pb-24 touch-pan-y">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-bold mb-1">{t('common.welcome')} {user?.full_name} 👋</h2>
-            <p className="text-primary-foreground/80 text-sm">
-              {getWelcomeMessage()}
-            </p>
+    <div className="pb-24 touch-pan-y bg-gradient-to-b from-muted/30 to-background min-h-screen">
+      {/* Compact Hero Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/70 text-primary-foreground px-4 pt-5 pb-8">
+        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-10 -left-6 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-wider text-primary-foreground/70">{t('common.welcome')}</p>
+            <h2 className="text-lg font-bold truncate">{user?.full_name} 👋</h2>
+            {(activeRole?.custom_role_name || activeBranch?.name) && (
+              <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                {activeRole?.custom_role_name && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                    {activeRole.custom_role_name}
+                  </span>
+                )}
+                {activeBranch?.name && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                    📍 {activeBranch.name}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Worker Sales Summary */}
-      <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
+      {/* Sales Summary — pulled into hero */}
+      <div className="-mt-5 px-3">
+        <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
+      </div>
 
-      {/* Today's Customers Notification for Supervisors */}
-      {isSupervisor && (
-        <div className="px-4 mt-3">
-          <div
-            onClick={() => setShowTodayCustomers(true)}
-            className="relative overflow-hidden rounded-xl border-2 border-sky-300 bg-gradient-to-br from-sky-50 to-blue-100 p-4 cursor-pointer active:scale-[0.97] transition-all hover:shadow-lg flex items-center gap-3"
+      {/* Hero CTA */}
+      {heroAction && (
+        <div className="px-3 mt-3">
+          <button
+            onClick={heroAction.onClick}
+            className={`w-full rounded-2xl bg-gradient-to-br ${heroAction.gradient} text-white p-4 flex items-center gap-3 shadow-lg active:scale-[0.98] transition-all`}
           >
-            <CalendarCheck className="w-8 h-8 text-sky-600 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-sky-900">{todayCustomersLabel}</p>
-              <p className="text-xs text-sky-700">{t('worker.today_schedule_desc')}</p>
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+              {heroAction.icon}
             </div>
-          </div>
+            <div className="text-right flex-1 min-w-0">
+              <p className="font-bold text-base">{heroAction.label}</p>
+              <p className="text-xs text-white/80 truncate">{heroAction.sub}</p>
+            </div>
+            <ArrowDownToLine className="w-5 h-5 -rotate-90 text-white/70 shrink-0" />
+          </button>
         </div>
       )}
 
-      {/* Warehouse Manager: Today's Customers */}
-      {isWarehouseManager && !isSupervisor && (
-        <div className="px-4 mt-3">
-          <div
-            onClick={() => setShowTodayCustomers(true)}
-            className="relative overflow-hidden rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-100 p-4 cursor-pointer active:scale-[0.97] transition-all hover:shadow-lg flex items-center gap-3"
-          >
-            <CalendarCheck className="w-8 h-8 text-emerald-600 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-emerald-900">{todayCustomersLabel}</p>
-              <p className="text-xs text-emerald-700">{t('worker.today_schedule_desc')}</p>
-            </div>
+      {/* Spotlight horizontal scroll */}
+      {spotlightCards.length > 0 && (
+        <div className="mt-3 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2.5 px-3 pb-1 min-w-min">
+            {spotlightCards.map(card => {
+              const tm = toneMap[card.tone] || toneMap.blue;
+              return (
+                <button
+                  key={card.key}
+                  onClick={card.onClick}
+                  className={`shrink-0 w-44 rounded-xl bg-card border border-border/60 p-3 text-right active:scale-95 transition-all hover:shadow-md`}
+                >
+                  <div className={`w-9 h-9 rounded-lg ${tm.bg} ${tm.ic} flex items-center justify-center ring-1 ${tm.ring} mb-2`}>
+                    {card.icon}
+                  </div>
+                  <p className="font-bold text-xs text-foreground line-clamp-1">{card.title}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{card.sub}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
-
-      {/* Warehouse Manager: Final Review (always visible) */}
-      {isWarehouseManager && (
-        <div className="px-4 mt-3">
-          <div
-            onClick={() => setShowFinalReviewPicker(true)}
-            className="relative overflow-hidden rounded-xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-100 p-4 cursor-pointer active:scale-[0.97] transition-all hover:shadow-lg flex items-center gap-3"
-          >
-            <ClipboardCheck className="w-8 h-8 text-blue-600 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-blue-900">المراجعة النهائية</p>
-              <p className="text-xs text-blue-700">مراجعة شاملة للشحن والتفريغ قبل جلسة المحاسبة</p>
-            </div>
-          </div>
-        </div>
-      )}
-
 
       {hasPromoAccess ? (
         <>
-          <div className="px-4 mt-4">
+          <div className="px-3 mt-4">
             <button
               onClick={() => setShowManualPromoEntry(true)}
               className="w-full rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 text-white p-4 flex items-center justify-center gap-2 shadow-lg active:scale-[0.97] transition-all"
@@ -411,9 +458,8 @@ const WorkerHome: React.FC = () => {
             </button>
           </div>
 
-          {/* Products Section for Promo */}
           <div className="mt-4">
-            <div className="px-4 mb-2">
+            <div className="px-3 mb-2">
               <h3 className="text-lg font-bold">{t('products.list')}</h3>
             </div>
             <ProductGrid
@@ -423,147 +469,108 @@ const WorkerHome: React.FC = () => {
             />
           </div>
 
-          {/* Add Promo Dialog */}
           <AddPromoDialog
             open={showPromoDialog}
             onOpenChange={setShowPromoDialog}
             product={selectedProduct}
-            onSuccess={() => {
-              // Optionally refresh data
-            }}
+            onSuccess={() => {}}
           />
         </>
       ) : (hasOrdersAccess || hasDeliveryAccess || hasDebtAccess || isWarehouseManager) ? (
         (() => {
-          type Action = { key: string; icon: React.ReactNode; label: string; onClick: () => void; group: 'sales' | 'delivery' | 'stock' | 'customers' | 'other' };
+          type Action = { key: string; icon: React.ReactNode; label: string; onClick: () => void; group: 'work' | 'customers' | 'reports' };
           const quickActions: Action[] = [];
 
-          if (hasDeliveryAccess && !isDeliveriesPageHidden && !isDeliveriesHidden) {
-            quickActions.push({ key: 'deliveries', icon: <Truck className="w-6 h-6" />, label: t('deliveries.title'), onClick: () => navigate('/my-deliveries'), group: 'delivery' });
+          if (hasDeliveryAccess && !isDirectSaleHidden) {
+            quickActions.push({ key: 'direct-sale', icon: <ShoppingBag className="w-5 h-5" />, label: t('stock.direct_sale'), onClick: () => { setSalesHubTab('direct'); setShowActionDialog(true); }, group: 'work' });
           }
-          if ((hasDeliveryAccess || isWarehouseManager) && !isDirectSaleHidden) {
-            quickActions.push({
-              key: 'direct-sale',
-              icon: <ShoppingBag className="w-6 h-6" />,
-              label: isWarehouseManager ? `${t('worker_home.depot_sale')} - Vente Dépôt` : t('stock.direct_sale'),
-              onClick: () => {
-                setSalesHubTab('direct');
-                setShowActionDialog(true);
-              },
-              group: 'sales',
-            });
-          }
-          if (isWarehouseManager) {
-            quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true), group: 'stock' });
-            quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true), group: 'stock' });
-            quickActions.push({ key: 'final-review', icon: <ClipboardCheck className="w-6 h-6" />, label: 'المراجعة النهائية', onClick: () => setShowFinalReviewPicker(true), group: 'stock' });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking'), group: 'other' });
-          }
-          if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
-            quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock'), group: 'stock' });
+          if (isWarehouseManager && !isDirectSaleHidden) {
+            quickActions.push({ key: 'depot-sale', icon: <ShoppingBag className="w-5 h-5" />, label: `${t('worker_home.depot_sale')} - Vente Dépôt`, onClick: () => { setSalesHubTab('direct'); setShowActionDialog(true); }, group: 'work' });
           }
           if (hasOrdersAccess && !isWarehouseManager && !isOrdersPageHidden && !isCreateOrderHidden) {
-            quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true), group: 'sales' });
-            quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders'), group: 'sales' });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking'), group: 'other' });
+            quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-5 h-5" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true), group: 'work' });
+            quickActions.push({ key: 'orders', icon: <ClipboardList className="w-5 h-5" />, label: t('orders.manage'), onClick: () => navigate('/orders'), group: 'work' });
           }
           if (hasOrdersAccess && !hasDeliveryAccess && !isWarehouseManager && !isMyPromosPageHidden) {
-            quickActions.push({ key: 'promos', icon: <Gift className="w-6 h-6" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos'), group: 'sales' });
+            quickActions.push({ key: 'promos', icon: <Gift className="w-5 h-5" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos'), group: 'work' });
+          }
+          if (hasDeliveryAccess && !isDeliveriesPageHidden && !isDeliveriesHidden) {
+            quickActions.push({ key: 'deliveries', icon: <Truck className="w-5 h-5" />, label: t('deliveries.title'), onClick: () => navigate('/my-deliveries'), group: 'work' });
+          }
+
+          if (hasCustomerAccess && !isCustomersPageHidden && !isAddCustomerHidden) {
+            quickActions.push({ key: 'customers', icon: <Users className="w-5 h-5" />, label: t('nav.customers'), onClick: () => navigate('/customers'), group: 'customers' });
           }
           if (hasDebtAccess && !isCollectDebtHidden && !isDebtsPageHidden) {
-            quickActions.push({ key: 'debts', icon: <Banknote className="w-6 h-6" />, label: t('debts.title'), onClick: () => navigate('/customer-debts'), group: 'customers' });
-          }
-          if (hasCustomerAccess && !isCustomersPageHidden && !isAddCustomerHidden) {
-            quickActions.push({ key: 'customers', icon: <Users className="w-6 h-6" />, label: t('nav.customers'), onClick: () => navigate('/customers'), group: 'customers' });
+            quickActions.push({ key: 'debts', icon: <Banknote className="w-5 h-5" />, label: t('debts.title'), onClick: () => navigate('/customer-debts'), group: 'customers' });
           }
           if (hasExpenseAccess && !isExpensesPageHidden && !isExpensesHidden) {
-            quickActions.push({ key: 'expenses', icon: <Wallet className="w-6 h-6" />, label: t('expenses.my_expenses'), onClick: () => navigate('/expenses'), group: 'other' });
+            quickActions.push({ key: 'expenses', icon: <Wallet className="w-5 h-5" />, label: t('expenses.my_expenses'), onClick: () => navigate('/expenses'), group: 'customers' });
           }
-          if (!isTodayCustomersHidden) {
-            quickActions.push({ key: 'today-customers', icon: <MapPin className="w-6 h-6" />, label: todayCustomersLabel, onClick: () => setShowTodayCustomers(true), group: 'customers' });
+
+          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-5 h-5" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements'), group: 'reports' });
+          if (hasOrdersAccess && !isWarehouseManager) {
+            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-5 h-5" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking'), group: 'reports' });
           }
-          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements'), group: 'other' });
+          if (isWarehouseManager) {
+            quickActions.push({ key: 'order-tracking-wh', icon: <ClipboardCheck className="w-5 h-5" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking'), group: 'reports' });
+          }
           if ((isSupervisor || isAdminAssistant) && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
-            quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-6 h-6" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions'), group: 'other' });
+            quickActions.push({ key: 'worker-actions', icon: <HardHat className="w-5 h-5" />, label: t('worker.worker_actions'), onClick: () => navigate('/worker-actions'), group: 'reports' });
           }
           if (isSupervisor || isAdminAssistant) {
-            quickActions.push({ key: 'promo-tracking', icon: <Gift className="w-6 h-6" />, label: t('admin.promo_tracking'), onClick: () => navigate('/promo-tracking'), group: 'other' });
+            quickActions.push({ key: 'promo-tracking', icon: <Gift className="w-5 h-5" />, label: t('admin.promo_tracking'), onClick: () => navigate('/promo-tracking'), group: 'reports' });
           }
 
-          const itemColors: Record<string, { icon: string; ring: string; bg: string }> = {
-            deliveries: { icon: 'text-blue-600', ring: 'ring-blue-200', bg: 'bg-blue-50' },
-            'direct-sale': { icon: 'text-emerald-600', ring: 'ring-emerald-200', bg: 'bg-emerald-50' },
-            'my-stock': { icon: 'text-violet-600', ring: 'ring-violet-200', bg: 'bg-violet-50' },
-            orders: { icon: 'text-indigo-600', ring: 'ring-indigo-200', bg: 'bg-indigo-50' },
-            'create-order': { icon: 'text-blue-700', ring: 'ring-blue-200', bg: 'bg-blue-50' },
-            'order-tracking': { icon: 'text-slate-600', ring: 'ring-slate-200', bg: 'bg-slate-50' },
-            promos: { icon: 'text-amber-600', ring: 'ring-amber-200', bg: 'bg-amber-50' },
-            debts: { icon: 'text-rose-600', ring: 'ring-rose-200', bg: 'bg-rose-50' },
-            customers: { icon: 'text-cyan-600', ring: 'ring-cyan-200', bg: 'bg-cyan-50' },
-            expenses: { icon: 'text-yellow-600', ring: 'ring-yellow-200', bg: 'bg-yellow-50' },
-            'today-customers': { icon: 'text-sky-600', ring: 'ring-sky-200', bg: 'bg-sky-50' },
-            'my-achievements': { icon: 'text-violet-600', ring: 'ring-violet-200', bg: 'bg-violet-50' },
-            'worker-actions': { icon: 'text-indigo-600', ring: 'ring-indigo-200', bg: 'bg-indigo-50' },
-            'stock-management': { icon: 'text-teal-600', ring: 'ring-teal-200', bg: 'bg-teal-50' },
-            'load-worker': { icon: 'text-orange-600', ring: 'ring-orange-200', bg: 'bg-orange-50' },
-            'final-review': { icon: 'text-blue-600', ring: 'ring-blue-200', bg: 'bg-blue-50' },
-            'promo-tracking': { icon: 'text-amber-600', ring: 'ring-amber-200', bg: 'bg-amber-50' },
+          const groupMeta: Record<Action['group'], { label: string; accent: string }> = {
+            work: { label: 'العمل اليومي', accent: 'bg-emerald-500' },
+            customers: { label: 'العملاء والمالية', accent: 'bg-cyan-500' },
+            reports: { label: 'متابعة وتقارير', accent: 'bg-amber-500' },
           };
-          const defaultColor = { icon: 'text-primary', ring: 'ring-border', bg: 'bg-muted/30' };
-
-          const groupLabels: Record<Action['group'], string> = {
-            sales: '🛒 المبيعات',
-            delivery: '🚚 التوصيل',
-            stock: '📦 المخزن',
-            customers: '👥 العملاء',
-            other: '⚙️ أخرى',
-          };
-          const groupOrder: Action['group'][] = ['sales', 'delivery', 'stock', 'customers', 'other'];
+          const groupOrder: Action['group'][] = ['work', 'customers', 'reports'];
           const grouped = groupOrder
             .map(g => ({ group: g, items: quickActions.filter(a => a.group === g) }))
             .filter(s => s.items.length > 0);
 
-          const renderTile = (action: Action) => {
-            const ic = itemColors[action.key] || defaultColor;
-            return (
-              <button
-                key={action.key}
-                onClick={action.onClick}
-                className="group flex flex-col items-center justify-center p-3 gap-2 rounded-2xl bg-card border border-border/60 cursor-pointer active:scale-95 transition-all hover:shadow-lg hover:-translate-y-0.5"
-              >
-                <div className={`w-11 h-11 rounded-xl ${ic.bg} flex items-center justify-center ring-1 ${ic.ring}`}>
-                  {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon}` })}
-                </div>
-                <span className="text-[11px] font-semibold text-center leading-tight text-foreground line-clamp-2">{action.label}</span>
-              </button>
-            );
-          };
-
           return quickActions.length > 0 ? (
-            <div className="p-4 space-y-4">
-              {grouped.map(({ group, items }) => (
-                <div key={group} className="space-y-2">
-                  <div className="flex items-center gap-2 px-1">
-                    <h3 className="text-xs font-bold text-muted-foreground tracking-wide">{groupLabels[group]}</h3>
-                    <div className="flex-1 h-px bg-border/60" />
-                    <span className="text-[10px] text-muted-foreground/70">{items.length}</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2.5">
-                    {items.map(renderTile)}
-                  </div>
-                </div>
-              ))}
+            <div className="px-3 mt-5 space-y-5">
+              {grouped.map(({ group, items }) => {
+                const meta = groupMeta[group];
+                return (
+                  <section key={group}>
+                    <div className="flex items-center gap-2 mb-2.5 px-1">
+                      <span className={`w-1 h-4 rounded-full ${meta.accent}`} />
+                      <h3 className="text-sm font-bold text-foreground">{meta.label}</h3>
+                      <span className="text-[10px] text-muted-foreground bg-muted rounded-full px-2 py-0.5">{items.length}</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {items.map(action => (
+                        <button
+                          key={action.key}
+                          onClick={action.onClick}
+                          className="flex flex-col items-center justify-start p-2.5 gap-1.5 rounded-xl bg-card border border-border/50 active:scale-95 transition-all hover:shadow-md hover:border-primary/30 min-h-[78px]"
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-foreground/80">
+                            {action.icon}
+                          </div>
+                          <span className="text-[10px] font-medium text-center leading-tight text-foreground line-clamp-2">{action.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
           ) : null;
         })()
       ) : (
-        /* No specific permissions */
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <Gift className="w-12 h-12 mb-3 opacity-50" />
           <p className="text-lg font-medium">{t('common.no_permissions')}</p>
           <p className="text-sm">{t('common.contact_admin')}</p>
         </div>
       )}
+
 
       <SalesHubDialog
         open={showSalesHubDialog}
