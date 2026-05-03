@@ -1144,33 +1144,36 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       })}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs">التاريخ</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px]">التاريخ</Label>
                         <Input
                           type="date"
                           value={deliveryDate}
                           onChange={(e) => setDeliveryDate(e.target.value)}
+                          className="h-9"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">الوقت</Label>
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px]">الوقت</Label>
                         <Input
                           type="time"
                           value={deliveryTime}
                           onChange={(e) => setDeliveryTime(e.target.value)}
+                          className="h-9"
                         />
                       </div>
                     </div>
                   </section>
 
-                  <section className="space-y-2">
-                    <Label>{t('common.notes')} ({t('common.optional')})</Label>
+                  <section className="space-y-1.5">
+                    <Label className="text-sm">{t('common.notes')} ({t('common.optional')})</Label>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder={t('orders.add_notes')}
                       rows={2}
+                      className="min-h-[60px]"
                     />
                   </section>
                 </>
