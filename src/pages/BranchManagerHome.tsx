@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
+import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -12,7 +14,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
-  Coins, HandCoins, PackageSearch,
+  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat,
 } from 'lucide-react';
 
 interface BMItem {
@@ -37,6 +39,22 @@ const BranchManagerHome: React.FC = () => {
 
   const branchId = activeBranch?.id;
   const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
+  const [finalReviewPickerOpen, setFinalReviewPickerOpen] = useState(false);
+  const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
+
+  const { data: deliveryWorkers = [] } = useQuery({
+    queryKey: ['bm-delivery-workers', branchId],
+    enabled: !!branchId && finalReviewPickerOpen,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('workers')
+        .select('id, full_name')
+        .eq('is_active', true)
+        .eq('branch_id', branchId!)
+        .order('full_name');
+      return (data || []) as { id: string; full_name: string }[];
+    },
+  });
 
   // Realtime: تنبيه فوري عند وصول طلب فاتورة جديد للفرع
   useEffect(() => {
@@ -141,7 +159,7 @@ const BranchManagerHome: React.FC = () => {
       items: [
         { key: 'all_approvals', label: 'كل الموافقات', icon: ShieldCheck, path: '/branch-approvals', badge: (kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0) },
         { key: 'invoice_approvals', label: t('branch_invoice_approvals.title'), icon: FileText, path: '/branch-invoice-approvals', badge: kpis?.pendingInvoices },
-        { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardList, path: '/warehouse-review' },
+        { key: 'final_review', label: 'المراجعة النهائية', icon: ClipboardCheck, onClick: () => setFinalReviewPickerOpen(true) },
         {
           key: 'factory_approvals',
           label: 'موافقات استلام/تسليم المصنع',
@@ -295,6 +313,44 @@ const BranchManagerHome: React.FC = () => {
         })}
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
+
+      <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-emerald-600" />
+              اختر عامل التوصيل للمراجعة النهائية
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+            {deliveryWorkers.length === 0 ? (
+              <p className="col-span-2 text-center text-sm text-muted-foreground py-6">لا يوجد عمال نشطون</p>
+            ) : deliveryWorkers.map(w => (
+              <button
+                key={w.id}
+                onClick={() => {
+                  setFinalReviewWorker({ id: w.id, name: w.full_name });
+                  setFinalReviewPickerOpen(false);
+                }}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 hover:border-emerald-400 active:scale-95 transition-all"
+              >
+                <HardHat className="w-6 h-6 text-emerald-600" />
+                <span className="text-xs font-bold text-center">{w.full_name}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {finalReviewWorker && (
+        <FinalReviewDialog
+          open={!!finalReviewWorker}
+          onOpenChange={(o) => { if (!o) setFinalReviewWorker(null); }}
+          workerId={finalReviewWorker.id}
+          workerName={finalReviewWorker.name}
+          branchId={branchId || null}
+        />
+      )}
     </div>
   );
 };

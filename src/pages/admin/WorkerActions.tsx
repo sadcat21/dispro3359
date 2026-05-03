@@ -59,6 +59,7 @@ import SectorScheduleDialog from '@/components/sectors/SectorScheduleDialog';
 import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
 import ExchangeSessionDialog from '@/components/stock/ExchangeSessionDialog';
 import WorkerAccountingSessionsDialog from '@/components/accounting/WorkerAccountingSessionsDialog';
+import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { isAdminRole, isSuperAdminRole } from '@/lib/utils';
 
 const workerActions = [
@@ -91,6 +92,7 @@ const workerActions = [
   { key: 'orders_summary', icon: ClipboardList, path: '', labelKey: 'worker_actions.orders_summary', color: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300', isDialog: true },
   { key: 'exchange_damaged', icon: RefreshCw, path: '', labelKey: 'worker_actions.exchange_damaged', color: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300', isDialog: true },
   { key: 'accounting_sessions', icon: Calculator, path: '', labelKey: 'worker_actions.accounting_sessions', color: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300', isDialog: true },
+  { key: 'final_review', icon: ClipboardCheck, path: '', labelKey: 'worker_actions.final_review', color: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300', isDialog: true },
 ];
 
 const WorkerActions: React.FC = () => {
@@ -121,6 +123,7 @@ const WorkerActions: React.FC = () => {
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
   const [exchangeDamagedOpen, setExchangeDamagedOpen] = useState(false);
   const [accountingSessionsOpen, setAccountingSessionsOpen] = useState(false);
+  const [finalReviewOpen, setFinalReviewOpen] = useState(false);
 
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   // Warehouse manager sees admin-style worker list (like supervisor)
@@ -784,6 +787,8 @@ const WorkerActions: React.FC = () => {
         setExchangeDamagedOpen(true);
       } else if (action.key === 'accounting_sessions') {
         setAccountingSessionsOpen(true);
+      } else if (action.key === 'final_review') {
+        setFinalReviewOpen(true);
       }
       return;
     }
@@ -876,7 +881,7 @@ const WorkerActions: React.FC = () => {
               const warehouseAllowed = new Set([
                 'load_stock', 'unload_truck', 'truck_stock', 'stock_review', 'session_history',
                 'exchange_damaged', 'achievements', 'orders', 'today_customers', 'tracking',
-                'attendance_log', 'sector_schedule', 'sector_coverage',
+                'attendance_log', 'sector_schedule', 'sector_coverage', 'final_review',
               ]);
               return warehouseAllowed.has(action.key);
             }
@@ -1251,6 +1256,15 @@ const WorkerActions: React.FC = () => {
         workerId={selectedWorker?.id}
         workerName={selectedWorker?.full_name}
       />
+      {selectedWorker && (
+        <FinalReviewDialog
+          open={finalReviewOpen}
+          onOpenChange={setFinalReviewOpen}
+          workerId={selectedWorker.id}
+          workerName={selectedWorker.full_name}
+          branchId={effectiveBranchId}
+        />
+      )}
     </div>
   );
 };
