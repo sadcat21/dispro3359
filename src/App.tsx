@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from "@/lib/utils";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";
+import { UIThemeProvider } from "@/contexts/UIThemeContext";
 import { SelectedWorkerProvider } from "@/contexts/SelectedWorkerContext";
 import { InvoiceFilterProvider } from "@/contexts/InvoiceFilterContext";
 import MobileLayout from "@/components/layout/MobileLayout";
@@ -594,6 +595,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <FontSizeProvider>
+          <UIThemeProvider>
           <TooltipProvider>
             <VersionGuard>
               <AuthProvider>
@@ -610,6 +612,7 @@ const App = () => (
               </AuthProvider>
             </VersionGuard>
           </TooltipProvider>
+          </UIThemeProvider>
         </FontSizeProvider>
       </LanguageProvider>
     </QueryClientProvider>

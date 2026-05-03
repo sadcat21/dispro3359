@@ -336,7 +336,7 @@ const WorkerHome: React.FC = () => {
   return (
     <div className="pb-24 touch-pan-y">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground p-6">
+      <div className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground p-6 [.theme-soft_&]:bg-none [.theme-soft_&]:bg-background [.theme-soft_&]:text-foreground">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold mb-1">{t('common.welcome')} {user?.full_name} 👋</h2>
@@ -521,19 +521,19 @@ const WorkerHome: React.FC = () => {
 
           return quickActions.length > 0 ? (
             <div className="p-4 space-y-3">
-              <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+              <div className="rounded-2xl border border-border bg-muted/20 p-3 space-y-2 [.theme-soft_&]:border-transparent [.theme-soft_&]:bg-transparent [.theme-soft_&]:shadow-none">
                 <h3 className="text-xs font-bold text-muted-foreground px-1">{t('common.quick_actions')}</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 [.theme-soft_&]:gap-4">
                   {quickActions.map((action) => {
                     const ic = itemColors[action.key] || defaultColor;
                     return (
                       <button
                         key={action.key}
                         onClick={action.onClick}
-                        className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md`}
+                        className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md [.theme-soft_&]:rounded-3xl [.theme-soft_&]:border-0 [.theme-soft_&]:bg-card [.theme-soft_&]:p-4 [.theme-soft_&]:shadow-[6px_6px_16px_hsl(30_20%_80%/0.55),-6px_-6px_16px_hsl(0_0%_100%/0.85)]`}
                       >
-                        {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon}` })}
-                        <span className="text-[10px] font-medium text-center leading-tight text-foreground">{action.label}</span>
+                        {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon} [.theme-soft_&]:w-6 [.theme-soft_&]:h-6` })}
+                        <span className="text-[10px] font-medium text-center leading-tight text-foreground [.theme-soft_&]:text-xs [.theme-soft_&]:mt-1">{action.label}</span>
                       </button>
                     );
                   })}
