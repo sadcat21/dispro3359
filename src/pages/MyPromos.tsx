@@ -69,10 +69,10 @@ const MyPromosContent: React.FC = () => {
   const logActivity = useLogActivity();
   const { data: myLogs } = useMyActivityLogs();
 
-  // UI override checks
-  const isAddPromoHidden = useIsElementHidden('button', 'add_promo');
-  const isEditPromoHidden = useIsElementHidden('action', 'edit_promo');
-  const isDeletePromoHidden = useIsElementHidden('action', 'delete_promo');
+  // UI override checks — معطّلة بناءً على طلب المستخدم: العمال يمكنهم العرض فقط
+  const isAddPromoHidden = true;
+  const isEditPromoHidden = true;
+  const isDeletePromoHidden = true;
 
   useEffect(() => {
     if (workerId) {

@@ -418,9 +418,7 @@ const WorkerHome: React.FC = () => {
           // Build visible actions dynamically
           const quickActions: { key: string; icon: React.ReactNode; label: string; onClick: () => void }[] = [];
 
-          if (hasDeliveryAccess && !isDeliveriesPageHidden && !isDeliveriesHidden) {
-            quickActions.push({ key: 'deliveries', icon: <Truck className="w-6 h-6" />, label: t('deliveries.title'), onClick: () => navigate('/my-deliveries') });
-          }
+          // إخفاء زر التوصيلات من الواجهة الرئيسية بناءً على طلب المستخدم
           if ((hasDeliveryAccess || isWarehouseManager) && !isDirectSaleHidden) {
             quickActions.push({
               key: 'direct-sale',
@@ -445,7 +443,7 @@ const WorkerHome: React.FC = () => {
           if ((hasOrdersAccess || isWarehouseManager) && !isOrdersPageHidden && !isCreateOrderHidden) {
             quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true) });
             if (!isWarehouseManager) {
-              quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
+              // إخفاء زر إدارة الطلبيات من الواجهة الرئيسية بناءً على طلب المستخدم
               quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking') });
             }
           }
