@@ -105,7 +105,7 @@ const ProductOffers: React.FC = () => {
     if (offer.gift_type === 'same_product') {
       return `${offer.gift_quantity} ${t('offers.free_units')}`;
     } else if (offer.gift_type === 'different_product' && offer.gift_product) {
-      return `${offer.gift_quantity} ${offer.gift_product.name}`;
+      return `${offer.gift_quantity} ${getProductDisplayName(offer.gift_product)}`;
     } else if (offer.gift_type === 'discount') {
       return `${offer.discount_percentage}% ${t('offers.discount')}`;
     }
@@ -255,7 +255,7 @@ const ProductOffers: React.FC = () => {
                                 → {tier.gift_type === 'same_product'
                                   ? `${tier.gift_quantity} ${t('offers.free_units')}`
                                   : tier.gift_type === 'different_product' && tier.gift_product
-                                  ? `${tier.gift_quantity} ${tier.gift_product.name}`
+                                  ? `${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
                                   : `${tier.discount_percentage}% ${t('offers.discount')}`}
                               </Badge>
                               {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
