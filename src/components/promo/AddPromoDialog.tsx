@@ -41,6 +41,19 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [activeOffer, setActiveOffer] = useState<{
+    id: string;
+    name: string;
+    min_quantity_unit: 'box' | 'piece';
+    gift_quantity_unit: 'box' | 'piece';
+    min_quantity: number;
+    gift_quantity: number;
+  } | null>(null);
+
+  const piecesPerBox = Number(product?.pieces_per_box || 1) || 1;
+  const saleUnit: 'box' | 'piece' = activeOffer?.min_quantity_unit || 'piece';
+  const giftUnit: 'box' | 'piece' = activeOffer?.gift_quantity_unit || 'piece';
+  const unitLabel = (u: 'box' | 'piece') => (u === 'box' ? t('common.box') || 'صندوق' : t('common.piece') || 'قطعة');
 
   const isAdmin = isAdminRole(role);
   const isBranchAdmin = role === 'branch_admin';
