@@ -367,6 +367,7 @@ const Products: React.FC = () => {
       setWeightPerBox(0);
       setAllowUnitSale(true);
       setProductSortOrder(0);
+      setProductSupplierId('');
       setProductImage(null);
       setProductImagePreview(null);
       fetchProducts();
