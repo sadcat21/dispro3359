@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Gift, Package, ChevronDown, ChevronUp, User, Calendar, Printer } from 'lucide-react';
+import { Gift, Package, ChevronDown, ChevronUp, User, Calendar, Printer, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PromoTrackingItem } from '@/hooks/useSessionCalculations';
 import { Button } from '@/components/ui/button';
@@ -64,7 +64,52 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
 
   return (
     <div className="space-y-2">
-      {/* Promo items table - shown first */}
+      {/* Cards grid (matches sales summary look) */}
+      <div className="grid grid-cols-3 gap-2 pb-2">
+        {items.map((item, idx) => {
+          const hasDetails = item.customerDetails && item.customerDetails.length > 0;
+          return (
+            <div
+              key={`card-${idx}`}
+              className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-border hover:border-primary/50 cursor-pointer active:scale-[0.97] transition-all bg-card"
+              onClick={() => hasDetails && setExpandedIdx(expandedIdx === idx ? null : idx)}
+            >
+              <div className="px-2 py-1.5 border-b text-center bg-muted border-border">
+                <span className="font-bold text-xs leading-tight block truncate text-foreground">
+                  {item.productName}
+                </span>
+              </div>
+              <div className="w-full aspect-square bg-muted overflow-hidden">
+                {item.productImage ? (
+                  <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Gift className="w-10 h-10 text-primary/30" />
+                  </div>
+                )}
+              </div>
+              <div className="px-1.5 py-1.5 flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-primary/10 text-primary py-1 text-xs font-bold">
+                    <Package className="w-3 h-3" />
+                    {item.quantitySold}
+                  </div>
+                  <div className="flex items-center justify-center gap-0.5 rounded-md bg-purple-100 text-purple-700 py-1 px-1.5 text-[10px] font-bold">
+                    🎁 {formatGiftDisplay(item.giftQuantity, item.piecesPerBox)}
+                  </div>
+                </div>
+                {item.offerDescription && (
+                  <div className="rounded-md bg-secondary/60 text-secondary-foreground py-1 px-1 text-[9px] font-semibold text-center leading-tight line-clamp-2">
+                    {item.offerDescription}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Expandable details table (kept for drill-down) */}
       <div className="bg-muted/30 rounded-lg overflow-hidden">
         <div className="grid grid-cols-12 gap-1 text-[10px] text-muted-foreground font-medium p-2 border-b">
           <span className="col-span-4">{t('stock.product') || tp('print.promo.product')}</span>
