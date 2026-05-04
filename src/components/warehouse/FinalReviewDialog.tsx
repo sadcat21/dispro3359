@@ -72,8 +72,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           .limit(1)
           .maybeSingle();
 
-        const sinceTs = lastSession?.completed_at || lastSession?.period_end || lastSession?.created_at || '1970-01-01';
-        if (!cancelled) setPeriodStart(sinceTs);
+        const realSince = lastSession?.completed_at || lastSession?.period_end || lastSession?.created_at || null;
+        const sinceTs = realSince || '1970-01-01';
+        if (!cancelled) setPeriodStart(realSince);
 
         // 2. جلسات الشحن للعامل بعد ذلك التاريخ
         const { data: loadSessions } = await supabase
@@ -276,11 +277,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             <CheckCircle className="w-5 h-5 text-primary" />
             المراجعة النهائية — {workerName}
           </DialogTitle>
-          {periodStart && (
-            <p className="text-[11px] text-muted-foreground">
-              منذ آخر جلسة محاسبة: {new Date(periodStart).toLocaleString('ar-DZ')}
-            </p>
-          )}
+          <p className="text-[11px] text-muted-foreground">
+            {periodStart
+              ? `منذ آخر جلسة محاسبة: ${new Date(periodStart).toLocaleString('ar-DZ')}`
+              : 'لا توجد جلسة محاسبة سابقة — يتم احتساب جميع الحركات'}
+          </p>
         </DialogHeader>
 
         <div className="shrink-0 space-y-2">
