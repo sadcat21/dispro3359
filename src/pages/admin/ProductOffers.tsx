@@ -30,6 +30,7 @@ import {
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { isAdminRole, isCompanyManagerRole } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const ProductOffers: React.FC = () => {
   const { t, language, dir } = useLanguage();
