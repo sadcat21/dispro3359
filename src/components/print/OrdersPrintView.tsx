@@ -411,7 +411,19 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
             </tr>
           </thead>
           <tbody>
-            {orders.map((order, index) => {
+            {[...orders]
+              .sort((a, b) => {
+                const za = (a.customer as any)?.zone;
+                const zb = (b.customer as any)?.zone;
+                const zoneA = (printLanguage !== 'ar' && za?.name_fr ? za.name_fr : za?.name) || '';
+                const zoneB = (printLanguage !== 'ar' && zb?.name_fr ? zb.name_fr : zb?.name) || '';
+                const cmp = zoneA.localeCompare(zoneB, undefined, { sensitivity: 'base' });
+                if (cmp !== 0) return cmp;
+                const nameA = getCustomerName(a.customer) || '';
+                const nameB = getCustomerName(b.customer) || '';
+                return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+              })
+              .map((order, index) => {
               const debtInfo = order.customer_id ? customerDebts[order.customer_id] : null;
               const sectorData = (order.customer as any)?.sector;
               const zoneData = (order.customer as any)?.zone;
