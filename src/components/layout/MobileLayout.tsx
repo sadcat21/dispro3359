@@ -266,6 +266,22 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
+  // Pending count for branch manager approvals badge in bottom nav
+  const { data: branchApprovalsPendingCount } = useQuery({
+    queryKey: ['branch-approvals-nav-count', activeBranch?.id],
+    queryFn: async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const branchId = activeBranch?.id;
+      const [invoices, warehouseReviews] = await Promise.all([
+        (() => { let q = supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_branch'); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
+        supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
+      return (invoices.count || 0) + (warehouseReviews.count || 0);
+    },
+    enabled: !!activeBranch?.id,
+    refetchInterval: 30000,
+  });
+
   const LANGUAGES: { code: Language; label: string; flag: string }[] = [
     { code: 'ar', label: 'العربية', flag: '🇩🇿' },
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -787,12 +803,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             {/* العناصر اليسرى (أول عنصرين) */}
             {mainNavItems.slice(0, 2).map((item) => {
               const isActive = location.pathname === item.path;
+              const navBadge = item.path === '/branch-approvals' ? (branchApprovalsPendingCount || 0) : 0;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                    'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
                     isActive
                       ? 'bg-sidebar-primary/15 text-sidebar-primary'
                       : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
@@ -800,6 +817,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   title={item.label}
                 >
                   <item.icon className="h-[23px] w-[23px]" strokeWidth={isActive ? 2.45 : 1.85} />
+                  {navBadge > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                      {navBadge > 99 ? '99+' : navBadge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -854,13 +876,18 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <Link
                 to={mainNavItems[2].path}
                 className={cn(
-                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
                   location.pathname === mainNavItems[2].path
                     ? 'bg-sidebar-primary/15 text-sidebar-primary'
                     : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                 )}
               >
                 {React.createElement(mainNavItems[2].icon, { className: 'h-[23px] w-[23px]', strokeWidth: location.pathname === mainNavItems[2].path ? 2.45 : 1.85 })}
+                {mainNavItems[2].path === '/branch-approvals' && (branchApprovalsPendingCount || 0) > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {(branchApprovalsPendingCount || 0) > 99 ? '99+' : branchApprovalsPendingCount}
+                  </span>
+                )}
               </Link>
             ) : <div />}
 

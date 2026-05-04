@@ -50,7 +50,7 @@ const BranchManagerApprovals: React.FC = () => {
   const approvals: ApprovalCard[] = [
     {
       key: 'invoice_approvals',
-      title: t('branch_invoice_approvals.title') || 'الموافقة على طلبات الفواتير',
+      title: 'طلبات الفواتير',
       description: 'مراجعة طلبات الفواتير المرسلة من العمال قبل تحويلها للإدارة',
       icon: FileText,
       path: '/branch-invoice-approvals',
