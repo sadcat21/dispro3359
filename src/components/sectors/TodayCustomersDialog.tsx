@@ -2440,7 +2440,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50"
-                        onClick={() => setShowOrdersSummary(true)}
+                        onClick={() => { setOrdersSummaryMode('delivery'); setShowOrdersSummary(true); }}
                       >
                         <Printer className="w-4 h-4" />
                         طباعة الشحنة
