@@ -204,6 +204,7 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchSuppliers();
 
     // Realtime subscription for products
     const baseChannelName = 'products-realtime';
@@ -235,6 +236,20 @@ const Products: React.FC = () => {
   useEffect(() => {
     setEditPriceInvoice(getGrossPriceWithVat(editPriceInvoiceOfficial));
   }, [editPriceInvoiceOfficial]);
+
+  const fetchSuppliers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers' as any)
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setSuppliers((data as any) || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -301,6 +316,7 @@ const Products: React.FC = () => {
         price_no_invoice: priceNoInvoice,
         allow_unit_sale: allowUnitSale,
         sort_order: productSortOrder,
+        supplier_id: productSupplierId || null,
         created_by: workerId,
       };
 
@@ -351,6 +367,7 @@ const Products: React.FC = () => {
       setWeightPerBox(0);
       setAllowUnitSale(true);
       setProductSortOrder(0);
+      setProductSupplierId('');
       setProductImage(null);
       setProductImagePreview(null);
       fetchProducts();
@@ -392,6 +409,7 @@ const Products: React.FC = () => {
     setEditWeightPerBox(product.weight_per_box || 0);
     setEditAllowUnitSale(product.allow_unit_sale !== false);
     setEditSortOrder((product as any).sort_order || 0);
+    setEditSupplierId((product as any).supplier_id || '');
     setEditProductImage(null);
     setEditProductImagePreview(product.image_url || null);
     setEditPriceSuperGros(product.price_super_gros || 0);
@@ -499,6 +517,7 @@ const Products: React.FC = () => {
         price_no_invoice: editPriceNoInvoice,
         allow_unit_sale: editAllowUnitSale,
         sort_order: editSortOrder,
+        supplier_id: editSupplierId || null,
         image_url: imageUrl,
       };
 
@@ -606,6 +625,7 @@ const Products: React.FC = () => {
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
         allow_unit_sale: editAllowUnitSale,
+        supplier_id: editSupplierId || null,
       };
 
       let { error } = await supabase
@@ -777,6 +797,20 @@ const Products: React.FC = () => {
                   className="text-right"
                 />
                 <p className="text-xs text-muted-foreground">{sortOrderHint}</p>
+              </div>
+
+              {/* Supplier */}
+              <div className="space-y-2">
+                <Label>المورد</Label>
+                <Select value={productSupplierId || 'none'} onValueChange={(v) => setProductSupplierId(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="اختر موردًا (اختياري)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— بدون مورد —</SelectItem>
+                    {suppliers.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Image Upload */}
@@ -1167,6 +1201,20 @@ const Products: React.FC = () => {
                 className="text-right"
               />
               <p className="text-xs text-muted-foreground">{sortOrderHint}</p>
+            </div>
+
+            {/* Supplier */}
+            <div className="space-y-2">
+              <Label>المورد</Label>
+              <Select value={editSupplierId || 'none'} onValueChange={(v) => setEditSupplierId(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="اختر موردًا (اختياري)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— بدون مورد —</SelectItem>
+                  {suppliers.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Image Upload */}
