@@ -153,6 +153,8 @@ const Products: React.FC = () => {
   const [activeTab, setActiveTab] = useState('products');
   const [invoiceTemplateOpen, setInvoiceTemplateOpen] = useState(false);
   const [titleTapCount, setTitleTapCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   
   // Group price update states
   const [showGroupUpdateDialog, setShowGroupUpdateDialog] = useState(false);
