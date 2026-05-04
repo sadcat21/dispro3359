@@ -442,10 +442,12 @@ const WorkerHome: React.FC = () => {
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
             quickActions.push({ key: 'my-stock', icon: <Package className="w-6 h-6" />, label: t('stock.my_stock'), onClick: () => navigate('/my-stock') });
           }
-          if (hasOrdersAccess && !isWarehouseManager && !isOrdersPageHidden && !isCreateOrderHidden) {
+          if ((hasOrdersAccess || isWarehouseManager) && !isOrdersPageHidden && !isCreateOrderHidden) {
             quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true) });
-            quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
-            quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking') });
+            if (!isWarehouseManager) {
+              quickActions.push({ key: 'orders', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
+              quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking') });
+            }
           }
           if (hasOrdersAccess && !hasDeliveryAccess && !isWarehouseManager && !isMyPromosPageHidden) {
             quickActions.push({ key: 'promos', icon: <Gift className="w-6 h-6" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos') });
