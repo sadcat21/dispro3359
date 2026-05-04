@@ -881,7 +881,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         </DialogHeader>
       )}
 
-      <div className="px-4 pt-3 pb-2 border-b bg-background shrink-0">
+      <div className="px-4 pt-2 pb-1.5 border-b bg-background shrink-0">
         <div className="grid grid-cols-3 gap-1">
           {[
             { n: 1 as const, label: 'العميل' },
