@@ -1,12 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, LayoutGrid, Wallet, User, Repeat2, type LucideIcon } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Wallet,
+  ClipboardList,
+  Home,
+  Repeat2,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface BottomNavItem {
   key: string;
   label: string;
   icon: LucideIcon;
+  badge?: number;
   onClick?: () => void;
 }
 
@@ -20,20 +28,24 @@ export interface BottomNavProps {
   className?: string;
 }
 
+const FAB_SIZE = 62; // px
+const NAV_HEIGHT = 72; // px
+const NOTCH_RADIUS = FAB_SIZE / 2 + 6; // breathing room around FAB
+const NAV_RADIUS = 28;
+
 const DEFAULT_ITEMS: BottomNavItem[] = [
+  { key: 'more', label: 'More', icon: MoreHorizontal },
+  { key: 'finance', label: 'Finance', icon: Wallet },
+  { key: 'orders', label: 'Orders', icon: ClipboardList },
   { key: 'home', label: 'Home', icon: Home },
-  { key: 'categories', label: 'Categories', icon: LayoutGrid },
-  { key: 'wallet', label: 'Wallet', icon: Wallet },
-  { key: 'profile', label: 'Profile', icon: User },
 ];
 
+const INACTIVE = '#444444';
+const ACTIVE = '#ff4d4f';
+
 /**
- * BottomNav — شريط تنقل سفلي عائم وفخم بأسلوب 2025
- * - Floating + حواف دائرية كبيرة + Shadow ناعم
- * - زر مركزي بارز للخارج مع Curved Notch (SVG)
- * - 4 عناصر جانبية (2 + 2)
- * - متوافق Mobile-first + Safe Area Insets
- * - Framer Motion: scale / fade / hover-tap
+ * BottomNav — Premium SaaS floating bottom navbar
+ * Glassmorphism + curved notch + centered FAB.
  */
 const BottomNav: React.FC<BottomNavProps> = ({
   items = DEFAULT_ITEMS,
@@ -47,93 +59,104 @@ const BottomNav: React.FC<BottomNavProps> = ({
   const safeItems = items.slice(0, 4);
   const left = safeItems.slice(0, 2);
   const right = safeItems.slice(2, 4);
-  const [internalActive, setInternalActive] = React.useState(activeKey ?? safeItems[0]?.key);
-  const active = activeKey ?? internalActive;
 
-  const handleSelect = (key: string) => {
-    setInternalActive(key);
-    onChange?.(key);
+  const [internal, setInternal] = React.useState(activeKey ?? safeItems[0]?.key);
+  const active = activeKey ?? internal;
+
+  const select = (k: string, cb?: () => void) => {
+    setInternal(k);
+    onChange?.(k);
+    cb?.();
   };
 
   return (
     <div
       className={cn(
         'pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center',
-        'px-4 pb-[max(1rem,env(safe-area-inset-bottom))]',
         className,
       )}
+      style={{
+        paddingBottom: `calc(18px + env(safe-area-inset-bottom))`,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }}
     >
       <motion.nav
-        initial={{ y: 80, opacity: 0 }}
+        initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="pointer-events-auto relative w-full max-w-md"
+        transition={{ type: 'spring', stiffness: 280, damping: 28 }}
         aria-label="Bottom Navigation"
+        className="pointer-events-auto relative w-full max-w-md"
+        style={{ height: NAV_HEIGHT }}
       >
-        {/* خلفية الشريط مع Notch منحني عبر SVG mask */}
-        <div className="relative">
-          <NavShape />
+        {/* Glass + notch background */}
+        <NavBackground />
 
-          {/* العناصر */}
-          <div className="relative flex h-[68px] items-center justify-between px-3">
-            <div className="flex flex-1 items-center justify-around">
-              {left.map((item) => (
-                <NavButton
-                  key={item.key}
-                  item={item}
-                  isActive={active === item.key}
-                  onClick={() => {
-                    handleSelect(item.key);
-                    item.onClick?.();
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* مساحة فارغة تحت الزر المركزي */}
-            <div className="w-20" aria-hidden />
-
-            <div className="flex flex-1 items-center justify-around">
-              {right.map((item) => (
-                <NavButton
-                  key={item.key}
-                  item={item}
-                  isActive={active === item.key}
-                  onClick={() => {
-                    handleSelect(item.key);
-                    item.onClick?.();
-                  }}
-                />
-              ))}
-            </div>
+        {/* Items */}
+        <div
+          className="relative flex h-full items-center justify-between"
+          style={{ paddingLeft: 24, paddingRight: 24 }}
+        >
+          <div className="flex flex-1 items-center justify-around">
+            {left.map((it) => (
+              <NavButton
+                key={it.key}
+                item={it}
+                isActive={active === it.key}
+                onClick={() => select(it.key, it.onClick)}
+              />
+            ))}
           </div>
 
-          {/* الزر المركزي العائم */}
-          <motion.button
-            type="button"
-            onClick={onCenterClick}
-            aria-label={centerLabel}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.92 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className={cn(
-              'absolute left-1/2 -top-7 -translate-x-1/2',
-              'flex h-16 w-16 items-center justify-center rounded-full',
-              'bg-primary text-primary-foreground',
-              'shadow-[0_10px_30px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]',
-              'ring-4 ring-background',
-              'transition-colors',
-            )}
-          >
-            <CenterIcon className="h-6 w-6" strokeWidth={2.2} />
-          </motion.button>
+          {/* FAB reservation slot */}
+          <div style={{ width: FAB_SIZE + 24 }} aria-hidden />
+
+          <div className="flex flex-1 items-center justify-around">
+            {right.map((it) => (
+              <NavButton
+                key={it.key}
+                item={it}
+                isActive={active === it.key}
+                onClick={() => select(it.key, it.onClick)}
+              />
+            ))}
+          </div>
         </div>
+
+        {/* Floating Action Button — overlaps navbar by 45% */}
+        <motion.button
+          type="button"
+          aria-label={centerLabel}
+          onClick={onCenterClick}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 18 }}
+          className="absolute left-1/2 flex items-center justify-center rounded-full text-white"
+          style={{
+            width: FAB_SIZE,
+            height: FAB_SIZE,
+            top: -FAB_SIZE * 0.45,
+            transform: 'translateX(-50%)',
+            backgroundColor: ACTIVE,
+            boxShadow: '0 8px 24px rgba(255,77,79,0.45)',
+          }}
+        >
+          {/* Pulse ring */}
+          <motion.span
+            className="absolute inset-0 rounded-full"
+            style={{ backgroundColor: ACTIVE }}
+            animate={{ opacity: [0.45, 0, 0.45], scale: [1, 1.5, 1] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
+            aria-hidden
+          />
+          <CenterIcon size={26} strokeWidth={2.2} className="relative z-10" />
+        </motion.button>
       </motion.nav>
     </div>
   );
 };
 
-/* ---------- زر فرعي ---------- */
+/* ---------- Nav button ---------- */
 const NavButton: React.FC<{
   item: BottomNavItem;
   isActive: boolean;
@@ -144,76 +167,96 @@ const NavButton: React.FC<{
     <motion.button
       type="button"
       onClick={onClick}
-      whileTap={{ scale: 0.88 }}
       whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.9 }}
+      animate={{ scale: isActive ? 1.08 : 1 }}
       transition={{ type: 'spring', stiffness: 350, damping: 20 }}
       aria-label={item.label}
       aria-current={isActive ? 'page' : undefined}
-      className="relative flex h-12 w-12 flex-col items-center justify-center"
+      className="relative flex h-12 w-12 items-center justify-center"
     >
-      <motion.span
-        initial={false}
-        animate={{
-          color: isActive ? 'var(--primary)' : 'var(--muted-foreground)',
-          scale: isActive ? 1.1 : 1,
-        }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-      >
-        <Icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.2 : 1.6} />
-      </motion.span>
-
-      {/* نقطة دلالية تحت الأيقونة النشطة */}
-      <motion.span
-        initial={false}
-        animate={{ opacity: isActive ? 1 : 0, scale: isActive ? 1 : 0.4 }}
-        transition={{ duration: 0.25 }}
-        className="mt-1 h-1 w-1 rounded-full bg-primary"
-      />
+      <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} color={isActive ? ACTIVE : INACTIVE} />
+      {item.badge ? (
+        <span
+          className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
+          style={{ backgroundColor: ACTIVE }}
+        >
+          {item.badge > 99 ? '99+' : item.badge}
+        </span>
+      ) : null}
     </motion.button>
   );
 };
 
-/* ---------- شكل الخلفية مع Notch منحني ---------- */
-const NavShape: React.FC = () => {
-  // Notch بسيط ودقيق عبر SVG، يعطي إحساس Premium
+/* ---------- Glassmorphism background with curved notch (SVG) ---------- */
+const NavBackground: React.FC = () => {
+  const W = 400;
+  const H = NAV_HEIGHT;
+  const r = NAV_RADIUS;
+  const nr = NOTCH_RADIUS;
+  const cx = W / 2;
+
+  // Smooth notch using cubic curves (no sharp edges)
+  const notchHalf = nr + 14;
+  const path = `
+    M ${r},0
+    H ${cx - notchHalf}
+    C ${cx - notchHalf + 14},0 ${cx - nr - 2},${nr} ${cx - nr},${nr}
+    A ${nr},${nr} 0 0 0 ${cx + nr},${nr}
+    C ${cx + nr + 2},${nr} ${cx + notchHalf - 14},0 ${cx + notchHalf},0
+    H ${W - r}
+    Q ${W},0 ${W},${r}
+    V ${H - r}
+    Q ${W},${H} ${W - r},${H}
+    H ${r}
+    Q 0,${H} 0,${H - r}
+    V ${r}
+    Q 0,0 ${r},0
+    Z
+  `;
+
   return (
-    <svg
-      viewBox="0 0 380 80"
-      preserveAspectRatio="none"
-      className={cn(
-        'absolute inset-0 h-full w-full',
-        'drop-shadow-[0_12px_30px_rgba(15,23,42,0.10)]',
-      )}
-      aria-hidden
+    <div
+      className="absolute inset-0"
+      style={{
+        filter: 'drop-shadow(0 10px 30px rgba(0,0,0,0.08))',
+      }}
     >
-      <defs>
-        <linearGradient id="bn-bg" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="var(--card)" />
-          <stop offset="100%" stopColor="var(--background)" />
-        </linearGradient>
-      </defs>
-      <path
-        fill="url(#bn-bg)"
-        stroke="color-mix(in oklab, var(--border) 70%, transparent)"
-        strokeWidth="1"
-        d="
-          M30,4
-          H155
-          C165,4 168,18 178,24
-          C184,27.5 196,27.5 202,24
-          C212,18 215,4 225,4
-          H350
-          C365,4 376,15 376,30
-          V58
-          C376,71 365,76 350,76
-          H30
-          C15,76 4,71 4,58
-          V30
-          C4,15 15,4 30,4
-          Z
-        "
-      />
-    </svg>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        width="100%"
+        height="100%"
+        className="block"
+        aria-hidden
+      >
+        <defs>
+          <clipPath id="bn-clip">
+            <path d={path} />
+          </clipPath>
+        </defs>
+        {/* Glass fill */}
+        <foreignObject x="0" y="0" width={W} height={H} clipPath="url(#bn-clip)">
+          <div
+            // @ts-expect-error xmlns inside foreignObject
+            xmlns="http://www.w3.org/1999/xhtml"
+            style={{
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.78)',
+              backdropFilter: 'blur(18px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+            }}
+          />
+        </foreignObject>
+        <path
+          d={path}
+          fill="none"
+          stroke="rgba(15,23,42,0.06)"
+          strokeWidth="1"
+        />
+      </svg>
+    </div>
   );
 };
 
