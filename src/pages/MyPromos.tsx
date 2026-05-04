@@ -42,6 +42,26 @@ const formatBP = (pieces: number, piecesPerBox: number | null | undefined): stri
   return `${boxes}.${String(rem).padStart(2, '0')}`;
 };
 
+// Format a stored "pieces" value according to a unit (box/piece) defined by the offer
+const formatByUnit = (
+  storedPieces: number,
+  unit: 'box' | 'piece' | string | null | undefined,
+  piecesPerBox: number | null | undefined,
+): string => {
+  const ppb = Number(piecesPerBox || 0);
+  const p = Number(storedPieces || 0);
+  if (unit === 'box' && ppb > 1) {
+    // عرض بالصناديق إذا كان كاملاً، وإلا بصيغة b.p
+    if (p % ppb === 0) return String(p / ppb);
+    return formatBP(p, ppb);
+  }
+  // قطعة: نعرض الرقم كما هو
+  return String(p);
+};
+
+const unitLabel = (u: 'box' | 'piece' | string | null | undefined) =>
+  u === 'box' ? 'صندوق' : 'قطعة';
+
 const MyPromosContent: React.FC = () => {
   const [deletePromo, setDeletePromo] = useState<PromoWithDetails | null>(null);
   const { workerId, activeBranch } = useAuth();
