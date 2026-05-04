@@ -5,11 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle, Package, Save, TrendingUp, TrendingDown, Search, ShieldCheck, KeyRound } from 'lucide-react';
+import { Loader2, CheckCircle, Package, Save, TrendingUp, TrendingDown, Search, ShieldCheck, KeyRound, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { parseBP, dbBPToBoxes, dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface FinalReviewDialogProps {
   open: boolean;
@@ -23,10 +24,13 @@ interface AggregatedRow {
   productId: string;
   productName: string;
   imageUrl?: string | null;
-  loaded: number;   // مجموع الشحن (موجب)
-  unloaded: number; // مجموع التفريغ (سالب يُطرح)
-  expected: number; // المتوقع المتبقي = loaded - unloaded
-  actual: string;   // ما يُدخله المسؤول
+  loaded: number;   // مجموع الشحن (B.P)
+  unloaded: number; // مجموع التفريغ (B.P)
+  expected: number; // المتوقع المتبقي (B.P)
+  expectedBoxes: number;
+  expectedPieces: number;
+  actualBoxes: string;
+  actualPieces: string;
   ppb: number;
 }
 
@@ -104,30 +108,43 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
         // 5. تجميع
         const map = new Map<string, AggregatedRow>();
+        const baseRow = (pid: string, prod: any): AggregatedRow => ({
+          productId: pid,
+          productName: prod.name || '—',
+          imageUrl: prod.image_url,
+          loaded: 0,
+          unloaded: 0,
+          expected: 0,
+          expectedBoxes: 0,
+          expectedPieces: 0,
+          actualBoxes: '',
+          actualPieces: '',
+          ppb: prod.pieces_per_box || 1,
+        });
         for (const it of loadItems) {
           const pid = it.product_id;
           const prod = it.product || {};
-          const ex = map.get(pid) || {
-            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
-            loaded: 0, unloaded: 0, expected: 0, actual: '', ppb: prod.pieces_per_box || 1,
-          };
+          const ex = map.get(pid) || baseRow(pid, prod);
           ex.loaded += Number(it.quantity || 0);
           map.set(pid, ex);
         }
         for (const m of (unloadMoves || [])) {
           const pid = m.product_id;
           const prod = (m as any).product || {};
-          const ex = map.get(pid) || {
-            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
-            loaded: 0, unloaded: 0, expected: 0, actual: '', ppb: prod.pieces_per_box || 1,
-          };
+          const ex = map.get(pid) || baseRow(pid, prod);
           ex.unloaded += Number(m.quantity || 0);
           map.set(pid, ex);
         }
-        const list = Array.from(map.values()).map(r => ({
-          ...r,
-          expected: Math.max(0, r.loaded - r.unloaded),
-        }));
+        const list = Array.from(map.values()).map(r => {
+          const ppb = Math.max(1, Math.round(r.ppb || 1));
+          const loadedPieces = parseBP(Number(r.loaded).toFixed(2), ppb).totalPieces;
+          const unloadedPieces = parseBP(Number(r.unloaded).toFixed(2), ppb).totalPieces;
+          const expectedTotalPieces = Math.max(0, loadedPieces - unloadedPieces);
+          const expectedBoxes = Math.floor(expectedTotalPieces / ppb);
+          const expectedPieces = expectedTotalPieces % ppb;
+          const expected = expectedBoxes + expectedPieces / ppb;
+          return { ...r, expected, expectedBoxes, expectedPieces };
+        });
         list.sort((a, b) => a.productName.localeCompare(b.productName));
         if (!cancelled) setRows(list);
       } catch (e: any) {
@@ -144,11 +161,19 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     [rows, search]
   );
 
+  const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
+  const actualTotalBoxes = (r: AggregatedRow) => {
+    const ppb = Math.max(1, Math.round(r.ppb || 1));
+    const b = Math.max(0, parseInt(r.actualBoxes || '0', 10) || 0);
+    const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
+    return b + p / ppb;
+  };
+
   const stats = useMemo(() => {
     let surplus = 0, deficit = 0, matched = 0, untouched = 0;
     for (const r of rows) {
-      if (r.actual === '') { untouched++; continue; }
-      const a = Number(r.actual) || 0;
+      if (!isFilled(r)) { untouched++; continue; }
+      const a = actualTotalBoxes(r);
       const diff = a - r.expected;
       if (Math.abs(diff) < 0.001) matched++;
       else if (diff > 0) surplus++;
@@ -157,8 +182,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     return { surplus, deficit, matched, untouched, total: rows.length };
   }, [rows]);
 
-  const updateActual = (pid: string, val: string) => {
-    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actual: val.replace(/[^0-9.]/g, '') } : r));
+  const updateActualBoxes = (pid: string, val: string) => {
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, '') } : r));
+  };
+  const updateActualPieces = (pid: string, val: string) => {
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, '') } : r));
+  };
+  const markMatched = (pid: string) => {
+    setRows(prev => prev.map(r => r.productId === pid
+      ? { ...r, actualBoxes: String(r.expectedBoxes), actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0' }
+      : r));
   };
 
   const handleSave = async () => {
@@ -191,7 +224,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       }
 
       const totalExpected = rows.reduce((s, r) => s + r.expected, 0);
-      const totalActual = rows.reduce((s, r) => s + (Number(r.actual) || 0), 0);
+      const totalActual = rows.reduce((s, r) => s + actualTotalBoxes(r), 0);
       const now = new Date().toISOString();
 
       // 2. Create the final review session (locked immediately with both signatures)
@@ -221,7 +254,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const itemRows: any[] = [];
       const discRows: any[] = [];
       for (const r of rows) {
-        const a = Number(r.actual) || 0;
+        const a = actualTotalBoxes(r);
         const diff = a - r.expected;
         const diffType = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
         itemRows.push({
@@ -310,13 +343,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pe-1 pb-2">
               {filtered.map(r => {
-                const a = r.actual === '' ? null : Number(r.actual) || 0;
+                const filled = isFilled(r);
+                const a = filled ? actualTotalBoxes(r) : null;
                 const diff = a === null ? 0 : a - r.expected;
                 const status = a === null ? 'pending' : Math.abs(diff) < 0.001 ? 'match' : diff > 0 ? 'surplus' : 'deficit';
                 const ring =
                   status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20' :
                   status === 'surplus' ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' :
                   status === 'deficit' ? 'border-destructive bg-destructive/5' : 'border-border';
+                const ppb = Math.max(1, Math.round(r.ppb || 1));
                 return (
                   <div key={r.productId} className={`flex flex-col gap-2 p-2 rounded-lg border-2 ${ring}`}>
                     <div className="flex items-center gap-2 min-w-0">
@@ -330,18 +365,44 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       <div className="text-xs font-medium line-clamp-2 flex-1 min-w-0">{r.productName}</div>
                     </div>
                     <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-0.5"><TrendingUp className="w-3 h-3 text-blue-500" />{r.loaded}</span>
-                      <span className="flex items-center gap-0.5"><TrendingDown className="w-3 h-3 text-red-500" />{r.unloaded}</span>
-                      <span>متوقع <strong className="text-foreground">{r.expected}</strong></span>
+                      <span className="flex items-center gap-0.5"><TrendingUp className="w-3 h-3 text-blue-500" />{dbBPDisplay(r.loaded, ppb)}</span>
+                      <span className="flex items-center gap-0.5"><TrendingDown className="w-3 h-3 text-red-500" />{dbBPDisplay(r.unloaded, ppb)}</span>
+                      <span>متوقع <strong className="text-foreground">{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong></span>
                     </div>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="الفعلي"
-                      value={r.actual}
-                      onChange={e => updateActual(r.productId, e.target.value)}
-                      className="h-9 text-center text-sm font-bold"
-                    />
+                    <div className="grid grid-cols-2 gap-1">
+                      <div className="flex flex-col">
+                        <label className="text-[9px] text-muted-foreground text-center">صناديق</label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={r.actualBoxes}
+                          onChange={e => updateActualBoxes(r.productId, e.target.value)}
+                          className="h-9 text-center text-sm font-bold"
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[9px] text-muted-foreground text-center">قطع</label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={r.actualPieces}
+                          onChange={e => updateActualPieces(r.productId, e.target.value)}
+                          className="h-9 text-center text-sm font-bold"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={status === 'match' ? 'default' : 'outline'}
+                      onClick={() => markMatched(r.productId)}
+                      className={`h-7 text-[11px] gap-1 ${status === 'match' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'border-emerald-400 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'}`}
+                    >
+                      <Check className="w-3 h-3" />
+                      مطابق
+                    </Button>
                   </div>
                 );
               })}
