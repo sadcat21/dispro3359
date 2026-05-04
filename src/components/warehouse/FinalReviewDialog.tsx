@@ -166,30 +166,99 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       toast.error(`أدخل العد الفعلي لكل المنتجات (${stats.untouched} متبقٍ)`);
       return;
     }
+    if (hasPin === false) {
+      toast.error('على العامل تعيين كود مراجعة (PIN) أولاً من الإعدادات');
+      return;
+    }
+    if (!workerPin || workerPin.length < 4) {
+      toast.error('أدخل كود توقيع العامل (4 أرقام على الأقل)');
+      return;
+    }
+
     setIsSaving(true);
     try {
+      // 1. Verify worker PIN
+      const { data: pinOk, error: pinErr } = await supabase.rpc('verify_worker_review_pin', {
+        _worker_id: workerId,
+        _pin: workerPin,
+      });
+      if (pinErr) throw pinErr;
+      if (!pinOk) {
+        toast.error('كود توقيع العامل غير صحيح');
+        setIsSaving(false);
+        return;
+      }
+
+      const totalExpected = rows.reduce((s, r) => s + r.expected, 0);
+      const totalActual = rows.reduce((s, r) => s + (Number(r.actual) || 0), 0);
+      const now = new Date().toISOString();
+
+      // 2. Create the final review session (locked immediately with both signatures)
+      const { data: session, error: sErr } = await supabase
+        .from('final_review_sessions')
+        .insert({
+          worker_id: workerId,
+          warehouse_manager_id: actorId,
+          branch_id: branchId,
+          review_date: new Date().toISOString().slice(0, 10),
+          locked_at: now,
+          worker_confirmed_at: now,
+          manager_confirmed_at: now,
+          total_expected: totalExpected,
+          total_actual: totalActual,
+          surplus_count: stats.surplus,
+          deficit_count: stats.deficit,
+          matched_count: stats.matched,
+          status: 'locked',
+        })
+        .select('id')
+        .single();
+      if (sErr) throw sErr;
+      const sessionId = session.id;
+
+      // 3. Insert all line items (audit trail) + discrepancies
+      const itemRows: any[] = [];
       const discRows: any[] = [];
       for (const r of rows) {
         const a = Number(r.actual) || 0;
         const diff = a - r.expected;
-        if (Math.abs(diff) < 0.001) continue;
-        discRows.push({
-          worker_id: workerId,
-          branch_id: branchId,
+        const diffType = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
+        itemRows.push({
+          final_review_session_id: sessionId,
           product_id: r.productId,
-          discrepancy_type: diff > 0 ? 'surplus' : 'deficit',
-          quantity: Math.abs(diff),
-          remaining_quantity: Math.abs(diff),
-          status: 'pending',
-          notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${r.expected}، فعلي ${a}`,
+          expected_qty: r.expected,
+          actual_qty: a,
+          difference: diff,
+          diff_type: diffType,
         });
+        if (diffType !== 'matched') {
+          discRows.push({
+            worker_id: workerId,
+            branch_id: branchId,
+            product_id: r.productId,
+            discrepancy_type: diffType,
+            quantity: Math.abs(diff),
+            remaining_quantity: Math.abs(diff),
+            status: 'pending',
+            final_review_session_id: sessionId,
+            notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${r.expected}، فعلي ${a}`,
+          });
+        }
+      }
+      if (itemRows.length > 0) {
+        const { error } = await supabase.from('final_review_items').insert(itemRows);
+        if (error) throw error;
       }
       if (discRows.length > 0) {
         const { error } = await supabase.from('stock_discrepancies').insert(discRows);
         if (error) throw error;
       }
+
       qc.invalidateQueries({ queryKey: ['stock-discrepancies'] });
-      toast.success(`تم حفظ المراجعة النهائية: ${stats.surplus} فائض، ${stats.deficit} عجز، ${stats.matched} مطابق. بانتظار موافقة المدير.`);
+      qc.invalidateQueries({ queryKey: ['final-review-sessions'] });
+      qc.invalidateQueries({ queryKey: ['last-final-review-info'] });
+      toast.success(`✅ تم قفل المراجعة النهائية: ${stats.surplus} فائض، ${stats.deficit} عجز، ${stats.matched} مطابق`);
+      setWorkerPin('');
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || 'خطأ في حفظ المراجعة');
@@ -197,6 +266,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       setIsSaving(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
