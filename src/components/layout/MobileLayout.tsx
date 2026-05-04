@@ -237,7 +237,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number };
   let centerAction: CenterAction | null = null;
   if (isWarehouseManager) {
-    centerAction = { type: 'navigate', to: '/load-stock', icon: Truck, label: t('tooltip.load_stock') || 'شحن العمال' };
+    centerAction = { type: 'navigate', to: '/load-stock', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
   } else if (isBranchAdmin) {
     centerAction = { type: 'navigate', to: '/accounting', icon: Wallet, label: 'المحاسبة' };
   } else if (isAdminAssistant) {
