@@ -70,6 +70,7 @@ import MyAchievements from "./pages/MyAchievements";
 import PromoSplits from "./pages/admin/PromoSplits";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
+import ProductJourney from "./pages/ProductJourney";
 import Chat from "./pages/Chat";
 import Attendance from "./pages/admin/Attendance";
 import OrderTracking from "./pages/admin/OrderTracking";
@@ -601,6 +602,7 @@ const AppRoutes = () => {
 
       {/* Landing Page */}
       <Route path="/landing" element={<Landing />} />
+      <Route path="/product-journey" element={<ProductJourney />} />
 
       {/* Share Target */}
       <Route path="/share" element={<ShareTarget />} />
