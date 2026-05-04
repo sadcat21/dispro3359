@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
 import { InvoicePaymentMethod, INVOICE_PAYMENT_METHODS } from '@/types/stamp';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface PostponedRequest {
   id: string;
@@ -41,6 +42,7 @@ interface AggLine {
 
 const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, customerName, requests }) => {
   const { workerId, activeBranch } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<string[]>(() => requests.map(r => r.id));
   const [paymentMethod, setPaymentMethod] = useState<InvoicePaymentMethod | null>(null);
@@ -104,8 +106,8 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
 
   const mergeMutation = useMutation({
     mutationFn: async () => {
-      if (selectedRequests.length === 0) throw new Error('لم يتم تحديد أي فاتورة');
-      if (!paymentMethod) throw new Error('يرجى اختيار طريقة الدفع');
+      if (selectedRequests.length === 0) throw new Error(t('merge_invoices.error_no_selection'));
+      if (!paymentMethod) throw new Error(t('merge_invoices.error_no_payment'));
 
       const first = selectedRequests[0];
       const productsPayload = aggregated.map(a => ({
@@ -149,11 +151,11 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
       return parent.id;
     },
     onSuccess: () => {
-      toast.success('تم إرسال الطلب الموحّد إلى الإدارة');
+      toast.success(t('merge_invoices.success'));
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e.message || 'تعذّر الإرسال'),
+    onError: (e: any) => toast.error(e.message || t('merge_invoices.send_failed')),
   });
 
   const imagesMap = productImagesQ.data || {};
@@ -173,14 +175,14 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
         <DialogHeader className="p-4 pb-2 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Package className="w-5 h-5 text-blue-600" />
-            تجميع فواتير العميل: {customerName}
+            {t('merge_invoices.title')}: {customerName}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3 flex-1 overflow-y-auto p-3">
           {/* قائمة الفواتير لتحديد ما يُجمَّع — شبكية */}
           <div className="border rounded-lg p-2.5 bg-muted/30">
-            <p className="text-xs font-semibold mb-2">حدد الفواتير التي تريد تجميعها ({selectedIds.length}/{requests.length})</p>
+            <p className="text-xs font-semibold mb-2">{t('merge_invoices.select_hint')} ({selectedIds.length}/{requests.length})</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {requests.map(r => {
                 const checked = selectedIds.includes(r.id);
@@ -194,7 +196,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
                   >
                     <div className="flex items-center justify-center gap-2">
                       <span className={`text-xs font-semibold ${checked ? 'text-white' : 'text-foreground'}`}>
-                        {new Date(r.created_at).toLocaleDateString('ar')}
+                        {new Date(r.created_at).toLocaleDateString(language === 'ar' ? 'ar' : language)}
                       </span>
                       <span className="flex h-5 min-w-5 px-1.5 items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-bold ring-2 ring-white">
                         {productsCount}
@@ -211,13 +213,13 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
             <div className="bg-blue-50 px-3 py-2 text-sm font-semibold flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Package className="w-4 h-4 text-blue-600" />
-                المنتجات المُجمَّعة
+                {t('merge_invoices.merged_products')}
               </span>
-              <span className="text-blue-700 text-xs">عدد المنتجات ({aggregated.length})</span>
+              <span className="text-blue-700 text-xs">{t('merge_invoices.products_count')} ({aggregated.length})</span>
             </div>
             <div className="p-2">
               {aggregated.length === 0 ? (
-                <div className="text-center text-sm text-muted-foreground py-6">لا توجد منتجات</div>
+                <div className="text-center text-sm text-muted-foreground py-6">{t('merge_invoices.no_products')}</div>
               ) : (
                 <div className="grid grid-cols-3 gap-1.5">
                   {aggregated.map((a, i) => {
@@ -259,7 +261,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
 
         {/* تذييل ثابت: طريقة الدفع + أزرار الإجراءات */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
-          <p className="text-xs font-semibold text-muted-foreground">طريقة الدفع</p>
+          <p className="text-xs font-semibold text-muted-foreground">{t('merge_invoices.payment_method')}</p>
           <div className="grid grid-cols-4 gap-1.5">
             {methods.map(([methodKey, method]) => (
               <Button
@@ -281,7 +283,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
               disabled={mergeMutation.isPending}
               className="h-10"
             >
-              إغلاق
+              {t('merge_invoices.close')}
             </Button>
             <Button
               onClick={() => mergeMutation.mutate()}
@@ -289,7 +291,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
               className="gap-1 bg-blue-600 hover:bg-blue-700 h-10"
             >
               {mergeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              إرسال مجمّع ({selectedIds.length})
+              {t('merge_invoices.send_merged')} ({selectedIds.length})
             </Button>
           </div>
         </div>

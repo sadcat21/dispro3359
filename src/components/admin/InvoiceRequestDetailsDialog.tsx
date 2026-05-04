@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Package, Layers, CreditCard, Calendar, User, ShoppingBag, Hash } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface InvoiceRequestLike {
   id: string;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, request, customerName }) => {
+  const { t, language } = useLanguage();
   const items: any[] = useMemo(
     () => (request && Array.isArray(request.products) ? request.products : []),
     [request]
@@ -72,7 +74,7 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
                 <ShoppingBag className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">تفاصيل الفاتورة</p>
+                <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">{t('invoice_details.title')}</p>
                 <h2 className="text-xl font-bold truncate">{displayName}</h2>
                 {request?.customers?.store_name && (
                   <p className="text-xs text-white/80 truncate mt-0.5">{request.customers.store_name}</p>
@@ -85,21 +87,21 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
               <div className="bg-white/15 backdrop-blur rounded-xl p-2.5 ring-1 ring-white/20">
                 <div className="flex items-center gap-1.5 text-[10px] text-white/80 mb-1">
                   <Package className="w-3 h-3" />
-                  المنتجات
+                  {t('invoice_details.products')}
                 </div>
                 <div className="text-2xl font-bold leading-none">{items.length}</div>
               </div>
               <div className="bg-white/15 backdrop-blur rounded-xl p-2.5 ring-1 ring-white/20">
                 <div className="flex items-center gap-1.5 text-[10px] text-white/80 mb-1">
                   <Hash className="w-3 h-3" />
-                  الكمية
+                  {t('invoice_details.quantity')}
                 </div>
                 <div className="text-2xl font-bold leading-none">{totalQty}</div>
               </div>
               <div className="bg-white/15 backdrop-blur rounded-xl p-2.5 ring-1 ring-white/20">
                 <div className="flex items-center gap-1.5 text-[10px] text-white/80 mb-1">
                   <Layers className="w-3 h-3" />
-                  فواتير مدمجة
+                  {t('invoice_details.merged_invoices')}
                 </div>
                 <div className="text-2xl font-bold leading-none">{mergedCount || '—'}</div>
               </div>
@@ -115,7 +117,7 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
               )}
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-medium ring-1 ring-white/30">
                 <Calendar className="w-3 h-3" />
-                {request && new Date(request.created_at).toLocaleString('ar')}
+                {request && new Date(request.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
               </span>
               {request?.worker?.full_name && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-medium ring-1 ring-white/30">
@@ -132,13 +134,13 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
           {items.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-12">
               <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              لا توجد منتجات
+              {t('invoice_details.no_products')}
             </div>
           ) : (
             <>
               <div className="flex items-center gap-2 px-1 mb-2">
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">قائمة المنتجات</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('invoice_details.products_list')}</span>
                 <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
