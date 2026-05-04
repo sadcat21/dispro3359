@@ -326,7 +326,7 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
               {/* Gratuite Quantity */}
               <div className="space-y-3">
                 <Label className="text-center block text-sm font-semibold text-muted-foreground">
-                  {t('promos.free_quantity')}
+                  {t('promos.free_quantity')} ({unitLabel(giftUnit)})
                 </Label>
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-20 h-20 flex items-center justify-center bg-emerald-500/10 rounded-2xl border-2 border-emerald-500/30 shadow-inner">
