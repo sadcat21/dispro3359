@@ -1329,9 +1329,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   </Alert>
                 </section>
               )}
-              </>)}
 
-              {currentStep === 3 && (<>
               {/* Summary */}
               {saleItems.some(i => i.quantity > 0) && (
                 <section className="bg-muted/50 rounded-lg p-3 space-y-1">
@@ -1433,51 +1431,29 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   rows={2}
                 />
               </section>
-              </>)}
             </div>
             </div>
           </ScrollArea>
 
           {/* Footer */}
           <div className="p-4 border-t bg-background flex items-center gap-2">
-            {currentStep > 1 && (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 px-4"
-                onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
-              >
-                السابق
-              </Button>
-            )}
-            {currentStep < 3 ? (
-              <Button
-                type="button"
-                className="flex-1 h-12 text-base"
-                onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
-                disabled={currentStep === 2 && !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
-              >
-                التالي
-              </Button>
-            ) : (
-              <Button
-                onClick={handleProceedToPayment}
-                className="flex-1 h-12 text-base bg-green-600 hover:bg-green-700"
-                disabled={isSaving || !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
-              >
-                {isSaving ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <CheckCircle className="w-5 h-5 ms-2" />
-                )}
-                {t('orders.confirm_delivery') || 'تأكيد التوصيل'}
-                {totals.amountAfterPrepaid > 0 && (
-                  <Badge variant="secondary" className="mr-2 bg-white/20">
-                    {totals.amountAfterPrepaid.toLocaleString()} {t('common.currency')}
-                  </Badge>
-                )}
-              </Button>
-            )}
+            <Button
+              onClick={handleProceedToPayment}
+              className="flex-1 h-12 text-base bg-green-600 hover:bg-green-700"
+              disabled={isSaving || !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
+            >
+              {isSaving ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <CheckCircle className="w-5 h-5 ms-2" />
+              )}
+              {t('orders.confirm_delivery') || 'تأكيد التوصيل'}
+              {totals.amountAfterPrepaid > 0 && (
+                <Badge variant="secondary" className="mr-2 bg-white/20">
+                  {totals.amountAfterPrepaid.toLocaleString()} {t('common.currency')}
+                </Badge>
+              )}
+            </Button>
           </div>
     </>
   );
