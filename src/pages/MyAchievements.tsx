@@ -321,8 +321,8 @@ const MyAchievements: React.FC = () => {
         .from('visit_tracking')
         .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
         .eq('worker_id', targetWorkerId)
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
+        .gte('created_at', `${dateFrom}T00:00:00`)
+        .lte('created_at', `${dateTo}T23:59:59`)
         .order('created_at', { ascending: false });
 
       const customerIds = [...new Set((visits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
