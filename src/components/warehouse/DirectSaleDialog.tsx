@@ -960,7 +960,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                       }}
                     />
                   </>
-                )
+                )}
+
 
                 {/* Selected Customer Info */}
                 {selectedCustomer && (
