@@ -705,12 +705,20 @@ const Products: React.FC = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <button type="button" onClick={handleTitleTap} className="text-xl font-bold">
-          {t('products.title')}
-        </button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Package className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <button type="button" onClick={handleTitleTap} className="text-2xl font-bold leading-tight block text-right">
+              {t('products.title')}
+            </button>
+            <p className="text-xs text-muted-foreground">إدارة وتنظيم منتجات المتجر</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <Button 
             size="sm" 
