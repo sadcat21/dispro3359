@@ -608,9 +608,15 @@ const ManagerTreasury = () => {
             <span>مزامنة</span>
           </Button>
           {!isInvoiceRequestHidden && (
-            <Button size="sm" variant="default" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]" onClick={() => setInvoiceRequestOpen(true)} title="طلب فاتورة">
+            <Button
+              size="sm"
+              variant="default"
+              className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]"
+              onClick={() => navigate(role === 'branch_admin' ? '/branch-invoice-approvals' : '/assistant-approvals')}
+              title="صفحة الموافقات"
+            >
               <Receipt className="w-4 h-4" />
-              <span>فاتورة</span>
+              <span>الموافقات</span>
             </Button>
           )}
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
