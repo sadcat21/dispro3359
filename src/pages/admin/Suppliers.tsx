@@ -14,7 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Truck, Plus, Loader2, Pencil, Trash2, Phone, Mail, MapPin } from 'lucide-react';
+import { Truck, Plus, Loader2, Pencil, Trash2, Phone, Mail, MapPin, Eye, DollarSign, Package } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Supplier {
@@ -36,6 +36,21 @@ const Suppliers: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [viewProductsFor, setViewProductsFor] = useState<Supplier | null>(null);
+
+  const { data: supplierProducts = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ['supplier-products', viewProductsFor?.id],
+    enabled: !!viewProductsFor?.id,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('products')
+        .select('id, name, app_name, product_code, is_active')
+        .eq('supplier_id', viewProductsFor!.id)
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ['suppliers'],
@@ -185,6 +200,12 @@ const Suppliers: React.FC = () => {
                     {!s.is_active && <span className="text-xs text-muted-foreground">(غير نشط)</span>}
                   </div>
                   <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" title="معاينة المنتجات" onClick={() => setViewProductsFor(s)}>
+                      <Eye className="h-4 w-4 text-primary" />
+                    </Button>
+                    <Button size="icon" variant="ghost" title="الديون والمشتريات" onClick={() => toast.info('سيتم تطوير الديون والمشتريات لاحقاً')}>
+                      <DollarSign className="h-4 w-4 text-emerald-600" />
+                    </Button>
                     <Button size="icon" variant="ghost" onClick={() => openEdit(s)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -215,6 +236,34 @@ const Suppliers: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!viewProductsFor} onOpenChange={(v) => !v && setViewProductsFor(null)}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              منتجات المورد: {viewProductsFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {loadingProducts ? (
+              <div className="flex justify-center p-6"><Loader2 className="h-5 w-5 animate-spin" /></div>
+            ) : supplierProducts.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground p-6">لا توجد منتجات مرتبطة بهذا المورد</div>
+            ) : (
+              supplierProducts.map((p: any) => (
+                <div key={p.id} className="flex items-center justify-between border rounded-md p-2">
+                  <div>
+                    <div className="font-medium text-sm">{p.app_name || p.name}</div>
+                    {p.product_code && <div className="text-xs text-muted-foreground">كود: {p.product_code}</div>}
+                  </div>
+                  {!p.is_active && <span className="text-xs text-muted-foreground">(غير نشط)</span>}
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
