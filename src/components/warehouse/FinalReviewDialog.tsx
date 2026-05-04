@@ -200,28 +200,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       toast.error(`أدخل العد الفعلي لكل المنتجات (${stats.untouched} متبقٍ)`);
       return;
     }
-    if (hasPin === false) {
-      toast.error('على العامل تعيين كود مراجعة (PIN) أولاً من الإعدادات');
-      return;
-    }
-    if (!workerPin || workerPin.length < 4) {
-      toast.error('أدخل كود توقيع العامل (4 أرقام على الأقل)');
-      return;
-    }
-
     setIsSaving(true);
     try {
-      // 1. Verify worker PIN
-      const { data: pinOk, error: pinErr } = await supabase.rpc('verify_worker_review_pin', {
-        _worker_id: workerId,
-        _pin: workerPin,
-      });
-      if (pinErr) throw pinErr;
-      if (!pinOk) {
-        toast.error('كود توقيع العامل غير صحيح');
-        setIsSaving(false);
-        return;
-      }
 
       const totalExpected = rows.reduce((s, r) => s + r.expected, 0);
       const totalActual = rows.reduce((s, r) => s + actualTotalBoxes(r), 0);
