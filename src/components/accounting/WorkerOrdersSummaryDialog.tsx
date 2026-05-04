@@ -184,8 +184,9 @@ const OrdersCarousel: React.FC<{
   );
 };
 
-const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName }) => {
-  const [activeTab, setActiveTab] = useState<'created' | 'assigned'>('created');
+const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName, mode = 'orders' }) => {
+  const isDeliveryMode = mode === 'delivery';
+  const [activeTab, setActiveTab] = useState<'created' | 'assigned'>(isDeliveryMode ? 'assigned' : 'created');
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [isPrintReady, setIsPrintReady] = useState(false);
