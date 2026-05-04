@@ -262,20 +262,11 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
         {/* تذييل ثابت: طريقة الدفع + أزرار الإجراءات */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
           <p className="text-xs font-semibold text-muted-foreground">{t('merge_invoices.payment_method')}</p>
-          <div className="grid grid-cols-4 gap-1.5">
-            {methods.map(([methodKey, method]) => (
-              <Button
-                key={methodKey}
-                type="button"
-                size="sm"
-                onClick={() => setPaymentMethod(methodKey)}
-                disabled={mergeMutation.isPending}
-                className={`h-9 px-1 text-xs font-bold transition-opacity ${PAYMENT_COLORS[methodKey]} ${paymentMethod === methodKey ? 'ring-2 ring-offset-1 ring-blue-400' : ''} ${paymentMethod !== null && paymentMethod !== methodKey ? 'opacity-50' : ''}`}
-              >
-                {method.label}
-              </Button>
-            ))}
-          </div>
+          <InvoicePaymentMethodSelect
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            disabled={mergeMutation.isPending}
+          />
           <div className="grid grid-cols-2 gap-2 pt-1">
             <Button
               variant="outline"
