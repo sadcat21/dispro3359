@@ -784,118 +784,148 @@ const BranchInvoiceApprovals: React.FC = () => {
 
       {/* نافذة طلبات الفاتورة المعلقة (مرحلة المدير) لعميل محدد */}
       <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) { setCustomerDialog(null); setSelectedIds([]); } }}>
-        <DialogContent dir="rtl" className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              طلبات الفاتورة المعلقة لدى مدير الفرع — {customerDialog?.name}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent dir="rtl" className="max-w-2xl p-0 gap-0 overflow-hidden">
+          {/* رأس مُتدرج جذاب */}
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center ring-2 ring-white/20 shrink-0">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">طلبات معلقة</p>
+                <h2 className="text-lg font-bold truncate">{customerDialog?.name}</h2>
+                <p className="text-xs text-white/80 mt-0.5">بانتظار قرارك للإرسال أو التأجيل</p>
+              </div>
+            </div>
+          </div>
+
           {customerInvoicesQ.isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
             </div>
           ) : (customerInvoicesQ.data?.length ?? 0) === 0 ? (
-            <p className="text-center text-muted-foreground py-8">لا توجد طلبات معلقة لدى مدير الفرع لهذا العميل</p>
+            <div className="text-center py-12 px-4">
+              <FileText className="w-12 h-12 mx-auto text-slate-300 mb-2" />
+              <p className="text-sm text-muted-foreground">لا توجد طلبات معلقة لهذا العميل</p>
+            </div>
           ) : (
             <>
-              <div className="flex items-center justify-between gap-2 flex-wrap border-b pb-2">
-                <div className="flex items-center gap-2">
+              {/* شريط أدوات (تحديد + إجراءات) */}
+              <div className="px-4 py-2.5 bg-slate-50 border-b flex items-center justify-between gap-2 flex-wrap">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 cursor-pointer"
+                    className="w-4 h-4 cursor-pointer accent-blue-600"
                     checked={selectedIds.length === customerInvoicesQ.data!.length && customerInvoicesQ.data!.length > 0}
                     onChange={(e) => setSelectedIds(e.target.checked ? customerInvoicesQ.data!.map((r: any) => r.id) : [])}
                   />
-                  <span className="text-sm">تحديد الكل ({selectedIds.length}/{customerInvoicesQ.data!.length})</span>
-                </div>
+                  <span className="text-xs font-semibold text-slate-700">
+                    تحديد الكل
+                    <span className="text-slate-400 mr-1">({selectedIds.length}/{customerInvoicesQ.data!.length})</span>
+                  </span>
+                </label>
                 {selectedIds.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" disabled={bulkAction.isPending}
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 gap-1 h-8 text-xs" disabled={bulkAction.isPending}
                       onClick={() => setBulkScopeDialog({ scope: 'private' })}>
-                      <ArrowUpRight className="w-4 h-4" /> إرسال
+                      <ArrowUpRight className="w-3.5 h-3.5" /> إرسال
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1 text-amber-700 border-amber-300" disabled={bulkAction.isPending}
+                    <Button size="sm" variant="outline" className="gap-1 text-amber-700 border-amber-300 h-8 text-xs" disabled={bulkAction.isPending}
                       onClick={() => bulkAction.mutate({ ids: selectedIds, action: 'postpone' })}>
-                      <Clock3 className="w-4 h-4" /> تأجيل
+                      <Clock3 className="w-3.5 h-3.5" /> تأجيل
                     </Button>
-                    <Button size="sm" variant="destructive" className="gap-1" disabled={bulkAction.isPending}
+                    <Button size="sm" variant="destructive" className="gap-1 h-8 text-xs" disabled={bulkAction.isPending}
                       onClick={() => bulkAction.mutate({ ids: selectedIds, action: 'reject' })}>
-                      <XCircle className="w-4 h-4" /> رفض
+                      <XCircle className="w-3.5 h-3.5" /> رفض
                     </Button>
                   </div>
                 )}
               </div>
-              <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2 mt-2">
+
+              {/* قائمة الطلبات */}
+              <div className="max-h-[55vh] overflow-y-auto p-3 space-y-2.5 bg-slate-50/50">
                 {customerInvoicesQ.data!.map((r: any) => {
                   const pm = r.order?.invoice_payment_method || r.payment_method;
                   const pmLabel: Record<string, string> = {
-                    gros: 'جملة (Gros)',
-                    super_gros: 'سوبر جملة (Super Gros)',
-                    retail: 'تجزئة (Détail)',
-                    cash: 'نقدًا',
-                    cheque: 'شيك',
-                    credit: 'دين',
+                    gros: 'جملة', super_gros: 'سوبر جملة', retail: 'تجزئة',
+                    cash: 'نقدًا', cheque: 'شيك', credit: 'دين',
                   };
                   const pmText = pm ? (pmLabel[pm] || pm) : '—';
-                  const pmColor = pm === 'cash' ? 'bg-green-100 text-green-800 border-green-300'
-                    : pm === 'cheque' ? 'bg-blue-100 text-blue-800 border-blue-300'
-                    : pm === 'credit' ? 'bg-rose-100 text-rose-800 border-rose-300'
-                    : 'bg-slate-100 text-slate-800 border-slate-300';
+                  const pmColor = pm === 'cash' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : pm === 'cheque' ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : pm === 'credit' ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-slate-100 text-slate-700 border-slate-200';
                   const products = Array.isArray(r.products) ? r.products : [];
                   const total = r.total_amount ?? r.order?.total_amount ?? 0;
+                  const isSelected = selectedIds.includes(r.id);
                   return (
-                    <div key={r.id} className="border border-slate-200 rounded-lg bg-white p-3 flex items-start gap-2">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 mt-1 cursor-pointer"
-                        checked={selectedIds.includes(r.id)}
-                        onChange={() => toggleSelected(r.id)}
-                      />
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline">{r.branches?.name || '—'}</Badge>
-                          <Badge className={`border ${pmColor}`}>طريقة الدفع: {pmText}</Badge>
-                          {r.invoice_scope && (
-                            <Badge variant="outline" className="gap-1">
-                              {r.invoice_scope === 'private' ? <Lock className="w-3 h-3" /> : <Globe2 className="w-3 h-3" />}
-                              {r.invoice_scope === 'private' ? 'خاصة' : 'عامة'}
-                            </Badge>
-                          )}
-                          <span className="font-bold text-slate-800 ms-auto">
-                            {Number(total).toLocaleString(language === 'ar' ? 'ar' : language)} دج
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          فاتورة #{r.invoice_number || '—'} • {products.length} منتج •{' '}
-                          {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
-                        </p>
-                        {products.length > 0 && (
-                          <div className="bg-slate-50 rounded p-2 space-y-1 max-h-40 overflow-y-auto">
-                            {products.map((p: any, i: number) => {
-                              const qty = Number(p.quantity || 0);
-                              const unitPrice = Number(p.unit_price || 0); // سعر الصندوق
-                              const lineTotal = Number(p.total || (qty * unitPrice) || 0);
-                              const wpb = Number(p.weight_per_box || 0); // وزن الصندوق (كلغ)
-                              const pricePerKg = wpb > 0 ? unitPrice / wpb : 0;
-                              return (
-                                <div key={i} className="flex items-center justify-between text-xs gap-2">
-                                  <span className="truncate font-medium text-slate-700">{p.product_name || p.name || '—'}</span>
-                                  <span className="text-muted-foreground whitespace-nowrap">
-                                    {wpb > 0 ? (
-                                      <>
-                                        {qty} × ({wpb} × {pricePerKg.toLocaleString('ar', { maximumFractionDigits: 2 })}) ={' '}
-                                      </>
-                                    ) : (
-                                      <>{qty} × {unitPrice.toLocaleString(language === 'ar' ? 'ar' : language)} = </>
-                                    )}
-                                    <strong className="text-slate-900">{lineTotal.toLocaleString('ar', { maximumFractionDigits: 2 })}</strong> دج
-                                  </span>
-                                </div>
-                              );
-                            })}
+                    <div
+                      key={r.id}
+                      className={cn(
+                        "rounded-xl bg-white border-2 transition-all overflow-hidden",
+                        isSelected ? "border-blue-400 shadow-md ring-2 ring-blue-100" : "border-slate-200 hover:border-slate-300"
+                      )}
+                    >
+                      {/* رأس البطاقة */}
+                      <div className="p-3 flex items-start gap-2.5">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 mt-1 cursor-pointer accent-blue-600 shrink-0"
+                          checked={isSelected}
+                          onChange={() => toggleSelected(r.id)}
+                        />
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-slate-900 text-sm truncate">
+                              فاتورة #{r.invoice_number || '—'}
+                            </span>
+                            <span className="font-bold text-blue-700 text-sm whitespace-nowrap">
+                              {Number(total).toLocaleString(language === 'ar' ? 'ar' : language)} <span className="text-[10px] text-slate-400">دج</span>
+                            </span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-slate-50">
+                              {r.branches?.name || '—'}
+                            </Badge>
+                            <Badge className={`border text-[10px] px-1.5 py-0 ${pmColor}`}>{pmText}</Badge>
+                            {r.invoice_scope && (
+                              <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0">
+                                {r.invoice_scope === 'private' ? <Lock className="w-2.5 h-2.5" /> : <Globe2 className="w-2.5 h-2.5" />}
+                                {r.invoice_scope === 'private' ? 'خاصة' : 'عامة'}
+                              </Badge>
+                            )}
+                            <span className="text-[10px] text-slate-400 mr-auto">
+                              {products.length} منتج • {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleDateString(language === 'ar' ? 'ar' : language)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
+
+                      {/* المنتجات */}
+                      {products.length > 0 && (
+                        <div className="border-t border-slate-100 bg-slate-50/70 px-3 py-2 space-y-1 max-h-40 overflow-y-auto">
+                          {products.map((p: any, i: number) => {
+                            const qty = Number(p.quantity || 0);
+                            const unitPrice = Number(p.unit_price || 0);
+                            const lineTotal = Number(p.total || (qty * unitPrice) || 0);
+                            const wpb = Number(p.weight_per_box || 0);
+                            const pricePerKg = wpb > 0 ? unitPrice / wpb : 0;
+                            return (
+                              <div key={i} className="flex items-center justify-between text-[11px] gap-2 py-0.5">
+                                <span className="truncate font-medium text-slate-700 flex-1">{p.product_name || p.name || '—'}</span>
+                                <span className="text-muted-foreground whitespace-nowrap text-[10px]">
+                                  {wpb > 0 ? (
+                                    <>{qty} × ({wpb} × {pricePerKg.toLocaleString('ar', { maximumFractionDigits: 2 })}) = </>
+                                  ) : (
+                                    <>{qty} × {unitPrice.toLocaleString(language === 'ar' ? 'ar' : language)} = </>
+                                  )}
+                                  <strong className="text-slate-900">{lineTotal.toLocaleString('ar', { maximumFractionDigits: 2 })}</strong>
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
