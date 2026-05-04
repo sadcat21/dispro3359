@@ -586,24 +586,45 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         });
       }
 
-      // إضافة المنتجات المختارة يدويًا (غير الموجودة في الطلبيات) لتظهر كأعمدة في ورقة الطباعة
-      if (extraPrintProductIds.size > 0) {
-        // اجلب بياناتها كاملة (مع جميع الحقول التي يحتاجها OrdersPrintView)
-        const missingIds = Array.from(extraPrintProductIds).filter(id => !productMap.has(id));
-        if (missingIds.length > 0) {
-          const { data: extraProds } = await supabase
-            .from('products')
-            .select('*')
-            .in('id', missingIds);
-          for (const p of (extraProds || [])) {
-            productMap.set(p.id, p as Product);
-          }
+      // معرّفات المنتجات الموجودة فعلًا في الطلبيات
+      const orderedProductIds = new Set(productMap.keys());
+
+      // المنتجات الإضافية = إما السويتش (كل المتبقية) أو الاختيار اليدوي
+      const extraIdsFinal = new Set<string>();
+      if (includeAllRemainingProducts) {
+        for (const p of (allProducts || [])) {
+          if (!orderedProductIds.has(p.id)) extraIdsFinal.add(p.id);
+        }
+      } else {
+        for (const id of extraPrintProductIds) {
+          if (!orderedProductIds.has(id)) extraIdsFinal.add(id);
         }
       }
 
+      // اجلب بيانات كاملة للمنتجات الإضافية
+      const missingIds = Array.from(extraIdsFinal).filter(id => !productMap.has(id));
+      if (missingIds.length > 0) {
+        const { data: extraProds } = await supabase
+          .from('products')
+          .select('*')
+          .in('id', missingIds);
+        for (const p of (extraProds || [])) {
+          productMap.set(p.id, p as Product);
+        }
+      }
+
+      // الترتيب: منتجات الطلبيات أولًا (يسار)، ثم المنتجات بدون طلبيات (يمين في RTL)
+      const allProductsArr = Array.from(productMap.values());
+      const withOrders = allProductsArr
+        .filter(p => orderedProductIds.has(p.id))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const withoutOrders = allProductsArr
+        .filter(p => !orderedProductIds.has(p.id))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
       setPrintOrders(fetchedOrders);
       setPrintOrderItems(itemsMap);
-      setPrintProducts(Array.from(productMap.values()).sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+      setPrintProducts([...withOrders, ...withoutOrders]);
       setPrintExtraRows(cashVanExtraRows);
       setIsPrintReady(true);
       isPrintingRef.current = true;
