@@ -803,12 +803,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             {/* العناصر اليسرى (أول عنصرين) */}
             {mainNavItems.slice(0, 2).map((item) => {
               const isActive = location.pathname === item.path;
+              const navBadge = item.path === '/branch-approvals' ? (branchApprovalsPendingCount || 0) : 0;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                    'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
                     isActive
                       ? 'bg-sidebar-primary/15 text-sidebar-primary'
                       : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
@@ -816,6 +817,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   title={item.label}
                 >
                   <item.icon className="h-[23px] w-[23px]" strokeWidth={isActive ? 2.45 : 1.85} />
+                  {navBadge > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                      {navBadge > 99 ? '99+' : navBadge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
