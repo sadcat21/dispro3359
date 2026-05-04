@@ -881,7 +881,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         </DialogHeader>
       )}
 
-      <div className="px-4 pt-3 pb-2 border-b bg-background shrink-0">
+      <div className="px-4 pt-2 pb-1.5 border-b bg-background shrink-0">
         <div className="grid grid-cols-3 gap-1">
           {[
             { n: 1 as const, label: 'العميل' },
@@ -910,15 +910,15 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4"
          style={embedded ? { WebkitOverflowScrolling: 'touch' } : { WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 12rem)' }}
        >
-            <div className="py-4 space-y-5">
+            <div className="py-2 space-y-3">
               {currentStep === 1 && (<>
               {/* Customer Section */}
-              <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('orders.customer')}</Label>
+              <section className="space-y-2">
+                <Label className="text-sm font-semibold">{t('orders.customer')}</Label>
 
                 <Button
                   variant="outline"
-                  className="w-full justify-between h-11"
+                  className="w-full justify-between h-9"
                   disabled={isLoadingData}
                   onClick={() => setCustomerDropdownOpen(true)}
                 >
@@ -967,30 +967,32 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   }}
                 />
 
-                {/* Selected Customer Info */}
+                {/* Selected Customer Info - Compact */}
                 {selectedCustomer && (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <CustomerSummary
-                      customer={{
-                        name: selectedCustomer.name,
-                        store_name: selectedCustomer.store_name,
-                        customer_type: selectedCustomer.customer_type,
-                        sector_name: sectors?.find(s => s.id === selectedCustomer.sector_id)?.name,
-                        phone: selectedCustomer.phone,
-                        wilaya: selectedCustomer.wilaya,
-                      }}
-                      avatarSize="md"
-                      footer={(
-                        <div className="flex items-center gap-1.5 mt-1">
+                  <div className="p-2 bg-muted/50 rounded-lg flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CustomerSummary
+                        customer={{
+                          name: selectedCustomer.name,
+                          store_name: selectedCustomer.store_name,
+                          customer_type: selectedCustomer.customer_type,
+                          sector_name: sectors?.find(s => s.id === selectedCustomer.sector_id)?.name,
+                          phone: selectedCustomer.phone,
+                          wilaya: selectedCustomer.wilaya,
+                        }}
+                        compact
+                        avatarSize="sm"
+                        showMeta
+                        footer={(
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                             {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
                               selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
                                 selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
                             }
                           </Badge>
-                        </div>
-                      )}
-                    />
+                        )}
+                      />
+                    </div>
                     <CustomerDistanceIndicator
                       customerLatitude={selectedCustomer.latitude}
                       customerLongitude={selectedCustomer.longitude}
@@ -1000,33 +1002,33 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               </section>
 
               {/* Payment Type - warehouse_manager can choose, others always without invoice */}
-              <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('orders.purchase_method')}</Label>
+              <section className="space-y-2">
+                <Label className="text-sm font-semibold">{t('orders.purchase_method')}</Label>
                 {isWarehouseManager ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-1.5">
                     <Button
                       type="button"
                       variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                      className={`h-12 text-sm font-bold ${paymentType === 'with_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
+                      className={`h-9 text-xs font-bold ${paymentType === 'with_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
                       onClick={() => setPaymentType('with_invoice')}
                     >
-                      <Receipt className="w-4 h-4 ml-2" />
+                      <Receipt className="w-3.5 h-3.5 ml-1" />
                       {t('orders.with_invoice')}
                     </Button>
                     <Button
                       type="button"
                       variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                      className={`h-12 text-sm font-bold ${paymentType === 'without_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
+                      className={`h-9 text-xs font-bold ${paymentType === 'without_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
                       onClick={() => setPaymentType('without_invoice')}
                     >
-                      <ReceiptText className="w-4 h-4 ml-2" />
+                      <ReceiptText className="w-3.5 h-3.5 ml-1" />
                       {t('orders.without_invoice')}
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
-                    <ReceiptText className="w-5 h-5 text-primary" />
-                    <span className="text-sm font-medium">{t('orders.without_invoice')}</span>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border">
+                    <ReceiptText className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-medium">{t('orders.without_invoice')}</span>
                   </div>
                 )}
 
@@ -1040,9 +1042,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
                 {/* Price Sub-Type - only for without_invoice */}
                 {paymentType === 'without_invoice' && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t('orders.price_type')}</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">{t('orders.price_type')}</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
                     {([
                       { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: { active: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 ring-2 ring-indigo-400', inactive: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' } },
                       { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: { active: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400', inactive: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' } },
@@ -1053,7 +1055,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                         type="button"
                         variant={priceSubType === option.value ? 'default' : 'outline'}
                         size="sm"
-                        className={`h-12 text-sm font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
+                        className={`h-9 text-xs font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
                         onClick={() => setPriceSubType(option.value)}
                       >
                         {option.label}
@@ -1370,12 +1372,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t bg-background flex items-center gap-2">
+          <div className="p-3 border-t bg-background flex items-center gap-2">
             {currentStep > 1 && (
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 px-4"
+                className="h-10 px-4"
                 onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
               >
                 السابق
@@ -1384,7 +1386,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             {currentStep < 3 ? (
               <Button
                 type="button"
-                className="flex-1 h-12 text-base"
+                className="flex-1 h-10 text-sm"
                 onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
                 disabled={(currentStep === 1 && !selectedCustomerId) || (currentStep === 2 && orderItems.length === 0)}
               >
