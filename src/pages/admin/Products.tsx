@@ -521,10 +521,12 @@ const Products: React.FC = () => {
         image_url: imageUrl,
       };
 
-      let { error } = await supabase
+      let { data: updatedProduct, error } = await supabase
         .from('products')
         .update(payload)
-        .eq('id', editingProduct.id);
+        .eq('id', editingProduct.id)
+        .select('*')
+        .single();
 
       if (
         error &&
@@ -538,7 +540,10 @@ const Products: React.FC = () => {
         const fallbackResult = await supabase
           .from('products')
           .update(fallbackPayload as any)
-          .eq('id', editingProduct.id);
+          .eq('id', editingProduct.id)
+          .select('*')
+          .single();
+        updatedProduct = fallbackResult.data;
         error = fallbackResult.error;
         if (!fallbackResult.error && removedColumns.length > 0) {
           toast.warning(buildUnsupportedColumnsMessage(removedColumns));
@@ -548,26 +553,7 @@ const Products: React.FC = () => {
       if (error) throw error;
 
       setProducts(prev => prev.map(p => 
-        p.id === editingProduct.id 
-          ? { 
-              ...p, 
-              name: editProductName.trim(), 
-              app_name: editProductAppName.trim() || editProductName.trim(),
-              product_code: editProductCode.trim() || null,
-              pieces_per_box: editPiecesPerBox,
-              pricing_unit: editPricingUnit,
-              weight_per_box: editPricingUnit === 'kg' ? editWeightPerBox : null,
-              price_super_gros: editPriceSuperGros,
-              price_gros: editPriceGros,
-              price_invoice_official: editPriceInvoiceOfficial,
-              price_invoice: editPriceInvoice,
-              allow_invoice_sale: editAllowInvoiceSale,
-              allow_invoice2_sale: editAllowInvoice2Sale,
-              price_retail: editPriceRetail,
-              price_no_invoice: editPriceNoInvoice,
-              allow_unit_sale: editAllowUnitSale,
-            } 
-          : p
+        p.id === editingProduct.id && updatedProduct ? updatedProduct as Product : p
       ));
 
       toast.success(t('products.updated'));
