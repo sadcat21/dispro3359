@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
 import logoImage from '@/assets/logo.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translations } from '@/i18n/translations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { StampPriceTier } from '@/types/stamp';
@@ -53,7 +54,15 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     const [customerDebts, setCustomerDebts] = useState<Record<string, { amount: number; docType?: string }>>({});
     const [shortageProductIds, setShortageProductIds] = useState<Set<string>>(new Set());
     const [stampTiers, setStampTiers] = useState<StampPriceTier[]>([]);
-    const { tp, printDir, printLanguage } = useLanguage();
+    // فرض اللغة الفرنسية دائماً في ورقة الطباعة بغض النظر عن إعدادات اللغة
+    const { tp: tpCtx } = useLanguage();
+    const printLanguage = 'fr' as 'ar' | 'fr' | 'en';
+    const printDir = 'ltr' as 'ltr' | 'rtl';
+    const tp = (key: string): string => {
+      const translation = (translations as any)?.[key];
+      if (translation && translation.fr) return translation.fr;
+      return tpCtx(key);
+    };
     const { activeBranch } = useAuth();
     
     const displayTitle = title || tp('print.order_list');
