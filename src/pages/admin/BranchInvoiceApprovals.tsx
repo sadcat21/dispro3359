@@ -298,32 +298,28 @@ const BranchInvoiceApprovals: React.FC = () => {
   }, [postponedRows, language]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 p-3 sm:p-4">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            {t('common.back')}
-          </Button>
-          <h1 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
-            <FileText className="w-6 h-6" />
-            {t('branch_invoice_approvals.title')}
-          </h1>
-          <Button
-            onClick={() => setCreateDialogOpen(true)}
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            <Plus className="w-4 h-4" />
-            {t('branch_manual_invoice.new_request')}
-          </Button>
-        </div>
-
-        {/* شريط شرح دور مدير الفرع كوسيط */}
-        <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-900">
-            <p className="font-semibold mb-1">{t('branch_invoice_approvals.role_intro_title')}</p>
-            <p className="text-blue-800/90 leading-relaxed">{t('branch_invoice_approvals.role_intro_desc')}</p>
+        {/* ترويسة مدمجة وعملية */}
+        <div className="sticky top-0 z-10 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 mb-3 bg-white/80 backdrop-blur-md border-b border-blue-200">
+          <div className="flex items-center justify-between gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1 px-2 h-9">
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('common.back')}</span>
+            </Button>
+            <h1 className="text-base sm:text-xl font-bold text-blue-900 flex items-center gap-1.5 truncate">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="truncate">{t('branch_invoice_approvals.title')}</span>
+            </h1>
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              size="sm"
+              className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-2 sm:px-3"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('branch_manual_invoice.new_request')}</span>
+              <span className="sm:hidden text-xs">جديد</span>
+            </Button>
           </div>
         </div>
 
