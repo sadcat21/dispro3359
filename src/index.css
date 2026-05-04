@@ -353,6 +353,12 @@
     color: #000 !important;
   }
 
+  /* استثناءات: عناصر يجب أن تبقى ملوّنة في الطباعة */
+  .print-container .print-text-red,
+  .print-container .print-text-red * {
+    color: #c00 !important;
+  }
+
   /* Watermark - behind the table */
   .print-watermark {
     position: absolute;
