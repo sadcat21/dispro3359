@@ -41,6 +41,19 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [activeOffer, setActiveOffer] = useState<{
+    id: string;
+    name: string;
+    min_quantity_unit: 'box' | 'piece';
+    gift_quantity_unit: 'box' | 'piece';
+    min_quantity: number;
+    gift_quantity: number;
+  } | null>(null);
+
+  const piecesPerBox = Number(product?.pieces_per_box || 1) || 1;
+  const saleUnit: 'box' | 'piece' = activeOffer?.min_quantity_unit || 'piece';
+  const giftUnit: 'box' | 'piece' = activeOffer?.gift_quantity_unit || 'piece';
+  const unitLabel = (u: 'box' | 'piece') => (u === 'box' ? t('common.box') || 'صندوق' : t('common.piece') || 'قطعة');
 
   const isAdmin = isAdminRole(role);
   const isBranchAdmin = role === 'branch_admin';
@@ -57,8 +70,37 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
       setSelectedCustomerId('');
       setHasBonus(false);
       setBonusAmount('');
+      if (product?.id) fetchActiveOffer(product.id);
+      else setActiveOffer(null);
     }
-  }, [open]);
+  }, [open, product?.id]);
+
+  const fetchActiveOffer = async (productId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('product_offers')
+        .select('id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity, start_date, end_date, is_active, priority')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .order('priority', { ascending: false })
+        .limit(5);
+      const valid = (data || []).find((o: any) =>
+        (!o.start_date || o.start_date <= today) && (!o.end_date || o.end_date >= today)
+      );
+      setActiveOffer(valid ? {
+        id: valid.id,
+        name: valid.name,
+        min_quantity_unit: (valid.min_quantity_unit || 'piece') as 'box' | 'piece',
+        gift_quantity_unit: (valid.gift_quantity_unit || 'piece') as 'box' | 'piece',
+        min_quantity: Number(valid.min_quantity || 0),
+        gift_quantity: Number(valid.gift_quantity || 0),
+      } : null);
+    } catch (e) {
+      console.error('fetchActiveOffer error', e);
+      setActiveOffer(null);
+    }
+  };
 
   const fetchCustomers = async () => {
     setIsLoadingCustomers(true);
@@ -100,16 +142,24 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
 
     setIsLoading(true);
     try {
+      // تحويل الكميات لقطع للتخزين، حسب وحدة العرض المُعرّفة في إدارة العروض
+      const ventePieces = saleUnit === 'box' ? venteQuantity * piecesPerBox : venteQuantity;
+      const gratuitePieces = giftUnit === 'box' ? gratuiteQuantity * piecesPerBox : gratuiteQuantity;
       const { error } = await supabase.from('promos').insert({
         worker_id: workerId,
         customer_id: selectedCustomerId,
         product_id: product.id,
-        vente_quantity: venteQuantity,
-        gratuite_quantity: gratuiteQuantity,
+        vente_quantity: ventePieces,
+        gratuite_quantity: gratuitePieces,
+        gift_quantity_unit: giftUnit,
+        offer_id: activeOffer?.id || null,
+        offer_detail: activeOffer
+          ? `${activeOffer.min_quantity}${saleUnit === 'box' ? 'BOX' : 'PCS'}+${activeOffer.gift_quantity}${giftUnit === 'box' ? 'BOX' : 'PCS'}`
+          : null,
         notes: notes.trim() || null,
         has_bonus: hasBonus,
         bonus_amount: hasBonus ? parseInt(bonusAmount) || 0 : 0,
-      });
+      } as any);
 
       if (error) throw error;
 
@@ -230,12 +280,20 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
               )}
             </div>
 
+            {/* Active offer hint */}
+            {activeOffer && (
+              <div className="text-xs text-center text-muted-foreground bg-muted/40 rounded-lg py-2 px-3 border border-border">
+                <span className="font-semibold">{activeOffer.name}:</span>{' '}
+                {activeOffer.min_quantity} {unitLabel(saleUnit)} → {activeOffer.gift_quantity} {unitLabel(giftUnit)} {t('promos.free') || 'مجاناً'}
+              </div>
+            )}
+
             {/* Quantities Section */}
             <div className="grid grid-cols-2 gap-4">
               {/* Vente Quantity */}
               <div className="space-y-3">
                 <Label className="text-center block text-sm font-semibold text-muted-foreground">
-                  {t('promos.sales_quantity')}
+                  {t('promos.sales_quantity')} ({unitLabel(saleUnit)})
                 </Label>
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-20 h-20 flex items-center justify-center bg-secondary rounded-2xl border-2 border-secondary shadow-inner">
@@ -268,7 +326,7 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
               {/* Gratuite Quantity */}
               <div className="space-y-3">
                 <Label className="text-center block text-sm font-semibold text-muted-foreground">
-                  {t('promos.free_quantity')}
+                  {t('promos.free_quantity')} ({unitLabel(giftUnit)})
                 </Label>
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-20 h-20 flex items-center justify-center bg-emerald-500/10 rounded-2xl border-2 border-emerald-500/30 shadow-inner">
