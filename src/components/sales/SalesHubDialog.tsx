@@ -83,6 +83,10 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
       setSelectedDeliveryOrder(null);
       return;
     }
+    if (isWarehouseManager) {
+      setActiveTab('warehouse');
+      return;
+    }
     if (hideDirectTab) {
       setActiveTab('delivery');
       setSelectedDeliveryOrder(initialDeliveryOrder || null);
@@ -90,7 +94,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
     }
     setActiveTab(initialDeliveryOrder ? 'delivery' : initialTab);
     setSelectedDeliveryOrder(initialDeliveryOrder || null);
-  }, [open, initialTab, initialDeliveryOrder, hideDirectTab]);
+  }, [open, initialTab, initialDeliveryOrder, hideDirectTab, isWarehouseManager]);
 
   useEffect(() => {
     if (hideDirectTab && activeTab === 'direct') {
