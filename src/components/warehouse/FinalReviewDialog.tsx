@@ -390,38 +390,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           )}
         </ScrollArea>
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-col">
-          {hasPin === false ? (
-            <Alert variant="destructive" className="text-xs">
-              <KeyRound className="h-4 w-4" />
-              <AlertDescription>
-                لم يقم العامل بتعيين كود توقيع المراجعة بعد. يجب تعيينه من الإعدادات قبل المتابعة.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="w-full space-y-1.5">
-              <label className="text-[11px] font-medium flex items-center gap-1 text-muted-foreground">
-                <ShieldCheck className="w-3 h-3" />
-                توقيع العامل (كود سري بحضوره)
-              </label>
-              <Input
-                type="password"
-                inputMode="numeric"
-                placeholder="●●●●"
-                value={workerPin}
-                onChange={e => setWorkerPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
-                className="h-10 text-center text-lg tracking-widest font-bold"
-                disabled={isSaving}
-              />
-            </div>
-          )}
+        <DialogFooter className="shrink-0">
           <Button
             onClick={handleSave}
-            disabled={isSaving || loading || rows.length === 0 || hasPin === false}
+            disabled={isSaving || loading || rows.length === 0}
             className="w-full gap-2"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            قفل المراجعة النهائية بتوقيع ثنائي
+            قفل المراجعة النهائية
           </Button>
         </DialogFooter>
       </DialogContent>
