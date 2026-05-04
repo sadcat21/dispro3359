@@ -918,7 +918,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
                 <Button
                   variant="outline"
-                  className="w-full justify-between h-11"
+                  className="w-full justify-between h-9"
                   disabled={isLoadingData}
                   onClick={() => setCustomerDropdownOpen(true)}
                 >
