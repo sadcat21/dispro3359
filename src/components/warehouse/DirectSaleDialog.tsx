@@ -55,6 +55,7 @@ interface DirectSaleDialogProps {
   stockSource?: 'worker' | 'warehouse';
   embedded?: boolean;
   hideHeader?: boolean;
+  onHeaderInfo?: (info: { customerName: string | null; totalAmount: number }) => void;
 }
 
 interface OrderItemWithPrice {
