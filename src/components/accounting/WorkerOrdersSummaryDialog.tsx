@@ -332,9 +332,9 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           .from('orders')
           .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
           .eq(col, workerId)
-          .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+          .in('status', isDeliveryMode ? DELIVERY_SUMMARY_STATUSES : ORDER_SUMMARY_STATUSES);
         if (isDeliveryMode) {
-          q = q.eq('delivery_date', selectedDate);
+          q = q.or(buildDeliveryDateFilter(selectedDate, dayStart, dayEnd));
         } else {
           q = q.gte('created_at', dayStart).lte('created_at', dayEnd);
         }
@@ -499,10 +499,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           order_items(*, product:products(*))
         `)
         .eq(filterCol, workerId)
-        .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed'])
+        .in('status', isDeliveryMode ? DELIVERY_SUMMARY_STATUSES : ORDER_SUMMARY_STATUSES)
         .order('created_at', { ascending: true });
       if (isDeliveryMode) {
-        ordersQuery = ordersQuery.eq('delivery_date', selectedDate);
+        ordersQuery = ordersQuery.or(buildDeliveryDateFilter(selectedDate, dayStart, dayEnd));
       } else {
         ordersQuery = ordersQuery.gte('created_at', dayStart).lte('created_at', dayEnd);
       }
