@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Package, Layers, CreditCard, Calendar, User } from 'lucide-react';
+import { Package, Layers, CreditCard, Calendar, User, ShoppingBag, Hash } from 'lucide-react';
 
 interface InvoiceRequestLike {
   id: string;
@@ -60,78 +59,128 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="p-4 pb-3 border-b shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Package className="w-5 h-5 text-blue-600" />
-            <span className="truncate">تفاصيل الفاتورة — {displayName}</span>
-          </DialogTitle>
-          <div className="flex flex-wrap items-center gap-1.5 mt-2">
-            {request?.is_merged_parent && (
-              <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px]">
-                <Layers className="w-3 h-3" />
-                موحَّدة ({mergedCount})
-              </Badge>
-            )}
-            {request?.payment_method && (
-              <Badge variant="outline" className="gap-1 text-[10px]">
-                <CreditCard className="w-3 h-3" />
-                {request.payment_method}
-              </Badge>
-            )}
-            <Badge variant="outline" className="gap-1 text-[10px]">
-              <Calendar className="w-3 h-3" />
-              {request && new Date(request.created_at).toLocaleString('ar')}
-            </Badge>
-            {request?.worker?.full_name && (
-              <Badge variant="outline" className="gap-1 text-[10px]">
-                <User className="w-3 h-3" />
-                {request.worker.full_name}
-              </Badge>
-            )}
-            <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px]">
-              {items.length} منتج • إجمالي {totalQty}
-            </Badge>
-          </div>
-        </DialogHeader>
+      <DialogContent className="max-w-3xl h-[92vh] flex flex-col p-0 gap-0 overflow-hidden border-0 shadow-2xl">
+        {/* ترويسة بتصميم عصري */}
+        <div className="relative shrink-0 bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 text-white overflow-hidden">
+          {/* زخارف خلفية */}
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-300/20 rounded-full blur-3xl" />
 
-        <div className="flex-1 overflow-y-auto p-3">
-          {items.length === 0 ? (
-            <div className="text-center text-sm text-muted-foreground py-12">لا توجد منتجات</div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {items.map((it: any, i: number) => {
-                const pid = it.product_id || it.productId;
-                const info = pid ? imagesMap[pid] : null;
-                const productImage = info?.image_url || null;
-                const name = info?.name || it.product_name || it.name || '—';
-                const qty = Number(it.quantity ?? it.qty ?? 0) || 0;
-                return (
-                  <div
-                    key={(pid || name) + '-' + i}
-                    className="flex flex-col rounded-xl overflow-hidden shadow-sm border border-border bg-card"
-                  >
-                    <div className="px-2 py-1.5 border-b bg-muted border-border">
-                      <span className="font-bold text-[11px] leading-tight block truncate text-foreground">
-                        {name}
-                      </span>
-                    </div>
-                    <div className="relative w-full aspect-[4/3] bg-muted overflow-hidden">
-                      {productImage ? (
-                        <img src={productImage} alt={name} className="w-full h-full object-contain" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-3xl text-muted-foreground/30">📦</span>
-                        </div>
-                      )}
-                      <span className="absolute bottom-1 right-1 flex h-7 min-w-7 px-2 items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold shadow-md ring-2 ring-white">
-                        {qty}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="relative p-5 pb-4">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur ring-2 ring-white/30 flex items-center justify-center shrink-0">
+                <ShoppingBag className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">تفاصيل الفاتورة</p>
+                <h2 className="text-xl font-bold truncate">{displayName}</h2>
+                {request?.customers?.store_name && (
+                  <p className="text-xs text-white/80 truncate mt-0.5">{request.customers.store_name}</p>
+                )}
+              </div>
             </div>
+
+            {/* بطاقات إحصائيات */}
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div className="bg-white/15 backdrop-blur rounded-xl p-2.5 ring-1 ring-white/20">
+                <div className="flex items-center gap-1.5 text-[10px] text-white/80 mb-1">
+                  <Package className="w-3 h-3" />
+                  المنتجات
+                </div>
+                <div className="text-2xl font-bold leading-none">{items.length}</div>
+              </div>
+              <div className="bg-white/15 backdrop-blur rounded-xl p-2.5 ring-1 ring-white/20">
+                <div className="flex items-center gap-1.5 text-[10px] text-white/80 mb-1">
+                  <Hash className="w-3 h-3" />
+                  الكمية
+                </div>
+                <div className="text-2xl font-bold leading-none">{totalQty}</div>
+              </div>
+              <div className="bg-white/15 backdrop-blur rounded-xl p-2.5 ring-1 ring-white/20">
+                <div className="flex items-center gap-1.5 text-[10px] text-white/80 mb-1">
+                  <Layers className="w-3 h-3" />
+                  فواتير مدمجة
+                </div>
+                <div className="text-2xl font-bold leading-none">{mergedCount || '—'}</div>
+              </div>
+            </div>
+
+            {/* شارات التفاصيل */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
+              {request?.payment_method && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-blue-700 text-[11px] font-bold shadow-sm">
+                  <CreditCard className="w-3 h-3" />
+                  {request.payment_method}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-medium ring-1 ring-white/30">
+                <Calendar className="w-3 h-3" />
+                {request && new Date(request.created_at).toLocaleString('ar')}
+              </span>
+              {request?.worker?.full_name && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-medium ring-1 ring-white/30">
+                  <User className="w-3 h-3" />
+                  {request.worker.full_name}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* المحتوى */}
+        <div className="flex-1 overflow-y-auto p-3 bg-gradient-to-b from-slate-50 to-white">
+          {items.length === 0 ? (
+            <div className="text-center text-sm text-muted-foreground py-12">
+              <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              لا توجد منتجات
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 px-1 mb-2">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">قائمة المنتجات</span>
+                <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                {items.map((it: any, i: number) => {
+                  const pid = it.product_id || it.productId;
+                  const info = pid ? imagesMap[pid] : null;
+                  const productImage = info?.image_url || null;
+                  const name = info?.name || it.product_name || it.name || '—';
+                  const qty = Number(it.quantity ?? it.qty ?? 0) || 0;
+                  return (
+                    <div
+                      key={(pid || name) + '-' + i}
+                      className="group flex flex-col rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-300 hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="relative w-full aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
+                        {productImage ? (
+                          <img
+                            src={productImage}
+                            alt={name}
+                            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-10 h-10 text-slate-300" />
+                          </div>
+                        )}
+                        {/* شارة الكمية */}
+                        <div className="absolute top-1.5 right-1.5 flex h-8 min-w-8 px-2 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white text-sm font-bold shadow-lg ring-2 ring-white">
+                          {qty}
+                        </div>
+                      </div>
+                      <div className="px-2.5 py-2 border-t border-slate-100 bg-white">
+                        <p className="font-semibold text-[11px] leading-tight text-slate-800 line-clamp-2 min-h-[28px]">
+                          {name}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </DialogContent>
