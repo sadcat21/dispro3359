@@ -196,14 +196,15 @@ const NavBackground: React.FC = () => {
   const nr = NOTCH_RADIUS;
   const cx = W / 2;
 
-  // Smooth notch using cubic curves (no sharp edges)
-  const notchHalf = nr + 14;
+  // Ultra-smooth notch: long S-curve transitions blend flawlessly into the arc
+  const notchHalf = nr + 26; // wider transition zone
+  const ease = 18; // tangent length for smooth blend
   const path = `
     M ${r},0
     H ${cx - notchHalf}
-    C ${cx - notchHalf + 14},0 ${cx - nr - 2},${nr} ${cx - nr},${nr}
+    C ${cx - notchHalf + ease},0 ${cx - nr - ease},${nr} ${cx - nr},${nr}
     A ${nr},${nr} 0 0 0 ${cx + nr},${nr}
-    C ${cx + nr + 2},${nr} ${cx + notchHalf - 14},0 ${cx + notchHalf},0
+    C ${cx + nr + ease},${nr} ${cx + notchHalf - ease},0 ${cx + notchHalf},0
     H ${W - r}
     Q ${W},0 ${W},${r}
     V ${H - r}
