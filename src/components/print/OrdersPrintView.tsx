@@ -45,10 +45,12 @@ interface OrdersPrintViewProps {
   columnConfig?: PrintColumnConfig[];
   usePortal?: boolean;
   extraRows?: ExtraRow[];
+  /** Product IDs to always include as columns even when no order/extra-row has a quantity */
+  forceIncludeProductIds?: string[];
 }
 
 const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
-  ({ orders, orderItems, products, title, dateRange, isVisible = false, columnConfig = [], usePortal = true, extraRows = [] }, ref) => {
+  ({ orders, orderItems, products, title, dateRange, isVisible = false, columnConfig = [], usePortal = true, extraRows = [], forceIncludeProductIds = [] }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [customerDebts, setCustomerDebts] = useState<Record<string, { amount: number; docType?: string }>>({});
