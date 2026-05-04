@@ -229,7 +229,12 @@ export const useStockConfirmations = () => {
       queryClient.invalidateQueries({ queryKey: ['stock-discrepancies-pending'] });
       toast.success('تمت الموافقة على العملية وتم تحديث المخزون');
     },
-    onError: (err: any) => toast.error(err?.message || 'فشلت الموافقة'),
+    onError: (err: any) => {
+      const msg = err?.message || '';
+      // Insufficient stock is handled by a dedicated popup in the UI; skip toast.
+      if (msg.includes('Insufficient warehouse stock')) return;
+      toast.error(msg || 'فشلت الموافقة');
+    },
   });
 
   const rejectConfirmation = useMutation({
