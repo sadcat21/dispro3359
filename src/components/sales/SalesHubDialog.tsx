@@ -83,6 +83,10 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
       setSelectedDeliveryOrder(null);
       return;
     }
+    if (isWarehouseManager) {
+      setActiveTab('warehouse');
+      return;
+    }
     if (hideDirectTab) {
       setActiveTab('delivery');
       setSelectedDeliveryOrder(initialDeliveryOrder || null);
@@ -90,7 +94,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
     }
     setActiveTab(initialDeliveryOrder ? 'delivery' : initialTab);
     setSelectedDeliveryOrder(initialDeliveryOrder || null);
-  }, [open, initialTab, initialDeliveryOrder, hideDirectTab]);
+  }, [open, initialTab, initialDeliveryOrder, hideDirectTab, isWarehouseManager]);
 
   useEffect(() => {
     if (hideDirectTab && activeTab === 'direct') {
@@ -134,7 +138,10 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   };
 
   const showWarehouseTab = isWarehouseManager;
-  const tabCount = [!hideDirectTab, true, showWarehouseTab].filter(Boolean).length;
+  // Warehouse manager only sees warehouse tab
+  const effectiveHideDirectTab = hideDirectTab || isWarehouseManager;
+  const hideDeliveryTab = isWarehouseManager;
+  const tabCount = [!effectiveHideDirectTab, !hideDeliveryTab, showWarehouseTab].filter(Boolean).length;
 
   // If non-warehouse-manager lands on warehouse tab, switch to a valid one
   useEffect(() => {
@@ -157,10 +164,11 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
           value={activeTab}
           onValueChange={(value) => {
             const next = value as 'direct' | 'delivery' | 'warehouse';
-            if (hideDirectTab && next === 'direct') {
-              setActiveTab('delivery');
+            if (effectiveHideDirectTab && next === 'direct') {
+              setActiveTab(hideDeliveryTab ? 'warehouse' : 'delivery');
               return;
             }
+            if (hideDeliveryTab && next === 'delivery') return;
             if (next === 'warehouse' && !showWarehouseTab) return;
             setActiveTab(next);
             if (next !== 'delivery') setSelectedDeliveryOrder(null);
@@ -168,16 +176,18 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
           className="flex flex-col flex-1 min-h-0"
         >
           <TabsList className={`grid mx-4 mt-3 shrink-0 grid-cols-${tabCount}`}>
-            {!hideDirectTab && (
+            {!effectiveHideDirectTab && (
               <TabsTrigger value="direct" className="gap-1 text-xs px-2">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {t('stock.direct_sale')}
               </TabsTrigger>
             )}
-            <TabsTrigger value="delivery" className="gap-1 text-xs px-2">
-              <Truck className="w-3.5 h-3.5" />
-              {t('orders.delivery_sale')}
-            </TabsTrigger>
+            {!hideDeliveryTab && (
+              <TabsTrigger value="delivery" className="gap-1 text-xs px-2">
+                <Truck className="w-3.5 h-3.5" />
+                {t('orders.delivery_sale')}
+              </TabsTrigger>
+            )}
             {showWarehouseTab && (
               <TabsTrigger value="warehouse" className="gap-1 text-xs px-2">
                 <Warehouse className="w-3.5 h-3.5" />
@@ -186,7 +196,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
             )}
           </TabsList>
 
-          {!hideDirectTab && (
+          {!effectiveHideDirectTab && (
             <TabsContent value="direct" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'direct' ? '' : 'hidden'}`}>
               {activeTab === 'direct' && (
                 <DirectSaleDialog
@@ -202,6 +212,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
             </TabsContent>
           )}
 
+          {!hideDeliveryTab && (
           <TabsContent value="delivery" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'delivery' ? '' : 'hidden'}`}>
             {activeTab !== 'delivery' ? null : selectedDeliveryOrder ? (
               <div className="flex flex-col flex-1 min-h-0 space-y-3">
@@ -273,6 +284,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
               </ScrollArea>
             )}
           </TabsContent>
+          )}
 
           {showWarehouseTab && (
             <TabsContent value="warehouse" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'warehouse' ? '' : 'hidden'}`}>
