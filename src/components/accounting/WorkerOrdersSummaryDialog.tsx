@@ -406,7 +406,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
     enabled: open && !!workerId,
   });
 
-  const currentData = activeTab === 'created' ? data?.created || [] : data?.assigned || [];
+  const currentData = isDeliveryMode || activeTab === 'assigned' ? data?.assigned || [] : data?.created || [];
   const totalQuantity = currentData.reduce((s, p) => s + p.quantity, 0);
   const totalCustomers = new Set(currentData.flatMap(p => p.customers.map(c => c.customerId))).size;
   const createdCustomers = new Set((data?.created || []).flatMap(p => p.customers.map(c => c.customerId))).size;
@@ -489,7 +489,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       const dayStart = `${selectedDate}T00:00:00+01:00`;
       const dayEnd = `${selectedDate}T23:59:59+01:00`;
 
-      const filterCol = activeTab === 'created' ? 'created_by' : 'assigned_worker_id';
+      const filterCol = isDeliveryMode || activeTab === 'assigned' ? 'assigned_worker_id' : 'created_by';
       let ordersQuery = supabase
         .from('orders')
         .select(`
@@ -573,7 +573,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
     setExpandedProduct(null);
   };
 
-  const printTitle = `${activeTab === 'created' ? 'طلبيات' : 'معيّنة'} - ${workerPrintInfo?.printName || workerName || ''} - ${format(new Date(selectedDate), 'dd/MM/yyyy')}`;
+  const printTitle = `${isDeliveryMode ? 'تجميع التوصيلات' : activeTab === 'created' ? 'طلبيات' : 'معيّنة'} - ${workerPrintInfo?.printName || workerName || ''} - ${format(new Date(selectedDate), 'dd/MM/yyyy')}`;
 
   return (
     <>
