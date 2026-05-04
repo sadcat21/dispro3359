@@ -196,7 +196,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
                   >
                     <div className="flex items-center justify-center gap-2">
                       <span className={`text-xs font-semibold ${checked ? 'text-white' : 'text-foreground'}`}>
-                        {new Date(r.created_at).toLocaleDateString('ar')}
+                        {new Date(r.created_at).toLocaleDateString(language === 'ar' ? 'ar' : language)}
                       </span>
                       <span className="flex h-5 min-w-5 px-1.5 items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-bold ring-2 ring-white">
                         {productsCount}

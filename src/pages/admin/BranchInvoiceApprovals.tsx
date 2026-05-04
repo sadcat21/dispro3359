@@ -600,7 +600,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 )}
                               </div>
                               <div className="text-[10px] text-slate-400">
-                                {new Date(r.created_at).toLocaleString('ar')}
+                                {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
                               </div>
                             </div>
                             <div className="px-3 pb-2.5">
@@ -678,7 +678,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                       </span>
                                     </div>
                                     <div className="text-[10px] text-muted-foreground">
-                                      {r.worker?.full_name || '—'} • {new Date(r.created_at).toLocaleDateString('ar')}
+                                      {r.worker?.full_name || '—'} • {new Date(r.created_at).toLocaleDateString(language === 'ar' ? 'ar' : language)}
                                     </div>
                                   </div>
                                   <Button
@@ -858,12 +858,12 @@ const BranchInvoiceApprovals: React.FC = () => {
                             </Badge>
                           )}
                           <span className="font-bold text-slate-800 ms-auto">
-                            {Number(total).toLocaleString('ar')} دج
+                            {Number(total).toLocaleString(language === 'ar' ? 'ar' : language)} دج
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           فاتورة #{r.invoice_number || '—'} • {products.length} منتج •{' '}
-                          {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleString('ar')}
+                          {new Date(r.order?.created_at || r.branch_approved_at || r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
                         </p>
                         {products.length > 0 && (
                           <div className="bg-slate-50 rounded p-2 space-y-1 max-h-40 overflow-y-auto">
@@ -882,7 +882,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                         {qty} × ({wpb} × {pricePerKg.toLocaleString('ar', { maximumFractionDigits: 2 })}) ={' '}
                                       </>
                                     ) : (
-                                      <>{qty} × {unitPrice.toLocaleString('ar')} = </>
+                                      <>{qty} × {unitPrice.toLocaleString(language === 'ar' ? 'ar' : language)} = </>
                                     )}
                                     <strong className="text-slate-900">{lineTotal.toLocaleString('ar', { maximumFractionDigits: 2 })}</strong> دج
                                   </span>
