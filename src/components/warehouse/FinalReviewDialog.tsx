@@ -284,7 +284,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[92dvh] flex flex-col" dir="rtl">
+      <DialogContent className="max-w-4xl max-h-[92dvh] flex flex-col overflow-hidden" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-primary" />
