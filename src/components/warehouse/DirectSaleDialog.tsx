@@ -998,7 +998,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     <Button
                       type="button"
                       variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                      className={`h-9 text-xs font-bold ${paymentType === 'with_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
+                      className={`h-9 text-xs font-bold ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-400' : 'border-blue-300 text-blue-700 hover:bg-blue-50 opacity-60'}`}
                       onClick={() => setPaymentType('with_invoice')}
                     >
                       <Receipt className="w-3.5 h-3.5 ml-1" />
@@ -1007,7 +1007,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     <Button
                       type="button"
                       variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                      className={`h-9 text-xs font-bold ${paymentType === 'without_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
+                      className={`h-9 text-xs font-bold ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 opacity-60'}`}
                       onClick={() => setPaymentType('without_invoice')}
                     >
                       <ReceiptText className="w-3.5 h-3.5 ml-1" />
