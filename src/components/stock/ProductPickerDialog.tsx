@@ -662,6 +662,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 })()}
 
                 {/* Gift qty */}
+                {singleOffer && (
                 <div className="space-y-1.5 border-2 rounded-lg p-2 bg-green-500/5 border-green-500/40">
                   <div className="flex items-center justify-between gap-2">
                     <Label className="text-[11px] font-bold flex items-center gap-1 text-green-700">
@@ -725,6 +726,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* Total */}
                 {totalPiecesCombined > 0 && (() => {
