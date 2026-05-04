@@ -84,6 +84,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   stockSource = 'worker',
   embedded = false,
   hideHeader = false,
+  onHeaderInfo,
 }) => {
   const { workerId, activeBranch, user, activeRole } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
