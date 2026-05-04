@@ -523,14 +523,6 @@ const LoginForm: React.FC = () => {
             <CardTitle className="text-2xl font-bold cursor-pointer select-none" onClick={handleTitleTap}>{t('app.name')}</CardTitle>
             
           </div>
-          {/* TEMP_QUICK_LOGIN_BUTTON */}
-          <button
-            type="button"
-            onClick={() => setQuickLoginMode('real')}
-            className="text-xs text-blue-600 underline mt-2"
-          >
-            🔧 دخول سريع (مؤقت)
-          </button>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
