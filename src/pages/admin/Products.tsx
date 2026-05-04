@@ -409,6 +409,7 @@ const Products: React.FC = () => {
     setEditWeightPerBox(product.weight_per_box || 0);
     setEditAllowUnitSale(product.allow_unit_sale !== false);
     setEditSortOrder((product as any).sort_order || 0);
+    setEditSupplierId((product as any).supplier_id || '');
     setEditProductImage(null);
     setEditProductImagePreview(product.image_url || null);
     setEditPriceSuperGros(product.price_super_gros || 0);
