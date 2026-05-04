@@ -517,6 +517,7 @@ const Products: React.FC = () => {
         price_no_invoice: editPriceNoInvoice,
         allow_unit_sale: editAllowUnitSale,
         sort_order: editSortOrder,
+        supplier_id: editSupplierId || null,
         image_url: imageUrl,
       };
 
