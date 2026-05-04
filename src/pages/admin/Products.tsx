@@ -1112,15 +1112,15 @@ const Products: React.FC = () => {
           >
             <CardContent className="p-0 flex flex-col h-full">
               {/* Image area */}
-              <div className="relative h-24 bg-muted/40 flex items-center justify-center overflow-hidden">
+              <div className="relative h-20 bg-muted/40 flex items-center justify-center overflow-hidden p-1">
                 {product.image_url ? (
                   <img
                     src={product.image_url}
                     alt={(product as any).app_name || product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform"
                   />
                 ) : (
-                  <Package className="w-8 h-8 text-primary/40" />
+                  <Package className="w-7 h-7 text-primary/40" />
                 )}
                 {/* Status badge */}
                 <span className={`absolute top-1 start-1 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
