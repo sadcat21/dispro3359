@@ -8322,6 +8322,157 @@ export type Database = {
           },
         ]
       }
+      worker_target_progress: {
+        Row: {
+          achieved_value: number
+          achievement_pct: number
+          created_at: string
+          id: string
+          last_calculated_at: string
+          penalty_calculated: number
+          period_end: string
+          period_start: string
+          reward_applied: boolean
+          reward_calculated: number
+          status: Database["public"]["Enums"]["target_progress_status"]
+          target_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          achieved_value?: number
+          achievement_pct?: number
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          penalty_calculated?: number
+          period_end: string
+          period_start: string
+          reward_applied?: boolean
+          reward_calculated?: number
+          status?: Database["public"]["Enums"]["target_progress_status"]
+          target_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          achieved_value?: number
+          achievement_pct?: number
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          penalty_calculated?: number
+          period_end?: string
+          period_start?: string
+          reward_applied?: boolean
+          reward_calculated?: number
+          status?: Database["public"]["Enums"]["target_progress_status"]
+          target_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_target_progress_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "worker_targets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_target_progress_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_target_progress_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_targets: {
+        Row: {
+          bonus_per_extra_unit: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean
+          metric_type: Database["public"]["Enums"]["target_metric_type"]
+          min_achievement_pct: number
+          name: string
+          notes: string | null
+          penalty_amount: number
+          period_type: Database["public"]["Enums"]["target_period_type"]
+          reward_amount: number
+          start_date: string
+          target_value: number
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          bonus_per_extra_unit?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean
+          metric_type: Database["public"]["Enums"]["target_metric_type"]
+          min_achievement_pct?: number
+          name: string
+          notes?: string | null
+          penalty_amount?: number
+          period_type: Database["public"]["Enums"]["target_period_type"]
+          reward_amount?: number
+          start_date: string
+          target_value: number
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          bonus_per_extra_unit?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          metric_type?: Database["public"]["Enums"]["target_metric_type"]
+          min_achievement_pct?: number
+          name?: string
+          notes?: string | null
+          penalty_amount?: number
+          period_type?: Database["public"]["Enums"]["target_period_type"]
+          reward_amount?: number
+          start_date?: string
+          target_value?: number
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_targets_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_targets_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       worker_ui_overrides: {
         Row: {
           created_at: string
@@ -8735,6 +8886,14 @@ export type Database = {
       archive_cash_movements: { Args: never; Returns: Json }
       archive_debt_movements: { Args: never; Returns: Json }
       archive_stock_movements: { Args: never; Returns: Json }
+      calculate_worker_target_progress: {
+        Args: {
+          _reference_date?: string
+          _target_id: string
+          _worker_id: string
+        }
+        Returns: string
+      }
       can_create_stock_confirmation_for_session: {
         Args: {
           _branch_id: string
@@ -8773,6 +8932,7 @@ export type Database = {
         Args: { p_branch_id: string }
         Returns: boolean
       }
+      can_manage_targets: { Args: { _user_id: string }; Returns: boolean }
       confirm_loading_session_atomic: {
         Args: { p_session_id: string }
         Returns: Json
@@ -8821,6 +8981,16 @@ export type Database = {
         Returns: {
           customer_id: string
           status: string
+        }[]
+      }
+      get_target_period_bounds: {
+        Args: {
+          _date: string
+          _period: Database["public"]["Enums"]["target_period_type"]
+        }
+        Returns: {
+          period_end: string
+          period_start: string
         }[]
       }
       get_user_role: {
@@ -8914,6 +9084,10 @@ export type Database = {
       recalculate_running_balance: {
         Args: { p_branch_id: string; p_product_id: string }
         Returns: Json
+      }
+      recalculate_targets_for_worker: {
+        Args: { _reference_date?: string; _worker_id: string }
+        Returns: number
       }
       record_cash_collection_atomic: {
         Args: {
@@ -9145,6 +9319,9 @@ export type Database = {
         | "warehouse_manager"
         | "company_manager"
         | "internal_supervisor"
+      target_metric_type: "sales_amount" | "deliveries_count" | "cartons_sold"
+      target_period_type: "daily" | "weekly" | "monthly"
+      target_progress_status: "in_progress" | "achieved" | "missed"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "doing" | "done"
       task_type: "task" | "request"
@@ -9287,6 +9464,9 @@ export const Constants = {
         "company_manager",
         "internal_supervisor",
       ],
+      target_metric_type: ["sales_amount", "deliveries_count", "cartons_sold"],
+      target_period_type: ["daily", "weekly", "monthly"],
+      target_progress_status: ["in_progress", "achieved", "missed"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "doing", "done"],
       task_type: ["task", "request"],
