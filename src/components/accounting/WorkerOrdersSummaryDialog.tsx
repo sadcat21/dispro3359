@@ -54,6 +54,12 @@ interface ProductAgg {
   customers: CustomerBreakdown[];
 }
 
+const ORDER_SUMMARY_STATUSES = ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed'];
+const DELIVERY_SUMMARY_STATUSES = ['pending', 'assigned', 'in_progress', 'confirmed', 'processing', 'in_transit', 'ready'];
+
+const buildDeliveryDateFilter = (selectedDate: string, dayStart: string, dayEnd: string) =>
+  `delivery_date.eq.${selectedDate},and(delivery_date.is.null,created_at.gte.${dayStart},created_at.lte.${dayEnd})`;
+
 /** Carousel overlay for orders – mirrors the sales summary carousel */
 const OrdersCarousel: React.FC<{
   items: ProductAgg[];
@@ -221,6 +227,13 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const { columns: columnConfig, saveColumns } = usePrintColumnsConfig();
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
 
+  useEffect(() => {
+    if (isDeliveryMode && activeTab !== 'assigned') {
+      setActiveTab('assigned');
+      setExpandedProduct(null);
+    }
+  }, [isDeliveryMode, activeTab]);
+
   // DB keys for persistence
   const cashVanKey = workerId ? `cashvan_${workerId}_${selectedDate}` : '';
   const customerSelKey = workerId ? `print_customers_${workerId}_${selectedDate}` : '';
@@ -319,9 +332,9 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           .from('orders')
           .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
           .eq(col, workerId)
-          .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+          .in('status', isDeliveryMode ? DELIVERY_SUMMARY_STATUSES : ORDER_SUMMARY_STATUSES);
         if (isDeliveryMode) {
-          q = q.eq('delivery_date', selectedDate);
+          q = q.or(buildDeliveryDateFilter(selectedDate, dayStart, dayEnd));
         } else {
           q = q.gte('created_at', dayStart).lte('created_at', dayEnd);
         }
@@ -393,7 +406,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
     enabled: open && !!workerId,
   });
 
-  const currentData = activeTab === 'created' ? data?.created || [] : data?.assigned || [];
+  const currentData = isDeliveryMode || activeTab === 'assigned' ? data?.assigned || [] : data?.created || [];
   const totalQuantity = currentData.reduce((s, p) => s + p.quantity, 0);
   const totalCustomers = new Set(currentData.flatMap(p => p.customers.map(c => c.customerId))).size;
   const createdCustomers = new Set((data?.created || []).flatMap(p => p.customers.map(c => c.customerId))).size;
@@ -476,7 +489,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       const dayStart = `${selectedDate}T00:00:00+01:00`;
       const dayEnd = `${selectedDate}T23:59:59+01:00`;
 
-      const filterCol = activeTab === 'created' ? 'created_by' : 'assigned_worker_id';
+      const filterCol = isDeliveryMode || activeTab === 'assigned' ? 'assigned_worker_id' : 'created_by';
       let ordersQuery = supabase
         .from('orders')
         .select(`
@@ -486,10 +499,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           order_items(*, product:products(*))
         `)
         .eq(filterCol, workerId)
-        .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed'])
+        .in('status', isDeliveryMode ? DELIVERY_SUMMARY_STATUSES : ORDER_SUMMARY_STATUSES)
         .order('created_at', { ascending: true });
       if (isDeliveryMode) {
-        ordersQuery = ordersQuery.eq('delivery_date', selectedDate);
+        ordersQuery = ordersQuery.or(buildDeliveryDateFilter(selectedDate, dayStart, dayEnd));
       } else {
         ordersQuery = ordersQuery.gte('created_at', dayStart).lte('created_at', dayEnd);
       }
@@ -560,7 +573,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
     setExpandedProduct(null);
   };
 
-  const printTitle = `${activeTab === 'created' ? 'طلبيات' : 'معيّنة'} - ${workerPrintInfo?.printName || workerName || ''} - ${format(new Date(selectedDate), 'dd/MM/yyyy')}`;
+  const printTitle = `${isDeliveryMode ? 'تجميع التوصيلات' : activeTab === 'created' ? 'طلبيات' : 'معيّنة'} - ${workerPrintInfo?.printName || workerName || ''} - ${format(new Date(selectedDate), 'dd/MM/yyyy')}`;
 
   return (
     <>
