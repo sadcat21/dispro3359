@@ -933,7 +933,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </div>
             </div>
           )}
-        </div>
       </nav>
 
       {/* Branch Selection Dialog */}
