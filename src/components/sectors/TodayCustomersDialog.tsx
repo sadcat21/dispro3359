@@ -331,6 +331,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [printReceiptData, setPrintReceiptData] = useState<any>(null);
   const [showPrintReceipt, setShowPrintReceipt] = useState(false);
   const [showOrdersSummary, setShowOrdersSummary] = useState(false);
+  const [ordersSummaryMode, setOrdersSummaryMode] = useState<'orders' | 'delivery'>('orders');
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showPrintOrdersDialog, setShowPrintOrdersDialog] = useState(false);
   const [showPrintPreviewDialog, setShowPrintPreviewDialog] = useState(false);
