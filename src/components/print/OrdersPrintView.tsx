@@ -441,7 +441,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                               <>
                                 <div style={{ fontWeight: 600 }}>{storeName}</div>
                                 {customerName && (
-                                  <div style={{ fontSize: '8pt', color: '#c00', marginTop: '1px' }}>
+                                  <div className="print-text-red" style={{ fontSize: '8pt', marginTop: '1px' }}>
                                     {customerName}
                                   </div>
                                 )}
