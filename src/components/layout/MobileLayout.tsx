@@ -782,7 +782,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       </div>
 
       {/* Bottom Navigation — شريط SaaS مستقيم بدون أي انحناء أو زر عائم */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom border-t border-sidebar-border bg-sidebar-background md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom border-t border-sidebar-border bg-sidebar text-sidebar-foreground md:hidden">
         <div className="grid h-16 grid-cols-5 items-center px-2 shadow-2xl">
             {/* العناصر اليسرى (أول عنصرين) */}
             {mainNavItems.slice(0, 2).map((item) => {
