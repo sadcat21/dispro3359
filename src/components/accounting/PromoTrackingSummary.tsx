@@ -98,6 +98,27 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
                     🎁 {formatGiftDisplay(item.giftQuantity, item.piecesPerBox)}
                   </div>
                 </div>
+                {typeof item.loadedQuantity === 'number' && item.loadedQuantity > 0 && (() => {
+                  const ppb = item.piecesPerBox || 1;
+                  const giftBoxes = ppb > 0 ? item.giftQuantity / ppb : 0;
+                  const accounted = item.quantitySold + giftBoxes;
+                  const diff = item.loadedQuantity - accounted;
+                  const fmt = (boxes: number) => {
+                    const wholeBoxes = Math.floor(boxes + 1e-6);
+                    const pieces = Math.round((boxes - wholeBoxes) * ppb);
+                    return ppb > 1 && pieces > 0 ? `${wholeBoxes}.${String(pieces).padStart(2, '0')}` : `${wholeBoxes}`;
+                  };
+                  return (
+                    <div className="flex items-center gap-1 text-[9px] font-bold">
+                      <div className="flex-1 flex items-center justify-center rounded-md bg-blue-100 text-blue-700 py-0.5">
+                        شحن: {fmt(item.loadedQuantity)}
+                      </div>
+                      <div className={`flex-1 flex items-center justify-center rounded-md py-0.5 ${Math.abs(diff) < 0.01 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                        فارق: {diff > 0 ? '+' : ''}{fmt(Math.abs(diff))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {/* تم حذف وصف العرض الرمادي بناءً على طلب المستخدم */}
               </div>
             </div>
