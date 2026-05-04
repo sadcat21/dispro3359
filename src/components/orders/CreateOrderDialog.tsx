@@ -98,7 +98,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
 
   // Product view mode (cards/list)
-  const [productViewMode, setProductViewMode] = useState<'cards' | 'list'>('cards');
+  const [productViewMode, setProductViewMode] = useState<'cards' | 'list'>('list');
 
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
