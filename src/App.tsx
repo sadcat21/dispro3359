@@ -63,6 +63,7 @@ import BranchInvoiceApprovals from "./pages/admin/BranchInvoiceApprovals";
 import BranchManagerApprovals from "./pages/admin/BranchManagerApprovals";
 import SurplusDeficitTreasury from "./pages/admin/SurplusDeficitTreasury";
 import Rewards from "./pages/admin/Rewards";
+import Targets from "./pages/admin/Targets";
 import WorkerRewards from "./pages/WorkerRewards";
 import MyAchievements from "./pages/MyAchievements";
 import PromoSplits from "./pages/admin/PromoSplits";
@@ -215,6 +216,12 @@ const AppRoutes = () => {
       <Route path="/workers" element={
         <ProtectedRoute adminOnly>
           <Workers />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/targets" element={
+        <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager']}>
+          <Targets />
         </ProtectedRoute>
       } />
 

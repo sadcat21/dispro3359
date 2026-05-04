@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Home, Users, Package, BarChart3, Settings, FileSpreadsheet, UserCheck, Building2, Shield, ShoppingCart, Truck, Activity, Store, BookOpen, UserCog, Gift, Wallet, Warehouse, ClipboardList, Banknote, Calculator, MapPin, Navigation, FileText, Vault, FolderOpen, Scale, Trophy, CalendarDays, Split, ClipboardCheck, Radar, ShieldCheck, Coins, HandCoins, PackageSearch } from 'lucide-react';
+import { Home, Users, Package, BarChart3, Settings, FileSpreadsheet, UserCheck, Building2, Shield, ShoppingCart, Truck, Activity, Store, BookOpen, UserCog, Gift, Wallet, Warehouse, ClipboardList, Banknote, Calculator, MapPin, Navigation, FileText, Vault, FolderOpen, Scale, Trophy, CalendarDays, Split, ClipboardCheck, Radar, ShieldCheck, Coins, HandCoins, PackageSearch, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkerPermissions } from '@/hooks/usePermissions';
 import { useMyUIOverrides, useMyRoleOverrides } from '@/hooks/useUIOverrides';
@@ -75,6 +75,7 @@ export const useNavigation = () => {
           { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
           { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
+          { path: '/targets', icon: Target, label: 'أهداف العمال' },
           { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
           { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
           { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
@@ -146,6 +147,7 @@ export const useNavigation = () => {
           { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
           { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
+          { path: '/targets', icon: Target, label: 'أهداف العمال' },
           { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
           { path: '/worker-tracking', icon: MapPin, label: t('navigation.worker_tracking') },
           { path: '/attendance', icon: CalendarDays, label: t('nav.attendance') },
@@ -204,6 +206,7 @@ export const useNavigation = () => {
           { path: '/products', icon: Package, label: t('nav.products') },
           { path: '/product-offers', icon: Gift, label: t('nav.product_offers') },
           { path: '/rewards', icon: Trophy, label: t('nav.rewards') },
+          { path: '/targets', icon: Target, label: 'أهداف العمال' },
           { path: '/workers', icon: Users, label: t('nav.workers') },
           { path: '/permissions', icon: Shield, label: t('nav.permissions') },
           { path: '/worker-roles-management', icon: Shield, label: t('nav.worker_roles_management') },
