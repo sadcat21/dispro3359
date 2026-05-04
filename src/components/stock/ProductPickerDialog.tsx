@@ -260,6 +260,16 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
   const isOfferActivated = singleProductId ? !!offerActivated[singleProductId] : false;
 
+  // Keep gift fields in sync with suggested split whenever offer is activated
+  // and the regular quantity changes — confirm total stays dynamic.
+  React.useEffect(() => {
+    if (!singleProductId || !isOfferActivated) return;
+    setSingleGiftFields({
+      boxes: suggestedSplit.boxes > 0 ? String(suggestedSplit.boxes) : '0',
+      pieces: suggestedSplit.pieces > 0 ? String(suggestedSplit.pieces) : '0',
+    });
+  }, [isOfferActivated, singleProductId, suggestedSplit.boxes, suggestedSplit.pieces]);
+
   const handleConfirmSingle = () => {
     if (!singleProductId || (parsed.boxes === 0 && parsed.pieces === 0 && parsedGift.boxes === 0 && parsedGift.pieces === 0)) return;
     const regularQty = toCustomFormat(parsed);
