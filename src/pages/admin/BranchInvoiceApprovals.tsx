@@ -192,7 +192,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('تم تأجيل الفاتورة');
+      toast.success('${t('branch_invoice_approvals.postponed_success')}');
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -329,17 +329,17 @@ const BranchInvoiceApprovals: React.FC = () => {
           <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
             <TabsTrigger value="pending" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
               <FileText className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">معلّقة</span>
+              <span className="truncate">{t('branch_invoice_approvals.tab_pending')}</span>
               <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{pendingTabRows.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="postponed" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
               <Clock className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">مؤجلة</span>
+              <span className="truncate">{t('branch_invoice_approvals.tab_postponed')}</span>
               <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{postponedRows.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="ready" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
               <Download className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">جاهزة</span>
+              <span className="truncate">{t('branch_invoice_approvals.tab_ready')}</span>
               <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{readyRows.length}</Badge>
             </TabsTrigger>
           </TabsList>
@@ -349,12 +349,12 @@ const BranchInvoiceApprovals: React.FC = () => {
               <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
                 <TabsTrigger value="branch_stage" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
                   <FileText className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">مرحلة الفرع</span>
+                  <span className="truncate">{t('branch_invoice_approvals.tab_branch_stage')}</span>
                   <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{pendingBranchRows.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="final_stage" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
                   <Clock3 className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">الموافقة النهائية</span>
+                  <span className="truncate">{t('branch_invoice_approvals.tab_final_stage')}</span>
                   <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{forwardedRows.length}</Badge>
                 </TabsTrigger>
               </TabsList>
@@ -509,7 +509,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                   className="gap-1 h-9 px-1 text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
                                 >
                                   <Clock className="w-3.5 h-3.5 shrink-0" />
-                                  <span>تأجيل</span>
+                                  <span>{t('branch_invoice_approvals.postpone')}</span>
                                 </Button>
                                 <Button
                                   size="sm"
@@ -542,12 +542,12 @@ const BranchInvoiceApprovals: React.FC = () => {
               <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
                 <TabsTrigger value="postponed_list" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
                   <Clock className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">المؤجلة</span>
+                  <span className="truncate">{t('branch_invoice_approvals.tab_postponed_list')}</span>
                   <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{postponedRows.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="merged_sent" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
                   <Layers className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">الموحَّدة المُرسَلة</span>
+                  <span className="truncate">{t('branch_invoice_approvals.tab_merged_sent')}</span>
                   <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{mergedParentRows.length}</Badge>
                 </TabsTrigger>
               </TabsList>
