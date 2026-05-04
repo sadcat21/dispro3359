@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -252,6 +253,14 @@ const MyAchievements: React.FC = () => {
   const queryClient = useQueryClient();
   const cancelOrder = useCancelOrder();
   const resumeOrder = useResumeOrder();
+
+  // Ref للتأكد من بدء عرض القائمة من الأعلى (سكرول أب) عند فتح الصفحة أو تغيير الفلتر/التاريخ
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = listContainerRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    if (el) el.scrollTop = 0;
+    window.scrollTo({ top: 0, left: 0 });
+  }, [targetWorkerId, dateFrom, dateTo, activeFilter, searchQuery]);
 
   const handleCancelOrder = useCallback(async (orderId: string) => {
     await cancelOrder.mutateAsync(orderId);
@@ -933,7 +942,7 @@ const MyAchievements: React.FC = () => {
             ))}
           </div>
         </CardHeader>
-        <CardContent className="p-2 pt-0 flex-1 min-h-0">
+        <CardContent className="p-2 pt-0 flex-1 min-h-0" ref={listContainerRef}>
           {isLoading ? (
             <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
           ) : (
