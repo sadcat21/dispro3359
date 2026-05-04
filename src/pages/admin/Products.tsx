@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Package, Loader2, Trash2, Box, Pencil, Stamp, Layers, Weight, Scale, Camera, X, Image as ImageIcon, Lock, Truck, Tag, DollarSign, Info } from 'lucide-react';
+import { Plus, Package, Loader2, Trash2, Box, Pencil, Stamp, Layers, Weight, Scale, Camera, X, Image as ImageIcon, Lock, Truck, Tag, DollarSign, Info, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import StampTiersDialog from '@/components/products/StampTiersDialog';
 import PricingGroupsTab from '@/components/products/PricingGroupsTab';
@@ -153,6 +153,8 @@ const Products: React.FC = () => {
   const [activeTab, setActiveTab] = useState('products');
   const [invoiceTemplateOpen, setInvoiceTemplateOpen] = useState(false);
   const [titleTapCount, setTitleTapCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   
   // Group price update states
   const [showGroupUpdateDialog, setShowGroupUpdateDialog] = useState(false);
@@ -271,7 +273,19 @@ const Products: React.FC = () => {
   };
 
   const sortedProducts = useMemo(() => {
-    return [...products].sort((a, b) => {
+    const filtered = products.filter((p) => {
+      if (statusFilter === 'active' && !p.is_active) return false;
+      if (statusFilter === 'inactive' && p.is_active) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        const name = (p.name || '').toLowerCase();
+        const appName = ((p as any).app_name || '').toLowerCase();
+        const code = (p.product_code || '').toLowerCase();
+        if (!name.includes(q) && !appName.includes(q) && !code.includes(q)) return false;
+      }
+      return true;
+    });
+    return filtered.sort((a, b) => {
       if (a.is_active !== b.is_active) {
         return Number(b.is_active) - Number(a.is_active);
       }
@@ -282,7 +296,7 @@ const Products: React.FC = () => {
 
       return a.name.localeCompare(b.name);
     });
-  }, [products]);
+  }, [products, statusFilter, searchQuery]);
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -526,7 +540,7 @@ const Products: React.FC = () => {
         .update(payload)
         .eq('id', editingProduct.id)
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (
         error &&
@@ -542,7 +556,7 @@ const Products: React.FC = () => {
           .update(fallbackPayload as any)
           .eq('id', editingProduct.id)
           .select('*')
-          .single();
+          .maybeSingle();
         updatedProduct = fallbackResult.data;
         error = fallbackResult.error;
         if (!fallbackResult.error && removedColumns.length > 0) {
@@ -619,7 +633,7 @@ const Products: React.FC = () => {
         .update(payload)
         .eq('id', editingProduct.id)
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (
         error &&
@@ -635,7 +649,7 @@ const Products: React.FC = () => {
           .update(fallbackPayload as any)
           .eq('id', editingProduct.id)
           .select('*')
-          .single();
+          .maybeSingle();
         updatedProduct = fallbackResult.data;
         error = fallbackResult.error;
         if (!fallbackResult.error && removedColumns.length > 0) {
