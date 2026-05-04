@@ -1103,80 +1103,87 @@ const Products: React.FC = () => {
               </div>
 
               {/* List */}
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {sortedProducts.map((product) => (
-          <Card key={product.id} className="overflow-hidden cursor-pointer hover:shadow-md hover:border-primary/40 transition-all" onClick={() => openEditDialog(product)}>
-            <CardContent className="p-0">
-              <div className="flex items-center">
-                {/* Product Info */}
-                <div className="flex-1 flex items-center gap-3 p-3 min-w-0">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={(product as any).app_name || product.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <Package className="w-5 h-5 text-primary" />
-                    </div>
+          <Card
+            key={product.id}
+            className="group overflow-hidden cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all flex flex-col"
+            onClick={() => openEditDialog(product)}
+          >
+            <CardContent className="p-0 flex flex-col h-full">
+              {/* Image area */}
+              <div className="relative aspect-square bg-muted/40 flex items-center justify-center overflow-hidden">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={(product as any).app_name || product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <Package className="w-12 h-12 text-primary/40" />
+                )}
+                {/* Status badge */}
+                <span className={`absolute top-2 start-2 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  product.is_active
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-destructive text-destructive-foreground'
+                }`}>
+                  {product.is_active ? t('common.active') : t('common.inactive')}
+                </span>
+                {product.pricing_unit !== 'box' && (
+                  <span className="absolute top-2 end-2 bg-background/90 text-primary text-[10px] px-2 py-0.5 rounded-full font-medium">
+                    {t(`products.pricing_unit_${product.pricing_unit}`)}
+                  </span>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="p-3 flex-1 flex flex-col gap-1 min-w-0">
+                <p className="font-bold truncate text-sm">{(product as any).app_name || product.name}</p>
+                {(product as any).app_name && (product as any).app_name !== product.name && (
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {officialNamePrefix} <span className="font-medium text-foreground">{product.name}</span>
+                  </p>
+                )}
+                {product.product_code && (
+                  <p className="text-[11px] text-muted-foreground" dir="ltr">
+                    CODE: <span className="font-medium text-foreground">{product.product_code}</span>
+                  </p>
+                )}
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-auto pt-1">
+                  <Box className="w-3 h-3" />
+                  {product.pieces_per_box} {piecesPerBoxSuffix}
+                  {product.pricing_unit === 'kg' && product.weight_per_box && (
+                    <span className="text-primary ms-1">• {product.weight_per_box} {kilogramLabel}</span>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold truncate">{(product as any).app_name || product.name}</p>
-                    {(product as any).app_name && (product as any).app_name !== product.name && (
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {officialNamePrefix} <span className="font-medium text-foreground">{product.name}</span>
-                      </p>
-                    )}
-                    {product.product_code && (
-                      <p className="text-[11px] text-muted-foreground" dir="ltr">
-                        CODE: <span className="font-medium text-foreground">{product.product_code}</span>
-                      </p>
-                    )}
+                </p>
+                {((product as any).allow_invoice_sale === false || (product as any).allow_invoice2_sale === false) && (
+                  <div className="flex flex-wrap gap-1">
                     {(product as any).allow_invoice_sale === false && (
-                      <p className="text-[11px] text-amber-600 font-medium">
+                      <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded">
                         {invoiceSaleDisabledBadge}
-                      </p>
+                      </span>
                     )}
                     {(product as any).allow_invoice2_sale === false && (
-                      <p className="text-[11px] text-amber-600 font-medium">
+                      <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded">
                         {invoice2SaleDisabledBadge}
-                      </p>
+                      </span>
                     )}
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Box className="w-3 h-3" />
-                      {product.pieces_per_box} {piecesPerBoxSuffix}
-                      {product.pricing_unit === 'kg' && product.weight_per_box && (
-                        <span className="text-primary ms-1">• {product.weight_per_box} {kilogramLabel}</span>
-                      )}
-                      {product.pricing_unit !== 'box' && (
-                        <span className="bg-primary/10 text-primary text-[10px] px-1.5 rounded-full ms-1">
-                          {t(`products.pricing_unit_${product.pricing_unit}`)}
-                        </span>
-                      )}
-                    </p>
                   </div>
-                </div>
-                
-                {/* Status Badge */}
-                <div className="px-2">
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    product.is_active 
-                      ? 'bg-primary/10 text-primary' 
-                      : 'bg-destructive/10 text-destructive'
-                  }`}>
-                    {product.is_active ? t('common.active') : t('common.inactive')}
-                  </span>
-                </div>
-                
-                {/* Actions - hidden on mobile, visible on larger screens */}
-                <div className="hidden sm:flex items-center border-r border-border" onClick={e => e.stopPropagation()}>
-                  <div className="px-3 py-2 flex items-center">
-                    <Switch
-                      checked={product.is_active}
-                      onCheckedChange={() => toggleProductStatus(product)}
-                    />
-                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between border-t border-border px-2 py-1" onClick={e => e.stopPropagation()}>
+                <Switch
+                  checked={product.is_active}
+                  onCheckedChange={() => toggleProductStatus(product)}
+                />
+                <div className="flex items-center">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-none hover:bg-muted"
+                    className="h-8 w-8 hover:bg-muted"
                     onClick={() => openEditDialog(product)}
                   >
                     <Pencil className="w-4 h-4" />
@@ -1184,7 +1191,7 @@ const Products: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-none text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => setProductToDelete(product)}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1196,7 +1203,7 @@ const Products: React.FC = () => {
         ))}
 
               {sortedProducts.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
+                <div className="col-span-full text-center py-12 text-muted-foreground">
                   <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>{products.length === 0 ? t('products.no_products') : 'لا توجد نتائج مطابقة'}</p>
                 </div>
