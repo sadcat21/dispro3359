@@ -139,17 +139,29 @@ const WorkerHandoverSummary: React.FC<WorkerHandoverSummaryProps> = ({
       // Completed deliveries
       const completedCount = orders.length;
 
-      // Stock verification status
-      const { data: loadingSessions } = await supabase
-        .from('loading_sessions')
-        .select('id, status')
-        .eq('worker_id', workerId)
-        .gte('created_at', startTz)
-        .lte('created_at', endTz)
-        .order('created_at', { ascending: false })
-        .limit(1);
+      // Stock verification status — يعتمد على وجود مراجعة نهائية مقفلة ضمن الفترة
+      const [{ data: loadingSessions }, { data: finalReviews }] = await Promise.all([
+        supabase
+          .from('loading_sessions')
+          .select('id, status')
+          .eq('worker_id', workerId)
+          .gte('created_at', startTz)
+          .lte('created_at', endTz)
+          .order('created_at', { ascending: false })
+          .limit(1),
+        supabase
+          .from('final_review_sessions')
+          .select('id')
+          .eq('worker_id', workerId)
+          .eq('status', 'locked')
+          .gte('locked_at', startTz)
+          .lte('locked_at', endTz)
+          .limit(1),
+      ]);
 
-      const truckReviewed = (loadingSessions || []).length > 0 && loadingSessions![0]?.status === 'review';
+      const truckReviewed =
+        ((finalReviews || []).length > 0) ||
+        ((loadingSessions || []).length > 0 && loadingSessions![0]?.status === 'review');
 
       // Expenses
       const { data: expensesData } = await supabase
