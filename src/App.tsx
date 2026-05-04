@@ -221,7 +221,7 @@ const AppRoutes = () => {
       } />
 
       <Route path="/targets" element={
-        <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager']}>
+        <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager', 'branch_admin']}>
           <Targets />
         </ProtectedRoute>
       } />

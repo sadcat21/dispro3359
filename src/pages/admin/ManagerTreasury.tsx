@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTreasurySummary, useManagerTreasury, useManagerHandovers, useCreateHandover, useAddTreasuryEntry } from '@/hooks/useManagerTreasury';
@@ -79,7 +80,7 @@ const SignedMoneyValue = ({ value, currency, className = '', signClassName = '' 
 
 const ManagerTreasury = () => {
   const { t, language, dir } = useLanguage();
-  const { activeBranch, workerId } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
   const queryClient = useQueryClient();
   const { data: summary, isLoading: summaryLoading } = useTreasurySummary();
   const isInvoiceRequestHidden = useIsElementHidden('button', 'treasury_invoice_request');
@@ -152,6 +153,7 @@ const ManagerTreasury = () => {
   const [gapTransferAmount, setGapTransferAmount] = useState('');
   const [gapTransferSaving, setGapTransferSaving] = useState(false);
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
+  const navigate = useNavigate();
   const { data: contacts } = useTreasuryContacts();
   const { data: bankAccounts } = useQuery({
     queryKey: ['treasury-bank-accounts', activeBranch?.id],
@@ -606,9 +608,15 @@ const ManagerTreasury = () => {
             <span>مزامنة</span>
           </Button>
           {!isInvoiceRequestHidden && (
-            <Button size="sm" variant="default" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]" onClick={() => setInvoiceRequestOpen(true)} title="طلب فاتورة">
+            <Button
+              size="sm"
+              variant="default"
+              className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]"
+              onClick={() => navigate(role === 'branch_admin' ? '/branch-invoice-approvals' : '/assistant-approvals')}
+              title="صفحة الموافقات"
+            >
               <Receipt className="w-4 h-4" />
-              <span>فاتورة</span>
+              <span>الموافقات</span>
             </Button>
           )}
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
