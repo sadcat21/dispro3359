@@ -72,8 +72,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           .limit(1)
           .maybeSingle();
 
-        const sinceTs = lastSession?.completed_at || lastSession?.period_end || lastSession?.created_at || '1970-01-01';
-        if (!cancelled) setPeriodStart(sinceTs);
+        const realSince = lastSession?.completed_at || lastSession?.period_end || lastSession?.created_at || null;
+        const sinceTs = realSince || '1970-01-01';
+        if (!cancelled) setPeriodStart(realSince);
 
         // 2. جلسات الشحن للعامل بعد ذلك التاريخ
         const { data: loadSessions } = await supabase
