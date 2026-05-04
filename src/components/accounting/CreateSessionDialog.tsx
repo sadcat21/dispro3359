@@ -340,7 +340,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">{t('accounting.period_start')}</Label>
-                  <Input type="datetime-local" value={periodStart} onChange={e => setPeriodStart(e.target.value)} className="text-xs rounded-lg" />
+                  <Input type="datetime-local" value={periodStart} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed" />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -350,13 +350,12 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       {t('common.refresh') || 'تحديث'}
                     </Button>
                   </div>
-                  <Input type="datetime-local" value={periodEnd} onChange={e => setPeriodEnd(e.target.value)} className="text-xs rounded-lg" />
+                  <Input type="datetime-local" value={periodEnd} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed" />
                 </div>
               </div>
-              <div className="flex items-center justify-between bg-muted/40 rounded-lg px-3 py-2 mt-2">
-                <Label className="text-xs font-medium text-muted-foreground">تحديث تلقائي للبيانات</Label>
-                <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
-              </div>
+              <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                يتم تحديد الفترة تلقائياً منذ آخر جلسة محاسبة. استخدم زر "تحديث" لجلب آخر البيانات.
+              </p>
             </StepSection>
 
             {/* Warning: sessions after last review */}
