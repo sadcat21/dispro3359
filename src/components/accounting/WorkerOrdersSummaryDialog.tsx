@@ -584,6 +584,21 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         });
       }
 
+      // إضافة المنتجات المختارة يدويًا (غير الموجودة في الطلبيات) لتظهر كأعمدة في ورقة الطباعة
+      if (extraPrintProductIds.size > 0) {
+        // اجلب بياناتها كاملة (مع جميع الحقول التي يحتاجها OrdersPrintView)
+        const missingIds = Array.from(extraPrintProductIds).filter(id => !productMap.has(id));
+        if (missingIds.length > 0) {
+          const { data: extraProds } = await supabase
+            .from('products')
+            .select('*')
+            .in('id', missingIds);
+          for (const p of (extraProds || [])) {
+            productMap.set(p.id, p as Product);
+          }
+        }
+      }
+
       setPrintOrders(fetchedOrders);
       setPrintOrderItems(itemsMap);
       setPrintProducts(Array.from(productMap.values()).sort((a, b) => (a.name || '').localeCompare(b.name || '')));
