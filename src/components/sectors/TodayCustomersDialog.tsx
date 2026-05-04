@@ -1159,12 +1159,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       if (!o.customer_id) return;
       const customer = customers.find(c => c.id === o.customer_id);
       const matchesSector = customer?.sector_id && deliverySectorIds.has(customer.sector_id);
-      // Include explicitly assigned orders for the selected day even if customer has a sector outside today's planned sectors
+      // يجب أن تكون الطلبية فعلاً ليوم التوصيل المحدد (وليس فقط أن العميل ضمن قطاع توصيل اليوم)
       const isForSelectedDay =
         (o.delivery_date && o.delivery_date.startsWith(selectedDayBounds.dateKey)) ||
         (!o.delivery_date && o.created_at >= selectedDayBounds.start && o.created_at <= selectedDayBounds.end);
       const isExplicitlyAssigned = !!effectiveWorkerId && o.assigned_worker_id === effectiveWorkerId && isForSelectedDay;
-      if (matchesSector || isExplicitlyAssigned) ids.add(o.customer_id);
+      // أظهر فقط من له طلبية فعليّة لليوم المحدد (سواء عبر قطاعه أو عبر إسناد مباشر)
+      if ((matchesSector && isForSelectedDay) || isExplicitlyAssigned) ids.add(o.customer_id);
     });
     // Exclude direct-sale customers from delivery tracking
     todayDeliveredOrders.forEach(o => { if (o.customer_id && !directSoldCustomerIds.has(o.customer_id)) ids.add(o.customer_id); });
