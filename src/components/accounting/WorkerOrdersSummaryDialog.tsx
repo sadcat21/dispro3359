@@ -918,20 +918,33 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             إعدادات الأعمدة
           </Button>
 
-          {/* Extra Products Button - يضيف منتجات غير موجودة في الطلبيات كأعمدة في ورقة الطباعة */}
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={() => { setExtraProductsSearch(''); setShowExtraProductsPicker(true); }}
-          >
-            <Plus className="w-4 h-4" />
-            إضافة أعمدة منتجات
-            {extraPrintProductIds.size > 0 && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
-                {extraPrintProductIds.size} منتج
-              </Badge>
-            )}
-          </Button>
+          {/* Extra Products Button + سويتش لإضافة كل المنتجات المتبقية كأعمدة */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              onClick={() => { setExtraProductsSearch(''); setShowExtraProductsPicker(true); }}
+              disabled={includeAllRemainingProducts}
+            >
+              <Plus className="w-4 h-4" />
+              إضافة أعمدة منتجات
+              {extraPrintProductIds.size > 0 && !includeAllRemainingProducts && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
+                  {extraPrintProductIds.size} منتج
+                </Badge>
+              )}
+            </Button>
+            <div
+              className="flex flex-col items-center justify-center px-2 py-1 rounded-lg border bg-muted/40 shrink-0"
+              title="إضافة كل المنتجات المتبقية"
+            >
+              <span className="text-[9px] text-muted-foreground mb-1 leading-none">الكل</span>
+              <Switch
+                checked={includeAllRemainingProducts}
+                onCheckedChange={setIncludeAllRemainingProducts}
+              />
+            </div>
+          </div>
 
         </AdaptiveScrollContainer>
         <div className="grid grid-cols-2 gap-2 border-t bg-background pt-3 mt-3">
