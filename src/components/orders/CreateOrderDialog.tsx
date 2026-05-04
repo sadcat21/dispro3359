@@ -14,7 +14,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import {
   ShoppingCart, Plus, Loader2, User,
   Receipt, ReceiptText, UserPlus, Edit2, XCircle, Package, Check, ChevronsUpDown, Stamp,
-  AlertTriangle, Gift, Banknote
+  AlertTriangle, Gift, Banknote, LayoutGrid, List
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
@@ -96,6 +96,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
   // Wizard step (1-4)
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Product view mode (cards/list)
+  const [productViewMode, setProductViewMode] = useState<'cards' | 'list'>('cards');
 
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -870,8 +873,34 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {/* ═══════ STEP 2: Products ═══════ */}
               {currentStep === 2 && (
                 <section className="space-y-2">
-                  <Label className="text-sm font-semibold">{t('products.title')}</Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">{t('products.title')}</Label>
+                    <div className="inline-flex rounded-lg border bg-muted/40 p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setProductViewMode('cards')}
+                        className={cn(
+                          "p-1.5 rounded-md transition-colors",
+                          productViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                        )}
+                        aria-label="بطاقات"
+                      >
+                        <LayoutGrid className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProductViewMode('list')}
+                        className={cn(
+                          "p-1.5 rounded-md transition-colors",
+                          productViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                        )}
+                        aria-label="قائمة"
+                      >
+                        <List className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-1.5')}>
                     {products.map((product) => {
                       const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
                       const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
@@ -886,6 +915,43 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       const isShortage = shortageProductIds.has(product.id);
                       const isNotInStock = !warehouseStockProductIds.has(product.id);
                       const hasOffer = offerProductIds.has(product.id);
+                      if (productViewMode === 'list') {
+                        return (
+                          <button
+                            key={product.id}
+                            dir="rtl"
+                            onClick={() => handleProductClick(product)}
+                            className={cn(
+                              "flex items-center gap-2 p-2 rounded-lg border-2 bg-white text-right transition-all",
+                              hasAppliedGift
+                                ? 'border-green-500'
+                                : inCart ? 'border-primary' : 'border-red-200 hover:border-primary/60',
+                              isInvoiceRestricted && "opacity-40 grayscale"
+                            )}
+                          >
+                            {product.image_url ? (
+                              <img src={product.image_url} alt="" className="w-12 h-12 rounded object-cover shrink-0" loading="lazy" />
+                            ) : (
+                              <div className="w-12 h-12 rounded bg-red-50 flex items-center justify-center shrink-0">
+                                <Package className="w-5 h-5 text-primary/40" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-sm truncate">{getProductDisplayName(product)}</span>
+                                {inCart && (
+                                  <Badge variant="default" className="text-xs px-2 shrink-0">{totalCartQuantity}</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <ProductPriceBadge product={product} boxPrice={price} totalQuantity={totalCartQuantity} giftBoxes={totalGiftBoxes} giftPieces={totalGiftPieces} />
+                                {hasOffer && <Gift className="w-3.5 h-3.5 text-green-600" />}
+                                {(isShortage || isNotInStock) && <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      }
                       return (
                         <button
                           key={product.id}
