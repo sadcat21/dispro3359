@@ -219,6 +219,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const [extraPrintProductIds, setExtraPrintProductIds] = useState<Set<string>>(new Set());
   const [showExtraProductsPicker, setShowExtraProductsPicker] = useState(false);
   const [extraProductsSearch, setExtraProductsSearch] = useState('');
+  // عند تفعيله، تُضاف كل المنتجات المتبقية (التي ليست في الطلبيات) كأعمدة فارغة في ورقة الطباعة
+  const [includeAllRemainingProducts, setIncludeAllRemainingProducts] = useState(false);
   
   // Cash Van reserve products state
   const [showCashVanDialog, setShowCashVanDialog] = useState(false);
