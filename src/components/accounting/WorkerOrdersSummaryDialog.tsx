@@ -29,6 +29,11 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   workerId?: string;
   workerName?: string;
+  /**
+   * 'orders' (default): يُجمّع الطلبيات حسب تاريخ الإنشاء، يعرض تبويبتي "طلباته" و"معيّنة".
+   * 'delivery': لعامل التوصيل — يُجمّع حسب تاريخ التوصيل، بدون تبويبات، مع زرّي "اليوم" و"غدًا".
+   */
+  mode?: 'orders' | 'delivery';
 }
 
 interface CustomerBreakdown {
