@@ -105,7 +105,7 @@ const MyPromosContent: React.FC = () => {
       const [promosRes, customersRes, productsRes] = await Promise.all([
         supabase
           .from('promos')
-          .select(`*, customer:customers(*), product:products(*)`)
+          .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity)`)
           .eq('worker_id', workerId)
           .order('promo_date', { ascending: false }),
         supabase.from('customers').select('*').order('name'),
