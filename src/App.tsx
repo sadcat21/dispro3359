@@ -58,6 +58,7 @@ import WorkerLiability from "./pages/admin/WorkerLiability";
 import ShareTarget from "./pages/ShareTarget";
 import SharedInvoices from "./pages/admin/SharedInvoices";
 import AssistantApprovals from "./pages/admin/AssistantApprovals";
+import Suppliers from "./pages/admin/Suppliers";
 import BranchInvoiceApprovals from "./pages/admin/BranchInvoiceApprovals";
 import BranchManagerApprovals from "./pages/admin/BranchManagerApprovals";
 import SurplusDeficitTreasury from "./pages/admin/SurplusDeficitTreasury";
