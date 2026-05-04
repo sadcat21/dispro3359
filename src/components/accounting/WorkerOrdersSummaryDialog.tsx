@@ -537,6 +537,37 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         }
       }
 
+      // دمج طلبيات نفس العميل في صف واحد ليتطابق عدد صفوف الطباعة مع عدد العملاء في تجميع التوصيلات
+      if (groupCustomers) {
+        const byCustomer = new Map<string, OrderWithDetails>();
+        const mergedItems = new Map<string, any[]>();
+        for (const order of fetchedOrders) {
+          const cid = order.customer_id || order.id;
+          const items = itemsMap.get(order.id) || [];
+          if (!byCustomer.has(cid)) {
+            byCustomer.set(cid, order);
+            mergedItems.set(order.id, items.map(i => ({ ...i })));
+          } else {
+            const keepOrder = byCustomer.get(cid)!;
+            const acc = mergedItems.get(keepOrder.id)!;
+            for (const it of items) {
+              const existing = acc.find(a => a.product_id === it.product_id);
+              if (existing) {
+                existing.quantity = (existing.quantity || 0) + (it.quantity || 0);
+                existing.gift_quantity = (existing.gift_quantity || 0) + (it.gift_quantity || 0);
+                if (existing.total_price && it.total_price) existing.total_price += it.total_price;
+              } else {
+                acc.push({ ...it });
+              }
+            }
+            (keepOrder as any).total_amount = ((keepOrder as any).total_amount || 0) + ((order as any).total_amount || 0);
+          }
+        }
+        fetchedOrders = Array.from(byCustomer.values());
+        itemsMap.clear();
+        for (const [oid, items] of mergedItems) itemsMap.set(oid, items);
+      }
+
       // Build cash van extra row
       const cashVanExtraRows: { label: string; productQuantities: Record<string, number>; style?: 'highlight' | 'normal' }[] = [];
       const hasCashVan = Object.values(cashVanProducts).some(q => q > 0);
