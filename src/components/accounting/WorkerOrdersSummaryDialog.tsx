@@ -597,39 +597,77 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <ClipboardList className="w-5 h-5 text-primary" />
               </div>
-              <span className="flex-1">تجميع الطلبيات {workerName ? `- ${workerName}` : ''}</span>
+              <span className="flex-1">{isDeliveryMode ? 'تجميع التوصيلات' : 'تجميع الطلبيات'} {workerName ? `- ${workerName}` : ''}</span>
             </DialogTitle>
           </DialogHeader>
 
           {/* Date navigation */}
-          <div className="flex items-center justify-center gap-3 mt-3">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(1)}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-1.5 text-xs font-semibold bg-background rounded-lg px-3 py-1.5 border">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              {format(new Date(selectedDate), 'dd/MM/yyyy')}
+          {isDeliveryMode ? (
+            <div className="flex items-center justify-center gap-2 mt-3">
+              {(() => {
+                const todayStr = format(new Date(), 'yyyy-MM-dd');
+                const tomorrowStr = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+                const isToday = selectedDate === todayStr;
+                const isTomorrow = selectedDate === tomorrowStr;
+                return (
+                  <>
+                    <Button
+                      size="sm"
+                      variant={isToday ? 'default' : 'outline'}
+                      className="h-8 px-4 text-xs gap-1.5"
+                      onClick={() => { setSelectedDate(todayStr); setExpandedProduct(null); }}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      اليوم
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={isTomorrow ? 'default' : 'outline'}
+                      className="h-8 px-4 text-xs gap-1.5"
+                      onClick={() => { setSelectedDate(tomorrowStr); setExpandedProduct(null); }}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      غدًا
+                    </Button>
+                    <span className="text-[11px] text-muted-foreground ms-1">
+                      {format(new Date(selectedDate), 'dd/MM/yyyy')}
+                    </span>
+                  </>
+                );
+              })()}
             </div>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(-1)}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center gap-3 mt-3">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(1)}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <div className="flex items-center gap-1.5 text-xs font-semibold bg-background rounded-lg px-3 py-1.5 border">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                {format(new Date(selectedDate), 'dd/MM/yyyy')}
+              </div>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(-1)}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setExpandedProduct(null); }} className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <div className="px-3 pt-2 shrink-0">
-            <TabsList className="grid grid-cols-2 h-9 bg-muted/60 rounded-lg p-0.5">
-             <TabsTrigger value="assigned" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
-                <UserCheck className="w-3.5 h-3.5" />
-                معيّنة ({assignedCustomers})
-              </TabsTrigger>
-              <TabsTrigger value="created" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
-                <ShoppingCart className="w-3.5 h-3.5" />
-                طلبياته ({createdCustomers})
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          {!isDeliveryMode && (
+            <div className="px-3 pt-2 shrink-0">
+              <TabsList className="grid grid-cols-2 h-9 bg-muted/60 rounded-lg p-0.5">
+               <TabsTrigger value="assigned" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  معيّنة ({assignedCustomers})
+                </TabsTrigger>
+                <TabsTrigger value="created" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  طلبياته ({createdCustomers})
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
 
           {/* Stats bar */}
           {currentData.length > 0 && (
