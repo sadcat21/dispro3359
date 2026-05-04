@@ -159,7 +159,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   }, [open, workerId]);
 
   const filtered = useMemo(
-    () => rows.filter(r => !search.trim() || r.productName.includes(search)),
+    () => rows
+      .filter(r => !search.trim() || r.productName.includes(search))
+      .slice()
+      .sort((a, b) => {
+        if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
+        return a.productName.localeCompare(b.productName);
+      }),
     [rows, search]
   );
 
@@ -170,30 +176,45 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
     return b + p / ppb;
   };
+  const getDiff = (r: AggregatedRow) => actualTotalBoxes(r) - r.expected;
+  const getStatus = (r: AggregatedRow): 'match' | 'surplus' | 'deficit' => {
+    const d = getDiff(r);
+    if (Math.abs(d) < 0.001) return 'match';
+    return d > 0 ? 'surplus' : 'deficit';
+  };
 
   const stats = useMemo(() => {
     let surplus = 0, deficit = 0, matched = 0, untouched = 0;
     for (const r of rows) {
-      if (!isFilled(r)) { untouched++; continue; }
-      const a = actualTotalBoxes(r);
-      const diff = a - r.expected;
-      if (Math.abs(diff) < 0.001) matched++;
-      else if (diff > 0) surplus++;
+      if (!r.confirmed) { untouched++; continue; }
+      const s = getStatus(r);
+      if (s === 'match') matched++;
+      else if (s === 'surplus') surplus++;
       else deficit++;
     }
     return { surplus, deficit, matched, untouched, total: rows.length };
   }, [rows]);
 
   const updateActualBoxes = (pid: string, val: string) => {
-    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, '') } : r));
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
   };
   const updateActualPieces = (pid: string, val: string) => {
-    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, '') } : r));
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
   };
-  const markMatched = (pid: string) => {
-    setRows(prev => prev.map(r => r.productId === pid
-      ? { ...r, actualBoxes: String(r.expectedBoxes), actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0' }
-      : r));
+  const confirmRow = (pid: string) => {
+    setRows(prev => prev.map(r => {
+      if (r.productId !== pid) return r;
+      // إن لم يدخل شيئاً نعتبره مطابق تلقائياً
+      if (!isFilled(r)) {
+        return {
+          ...r,
+          actualBoxes: String(r.expectedBoxes),
+          actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0',
+          confirmed: true,
+        };
+      }
+      return { ...r, confirmed: true };
+    }));
   };
 
   const handleSave = async () => {
