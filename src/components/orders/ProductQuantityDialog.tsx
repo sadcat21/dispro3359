@@ -374,56 +374,56 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               </div>
             )}
 
-            {/* Direct pricing buttons F1 / D / SG / G + custom gear */}
-            {canCustomizePrices && (
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1">
-                  {!hideInvoiceOption && (
-                    <Button
-                      type="button"
-                      variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
-                      size="sm"
-                      className="flex-1 h-9 text-xs font-bold"
-                      onClick={() => {
-                        setItemPaymentType('with_invoice');
-                        if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
-                      }}
-                      disabled={!invoiceSaleAllowed}
-                      title={t('orders.with_invoice')}
-                    >
-                      F1
-                    </Button>
-                  )}
+            {/* Direct pricing buttons F1 / SG / G / D + custom gear */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                {!hideInvoiceOption && (
                   <Button
                     type="button"
-                    variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'super_gros' ? 'default' : 'outline'}
+                    variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
                     size="sm"
                     className="flex-1 h-9 text-xs font-bold"
-                    onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('super_gros'); }}
-                    title={t('products.price_super_gros')}
+                    onClick={() => {
+                      setItemPaymentType('with_invoice');
+                      if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
+                    }}
+                    disabled={!invoiceSaleAllowed}
+                    title={t('orders.with_invoice')}
                   >
-                    SG
+                    F1
                   </Button>
-                  <Button
-                    type="button"
-                    variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'gros' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1 h-9 text-xs font-bold"
-                    onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('gros'); }}
-                    title={t('products.price_gros')}
-                  >
-                    G
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'retail' ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1 h-9 text-xs font-bold"
-                    onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('retail'); }}
-                    title={t('products.price_retail')}
-                  >
-                    D
-                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'super_gros' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 h-9 text-xs font-bold"
+                  onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('super_gros'); }}
+                  title={t('products.price_super_gros')}
+                >
+                  SG
+                </Button>
+                <Button
+                  type="button"
+                  variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'gros' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 h-9 text-xs font-bold"
+                  onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('gros'); }}
+                  title={t('products.price_gros')}
+                >
+                  G
+                </Button>
+                <Button
+                  type="button"
+                  variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'retail' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1 h-9 text-xs font-bold"
+                  onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('retail'); }}
+                  title={t('products.price_retail')}
+                >
+                  D
+                </Button>
+                {canCustomizePrices && (
                   <Button
                     type="button"
                     variant={hasCustomUnitPrice ? 'default' : 'outline'}
@@ -434,27 +434,27 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   >
                     <Settings2 className="w-4 h-4" />
                   </Button>
-                </div>
-                {itemPaymentType === 'with_invoice' && invoiceSaleAllowed && (
-                  <InvoicePaymentMethodSelect
-                    value={itemInvoicePaymentMethod}
-                    onChange={setItemInvoicePaymentMethod}
-                  />
-                )}
-                {hasCustomUnitPrice && (
-                  <div className="flex items-center justify-end">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                      {customUnitPriceValue.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
-                    </Badge>
-                  </div>
-                )}
-                {!invoiceSaleAllowed && (
-                  <p className="text-[11px] text-amber-600 text-center">
-                    {safeT('products.invoice1_disabled_hint', 'هذا المنتج غير مسموح ببيعه عبر Facture 1 من إدارة المنتجات.')}
-                  </p>
                 )}
               </div>
-            )}
+              {itemPaymentType === 'with_invoice' && invoiceSaleAllowed && (
+                <InvoicePaymentMethodSelect
+                  value={itemInvoicePaymentMethod}
+                  onChange={setItemInvoicePaymentMethod}
+                />
+              )}
+              {hasCustomUnitPrice && (
+                <div className="flex items-center justify-end">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {customUnitPriceValue.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
+                  </Badge>
+                </div>
+              )}
+              {!invoiceSaleAllowed && (
+                <p className="text-[11px] text-amber-600 text-center">
+                  {safeT('products.invoice1_disabled_hint', 'هذا المنتج غير مسموح ببيعه عبر Facture 1 من إدارة المنتجات.')}
+                </p>
+              )}
+            </div>
 
             {/* Quantity Selector - compact */}
             <div className="space-y-1">
