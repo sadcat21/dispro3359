@@ -160,14 +160,6 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
 
   const imagesMap = productImagesQ.data || {};
 
-  const methods = Object.entries(INVOICE_PAYMENT_METHODS) as [InvoicePaymentMethod, typeof INVOICE_PAYMENT_METHODS[InvoicePaymentMethod]][];
-
-  const PAYMENT_COLORS: Record<InvoicePaymentMethod, string> = {
-    receipt: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
-    check: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
-    cash: 'bg-green-600 hover:bg-green-700 text-white border-green-600',
-    transfer: 'bg-orange-600 hover:bg-orange-700 text-white border-orange-600',
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
