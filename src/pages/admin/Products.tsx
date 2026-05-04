@@ -273,7 +273,19 @@ const Products: React.FC = () => {
   };
 
   const sortedProducts = useMemo(() => {
-    return [...products].sort((a, b) => {
+    const filtered = products.filter((p) => {
+      if (statusFilter === 'active' && !p.is_active) return false;
+      if (statusFilter === 'inactive' && p.is_active) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        const name = (p.name || '').toLowerCase();
+        const appName = ((p as any).app_name || '').toLowerCase();
+        const code = (p.product_code || '').toLowerCase();
+        if (!name.includes(q) && !appName.includes(q) && !code.includes(q)) return false;
+      }
+      return true;
+    });
+    return filtered.sort((a, b) => {
       if (a.is_active !== b.is_active) {
         return Number(b.is_active) - Number(a.is_active);
       }
@@ -284,7 +296,7 @@ const Products: React.FC = () => {
 
       return a.name.localeCompare(b.name);
     });
-  }, [products]);
+  }, [products, statusFilter, searchQuery]);
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
