@@ -311,18 +311,37 @@ const MyAchievements: React.FC = () => {
   }, [queryClient]);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo],
+    queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo, today],
     placeholderData: (prev) => prev,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
+      // عند عرض "اليوم" فقط: ابدأ من نهاية آخر جلsة محاسبية مكتملة وحتى اللحظة الحالية
+      const isTodayOnly = dateFrom === today && dateTo === today;
+      let lowerBound = `${dateFrom}T00:00:00`;
+      let upperBound = `${dateTo}T23:59:59`;
+
+      if (isTodayOnly) {
+        const { data: lastSession } = await supabase
+          .from('accounting_sessions')
+          .select('completed_at, period_end')
+          .eq('worker_id', targetWorkerId)
+          .eq('status', 'completed')
+          .order('completed_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const lastEnd = lastSession?.completed_at || lastSession?.period_end;
+        if (lastEnd) lowerBound = new Date(lastEnd).toISOString();
+        upperBound = new Date().toISOString();
+      }
+
       const { data: visits } = await supabase
         .from('visit_tracking')
         .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
         .eq('worker_id', targetWorkerId)
-        .gte('created_at', `${dateFrom}T00:00:00`)
-        .lte('created_at', `${dateTo}T23:59:59`)
+        .gte('created_at', lowerBound)
+        .lte('created_at', upperBound)
         .order('created_at', { ascending: false });
 
       const customerIds = [...new Set((visits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
