@@ -220,6 +220,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
                   initialCustomerId={initialCustomerId}
                   stockItems={stockItems}
                   stockSource={stockSource}
+                  onHeaderInfo={handleHeaderInfo}
                 />
               )}
             </TabsContent>
