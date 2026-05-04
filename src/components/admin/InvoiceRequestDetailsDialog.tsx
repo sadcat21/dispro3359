@@ -42,11 +42,11 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, image_url')
+        .select('id, name, app_name, image_url')
         .in('id', productIds);
       if (error) throw error;
       const map: Record<string, { name: string; image_url: string | null }> = {};
-      (data || []).forEach((p: any) => { map[p.id] = { name: p.name, image_url: p.image_url }; });
+      (data || []).forEach((p: any) => { map[p.id] = { name: p.app_name || p.name, image_url: p.image_url }; });
       return map;
     },
   });
