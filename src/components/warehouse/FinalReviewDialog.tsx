@@ -417,15 +417,28 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                         />
                       </div>
                     </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => confirmRow(r.productId)}
-                      className={`h-7 text-[11px] gap-1 ${btnClass}`}
-                    >
-                      <BtnIcon className="w-3 h-3" />
-                      {r.confirmed ? '✓ ' + btnLabel : btnLabel}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => confirmRow(r.productId)}
+                        className={`flex-1 h-7 text-[11px] gap-1 ${btnClass}`}
+                      >
+                        <BtnIcon className="w-3 h-3" />
+                        {r.confirmed ? '✓ ' + btnLabel : btnLabel}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => resetRow(r.productId)}
+                        disabled={!isFilled(r) && !r.confirmed}
+                        className="h-7 px-2 text-[11px] shrink-0"
+                        title="تفريغ الحقول"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
