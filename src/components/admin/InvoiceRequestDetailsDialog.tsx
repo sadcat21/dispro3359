@@ -112,7 +112,7 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
               {request?.payment_method && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-blue-700 text-[11px] font-bold shadow-sm">
                   <CreditCard className="w-3 h-3" />
-                  {request.payment_method}
+                  {request.payment_method === 'cash' ? 'Espèces' : request.payment_method === 'check' || request.payment_method === 'cheque' ? 'Chèque' : request.payment_method === 'transfer' ? 'Virement' : request.payment_method === 'receipt' ? 'Versement' : request.payment_method}
                 </span>
               )}
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-white text-[11px] font-medium ring-1 ring-white/30">
