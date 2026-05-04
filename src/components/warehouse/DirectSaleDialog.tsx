@@ -967,30 +967,32 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   }}
                 />
 
-                {/* Selected Customer Info */}
+                {/* Selected Customer Info - Compact */}
                 {selectedCustomer && (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <CustomerSummary
-                      customer={{
-                        name: selectedCustomer.name,
-                        store_name: selectedCustomer.store_name,
-                        customer_type: selectedCustomer.customer_type,
-                        sector_name: sectors?.find(s => s.id === selectedCustomer.sector_id)?.name,
-                        phone: selectedCustomer.phone,
-                        wilaya: selectedCustomer.wilaya,
-                      }}
-                      avatarSize="md"
-                      footer={(
-                        <div className="flex items-center gap-1.5 mt-1">
+                  <div className="p-2 bg-muted/50 rounded-lg flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CustomerSummary
+                        customer={{
+                          name: selectedCustomer.name,
+                          store_name: selectedCustomer.store_name,
+                          customer_type: selectedCustomer.customer_type,
+                          sector_name: sectors?.find(s => s.id === selectedCustomer.sector_id)?.name,
+                          phone: selectedCustomer.phone,
+                          wilaya: selectedCustomer.wilaya,
+                        }}
+                        compact
+                        avatarSize="sm"
+                        showMeta
+                        footer={(
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                             {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
                               selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
                                 selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
                             }
                           </Badge>
-                        </div>
-                      )}
-                    />
+                        )}
+                      />
+                    </div>
                     <CustomerDistanceIndicator
                       customerLatitude={selectedCustomer.latitude}
                       customerLongitude={selectedCustomer.longitude}
