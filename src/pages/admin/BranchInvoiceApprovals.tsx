@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import MergeInvoicesDialog, { type PostponedRequest } from '@/components/admin/MergeInvoicesDialog';
+import InvoiceRequestDetailsDialog from '@/components/admin/InvoiceRequestDetailsDialog';
 
 interface InvoiceRequestRow {
   id: string;
@@ -54,6 +55,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [mergeFor, setMergeFor] = useState<{ customerId: string; customerName: string; requests: PostponedRequest[] } | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
+  const [requestDetails, setRequestDetails] = useState<InvoiceRequestRow | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkScopeDialog, setBulkScopeDialog] = useState<{ scope: 'public' | 'private' } | null>(null);
 
