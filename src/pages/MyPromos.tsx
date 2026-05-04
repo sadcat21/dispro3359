@@ -42,6 +42,26 @@ const formatBP = (pieces: number, piecesPerBox: number | null | undefined): stri
   return `${boxes}.${String(rem).padStart(2, '0')}`;
 };
 
+// Format a stored "pieces" value according to a unit (box/piece) defined by the offer
+const formatByUnit = (
+  storedPieces: number,
+  unit: 'box' | 'piece' | string | null | undefined,
+  piecesPerBox: number | null | undefined,
+): string => {
+  const ppb = Number(piecesPerBox || 0);
+  const p = Number(storedPieces || 0);
+  if (unit === 'box' && ppb > 1) {
+    // عرض بالصناديق إذا كان كاملاً، وإلا بصيغة b.p
+    if (p % ppb === 0) return String(p / ppb);
+    return formatBP(p, ppb);
+  }
+  // قطعة: نعرض الرقم كما هو
+  return String(p);
+};
+
+const unitLabel = (u: 'box' | 'piece' | string | null | undefined) =>
+  u === 'box' ? 'صندوق' : 'قطعة';
+
 const MyPromosContent: React.FC = () => {
   const [deletePromo, setDeletePromo] = useState<PromoWithDetails | null>(null);
   const { workerId, activeBranch } = useAuth();
@@ -85,7 +105,7 @@ const MyPromosContent: React.FC = () => {
       const [promosRes, customersRes, productsRes] = await Promise.all([
         supabase
           .from('promos')
-          .select(`*, customer:customers(*), product:products(*)`)
+          .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity)`)
           .eq('worker_id', workerId)
           .order('promo_date', { ascending: false }),
         supabase.from('customers').select('*').order('name'),
@@ -305,28 +325,46 @@ const MyPromosContent: React.FC = () => {
 
                       {/* Body */}
                       <div className="p-4 space-y-3">
-                        {/* Quantities (b.p format = boxes.pieces) */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
-                            <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')}</p>
-                              <p className="font-bold text-primary leading-none" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                                {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
-                            <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                            <div className="min-w-0">
-                              <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')}</p>
-                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`} title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                                {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
+                        {(() => {
+                          const offer: any = (promo as any).offer;
+                          const saleUnit = (offer?.min_quantity_unit || (promo as any).gift_quantity_unit || 'piece') as 'box' | 'piece';
+                          const giftUnit = (offer?.gift_quantity_unit || (promo as any).gift_quantity_unit || 'piece') as 'box' | 'piece';
+                          const ppb = promo.product?.pieces_per_box;
+                          return (
+                            <>
+                              {offer && (
+                                <div className="text-[11px] text-muted-foreground bg-muted/40 rounded-md py-1.5 px-2 border border-border flex items-center gap-1.5">
+                                  <Gift className="w-3.5 h-3.5 text-primary shrink-0" />
+                                  <span className="font-semibold truncate">{offer.name}:</span>
+                                  <span className="truncate">
+                                    {offer.min_quantity} {unitLabel(saleUnit)} → {offer.gift_quantity} {unitLabel(giftUnit)}
+                                  </span>
+                                </div>
+                              )}
+                              {/* Quantities (display per offer unit) */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                                  <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
+                                  <div className="min-w-0">
+                                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')} ({unitLabel(saleUnit)})</p>
+                                    <p className="font-bold text-primary leading-none" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                                      {formatByUnit(promo.vente_quantity, saleUnit, ppb)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
+                                  <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                                  <div className="min-w-0">
+                                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')} ({unitLabel(giftUnit)})</p>
+                                    <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`} title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                                      {formatByUnit(promo.gratuite_quantity, giftUnit, ppb)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
                         {/* Customer info */}
                         <div className="space-y-1.5 bg-muted/30 rounded-lg p-2.5">
                           {storeName && (
