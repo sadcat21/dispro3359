@@ -187,21 +187,23 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
           </TabsList>
 
           {!hideDirectTab && (
-            <TabsContent value="direct" className="p-0 mt-3 flex-1 min-h-0 flex flex-col">
-              <DirectSaleDialog
-                embedded
-                hideHeader
-                open={open}
-                onOpenChange={onOpenChange}
-                initialCustomerId={initialCustomerId}
-                stockItems={stockItems}
-                stockSource={stockSource}
-              />
+            <TabsContent value="direct" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'direct' ? '' : 'hidden'}`}>
+              {activeTab === 'direct' && (
+                <DirectSaleDialog
+                  embedded
+                  hideHeader
+                  open={open}
+                  onOpenChange={onOpenChange}
+                  initialCustomerId={initialCustomerId}
+                  stockItems={stockItems}
+                  stockSource={stockSource}
+                />
+              )}
             </TabsContent>
           )}
 
-          <TabsContent value="delivery" className="p-0 mt-3 flex-1 min-h-0 flex flex-col">
-            {selectedDeliveryOrder ? (
+          <TabsContent value="delivery" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'delivery' ? '' : 'hidden'}`}>
+            {activeTab !== 'delivery' ? null : selectedDeliveryOrder ? (
               <div className="flex flex-col flex-1 min-h-0 space-y-3">
                 <div className="px-4 flex-none">
                   <Button
@@ -273,8 +275,8 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
           </TabsContent>
 
           {showWarehouseTab && (
-            <TabsContent value="warehouse" className="p-0 mt-3 flex-1 min-h-0 flex flex-col">
-              {isLoadingWarehouseStock ? (
+            <TabsContent value="warehouse" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'warehouse' ? '' : 'hidden'}`}>
+              {activeTab !== 'warehouse' ? null : isLoadingWarehouseStock ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
