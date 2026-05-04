@@ -696,39 +696,84 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               {/* ═══════ STEP 1: Customer + Payment ═══════ */}
               {currentStep === 1 && (
                 <>
-                  {/* Customer Section */}
-                  <section className="space-y-2">
-                    <Label className="text-sm font-semibold">{t('orders.customer')}</Label>
-
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between h-10"
-                      disabled={isLoadingData}
-                      onClick={() => setCustomerDropdownOpen(true)}
-                    >
-                      {isLoadingData ? (
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          {t('common.loading')}
-                        </span>
-                      ) : selectedCustomer ? (
+                  {/* Customer Section — compact */}
+                  <section className="space-y-1.5">
+                    {!selectedCustomer ? (
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between h-9"
+                        disabled={isLoadingData}
+                        onClick={() => setCustomerDropdownOpen(true)}
+                      >
+                        {isLoadingData ? (
+                          <span className="flex items-center gap-2 text-muted-foreground text-xs">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            {t('common.loading')}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">{t('orders.select_customer')}</span>
+                        )}
+                        <ChevronsUpDown className="ms-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+                      </Button>
+                    ) : (
+                      <div className="p-2 bg-muted/50 rounded-lg space-y-1.5 border">
                         <CustomerSummary
                           customer={{
                             name: selectedCustomer.name,
                             store_name: selectedCustomer.store_name,
                             customer_type: selectedCustomer.customer_type,
                             sector_name: selectedCustomer.sector_id ? sectors.find(s => s.id === selectedCustomer.sector_id)?.name : undefined,
+                            phone: selectedCustomer.phone,
+                            wilaya: selectedCustomer.wilaya,
                           }}
-                          compact
-                          hideBadges
                           avatarSize="sm"
-                          showMeta={false}
+                          badges={(
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                              {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
+                                selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
+                                  selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
+                              }
+                            </Badge>
+                          )}
+                          rightSlot={(
+                            <div className="flex gap-0.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => setCustomerDropdownOpen(true)}
+                                title={t('orders.select_customer')}
+                              >
+                                <ChevronsUpDown className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => setShowEditCustomerDialog(true)}
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          )}
                         />
-                      ) : (
-                        <span className="text-muted-foreground">{t('orders.select_customer')}</span>
-                      )}
-                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
+
+                        <CustomerDistanceIndicator
+                          customerLatitude={selectedCustomer.latitude}
+                          customerLongitude={selectedCustomer.longitude}
+                        />
+
+                        {orders && orders.length > 0 && (
+                          <CustomerRecentOrders
+                            customerId={selectedCustomerId}
+                            orders={orders}
+                            maxOrders={3}
+                          />
+                        )}
+                      </div>
+                    )}
 
                     <CustomerPickerDialog
                       open={customerDropdownOpen}
@@ -751,112 +796,48 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         setShowAddCustomerDialog(true);
                       }}
                     />
-
-                    {selectedCustomer && (
-                      <div className="p-2 bg-muted/50 rounded-lg space-y-2">
-                        <CustomerSummary
-                          customer={{
-                            name: selectedCustomer.name,
-                            store_name: selectedCustomer.store_name,
-                            customer_type: selectedCustomer.customer_type,
-                            sector_name: selectedCustomer.sector_id ? sectors.find(s => s.id === selectedCustomer.sector_id)?.name : undefined,
-                            phone: selectedCustomer.phone,
-                            wilaya: selectedCustomer.wilaya,
-                          }}
-                          avatarSize="md"
-                          footer={(
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
-                                  selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
-                                    selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
-                                }
-                              </Badge>
-                            </div>
-                          )}
-                          rightSlot={(
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => setShowEditCustomerDialog(true)}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        />
-
-                        <CustomerDistanceIndicator
-                          customerLatitude={selectedCustomer.latitude}
-                          customerLongitude={selectedCustomer.longitude}
-                        />
-
-                        {orders && orders.length > 0 && (
-                          <CustomerRecentOrders
-                            customerId={selectedCustomerId}
-                            orders={orders}
-                            maxOrders={5}
-                          />
-                        )}
-                      </div>
-                    )}
                   </section>
 
                   {/* Payment Type */}
-                  <section className="space-y-2">
-                    <Label className="text-sm font-semibold">{t('orders.purchase_method')}</Label>
-                    <div className="grid grid-cols-2 gap-2">
+                  <section className="space-y-1.5">
+                    <div className="grid grid-cols-2 gap-1.5">
                       <Button
                         type="button"
                         variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                        className={`h-11 flex flex-row items-center gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                        className={`h-9 flex flex-row items-center gap-1.5 ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
                         onClick={() => setPaymentType('with_invoice')}
                       >
-                        <Receipt className="w-4 h-4" />
-                        <span className="text-sm">{t('orders.with_invoice')}</span>
+                        <Receipt className="w-3.5 h-3.5" />
+                        <span className="text-xs">{t('orders.with_invoice')}</span>
                       </Button>
                       <Button
                         type="button"
                         variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                        className={`h-11 flex flex-row items-center gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
+                        className={`h-9 flex flex-row items-center gap-1.5 ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'}`}
                         onClick={() => setPaymentType('without_invoice')}
                       >
-                        <ReceiptText className="w-4 h-4" />
-                        <span className="text-sm">{t('orders.without_invoice')}</span>
+                        <ReceiptText className="w-3.5 h-3.5" />
+                        <span className="text-xs">{t('orders.without_invoice')}</span>
                       </Button>
                     </div>
 
                     {paymentType === 'without_invoice' && (
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">{t('orders.price_type')}</Label>
-                        <div className="grid grid-cols-3 gap-1.5">
-                          {([
-                            { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: { active: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 ring-2 ring-indigo-400', inactive: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' } },
-                            { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: { active: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400', inactive: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' } },
-                            { value: 'retail' as PriceSubType, label: t('products.price_retail'), colors: { active: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 ring-2 ring-rose-400', inactive: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600' } },
-                          ]).map((option) => (
-                            <Button
-                              key={option.value}
-                              type="button"
-                              variant={priceSubType === option.value ? 'default' : 'outline'}
-                              size="sm"
-                              className={`h-9 text-xs font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
-                              onClick={() => setPriceSubType(option.value)}
-                            >
-                              {option.label}
-                            </Button>
-                          ))}
-                        </div>
-                        {selectedCustomer?.default_price_subtype && (
-                          <p className="text-xs text-muted-foreground">
-                            ⓘ {t('orders.customer_default')}: {
-                              selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
-                                selectedCustomer.default_price_subtype === 'gros' ? t('products.price_gros') :
-                                  t('products.price_retail')
-                            }
-                          </p>
-                        )}
+                      <div className="grid grid-cols-3 gap-1">
+                        {([
+                          { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' },
+                          { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' },
+                          { value: 'retail' as PriceSubType, label: t('products.price_retail'), colors: 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600' },
+                        ]).map((option) => (
+                          <Button
+                            key={option.value}
+                            type="button"
+                            size="sm"
+                            className={`h-8 text-[11px] font-bold ${option.colors} ${priceSubType === option.value ? 'ring-2 ring-offset-1 ring-foreground/30' : 'opacity-50'}`}
+                            onClick={() => setPriceSubType(option.value)}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
                       </div>
                     )}
 
