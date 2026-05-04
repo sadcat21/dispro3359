@@ -184,18 +184,21 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {requests.map(r => {
                 const checked = selectedIds.includes(r.id);
+                const productsCount = Array.isArray(r.products) ? r.products.length : 0;
                 return (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => toggle(r.id)}
-                    className={`relative text-center rounded-lg border-2 p-2 transition ${checked ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'border-border bg-card hover:border-blue-300'}`}
+                    className={`relative rounded-lg border-2 p-2 transition ${checked ? 'bg-red-600 hover:bg-red-700 text-white border-red-600 ring-2 ring-red-400' : 'border-border bg-card hover:border-red-300'}`}
                   >
-                    <div className="text-sm font-bold text-blue-700">
-                      {Array.isArray(r.products) ? r.products.length : 0} منتج
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">
-                      {new Date(r.created_at).toLocaleDateString('ar')}
+                    <div className="flex items-center justify-center gap-2">
+                      <span className={`text-xs font-semibold ${checked ? 'text-white' : 'text-foreground'}`}>
+                        {new Date(r.created_at).toLocaleDateString('ar')}
+                      </span>
+                      <span className="flex h-5 min-w-5 px-1.5 items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-bold ring-2 ring-white">
+                        {productsCount}
+                      </span>
                     </div>
                   </button>
                 );
