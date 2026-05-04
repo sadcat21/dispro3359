@@ -913,8 +913,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             <div className="py-2 space-y-3">
               {currentStep === 1 && (<>
               {/* Customer Section */}
-              <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('orders.customer')}</Label>
+              <section className="space-y-2">
+                <Label className="text-sm font-semibold">{t('orders.customer')}</Label>
 
                 <Button
                   variant="outline"
