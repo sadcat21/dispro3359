@@ -306,28 +306,32 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   }, [customerSelKey, selectedCustomerIds, activeBranch]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['worker-orders-summary', workerId, selectedDate],
+    queryKey: ['worker-orders-summary', workerId, selectedDate, mode],
     queryFn: async () => {
       if (!workerId) return { created: [], assigned: [] };
 
       const dayStart = `${selectedDate}T00:00:00+01:00`;
       const dayEnd = `${selectedDate}T23:59:59+01:00`;
 
-      const { data: createdOrders } = await supabase
-        .from('orders')
-        .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
-        .eq('created_by', workerId)
-        .gte('created_at', dayStart)
-        .lte('created_at', dayEnd)
-        .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+      // في وضع التوصيل: نفلتر حسب delivery_date (ليوم/غدًا) بدل تاريخ الإنشاء
+      const buildQuery = (col: 'created_by' | 'assigned_worker_id') => {
+        let q = supabase
+          .from('orders')
+          .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
+          .eq(col, workerId)
+          .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+        if (isDeliveryMode) {
+          q = q.eq('delivery_date', selectedDate);
+        } else {
+          q = q.gte('created_at', dayStart).lte('created_at', dayEnd);
+        }
+        return q;
+      };
 
-      const { data: assignedOrders } = await supabase
-        .from('orders')
-        .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
-        .eq('assigned_worker_id', workerId)
-        .gte('created_at', dayStart)
-        .lte('created_at', dayEnd)
-        .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+      const { data: createdOrders } = isDeliveryMode
+        ? { data: [] as any[] }
+        : await buildQuery('created_by');
+      const { data: assignedOrders } = await buildQuery('assigned_worker_id');
 
       const allOrderIds = [...new Set([
         ...(createdOrders || []).map(o => o.id),
