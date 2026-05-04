@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Package, Loader2, Trash2, Box, Pencil, Stamp, Layers, Weight, Scale, Camera, X, Image as ImageIcon, Lock, Truck, Tag, DollarSign, Info } from 'lucide-react';
+import { Plus, Package, Loader2, Trash2, Box, Pencil, Stamp, Layers, Weight, Scale, Camera, X, Image as ImageIcon, Lock, Truck, Tag, DollarSign, Info, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import StampTiersDialog from '@/components/products/StampTiersDialog';
 import PricingGroupsTab from '@/components/products/PricingGroupsTab';
