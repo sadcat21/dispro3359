@@ -557,7 +557,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                   <Card className="shadow-lg border-blue-200">
                     <CardContent className="py-12 text-center text-slate-500">
                       <Layers className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                      <p>لا توجد فواتير موحَّدة مُرسَلة للإدارة</p>
+                      <p>{t('branch_invoice_approvals.no_merged_sent')}</p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -566,7 +566,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                       <CardTitle className="flex items-center justify-between">
                         <span className="flex items-center gap-2">
                           <Layers className="w-5 h-5" />
-                          الفواتير الموحَّدة المُرسَلة للإدارة
+                          {t('branch_invoice_approvals.merged_sent_title')}
                         </span>
                         <Badge variant="secondary" className="bg-white text-blue-700">{mergedParentRows.length}</Badge>
                       </CardTitle>
@@ -588,13 +588,13 @@ const BranchInvoiceApprovals: React.FC = () => {
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px] px-1.5 py-0">
                                   <Layers className="w-3 h-3" />
-                                  فاتورة موحَّدة
+                                  {t('branch_invoice_approvals.merged_invoice')}
                                 </Badge>
                                 <span className="font-bold text-slate-800 truncate">{customerName}</span>
                               </div>
                               <div className="text-[11px] text-slate-600 leading-relaxed">
                                 <strong className="text-blue-700">{mergedCount}</strong> فاتورة •{' '}
-                                <strong className="text-blue-700">{itemsCount}</strong> منتج
+                                <strong className="text-blue-700">{itemsCount}</strong> {t('branch_invoice_approvals.products_label')}
                                 {r.payment_method && (
                                   <> • <span className="text-slate-700">{r.payment_method}</span></>
                                 )}
@@ -606,7 +606,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                             <div className="px-3 pb-2.5">
                               <Badge className="w-full justify-center bg-amber-100 text-amber-800 border border-amber-300 gap-1 py-1.5 text-xs">
                                 <Clock3 className="w-3.5 h-3.5" />
-                                بانتظار اعتماد الإدارة
+                                {t('branch_invoice_approvals.awaiting_management')}
                               </Badge>
                             </div>
                           </div>
@@ -623,7 +623,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                     <CardTitle className="flex items-center justify-between">
                       <span className="flex items-center gap-2">
                         <Clock className="w-5 h-5" />
-                        الفواتير المؤجلة (مجمّعة حسب العميل)
+                        {t('branch_invoice_approvals.postponed_grouped')}
                       </span>
                       <Badge variant="secondary" className="bg-white text-amber-700">{postponedRows.length}</Badge>
                     </CardTitle>
@@ -632,7 +632,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                     {postponedByCustomer.length === 0 ? (
                       <div className="text-center py-12 text-slate-500">
                         <Clock className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                        <p>لا توجد فواتير مؤجلة</p>
+                        <p>{t('branch_invoice_approvals.no_postponed')}</p>
                       </div>
                     ) : postponedByCustomer.map(group => {
                       const isOpen = expandedCustomer === group.customerId;
@@ -646,7 +646,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                             >
                               <span className="font-bold text-slate-800 truncate flex-1">{group.customerName}</span>
                               <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0 shrink-0">
-                                {group.items.length} فاتورة
+                                {group.items.length} {t('branch_invoice_approvals.invoice_count')}
                               </Badge>
                               {isOpen ? <ChevronUp className="w-4 h-4 text-amber-700 shrink-0" /> : <ChevronDown className="w-4 h-4 text-amber-700 shrink-0" />}
                             </button>
@@ -663,7 +663,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                               className="w-full gap-1.5 bg-blue-600 hover:bg-blue-700 h-9"
                             >
                               <Layers className="w-4 h-4" />
-                              تجميع المنتجات
+                              {t('branch_invoice_approvals.merge_products')}
                             </Button>
                           </div>
                           {isOpen && (
@@ -672,9 +672,9 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 <div key={r.id} className="bg-white border border-amber-100 rounded-lg p-2 space-y-1.5">
                                   <div>
                                     <div className="font-semibold text-sm text-slate-800">
-                                      {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
+                                      {r.invoice_number ? `#${r.invoice_number}` : t('branch_invoice_approvals.no_invoice_number')}
                                       <span className="text-[10px] text-muted-foreground mr-2">
-                                        {Array.isArray(r.products) ? r.products.length : 0} منتج
+                                        {Array.isArray(r.products) ? r.products.length : 0} {t('branch_invoice_approvals.products_label')}
                                       </span>
                                     </div>
                                     <div className="text-[10px] text-muted-foreground">
@@ -688,7 +688,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                     className="w-full gap-1 text-green-700 border-green-200 hover:bg-green-50 h-8 text-xs"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5" />
-                                    إرسال فردي
+                                    {t('branch_invoice_approvals.send_individual')}
                                   </Button>
                                 </div>
                               ))}
