@@ -1,11 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import {
   MoreHorizontal,
   Wallet,
   ClipboardList,
   Home,
-  Repeat2,
+  Plus,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,39 +27,31 @@ export interface BottomNavProps {
   className?: string;
 }
 
-const FAB_SIZE = 62; // px
-const NAV_HEIGHT = 72; // px
-const NOTCH_RADIUS = FAB_SIZE / 2 + 6; // breathing room around FAB
-const NAV_RADIUS = 28;
-
 const DEFAULT_ITEMS: BottomNavItem[] = [
   { key: 'more', label: 'More', icon: MoreHorizontal },
   { key: 'finance', label: 'Finance', icon: Wallet },
-  { key: 'orders', label: 'Orders', icon: ClipboardList },
+  { key: 'orders', label: 'Orders', icon: ClipboardList, badge: 11 },
   { key: 'home', label: 'Home', icon: Home },
 ];
 
-const INACTIVE = '#444444';
-const ACTIVE = '#ff4d4f';
-
 /**
- * BottomNav — Premium SaaS floating bottom navbar
- * Glassmorphism + curved notch + centered FAB.
+ * BottomNav — Premium floating bottom navbar
+ * SVG curved notch + centered FAB. Tailwind only.
  */
 const BottomNav: React.FC<BottomNavProps> = ({
   items = DEFAULT_ITEMS,
   activeKey,
   onChange,
-  centerIcon: CenterIcon = Repeat2,
+  centerIcon: CenterIcon = Plus,
   centerLabel = 'Action',
   onCenterClick,
   className,
 }) => {
-  const safeItems = items.slice(0, 4);
-  const left = safeItems.slice(0, 2);
-  const right = safeItems.slice(2, 4);
+  const safe = items.slice(0, 4);
+  const left = safe.slice(0, 2);
+  const right = safe.slice(2, 4);
 
-  const [internal, setInternal] = React.useState(activeKey ?? safeItems[0]?.key);
+  const [internal, setInternal] = React.useState(activeKey ?? safe[0]?.key);
   const active = activeKey ?? internal;
 
   const select = (k: string, cb?: () => void) => {
@@ -71,32 +62,48 @@ const BottomNav: React.FC<BottomNavProps> = ({
 
   return (
     <div
+      dir="ltr"
       className={cn(
-        'pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center',
+        'pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3',
         className,
       )}
-      style={{
-        paddingBottom: `calc(18px + env(safe-area-inset-bottom))`,
-        paddingLeft: 16,
-        paddingRight: 16,
-      }}
+      style={{ paddingBottom: `calc(20px + env(safe-area-inset-bottom))` }}
     >
-      <motion.nav
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+      <nav
         aria-label="Bottom Navigation"
-        className="pointer-events-auto relative w-full max-w-md"
-        style={{ height: NAV_HEIGHT }}
+        className="pointer-events-auto relative w-full"
+        style={{ maxWidth: 430, height: 74 }}
       >
-        {/* Glass + notch background */}
-        <NavBackground />
-
-        {/* Items */}
-        <div
-          className="relative flex h-full items-center justify-between"
-          style={{ paddingLeft: 24, paddingRight: 24 }}
+        {/* SVG curved notch background */}
+        <svg
+          viewBox="0 0 400 80"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          style={{ filter: 'drop-shadow(0 12px 30px rgba(0,0,0,0.08))' }}
+          aria-hidden
         >
+          <defs>
+            <clipPath id="bn-clip">
+              <path d="M28 0 H140 C160 0 170 42 200 42 C230 42 240 0 260 0 H372 Q400 0 400 28 V52 Q400 80 372 80 H28 Q0 80 0 52 V28 Q0 0 28 0 Z" />
+            </clipPath>
+          </defs>
+          <foreignObject x="0" y="0" width="400" height="80" clipPath="url(#bn-clip)">
+            <div
+              // @ts-expect-error xmlns inside foreignObject
+              xmlns="http://www.w3.org/1999/xhtml"
+              style={{
+                width: '100%',
+                height: '100%',
+                background: 'rgba(255,255,255,0.85)',
+                backdropFilter: 'blur(18px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+              }}
+            />
+          </foreignObject>
+        </svg>
+
+        {/* Items row */}
+        <div className="relative flex h-full items-center">
           <div className="flex flex-1 items-center justify-around">
             {left.map((it) => (
               <NavButton
@@ -107,10 +114,7 @@ const BottomNav: React.FC<BottomNavProps> = ({
               />
             ))}
           </div>
-
-          {/* FAB reservation slot */}
-          <div style={{ width: FAB_SIZE + 24 }} aria-hidden />
-
+          <div className="w-[78px]" aria-hidden />
           <div className="flex flex-1 items-center justify-around">
             {right.map((it) => (
               <NavButton
@@ -123,40 +127,32 @@ const BottomNav: React.FC<BottomNavProps> = ({
           </div>
         </div>
 
-        {/* Floating Action Button — overlaps navbar by 45% */}
-        <motion.button
+        {/* FAB */}
+        <button
           type="button"
           aria-label={centerLabel}
           onClick={onCenterClick}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.92 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 18 }}
-          className="absolute left-1/2 flex items-center justify-center rounded-full text-white"
+          className="group absolute left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full text-white transition-transform duration-300 hover:scale-110 active:scale-95"
           style={{
-            width: FAB_SIZE,
-            height: FAB_SIZE,
-            top: -FAB_SIZE * 0.45,
-            transform: 'translateX(-50%)',
-            backgroundColor: ACTIVE,
-            boxShadow: '0 8px 24px rgba(255,77,79,0.45)',
+            width: 62,
+            height: 62,
+            top: -28,
+            backgroundColor: '#ff4d4f',
+            boxShadow: '0 10px 24px rgba(255,77,79,0.45)',
           }}
         >
-          {/* Pulse ring */}
-          <motion.span
-            className="absolute inset-0 rounded-full"
-            style={{ backgroundColor: ACTIVE }}
-            animate={{ opacity: [0.45, 0, 0.45], scale: [1, 1.5, 1] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut' }}
+          <span
+            className="absolute inset-0 rounded-full animate-ping opacity-40"
+            style={{ backgroundColor: '#ff4d4f', animationDuration: '2.4s' }}
             aria-hidden
           />
-          <CenterIcon size={26} strokeWidth={2.2} className="relative z-10" />
-        </motion.button>
-      </motion.nav>
+          <CenterIcon size={26} strokeWidth={2.4} className="relative z-10" />
+        </button>
+      </nav>
     </div>
   );
 };
 
-/* ---------- Nav button ---------- */
 const NavButton: React.FC<{
   item: BottomNavItem;
   isActive: boolean;
@@ -164,100 +160,30 @@ const NavButton: React.FC<{
 }> = ({ item, isActive, onClick }) => {
   const Icon = item.icon;
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
-      whileHover={{ scale: 1.08 }}
-      whileTap={{ scale: 0.9 }}
-      animate={{ scale: isActive ? 1.08 : 1 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 20 }}
       aria-label={item.label}
       aria-current={isActive ? 'page' : undefined}
-      className="relative flex h-12 w-12 items-center justify-center"
+      className={cn(
+        'relative flex h-12 w-12 items-center justify-center transition-transform duration-200 hover:scale-110 active:scale-95',
+        isActive && 'scale-[1.08]',
+      )}
     >
-      <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} color={isActive ? ACTIVE : INACTIVE} />
+      <Icon
+        size={22}
+        strokeWidth={isActive ? 2.2 : 1.8}
+        className={cn(
+          'transition-colors duration-200',
+          isActive ? 'text-red-500' : 'text-gray-500',
+        )}
+      />
       {item.badge ? (
-        <span
-          className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
-          style={{ backgroundColor: ACTIVE }}
-        >
+        <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white shadow">
           {item.badge > 99 ? '99+' : item.badge}
         </span>
       ) : null}
-    </motion.button>
-  );
-};
-
-/* ---------- Glassmorphism background with curved notch (SVG) ---------- */
-const NavBackground: React.FC = () => {
-  const W = 400;
-  const H = NAV_HEIGHT;
-  const r = NAV_RADIUS;
-  const nr = NOTCH_RADIUS;
-  const cx = W / 2;
-
-  // Ultra-smooth notch: long S-curve transitions blend flawlessly into the arc
-  const notchHalf = nr + 26; // wider transition zone
-  const ease = 18; // tangent length for smooth blend
-  const path = `
-    M ${r},0
-    H ${cx - notchHalf}
-    C ${cx - notchHalf + ease},0 ${cx - nr - ease},${nr} ${cx - nr},${nr}
-    A ${nr},${nr} 0 0 0 ${cx + nr},${nr}
-    C ${cx + nr + ease},${nr} ${cx + notchHalf - ease},0 ${cx + notchHalf},0
-    H ${W - r}
-    Q ${W},0 ${W},${r}
-    V ${H - r}
-    Q ${W},${H} ${W - r},${H}
-    H ${r}
-    Q 0,${H} 0,${H - r}
-    V ${r}
-    Q 0,0 ${r},0
-    Z
-  `;
-
-  return (
-    <div
-      className="absolute inset-0"
-      style={{
-        filter: 'drop-shadow(0 10px 30px rgba(0,0,0,0.08))',
-      }}
-    >
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        width="100%"
-        height="100%"
-        className="block"
-        aria-hidden
-      >
-        <defs>
-          <clipPath id="bn-clip">
-            <path d={path} />
-          </clipPath>
-        </defs>
-        {/* Glass fill */}
-        <foreignObject x="0" y="0" width={W} height={H} clipPath="url(#bn-clip)">
-          <div
-            // @ts-expect-error xmlns inside foreignObject
-            xmlns="http://www.w3.org/1999/xhtml"
-            style={{
-              width: '100%',
-              height: '100%',
-              background: 'rgba(255,255,255,0.78)',
-              backdropFilter: 'blur(18px) saturate(140%)',
-              WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-            }}
-          />
-        </foreignObject>
-        <path
-          d={path}
-          fill="none"
-          stroke="rgba(15,23,42,0.06)"
-          strokeWidth="1"
-        />
-      </svg>
-    </div>
+    </button>
   );
 };
 
