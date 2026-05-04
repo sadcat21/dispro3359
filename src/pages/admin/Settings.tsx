@@ -66,14 +66,20 @@ const Settings: React.FC = () => {
       <h2 className="text-xl font-bold mb-3">{t('settings.title')}</h2>
 
       <Tabs defaultValue="general" dir={dir}>
-        <TabsList className="w-full flex-wrap h-auto gap-1 mb-4">
-          {tabs.map(tab => (
-            <TabsTrigger key={tab.value} value={tab.value} className="flex-1 gap-1.5 min-w-0 text-xs sm:text-sm">
-              {tab.icon}
-              <span className="truncate">{tab.label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="w-full overflow-x-auto mb-4 -mx-1 px-1 scrollbar-thin">
+          <TabsList className="inline-flex w-auto h-auto gap-1">
+            {tabs.map(tab => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="gap-1.5 text-sm whitespace-nowrap px-3 py-2 shrink-0"
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {/* ═══ Tab: General ═══ */}
         <TabsContent value="general" className="space-y-4 mt-0">
