@@ -353,7 +353,6 @@ const AdminHome: React.FC = () => {
         { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
         ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
         { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
-        ...(isAdminRole(role) || activeRole?.custom_role_code === 'company_manager' ? [{ path: '/suppliers', icon: Truck, label: 'الموردون' }] : []),
       ],
     }] : []),
     // 4. العملاء
@@ -381,6 +380,7 @@ const AdminHome: React.FC = () => {
         { path: '/promo-splits', icon: Split, label: t('admin_home.item.promo_splits') },
         { path: '/manual-promo', icon: Gift, label: t('admin.manual_promo'), action: () => setManualPromoOpen(true) },
         { path: '/promo-tracking', icon: Gift, label: t('admin.promo_tracking') },
+        ...(isAdminRole(role) || activeRole?.custom_role_code === 'company_manager' ? [{ path: '/suppliers', icon: Truck, label: 'الموردون' }] : []),
       ],
     },
     // 6. الموارد البشرية
