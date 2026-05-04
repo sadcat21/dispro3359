@@ -762,7 +762,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 )}
                 title={item.label}
               >
-                <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2.5 : 1.75} />
               </Link>
             );
           })}
@@ -782,10 +782,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {showInvoiceButton && (
             <button
               onClick={() => setInvoiceRequestOpen(true)}
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground transition-all"
               title={t("tooltip.invoice_request")}
             >
-              <Receipt className="w-6 h-6" strokeWidth={2} />
+              <Receipt className="w-[22px] h-[22px]" strokeWidth={1.75} />
               {(pendingInvoiceCount || 0) > 0 && (
                 <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
                   {pendingInvoiceCount}
@@ -807,7 +807,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 )}
                 title={t('nav.more')}
               >
-                <MoreHorizontal className="w-6 h-6" strokeWidth={isMoreActive ? 2.5 : 2} />
+                <MoreHorizontal className="w-[22px] h-[22px]" strokeWidth={isMoreActive ? 2.5 : 1.75} />
               </button>
 
               {moreOpen && (
