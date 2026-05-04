@@ -328,36 +328,36 @@ const BranchInvoiceApprovals: React.FC = () => {
         </div>
 
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="pending" className="gap-2">
-              <FileText className="w-4 h-4" />
-              {t('branch_invoice_approvals.pending_list')}
-              <Badge variant="secondary" className="ml-1">{pendingTabRows.length}</Badge>
+          <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
+            <TabsTrigger value="pending" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+              <FileText className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">معلّقة</span>
+              <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{pendingTabRows.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="postponed" className="gap-2">
-              <Clock className="w-4 h-4" />
-              المؤجلة
-              <Badge variant="secondary" className="ml-1">{postponedRows.length}</Badge>
+            <TabsTrigger value="postponed" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">مؤجلة</span>
+              <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{postponedRows.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="ready" className="gap-2">
-              <Download className="w-4 h-4" />
-              {t('branch_invoice_approvals.ready_for_download')}
-              <Badge variant="secondary" className="ml-1">{readyRows.length}</Badge>
+            <TabsTrigger value="ready" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+              <Download className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">جاهزة</span>
+              <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{readyRows.length}</Badge>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
             <Tabs defaultValue="branch_stage" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="branch_stage" className="gap-2">
-                  <FileText className="w-4 h-4" />
-                  Demandes de l'étape agence
-                  <Badge variant="secondary" className="ml-1">{pendingBranchRows.length}</Badge>
+              <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
+                <TabsTrigger value="branch_stage" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+                  <FileText className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">مرحلة الفرع</span>
+                  <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{pendingBranchRows.length}</Badge>
                 </TabsTrigger>
-                <TabsTrigger value="final_stage" className="gap-2">
-                  <Clock3 className="w-4 h-4" />
-                  En attente de l'approbation finale
-                  <Badge variant="secondary" className="ml-1">{forwardedRows.length}</Badge>
+                <TabsTrigger value="final_stage" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+                  <Clock3 className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">الموافقة النهائية</span>
+                  <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{forwardedRows.length}</Badge>
                 </TabsTrigger>
               </TabsList>
 
@@ -527,16 +527,16 @@ const BranchInvoiceApprovals: React.FC = () => {
 
           <TabsContent value="postponed">
             <Tabs defaultValue="postponed_list" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="postponed_list" className="gap-2">
-                  <Clock className="w-4 h-4" />
-                  الفواتير المؤجلة
-                  <Badge variant="secondary" className="ml-1">{postponedRows.length}</Badge>
+              <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
+                <TabsTrigger value="postponed_list" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">المؤجلة</span>
+                  <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{postponedRows.length}</Badge>
                 </TabsTrigger>
-                <TabsTrigger value="merged_sent" className="gap-2">
-                  <Layers className="w-4 h-4" />
-                  الفواتير الموحَّدة المُرسَلة للإدارة
-                  <Badge variant="secondary" className="ml-1">{mergedParentRows.length}</Badge>
+                <TabsTrigger value="merged_sent" className="gap-1 px-1 text-[11px] sm:text-sm whitespace-nowrap">
+                  <Layers className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">الموحَّدة المُرسَلة</span>
+                  <Badge variant="secondary" className="ml-1 px-1 text-[10px]">{mergedParentRows.length}</Badge>
                 </TabsTrigger>
               </TabsList>
 
