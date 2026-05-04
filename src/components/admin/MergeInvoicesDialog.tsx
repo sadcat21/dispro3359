@@ -42,7 +42,7 @@ interface AggLine {
 
 const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, customerName, requests }) => {
   const { workerId, activeBranch } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const qc = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<string[]>(() => requests.map(r => r.id));
   const [paymentMethod, setPaymentMethod] = useState<InvoicePaymentMethod | null>(null);

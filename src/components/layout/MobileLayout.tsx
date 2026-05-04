@@ -781,128 +781,164 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
         </main>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background text-foreground safe-bottom md:hidden shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.08)]">
-        <div className="relative flex items-center justify-around px-2 py-2.5">
-          {mainNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex items-center justify-center w-10 h-10 rounded-xl transition-all',
-                  isActive
-                    ? 'text-destructive scale-110'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-                title={item.label}
-              >
-                <item.icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2.5 : 1.75} />
-              </Link>
-            );
-          })}
+      {/* Bottom Navigation — تصميم بقَصّة منحنية للزر المركزي */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom md:hidden pointer-events-none">
+        <div className="relative pointer-events-auto">
+          {/* SVG خلفية بمنحنى للزر المركزي */}
+          <svg
+            className="absolute inset-x-0 bottom-0 w-full h-[78px] drop-shadow-[0_-6px_18px_rgba(0,0,0,0.08)]"
+            viewBox="0 0 400 78"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M0,12 L155,12 C168,12 172,40 200,40 C228,40 232,12 245,12 L400,12 L400,78 L0,78 Z"
+              className="fill-background"
+            />
+          </svg>
 
-          {centerAction && (
-            centerAction.type === 'today' ? (
+          {/* محتوى الشريط */}
+          <div className="relative grid grid-cols-5 items-end h-[78px] px-2">
+            {/* العناصر اليسرى (أول عنصرين) */}
+            {mainNavItems.slice(0, 2).map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    'flex items-center justify-center h-14 rounded-2xl transition-all',
+                    isActive ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  title={item.label}
+                >
+                  <item.icon className="w-[24px] h-[24px]" strokeWidth={isActive ? 2.5 : 1.75} />
+                </Link>
+              );
+            })}
+
+            {/* الزر المركزي العائم */}
+            <div className="flex items-start justify-center">
+              {centerAction ? (
+                centerAction.type === 'today' ? (
+                  <button
+                    onClick={() => setTodayCustomersOpen(true)}
+                    className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition-transform active:scale-95 hover:scale-105"
+                    title={t("tooltip.today_customers")}
+                    aria-label={t("tooltip.today_customers")}
+                  >
+                    <CalendarCheck className="h-6 w-6" strokeWidth={2.5} />
+                  </button>
+                ) : (
+                  <Link
+                    to={centerAction.to}
+                    className="relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition-transform active:scale-95 hover:scale-105"
+                    title={centerAction.label}
+                    aria-label={centerAction.label}
+                  >
+                    <centerAction.icon className="h-6 w-6" strokeWidth={2.5} />
+                    {(centerAction.badge ?? 0) > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-background text-destructive border-2 border-destructive text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold">
+                        {centerAction.badge! > 99 ? '99+' : centerAction.badge}
+                      </span>
+                    )}
+                  </Link>
+                )
+              ) : (
+                <div className="h-14 w-14" />
+              )}
+            </div>
+
+            {/* العناصر اليمنى: زر فاتورة + المزيد، أو بقية mainNav */}
+            {showInvoiceButton ? (
               <button
-                onClick={() => setTodayCustomersOpen(true)}
-                className="absolute left-1/2 -top-7 z-10 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xl shadow-destructive/40 ring-4 ring-background transition-transform active:scale-95 hover:scale-105"
-                title={t("tooltip.today_customers")}
-                aria-label={t("tooltip.today_customers")}
+                onClick={() => setInvoiceRequestOpen(true)}
+                className="relative flex items-center justify-center h-14 rounded-2xl text-muted-foreground hover:text-foreground transition-all"
+                title={t("tooltip.invoice_request")}
               >
-                <CalendarCheck className="h-7 w-7" strokeWidth={2.5} />
-              </button>
-            ) : (
-              <Link
-                to={centerAction.to}
-                className="absolute left-1/2 -top-7 z-10 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xl shadow-destructive/40 ring-4 ring-background transition-transform active:scale-95 hover:scale-105"
-                title={centerAction.label}
-                aria-label={centerAction.label}
-              >
-                <centerAction.icon className="h-7 w-7" strokeWidth={2.5} />
-                {(centerAction.badge ?? 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-background text-destructive border-2 border-destructive text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold">
-                    {centerAction.badge! > 99 ? '99+' : centerAction.badge}
+                <Receipt className="w-[24px] h-[24px]" strokeWidth={1.75} />
+                {(pendingInvoiceCount || 0) > 0 && (
+                  <span className="absolute top-2 right-3 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {pendingInvoiceCount}
                   </span>
                 )}
+              </button>
+            ) : mainNavItems[2] ? (
+              <Link
+                to={mainNavItems[2].path}
+                className={cn(
+                  'flex items-center justify-center h-14 rounded-2xl transition-all',
+                  location.pathname === mainNavItems[2].path ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {React.createElement(mainNavItems[2].icon, { className: 'w-[24px] h-[24px]', strokeWidth: location.pathname === mainNavItems[2].path ? 2.5 : 1.75 })}
               </Link>
-            )
-          )}
+            ) : <div />}
 
-          {/* Invoice Request Button */}
-          {showInvoiceButton && (
-            <button
-              onClick={() => setInvoiceRequestOpen(true)}
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground transition-all"
-              title={t("tooltip.invoice_request")}
-            >
-              <Receipt className="w-[22px] h-[22px]" strokeWidth={1.75} />
-              {(pendingInvoiceCount || 0) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                  {pendingInvoiceCount}
-                </span>
-              )}
-            </button>
-          )}
-
-          {/* More Menu - Sheet Style */}
-          {moreNavItems.length > 0 && (
-            <>
+            {moreNavItems.length > 0 ? (
               <button
                 onClick={() => setMoreOpen(true)}
                 className={cn(
-                  'flex items-center justify-center w-10 h-10 rounded-xl transition-all',
-                  isMoreActive
-                    ? 'text-destructive scale-110'
-                    : 'text-muted-foreground hover:text-foreground'
+                  'flex items-center justify-center h-14 rounded-2xl transition-all',
+                  isMoreActive ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
                 )}
                 title={t('nav.more')}
               >
-                <MoreHorizontal className="w-[22px] h-[22px]" strokeWidth={isMoreActive ? 2.5 : 1.75} />
+                <MoreHorizontal className="w-[24px] h-[24px]" strokeWidth={isMoreActive ? 2.5 : 1.75} />
               </button>
+            ) : mainNavItems[3] ? (
+              <Link
+                to={mainNavItems[3].path}
+                className={cn(
+                  'flex items-center justify-center h-14 rounded-2xl transition-all',
+                  location.pathname === mainNavItems[3].path ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {React.createElement(mainNavItems[3].icon, { className: 'w-[24px] h-[24px]', strokeWidth: location.pathname === mainNavItems[3].path ? 2.5 : 1.75 })}
+              </Link>
+            ) : <div />}
+          </div>
 
-              {moreOpen && (
-                <div className="fixed inset-0 z-[100]" onClick={() => setMoreOpen(false)}>
-                  <div className="absolute inset-0 bg-black/40" />
-                  <div
-                    className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl shadow-2xl max-h-[75vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex justify-center pt-3 pb-1">
-                      <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-                    </div>
-                    <div className="px-4 pb-6 pt-2">
-                      <div className="grid grid-cols-4 gap-3">
-                        {moreNavItems.map((item) => {
-                          const isActive = location.pathname === item.path;
-                          const colors = moreItemColors[item.path] || { bg: 'bg-muted/50', icon: 'text-muted-foreground', border: 'border-border' };
-                          return (
-                            <Link
-                              key={item.path}
-                              to={item.path}
-                              onClick={() => setMoreOpen(false)}
-                              className={cn(
-                                'flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border transition-all active:scale-95 hover:shadow-md',
-                                isActive
-                                  ? 'ring-2 ring-primary/40 shadow-md border-primary/30 bg-primary/5'
-                                  : `${colors.bg} ${colors.border}`
-                              )}
-                            >
-                              <item.icon className={cn('w-5 h-5', isActive ? 'text-primary' : colors.icon)} />
-                              <span className={cn(
-                                'text-[10px] font-medium text-center leading-tight',
-                                isActive ? 'text-primary font-bold' : 'text-foreground'
-                              )}>{item.label}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
+          {/* قائمة المزيد */}
+          {moreOpen && (
+            <div className="fixed inset-0 z-[100]" onClick={() => setMoreOpen(false)}>
+              <div className="absolute inset-0 bg-black/40" />
+              <div
+                className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl shadow-2xl max-h-[75vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-center pt-3 pb-1">
+                  <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+                </div>
+                <div className="px-4 pb-6 pt-2">
+                  <div className="grid grid-cols-4 gap-3">
+                    {moreNavItems.map((item) => {
+                      const isActive = location.pathname === item.path;
+                      const colors = moreItemColors[item.path] || { bg: 'bg-muted/50', icon: 'text-muted-foreground', border: 'border-border' };
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setMoreOpen(false)}
+                          className={cn(
+                            'flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border transition-all active:scale-95 hover:shadow-md',
+                            isActive
+                              ? 'ring-2 ring-primary/40 shadow-md border-primary/30 bg-primary/5'
+                              : `${colors.bg} ${colors.border}`
+                          )}
+                        >
+                          <item.icon className={cn('w-5 h-5', isActive ? 'text-primary' : colors.icon)} />
+                          <span className={cn(
+                            'text-[10px] font-medium text-center leading-tight',
+                            isActive ? 'text-primary font-bold' : 'text-foreground'
+                          )}>{item.label}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
-              )}
-            </>
+              </div>
+            </div>
           )}
         </div>
       </nav>
