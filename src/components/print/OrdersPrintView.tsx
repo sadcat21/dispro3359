@@ -99,8 +99,11 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     });
 
     // Effective visibility: hide uniform columns from table body
+    // Special case: store_name is merged into the customer column when both are visible
+    // (saves horizontal space — store on top, customer name below in red)
     const isColEffective = (id: string): boolean => {
       if (uniformValues[id]) return false;
+      if (id === 'store_name' && isColVisible('customer')) return false;
       return isColVisible(id);
     };
 
