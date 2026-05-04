@@ -54,6 +54,12 @@ interface ProductAgg {
   customers: CustomerBreakdown[];
 }
 
+const ORDER_SUMMARY_STATUSES = ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed'];
+const DELIVERY_SUMMARY_STATUSES = ['pending', 'assigned', 'in_progress', 'confirmed', 'processing', 'in_transit', 'ready'];
+
+const buildDeliveryDateFilter = (selectedDate: string, dayStart: string, dayEnd: string) =>
+  `delivery_date.eq.${selectedDate},and(delivery_date.is.null,created_at.gte.${dayStart},created_at.lte.${dayEnd})`;
+
 /** Carousel overlay for orders – mirrors the sales summary carousel */
 const OrdersCarousel: React.FC<{
   items: ProductAgg[];
@@ -220,6 +226,13 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const canSeeCashVan = isAdminRole(role) || role === 'supervisor' || activeRole?.custom_role_code === 'warehouse_manager';
   const { columns: columnConfig, saveColumns } = usePrintColumnsConfig();
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
+
+  useEffect(() => {
+    if (isDeliveryMode && activeTab !== 'assigned') {
+      setActiveTab('assigned');
+      setExpandedProduct(null);
+    }
+  }, [isDeliveryMode, activeTab]);
 
   // DB keys for persistence
   const cashVanKey = workerId ? `cashvan_${workerId}_${selectedDate}` : '';
