@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,11 +6,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import { Customer } from '@/types/database';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
   Activity, UserCheck, ShoppingCart, Radar, FileSpreadsheet, UserCog,
   Navigation, LucideIcon, Warehouse, Truck, ClipboardCheck, ClipboardList,
-  Wallet, FileText, Vault, Scale, Gift,
+  Wallet, FileText, Vault, Scale, Gift, Plus,
 } from 'lucide-react';
 
 interface Item {
@@ -30,6 +34,13 @@ const InternalSupervisorHome: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { user, activeBranch } = useAuth();
+
+  // Order creation state
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+  const [showCreateOrder, setShowCreateOrder] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const effectiveBranchId = activeBranch?.id || null;
 
   const { data: kpis } = useQuery({
     queryKey: ['internal-supervisor-kpis', activeBranch?.id],
@@ -65,6 +76,18 @@ const InternalSupervisorHome: React.FC = () => {
       };
     },
     staleTime: 60_000,
+  });
+
+  // Customers for picker
+  const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
+    queryKey: ['customers-for-order-picker-supervisor', effectiveBranchId],
+    queryFn: async () => {
+      let q = supabase.from('customers').select('*').eq('status', 'active').order('name');
+      if (effectiveBranchId) q = q.eq('branch_id', effectiveBranchId);
+      const { data } = await q;
+      return (data || []) as Customer[];
+    },
+    enabled: showCustomerPicker,
   });
 
   const sections: Section[] = [
@@ -141,6 +164,15 @@ const InternalSupervisorHome: React.FC = () => {
             <KpiCard label={t('internal_supervisor.kpi_pending_debts')} value={kpis?.pendingDebts ?? '—'} icon={Banknote} accent="sky" />
             <KpiCard label={t('internal_supervisor.kpi_attendance_today')} value="—" icon={CalendarDays} accent="slate" />
           </div>
+
+          {/* Create Order Button */}
+          <Button
+            onClick={() => setShowCustomerPicker(true)}
+            className="w-full mt-4 h-11 bg-sky-600 hover:bg-sky-700 text-white gap-2 text-sm font-bold"
+          >
+            <Plus className="w-5 h-5" />
+            {t('orders.create_new')}
+          </Button>
         </div>
       </div>
 
@@ -178,6 +210,27 @@ const InternalSupervisorHome: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Customer Picker for Order Creation */}
+      <CustomerPickerDialog
+        open={showCustomerPicker}
+        onOpenChange={setShowCustomerPicker}
+        customers={allCustomers}
+        isLoading={customersLoading}
+        onSelect={(customer) => {
+          setSelectedCustomer(customer);
+          setShowCustomerPicker(false);
+          setShowCreateOrder(true);
+        }}
+      />
+
+      {/* Create Order Dialog */}
+      <OrderFlowDialog
+        open={showCreateOrder}
+        onOpenChange={setShowCreateOrder}
+        mode="create"
+        initialCustomerId={selectedCustomer?.id}
+      />
     </div>
   );
 };
