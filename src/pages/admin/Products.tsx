@@ -1064,8 +1064,12 @@ const Products: React.FC = () => {
           </div>
 
           {/* Products List */}
-          <div className="space-y-2">
-        {sortedProducts.map((product) => (
+          <Card>
+            <CardContent className="p-3 md:p-4 space-y-3">
+              {/* Search + Filter Toolbar */}
+              <div className="flex flex-col md:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h
           <Card key={product.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => openEditDialog(product)}>
             <CardContent className="p-0">
               <div className="flex items-center">
