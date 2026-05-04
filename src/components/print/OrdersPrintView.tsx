@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
 import logoImage from '@/assets/logo.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translations } from '@/i18n/translations';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { StampPriceTier } from '@/types/stamp';
