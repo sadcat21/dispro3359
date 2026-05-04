@@ -122,7 +122,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
                 <Alert className="rounded-xl border-orange-300 bg-orange-50 dark:bg-orange-900/10">
                   <Info className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm font-medium text-orange-800 dark:text-orange-400">
-                    ⚠️ توجد {reviewInfo!.sessionsAfterReview} جلسة شحن/تفريغ بعد آخر جلسة مراجعة — المحاسبة ستكون بناءً على آخر جلسة مراجعة فقط ولن تُحتسب الجلسات اللاحقة
+                    ⚠️ توجد {reviewInfo!.sessionsAfterReview} جلسة شحن/تفريغ بعد آخر مراجعة نهائية — المحاسبة ستكون بناءً على آخر مراجعة نهائية فقط ولن تُحتسب الجلسات اللاحقة
                   </AlertDescription>
                 </Alert>
               )}
