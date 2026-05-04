@@ -284,8 +284,8 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
               </ScrollArea>
             )}
           </TabsContent>
+          )}
 
-          {showWarehouseTab && (
             <TabsContent value="warehouse" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'warehouse' ? '' : 'hidden'}`}>
               {activeTab !== 'warehouse' ? null : isLoadingWarehouseStock ? (
                 <div className="flex items-center justify-center py-8">
