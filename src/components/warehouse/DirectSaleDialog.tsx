@@ -1002,33 +1002,33 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               </section>
 
               {/* Payment Type - warehouse_manager can choose, others always without invoice */}
-              <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('orders.purchase_method')}</Label>
+              <section className="space-y-2">
+                <Label className="text-sm font-semibold">{t('orders.purchase_method')}</Label>
                 {isWarehouseManager ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-1.5">
                     <Button
                       type="button"
                       variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                      className={`h-12 text-sm font-bold ${paymentType === 'with_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
+                      className={`h-9 text-xs font-bold ${paymentType === 'with_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
                       onClick={() => setPaymentType('with_invoice')}
                     >
-                      <Receipt className="w-4 h-4 ml-2" />
+                      <Receipt className="w-3.5 h-3.5 ml-1" />
                       {t('orders.with_invoice')}
                     </Button>
                     <Button
                       type="button"
                       variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                      className={`h-12 text-sm font-bold ${paymentType === 'without_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
+                      className={`h-9 text-xs font-bold ${paymentType === 'without_invoice' ? 'ring-2 ring-primary/40' : 'opacity-60'}`}
                       onClick={() => setPaymentType('without_invoice')}
                     >
-                      <ReceiptText className="w-4 h-4 ml-2" />
+                      <ReceiptText className="w-3.5 h-3.5 ml-1" />
                       {t('orders.without_invoice')}
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
-                    <ReceiptText className="w-5 h-5 text-primary" />
-                    <span className="text-sm font-medium">{t('orders.without_invoice')}</span>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border">
+                    <ReceiptText className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-medium">{t('orders.without_invoice')}</span>
                   </div>
                 )}
 
@@ -1042,9 +1042,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
                 {/* Price Sub-Type - only for without_invoice */}
                 {paymentType === 'without_invoice' && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t('orders.price_type')}</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">{t('orders.price_type')}</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
                     {([
                       { value: 'super_gros' as PriceSubType, label: t('products.price_super_gros'), colors: { active: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 ring-2 ring-indigo-400', inactive: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' } },
                       { value: 'gros' as PriceSubType, label: t('products.price_gros'), colors: { active: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400', inactive: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600' } },
@@ -1055,7 +1055,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                         type="button"
                         variant={priceSubType === option.value ? 'default' : 'outline'}
                         size="sm"
-                        className={`h-12 text-sm font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
+                        className={`h-9 text-xs font-bold transition-opacity ${priceSubType === option.value ? option.colors.active : option.colors.inactive} ${priceSubType !== option.value ? 'opacity-50' : ''}`}
                         onClick={() => setPriceSubType(option.value)}
                       >
                         {option.label}
