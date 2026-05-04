@@ -1705,7 +1705,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                 <Button
                   type="button"
                   variant={paymentType === 'with_invoice' ? 'default' : 'outline'}
-                  className={`h-10 text-sm font-bold ${paymentType === 'with_invoice' ? '' : 'opacity-60'}`}
+                  className={`h-10 text-sm font-bold ${paymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-400' : 'border-blue-300 text-blue-700 hover:bg-blue-50 opacity-60'}`}
                   onClick={() => { setPaymentType('with_invoice'); recalcItemPrices('with_invoice', priceSubType); }}
                 >
                   {t('orders.with_invoice')}
@@ -1713,7 +1713,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                 <Button
                   type="button"
                   variant={paymentType === 'without_invoice' ? 'default' : 'outline'}
-                  className={`h-10 text-sm font-bold ${paymentType === 'without_invoice' ? '' : 'opacity-60'}`}
+                  className={`h-10 text-sm font-bold ${paymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 opacity-60'}`}
                   onClick={() => { setPaymentType('without_invoice'); setInvoicePaymentMethod(null); recalcItemPrices('without_invoice', priceSubType); }}
                 >
                   {t('orders.without_invoice')}
