@@ -348,8 +348,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
               {filtered.map(r => {
                 const filled = isFilled(r);
                 const status = filled ? getStatus(r) : 'match';
-                const diffPieces = filled ? Math.round((actualTotalBoxes(r) - r.expected) * Math.max(1, Math.round(r.ppb || 1))) : 0;
                 const ppb = Math.max(1, Math.round(r.ppb || 1));
+                const expectedPiecesTotal = r.expectedBoxes * ppb + r.expectedPieces;
+                const actualPiecesTotal = (parseInt(r.actualBoxes || '0', 10) || 0) * ppb + (parseInt(r.actualPieces || '0', 10) || 0);
+                const diffTotalPieces = filled ? actualPiecesTotal - expectedPiecesTotal : 0;
+                const absPieces = Math.abs(diffTotalPieces);
+                const diffBoxes = Math.floor(absPieces / ppb);
+                const diffPieces = absPieces % ppb;
+                const diffLabel = diffPieces > 0 ? `${diffBoxes}.${String(diffPieces).padStart(2, '0')}` : `${diffBoxes}`;
                 const ring = !r.confirmed
                   ? 'border-border'
                   : status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20'
@@ -358,8 +364,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 const btnLabel =
                   !filled ? 'مطابق' :
                   status === 'match' ? 'مطابق' :
-                  status === 'surplus' ? `تأكيد فائض (+${Math.abs(diffPieces)})` :
-                  `تأكيد عجز (-${Math.abs(diffPieces)})`;
+                  status === 'surplus' ? `تأكيد فائض (+${diffLabel})` :
+                  `تأكيد عجز (-${diffLabel})`;
                 const btnClass =
                   !filled || status === 'match'
                     ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
