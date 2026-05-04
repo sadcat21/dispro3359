@@ -162,7 +162,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
   // 4. Fetch promos / free gifts during the same period
   const { data: promosData, error: promosError } = await supabase
     .from('promos')
-    .select('product_id, worker_id, vente_quantity, gratuite_quantity, notes, promo_date, customer_id, customer:customers(name, store_name, phone, address, sector:sectors(name)), product:products(name, image_url, pieces_per_box, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box))')
+    .select('product_id, worker_id, vente_quantity, gratuite_quantity, notes, promo_date, customer_id, customer:customers(name, store_name, phone, address, sector:sectors(name)), product:products(name, image_url, pieces_per_box, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box)')
     .eq('worker_id', workerId)
     .gt('gratuite_quantity', 0)
     .gte('promo_date', periodStartTz)
