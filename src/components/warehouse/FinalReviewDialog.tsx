@@ -120,6 +120,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           expectedPieces: 0,
           actualBoxes: '',
           actualPieces: '',
+          confirmed: false,
           ppb: prod.pieces_per_box || 1,
         });
         for (const it of loadItems) {
