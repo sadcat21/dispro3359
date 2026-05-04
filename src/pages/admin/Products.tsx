@@ -705,12 +705,20 @@ const Products: React.FC = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <button type="button" onClick={handleTitleTap} className="text-xl font-bold">
-          {t('products.title')}
-        </button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Package className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <button type="button" onClick={handleTitleTap} className="text-2xl font-bold leading-tight block text-right">
+              {t('products.title')}
+            </button>
+            <p className="text-xs text-muted-foreground">إدارة وتنظيم منتجات المتجر</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <Button 
             size="sm" 
@@ -1019,35 +1027,85 @@ const Products: React.FC = () => {
 
         <TabsContent value="products" className="mt-4 space-y-4">
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-secondary text-secondary-foreground">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Card className="border-primary/20">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Package className="w-5 h-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('products.total')}</p>
-                  <p className="text-xl font-bold">{products.length}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">{t('products.total')}</p>
+                  <p className="text-2xl font-bold leading-tight">{products.length}</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-accent/50">
+            <Card className="border-emerald-500/20">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-primary" />
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{activeProductsLabel}</p>
-                  <p className="text-xl font-bold text-primary">{products.filter(p => p.is_active).length}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">{activeProductsLabel}</p>
+                  <p className="text-2xl font-bold leading-tight text-emerald-600">{products.filter(p => p.is_active).length}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-destructive/20 col-span-2 md:col-span-1">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                  <XCircle className="w-5 h-5 text-destructive" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">غير نشطة</p>
+                  <p className="text-2xl font-bold leading-tight text-destructive">{products.filter(p => !p.is_active).length}</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Products List */}
-          <div className="space-y-2">
+          <Card>
+            <CardContent className="p-3 md:p-4 space-y-3">
+              {/* Search + Filter Toolbar */}
+              <div className="flex flex-col md:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ابحث بالاسم أو الكود..."
+                    className="pr-9 text-right"
+                  />
+                </div>
+                <div className="flex gap-1 p-1 bg-muted rounded-md">
+                  {([
+                    { v: 'all', label: 'الكل' },
+                    { v: 'active', label: 'النشطة' },
+                    { v: 'inactive', label: 'غير النشطة' },
+                  ] as const).map((opt) => (
+                    <Button
+                      key={opt.v}
+                      type="button"
+                      size="sm"
+                      variant={statusFilter === opt.v ? 'default' : 'ghost'}
+                      className="h-8 text-xs"
+                      onClick={() => setStatusFilter(opt.v)}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Result count */}
+              <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                <span>عرض {sortedProducts.length} من {products.length} منتج</span>
+              </div>
+
+              {/* List */}
+              <div className="space-y-2">
         {sortedProducts.map((product) => (
-          <Card key={product.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => openEditDialog(product)}>
+          <Card key={product.id} className="overflow-hidden cursor-pointer hover:shadow-md hover:border-primary/40 transition-all" onClick={() => openEditDialog(product)}>
             <CardContent className="p-0">
               <div className="flex items-center">
                 {/* Product Info */}
@@ -1137,13 +1195,15 @@ const Products: React.FC = () => {
           </Card>
         ))}
 
-          {products.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{t('products.no_products')}</p>
-            </div>
-          )}
-          </div>
+              {sortedProducts.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>{products.length === 0 ? t('products.no_products') : 'لا توجد نتائج مطابقة'}</p>
+                </div>
+              )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="groups" className="mt-4">
