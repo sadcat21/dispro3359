@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { LedgerAdminActions } from '@/components/admin/LedgerAdminActions';
 import { STOCK_MOVEMENT_LABELS, LOCATION_TYPE_LABELS, REASON_LABELS, tr } from '@/lib/ledgerLabels';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const MOVEMENT_TYPES = [
   { value: 'all', label: 'كل الحركات' },
@@ -73,7 +74,7 @@ const StockMovementsLedger: React.FC = () => {
   const { data: products } = useQuery({
     queryKey: ['products-list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('id, name').order('name').limit(2000);
+      const { data, error } = await supabase.from('products').select('id, name, app_name').order('name').limit(2000);
       if (error) throw error;
       return data ?? [];
     },
@@ -88,7 +89,7 @@ const StockMovementsLedger: React.FC = () => {
     },
   });
 
-  const productMap = useMemo(() => Object.fromEntries((products ?? []).map((p: any) => [p.id, p.name])), [products]);
+  const productMap = useMemo(() => Object.fromEntries((products ?? []).map((p: any) => [p.id, getProductDisplayName(p)])), [products]);
   const branchMap = useMemo(() => Object.fromEntries((branches ?? []).map((b: any) => [b.id, b.name])), [branches]);
   const workerMap = useMemo(() => Object.fromEntries((workers ?? []).map((w: any) => [w.id, w.full_name])), [workers]);
 
@@ -267,7 +268,7 @@ const StockMovementsLedger: React.FC = () => {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent className="max-h-72">
                 <SelectItem value="all">كل المنتجات</SelectItem>
-                {(products ?? []).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                {(products ?? []).map((p: any) => <SelectItem key={p.id} value={p.id}>{getProductDisplayName(p)}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
