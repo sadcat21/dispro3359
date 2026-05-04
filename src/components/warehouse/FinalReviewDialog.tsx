@@ -254,7 +254,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const itemRows: any[] = [];
       const discRows: any[] = [];
       for (const r of rows) {
-        const a = Number(r.actual) || 0;
+        const a = actualTotalBoxes(r);
         const diff = a - r.expected;
         const diffType = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
         itemRows.push({
