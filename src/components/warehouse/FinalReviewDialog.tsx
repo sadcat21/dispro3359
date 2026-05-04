@@ -388,10 +388,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       )}
                       <div className="text-xs font-medium line-clamp-2 flex-1 min-w-0">{r.productName}</div>
                     </div>
-                    <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-0.5"><TrendingUp className="w-3 h-3 text-blue-500" />{dbBPDisplay(r.loaded, ppb)}</span>
-                      <span className="flex items-center gap-0.5"><TrendingDown className="w-3 h-3 text-red-500" />{dbBPDisplay(r.unloaded, ppb)}</span>
-                      <span>متوقع <strong className="text-foreground">{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong></span>
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <Badge variant="outline" className="text-[10px] gap-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+                        شُحن <strong>{dbBPDisplay(r.loaded, ppb)}</strong>
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+                        فُرّغ <strong>{dbBPDisplay(r.unloaded, ppb)}</strong>
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 bg-primary/10 text-primary">
+                        متوقع <strong>{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong>
+                      </Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-1">
                       <div className="flex flex-col">
