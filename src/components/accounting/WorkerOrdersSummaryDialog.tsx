@@ -509,7 +509,13 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       const { data: ordersData } = await ordersQuery;
 
       let fetchedOrders = (ordersData || []) as unknown as OrderWithDetails[];
-      
+
+      // استبعاد الطلبيات الفارغة (بدون أصناف) حتى يتطابق عدد العملاء في الطباعة مع عدد العملاء في تجميع التوصيلات
+      fetchedOrders = fetchedOrders.filter(o => {
+        const items = (o as any).order_items || [];
+        return items.length > 0;
+      });
+
       // Filter by selected customers
       if (selectedCustomerIds.size > 0 && selectedCustomerIds.size < uniqueCustomers.length) {
         fetchedOrders = fetchedOrders.filter(o => selectedCustomerIds.has(o.customer_id));
