@@ -916,6 +916,21 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             إعدادات الأعمدة
           </Button>
 
+          {/* Extra Products Button - يضيف منتجات غير موجودة في الطلبيات كأعمدة في ورقة الطباعة */}
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() => { setExtraProductsSearch(''); setShowExtraProductsPicker(true); }}
+          >
+            <Plus className="w-4 h-4" />
+            إضافة أعمدة منتجات
+            {extraPrintProductIds.size > 0 && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
+                {extraPrintProductIds.size} منتج
+              </Badge>
+            )}
+          </Button>
+
         </AdaptiveScrollContainer>
         <div className="grid grid-cols-2 gap-2 border-t bg-background pt-3 mt-3">
           <Button variant="destructive" size="lg" onClick={handlePrint} disabled={selectedCustomerIds.size === 0 || isPrintLoading} className="gap-2 font-bold shadow-md">
