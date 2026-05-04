@@ -581,7 +581,8 @@ const BranchInvoiceApprovals: React.FC = () => {
                         return (
                           <div
                             key={r.id}
-                            className="border border-blue-200 rounded-xl bg-white overflow-hidden"
+                            onClick={() => setRequestDetails(r)}
+                            className="border border-blue-200 rounded-xl bg-white overflow-hidden cursor-pointer hover:shadow-md hover:border-blue-400 transition"
                           >
                             <div className="p-3 space-y-1.5">
                               <div className="flex items-center gap-1.5 flex-wrap">
