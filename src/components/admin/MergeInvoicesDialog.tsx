@@ -189,18 +189,12 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
                     key={r.id}
                     type="button"
                     onClick={() => toggle(r.id)}
-                    className={`text-start rounded-lg border-2 p-2 transition ${checked ? 'border-blue-500 bg-blue-50' : 'border-border bg-card hover:border-blue-300'}`}
+                    className={`relative text-center rounded-lg border-2 p-2 transition ${checked ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'border-border bg-card hover:border-blue-300'}`}
                   >
-                    <div className="flex items-center justify-between gap-1 mb-1">
-                      <Checkbox checked={checked} onCheckedChange={() => toggle(r.id)} />
-                      <span className="text-[10px] font-bold text-blue-700">
-                        {Array.isArray(r.products) ? r.products.length : 0} منتج
-                      </span>
+                    <div className="text-sm font-bold text-blue-700">
+                      {Array.isArray(r.products) ? r.products.length : 0} منتج
                     </div>
-                    <div className="text-xs font-semibold truncate">
-                      {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       {new Date(r.created_at).toLocaleDateString('ar')}
                     </div>
                   </button>
