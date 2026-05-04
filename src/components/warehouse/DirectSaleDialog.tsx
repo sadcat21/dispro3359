@@ -55,6 +55,7 @@ interface DirectSaleDialogProps {
   stockSource?: 'worker' | 'warehouse';
   embedded?: boolean;
   hideHeader?: boolean;
+  onHeaderInfo?: (info: { customerName: string | null; totalAmount: number }) => void;
 }
 
 interface OrderItemWithPrice {
@@ -83,6 +84,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   stockSource = 'worker',
   embedded = false,
   hideHeader = false,
+  onHeaderInfo,
 }) => {
   const { workerId, activeBranch, user, activeRole } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
@@ -573,6 +575,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     }
     return { totalItems, subtotal, stampAmount, stampPercentage, totalAmount: subtotal + stampAmount };
   }, [orderItems, paymentType, invoicePaymentMethod, stampTiers]);
+
+  // Report header info to parent
+  useEffect(() => {
+    onHeaderInfo?.({ customerName: selectedCustomer?.name || null, totalAmount: orderTotals.totalAmount });
+  }, [selectedCustomer?.name, orderTotals.totalAmount, onHeaderInfo]);
 
   // Show payment dialog before completing
   const handleSave = () => {

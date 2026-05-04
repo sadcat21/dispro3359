@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -51,6 +51,8 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   const [selectedDeliveryOrder, setSelectedDeliveryOrder] = useState<OrderWithDetails | null>(initialDeliveryOrder);
   const [warehouseStockItems, setWarehouseStockItems] = useState<StockItem[]>([]);
   const [isLoadingWarehouseStock, setIsLoadingWarehouseStock] = useState(false);
+  const [headerInfo, setHeaderInfo] = useState<{ customerName: string | null; totalAmount: number }>({ customerName: null, totalAmount: 0 });
+  const handleHeaderInfo = useCallback((info: { customerName: string | null; totalAmount: number }) => setHeaderInfo(info), []);
 
   // Fetch warehouse stock when warehouse tab is active
   useEffect(() => {
@@ -153,10 +155,21 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg h-[90vh] max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
-        <DialogHeader className="p-4 pb-2 border-b">
-          <DialogTitle className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
-            {t('sales.hub_title')}
+        <DialogHeader className="p-3 pb-2 border-b">
+          <DialogTitle className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <ShoppingBag className="w-5 h-5 shrink-0" />
+              <span className="truncate">
+                {(activeTab === 'direct' || activeTab === 'warehouse') && headerInfo.customerName
+                  ? headerInfo.customerName
+                  : t('sales.hub_title')}
+              </span>
+            </div>
+            {(activeTab === 'direct' || activeTab === 'warehouse') && headerInfo.totalAmount > 0 && (
+              <Badge variant="secondary" className="shrink-0 text-xs font-bold bg-primary/10 text-primary">
+                {headerInfo.totalAmount.toLocaleString()} {t('common.currency')}
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -207,6 +220,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
                   initialCustomerId={initialCustomerId}
                   stockItems={stockItems}
                   stockSource={stockSource}
+                  onHeaderInfo={handleHeaderInfo}
                 />
               )}
             </TabsContent>
@@ -301,6 +315,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
                   initialCustomerId={initialCustomerId}
                   stockItems={warehouseStockItems}
                   stockSource="warehouse"
+                  onHeaderInfo={handleHeaderInfo}
                 />
               )}
             </TabsContent>
