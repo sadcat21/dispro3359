@@ -51,6 +51,8 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   const [selectedDeliveryOrder, setSelectedDeliveryOrder] = useState<OrderWithDetails | null>(initialDeliveryOrder);
   const [warehouseStockItems, setWarehouseStockItems] = useState<StockItem[]>([]);
   const [isLoadingWarehouseStock, setIsLoadingWarehouseStock] = useState(false);
+  const [headerInfo, setHeaderInfo] = useState<{ customerName: string | null; totalAmount: number }>({ customerName: null, totalAmount: 0 });
+  const handleHeaderInfo = useCallback((info: { customerName: string | null; totalAmount: number }) => setHeaderInfo(info), []);
 
   // Fetch warehouse stock when warehouse tab is active
   useEffect(() => {
