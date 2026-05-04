@@ -74,7 +74,7 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
                 <ShoppingBag className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">تفاصيل الفاتورة</p>
+                <p className="text-[11px] uppercase tracking-wider text-white/70 font-semibold">{t('invoice_details.title')}</p>
                 <h2 className="text-xl font-bold truncate">{displayName}</h2>
                 {request?.customers?.store_name && (
                   <p className="text-xs text-white/80 truncate mt-0.5">{request.customers.store_name}</p>
