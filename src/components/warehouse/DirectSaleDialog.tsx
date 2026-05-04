@@ -15,7 +15,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import {
   Truck, Plus, Loader2, User,
-  Receipt, ReceiptText, XCircle, Package, Check, ChevronsUpDown, Stamp, Gift, Pencil
+  Receipt, ReceiptText, XCircle, Package, Check, ChevronsUpDown, Stamp, Gift, Pencil, LayoutGrid, List
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
