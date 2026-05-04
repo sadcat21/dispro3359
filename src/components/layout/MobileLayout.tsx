@@ -210,6 +210,42 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const isAttendanceHidden = useIsElementHidden('notification', 'notif_attendance');
   const isFieldWorker = role === 'worker' || role === 'supervisor';
 
+  // ===== Center button configuration based on active role =====
+  const customRoleCode = activeRole?.custom_role_code;
+  const isWarehouseManager = customRoleCode === 'warehouse_manager';
+  const isAdminAssistant = role === 'admin_assistant';
+  const isBranchAdmin = role === 'branch_admin';
+  const isFieldRoleCustom = customRoleCode === 'sales_rep' || customRoleCode === 'delivery_rep' || customRoleCode === 'internal_supervisor';
+
+  // Pending approvals count for admin_assistant badge
+  const { data: assistantPendingCount } = useQuery({
+    queryKey: ['assistant-pending-total', activeBranch?.id],
+    queryFn: async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const branchId = activeBranch?.id;
+      const queries = [
+        (() => { let q = supabase.from('stock_receipts').select('id', { count: 'exact', head: true }).eq('status', 'pending_assistant'); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
+        (() => { let q = supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_assistant'); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
+      ];
+      const results = await Promise.all(queries);
+      return results.reduce((acc, r: any) => acc + (r?.count || 0), 0);
+    },
+    enabled: isAdminAssistant,
+    refetchInterval: 30000,
+  });
+
+  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; label: string; badge?: number };
+  let centerAction: CenterAction | null = null;
+  if (isWarehouseManager) {
+    centerAction = { type: 'navigate', to: '/load-stock', icon: Truck, label: t('tooltip.load_stock') || 'شحن العمال' };
+  } else if (isBranchAdmin) {
+    centerAction = { type: 'navigate', to: '/accounting', icon: Wallet, label: 'المحاسبة' };
+  } else if (isAdminAssistant) {
+    centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
+  } else if (isFieldWorker || isFieldRoleCustom) {
+    centerAction = { type: 'today' };
+  }
+
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
     queryKey: ['pending-invoice-count', activeBranch?.id],
