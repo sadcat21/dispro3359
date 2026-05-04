@@ -110,7 +110,24 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               setPeriodStart(todayStart());
             }
           } else {
-            setPeriodStart(todayStart());
+            // No prior completed session: fall back to the earliest unsettled delivery
+            // so we capture all outstanding liability instead of only today.
+            const { data: oldestMv } = await supabase
+              .from('stock_movements')
+              .select('created_at')
+              .eq('worker_id', selectedWorkerId)
+              .eq('movement_type', 'delivery')
+              .eq('status', 'approved')
+              .order('created_at', { ascending: true })
+              .limit(1);
+            if (oldestMv && oldestMv.length > 0 && oldestMv[0].created_at) {
+              const d = new Date(oldestMv[0].created_at);
+              const algeriaOffset = 1 * 60;
+              const localMs = d.getTime() + (algeriaOffset + d.getTimezoneOffset()) * 60000;
+              setPeriodStart(format(new Date(localMs), "yyyy-MM-dd'T'HH:mm"));
+            } else {
+              setPeriodStart(todayStart());
+            }
           }
         };
         fetchLastSession();
