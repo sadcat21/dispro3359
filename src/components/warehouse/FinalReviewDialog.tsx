@@ -31,6 +31,7 @@ interface AggregatedRow {
   expectedPieces: number;
   actualBoxes: string;
   actualPieces: string;
+  confirmed: boolean;
   ppb: number;
 }
 
