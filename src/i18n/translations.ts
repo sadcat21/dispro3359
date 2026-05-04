@@ -2329,7 +2329,7 @@ export const translations: Translations = {
  'branch_invoice_approvals.tab_pending': { ar: 'معلّقة', fr: 'En attente', en: 'Pending' },
  'branch_invoice_approvals.tab_postponed': { ar: 'مؤجلة', fr: 'Reportées', en: 'Postponed' },
  'branch_invoice_approvals.tab_ready': { ar: 'جاهزة', fr: 'Prêtes', en: 'Ready' },
- 'branch_invoice_approvals.tab_branch_stage': { ar: 'مرحلة الفرع', fr: 'Étape agence', en: 'Branch stage' },
+ 'branch_invoice_approvals.tab_branch_stage': { ar: 'الموافقة الأولية', fr: 'Approbation initiale', en: 'Initial approval' },
  'branch_invoice_approvals.tab_final_stage': { ar: 'الموافقة النهائية', fr: 'Approbation finale', en: 'Final approval' },
  'branch_invoice_approvals.tab_postponed_list': { ar: 'المؤجلة', fr: 'Reportées', en: 'Postponed' },
  'branch_invoice_approvals.tab_merged_sent': { ar: 'الموحَّدة المُرسَلة', fr: 'Fusionnées envoyées', en: 'Merged sent' },
