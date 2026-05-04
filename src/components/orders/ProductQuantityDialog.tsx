@@ -382,7 +382,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     type="button"
                     variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
                     size="sm"
-                    className="flex-1 h-9 text-xs font-bold"
+                    className={`flex-1 h-9 text-xs font-bold ${itemPaymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-400' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
                     onClick={() => {
                       setItemPaymentType('with_invoice');
                       if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
@@ -397,7 +397,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   type="button"
                   variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'super_gros' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1 h-9 text-xs font-bold"
+                  className={`flex-1 h-9 text-xs font-bold ${itemPaymentType === 'without_invoice' && itemPriceSubType === 'super_gros' ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-2 ring-indigo-400' : 'border-indigo-300 text-indigo-700 hover:bg-indigo-50'}`}
                   onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('super_gros'); }}
                   title={t('products.price_super_gros')}
                 >
@@ -407,7 +407,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   type="button"
                   variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'gros' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1 h-9 text-xs font-bold"
+                  className={`flex-1 h-9 text-xs font-bold ${itemPaymentType === 'without_invoice' && itemPriceSubType === 'gros' ? 'bg-cyan-600 hover:bg-cyan-700 text-white ring-2 ring-cyan-400' : 'border-cyan-300 text-cyan-700 hover:bg-cyan-50'}`}
                   onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('gros'); }}
                   title={t('products.price_gros')}
                 >
@@ -417,7 +417,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   type="button"
                   variant={itemPaymentType === 'without_invoice' && itemPriceSubType === 'retail' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1 h-9 text-xs font-bold"
+                  className={`flex-1 h-9 text-xs font-bold ${itemPaymentType === 'without_invoice' && itemPriceSubType === 'retail' ? 'bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-400' : 'border-rose-300 text-rose-700 hover:bg-rose-50'}`}
                   onClick={() => { setItemPaymentType('without_invoice'); setItemPriceSubType('retail'); }}
                   title={t('products.price_retail')}
                 >
