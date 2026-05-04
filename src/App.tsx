@@ -599,6 +599,7 @@ const AppRoutes = () => {
       <Route path="/share" element={<ShareTarget />} />
 
       {/* 404 */}
+      <Route path="/tracking" element={<Navigate to="/promo-tracking" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
