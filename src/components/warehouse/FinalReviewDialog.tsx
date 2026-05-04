@@ -277,11 +277,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             <CheckCircle className="w-5 h-5 text-primary" />
             المراجعة النهائية — {workerName}
           </DialogTitle>
-          {periodStart && (
-            <p className="text-[11px] text-muted-foreground">
-              منذ آخر جلسة محاسبة: {new Date(periodStart).toLocaleString('ar-DZ')}
-            </p>
-          )}
+          <p className="text-[11px] text-muted-foreground">
+            {periodStart
+              ? `منذ آخر جلسة محاسبة: ${new Date(periodStart).toLocaleString('ar-DZ')}`
+              : 'لا توجد جلسة محاسبة سابقة — يتم احتساب جميع الحركات'}
+          </p>
         </DialogHeader>
 
         <div className="shrink-0 space-y-2">
