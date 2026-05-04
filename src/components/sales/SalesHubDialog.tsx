@@ -134,7 +134,10 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   };
 
   const showWarehouseTab = isWarehouseManager;
-  const tabCount = [!hideDirectTab, true, showWarehouseTab].filter(Boolean).length;
+  // Warehouse manager only sees warehouse tab
+  const effectiveHideDirectTab = hideDirectTab || isWarehouseManager;
+  const hideDeliveryTab = isWarehouseManager;
+  const tabCount = [!effectiveHideDirectTab, !hideDeliveryTab, showWarehouseTab].filter(Boolean).length;
 
   // If non-warehouse-manager lands on warehouse tab, switch to a valid one
   useEffect(() => {
