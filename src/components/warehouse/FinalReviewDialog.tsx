@@ -40,6 +40,21 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [search, setSearch] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [periodStart, setPeriodStart] = useState<string | null>(null);
+  const [workerPin, setWorkerPin] = useState('');
+  const [hasPin, setHasPin] = useState<boolean | null>(null);
+
+  // Check if worker has set up a review PIN
+  useEffect(() => {
+    if (!open || !workerId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('workers')
+        .select('review_pin_hash')
+        .eq('id', workerId)
+        .maybeSingle();
+      setHasPin(!!(data as any)?.review_pin_hash);
+    })();
+  }, [open, workerId]);
 
   useEffect(() => {
     if (!open || !workerId) return;
