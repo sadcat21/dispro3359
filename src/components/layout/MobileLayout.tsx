@@ -762,7 +762,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 )}
                 title={item.label}
               >
-                <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2.5 : 1.75} />
               </Link>
             );
           })}
