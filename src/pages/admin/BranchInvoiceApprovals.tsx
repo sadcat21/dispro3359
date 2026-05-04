@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import MergeInvoicesDialog, { type PostponedRequest } from '@/components/admin/MergeInvoicesDialog';
 import InvoiceRequestDetailsDialog from '@/components/admin/InvoiceRequestDetailsDialog';
+import { cn } from '@/lib/utils';
 
 interface InvoiceRequestRow {
   id: string;
