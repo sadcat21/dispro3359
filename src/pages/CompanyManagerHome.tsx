@@ -98,6 +98,7 @@ const CompanyManagerHome: React.FC = () => {
         { key: 'products', label: t('nav.products'), icon: Package, path: '/products' },
         { key: 'product_offers', label: t('nav.product_offers'), icon: Gift, path: '/product-offers' },
         { key: 'manual_promo', label: t('company_manager.manual_promo_entry'), icon: Pencil, action: () => setManualPromoOpen(true) },
+        { key: 'suppliers', label: 'الموردون', icon: Truck, path: '/suppliers' },
       ],
     },
     {
