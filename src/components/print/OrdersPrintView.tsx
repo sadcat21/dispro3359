@@ -55,15 +55,11 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     const [stampTiers, setStampTiers] = useState<StampPriceTier[]>([]);
     // فرض اللغة الفرنسية دائماً في ورقة الطباعة بغض النظر عن إعدادات اللغة
     const { tp: tpCtx } = useLanguage();
-    const printLanguage: 'fr' = 'fr';
-    const printDir: 'ltr' = 'ltr';
+    const printLanguage = 'fr' as 'ar' | 'fr' | 'en';
+    const printDir = 'ltr' as 'ltr' | 'rtl';
     const tp = (key: string): string => {
-      try {
-        // إعادة استخدام الترجمات بإجبار اللغة الفرنسية
-        const mod = require('@/i18n/translations');
-        const translation = mod?.translations?.[key];
-        if (translation && translation.fr) return translation.fr;
-      } catch {}
+      const translation = (translations as any)?.[key];
+      if (translation && translation.fr) return translation.fr;
       return tpCtx(key);
     };
     const { activeBranch } = useAuth();
