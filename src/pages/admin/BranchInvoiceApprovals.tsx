@@ -463,7 +463,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                             {r.payment_method && (
                               <span className="inline-flex items-center gap-1">
                                 <span className="text-slate-400">{t('branch_invoice_approvals.payment')}:</span>
-                                <span className="font-semibold text-slate-700">{r.payment_method === 'cash' ? 'كاش' : r.payment_method === 'check' ? 'شيك' : r.payment_method === 'transfer' ? 'تحويل' : r.payment_method === 'receipt' ? 'وصل' : r.payment_method}</span>
+                                <span className="font-semibold text-slate-700">{r.payment_method === 'cash' ? 'Espèces' : r.payment_method === 'check' ? 'Chèque' : r.payment_method === 'transfer' ? 'Virement' : r.payment_method === 'receipt' ? 'Versement' : r.payment_method}</span>
                               </span>
                             )}
                             <span className="ml-auto text-slate-400 text-[10px]">
@@ -597,7 +597,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 <strong className="text-blue-700">{mergedCount}</strong> فاتورة •{' '}
                                 <strong className="text-blue-700">{itemsCount}</strong> {t('branch_invoice_approvals.products_label')}
                                 {r.payment_method && (
-                                  <> • <span className="text-slate-700">{r.payment_method === 'cash' ? 'كاش' : r.payment_method === 'check' ? 'شيك' : r.payment_method === 'transfer' ? 'تحويل' : r.payment_method === 'receipt' ? 'وصل' : r.payment_method}</span></>
+                                  <> • <span className="text-slate-700">{r.payment_method === 'cash' ? 'Espèces' : r.payment_method === 'check' ? 'Chèque' : r.payment_method === 'transfer' ? 'Virement' : r.payment_method === 'receipt' ? 'Versement' : r.payment_method}</span></>
                                 )}
                               </div>
                               <div className="text-[10px] text-slate-400">
@@ -848,12 +848,13 @@ const BranchInvoiceApprovals: React.FC = () => {
                 {customerInvoicesQ.data!.map((r: any) => {
                   const pm = r.order?.invoice_payment_method || r.payment_method;
                   const pmLabel: Record<string, string> = {
-                    gros: 'جملة', super_gros: 'سوبر جملة', retail: 'تجزئة',
-                    cash: 'نقدًا', cheque: 'شيك', credit: 'دين',
+                    cash: 'Espèces', check: 'Chèque', cheque: 'Chèque', transfer: 'Virement', receipt: 'Versement', credit: 'دين',
                   };
                   const pmText = pm ? (pmLabel[pm] || pm) : '—';
                   const pmColor = pm === 'cash' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : pm === 'cheque' ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : (pm === 'cheque' || pm === 'check') ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : pm === 'transfer' ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    : pm === 'receipt' ? 'bg-amber-50 text-amber-700 border-amber-200'
                     : pm === 'credit' ? 'bg-rose-50 text-rose-700 border-rose-200'
                     : 'bg-slate-100 text-slate-700 border-slate-200';
                   const products = Array.isArray(r.products) ? r.products : [];
