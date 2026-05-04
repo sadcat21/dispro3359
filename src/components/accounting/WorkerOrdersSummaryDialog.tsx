@@ -668,7 +668,11 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           isVisible
           columnConfig={columnConfig}
           extraRows={printExtraRows}
-          forceIncludeProductIds={Array.from(extraPrintProductIds)}
+          forceIncludeProductIds={
+            includeAllRemainingProducts
+              ? (allProducts || []).map(p => p.id)
+              : Array.from(extraPrintProductIds)
+          }
         />
       )}
       {isPrintReady && includePromoRegistre && (
