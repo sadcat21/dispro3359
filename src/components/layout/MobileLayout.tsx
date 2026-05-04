@@ -266,6 +266,22 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
+  // Pending count for branch manager approvals badge in bottom nav
+  const { data: branchApprovalsPendingCount } = useQuery({
+    queryKey: ['branch-approvals-nav-count', activeBranch?.id],
+    queryFn: async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const branchId = activeBranch?.id;
+      const [invoices, warehouseReviews] = await Promise.all([
+        (() => { let q = supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_branch'); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
+        supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
+      return (invoices.count || 0) + (warehouseReviews.count || 0);
+    },
+    enabled: !!activeBranch?.id,
+    refetchInterval: 30000,
+  });
+
   const LANGUAGES: { code: Language; label: string; flag: string }[] = [
     { code: 'ar', label: 'العربية', flag: '🇩🇿' },
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
