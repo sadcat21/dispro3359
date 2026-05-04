@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Printer, Trash2 } from 'lucide-react';
 import { Product } from '@/types/database';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const VAT_RATE = 0.19;
 const COMPANY_NAME = 'SARL LASER FOOD';
@@ -144,7 +145,7 @@ const ProductInvoiceTemplateDialog: React.FC<Props> = ({ open, onOpenChange, pro
           <tr>
             <td>${row.index}</td>
             <td dir="ltr">${escapeHtml(row.product.product_code || '-')}</td>
-            <td>${escapeHtml(row.product.name)}</td>
+            <td>${escapeHtml(getProductDisplayName(row.product))}</td>
             <td dir="ltr">${row.quantity}</td>
             <td>${escapeHtml(row.unitLabel)}</td>
             <td dir="ltr">${formatMoney(row.netUnitPrice)}</td>
@@ -443,7 +444,7 @@ const ProductInvoiceTemplateDialog: React.FC<Props> = ({ open, onOpenChange, pro
                     <tr key={row.id}>
                       <td className="w-[32px] border border-[#333] px-[6px] py-[5px] text-center text-[11px]">{row.index}</td>
                       <td className="w-[52px] border border-[#333] px-[6px] py-[5px] text-center text-[11px]" dir="ltr">{row.product.product_code || '-'}</td>
-                      <td className="border border-[#333] px-[6px] py-[5px] text-[11px]">{row.product.name}</td>
+                      <td className="border border-[#333] px-[6px] py-[5px] text-[11px]">{getProductDisplayName(row.product)}</td>
                       <td className="w-[56px] border border-[#333] px-[6px] py-[5px] text-center text-[11px]" dir="ltr">{row.quantity}</td>
                       <td className="w-[60px] border border-[#333] px-[6px] py-[5px] text-center text-[11px]">{row.unitLabel}</td>
                       <td className="w-[94px] border border-[#333] px-[6px] py-[5px] text-right text-[11px]" dir="ltr">{formatMoney(row.netUnitPrice)}</td>
