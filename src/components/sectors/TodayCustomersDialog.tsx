@@ -2963,6 +2963,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           onOpenChange={setShowOrdersSummary}
           workerId={effectiveWorkerId}
           workerName={effectiveWorkerName || ''}
+          mode="delivery"
         />
       )}
 
