@@ -164,10 +164,11 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
           value={activeTab}
           onValueChange={(value) => {
             const next = value as 'direct' | 'delivery' | 'warehouse';
-            if (hideDirectTab && next === 'direct') {
-              setActiveTab('delivery');
+            if (effectiveHideDirectTab && next === 'direct') {
+              setActiveTab(hideDeliveryTab ? 'warehouse' : 'delivery');
               return;
             }
+            if (hideDeliveryTab && next === 'delivery') return;
             if (next === 'warehouse' && !showWarehouseTab) return;
             setActiveTab(next);
             if (next !== 'delivery') setSelectedDeliveryOrder(null);
