@@ -215,10 +215,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       }
       return { ...r, confirmed: true };
     }));
+  };
   const resetRow = (pid: string) => {
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: '', actualPieces: '', confirmed: false } : r));
   };
 
+  const handleSave = async () => {
     if (!actorId) return;
     if (stats.untouched > 0) {
       toast.error(`أدخل العد الفعلي لكل المنتجات (${stats.untouched} متبقٍ)`);
