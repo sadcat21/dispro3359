@@ -402,7 +402,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                       return (
                         <div
                           key={r.id}
-                          onClick={() => openOrderDetails(r)}
+                          onClick={() => isForwarded ? setRequestDetails(r) : openOrderDetails(r)}
                           className="border border-blue-100 rounded-xl bg-white hover:shadow-md hover:border-blue-300 transition cursor-pointer relative group overflow-hidden"
                         >
                           {isLoadingThis && (
