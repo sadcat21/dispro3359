@@ -311,7 +311,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           </div>
         </div>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto pe-1">
           {loading ? (
             <div className="py-10 text-center text-muted-foreground">
               <Loader2 className="w-6 h-6 animate-spin mx-auto" />
