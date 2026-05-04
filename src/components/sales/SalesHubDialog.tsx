@@ -196,7 +196,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
             )}
           </TabsList>
 
-          {!hideDirectTab && (
+          {!effectiveHideDirectTab && (
             <TabsContent value="direct" forceMount className={`p-0 mt-3 flex-1 min-h-0 flex flex-col ${activeTab === 'direct' ? '' : 'hidden'}`}>
               {activeTab === 'direct' && (
                 <DirectSaleDialog
