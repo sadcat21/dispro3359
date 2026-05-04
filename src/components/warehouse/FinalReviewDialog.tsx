@@ -24,10 +24,13 @@ interface AggregatedRow {
   productId: string;
   productName: string;
   imageUrl?: string | null;
-  loaded: number;   // مجموع الشحن (موجب)
-  unloaded: number; // مجموع التفريغ (سالب يُطرح)
-  expected: number; // المتوقع المتبقي = loaded - unloaded
-  actual: string;   // ما يُدخله المسؤول
+  loaded: number;   // مجموع الشحن (B.P)
+  unloaded: number; // مجموع التفريغ (B.P)
+  expected: number; // المتوقع المتبقي (B.P)
+  expectedBoxes: number;
+  expectedPieces: number;
+  actualBoxes: string;
+  actualPieces: string;
   ppb: number;
 }
 
