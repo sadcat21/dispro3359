@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
