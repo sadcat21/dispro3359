@@ -1145,6 +1145,90 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       columns={columnConfig}
       onColumnsChange={saveColumns}
     />
+
+    {/* Extra Products Picker (multi-select) */}
+    <Dialog open={showExtraProductsPicker} onOpenChange={setShowExtraProductsPicker}>
+      <DialogContent className="max-w-[95vw] sm:max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 gap-0 rounded-2xl" dir="rtl">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <DialogTitle className="text-base flex items-center gap-2">
+            <Plus className="w-5 h-5 text-primary" />
+            إضافة أعمدة منتجات للطباعة
+          </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            اختر منتجات غير موجودة في الطلبيات لتظهر كأعمدة فارغة في ورقة الطباعة (تحديد متعدد)
+          </p>
+        </DialogHeader>
+        <div className="p-3 border-b shrink-0">
+          <Input
+            placeholder="بحث عن منتج..."
+            value={extraProductsSearch}
+            onChange={(e) => setExtraProductsSearch(e.target.value)}
+          />
+          <div className="flex items-center justify-between mt-2 text-xs">
+            <span className="text-muted-foreground">{extraPrintProductIds.size} منتج محدد</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => setExtraPrintProductIds(new Set())}
+            >
+              مسح التحديد
+            </Button>
+          </div>
+        </div>
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-1">
+            {(() => {
+              const orderedIds = new Set(currentData.map(p => p.productId));
+              const candidates = (allProducts || [])
+                .filter(p => !orderedIds.has(p.id))
+                .filter(p => {
+                  const q = extraProductsSearch.trim().toLowerCase();
+                  if (!q) return true;
+                  return (p.name || '').toLowerCase().includes(q);
+                });
+              if (candidates.length === 0) {
+                return <p className="text-center text-sm text-muted-foreground py-8">لا توجد منتجات مطابقة</p>;
+              }
+              return candidates.map((p) => {
+                const checked = extraPrintProductIds.has(p.id);
+                return (
+                  <label
+                    key={p.id}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        setExtraPrintProductIds(prev => {
+                          const next = new Set(prev);
+                          if (v) next.add(p.id); else next.delete(p.id);
+                          return next;
+                        });
+                      }}
+                    />
+                    {(p as any).image_url ? (
+                      <img src={(p as any).image_url} alt="" className="w-9 h-9 rounded object-cover" />
+                    ) : (
+                      <div className="w-9 h-9 rounded bg-muted flex items-center justify-center">
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <span className="flex-1 text-sm">{p.name}</span>
+                  </label>
+                );
+              });
+            })()}
+          </div>
+        </ScrollArea>
+        <div className="p-3 border-t shrink-0">
+          <Button className="w-full" onClick={() => setShowExtraProductsPicker(false)}>
+            <Check className="w-4 h-4 ml-2" />
+            تم ({extraPrintProductIds.size})
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
   );
 };
