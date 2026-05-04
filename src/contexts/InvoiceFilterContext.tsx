@@ -18,14 +18,11 @@ interface InvoiceFilterContextType {
 const InvoiceFilterContext = createContext<InvoiceFilterContextType | undefined>(undefined);
 
 export const InvoiceFilterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<InvoiceFilterMode>('all');
+  // مجمّد دائماً على "الكل" — زر الشعار لم يعد يبدّل بين الفواتير
+  const [mode] = useState<InvoiceFilterMode>('all');
 
   const cycleMode = useCallback(() => {
-    setMode(prev => {
-      if (prev === 'all') return 'invoice1';
-      if (prev === 'invoice1') return 'invoice2';
-      return 'all';
-    });
+    // معطّل عمداً: عرض كل أنواع الفواتير دائماً
   }, []);
 
   const getPaymentTypeFilter = useCallback(() => {

@@ -98,11 +98,7 @@ const PromoTrackingSummary: React.FC<PromoTrackingSummaryProps> = ({ items, tota
                     🎁 {formatGiftDisplay(item.giftQuantity, item.piecesPerBox)}
                   </div>
                 </div>
-                {item.offerDescription && (
-                  <div className="rounded-md bg-secondary/60 text-secondary-foreground py-1 px-1 text-[9px] font-semibold text-center leading-tight line-clamp-2">
-                    {item.offerDescription}
-                  </div>
-                )}
+                {/* تم حذف وصف العرض الرمادي بناءً على طلب المستخدم */}
               </div>
             </div>
           );
