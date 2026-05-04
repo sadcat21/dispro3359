@@ -58,20 +58,21 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
     open && effectiveWorkerId ? { workerId: effectiveWorkerId, branchId: activeBranch?.id || undefined, periodStart, periodEnd } : null
   );
 
-  // Fetch the last REVIEW session and check for sessions after it
+  // Fetch the last FINAL REVIEW (stock_discrepancies with notes starting with "مراجعة نهائية")
+  // and check for loading/unloading sessions after it
   const { data: reviewInfo, isLoading: isCheckingReview } = useQuery({
-    queryKey: ['last-review-session-info', effectiveWorkerId],
+    queryKey: ['last-final-review-info', effectiveWorkerId],
     queryFn: async () => {
-      const { data: lastReview } = await supabase
-        .from('loading_sessions')
-        .select('id, status, created_at')
+      const { data: lastFinalReview } = await supabase
+        .from('stock_discrepancies')
+        .select('id, created_at')
         .eq('worker_id', effectiveWorkerId!)
-        .eq('status', 'review')
+        .ilike('notes', 'مراجعة نهائية%')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (!lastReview) {
+      if (!lastFinalReview) {
         return { hasReview: false, sessionsAfterReview: 0, lastReviewDate: null };
       }
 
@@ -79,13 +80,12 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
         .from('loading_sessions')
         .select('id', { count: 'exact', head: true })
         .eq('worker_id', effectiveWorkerId!)
-        .neq('status', 'review')
-        .gt('created_at', lastReview.created_at);
+        .gt('created_at', lastFinalReview.created_at);
 
       return {
         hasReview: true,
         sessionsAfterReview: count || 0,
-        lastReviewDate: lastReview.created_at,
+        lastReviewDate: lastFinalReview.created_at,
       };
     },
     enabled: open && !!effectiveWorkerId,
@@ -122,7 +122,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
                 <Alert className="rounded-xl border-orange-300 bg-orange-50 dark:bg-orange-900/10">
                   <Info className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm font-medium text-orange-800 dark:text-orange-400">
-                    ⚠️ توجد {reviewInfo!.sessionsAfterReview} جلسة شحن/تفريغ بعد آخر جلسة مراجعة — المحاسبة ستكون بناءً على آخر جلسة مراجعة فقط ولن تُحتسب الجلسات اللاحقة
+                    ⚠️ توجد {reviewInfo!.sessionsAfterReview} جلسة شحن/تفريغ بعد آخر مراجعة نهائية — المحاسبة ستكون بناءً على آخر مراجعة نهائية فقط ولن تُحتسب الجلسات اللاحقة
                   </AlertDescription>
                 </Alert>
               )}
@@ -146,7 +146,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
             <Alert variant="destructive" className="rounded-xl">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-sm font-medium">
-                لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي جلسة مراجعة للشاحنة
+                لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي مراجعة نهائية للشاحنة
               </AlertDescription>
             </Alert>
           </div>
