@@ -4090,6 +4090,7 @@ export type Database = {
           pricing_unit: string
           product_code: string | null
           sort_order: number | null
+          supplier_id: string | null
           weight_per_box: number | null
         }
         Insert: {
@@ -4113,6 +4114,7 @@ export type Database = {
           pricing_unit?: string
           product_code?: string | null
           sort_order?: number | null
+          supplier_id?: string | null
           weight_per_box?: number | null
         }
         Update: {
@@ -4136,6 +4138,7 @@ export type Database = {
           pricing_unit?: string
           product_code?: string | null
           sort_order?: number | null
+          supplier_id?: string | null
           weight_per_box?: number | null
         }
         Relationships: [
@@ -4151,6 +4154,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -6828,6 +6838,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       tasks: {
         Row: {

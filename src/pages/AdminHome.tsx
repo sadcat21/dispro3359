@@ -66,6 +66,7 @@ const itemColors: Record<string, { bg: string; icon: string; border: string }> =
   '/warehouse-review': { bg: 'bg-teal-50 dark:bg-teal-950/30', icon: 'text-teal-600 dark:text-teal-400', border: 'border-teal-200 dark:border-teal-800' },
   '/stock-receipts': { bg: 'bg-lime-50 dark:bg-lime-950/30', icon: 'text-lime-600 dark:text-lime-400', border: 'border-lime-200 dark:border-lime-800' },
   '/load-stock': { bg: 'bg-green-50 dark:bg-green-950/30', icon: 'text-green-600 dark:text-green-400', border: 'border-green-200 dark:border-green-800' },
+  '/suppliers': { bg: 'bg-amber-50 dark:bg-amber-950/30', icon: 'text-amber-700 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800' },
   '/customers': { bg: 'bg-blue-50 dark:bg-blue-950/30', icon: 'text-blue-700 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
   '/customer-accounts': { bg: 'bg-cyan-50 dark:bg-cyan-950/30', icon: 'text-cyan-600 dark:text-cyan-400', border: 'border-cyan-200 dark:border-cyan-800' },
   '/customer-journey': { bg: 'bg-sky-50 dark:bg-sky-950/30', icon: 'text-sky-700 dark:text-sky-400', border: 'border-sky-200 dark:border-sky-800' },
@@ -352,6 +353,7 @@ const AdminHome: React.FC = () => {
         { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
         ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
         { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
+        ...(isAdminRole(role) || activeRole?.custom_role_code === 'company_manager' ? [{ path: '/suppliers', icon: Truck, label: 'الموردون' }] : []),
       ],
     }] : []),
     // 4. العملاء
