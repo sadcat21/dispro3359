@@ -22,7 +22,7 @@ import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,6 +38,7 @@ const WorkerHome: React.FC = () => {
   const { user, workerId, role, activeRole, activeBranch, availableRoles } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setSelectedWorker: setContextWorker } = useSelectedWorker();
   const { data: permissions = [], isLoading: permissionsLoading } = useWorkerPermissions();
   const [products, setProducts] = useState<Product[]>([]);
@@ -58,6 +59,15 @@ const WorkerHome: React.FC = () => {
   const [showFactoryDelivery, setShowFactoryDelivery] = useState(false);
   const [showStockManagement, setShowStockManagement] = useState(false);
   const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
+  // Open load-worker picker when navigated with ?openLoadWorker=1 (e.g. center nav button)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('openLoadWorker') === '1') {
+      setShowLoadWorkerPicker(true);
+      // clean the URL so it won't reopen on next render
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.search, location.pathname, navigate]);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showFinalReviewPicker, setShowFinalReviewPicker] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
