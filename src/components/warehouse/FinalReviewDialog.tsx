@@ -343,13 +343,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pe-1 pb-2">
               {filtered.map(r => {
-                const a = r.actual === '' ? null : Number(r.actual) || 0;
+                const filled = isFilled(r);
+                const a = filled ? actualTotalBoxes(r) : null;
                 const diff = a === null ? 0 : a - r.expected;
                 const status = a === null ? 'pending' : Math.abs(diff) < 0.001 ? 'match' : diff > 0 ? 'surplus' : 'deficit';
                 const ring =
                   status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20' :
                   status === 'surplus' ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' :
                   status === 'deficit' ? 'border-destructive bg-destructive/5' : 'border-border';
+                const ppb = Math.max(1, Math.round(r.ppb || 1));
                 return (
                   <div key={r.productId} className={`flex flex-col gap-2 p-2 rounded-lg border-2 ${ring}`}>
                     <div className="flex items-center gap-2 min-w-0">
@@ -363,18 +365,44 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       <div className="text-xs font-medium line-clamp-2 flex-1 min-w-0">{r.productName}</div>
                     </div>
                     <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-0.5"><TrendingUp className="w-3 h-3 text-blue-500" />{r.loaded}</span>
-                      <span className="flex items-center gap-0.5"><TrendingDown className="w-3 h-3 text-red-500" />{r.unloaded}</span>
-                      <span>متوقع <strong className="text-foreground">{r.expected}</strong></span>
+                      <span className="flex items-center gap-0.5"><TrendingUp className="w-3 h-3 text-blue-500" />{dbBPDisplay(r.loaded, ppb)}</span>
+                      <span className="flex items-center gap-0.5"><TrendingDown className="w-3 h-3 text-red-500" />{dbBPDisplay(r.unloaded, ppb)}</span>
+                      <span>متوقع <strong className="text-foreground">{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong></span>
                     </div>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="الفعلي"
-                      value={r.actual}
-                      onChange={e => updateActual(r.productId, e.target.value)}
-                      className="h-9 text-center text-sm font-bold"
-                    />
+                    <div className="grid grid-cols-2 gap-1">
+                      <div className="flex flex-col">
+                        <label className="text-[9px] text-muted-foreground text-center">صناديق</label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={r.actualBoxes}
+                          onChange={e => updateActualBoxes(r.productId, e.target.value)}
+                          className="h-9 text-center text-sm font-bold"
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[9px] text-muted-foreground text-center">قطع</label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={r.actualPieces}
+                          onChange={e => updateActualPieces(r.productId, e.target.value)}
+                          className="h-9 text-center text-sm font-bold"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={status === 'match' ? 'default' : 'outline'}
+                      onClick={() => markMatched(r.productId)}
+                      className={`h-7 text-[11px] gap-1 ${status === 'match' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'border-emerald-400 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'}`}
+                    >
+                      <Check className="w-3 h-3" />
+                      مطابق
+                    </Button>
                   </div>
                 );
               })}
