@@ -827,8 +827,8 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
               <div className="space-y-2">
                 <Label className="text-sm">نوع الشراء الافتراضي</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button type="button" variant={defaultPaymentType === 'with_invoice' ? 'default' : 'outline'} size="sm" onClick={() => setDefaultPaymentType('with_invoice')}>Facture 1</Button>
-                  <Button type="button" variant={defaultPaymentType === 'without_invoice' ? 'default' : 'outline'} size="sm" onClick={() => setDefaultPaymentType('without_invoice')}>Facture 2</Button>
+                  <Button type="button" variant={defaultPaymentType === 'with_invoice' ? 'default' : 'outline'} size="sm" className={defaultPaymentType === 'with_invoice' ? 'bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-400' : 'border-blue-300 text-blue-700 hover:bg-blue-50 opacity-60'} onClick={() => setDefaultPaymentType('with_invoice')}>Facture 1</Button>
+                  <Button type="button" variant={defaultPaymentType === 'without_invoice' ? 'default' : 'outline'} size="sm" className={defaultPaymentType === 'without_invoice' ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 opacity-60'} onClick={() => setDefaultPaymentType('without_invoice')}>Facture 2</Button>
                 </div>
               </div>
               {defaultPaymentType === 'without_invoice' && (
