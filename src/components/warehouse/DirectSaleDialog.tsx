@@ -916,46 +916,51 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               <section className="space-y-2">
                 <Label className="text-sm font-semibold">{t('orders.customer')}</Label>
 
-                <Button
-                  variant="outline"
-                  className="w-full justify-between h-9"
-                  disabled={isLoadingData}
-                  onClick={() => setCustomerDropdownOpen(true)}
-                >
-                  {isLoadingData ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {t('common.loading')}
-                    </span>
-                  ) : selectedCustomer ? (
-                    <span className="truncate text-sm font-medium">{selectedCustomer.name}</span>
-                  ) : (
-                    <span className="text-muted-foreground">{t('orders.select_customer')}</span>
-                  )}
-                  <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
+                {/* Show customer picker only when no initial customer was provided */}
+                {!initialCustomerId && (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between h-9"
+                      disabled={isLoadingData}
+                      onClick={() => setCustomerDropdownOpen(true)}
+                    >
+                      {isLoadingData ? (
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {t('common.loading')}
+                        </span>
+                      ) : selectedCustomer ? (
+                        <span className="truncate text-sm font-medium">{selectedCustomer.name}</span>
+                      ) : (
+                        <span className="text-muted-foreground">{t('orders.select_customer')}</span>
+                      )}
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
 
-                <CustomerPickerDialog
-                  open={customerDropdownOpen}
-                  onOpenChange={setCustomerDropdownOpen}
-                  customers={customers}
-                  sectors={sectors}
-                  isLoading={isLoadingData}
-                  selectedCustomerId={selectedCustomerId}
-                  onSelect={(customer) => {
-                    setSelectedCustomerId(customer.id);
-                    if (customer.default_payment_type) {
-                      setPaymentType(customer.default_payment_type as PaymentType);
-                    }
-                    if (customer.default_price_subtype) {
-                      setPriceSubType(customer.default_price_subtype as PriceSubType);
-                    }
-                  }}
-                  onAddNew={() => {
-                    setCustomerDropdownOpen(false);
-                    setShowAddCustomerDialog(true);
-                  }}
-                />
+                    <CustomerPickerDialog
+                      open={customerDropdownOpen}
+                      onOpenChange={setCustomerDropdownOpen}
+                      customers={customers}
+                      sectors={sectors}
+                      isLoading={isLoadingData}
+                      selectedCustomerId={selectedCustomerId}
+                      onSelect={(customer) => {
+                        setSelectedCustomerId(customer.id);
+                        if (customer.default_payment_type) {
+                          setPaymentType(customer.default_payment_type as PaymentType);
+                        }
+                        if (customer.default_price_subtype) {
+                          setPriceSubType(customer.default_price_subtype as PriceSubType);
+                        }
+                      }}
+                      onAddNew={() => {
+                        setCustomerDropdownOpen(false);
+                        setShowAddCustomerDialog(true);
+                      }}
+                    />
+                  </>
+                )
 
                 {/* Selected Customer Info */}
                 {selectedCustomer && (
