@@ -401,16 +401,18 @@ const BranchInvoiceApprovals: React.FC = () => {
                         <div
                           key={r.id}
                           onClick={() => openOrderDetails(r)}
-                          className="border border-blue-100 rounded-lg p-4 bg-white hover:shadow-md hover:border-blue-300 transition cursor-pointer relative group"
+                          className="border border-blue-100 rounded-xl bg-white hover:shadow-md hover:border-blue-300 transition cursor-pointer relative group overflow-hidden"
                         >
                           {isLoadingThis && (
-                            <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg z-10">
+                            <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-xl z-10">
                               <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
                             </div>
                           )}
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-2 flex-wrap">
+
+                          {/* رأس البطاقة: اسم العميل + الشارات */}
+                          <div className="p-3 pb-2 flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 {r.customer_id ? (
                                   <button
                                     type="button"
@@ -418,95 +420,107 @@ const BranchInvoiceApprovals: React.FC = () => {
                                       e.stopPropagation();
                                       setCustomerDialog({ id: r.customer_id!, name: customerName });
                                     }}
-                                    className="font-semibold text-primary hover:underline"
+                                    className="font-bold text-base text-primary hover:underline truncate"
                                     title="عرض كل طلبات الفاتورة المعلقة لهذا العميل"
                                   >
                                     {customerName}
                                   </button>
                                 ) : (
-                                  <span className="font-semibold text-slate-800">{customerName}</span>
+                                  <span className="font-bold text-base text-slate-800 truncate">{customerName}</span>
                                 )}
                                 {r.invoice_scope === 'private' ? (
-                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px]">
+                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px] px-1.5 py-0">
                                     <Lock className="w-3 h-3" />
                                     {t('branch_manual_invoice.scope_private')}
                                   </Badge>
                                 ) : r.invoice_scope === 'public' ? (
-                                  <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px]">
+                                  <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px] px-1.5 py-0">
                                     <Globe2 className="w-3 h-3" />
                                     {t('branch_manual_invoice.scope_public')}
                                   </Badge>
                                 ) : null}
-                                <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition" />
                               </div>
                               {r.customers?.store_name && (
-                                <div className="text-sm text-slate-500">{r.customers.store_name}</div>
+                                <div className="text-xs text-slate-500 mt-0.5 truncate">{r.customers.store_name}</div>
                               )}
-                              <div className="text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1 pt-1">
-                                <span>
-                                  {t('branch_invoice_approvals.sales_rep')}:{' '}
-                                  <span className="font-medium text-slate-700">{r.worker?.full_name || '—'}</span>
-                                </span>
-                                <span>{t('branch_invoice_approvals.products_count')}: {productCount}</span>
-                                {r.payment_method && <span>{t('branch_invoice_approvals.payment')}: {r.payment_method}</span>}
-                              </div>
-                              <div className="text-xs text-slate-400">
-                                {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
-                              </div>
                             </div>
-                            <div className="flex flex-col gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                              {isForwarded ? (
-                                r.invoice_file_url ? (
-                                  <Button
-                                    asChild
-                                    size="sm"
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
-                                  >
-                                    <a href={r.invoice_file_url} target="_blank" rel="noreferrer" download={r.invoice_file_name || undefined}>
-                                      <Download className="w-4 h-4" />
-                                      {t('branch_invoice_approvals.download_invoice')}
-                                    </a>
-                                  </Button>
-                                ) : (
-                                  <Badge variant="outline" className="border-border bg-muted text-muted-foreground px-3 py-2 gap-1 justify-center">
-                                    <Clock3 className="w-4 h-4" />
-                                    {t('branch_invoice_approvals.awaiting_final_approval')}
-                                  </Badge>
-                                )
+                            <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition shrink-0" />
+                          </div>
+
+                          {/* شريط البيانات الوصفية */}
+                          <div className="px-3 py-2 bg-slate-50/70 border-y border-slate-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
+                            <span className="inline-flex items-center gap-1">
+                              <span className="text-slate-400">{t('branch_invoice_approvals.sales_rep')}:</span>
+                              <span className="font-semibold text-slate-700">{r.worker?.full_name || '—'}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <span className="text-slate-400">{t('branch_invoice_approvals.products_count')}:</span>
+                              <span className="font-semibold text-slate-700">{productCount}</span>
+                            </span>
+                            {r.payment_method && (
+                              <span className="inline-flex items-center gap-1">
+                                <span className="text-slate-400">{t('branch_invoice_approvals.payment')}:</span>
+                                <span className="font-semibold text-slate-700">{r.payment_method}</span>
+                              </span>
+                            )}
+                            <span className="ml-auto text-slate-400 text-[10px]">
+                              {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
+                            </span>
+                          </div>
+
+                          {/* شريط الإجراءات */}
+                          <div className="p-2.5" onClick={(e) => e.stopPropagation()}>
+                            {isForwarded ? (
+                              r.invoice_file_url ? (
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 h-9"
+                                >
+                                  <a href={r.invoice_file_url} target="_blank" rel="noreferrer" download={r.invoice_file_name || undefined}>
+                                    <Download className="w-4 h-4" />
+                                    {t('branch_invoice_approvals.download_invoice')}
+                                  </a>
+                                </Button>
                               ) : (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
-                                    disabled={approve.isPending}
-                                    className="bg-green-600 hover:bg-green-700 gap-1"
-                                  >
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    {t('branch_invoice_approvals.forward_to_top')}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => postpone.mutate(r.id)}
-                                    disabled={postpone.isPending}
-                                    className="gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
-                                  >
-                                    <Clock className="w-4 h-4" />
-                                    تأجيل
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => reject.mutate(r.id)}
-                                    disabled={reject.isPending}
-                                    className="gap-1"
-                                  >
-                                    <XCircle className="w-4 h-4" />
-                                    {t('branch_invoice_approvals.reject')}
-                                  </Button>
-                                </>
-                              )}
-                            </div>
+                                <Badge variant="outline" className="w-full border-border bg-muted text-muted-foreground py-2 gap-1.5 justify-center text-xs">
+                                  <Clock3 className="w-3.5 h-3.5" />
+                                  {t('branch_invoice_approvals.awaiting_final_approval')}
+                                </Badge>
+                              )
+                            ) : (
+                              <div className="grid grid-cols-3 gap-1.5">
+                                <Button
+                                  size="sm"
+                                  onClick={() => setScopeDialog({ id: r.id, scope: 'private' })}
+                                  disabled={approve.isPending}
+                                  className="bg-green-600 hover:bg-green-700 gap-1 h-9 px-1 text-xs"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span className="truncate">{t('branch_invoice_approvals.forward_to_top')}</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => postpone.mutate(r.id)}
+                                  disabled={postpone.isPending}
+                                  className="gap-1 h-9 px-1 text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                                >
+                                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                                  <span>تأجيل</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => reject.mutate(r.id)}
+                                  disabled={reject.isPending}
+                                  className="gap-1 h-9 px-1 text-xs"
+                                >
+                                  <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>{t('branch_invoice_approvals.reject')}</span>
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
