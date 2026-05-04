@@ -219,6 +219,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const [extraPrintProductIds, setExtraPrintProductIds] = useState<Set<string>>(new Set());
   const [showExtraProductsPicker, setShowExtraProductsPicker] = useState(false);
   const [extraProductsSearch, setExtraProductsSearch] = useState('');
+  // عند تفعيله، تُضاف كل المنتجات المتبقية (التي ليست في الطلبيات) كأعمدة فارغة في ورقة الطباعة
+  const [includeAllRemainingProducts, setIncludeAllRemainingProducts] = useState(false);
   
   // Cash Van reserve products state
   const [showCashVanDialog, setShowCashVanDialog] = useState(false);
@@ -584,24 +586,45 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         });
       }
 
-      // إضافة المنتجات المختارة يدويًا (غير الموجودة في الطلبيات) لتظهر كأعمدة في ورقة الطباعة
-      if (extraPrintProductIds.size > 0) {
-        // اجلب بياناتها كاملة (مع جميع الحقول التي يحتاجها OrdersPrintView)
-        const missingIds = Array.from(extraPrintProductIds).filter(id => !productMap.has(id));
-        if (missingIds.length > 0) {
-          const { data: extraProds } = await supabase
-            .from('products')
-            .select('*')
-            .in('id', missingIds);
-          for (const p of (extraProds || [])) {
-            productMap.set(p.id, p as Product);
-          }
+      // معرّفات المنتجات الموجودة فعلًا في الطلبيات
+      const orderedProductIds = new Set(productMap.keys());
+
+      // المنتجات الإضافية = إما السويتش (كل المتبقية) أو الاختيار اليدوي
+      const extraIdsFinal = new Set<string>();
+      if (includeAllRemainingProducts) {
+        for (const p of (allProducts || [])) {
+          if (!orderedProductIds.has(p.id)) extraIdsFinal.add(p.id);
+        }
+      } else {
+        for (const id of extraPrintProductIds) {
+          if (!orderedProductIds.has(id)) extraIdsFinal.add(id);
         }
       }
 
+      // اجلب بيانات كاملة للمنتجات الإضافية
+      const missingIds = Array.from(extraIdsFinal).filter(id => !productMap.has(id));
+      if (missingIds.length > 0) {
+        const { data: extraProds } = await supabase
+          .from('products')
+          .select('*')
+          .in('id', missingIds);
+        for (const p of (extraProds || [])) {
+          productMap.set(p.id, p as Product);
+        }
+      }
+
+      // الترتيب: منتجات الطلبيات أولًا (يسار)، ثم المنتجات بدون طلبيات (يمين في RTL)
+      const allProductsArr = Array.from(productMap.values());
+      const withOrders = allProductsArr
+        .filter(p => orderedProductIds.has(p.id))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const withoutOrders = allProductsArr
+        .filter(p => !orderedProductIds.has(p.id))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
       setPrintOrders(fetchedOrders);
       setPrintOrderItems(itemsMap);
-      setPrintProducts(Array.from(productMap.values()).sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+      setPrintProducts([...withOrders, ...withoutOrders]);
       setPrintExtraRows(cashVanExtraRows);
       setIsPrintReady(true);
       isPrintingRef.current = true;
@@ -645,7 +668,11 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           isVisible
           columnConfig={columnConfig}
           extraRows={printExtraRows}
-          forceIncludeProductIds={Array.from(extraPrintProductIds)}
+          forceIncludeProductIds={
+            includeAllRemainingProducts
+              ? (allProducts || []).map(p => p.id)
+              : Array.from(extraPrintProductIds)
+          }
         />
       )}
       {isPrintReady && includePromoRegistre && (
@@ -916,20 +943,33 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             إعدادات الأعمدة
           </Button>
 
-          {/* Extra Products Button - يضيف منتجات غير موجودة في الطلبيات كأعمدة في ورقة الطباعة */}
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={() => { setExtraProductsSearch(''); setShowExtraProductsPicker(true); }}
-          >
-            <Plus className="w-4 h-4" />
-            إضافة أعمدة منتجات
-            {extraPrintProductIds.size > 0 && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
-                {extraPrintProductIds.size} منتج
-              </Badge>
-            )}
-          </Button>
+          {/* Extra Products Button + سويتش لإضافة كل المنتجات المتبقية كأعمدة */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              onClick={() => { setExtraProductsSearch(''); setShowExtraProductsPicker(true); }}
+              disabled={includeAllRemainingProducts}
+            >
+              <Plus className="w-4 h-4" />
+              إضافة أعمدة منتجات
+              {extraPrintProductIds.size > 0 && !includeAllRemainingProducts && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
+                  {extraPrintProductIds.size} منتج
+                </Badge>
+              )}
+            </Button>
+            <div
+              className="flex flex-col items-center justify-center px-2 py-1 rounded-lg border bg-muted/40 shrink-0"
+              title="إضافة كل المنتجات المتبقية"
+            >
+              <span className="text-[9px] text-muted-foreground mb-1 leading-none">الكل</span>
+              <Switch
+                checked={includeAllRemainingProducts}
+                onCheckedChange={setIncludeAllRemainingProducts}
+              />
+            </div>
+          </div>
 
         </AdaptiveScrollContainer>
         <div className="grid grid-cols-2 gap-2 border-t bg-background pt-3 mt-3">
