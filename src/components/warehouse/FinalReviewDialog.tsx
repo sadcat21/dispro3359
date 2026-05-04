@@ -388,7 +388,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="shrink-0">
           <Button
