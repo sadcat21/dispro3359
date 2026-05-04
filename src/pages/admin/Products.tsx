@@ -1112,7 +1112,7 @@ const Products: React.FC = () => {
           >
             <CardContent className="p-0 flex flex-col h-full">
               {/* Image area */}
-              <div className="relative aspect-square bg-muted/40 flex items-center justify-center overflow-hidden">
+              <div className="relative h-24 bg-muted/40 flex items-center justify-center overflow-hidden">
                 {product.image_url ? (
                   <img
                     src={product.image_url}
@@ -1120,10 +1120,10 @@ const Products: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                 ) : (
-                  <Package className="w-12 h-12 text-primary/40" />
+                  <Package className="w-8 h-8 text-primary/40" />
                 )}
                 {/* Status badge */}
-                <span className={`absolute top-2 start-2 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                <span className={`absolute top-1 start-1 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
                   product.is_active
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-destructive text-destructive-foreground'
@@ -1131,26 +1131,26 @@ const Products: React.FC = () => {
                   {product.is_active ? t('common.active') : t('common.inactive')}
                 </span>
                 {product.pricing_unit !== 'box' && (
-                  <span className="absolute top-2 end-2 bg-background/90 text-primary text-[10px] px-2 py-0.5 rounded-full font-medium">
+                  <span className="absolute top-1 end-1 bg-background/90 text-primary text-[9px] px-1.5 py-0.5 rounded-full font-medium">
                     {t(`products.pricing_unit_${product.pricing_unit}`)}
                   </span>
                 )}
               </div>
 
               {/* Info */}
-              <div className="p-3 flex-1 flex flex-col gap-1 min-w-0">
-                <p className="font-bold truncate text-sm">{(product as any).app_name || product.name}</p>
+              <div className="p-2 flex-1 flex flex-col gap-0.5 min-w-0">
+                <p className="font-bold truncate text-xs">{(product as any).app_name || product.name}</p>
                 {(product as any).app_name && (product as any).app_name !== product.name && (
-                  <p className="text-[11px] text-muted-foreground truncate">
+                  <p className="text-[10px] text-muted-foreground truncate">
                     {officialNamePrefix} <span className="font-medium text-foreground">{product.name}</span>
                   </p>
                 )}
                 {product.product_code && (
-                  <p className="text-[11px] text-muted-foreground" dir="ltr">
+                  <p className="text-[10px] text-muted-foreground" dir="ltr">
                     CODE: <span className="font-medium text-foreground">{product.product_code}</span>
                   </p>
                 )}
-                <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-auto pt-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-auto pt-0.5">
                   <Box className="w-3 h-3" />
                   {product.pieces_per_box} {piecesPerBoxSuffix}
                   {product.pricing_unit === 'kg' && product.weight_per_box && (
@@ -1160,12 +1160,12 @@ const Products: React.FC = () => {
                 {((product as any).allow_invoice_sale === false || (product as any).allow_invoice2_sale === false) && (
                   <div className="flex flex-wrap gap-1">
                     {(product as any).allow_invoice_sale === false && (
-                      <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded">
+                      <span className="text-[9px] text-amber-600 font-medium bg-amber-50 px-1 py-0.5 rounded">
                         {invoiceSaleDisabledBadge}
                       </span>
                     )}
                     {(product as any).allow_invoice2_sale === false && (
-                      <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded">
+                      <span className="text-[9px] text-amber-600 font-medium bg-amber-50 px-1 py-0.5 rounded">
                         {invoice2SaleDisabledBadge}
                       </span>
                     )}
@@ -1174,8 +1174,9 @@ const Products: React.FC = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between border-t border-border px-2 py-1" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-t border-border px-1.5 py-0.5" onClick={e => e.stopPropagation()}>
                 <Switch
+                  className="scale-75"
                   checked={product.is_active}
                   onCheckedChange={() => toggleProductStatus(product)}
                 />
@@ -1183,18 +1184,18 @@ const Products: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 hover:bg-muted"
+                    className="h-7 w-7 hover:bg-muted"
                     onClick={() => openEditDialog(product)}
                   >
-                    <Pencil className="w-4 h-4" />
+                    <Pencil className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => setProductToDelete(product)}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
