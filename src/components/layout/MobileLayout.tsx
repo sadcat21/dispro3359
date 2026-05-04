@@ -746,8 +746,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-sidebar text-sidebar-foreground safe-bottom md:hidden">
-        <div className="flex items-center justify-around py-1.5">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background text-foreground safe-bottom md:hidden shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.08)]">
+        <div className="relative flex items-center justify-around px-2 py-2.5">
           {mainNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -755,14 +755,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex items-center justify-center w-9 h-9 rounded-lg transition-colors',
+                  'flex items-center justify-center w-10 h-10 rounded-xl transition-all',
                   isActive
-                    ? 'text-primary-foreground bg-primary'
-                    : isTestBranch ? 'text-white/80 hover:text-white' : 'text-secondary-foreground hover:text-primary'
+                    ? 'text-destructive scale-110'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
                 title={item.label}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
               </Link>
             );
           })}
@@ -770,25 +770,22 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {isFieldWorker && !isTodayCustomersHidden && (
             <button
               onClick={() => setTodayCustomersOpen(true)}
-              className="absolute left-1/2 bottom-3 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-4 border-destructive bg-background text-destructive shadow-xl shadow-destructive/25 transition-transform active:scale-95"
+              className="absolute left-1/2 -top-7 z-10 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xl shadow-destructive/40 ring-4 ring-background transition-transform active:scale-95 hover:scale-105"
               title={t("tooltip.today_customers")}
               aria-label={t("tooltip.today_customers")}
             >
-              <CalendarCheck className="h-7 w-7 text-destructive" />
+              <CalendarCheck className="h-7 w-7" strokeWidth={2.5} />
             </button>
           )}
-          
+
           {/* Invoice Request Button */}
           {showInvoiceButton && (
             <button
               onClick={() => setInvoiceRequestOpen(true)}
-              className={cn(
-                'relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors',
-                'text-secondary-foreground hover:text-primary'
-              )}
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
               title={t("tooltip.invoice_request")}
             >
-              <Receipt className="w-5 h-5" />
+              <Receipt className="w-6 h-6" strokeWidth={2} />
               {(pendingInvoiceCount || 0) > 0 && (
                 <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
                   {pendingInvoiceCount}
@@ -803,14 +800,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <button
                 onClick={() => setMoreOpen(true)}
                 className={cn(
-                  'flex items-center justify-center w-9 h-9 rounded-lg transition-colors',
+                  'flex items-center justify-center w-10 h-10 rounded-xl transition-all',
                   isMoreActive
-                    ? 'text-primary-foreground bg-primary'
-                    : 'text-secondary-foreground hover:text-primary'
+                    ? 'text-destructive scale-110'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
                 title={t('nav.more')}
               >
-                <MoreHorizontal className="w-5 h-5" />
+                <MoreHorizontal className="w-6 h-6" strokeWidth={isMoreActive ? 2.5 : 2} />
               </button>
 
               {moreOpen && (
