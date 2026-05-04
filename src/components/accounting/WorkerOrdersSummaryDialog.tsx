@@ -1199,12 +1199,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           </p>
         </DialogHeader>
         <div className="p-3 border-b shrink-0">
-          <Input
-            placeholder="بحث عن منتج..."
-            value={extraProductsSearch}
-            onChange={(e) => setExtraProductsSearch(e.target.value)}
-          />
-          <div className="flex items-center justify-between mt-2 text-xs">
+          <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">{extraPrintProductIds.size} منتج محدد</span>
             <Button
               size="sm"
@@ -1217,47 +1212,50 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           </div>
         </div>
         <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
+          <div className="p-2">
             {(() => {
               const orderedIds = new Set(currentData.map(p => p.productId));
-              const candidates = (allProducts || [])
-                .filter(p => !orderedIds.has(p.id))
-                .filter(p => {
-                  const q = extraProductsSearch.trim().toLowerCase();
-                  if (!q) return true;
-                  return (p.name || '').toLowerCase().includes(q);
-                });
+              const candidates = (allProducts || []).filter(p => !orderedIds.has(p.id));
               if (candidates.length === 0) {
                 return <p className="text-center text-sm text-muted-foreground py-8">لا توجد منتجات مطابقة</p>;
               }
-              return candidates.map((p) => {
-                const checked = extraPrintProductIds.has(p.id);
-                return (
-                  <label
-                    key={p.id}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer"
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        setExtraPrintProductIds(prev => {
-                          const next = new Set(prev);
-                          if (v) next.add(p.id); else next.delete(p.id);
-                          return next;
-                        });
-                      }}
-                    />
-                    {(p as any).image_url ? (
-                      <img src={(p as any).image_url} alt="" className="w-9 h-9 rounded object-cover" />
-                    ) : (
-                      <div className="w-9 h-9 rounded bg-muted flex items-center justify-center">
-                        <Package className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
-                    <span className="flex-1 text-sm">{p.name}</span>
-                  </label>
-                );
-              });
+              return (
+                <div className="grid grid-cols-4 gap-2">
+                  {candidates.map((p) => {
+                    const checked = extraPrintProductIds.has(p.id);
+                    return (
+                      <label
+                        key={p.id}
+                        className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 cursor-pointer transition-colors ${
+                          checked ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setExtraPrintProductIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                            return next;
+                          });
+                        }}
+                      >
+                        {checked && (
+                          <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                            <Check className="w-3 h-3" />
+                          </div>
+                        )}
+                        {(p as any).image_url ? (
+                          <img src={(p as any).image_url} alt="" className="w-12 h-12 rounded object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
+                            <Package className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <span className="text-[11px] text-center leading-tight line-clamp-2">{p.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              );
             })()}
           </div>
         </ScrollArea>
