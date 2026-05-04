@@ -237,6 +237,20 @@ const Products: React.FC = () => {
     setEditPriceInvoice(getGrossPriceWithVat(editPriceInvoiceOfficial));
   }, [editPriceInvoiceOfficial]);
 
+  const fetchSuppliers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers' as any)
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setSuppliers((data as any) || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+    }
+  };
+
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
