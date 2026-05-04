@@ -14,7 +14,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import {
   ShoppingCart, Plus, Loader2, User,
   Receipt, ReceiptText, UserPlus, Edit2, XCircle, Package, Check, ChevronsUpDown, Stamp,
-  AlertTriangle, Gift, Banknote
+  AlertTriangle, Gift, Banknote, LayoutGrid, List
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
@@ -96,6 +96,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
   // Wizard step (1-4)
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Product view mode (cards/list)
+  const [productViewMode, setProductViewMode] = useState<'cards' | 'list'>('cards');
 
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
