@@ -766,6 +766,12 @@ const BranchInvoiceApprovals: React.FC = () => {
         hideModifyAction={true}
       />
 
+      <InvoiceRequestDetailsDialog
+        open={!!requestDetails}
+        onOpenChange={(o) => { if (!o) setRequestDetails(null); }}
+        request={requestDetails}
+      />
+
       {/* نافذة إنشاء فاتورة يدوية من مدير الفرع */}
       <BranchManualInvoiceDialog
         open={createDialogOpen}
