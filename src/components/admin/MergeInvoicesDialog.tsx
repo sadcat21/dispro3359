@@ -261,7 +261,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
 
         {/* تذييل ثابت: طريقة الدفع + أزرار الإجراءات */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
-          <p className="text-xs font-semibold text-muted-foreground">طريقة الدفع</p>
+          <p className="text-xs font-semibold text-muted-foreground">{t('merge_invoices.payment_method')}</p>
           <div className="grid grid-cols-4 gap-1.5">
             {methods.map(([methodKey, method]) => (
               <Button
