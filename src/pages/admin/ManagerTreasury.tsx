@@ -153,6 +153,7 @@ const ManagerTreasury = () => {
   const [gapTransferAmount, setGapTransferAmount] = useState('');
   const [gapTransferSaving, setGapTransferSaving] = useState(false);
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
+  const navigate = useNavigate();
   const { data: contacts } = useTreasuryContacts();
   const { data: bankAccounts } = useQuery({
     queryKey: ['treasury-bank-accounts', activeBranch?.id],
