@@ -70,8 +70,37 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
       setSelectedCustomerId('');
       setHasBonus(false);
       setBonusAmount('');
+      if (product?.id) fetchActiveOffer(product.id);
+      else setActiveOffer(null);
     }
-  }, [open]);
+  }, [open, product?.id]);
+
+  const fetchActiveOffer = async (productId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('product_offers')
+        .select('id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity, start_date, end_date, is_active, priority')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .order('priority', { ascending: false })
+        .limit(5);
+      const valid = (data || []).find((o: any) =>
+        (!o.start_date || o.start_date <= today) && (!o.end_date || o.end_date >= today)
+      );
+      setActiveOffer(valid ? {
+        id: valid.id,
+        name: valid.name,
+        min_quantity_unit: (valid.min_quantity_unit || 'piece') as 'box' | 'piece',
+        gift_quantity_unit: (valid.gift_quantity_unit || 'piece') as 'box' | 'piece',
+        min_quantity: Number(valid.min_quantity || 0),
+        gift_quantity: Number(valid.gift_quantity || 0),
+      } : null);
+    } catch (e) {
+      console.error('fetchActiveOffer error', e);
+      setActiveOffer(null);
+    }
+  };
 
   const fetchCustomers = async () => {
     setIsLoadingCustomers(true);
