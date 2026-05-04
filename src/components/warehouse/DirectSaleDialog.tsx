@@ -1077,8 +1077,34 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               {currentStep === 2 && (<>
               {/* Products - Grid like CreateOrderDialog */}
               <section className="space-y-3">
-                <Label className="text-base font-semibold">{t('products.title')}</Label>
-                <div className="grid grid-cols-2 gap-3 p-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">{t('products.title')}</Label>
+                  <div className="inline-flex rounded-lg border bg-muted/40 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setProductViewMode('cards')}
+                      className={cn(
+                        "p-1.5 rounded-md transition-colors",
+                        productViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                      )}
+                      aria-label="بطاقات"
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProductViewMode('list')}
+                      className={cn(
+                        "p-1.5 rounded-md transition-colors",
+                        productViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                      )}
+                      aria-label="قائمة"
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-2 gap-3 p-1' : 'flex flex-col gap-1.5 p-1')}>
                   {availableProducts.map((product) => {
                     const productCartItems = orderItems.filter(item => item.productId === product.id);
                     const inCart = productCartItems.length > 0 ? productCartItems[0] : null;
@@ -1088,6 +1114,41 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     const hasAppliedGift = totalGiftBoxes > 0 || totalGiftPieces > 0;
                     const available = getAvailable(product.id);
                     const price = getProductPrice(product);
+                    if (productViewMode === 'list') {
+                      return (
+                        <button
+                          key={product.id}
+                          dir="rtl"
+                          onClick={() => handleProductClick(product)}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-lg border-2 bg-white text-right transition-all",
+                            hasAppliedGift
+                              ? 'border-green-500'
+                              : inCart ? 'border-primary' : 'border-red-200 hover:border-primary/60'
+                          )}
+                        >
+                          {product.image_url ? (
+                            <img src={product.image_url} alt="" className="w-12 h-12 rounded object-cover shrink-0" loading="lazy" />
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-red-50 flex items-center justify-center shrink-0">
+                              <Package className="w-5 h-5 text-primary/40" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-bold text-sm truncate">{getProductDisplayName(product)}</span>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <Badge variant="outline" className="text-[10px] px-1.5">{available}</Badge>
+                                {inCart && <Badge variant="default" className="text-xs px-2">{totalCartQuantity}</Badge>}
+                              </div>
+                            </div>
+                            <div className="mt-1">
+                              <ProductPriceBadge product={product} boxPrice={price} totalQuantity={totalCartQuantity} giftBoxes={totalGiftBoxes} giftPieces={totalGiftPieces} />
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    }
                     return (
                       <button
                         key={product.id}
