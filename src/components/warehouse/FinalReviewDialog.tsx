@@ -31,6 +31,7 @@ interface AggregatedRow {
   expectedPieces: number;
   actualBoxes: string;
   actualPieces: string;
+  confirmed: boolean;
   ppb: number;
 }
 
@@ -119,6 +120,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           expectedPieces: 0,
           actualBoxes: '',
           actualPieces: '',
+          confirmed: false,
           ppb: prod.pieces_per_box || 1,
         });
         for (const it of loadItems) {
@@ -157,7 +159,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   }, [open, workerId]);
 
   const filtered = useMemo(
-    () => rows.filter(r => !search.trim() || r.productName.includes(search)),
+    () => rows
+      .filter(r => !search.trim() || r.productName.includes(search))
+      .slice()
+      .sort((a, b) => {
+        if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
+        return a.productName.localeCompare(b.productName);
+      }),
     [rows, search]
   );
 
@@ -168,30 +176,45 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
     return b + p / ppb;
   };
+  const getDiff = (r: AggregatedRow) => actualTotalBoxes(r) - r.expected;
+  const getStatus = (r: AggregatedRow): 'match' | 'surplus' | 'deficit' => {
+    const d = getDiff(r);
+    if (Math.abs(d) < 0.001) return 'match';
+    return d > 0 ? 'surplus' : 'deficit';
+  };
 
   const stats = useMemo(() => {
     let surplus = 0, deficit = 0, matched = 0, untouched = 0;
     for (const r of rows) {
-      if (!isFilled(r)) { untouched++; continue; }
-      const a = actualTotalBoxes(r);
-      const diff = a - r.expected;
-      if (Math.abs(diff) < 0.001) matched++;
-      else if (diff > 0) surplus++;
+      if (!r.confirmed) { untouched++; continue; }
+      const s = getStatus(r);
+      if (s === 'match') matched++;
+      else if (s === 'surplus') surplus++;
       else deficit++;
     }
     return { surplus, deficit, matched, untouched, total: rows.length };
   }, [rows]);
 
   const updateActualBoxes = (pid: string, val: string) => {
-    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, '') } : r));
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
   };
   const updateActualPieces = (pid: string, val: string) => {
-    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, '') } : r));
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
   };
-  const markMatched = (pid: string) => {
-    setRows(prev => prev.map(r => r.productId === pid
-      ? { ...r, actualBoxes: String(r.expectedBoxes), actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0' }
-      : r));
+  const confirmRow = (pid: string) => {
+    setRows(prev => prev.map(r => {
+      if (r.productId !== pid) return r;
+      // إن لم يدخل شيئاً نعتبره مطابق تلقائياً
+      if (!isFilled(r)) {
+        return {
+          ...r,
+          actualBoxes: String(r.expectedBoxes),
+          actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0',
+          confirmed: true,
+        };
+      }
+      return { ...r, confirmed: true };
+    }));
   };
 
   const handleSave = async () => {
@@ -324,16 +347,28 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pe-1 pb-2">
               {filtered.map(r => {
                 const filled = isFilled(r);
-                const a = filled ? actualTotalBoxes(r) : null;
-                const diff = a === null ? 0 : a - r.expected;
-                const status = a === null ? 'pending' : Math.abs(diff) < 0.001 ? 'match' : diff > 0 ? 'surplus' : 'deficit';
-                const ring =
-                  status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20' :
-                  status === 'surplus' ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' :
-                  status === 'deficit' ? 'border-destructive bg-destructive/5' : 'border-border';
+                const status = filled ? getStatus(r) : 'match';
+                const diffPieces = filled ? Math.round((actualTotalBoxes(r) - r.expected) * Math.max(1, Math.round(r.ppb || 1))) : 0;
                 const ppb = Math.max(1, Math.round(r.ppb || 1));
+                const ring = !r.confirmed
+                  ? 'border-border'
+                  : status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20'
+                  : status === 'surplus' ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20'
+                  : 'border-destructive bg-destructive/5';
+                const btnLabel =
+                  !filled ? 'مطابق' :
+                  status === 'match' ? 'مطابق' :
+                  status === 'surplus' ? `تأكيد فائض (+${Math.abs(diffPieces)})` :
+                  `تأكيد عجز (-${Math.abs(diffPieces)})`;
+                const btnClass =
+                  !filled || status === 'match'
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                    : status === 'surplus'
+                    ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                    : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground';
+                const BtnIcon = !filled || status === 'match' ? Check : status === 'surplus' ? TrendingUp : TrendingDown;
                 return (
-                  <div key={r.productId} className={`flex flex-col gap-2 p-2 rounded-lg border-2 ${ring}`}>
+                  <div key={r.productId} className={`flex flex-col gap-2 p-2 rounded-lg border-2 transition-opacity ${ring} ${r.confirmed ? 'opacity-70' : ''}`}>
                     <div className="flex items-center gap-2 min-w-0">
                       {r.imageUrl ? (
                         <img src={r.imageUrl} alt="" className="w-10 h-10 rounded object-cover shrink-0" />
@@ -376,12 +411,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     <Button
                       type="button"
                       size="sm"
-                      variant={status === 'match' ? 'default' : 'outline'}
-                      onClick={() => markMatched(r.productId)}
-                      className={`h-7 text-[11px] gap-1 ${status === 'match' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'border-emerald-400 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'}`}
+                      onClick={() => confirmRow(r.productId)}
+                      className={`h-7 text-[11px] gap-1 ${btnClass}`}
                     >
-                      <Check className="w-3 h-3" />
-                      مطابق
+                      <BtnIcon className="w-3 h-3" />
+                      {r.confirmed ? '✓ ' + btnLabel : btnLabel}
                     </Button>
                   </div>
                 );
