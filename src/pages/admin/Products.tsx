@@ -799,6 +799,20 @@ const Products: React.FC = () => {
                 <p className="text-xs text-muted-foreground">{sortOrderHint}</p>
               </div>
 
+              {/* Supplier */}
+              <div className="space-y-2">
+                <Label>المورد</Label>
+                <Select value={productSupplierId || 'none'} onValueChange={(v) => setProductSupplierId(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="اختر موردًا (اختياري)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— بدون مورد —</SelectItem>
+                    {suppliers.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Image Upload */}
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
