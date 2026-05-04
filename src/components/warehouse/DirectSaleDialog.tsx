@@ -910,7 +910,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
          className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4"
          style={embedded ? { WebkitOverflowScrolling: 'touch' } : { WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 12rem)' }}
        >
-            <div className="py-4 space-y-5">
+            <div className="py-2 space-y-3">
               {currentStep === 1 && (<>
               {/* Customer Section */}
               <section className="space-y-3">
