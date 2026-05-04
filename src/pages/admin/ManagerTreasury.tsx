@@ -80,7 +80,7 @@ const SignedMoneyValue = ({ value, currency, className = '', signClassName = '' 
 
 const ManagerTreasury = () => {
   const { t, language, dir } = useLanguage();
-  const { activeBranch, workerId } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
   const queryClient = useQueryClient();
   const { data: summary, isLoading: summaryLoading } = useTreasurySummary();
   const isInvoiceRequestHidden = useIsElementHidden('button', 'treasury_invoice_request');
