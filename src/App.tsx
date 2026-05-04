@@ -64,6 +64,7 @@ import BranchManagerApprovals from "./pages/admin/BranchManagerApprovals";
 import SurplusDeficitTreasury from "./pages/admin/SurplusDeficitTreasury";
 import Rewards from "./pages/admin/Rewards";
 import Targets from "./pages/admin/Targets";
+import TargetsLeaderboardPage from "./pages/admin/TargetsLeaderboardPage";
 import WorkerRewards from "./pages/WorkerRewards";
 import MyAchievements from "./pages/MyAchievements";
 import PromoSplits from "./pages/admin/PromoSplits";
@@ -222,6 +223,12 @@ const AppRoutes = () => {
       <Route path="/targets" element={
         <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager']}>
           <Targets />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/targets-leaderboard" element={
+        <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager', 'branch_admin']}>
+          <TargetsLeaderboardPage />
         </ProtectedRoute>
       } />
 
