@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Layers } from 'lucide-react';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 interface Props {
   open: boolean;
@@ -41,7 +42,7 @@ const CreatePromoSplitDialog: React.FC<Props> = ({ open, onOpenChange, editSplit
   const { data: products } = useQuery({
     queryKey: ['products-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, name, pieces_per_box').eq('is_active', true).order('name');
+      const { data } = await supabase.from('products').select('id, name, app_name, pieces_per_box').eq('is_active', true).order('name');
       return data || [];
     },
   });
@@ -266,7 +267,7 @@ const CreatePromoSplitDialog: React.FC<Props> = ({ open, onOpenChange, editSplit
               <SelectTrigger><SelectValue placeholder="اختر المنتج..." /></SelectTrigger>
               <SelectContent>
                 {products?.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{getProductDisplayName(p)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -322,7 +323,7 @@ const CreatePromoSplitDialog: React.FC<Props> = ({ open, onOpenChange, editSplit
               <SelectContent>
                 <SelectItem value="none">نفس المنتج</SelectItem>
                 {products?.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{getProductDisplayName(p)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
