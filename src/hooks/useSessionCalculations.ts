@@ -38,6 +38,7 @@ export interface PromoCustomerDetail {
 export interface PromoTrackingItem {
   productName: string;
   productId: string;
+  productImage?: string | null;
   quantitySold: number;
   giftQuantity: number;
   piecesPerBox: number;
@@ -98,7 +99,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
   if (deliveryOrderIds.length > 0) {
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
-      .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, customer:customers(name, store_name, phone, address, sector:sectors(name)), updated_at, notes, order_items(quantity, unit_price, total_price, gift_quantity, gift_offer_id, product_id, pieces_per_box, product:products(name, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
+      .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, customer:customers(name, store_name, phone, address, sector:sectors(name)), updated_at, notes, order_items(quantity, unit_price, total_price, gift_quantity, gift_offer_id, product_id, pieces_per_box, product:products(name, image_url, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
       .in('id', deliveryOrderIds)
       .eq('assigned_worker_id', workerId)
       .eq('status', 'delivered');
@@ -331,6 +332,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
               promoMap[key] = {
                 productName: (item as any).product?.name || '',
                 productId: item.product_id,
+                productImage: (item as any).product?.image_url || null,
                 quantitySold: 0,
                 giftQuantity: 0,
                 piecesPerBox: piecesPerBox,
