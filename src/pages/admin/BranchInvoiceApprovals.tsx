@@ -597,7 +597,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 <strong className="text-blue-700">{mergedCount}</strong> فاتورة •{' '}
                                 <strong className="text-blue-700">{itemsCount}</strong> {t('branch_invoice_approvals.products_label')}
                                 {r.payment_method && (
-                                  <> • <span className="text-slate-700">{r.payment_method}</span></>
+                                  <> • <span className="text-slate-700">{r.payment_method === 'cash' ? 'كاش' : r.payment_method === 'check' ? 'شيك' : r.payment_method === 'transfer' ? 'تحويل' : r.payment_method === 'receipt' ? 'وصل' : r.payment_method}</span></>
                                 )}
                               </div>
                               <div className="text-[10px] text-slate-400">
