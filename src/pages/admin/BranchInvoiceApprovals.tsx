@@ -725,7 +725,11 @@ const BranchInvoiceApprovals: React.FC = () => {
                     ? r.customers.name_fr
                     : r.customers?.name || '—';
                   return (
-                    <div key={r.id} className="border border-emerald-100 rounded-xl bg-white overflow-hidden">
+                    <div
+                      key={r.id}
+                      className="border border-emerald-100 rounded-xl bg-white overflow-hidden cursor-pointer hover:shadow-md hover:border-emerald-300 active:scale-[0.99] transition-all"
+                      onClick={() => setRequestDetails(r)}
+                    >
                       <div className="p-3 space-y-1">
                         <div className="font-bold text-base text-slate-800 truncate">{customerName}</div>
                         {r.customers?.store_name && (
@@ -741,7 +745,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="p-2.5 pt-0">
+                      <div className="p-2.5 pt-0" onClick={(e) => e.stopPropagation()}>
                         <Button asChild size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 h-9">
                           <a href={r.invoice_file_url!} target="_blank" rel="noreferrer" download={r.invoice_file_name || undefined}>
                             <Download className="w-4 h-4" />
