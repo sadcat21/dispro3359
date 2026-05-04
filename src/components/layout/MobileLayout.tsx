@@ -781,24 +781,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
         </main>
       </div>
 
-      {/* Bottom Navigation — تصميم بقَصّة منحنية للزر المركزي */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom md:hidden pointer-events-none">
-        <div className="relative pointer-events-auto">
-          {/* SVG خلفية بمنحنى للزر المركزي */}
-          <svg
-            className="absolute inset-x-0 bottom-0 w-full h-[78px] drop-shadow-[0_-6px_18px_rgba(0,0,0,0.08)]"
-            viewBox="0 0 400 78"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M0,12 L155,12 C168,12 172,40 200,40 C228,40 232,12 245,12 L400,12 L400,78 L0,78 Z"
-              className="fill-background"
-            />
-          </svg>
-
-          {/* محتوى الشريط */}
-          <div className="relative grid grid-cols-5 items-end h-[78px] px-2">
+      {/* Bottom Navigation — شريط SaaS مستقيم بدون أي انحناء أو زر عائم */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom border-t border-sidebar-border bg-sidebar-background md:hidden">
+        <div className="grid h-16 grid-cols-5 items-center px-2 shadow-2xl">
             {/* العناصر اليسرى (أول عنصرين) */}
             {mainNavItems.slice(0, 2).map((item) => {
               const isActive = location.pathname === item.path;
@@ -807,45 +792,47 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center justify-center h-14 rounded-2xl transition-all',
-                    isActive ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                    'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                    isActive
+                      ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                      : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                   )}
                   title={item.label}
                 >
-                  <item.icon className="w-[24px] h-[24px]" strokeWidth={isActive ? 2.5 : 1.75} />
+                  <item.icon className="h-[23px] w-[23px]" strokeWidth={isActive ? 2.45 : 1.85} />
                 </Link>
               );
             })}
 
-            {/* الزر المركزي العائم */}
-            <div className="flex items-start justify-center">
+            {/* الزر المركزي بنفس ارتفاع ومحاذاة باقي الأزرار */}
+            <div className="flex items-center justify-center">
               {centerAction ? (
                 centerAction.type === 'today' ? (
                   <button
                     onClick={() => setTodayCustomersOpen(true)}
-                    className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition-transform active:scale-95 hover:scale-105"
+                    className="flex h-12 w-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105"
                     title={t("tooltip.today_customers")}
                     aria-label={t("tooltip.today_customers")}
                   >
-                    <CalendarCheck className="h-6 w-6" strokeWidth={2.5} />
+                    <CalendarCheck className="h-[23px] w-[23px]" strokeWidth={2.45} />
                   </button>
                 ) : (
                   <Link
                     to={centerAction.to}
-                    className="relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition-transform active:scale-95 hover:scale-105"
+                    className="relative flex h-12 w-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105"
                     title={centerAction.label}
                     aria-label={centerAction.label}
                   >
-                    <centerAction.icon className="h-6 w-6" strokeWidth={2.5} />
+                    <centerAction.icon className="h-[23px] w-[23px]" strokeWidth={2.45} />
                     {(centerAction.badge ?? 0) > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-background text-destructive border-2 border-destructive text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold">
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar-background bg-background px-1 text-[10px] font-bold text-sidebar-primary">
                         {centerAction.badge! > 99 ? '99+' : centerAction.badge}
                       </span>
                     )}
                   </Link>
                 )
               ) : (
-                <div className="h-14 w-14" />
+                <div className="h-12 w-12" />
               )}
             </div>
 
@@ -853,12 +840,12 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             {showInvoiceButton ? (
               <button
                 onClick={() => setInvoiceRequestOpen(true)}
-                className="relative flex items-center justify-center h-14 rounded-2xl text-muted-foreground hover:text-foreground transition-all"
+                className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-foreground/65 transition-all hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95"
                 title={t("tooltip.invoice_request")}
               >
-                <Receipt className="w-[24px] h-[24px]" strokeWidth={1.75} />
+                <Receipt className="h-[23px] w-[23px]" strokeWidth={1.85} />
                 {(pendingInvoiceCount || 0) > 0 && (
-                  <span className="absolute top-2 right-3 bg-destructive text-destructive-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-[9px] font-bold text-sidebar-primary-foreground">
                     {pendingInvoiceCount}
                   </span>
                 )}
@@ -867,11 +854,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <Link
                 to={mainNavItems[2].path}
                 className={cn(
-                  'flex items-center justify-center h-14 rounded-2xl transition-all',
-                  location.pathname === mainNavItems[2].path ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  location.pathname === mainNavItems[2].path
+                    ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                 )}
               >
-                {React.createElement(mainNavItems[2].icon, { className: 'w-[24px] h-[24px]', strokeWidth: location.pathname === mainNavItems[2].path ? 2.5 : 1.75 })}
+                {React.createElement(mainNavItems[2].icon, { className: 'h-[23px] w-[23px]', strokeWidth: location.pathname === mainNavItems[2].path ? 2.45 : 1.85 })}
               </Link>
             ) : <div />}
 
@@ -879,25 +868,29 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <button
                 onClick={() => setMoreOpen(true)}
                 className={cn(
-                  'flex items-center justify-center h-14 rounded-2xl transition-all',
-                  isMoreActive ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  isMoreActive
+                    ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                 )}
                 title={t('nav.more')}
               >
-                <MoreHorizontal className="w-[24px] h-[24px]" strokeWidth={isMoreActive ? 2.5 : 1.75} />
+                <MoreHorizontal className="h-[23px] w-[23px]" strokeWidth={isMoreActive ? 2.45 : 1.85} />
               </button>
             ) : mainNavItems[3] ? (
               <Link
                 to={mainNavItems[3].path}
                 className={cn(
-                  'flex items-center justify-center h-14 rounded-2xl transition-all',
-                  location.pathname === mainNavItems[3].path ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
+                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  location.pathname === mainNavItems[3].path
+                    ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                 )}
               >
-                {React.createElement(mainNavItems[3].icon, { className: 'w-[24px] h-[24px]', strokeWidth: location.pathname === mainNavItems[3].path ? 2.5 : 1.75 })}
+                {React.createElement(mainNavItems[3].icon, { className: 'h-[23px] w-[23px]', strokeWidth: location.pathname === mainNavItems[3].path ? 2.45 : 1.85 })}
               </Link>
             ) : <div />}
-          </div>
+        </div>
 
           {/* قائمة المزيد */}
           {moreOpen && (
@@ -940,7 +933,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </div>
             </div>
           )}
-        </div>
       </nav>
 
       {/* Branch Selection Dialog */}
