@@ -158,35 +158,54 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
 
   const imagesMap = productImagesQ.data || {};
 
+  const methods = Object.entries(INVOICE_PAYMENT_METHODS) as [InvoicePaymentMethod, typeof INVOICE_PAYMENT_METHODS[InvoicePaymentMethod]][];
+
+  const PAYMENT_COLORS: Record<InvoicePaymentMethod, string> = {
+    receipt: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
+    check: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
+    cash: 'bg-green-600 hover:bg-green-700 text-white border-green-600',
+    transfer: 'bg-orange-600 hover:bg-orange-700 text-white border-orange-600',
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-3xl h-[95vh] sm:h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-4 pb-2 border-b shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <Package className="w-5 h-5 text-blue-600" />
             تجميع فواتير العميل: {customerName}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-y-auto">
-          {/* قائمة الفواتير لتحديد ما يُجمَّع */}
-          <div className="border rounded-lg p-3 bg-muted/30">
-            <p className="text-sm font-semibold mb-2">حدد الفواتير التي تريد تجميعها ({selectedIds.length}/{requests.length})</p>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {requests.map(r => (
-                <label key={r.id} className="flex items-center gap-2 text-sm bg-card rounded px-2 py-1.5 cursor-pointer hover:bg-blue-50">
-                  <Checkbox checked={selectedIds.includes(r.id)} onCheckedChange={() => toggle(r.id)} />
-                  <span className="flex-1">
-                    {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
-                    <span className="text-xs text-muted-foreground mr-2">
+        <div className="space-y-3 flex-1 overflow-y-auto p-3">
+          {/* قائمة الفواتير لتحديد ما يُجمَّع — شبكية */}
+          <div className="border rounded-lg p-2.5 bg-muted/30">
+            <p className="text-xs font-semibold mb-2">حدد الفواتير التي تريد تجميعها ({selectedIds.length}/{requests.length})</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {requests.map(r => {
+                const checked = selectedIds.includes(r.id);
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => toggle(r.id)}
+                    className={`text-start rounded-lg border-2 p-2 transition ${checked ? 'border-blue-500 bg-blue-50' : 'border-border bg-card hover:border-blue-300'}`}
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <Checkbox checked={checked} onCheckedChange={() => toggle(r.id)} />
+                      <span className="text-[10px] font-bold text-blue-700">
+                        {Array.isArray(r.products) ? r.products.length : 0} منتج
+                      </span>
+                    </div>
+                    <div className="text-xs font-semibold truncate">
+                      {r.invoice_number ? `#${r.invoice_number}` : 'بدون رقم'}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
                       {new Date(r.created_at).toLocaleDateString('ar')}
-                    </span>
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {Array.isArray(r.products) ? r.products.length : 0} منتج
-                  </span>
-                </label>
-              ))}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -197,9 +216,9 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
                 <Package className="w-4 h-4 text-blue-600" />
                 المنتجات المُجمَّعة
               </span>
-              <span className="text-blue-700">عدد المنتجات ({aggregated.length})</span>
+              <span className="text-blue-700 text-xs">عدد المنتجات ({aggregated.length})</span>
             </div>
-            <div className="p-2 max-h-72 overflow-y-auto">
+            <div className="p-2">
               {aggregated.length === 0 ? (
                 <div className="text-center text-sm text-muted-foreground py-6">لا توجد منتجات</div>
               ) : (
@@ -239,31 +258,44 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
               )}
             </div>
           </div>
-
-          {/* اختيار طريقة الدفع للفاتورة الموحّدة */}
-          <div className="border rounded-lg p-3 bg-muted/20 space-y-2">
-            <p className="text-sm font-semibold">طريقة الدفع للفاتورة الموحّدة</p>
-            <InvoicePaymentMethodSelect
-              value={paymentMethod}
-              onChange={setPaymentMethod}
-              disabled={mergeMutation.isPending}
-            />
-          </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={mergeMutation.isPending}>
-            إلغاء
-          </Button>
-          <Button
-            onClick={() => mergeMutation.mutate()}
-            disabled={mergeMutation.isPending || selectedIds.length < 1 || !paymentMethod}
-            className="gap-1 bg-blue-600 hover:bg-blue-700"
-          >
-            {mergeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            إرسال مجمّع ({selectedIds.length})
-          </Button>
-        </DialogFooter>
+        {/* تذييل ثابت: طريقة الدفع + أزرار الإجراءات */}
+        <div className="border-t bg-background p-3 space-y-2 shrink-0">
+          <p className="text-xs font-semibold text-muted-foreground">طريقة الدفع</p>
+          <div className="grid grid-cols-4 gap-1.5">
+            {methods.map(([methodKey, method]) => (
+              <Button
+                key={methodKey}
+                type="button"
+                size="sm"
+                onClick={() => setPaymentMethod(methodKey)}
+                disabled={mergeMutation.isPending}
+                className={`h-9 px-1 text-xs font-bold transition-opacity ${PAYMENT_COLORS[methodKey]} ${paymentMethod === methodKey ? 'ring-2 ring-offset-1 ring-blue-400' : ''} ${paymentMethod !== null && paymentMethod !== methodKey ? 'opacity-50' : ''}`}
+              >
+                {method.label}
+              </Button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={mergeMutation.isPending}
+              className="h-10"
+            >
+              إغلاق
+            </Button>
+            <Button
+              onClick={() => mergeMutation.mutate()}
+              disabled={mergeMutation.isPending || selectedIds.length < 1 || !paymentMethod}
+              className="gap-1 bg-blue-600 hover:bg-blue-700 h-10"
+            >
+              {mergeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              إرسال مجمّع ({selectedIds.length})
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
