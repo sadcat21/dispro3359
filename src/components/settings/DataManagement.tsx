@@ -60,6 +60,7 @@ const DATA_CATEGORIES: DataCategory[] = [
   { id: 'loading', label: 'جلسات الشحن والتفريغ', tables: ['loading_session_items', 'loading_sessions'], description: 'تحميل وتفريغ الشاحنات', order: 7.5, group: 'stock' },
   { id: 'stock_receipts', label: 'أوامر الاستلام', tables: ['stock_receipt_items', 'stock_receipts'], description: 'أوامر استلام المخزون', order: 3.5, group: 'stock' },
   { id: 'stock', label: 'حركات المخزون', tables: ['stock_discrepancies', 'stock_movements', 'worker_stock', 'warehouse_stock'], description: 'جميع حركات وأرصدة المخزون', order: 3, group: 'stock' },
+  { id: 'pallets', label: 'البليطات', tables: ['pallet_movements', 'branch_pallets'], description: 'تصفير رصيد البليطات وحذف سجل حركتها', order: 2.5, group: 'stock' },
   // System
   { id: 'offers', label: 'العروض', tables: ['product_offer_tiers', 'product_offers'], description: 'عروض المنتجات', order: 5.5, group: 'system' },
   { id: 'approval_requests', label: 'طلبات الموافقة', tables: ['customer_approval_requests'], description: 'طلبات إضافة/تعديل العملاء', order: 4.5, group: 'system' },
