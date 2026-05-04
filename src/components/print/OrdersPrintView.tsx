@@ -99,8 +99,11 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     });
 
     // Effective visibility: hide uniform columns from table body
+    // Special case: store_name is merged into the customer column when both are visible
+    // (saves horizontal space — store on top, customer name below in red)
     const isColEffective = (id: string): boolean => {
       if (uniformValues[id]) return false;
+      if (id === 'store_name' && isColVisible('customer')) return false;
       return isColVisible(id);
     };
 
@@ -428,21 +431,41 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
                   )}
                   {isColEffective('customer') && (
                     <td>
-                      <div>{getCustomerName(order.customer)}</div>
-                      {debtInfo && (debtInfo.amount > 0 || debtInfo.docType) && (
-                        <div style={{ fontSize: '7pt', color: '#c00', borderTop: '1px solid #ddd', marginTop: '2px', paddingTop: '2px' }}>
-                          {debtInfo.amount > 0 && (
-                            <span style={{ fontWeight: 'bold' }}>
-                              {tp('print.header.debt') || 'Dette'}: {debtInfo.amount.toLocaleString()}
-                            </span>
-                          )}
-                          {debtInfo.docType && (
-                            <span style={{ marginLeft: debtInfo.amount > 0 ? '4px' : '0' }}>
-                              📄 {debtInfo.docType}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      {(() => {
+                        const storeName = getStoreName(order.customer);
+                        const customerName = getCustomerName(order.customer);
+                        const showStore = isColVisible('store_name') && !!storeName;
+                        return (
+                          <>
+                            {showStore ? (
+                              <>
+                                <div style={{ fontWeight: 600 }}>{storeName}</div>
+                                {customerName && (
+                                  <div style={{ fontSize: '8pt', color: '#c00', marginTop: '1px' }}>
+                                    {customerName}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div>{customerName}</div>
+                            )}
+                            {debtInfo && (debtInfo.amount > 0 || debtInfo.docType) && (
+                              <div style={{ fontSize: '7pt', color: '#c00', borderTop: '1px solid #ddd', marginTop: '2px', paddingTop: '2px' }}>
+                                {debtInfo.amount > 0 && (
+                                  <span style={{ fontWeight: 'bold' }}>
+                                    {tp('print.header.debt') || 'Dette'}: {debtInfo.amount.toLocaleString()}
+                                  </span>
+                                )}
+                                {debtInfo.docType && (
+                                  <span style={{ marginLeft: debtInfo.amount > 0 ? '4px' : '0' }}>
+                                    📄 {debtInfo.docType}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
                   )}
                   {isColEffective('store_name') && <td className="small-text">{getStoreName(order.customer)}</td>}
