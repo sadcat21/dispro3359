@@ -625,6 +625,7 @@ const Products: React.FC = () => {
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
         allow_unit_sale: editAllowUnitSale,
+        supplier_id: editSupplierId || null,
       };
 
       let { error } = await supabase
