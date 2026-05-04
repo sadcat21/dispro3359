@@ -741,254 +741,277 @@ const Products: React.FC = () => {
                 {t('products.add')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
-              <DialogHeader>
-                <DialogTitle>{t('products.add_new')}</DialogTitle>
+            <DialogContent className="max-w-2xl p-0 flex flex-col" style={{ maxHeight: '90vh' }} dir="rtl">
+              <DialogHeader className="shrink-0 p-4 pb-2 border-b">
+                <DialogTitle className="flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-primary" />
+                  {t('products.add_new')}
+                </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleAddProduct} className="space-y-4">
-                <div className="space-y-2">
-                <Label>{productOfficialNameLabel}</Label>
-                <Input
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  placeholder={t('products.enter_name')}
-                  className="text-right"
-                  autoFocus
-                />
-              </div>
+              <form onSubmit={handleAddProduct} className="flex flex-col flex-1 min-h-0">
+                <Tabs defaultValue="basic" className="flex flex-col flex-1 min-h-0">
+                  <TabsList className="grid w-full grid-cols-4 shrink-0 mx-4 mt-3" style={{ width: 'calc(100% - 2rem)' }}>
+                    <TabsTrigger value="basic" className="text-xs gap-1"><Info className="w-3.5 h-3.5" />أساسي</TabsTrigger>
+                    <TabsTrigger value="media" className="text-xs gap-1"><Camera className="w-3.5 h-3.5" />صورة وترتيب</TabsTrigger>
+                    <TabsTrigger value="unit" className="text-xs gap-1"><Scale className="w-3.5 h-3.5" />الوحدة</TabsTrigger>
+                    <TabsTrigger value="prices" className="text-xs gap-1"><DollarSign className="w-3.5 h-3.5" />الأسعار</TabsTrigger>
+                  </TabsList>
 
-              <div className="space-y-2">
-                <Label>{productAppNameLabel}</Label>
-                <Input
-                  value={productAppName}
-                  onChange={(e) => setProductAppName(e.target.value)}
-                  placeholder={productAppNamePlaceholder}
-                  className="text-right"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {productAppNameHelp}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>CODE</Label>
-                <Input
-                  value={productCode}
-                  onChange={(e) => setProductCode(e.target.value)}
-                  placeholder="AROMA-125"
-                  className="text-left [direction:ltr]"
-                  dir="ltr"
-                />
-                <p className="text-xs text-muted-foreground">{productCodeHint}</p>
-              </div>
-
-              {/* Sort Order */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Layers className="w-4 h-4" />
-                  {sortOrderDescription}
-                </Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={productSortOrder}
-                  onChange={(e) => setProductSortOrder(parseInt(e.target.value) || 0)}
-                  placeholder="0"
-                  className="text-right"
-                />
-                <p className="text-xs text-muted-foreground">{sortOrderHint}</p>
-              </div>
-
-              {/* Supplier */}
-              <div className="space-y-2">
-                <Label>المورد</Label>
-                <Select value={productSupplierId || 'none'} onValueChange={(v) => setProductSupplierId(v === 'none' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="اختر موردًا (اختياري)" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">— بدون مورد —</SelectItem>
-                    {suppliers.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Image Upload */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Camera className="w-4 h-4" />
-                  {productImageLabel}
-                </Label>
-                <input
-                  ref={addImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleImageSelect(e.target.files?.[0] || null, setProductImage, setProductImagePreview)}
-                />
-                {productImagePreview ? (
-                  <div className="relative w-20 h-20">
-                    <img src={productImagePreview} alt={t('products.preview')} className="w-20 h-20 rounded-lg object-cover border" />
-                    <button type="button" onClick={() => { setProductImage(null); setProductImagePreview(null); }} className="absolute -top-2 -left-2 bg-destructive text-destructive-foreground rounded-full p-0.5">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <Button type="button" variant="outline" size="sm" onClick={() => addImageInputRef.current?.click()} className="gap-2">
-                    <Camera className="w-4 h-4" />
-                    {chooseImageLabel}
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Box className="w-4 h-4" />
-                  {t('products.pieces_per_box')}
-                </Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={piecesPerBox}
-                  onChange={(e) => setPiecesPerBox(parseInt(e.target.value) || 1)}
-                  placeholder={t('products.pieces_per_box')}
-                  className="text-right"
-                />
-              </div>
-
-              {/* Allow unit sale switch */}
-              <div className="flex items-center justify-between py-2">
-                <Label className="text-sm">{t('products.allow_unit_sale')}</Label>
-                <Switch checked={allowUnitSale} onCheckedChange={setAllowUnitSale} />
-              </div>
-
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Scale className="w-4 h-4" />
-                  {t('products.pricing_unit')}
-                </Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['box', 'kg', 'unit'] as const).map((unit) => (
-                    <Button
-                      key={unit}
-                      type="button"
-                      variant={pricingUnit === unit ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-10"
-                      onClick={() => setPricingUnit(unit)}
-                    >
-                      {t(`products.pricing_unit_${unit}`)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Weight per box (for kg pricing) */}
-              {pricingUnit === 'kg' && (
-                <div className="space-y-2">
-                  <Label className="text-sm">{t('products.weight_per_box')}</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={weightPerBox}
-                    onChange={(e) => setWeightPerBox(parseFloat(e.target.value) || 0)}
-                    className="text-right"
-                  />
-                  {weightPerBox > 0 && piecesPerBox > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      {t('products.weight_per_unit')}: {(weightPerBox / piecesPerBox).toFixed(3)} {kilogramLabel}
-                    </p>
-                  )}
-                </div>
-              )}
-              {/* Pricing Section */}
-              <div className="pt-2 border-t space-y-4">
-                <Label className="text-base font-semibold block">{t('products.prices')}</Label>
-                
-                {/* فاتورة 2 */}
-                <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
-                  <div className="flex items-center justify-between gap-3">
-                    <Label className="text-sm font-bold text-primary block">{t('products.invoice2_title')}</Label>
-                    <div className="flex items-center gap-2">
-                      <Label className="text-[11px] text-muted-foreground">{allowInvoice2SaleLabel}</Label>
-                      <Switch checked={allowInvoice2Sale} onCheckedChange={setAllowInvoice2Sale} />
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">{allowInvoice2SaleHelp}</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-[11px] text-muted-foreground">{t('products.price_super_gros')}</Label>
-                      <Input type="number" min={0} step="0.01" value={priceSuperGros} onChange={(e) => setPriceSuperGros(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
-                      <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceSuperGros))} DA</span></p>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[11px] text-muted-foreground">{t('products.price_gros')}</Label>
-                      <Input type="number" min={0} step="0.01" value={priceGros} onChange={(e) => setPriceGros(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
-                      <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceGros))} DA</span></p>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[11px] text-muted-foreground">{t('products.price_retail')}</Label>
-                      <Input type="number" min={0} step="0.01" value={priceRetail} onChange={(e) => setPriceRetail(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
-                      <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceRetail))} DA</span></p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* فاتورة 1 */}
-                <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
-                  <div className="flex items-center justify-between gap-3">
-                    <Label className="text-sm font-bold text-primary block">{t('products.invoice1_title')}</Label>
-                    <div className="flex items-center gap-2">
-                      <Label className="text-[11px] text-muted-foreground">{allowInvoiceSaleLabel}</Label>
-                      <Switch checked={allowInvoiceSale} onCheckedChange={setAllowInvoiceSale} />
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">{allowInvoiceSaleHelp}</p>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">{invoiceOfficialPriceLabel}</Label>
-                    <Input type="number" min={0} step="0.0001" value={priceInvoiceOfficial} onChange={(e) => setPriceInvoiceOfficial(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">{invoiceWithVatLabel}</Label>
-                    <Input type="number" value={Number(priceInvoice.toFixed(4))} readOnly className="text-right h-9 bg-muted" />
-                    <p className="text-[10px] text-muted-foreground">
-                      {invoiceWithVatHelp}
-                      <span dir="ltr" className="font-medium ms-1">{formatPrecisePrice(priceInvoiceOfficial)} DA × 1.19 = {formatPrecisePrice(priceInvoice)} DA</span>
-                    </p>
-                  </div>
-                </div>
-
-
-              {/* Computed box price */}
-                {((pricingUnit === 'kg' && weightPerBox > 0) || (pricingUnit === 'unit' && piecesPerBox > 1)) && (
-                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground">{t('products.box_price_calculated')}:</p>
-                    {(() => {
-                      const multiplier = pricingUnit === 'kg' ? weightPerBox : piecesPerBox;
-                      return (
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {priceSuperGros > 0 && <p>{t('products.price_super_gros')}: <span className="font-bold">{(priceSuperGros * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
-                          {priceGros > 0 && <p>{t('products.price_gros')}: <span className="font-bold">{(priceGros * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
-                          {priceRetail > 0 && <p>{t('products.price_retail')}: <span className="font-bold">{(priceRetail * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
-                          {priceInvoice > 0 && <p>{t('products.invoice1_title')}: <span className="font-bold">{(priceInvoice * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
+                  <div className="flex-1 overflow-y-auto px-4 py-4">
+                    {/* ===== Tab 1: Basic Info ===== */}
+                    <TabsContent value="basic" className="mt-0 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>{productOfficialNameLabel}</Label>
+                          <Input
+                            value={productName}
+                            onChange={(e) => setProductName(e.target.value)}
+                            placeholder={t('products.enter_name')}
+                            className="text-right"
+                            autoFocus
+                          />
                         </div>
-                      );
-                    })()}
+                        <div className="space-y-2">
+                          <Label>{productAppNameLabel}</Label>
+                          <Input
+                            value={productAppName}
+                            onChange={(e) => setProductAppName(e.target.value)}
+                            placeholder={productAppNamePlaceholder}
+                            className="text-right"
+                          />
+                          <p className="text-xs text-muted-foreground">{productAppNameHelp}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2"><Tag className="w-4 h-4" />CODE</Label>
+                          <Input
+                            value={productCode}
+                            onChange={(e) => setProductCode(e.target.value)}
+                            placeholder="AROMA-125"
+                            className="text-left [direction:ltr]"
+                            dir="ltr"
+                          />
+                          <p className="text-xs text-muted-foreground">{productCodeHint}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2"><Truck className="w-4 h-4" />المورد</Label>
+                          <Select value={productSupplierId || 'none'} onValueChange={(v) => setProductSupplierId(v === 'none' ? '' : v)}>
+                            <SelectTrigger><SelectValue placeholder="اختر موردًا (اختياري)" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">— بدون مورد —</SelectItem>
+                              {suppliers.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    {/* ===== Tab 2: Image & Sort ===== */}
+                    <TabsContent value="media" className="mt-0 space-y-4">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <Layers className="w-4 h-4" />
+                          {sortOrderDescription}
+                        </Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={productSortOrder}
+                          onChange={(e) => setProductSortOrder(parseInt(e.target.value) || 0)}
+                          placeholder="0"
+                          className="text-right"
+                        />
+                        <p className="text-xs text-muted-foreground">{sortOrderHint}</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <Camera className="w-4 h-4" />
+                          {productImageLabel}
+                        </Label>
+                        <input
+                          ref={addImageInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageSelect(e.target.files?.[0] || null, setProductImage, setProductImagePreview)}
+                        />
+                        {productImagePreview ? (
+                          <div className="relative w-32 h-32">
+                            <img src={productImagePreview} alt={t('products.preview')} className="w-32 h-32 rounded-lg object-cover border" />
+                            <button type="button" onClick={() => { setProductImage(null); setProductImagePreview(null); }} className="absolute -top-2 -left-2 bg-destructive text-destructive-foreground rounded-full p-1">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <Button type="button" variant="outline" onClick={() => addImageInputRef.current?.click()} className="gap-2 w-full md:w-auto">
+                            <Camera className="w-4 h-4" />
+                            {chooseImageLabel}
+                          </Button>
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    {/* ===== Tab 3: Unit & Weight ===== */}
+                    <TabsContent value="unit" className="mt-0 space-y-4">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <Box className="w-4 h-4" />
+                          {t('products.pieces_per_box')}
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={piecesPerBox}
+                          onChange={(e) => setPiecesPerBox(parseInt(e.target.value) || 1)}
+                          placeholder={t('products.pieces_per_box')}
+                          className="text-right"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg border bg-muted/30">
+                        <Label className="text-sm">{t('products.allow_unit_sale')}</Label>
+                        <Switch checked={allowUnitSale} onCheckedChange={setAllowUnitSale} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <Scale className="w-4 h-4" />
+                          {t('products.pricing_unit')}
+                        </Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(['box', 'kg', 'unit'] as const).map((unit) => (
+                            <Button
+                              key={unit}
+                              type="button"
+                              variant={pricingUnit === unit ? 'default' : 'outline'}
+                              size="sm"
+                              className="h-10"
+                              onClick={() => setPricingUnit(unit)}
+                            >
+                              {t(`products.pricing_unit_${unit}`)}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {pricingUnit === 'kg' && (
+                        <div className="space-y-2">
+                          <Label className="text-sm flex items-center gap-2"><Weight className="w-4 h-4" />{t('products.weight_per_box')}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={weightPerBox}
+                            onChange={(e) => setWeightPerBox(parseFloat(e.target.value) || 0)}
+                            className="text-right"
+                          />
+                          {weightPerBox > 0 && piecesPerBox > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              {t('products.weight_per_unit')}: {(weightPerBox / piecesPerBox).toFixed(3)} {kilogramLabel}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    {/* ===== Tab 4: Prices ===== */}
+                    <TabsContent value="prices" className="mt-0 space-y-4">
+                      {/* فاتورة 2 */}
+                      <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
+                        <div className="flex items-center justify-between gap-3">
+                          <Label className="text-sm font-bold text-primary block">{t('products.invoice2_title')}</Label>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-[11px] text-muted-foreground">{allowInvoice2SaleLabel}</Label>
+                            <Switch checked={allowInvoice2Sale} onCheckedChange={setAllowInvoice2Sale} />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">{allowInvoice2SaleHelp}</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">{t('products.price_super_gros')}</Label>
+                            <Input type="number" min={0} step="0.01" value={priceSuperGros} onChange={(e) => setPriceSuperGros(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                            <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceSuperGros))} DA</span></p>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">{t('products.price_gros')}</Label>
+                            <Input type="number" min={0} step="0.01" value={priceGros} onChange={(e) => setPriceGros(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                            <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceGros))} DA</span></p>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">{t('products.price_retail')}</Label>
+                            <Input type="number" min={0} step="0.01" value={priceRetail} onChange={(e) => setPriceRetail(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                            <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceRetail))} DA</span></p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* فاتورة 1 */}
+                      <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
+                        <div className="flex items-center justify-between gap-3">
+                          <Label className="text-sm font-bold text-primary block">{t('products.invoice1_title')}</Label>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-[11px] text-muted-foreground">{allowInvoiceSaleLabel}</Label>
+                            <Switch checked={allowInvoiceSale} onCheckedChange={setAllowInvoiceSale} />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">{allowInvoiceSaleHelp}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">{invoiceOfficialPriceLabel}</Label>
+                            <Input type="number" min={0} step="0.0001" value={priceInvoiceOfficial} onChange={(e) => setPriceInvoiceOfficial(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">{invoiceWithVatLabel}</Label>
+                            <Input type="number" value={Number(priceInvoice.toFixed(4))} readOnly className="text-right h-9 bg-muted" />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">
+                          {invoiceWithVatHelp}
+                          <span dir="ltr" className="font-medium ms-1">{formatPrecisePrice(priceInvoiceOfficial)} DA × 1.19 = {formatPrecisePrice(priceInvoice)} DA</span>
+                        </p>
+                      </div>
+
+                      {/* Computed box price */}
+                      {((pricingUnit === 'kg' && weightPerBox > 0) || (pricingUnit === 'unit' && piecesPerBox > 1)) && (
+                        <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">{t('products.box_price_calculated')}:</p>
+                          {(() => {
+                            const multiplier = pricingUnit === 'kg' ? weightPerBox : piecesPerBox;
+                            return (
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                {priceSuperGros > 0 && <p>{t('products.price_super_gros')}: <span className="font-bold">{(priceSuperGros * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
+                                {priceGros > 0 && <p>{t('products.price_gros')}: <span className="font-bold">{(priceGros * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
+                                {priceRetail > 0 && <p>{t('products.price_retail')}: <span className="font-bold">{(priceRetail * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
+                                {priceInvoice > 0 && <p>{t('products.invoice1_title')}: <span className="font-bold">{(priceInvoice * multiplier).toLocaleString()} {t('common.currency')}</span></p>}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </TabsContent>
                   </div>
-                )}
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                    {t('common.loading')}
-                  </>
-                ) : (
-                  t('products.add')
-                )}
-                </Button>
+                </Tabs>
+
+                <div className="shrink-0 border-t p-4 bg-background">
+                  <Button type="submit" className="w-full" disabled={isSaving}>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                        {t('common.loading')}
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 ml-2" />
+                        {t('products.add')}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </DialogContent>
           </Dialog>
