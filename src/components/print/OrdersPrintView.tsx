@@ -232,11 +232,13 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
       return item?.quantity || 0;
     };
 
+    const forceIncludeSet = useMemo(() => new Set(forceIncludeProductIds), [forceIncludeProductIds]);
     const productsWithOrders = useMemo(() => products.filter(product => {
+      if (forceIncludeSet.has(product.id)) return true;
       const hasOrderQty = orders.some(order => getQuantity(order.id, product.id) > 0);
       const hasExtraQty = extraRows.some(row => (row.productQuantities?.[product.id] || 0) > 0);
       return hasOrderQty || hasExtraQty;
-    }), [products, orders, orderItems, extraRows]);
+    }), [products, orders, orderItems, extraRows, forceIncludeSet]);
 
     const productTotals = productsWithOrders.reduce((acc, product) => {
       acc[product.id] = orders.reduce((sum, order) => sum + getQuantity(order.id, product.id), 0);
