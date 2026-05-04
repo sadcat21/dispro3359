@@ -234,7 +234,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
-  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; label: string; badge?: number };
+  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number };
   let centerAction: CenterAction | null = null;
   if (isWarehouseManager) {
     centerAction = { type: 'navigate', to: '/load-stock', icon: Truck, label: t('tooltip.load_stock') || 'شحن العمال' };
