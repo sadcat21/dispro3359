@@ -192,7 +192,7 @@ const BranchInvoiceApprovals: React.FC = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('${t('branch_invoice_approvals.postponed_success')}');
+      toast.success(t('branch_invoice_approvals.postponed_success'));
       qc.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
     },
     onError: (e: any) => toast.error(e.message),
