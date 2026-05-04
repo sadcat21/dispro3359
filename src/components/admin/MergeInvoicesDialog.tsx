@@ -242,7 +242,7 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
                         </div>
                         <div className="px-1 py-1 bg-card flex items-center justify-center gap-1 border-t border-border">
                           <span className="flex h-6 min-w-6 px-1.5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                            {a.quantity}×
+                            {a.quantity}
                           </span>
                         </div>
                       </div>
