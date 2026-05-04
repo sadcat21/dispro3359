@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import MergeInvoicesDialog, { type PostponedRequest } from '@/components/admin/MergeInvoicesDialog';
+import InvoiceRequestDetailsDialog from '@/components/admin/InvoiceRequestDetailsDialog';
 
 interface InvoiceRequestRow {
   id: string;
@@ -54,6 +55,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [mergeFor, setMergeFor] = useState<{ customerId: string; customerName: string; requests: PostponedRequest[] } | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
+  const [requestDetails, setRequestDetails] = useState<InvoiceRequestRow | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkScopeDialog, setBulkScopeDialog] = useState<{ scope: 'public' | 'private' } | null>(null);
 
@@ -400,7 +402,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                       return (
                         <div
                           key={r.id}
-                          onClick={() => openOrderDetails(r)}
+                          onClick={() => isForwarded ? setRequestDetails(r) : openOrderDetails(r)}
                           className="border border-blue-100 rounded-xl bg-white hover:shadow-md hover:border-blue-300 transition cursor-pointer relative group overflow-hidden"
                         >
                           {isLoadingThis && (
@@ -579,7 +581,8 @@ const BranchInvoiceApprovals: React.FC = () => {
                         return (
                           <div
                             key={r.id}
-                            className="border border-blue-200 rounded-xl bg-white overflow-hidden"
+                            onClick={() => setRequestDetails(r)}
+                            className="border border-blue-200 rounded-xl bg-white overflow-hidden cursor-pointer hover:shadow-md hover:border-blue-400 transition"
                           >
                             <div className="p-3 space-y-1.5">
                               <div className="flex items-center gap-1.5 flex-wrap">
@@ -761,6 +764,12 @@ const BranchInvoiceApprovals: React.FC = () => {
         onOpenChange={(isOpen) => { if (!isOpen) setSelectedOrder(null); }}
         order={selectedOrder}
         hideModifyAction={true}
+      />
+
+      <InvoiceRequestDetailsDialog
+        open={!!requestDetails}
+        onOpenChange={(o) => { if (!o) setRequestDetails(null); }}
+        request={requestDetails}
       />
 
       {/* نافذة إنشاء فاتورة يدوية من مدير الفرع */}
