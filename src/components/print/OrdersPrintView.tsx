@@ -324,14 +324,54 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
         <div className="print-header-with-logo" style={{ position: 'relative', zIndex: 1 }}>
           <div className="print-logo"><img src={logoImage} alt="Laser Food" /></div>
           <div className="print-title-section">
-            <h1>{displayTitle}</h1>
-            <p style={{ fontSize: '11pt', fontWeight: 600, marginTop: '5px' }}>
-              {[
-                ...filterCriteria,
-                `${tp('print.header.print_date')}: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
-                `${tp('print.header.orders_count')}: ${orders.length}`,
-              ].join('  |  ')}
-            </p>
+            <h1 style={{ marginBottom: '8px' }}>{displayTitle}</h1>
+            {(() => {
+              const items: { label: string; value: string }[] = [];
+              if (dateRange) items.push({ label: tp('print.header.period') || 'Période', value: dateRange });
+              Object.entries(uniformValues).forEach(([colId, value]) => {
+                const labelMap: Record<string, string> = {
+                  delivery_worker: tp('print.header.delivery_worker') || 'Livreur',
+                  sector: tp('print.header.sector') || 'Secteur',
+                  zone: tp('print.header.zone') || 'Zone',
+                };
+                items.push({ label: labelMap[colId] || colId, value: String(value) });
+              });
+              items.push({ label: tp('print.header.print_date') || "Date d'impression", value: format(new Date(), 'dd/MM/yyyy HH:mm') });
+              items.push({ label: tp('print.header.orders_count') || 'Nombre de commandes', value: String(orders.length) });
+              return (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${Math.min(items.length, 5)}, minmax(0, 1fr))`,
+                    gap: '6px',
+                    marginTop: '6px',
+                    border: '1px solid #d4d4d4',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    background: '#fafafa',
+                  }}
+                >
+                  {items.map((it, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: '6px 10px',
+                        borderRight: i < items.length - 1 ? '1px solid #e5e5e5' : 'none',
+                        textAlign: 'center',
+                        background: '#fff',
+                      }}
+                    >
+                      <div style={{ fontSize: '7.5pt', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
+                        {it.label}
+                      </div>
+                      <div style={{ fontSize: '10pt', fontWeight: 700, color: '#111' }}>
+                        {it.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
           <div className="print-logo"><img src={logoImage} alt="Laser Food" /></div>
         </div>
