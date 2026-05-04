@@ -176,16 +176,18 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
           className="flex flex-col flex-1 min-h-0"
         >
           <TabsList className={`grid mx-4 mt-3 shrink-0 grid-cols-${tabCount}`}>
-            {!hideDirectTab && (
+            {!effectiveHideDirectTab && (
               <TabsTrigger value="direct" className="gap-1 text-xs px-2">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {t('stock.direct_sale')}
               </TabsTrigger>
             )}
-            <TabsTrigger value="delivery" className="gap-1 text-xs px-2">
-              <Truck className="w-3.5 h-3.5" />
-              {t('orders.delivery_sale')}
-            </TabsTrigger>
+            {!hideDeliveryTab && (
+              <TabsTrigger value="delivery" className="gap-1 text-xs px-2">
+                <Truck className="w-3.5 h-3.5" />
+                {t('orders.delivery_sale')}
+              </TabsTrigger>
+            )}
             {showWarehouseTab && (
               <TabsTrigger value="warehouse" className="gap-1 text-xs px-2">
                 <Warehouse className="w-3.5 h-3.5" />
