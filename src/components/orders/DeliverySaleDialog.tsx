@@ -1126,9 +1126,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                   </AlertDescription>
                 </Alert>
               )}
-              </>)}
 
-              {currentStep === 2 && (<>
               {/* Current Items */}
               <section ref={productsSectionRef} className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
