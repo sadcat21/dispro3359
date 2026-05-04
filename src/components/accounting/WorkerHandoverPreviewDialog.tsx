@@ -146,7 +146,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
             <Alert variant="destructive" className="rounded-xl">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-sm font-medium">
-                لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي جلسة مراجعة للشاحنة
+                لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي مراجعة نهائية للشاحنة
               </AlertDescription>
             </Alert>
           </div>
