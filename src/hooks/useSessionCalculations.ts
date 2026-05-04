@@ -460,6 +460,27 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         }
       }
 
+      // Fetch loaded quantities (شحن) for tracked products in this period
+      const trackedProductIds = Array.from(new Set(Object.values(promoMap).map(p => p.productId)));
+      if (trackedProductIds.length > 0) {
+        const { data: loadMovements } = await supabase
+          .from('stock_movements')
+          .select('product_id, quantity')
+          .eq('worker_id', workerId)
+          .eq('movement_type', 'load')
+          .eq('status', 'approved')
+          .in('product_id', trackedProductIds)
+          .gte('created_at', periodStartTz)
+          .lte('created_at', periodEndTz);
+        const loadedByProduct: Record<string, number> = {};
+        for (const m of (loadMovements || [])) {
+          loadedByProduct[(m as any).product_id] = (loadedByProduct[(m as any).product_id] || 0) + Number((m as any).quantity || 0);
+        }
+        Object.values(promoMap).forEach(p => {
+          p.loadedQuantity = loadedByProduct[p.productId] || 0;
+        });
+      }
+
       // Debt collections
       const debtCollections: DebtCollectionBreakdown = {
         total: 0, cash: 0, check: 0, transfer: 0, receipt: 0,
