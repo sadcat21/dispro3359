@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Loader2, Trash2, Package, Layers, Pencil, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/types/database';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 interface PricingGroup {
   id: string;
@@ -352,7 +353,7 @@ const PricingGroupsTab: React.FC = () => {
                             onCheckedChange={() => toggleProduct(product.id, selectedProducts, setSelectedProducts)}
                           />
                           <Package className="w-4 h-4 text-muted-foreground" />
-                          <span className="flex-1">{product.name}</span>
+                          <span className="flex-1">{getProductDisplayName(product)}</span>
                         </label>
                       ))}
                     </div>
@@ -397,7 +398,7 @@ const PricingGroupsTab: React.FC = () => {
                             key={product.id}
                             className="text-xs px-2 py-0.5 bg-muted rounded-full"
                           >
-                            {product.name}
+                            {getProductDisplayName(product)}
                           </span>
                         ))}
                         {group.products.length > 5 && (
@@ -483,7 +484,7 @@ const PricingGroupsTab: React.FC = () => {
                           onCheckedChange={() => toggleProduct(product.id, editSelectedProducts, setEditSelectedProducts)}
                         />
                         <Package className="w-4 h-4 text-muted-foreground" />
-                        <span className="flex-1">{product.name}</span>
+                        <span className="flex-1">{getProductDisplayName(product)}</span>
                       </label>
                     ))}
                   </div>
@@ -554,7 +555,7 @@ const PricingGroupsTab: React.FC = () => {
               <SelectContent>
                 {syncGroup?.products?.map((product) => (
                   <SelectItem key={product.id} value={product.id}>
-                    {product.name}
+                    {getProductDisplayName(product)}
                   </SelectItem>
                 ))}
               </SelectContent>
