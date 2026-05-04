@@ -45,6 +45,7 @@ export interface PromoTrackingItem {
   offerName: string;
   offerDescription: string;
   customerDetails: PromoCustomerDetail[];
+  loadedQuantity?: number;
 }
 
 export interface SessionCalculations {
