@@ -72,10 +72,9 @@ const Settings: React.FC = () => {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="gap-1.5 text-sm whitespace-nowrap px-3 py-2 shrink-0"
+                className="text-xs whitespace-nowrap px-2.5 py-1.5 shrink-0"
               >
-                {tab.icon}
-                <span>{tab.label}</span>
+                {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
