@@ -964,6 +964,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   </>
                 )}
 
+  // Report header info to parent
+  useEffect(() => {
+    onHeaderInfo?.({ customerName: selectedCustomer?.name || null, totalAmount: orderTotals.totalAmount });
+  }, [selectedCustomer?.name, orderTotals.totalAmount, onHeaderInfo]);
+
 
                 {/* Selected Customer Info */}
                 {selectedCustomer && (
