@@ -117,6 +117,9 @@ const Products: React.FC = () => {
   const [weightPerBox, setWeightPerBox] = useState<number>(0);
   const [allowUnitSale, setAllowUnitSale] = useState<boolean>(false);
   const [productSortOrder, setProductSortOrder] = useState<number>(0);
+  const [productSupplierId, setProductSupplierId] = useState<string>('');
+  const [editSupplierId, setEditSupplierId] = useState<string>('');
+  const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string; is_active: boolean }>>([]);
   const [productImage, setProductImage] = useState<File | null>(null);
   const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
