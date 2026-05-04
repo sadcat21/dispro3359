@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import type { OrderWithDetails } from '@/types/database';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 interface WorkerAchievementsDialogProps {
   open: boolean;
@@ -62,7 +63,7 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
 
       const { data: items, error: itemsErr } = await supabase
         .from('order_items')
-        .select('id, quantity, unit_price, total_price, product:products(id, name, image_url)')
+        .select('id, quantity, unit_price, total_price, product:products(id, name, app_name, image_url)')
         .eq('order_id', entityId!);
       if (itemsErr) throw itemsErr;
 
@@ -151,7 +152,7 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{item.product?.name || '—'}</p>
+                        <p className="text-xs font-medium truncate">{getProductDisplayName(item.product) || '—'}</p>
                         <p className="text-[11px] text-muted-foreground">
                           {item.quantity} × {Number(item.unit_price).toLocaleString()} = <strong>{Number(item.total_price).toLocaleString()}</strong>
                         </p>
