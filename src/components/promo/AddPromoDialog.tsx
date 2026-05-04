@@ -280,12 +280,20 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
               )}
             </div>
 
+            {/* Active offer hint */}
+            {activeOffer && (
+              <div className="text-xs text-center text-muted-foreground bg-muted/40 rounded-lg py-2 px-3 border border-border">
+                <span className="font-semibold">{activeOffer.name}:</span>{' '}
+                {activeOffer.min_quantity} {unitLabel(saleUnit)} → {activeOffer.gift_quantity} {unitLabel(giftUnit)} {t('promos.free') || 'مجاناً'}
+              </div>
+            )}
+
             {/* Quantities Section */}
             <div className="grid grid-cols-2 gap-4">
               {/* Vente Quantity */}
               <div className="space-y-3">
                 <Label className="text-center block text-sm font-semibold text-muted-foreground">
-                  {t('promos.sales_quantity')}
+                  {t('promos.sales_quantity')} ({unitLabel(saleUnit)})
                 </Label>
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-20 h-20 flex items-center justify-center bg-secondary rounded-2xl border-2 border-secondary shadow-inner">
