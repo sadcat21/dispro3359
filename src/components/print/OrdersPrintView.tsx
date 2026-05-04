@@ -53,7 +53,19 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     const [customerDebts, setCustomerDebts] = useState<Record<string, { amount: number; docType?: string }>>({});
     const [shortageProductIds, setShortageProductIds] = useState<Set<string>>(new Set());
     const [stampTiers, setStampTiers] = useState<StampPriceTier[]>([]);
-    const { tp, printDir, printLanguage } = useLanguage();
+    // فرض اللغة الفرنسية دائماً في ورقة الطباعة بغض النظر عن إعدادات اللغة
+    const { tp: tpCtx } = useLanguage();
+    const printLanguage: 'fr' = 'fr';
+    const printDir: 'ltr' = 'ltr';
+    const tp = (key: string): string => {
+      try {
+        // إعادة استخدام الترجمات بإجبار اللغة الفرنسية
+        const mod = require('@/i18n/translations');
+        const translation = mod?.translations?.[key];
+        if (translation && translation.fr) return translation.fr;
+      } catch {}
+      return tpCtx(key);
+    };
     const { activeBranch } = useAuth();
     
     const displayTitle = title || tp('print.order_list');
