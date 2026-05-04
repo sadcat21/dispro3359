@@ -224,7 +224,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       }
 
       const totalExpected = rows.reduce((s, r) => s + r.expected, 0);
-      const totalActual = rows.reduce((s, r) => s + (Number(r.actual) || 0), 0);
+      const totalActual = rows.reduce((s, r) => s + actualTotalBoxes(r), 0);
       const now = new Date().toISOString();
 
       // 2. Create the final review session (locked immediately with both signatures)
