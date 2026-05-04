@@ -108,30 +108,43 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
         // 5. تجميع
         const map = new Map<string, AggregatedRow>();
+        const baseRow = (pid: string, prod: any): AggregatedRow => ({
+          productId: pid,
+          productName: prod.name || '—',
+          imageUrl: prod.image_url,
+          loaded: 0,
+          unloaded: 0,
+          expected: 0,
+          expectedBoxes: 0,
+          expectedPieces: 0,
+          actualBoxes: '',
+          actualPieces: '',
+          ppb: prod.pieces_per_box || 1,
+        });
         for (const it of loadItems) {
           const pid = it.product_id;
           const prod = it.product || {};
-          const ex = map.get(pid) || {
-            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
-            loaded: 0, unloaded: 0, expected: 0, actual: '', ppb: prod.pieces_per_box || 1,
-          };
+          const ex = map.get(pid) || baseRow(pid, prod);
           ex.loaded += Number(it.quantity || 0);
           map.set(pid, ex);
         }
         for (const m of (unloadMoves || [])) {
           const pid = m.product_id;
           const prod = (m as any).product || {};
-          const ex = map.get(pid) || {
-            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
-            loaded: 0, unloaded: 0, expected: 0, actual: '', ppb: prod.pieces_per_box || 1,
-          };
+          const ex = map.get(pid) || baseRow(pid, prod);
           ex.unloaded += Number(m.quantity || 0);
           map.set(pid, ex);
         }
-        const list = Array.from(map.values()).map(r => ({
-          ...r,
-          expected: Math.max(0, r.loaded - r.unloaded),
-        }));
+        const list = Array.from(map.values()).map(r => {
+          const ppb = Math.max(1, Math.round(r.ppb || 1));
+          const loadedPieces = parseBP(Number(r.loaded).toFixed(2), ppb).totalPieces;
+          const unloadedPieces = parseBP(Number(r.unloaded).toFixed(2), ppb).totalPieces;
+          const expectedTotalPieces = Math.max(0, loadedPieces - unloadedPieces);
+          const expectedBoxes = Math.floor(expectedTotalPieces / ppb);
+          const expectedPieces = expectedTotalPieces % ppb;
+          const expected = expectedBoxes + expectedPieces / ppb;
+          return { ...r, expected, expectedBoxes, expectedPieces };
+        });
         list.sort((a, b) => a.productName.localeCompare(b.productName));
         if (!cancelled) setRows(list);
       } catch (e: any) {
@@ -148,11 +161,19 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     [rows, search]
   );
 
+  const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
+  const actualTotalBoxes = (r: AggregatedRow) => {
+    const ppb = Math.max(1, Math.round(r.ppb || 1));
+    const b = Math.max(0, parseInt(r.actualBoxes || '0', 10) || 0);
+    const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
+    return b + p / ppb;
+  };
+
   const stats = useMemo(() => {
     let surplus = 0, deficit = 0, matched = 0, untouched = 0;
     for (const r of rows) {
-      if (r.actual === '') { untouched++; continue; }
-      const a = Number(r.actual) || 0;
+      if (!isFilled(r)) { untouched++; continue; }
+      const a = actualTotalBoxes(r);
       const diff = a - r.expected;
       if (Math.abs(diff) < 0.001) matched++;
       else if (diff > 0) surplus++;
@@ -161,8 +182,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     return { surplus, deficit, matched, untouched, total: rows.length };
   }, [rows]);
 
-  const updateActual = (pid: string, val: string) => {
-    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actual: val.replace(/[^0-9.]/g, '') } : r));
+  const updateActualBoxes = (pid: string, val: string) => {
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, '') } : r));
+  };
+  const updateActualPieces = (pid: string, val: string) => {
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, '') } : r));
+  };
+  const markMatched = (pid: string) => {
+    setRows(prev => prev.map(r => r.productId === pid
+      ? { ...r, actualBoxes: String(r.expectedBoxes), actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0' }
+      : r));
   };
 
   const handleSave = async () => {
