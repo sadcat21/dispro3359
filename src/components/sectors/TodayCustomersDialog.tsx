@@ -331,6 +331,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [printReceiptData, setPrintReceiptData] = useState<any>(null);
   const [showPrintReceipt, setShowPrintReceipt] = useState(false);
   const [showOrdersSummary, setShowOrdersSummary] = useState(false);
+  const [ordersSummaryMode, setOrdersSummaryMode] = useState<'orders' | 'delivery'>('orders');
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showPrintOrdersDialog, setShowPrintOrdersDialog] = useState(false);
   const [showPrintPreviewDialog, setShowPrintPreviewDialog] = useState(false);
@@ -2439,7 +2440,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50"
-                        onClick={() => setShowOrdersSummary(true)}
+                        onClick={() => { setOrdersSummaryMode('delivery'); setShowOrdersSummary(true); }}
                       >
                         <Printer className="w-4 h-4" />
                         طباعة الشحنة
@@ -2562,7 +2563,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 <TabsContent value="with-orders" className="m-0 flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ maxHeight: '60vh' }}>
                   {effectiveWorkerId && (
                     <div className="p-2 border-b">
-                      <Button variant="outline" size="sm" className="w-full gap-2 text-blue-700 border-blue-300 hover:bg-blue-50" onClick={() => setShowOrdersSummary(true)}>
+                      <Button variant="outline" size="sm" className="w-full gap-2 text-blue-700 border-blue-300 hover:bg-blue-50" onClick={() => { setOrdersSummaryMode('orders'); setShowOrdersSummary(true); }}>
                         <ClipboardList className="w-4 h-4" />
                         تجميع الطلبيات
                       </Button>
@@ -2963,6 +2964,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
           onOpenChange={setShowOrdersSummary}
           workerId={effectiveWorkerId}
           workerName={effectiveWorkerName || ''}
+          mode={ordersSummaryMode}
         />
       )}
 

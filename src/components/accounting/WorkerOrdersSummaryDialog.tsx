@@ -29,6 +29,11 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   workerId?: string;
   workerName?: string;
+  /**
+   * 'orders' (default): يُجمّع الطلبيات حسب تاريخ الإنشاء، يعرض تبويبتي "طلباته" و"معيّنة".
+   * 'delivery': لعامل التوصيل — يُجمّع حسب تاريخ التوصيل، بدون تبويبات، مع زرّي "اليوم" و"غدًا".
+   */
+  mode?: 'orders' | 'delivery';
 }
 
 interface CustomerBreakdown {
@@ -179,8 +184,9 @@ const OrdersCarousel: React.FC<{
   );
 };
 
-const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName }) => {
-  const [activeTab, setActiveTab] = useState<'created' | 'assigned'>('created');
+const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName, mode = 'orders' }) => {
+  const isDeliveryMode = mode === 'delivery';
+  const [activeTab, setActiveTab] = useState<'created' | 'assigned'>(isDeliveryMode ? 'assigned' : 'created');
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [isPrintReady, setIsPrintReady] = useState(false);
@@ -300,28 +306,32 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   }, [customerSelKey, selectedCustomerIds, activeBranch]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['worker-orders-summary', workerId, selectedDate],
+    queryKey: ['worker-orders-summary', workerId, selectedDate, mode],
     queryFn: async () => {
       if (!workerId) return { created: [], assigned: [] };
 
       const dayStart = `${selectedDate}T00:00:00+01:00`;
       const dayEnd = `${selectedDate}T23:59:59+01:00`;
 
-      const { data: createdOrders } = await supabase
-        .from('orders')
-        .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
-        .eq('created_by', workerId)
-        .gte('created_at', dayStart)
-        .lte('created_at', dayEnd)
-        .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+      // في وضع التوصيل: نفلتر حسب delivery_date (ليوم/غدًا) بدل تاريخ الإنشاء
+      const buildQuery = (col: 'created_by' | 'assigned_worker_id') => {
+        let q = supabase
+          .from('orders')
+          .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
+          .eq(col, workerId)
+          .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+        if (isDeliveryMode) {
+          q = q.eq('delivery_date', selectedDate);
+        } else {
+          q = q.gte('created_at', dayStart).lte('created_at', dayEnd);
+        }
+        return q;
+      };
 
-      const { data: assignedOrders } = await supabase
-        .from('orders')
-        .select('id, customer_id, created_at, customer:customers(name, store_name, phone)')
-        .eq('assigned_worker_id', workerId)
-        .gte('created_at', dayStart)
-        .lte('created_at', dayEnd)
-        .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed']);
+      const { data: createdOrders } = isDeliveryMode
+        ? { data: [] as any[] }
+        : await buildQuery('created_by');
+      const { data: assignedOrders } = await buildQuery('assigned_worker_id');
 
       const allOrderIds = [...new Set([
         ...(createdOrders || []).map(o => o.id),
@@ -467,7 +477,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       const dayEnd = `${selectedDate}T23:59:59+01:00`;
 
       const filterCol = activeTab === 'created' ? 'created_by' : 'assigned_worker_id';
-      const { data: ordersData } = await supabase
+      let ordersQuery = supabase
         .from('orders')
         .select(`
           *,
@@ -476,10 +486,14 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           order_items(*, product:products(*))
         `)
         .eq(filterCol, workerId)
-        .gte('created_at', dayStart)
-        .lte('created_at', dayEnd)
         .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed'])
         .order('created_at', { ascending: true });
+      if (isDeliveryMode) {
+        ordersQuery = ordersQuery.eq('delivery_date', selectedDate);
+      } else {
+        ordersQuery = ordersQuery.gte('created_at', dayStart).lte('created_at', dayEnd);
+      }
+      const { data: ordersData } = await ordersQuery;
 
       let fetchedOrders = (ordersData || []) as unknown as OrderWithDetails[];
       
@@ -583,39 +597,77 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <ClipboardList className="w-5 h-5 text-primary" />
               </div>
-              <span className="flex-1">تجميع الطلبيات {workerName ? `- ${workerName}` : ''}</span>
+              <span className="flex-1">{isDeliveryMode ? 'تجميع التوصيلات' : 'تجميع الطلبيات'} {workerName ? `- ${workerName}` : ''}</span>
             </DialogTitle>
           </DialogHeader>
 
           {/* Date navigation */}
-          <div className="flex items-center justify-center gap-3 mt-3">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(1)}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-1.5 text-xs font-semibold bg-background rounded-lg px-3 py-1.5 border">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              {format(new Date(selectedDate), 'dd/MM/yyyy')}
+          {isDeliveryMode ? (
+            <div className="flex items-center justify-center gap-2 mt-3">
+              {(() => {
+                const todayStr = format(new Date(), 'yyyy-MM-dd');
+                const tomorrowStr = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+                const isToday = selectedDate === todayStr;
+                const isTomorrow = selectedDate === tomorrowStr;
+                return (
+                  <>
+                    <Button
+                      size="sm"
+                      variant={isToday ? 'default' : 'outline'}
+                      className="h-8 px-4 text-xs gap-1.5"
+                      onClick={() => { setSelectedDate(todayStr); setExpandedProduct(null); }}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      اليوم
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={isTomorrow ? 'default' : 'outline'}
+                      className="h-8 px-4 text-xs gap-1.5"
+                      onClick={() => { setSelectedDate(tomorrowStr); setExpandedProduct(null); }}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      غدًا
+                    </Button>
+                    <span className="text-[11px] text-muted-foreground ms-1">
+                      {format(new Date(selectedDate), 'dd/MM/yyyy')}
+                    </span>
+                  </>
+                );
+              })()}
             </div>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(-1)}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center gap-3 mt-3">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(1)}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <div className="flex items-center gap-1.5 text-xs font-semibold bg-background rounded-lg px-3 py-1.5 border">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                {format(new Date(selectedDate), 'dd/MM/yyyy')}
+              </div>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => goDay(-1)}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setExpandedProduct(null); }} className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <div className="px-3 pt-2 shrink-0">
-            <TabsList className="grid grid-cols-2 h-9 bg-muted/60 rounded-lg p-0.5">
-             <TabsTrigger value="assigned" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
-                <UserCheck className="w-3.5 h-3.5" />
-                معيّنة ({assignedCustomers})
-              </TabsTrigger>
-              <TabsTrigger value="created" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
-                <ShoppingCart className="w-3.5 h-3.5" />
-                طلبياته ({createdCustomers})
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          {!isDeliveryMode && (
+            <div className="px-3 pt-2 shrink-0">
+              <TabsList className="grid grid-cols-2 h-9 bg-muted/60 rounded-lg p-0.5">
+               <TabsTrigger value="assigned" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  معيّنة ({assignedCustomers})
+                </TabsTrigger>
+                <TabsTrigger value="created" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  طلبياته ({createdCustomers})
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
 
           {/* Stats bar */}
           {currentData.length > 0 && (
