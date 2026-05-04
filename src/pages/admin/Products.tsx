@@ -1027,26 +1027,37 @@ const Products: React.FC = () => {
 
         <TabsContent value="products" className="mt-4 space-y-4">
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-secondary text-secondary-foreground">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Card className="border-primary/20">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Package className="w-5 h-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('products.total')}</p>
-                  <p className="text-xl font-bold">{products.length}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">{t('products.total')}</p>
+                  <p className="text-2xl font-bold leading-tight">{products.length}</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-accent/50">
+            <Card className="border-emerald-500/20">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-primary" />
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{activeProductsLabel}</p>
-                  <p className="text-xl font-bold text-primary">{products.filter(p => p.is_active).length}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">{activeProductsLabel}</p>
+                  <p className="text-2xl font-bold leading-tight text-emerald-600">{products.filter(p => p.is_active).length}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-destructive/20 col-span-2 md:col-span-1">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                  <XCircle className="w-5 h-5 text-destructive" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">غير نشطة</p>
+                  <p className="text-2xl font-bold leading-tight text-destructive">{products.filter(p => !p.is_active).length}</p>
                 </div>
               </CardContent>
             </Card>
