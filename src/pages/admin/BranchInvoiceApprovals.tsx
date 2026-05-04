@@ -848,12 +848,13 @@ const BranchInvoiceApprovals: React.FC = () => {
                 {customerInvoicesQ.data!.map((r: any) => {
                   const pm = r.order?.invoice_payment_method || r.payment_method;
                   const pmLabel: Record<string, string> = {
-                    gros: 'جملة', super_gros: 'سوبر جملة', retail: 'تجزئة',
-                    cash: 'نقدًا', cheque: 'شيك', credit: 'دين',
+                    cash: 'Espèces', check: 'Chèque', cheque: 'Chèque', transfer: 'Virement', receipt: 'Versement', credit: 'دين',
                   };
                   const pmText = pm ? (pmLabel[pm] || pm) : '—';
                   const pmColor = pm === 'cash' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : pm === 'cheque' ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : (pm === 'cheque' || pm === 'check') ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : pm === 'transfer' ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    : pm === 'receipt' ? 'bg-amber-50 text-amber-700 border-amber-200'
                     : pm === 'credit' ? 'bg-rose-50 text-rose-700 border-rose-200'
                     : 'bg-slate-100 text-slate-700 border-slate-200';
                   const products = Array.isArray(r.products) ? r.products : [];
