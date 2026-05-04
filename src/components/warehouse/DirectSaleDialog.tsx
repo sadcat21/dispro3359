@@ -1372,12 +1372,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t bg-background flex items-center gap-2">
+          <div className="p-3 border-t bg-background flex items-center gap-2">
             {currentStep > 1 && (
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 px-4"
+                className="h-10 px-4"
                 onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
               >
                 السابق
@@ -1386,7 +1386,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             {currentStep < 3 ? (
               <Button
                 type="button"
-                className="flex-1 h-12 text-base"
+                className="flex-1 h-10 text-sm"
                 onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
                 disabled={(currentStep === 1 && !selectedCustomerId) || (currentStep === 2 && orderItems.length === 0)}
               >
