@@ -576,6 +576,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     return { totalItems, subtotal, stampAmount, stampPercentage, totalAmount: subtotal + stampAmount };
   }, [orderItems, paymentType, invoicePaymentMethod, stampTiers]);
 
+  // Report header info to parent
+  useEffect(() => {
+    onHeaderInfo?.({ customerName: selectedCustomer?.name || null, totalAmount: orderTotals.totalAmount });
+  }, [selectedCustomer?.name, orderTotals.totalAmount, onHeaderInfo]);
+
   // Show payment dialog before completing
   const handleSave = () => {
     if (!selectedCustomerId) { toast.error(t('orders.select_customer_error')); return; }
