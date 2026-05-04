@@ -204,6 +204,7 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchSuppliers();
 
     // Realtime subscription for products
     const baseChannelName = 'products-realtime';
