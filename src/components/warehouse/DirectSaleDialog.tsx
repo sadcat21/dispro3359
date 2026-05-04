@@ -928,17 +928,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                       {t('common.loading')}
                     </span>
                   ) : selectedCustomer ? (
-                    <CustomerSummary
-                      customer={{
-                        name: selectedCustomer.name,
-                        store_name: selectedCustomer.store_name,
-                        customer_type: selectedCustomer.customer_type,
-                        sector_name: sectors?.find(s => s.id === selectedCustomer.sector_id)?.name,
-                      }}
-                      compact
-                      avatarSize="sm"
-                      showMeta={false}
-                    />
+                    <span className="truncate text-sm font-medium">{selectedCustomer.name}</span>
                   ) : (
                     <span className="text-muted-foreground">{t('orders.select_customer')}</span>
                   )}
@@ -967,31 +957,24 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   }}
                 />
 
-                {/* Selected Customer Info - Compact */}
+                {/* Selected Customer Info */}
                 {selectedCustomer && (
-                  <div className="p-2 bg-muted/50 rounded-lg flex items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                      <CustomerSummary
-                        customer={{
-                          name: selectedCustomer.name,
-                          store_name: selectedCustomer.store_name,
-                          customer_type: selectedCustomer.customer_type,
-                          sector_name: sectors?.find(s => s.id === selectedCustomer.sector_id)?.name,
-                          phone: selectedCustomer.phone,
-                          wilaya: selectedCustomer.wilaya,
-                        }}
-                        compact
-                        avatarSize="sm"
-                        showMeta
-                        footer={(
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
-                              selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
-                                selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
-                            }
-                          </Badge>
-                        )}
-                      />
+                  <div className="p-2.5 bg-muted/50 rounded-lg space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-bold truncate">{selectedCustomer.name}</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
+                        {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
+                          selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
+                            selectedCustomer.default_price_subtype === 'retail' ? t('products.price_retail') : t('products.price_gros')
+                        }
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                      {selectedCustomer.phone && <span>📞 {selectedCustomer.phone}</span>}
+                      {selectedCustomer.wilaya && <span>📍 {selectedCustomer.wilaya}</span>}
+                      {selectedCustomer.customer_type && (
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0">{selectedCustomer.customer_type}</Badge>
+                      )}
                     </div>
                     <CustomerDistanceIndicator
                       customerLatitude={selectedCustomer.latitude}
