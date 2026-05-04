@@ -160,14 +160,6 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
 
   const imagesMap = productImagesQ.data || {};
 
-  const methods = Object.entries(INVOICE_PAYMENT_METHODS) as [InvoicePaymentMethod, typeof INVOICE_PAYMENT_METHODS[InvoicePaymentMethod]][];
-
-  const PAYMENT_COLORS: Record<InvoicePaymentMethod, string> = {
-    receipt: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
-    check: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
-    cash: 'bg-green-600 hover:bg-green-700 text-white border-green-600',
-    transfer: 'bg-orange-600 hover:bg-orange-700 text-white border-orange-600',
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -262,20 +254,11 @@ const MergeInvoicesDialog: React.FC<Props> = ({ open, onOpenChange, customerId, 
         {/* تذييل ثابت: طريقة الدفع + أزرار الإجراءات */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
           <p className="text-xs font-semibold text-muted-foreground">{t('merge_invoices.payment_method')}</p>
-          <div className="grid grid-cols-4 gap-1.5">
-            {methods.map(([methodKey, method]) => (
-              <Button
-                key={methodKey}
-                type="button"
-                size="sm"
-                onClick={() => setPaymentMethod(methodKey)}
-                disabled={mergeMutation.isPending}
-                className={`h-9 px-1 text-xs font-bold transition-opacity ${PAYMENT_COLORS[methodKey]} ${paymentMethod === methodKey ? 'ring-2 ring-offset-1 ring-blue-400' : ''} ${paymentMethod !== null && paymentMethod !== methodKey ? 'opacity-50' : ''}`}
-              >
-                {method.label}
-              </Button>
-            ))}
-          </div>
+          <InvoicePaymentMethodSelect
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            disabled={mergeMutation.isPending}
+          />
           <div className="grid grid-cols-2 gap-2 pt-1">
             <Button
               variant="outline"
