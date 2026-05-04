@@ -526,7 +526,7 @@ const Products: React.FC = () => {
         .update(payload)
         .eq('id', editingProduct.id)
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (
         error &&
@@ -542,7 +542,7 @@ const Products: React.FC = () => {
           .update(fallbackPayload as any)
           .eq('id', editingProduct.id)
           .select('*')
-          .single();
+          .maybeSingle
         updatedProduct = fallbackResult.data;
         error = fallbackResult.error;
         if (!fallbackResult.error && removedColumns.length > 0) {
