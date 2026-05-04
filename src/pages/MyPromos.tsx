@@ -327,8 +327,8 @@ const MyPromosContent: React.FC = () => {
                       <div className="p-4 space-y-3">
                         {(() => {
                           const offer: any = (promo as any).offer;
-                          const saleUnit = (offer?.min_quantity_unit || promo.gift_quantity_unit || 'piece') as 'box' | 'piece';
-                          const giftUnit = (offer?.gift_quantity_unit || promo.gift_quantity_unit || 'piece') as 'box' | 'piece';
+                          const saleUnit = (offer?.min_quantity_unit || (promo as any).gift_quantity_unit || 'piece') as 'box' | 'piece';
+                          const giftUnit = (offer?.gift_quantity_unit || (promo as any).gift_quantity_unit || 'piece') as 'box' | 'piece';
                           const ppb = promo.product?.pieces_per_box;
                           return (
                             <>
