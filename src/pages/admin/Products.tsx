@@ -1069,8 +1069,43 @@ const Products: React.FC = () => {
               {/* Search + Filter Toolbar */}
               <div className="flex flex-col md:flex-row gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h
-          <Card key={product.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => openEditDialog(product)}>
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ابحث بالاسم أو الكود..."
+                    className="pr-9 text-right"
+                  />
+                </div>
+                <div className="flex gap-1 p-1 bg-muted rounded-md">
+                  {([
+                    { v: 'all', label: 'الكل' },
+                    { v: 'active', label: 'النشطة' },
+                    { v: 'inactive', label: 'غير النشطة' },
+                  ] as const).map((opt) => (
+                    <Button
+                      key={opt.v}
+                      type="button"
+                      size="sm"
+                      variant={statusFilter === opt.v ? 'default' : 'ghost'}
+                      className="h-8 text-xs"
+                      onClick={() => setStatusFilter(opt.v)}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Result count */}
+              <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                <span>عرض {sortedProducts.length} من {products.length} منتج</span>
+              </div>
+
+              {/* List */}
+              <div className="space-y-2">
+        {sortedProducts.map((product) => (
+          <Card key={product.id} className="overflow-hidden cursor-pointer hover:shadow-md hover:border-primary/40 transition-all" onClick={() => openEditDialog(product)}>
             <CardContent className="p-0">
               <div className="flex items-center">
                 {/* Product Info */}
@@ -1160,13 +1195,15 @@ const Products: React.FC = () => {
           </Card>
         ))}
 
-          {products.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{t('products.no_products')}</p>
-            </div>
-          )}
-          </div>
+              {sortedProducts.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>{products.length === 0 ? t('products.no_products') : 'لا توجد نتائج مطابقة'}</p>
+                </div>
+              )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="groups" className="mt-4">
