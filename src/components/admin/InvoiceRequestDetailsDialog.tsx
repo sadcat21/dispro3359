@@ -143,7 +143,7 @@ const InvoiceRequestDetailsDialog: React.FC<Props> = ({ open, onOpenChange, requ
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('invoice_details.products_list')}</span>
                 <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {items.map((it: any, i: number) => {
                   const pid = it.product_id || it.productId;
                   const info = pid ? imagesMap[pid] : null;
