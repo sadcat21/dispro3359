@@ -58,17 +58,16 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
     open && effectiveWorkerId ? { workerId: effectiveWorkerId, branchId: activeBranch?.id || undefined, periodStart, periodEnd } : null
   );
 
-  // Fetch the last FINAL REVIEW (stock_discrepancies with notes starting with "مراجعة نهائية")
-  // and check for loading/unloading sessions after it
+  // Fetch the last LOCKED final review session and check for sessions after it
   const { data: reviewInfo, isLoading: isCheckingReview } = useQuery({
     queryKey: ['last-final-review-info', effectiveWorkerId],
     queryFn: async () => {
       const { data: lastFinalReview } = await supabase
-        .from('stock_discrepancies')
-        .select('id, created_at')
+        .from('final_review_sessions')
+        .select('id, locked_at')
         .eq('worker_id', effectiveWorkerId!)
-        .ilike('notes', 'مراجعة نهائية%')
-        .order('created_at', { ascending: false })
+        .eq('status', 'locked')
+        .order('locked_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -80,12 +79,12 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
         .from('loading_sessions')
         .select('id', { count: 'exact', head: true })
         .eq('worker_id', effectiveWorkerId!)
-        .gt('created_at', lastFinalReview.created_at);
+        .gt('created_at', lastFinalReview.locked_at);
 
       return {
         hasReview: true,
         sessionsAfterReview: count || 0,
-        lastReviewDate: lastFinalReview.created_at,
+        lastReviewDate: lastFinalReview.locked_at,
       };
     },
     enabled: open && !!effectiveWorkerId,

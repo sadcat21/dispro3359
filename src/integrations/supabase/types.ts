@@ -2386,6 +2386,169 @@ export type Database = {
           },
         ]
       }
+      final_review_items: {
+        Row: {
+          actual_qty: number
+          created_at: string
+          diff_type: string
+          difference: number
+          expected_qty: number
+          final_review_session_id: string
+          id: string
+          notes: string | null
+          product_id: string
+          reason_code: string | null
+        }
+        Insert: {
+          actual_qty?: number
+          created_at?: string
+          diff_type: string
+          difference?: number
+          expected_qty?: number
+          final_review_session_id: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          reason_code?: string | null
+        }
+        Update: {
+          actual_qty?: number
+          created_at?: string
+          diff_type?: string
+          difference?: number
+          expected_qty?: number
+          final_review_session_id?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          reason_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_review_items_final_review_session_id_fkey"
+            columns: ["final_review_session_id"]
+            isOneToOne: false
+            referencedRelation: "final_review_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_review_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      final_review_sessions: {
+        Row: {
+          accounting_session_id: string | null
+          branch_id: string | null
+          created_at: string
+          deficit_count: number | null
+          id: string
+          locked_at: string | null
+          manager_confirmed_at: string | null
+          matched_count: number | null
+          notes: string | null
+          review_date: string
+          started_at: string
+          status: string
+          surplus_count: number | null
+          total_actual: number | null
+          total_expected: number | null
+          updated_at: string
+          warehouse_manager_id: string
+          worker_confirmed_at: string | null
+          worker_id: string
+        }
+        Insert: {
+          accounting_session_id?: string | null
+          branch_id?: string | null
+          created_at?: string
+          deficit_count?: number | null
+          id?: string
+          locked_at?: string | null
+          manager_confirmed_at?: string | null
+          matched_count?: number | null
+          notes?: string | null
+          review_date?: string
+          started_at?: string
+          status?: string
+          surplus_count?: number | null
+          total_actual?: number | null
+          total_expected?: number | null
+          updated_at?: string
+          warehouse_manager_id: string
+          worker_confirmed_at?: string | null
+          worker_id: string
+        }
+        Update: {
+          accounting_session_id?: string | null
+          branch_id?: string | null
+          created_at?: string
+          deficit_count?: number | null
+          id?: string
+          locked_at?: string | null
+          manager_confirmed_at?: string | null
+          matched_count?: number | null
+          notes?: string | null
+          review_date?: string
+          started_at?: string
+          status?: string
+          surplus_count?: number | null
+          total_actual?: number | null
+          total_expected?: number | null
+          updated_at?: string
+          warehouse_manager_id?: string
+          worker_confirmed_at?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_review_sessions_accounting_session_id_fkey"
+            columns: ["accounting_session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_review_sessions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_review_sessions_warehouse_manager_id_fkey"
+            columns: ["warehouse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_review_sessions_warehouse_manager_id_fkey"
+            columns: ["warehouse_manager_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_review_sessions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_review_sessions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       handover_items: {
         Row: {
           amount: number
@@ -5942,12 +6105,14 @@ export type Database = {
           branch_id: string | null
           created_at: string
           discrepancy_type: string
+          final_review_session_id: string | null
           id: string
           notes: string | null
           price_per_unit: number | null
           pricing_method: string | null
           product_id: string
           quantity: number
+          reason_code: string | null
           remaining_quantity: number
           resolved_at: string | null
           resolved_by: string | null
@@ -5962,12 +6127,14 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           discrepancy_type: string
+          final_review_session_id?: string | null
           id?: string
           notes?: string | null
           price_per_unit?: number | null
           pricing_method?: string | null
           product_id: string
           quantity?: number
+          reason_code?: string | null
           remaining_quantity?: number
           resolved_at?: string | null
           resolved_by?: string | null
@@ -5982,12 +6149,14 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           discrepancy_type?: string
+          final_review_session_id?: string | null
           id?: string
           notes?: string | null
           price_per_unit?: number | null
           pricing_method?: string | null
           product_id?: string
           quantity?: number
+          reason_code?: string | null
           remaining_quantity?: number
           resolved_at?: string | null
           resolved_by?: string | null
@@ -5997,7 +6166,15 @@ export type Database = {
           updated_at?: string
           worker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stock_discrepancies_final_review_session_id_fkey"
+            columns: ["final_review_session_id"]
+            isOneToOne: false
+            referencedRelation: "final_review_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stock_disputes: {
         Row: {
@@ -8221,6 +8398,7 @@ export type Database = {
           password_hash: string
           personal_phone: string | null
           print_name: string | null
+          review_pin_hash: string | null
           role: Database["public"]["Enums"]["app_role"]
           salary: number | null
           updated_at: string
@@ -8243,6 +8421,7 @@ export type Database = {
           password_hash: string
           personal_phone?: string | null
           print_name?: string | null
+          review_pin_hash?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           salary?: number | null
           updated_at?: string
@@ -8265,6 +8444,7 @@ export type Database = {
           password_hash?: string
           personal_phone?: string | null
           print_name?: string | null
+          review_pin_hash?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           salary?: number | null
           updated_at?: string
@@ -8684,6 +8864,10 @@ export type Database = {
         }[]
       }
       has_custom_role: { Args: { p_role_code: string }; Returns: boolean }
+      has_locked_final_review: {
+        Args: { _from: string; _to: string; _worker_id: string }
+        Returns: boolean
+      }
       insert_promo_ledger_entry: {
         Args: {
           p_created_by: string
@@ -8848,6 +9032,10 @@ export type Database = {
           order_id: string
         }[]
       }
+      set_worker_review_pin: {
+        Args: { _pin: string; _worker_id: string }
+        Returns: undefined
+      }
       set_worker_session: { Args: { p_worker_id: string }; Returns: undefined }
       start_loading_session_atomic: {
         Args: { p_notes?: string; p_worker_id: string }
@@ -8931,6 +9119,10 @@ export type Database = {
           updated_at: string
           username: string
         }[]
+      }
+      verify_worker_review_pin: {
+        Args: { _pin: string; _worker_id: string }
+        Returns: boolean
       }
       worker_has_custom_role: {
         Args: { p_role_code: string; p_worker_id: string }
