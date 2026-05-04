@@ -214,6 +214,11 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   // Customer selection state
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+
+  // Extra products to include as columns in the print sheet (products not present in any order)
+  const [extraPrintProductIds, setExtraPrintProductIds] = useState<Set<string>>(new Set());
+  const [showExtraProductsPicker, setShowExtraProductsPicker] = useState(false);
+  const [extraProductsSearch, setExtraProductsSearch] = useState('');
   
   // Cash Van reserve products state
   const [showCashVanDialog, setShowCashVanDialog] = useState(false);
