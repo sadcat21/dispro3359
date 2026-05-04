@@ -803,15 +803,31 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             );
           })}
 
-          {isFieldWorker && !isTodayCustomersHidden && (
-            <button
-              onClick={() => setTodayCustomersOpen(true)}
-              className="absolute left-1/2 -top-7 z-10 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xl shadow-destructive/40 ring-4 ring-background transition-transform active:scale-95 hover:scale-105"
-              title={t("tooltip.today_customers")}
-              aria-label={t("tooltip.today_customers")}
-            >
-              <CalendarCheck className="h-7 w-7" strokeWidth={2.5} />
-            </button>
+          {centerAction && (
+            centerAction.type === 'today' ? (
+              <button
+                onClick={() => setTodayCustomersOpen(true)}
+                className="absolute left-1/2 -top-7 z-10 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xl shadow-destructive/40 ring-4 ring-background transition-transform active:scale-95 hover:scale-105"
+                title={t("tooltip.today_customers")}
+                aria-label={t("tooltip.today_customers")}
+              >
+                <CalendarCheck className="h-7 w-7" strokeWidth={2.5} />
+              </button>
+            ) : (
+              <Link
+                to={centerAction.to}
+                className="absolute left-1/2 -top-7 z-10 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-xl shadow-destructive/40 ring-4 ring-background transition-transform active:scale-95 hover:scale-105"
+                title={centerAction.label}
+                aria-label={centerAction.label}
+              >
+                <centerAction.icon className="h-7 w-7" strokeWidth={2.5} />
+                {(centerAction.badge ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-background text-destructive border-2 border-destructive text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold">
+                    {centerAction.badge! > 99 ? '99+' : centerAction.badge}
+                  </span>
+                )}
+              </Link>
+            )
           )}
 
           {/* Invoice Request Button */}
