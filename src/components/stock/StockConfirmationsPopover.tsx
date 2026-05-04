@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Truck, Check, ChevronDown, ChevronUp, Loader2, Package, AlertTriangle, Inbox, Send, History, Edit, Scale, CheckCheck, X, Lock, Unlock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -607,7 +607,21 @@ const StockConfirmationsPopover: React.FC = () => {
   const totalBadge = isWarehouseManager ? managerHook.needsAttentionCount : workerHook.pendingCount;
 
   const handleApprove = (id: string) => {
-    workerHook.approveConfirmation.mutate(id);
+    workerHook.approveConfirmation.mutate(id, {
+      onError: (err: any) => {
+        const msg = err?.message || '';
+        if (!msg.includes('Insufficient warehouse stock')) return;
+        const conf = (workerHook.confirmations || []).find(c => c.id === id);
+        if (!conf) return;
+        // parse "Insufficient warehouse stock for <name>"
+        const match = msg.match(/Insufficient warehouse stock for (.+)/);
+        const productName = match ? match[1].trim() : '';
+        const items = (conf.items || []).filter(it =>
+          productName ? (it.product_name === productName || it.product_app_name === productName) : true
+        );
+        setShortageItems(items.length > 0 ? items : (conf.items || []));
+      },
+    });
   };
 
   const handleReject = (id: string, note: string) => {
@@ -618,6 +632,14 @@ const StockConfirmationsPopover: React.FC = () => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
   };
 
+
+  // Out-of-stock popup
+  const [shortageItems, setShortageItems] = useState<StockConfirmationItem[]>([]);
+  useEffect(() => {
+    if (shortageItems.length === 0) return;
+    const t = setTimeout(() => setShortageItems([]), 5000);
+    return () => clearTimeout(t);
+  }, [shortageItems]);
 
   return (
     <>
@@ -707,6 +729,43 @@ const StockConfirmationsPopover: React.FC = () => {
               </TabsContent>
             </div>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Insufficient stock popup */}
+      <Dialog open={shortageItems.length > 0} onOpenChange={(o) => { if (!o) setShortageItems([]); }}>
+        <DialogContent className="max-w-sm w-[92vw] p-0 gap-0 border-destructive">
+          <DialogHeader className="px-4 pt-4 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-base text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              كمية غير متوفرة في المخزن
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-4 pb-4 space-y-2">
+            <p className="text-xs text-muted-foreground">
+              المنتجات التالية الكمية المطلوبة منها غير متوفرة:
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {shortageItems.map((it, idx) => {
+                const displayName = getProductDisplayName({ name: it.product_name, app_name: it.product_app_name });
+                return (
+                  <div key={idx} className="border border-destructive/40 rounded-lg p-2 flex flex-col items-center text-center bg-red-50 dark:bg-red-950/20">
+                    {it.image_url ? (
+                      <img src={it.image_url} className="w-16 h-16 rounded-lg object-cover mb-1" alt={displayName} />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center mb-1">
+                        <Package className="w-7 h-7 text-muted-foreground" />
+                      </div>
+                    )}
+                    <p className="text-[11px] font-bold leading-tight line-clamp-2">{displayName}</p>
+                    <Badge className="bg-destructive text-white text-[10px] px-1.5 py-0 mt-1">
+                      المطلوب: {fmtQty(it.quantity)}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
