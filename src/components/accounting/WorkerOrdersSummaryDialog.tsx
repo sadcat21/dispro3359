@@ -477,7 +477,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       const dayEnd = `${selectedDate}T23:59:59+01:00`;
 
       const filterCol = activeTab === 'created' ? 'created_by' : 'assigned_worker_id';
-      const { data: ordersData } = await supabase
+      let ordersQuery = supabase
         .from('orders')
         .select(`
           *,
@@ -486,10 +486,14 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           order_items(*, product:products(*))
         `)
         .eq(filterCol, workerId)
-        .gte('created_at', dayStart)
-        .lte('created_at', dayEnd)
         .in('status', ['pending', 'assigned', 'in_progress', 'delivered', 'completed', 'confirmed'])
         .order('created_at', { ascending: true });
+      if (isDeliveryMode) {
+        ordersQuery = ordersQuery.eq('delivery_date', selectedDate);
+      } else {
+        ordersQuery = ordersQuery.gte('created_at', dayStart).lte('created_at', dayEnd);
+      }
+      const { data: ordersData } = await ordersQuery;
 
       let fetchedOrders = (ordersData || []) as unknown as OrderWithDetails[];
       
