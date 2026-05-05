@@ -1118,11 +1118,14 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                             <Package className="h-3.5 w-3.5" />
                             {item.quantity}
                           </div>
-                          {item.giftQuantity > 0 && (
-                            <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
-                              🎁 {formatGiftDisplay(Number(item.giftQuantity || 0), Math.max(1, Number(item.piecesPerBox || 1)))}
-                            </div>
-                          )}
+                           {(item.giftQuantity > 0 || item.giftPieces > 0) && (
+                             <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
+                               🎁 {formatGiftDisplay(
+                                 (Number(item.giftQuantity || 0) * Math.max(1, Number(item.piecesPerBox || 1))) + Number(item.giftPieces || 0),
+                                 Math.max(1, Number(item.piecesPerBox || 1))
+                               )}
+                             </div>
+                           )}
                         </div>
                         {!!Object.keys(item.subtypeQuantities || {}).length && (
                           <div className="flex flex-wrap gap-1">
