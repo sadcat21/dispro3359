@@ -15,6 +15,7 @@ import { buildPricingGroups } from './PricingGroupsSummary';
 import PricingGroupsSummary from './PricingGroupsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
+import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 /** Format quantity as boxes.pieces (e.g. 1.05 = 1 box + 5 pieces) */
 const formatBoxPieces = (qty: number, piecesPerBox: number | null): string => {
   if (!piecesPerBox || piecesPerBox <= 0) return String(qty);
@@ -433,14 +434,14 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             customers: [],
           };
         }
-        agg[item.product_id].quantity += item.quantity || 0;
-        agg[item.product_id].giftQuantity += item.gift_quantity || 0;
+        agg[item.product_id].quantity += getPaidQuantity(item);
+        agg[item.product_id].giftQuantity += getGiftTotalPieces(item);
         agg[item.product_id].totalAmount += item.total_price || 0;
 
         const existing = agg[item.product_id].customers.find(c => c.customerId === customerId);
         if (existing) {
-          existing.quantity += item.quantity || 0;
-          existing.giftQuantity += item.gift_quantity || 0;
+          existing.quantity += getPaidQuantity(item);
+          existing.giftQuantity += getGiftTotalPieces(item);
           existing.totalAmount += item.total_price || 0;
         } else {
           agg[item.product_id].customers.push({
@@ -449,8 +450,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             storeName: String(customerStoreMap.get(String(customerId)) || '') || null,
             phone: String(customerPhoneMap.get(String(customerId)) || '') || null,
             deliveryTime: String(orderTimeMap.get(item.order_id) || '') || null,
-            quantity: item.quantity || 0,
-            giftQuantity: item.gift_quantity || 0,
+            quantity: getPaidQuantity(item),
+            giftQuantity: getGiftTotalPieces(item),
             totalAmount: item.total_price || 0,
           });
         }
@@ -477,10 +478,10 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         if (!productName) continue;
 
         const rawQty = Number(item.quantity || 0);
-        const giftQty = Number(item.gift_quantity || 0);
+        const giftQty = getGiftTotalPieces(item);
         const unitPrice = Number(item.unit_price || 0);
         const totalPrice = Number(item.total_price || 0);
-        const paidQtyByDiff = rawQty - giftQty;
+        const paidQtyByDiff = rawQty - (Number((item as any).pieces_per_box || 1) > 0 ? giftQty / Number((item as any).pieces_per_box || 1) : giftQty);
         const paidQtyByAmount = unitPrice > 0 ? totalPrice / unitPrice : 0;
         const paidQty = Number(Math.max(0, paidQtyByDiff > 0 ? paidQtyByDiff : paidQtyByAmount).toFixed(3));
         if (paidQty <= 0) continue;
