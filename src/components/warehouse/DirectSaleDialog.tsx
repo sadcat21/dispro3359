@@ -335,8 +335,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const product = allProducts.find(p => p.id === item.productId) || availableProducts.find(p => p.id === item.productId);
     if (!product) return;
     const piecesPerBox = item.piecesPerBox ?? product.pieces_per_box ?? 1;
-    const paidQuantity = Math.max(1, item.quantity - (item.giftQuantity || 0));
-    const totalGiftPieces = item.isUnitSale ? 0 : ((item.giftQuantity || 0) * piecesPerBox + (item.giftPieces || 0));
+    const paidQuantity = Math.max(1, getStoredPaidQuantity({
+      quantity: item.quantity,
+      gift_quantity: item.giftQuantity,
+      gift_pieces: item.giftPieces,
+      pieces_per_box: piecesPerBox,
+      unit_price: item.unitPrice,
+      total_price: item.totalPrice,
+    }));
+    const totalGiftPieces = item.isUnitSale ? 0 : getGiftTotalPieces({
+      gift_quantity: item.giftQuantity,
+      gift_pieces: item.giftPieces,
+      pieces_per_box: piecesPerBox,
+    });
 
     setEditingProductMode(true);
     setEditingTargetProductId(item.productId);
@@ -410,11 +421,14 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     setOrderItems(prev => {
       const existing = prev.find(item => item.productId === productId && !item.customUnitPrice && !customUnitPrice && item.priceSubType === computed.subType && item.itemPaymentType === computed.payType);
       if (existing) {
-        const newQuantity = Math.min(existing.quantity + quantity, available + giftQuantity);
-        const newPaid = Math.max(0, newQuantity - giftQuantity);
+        const incomingGiftBoxes = getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
+        const newQuantity = Math.min(existing.quantity + quantity, available + incomingGiftBoxes);
+        const mergedGiftBoxes = Number(existing.giftQuantity || 0) + giftQuantity;
+        const mergedGiftPieces = Number(existing.giftPieces || 0) + giftPieces;
+        const newPaid = Math.max(0, newQuantity - getGiftTotalBoxes({ gift_quantity: mergedGiftBoxes, gift_pieces: mergedGiftPieces, pieces_per_box: product.pieces_per_box || 1 }));
         return prev.map(item =>
           item === existing
-            ? { ...item, quantity: newQuantity, totalPrice: newPaid * unitPrice }
+            ? { ...item, quantity: newQuantity, totalPrice: newPaid * unitPrice, giftQuantity: mergedGiftBoxes || undefined, giftPieces: mergedGiftPieces || undefined }
             : item
         );
       }
@@ -498,7 +512,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       ? resolveCustomSalePrice(product, overflowData.customUnitPrice, false)
       : getProductPrice(product);
     const giftQuantity = giftInfo?.giftQuantity || 0;
-    const totalQty = deliveredQty + giftQuantity;
+    const giftPieces = giftInfo?.giftPieces || 0;
+    const totalQty = deliveredQty + getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
     const paidQty = deliveredQty;
 
     setOrderItems(prev => [...prev, {
@@ -508,7 +523,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       totalPrice: paidQty * unitPrice,
       customUnitPrice: overflowData.customUnitPrice,
       giftQuantity: giftQuantity || undefined,
-      giftPieces: giftInfo?.giftPieces || undefined,
+      giftPieces: giftPieces || undefined,
       giftOfferId: giftInfo?.offerId,
       offerNote: offerNote || undefined,
     }]);
@@ -1330,7 +1345,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                           )}
                           {item.unitPrice > 0 && (
                             <span className="text-xs text-muted-foreground">
-                              {item.unitPrice.toLocaleString()} {t('common.currency')} × {item.quantity - (item.giftQuantity || 0)} = {item.totalPrice.toLocaleString()} {t('common.currency')}
+                              {item.unitPrice.toLocaleString()} {t('common.currency')} × {getStoredPaidQuantity({ quantity: item.quantity, gift_quantity: item.giftQuantity, gift_pieces: item.giftPieces, pieces_per_box: item.piecesPerBox || 1, unit_price: item.unitPrice, total_price: item.totalPrice })} = {item.totalPrice.toLocaleString()} {t('common.currency')}
                             </span>
                           )}
                         </div>
