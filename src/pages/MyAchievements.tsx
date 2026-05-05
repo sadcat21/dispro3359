@@ -319,8 +319,9 @@ const MyAchievements: React.FC = () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       // عند عرض "اليوم" فقط: ابدأ من نهاية آخر جلsة محاسبية مكتملة وحتى اللحظة الحالية
       const isTodayOnly = dateFrom === today && dateTo === today;
-      let lowerBound = `${dateFrom}T00:00:00`;
-      let upperBound = `${dateTo}T23:59:59`;
+      // Use local timezone-aware ISO bounds so UTC+X users see correct "today"
+      let lowerBound = new Date(`${dateFrom}T00:00:00`).toISOString();
+      let upperBound = new Date(`${dateTo}T23:59:59`).toISOString();
 
       if (isTodayOnly) {
         const { data: lastSession } = await supabase
@@ -332,7 +333,15 @@ const MyAchievements: React.FC = () => {
           .limit(1)
           .maybeSingle();
         const lastEnd = lastSession?.completed_at || lastSession?.period_end;
-        if (lastEnd) lowerBound = new Date(lastEnd).toISOString();
+        if (lastEnd) {
+          const lastEndDate = new Date(lastEnd);
+          const startOfLocalDay = new Date();
+          startOfLocalDay.setHours(0, 0, 0, 0);
+          // Use whichever is later: last session end or start of local day
+          lowerBound = lastEndDate > startOfLocalDay
+            ? lastEndDate.toISOString()
+            : startOfLocalDay.toISOString();
+        }
         upperBound = new Date().toISOString();
       }
 
