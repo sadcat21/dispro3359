@@ -433,11 +433,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   !isUnitSale
                     ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
                     : "bg-muted text-muted-foreground border-border"
-                )} variant="outline" onClick={() => {
+                 )} variant="outline" onClick={() => {
                   if (isUnitSale) {
                     setIsUnitSale(false);
-                    setPaidQuantity(1);
-                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setPaidQuantity(0);
+                    setQuantityFields({ boxes: '', pieces: '' });
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }
@@ -449,9 +449,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   checked={isUnitSale}
                   onCheckedChange={(checked) => {
                     setIsUnitSale(checked);
-                    setUnitQuantityInput('1');
-                    setPaidQuantity(1);
-                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setUnitQuantityInput('');
+                    setPaidQuantity(0);
+                    setQuantityFields({ boxes: '', pieces: '' });
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }}
@@ -461,12 +461,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   isUnitSale
                     ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
                     : "bg-muted text-muted-foreground border-border"
-                )} variant="outline" onClick={() => {
+                 )} variant="outline" onClick={() => {
                   if (!isUnitSale) {
                     setIsUnitSale(true);
-                    setUnitQuantityInput('1');
-                    setPaidQuantity(1);
-                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setUnitQuantityInput('');
+                    setPaidQuantity(0);
+                    setQuantityFields({ boxes: '', pieces: '' });
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }
