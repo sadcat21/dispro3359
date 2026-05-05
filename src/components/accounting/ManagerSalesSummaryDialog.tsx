@@ -277,7 +277,8 @@ const mergeProducts = (summaries: WorkerSummary[]): ProductAgg[] => {
 
       const current = map.get(item.productId)!;
       current.quantity += item.quantity;
-      current.giftQuantity += item.giftQuantity;
+       current.giftQuantity += item.giftQuantity;
+       current.giftPieces += item.giftPieces;
       current.totalAmount += item.totalAmount;
       current.subtypeQuantities = {
         ...(current.subtypeQuantities || {}),
