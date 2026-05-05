@@ -297,7 +297,8 @@ const mergeProducts = (summaries: WorkerSummary[]): ProductAgg[] => {
         const existing = current.customers.find((c) => c.customerId === customer.customerId);
         if (existing) {
           existing.quantity += customer.quantity;
-          existing.giftQuantity += customer.giftQuantity;
+           existing.giftQuantity += customer.giftQuantity;
+           existing.giftPieces += customer.giftPieces;
           existing.totalAmount += customer.totalAmount;
           existing.deliveryTime = existing.deliveryTime || customer.deliveryTime;
         } else {
