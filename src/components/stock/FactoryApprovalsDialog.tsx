@@ -25,6 +25,7 @@ import { useApproveFactoryOrder, useRejectFactoryOrder } from '@/hooks/useFactor
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode?: 'branch_manager' | 'assistant';
 }
 
 interface ReceiptItemDetail {
