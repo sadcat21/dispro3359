@@ -66,6 +66,7 @@ export const useProductOffers = () => {
 
   const fetchActiveOffers = async () => {
     try {
+      await deactivateExpiredOffers();
       const { data, error } = await supabase
         .from('product_offers')
         .select(`
