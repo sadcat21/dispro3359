@@ -46,6 +46,7 @@ interface ProductAgg {
   name: string;
   quantity: number;
   giftQuantity: number;
+  giftPieces: number;
   totalAmount: number;
   piecesPerBox: number | null;
   imageUrl: string | null;
