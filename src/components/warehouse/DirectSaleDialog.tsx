@@ -1190,7 +1190,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                               <span className="font-bold text-sm truncate">{getProductDisplayName(product)}</span>
                               <div className="flex items-center gap-1 shrink-0">
                                 <Badge variant="outline" className="text-[10px] px-1.5">{available}</Badge>
-                                {inCart && <Badge variant="default" className="text-xs px-2">{totalCartQuantity}</Badge>}
+                                {inCart && <Badge variant="default" className="text-xs px-2 font-mono" dir="ltr">{boxesToBPAlways(totalCartQuantity + (totalGiftPieces / Math.max(1, product.pieces_per_box || 1)), product.pieces_per_box || 1)}</Badge>}
                               </div>
                             </div>
                             <div className="mt-1">
