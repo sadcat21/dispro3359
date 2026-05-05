@@ -702,27 +702,35 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const useRecalc = recalcTotalGiftPieces > storedTotalGiftPieces;
         const effGiftBoxes = useRecalc ? recalculated.giftBoxes : storedGiftBoxes;
         const effGiftPieces = useRecalc ? recalculated.giftPieces : storedGiftPieces;
-        // item.quantity already includes gift boxes (paidBoxes + giftBoxes). Add only the extra gift pieces.
-        // If we recalculated extra gift boxes beyond stored ones, include them too.
+
+        // item.quantity (b.p) = paidBoxes + storedGiftBoxes (already included). Add extra gift boxes if recalculated higher.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
-        const stockDeduction = Number(item.quantity || 0) + extraGiftBoxes + (effGiftPieces / 100);
+        // Convert sold qty (b.p) to total pieces
+        const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
+        const soldBoxes = Math.floor(qtyRounded);
+        const soldDec = Math.round((qtyRounded - soldBoxes) * 100);
+        const soldPieces = soldBoxes * ppb + soldDec;
+        const totalDeductPieces = soldPieces + extraGiftBoxes * ppb + effGiftPieces;
+
         const ws = stockItems?.find(s => s.product_id === item.productId);
         if (ws) {
-          if (isWarehouseManager) {
-            await supabase.from('warehouse_stock')
-              .update({ quantity: Math.max(0, ws.quantity - stockDeduction) })
-              .eq('id', ws.id);
-          } else {
-            await supabase.from('worker_stock')
-              .update({ quantity: ws.quantity - stockDeduction })
-              .eq('id', ws.id);
-          }
+          const stockRounded = Math.round(Number(ws.quantity || 0) * 100) / 100;
+          const stockBoxes = Math.floor(stockRounded);
+          const stockDec = Math.round((stockRounded - stockBoxes) * 100);
+          const stockPieces = stockBoxes * ppb + stockDec;
+          const remainingPieces = Math.max(0, stockPieces - totalDeductPieces);
+          const newBoxes = Math.floor(remainingPieces / ppb);
+          const newRem = Math.round(remainingPieces % ppb);
+          const newQty = newBoxes + newRem / 100;
+          const stockTable = isWarehouseManager ? 'warehouse_stock' : 'worker_stock';
+          await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
         }
-        // Record stock movement
+        // Record stock movement (in b.p form, including gift portion)
+        const movementQty = qtyRounded + extraGiftBoxes + (effGiftPieces / 100);
         await supabase.from('stock_movements').insert({
           product_id: item.productId,
           branch_id: order.branch_id || activeBranch?.id || null,
-          quantity: stockDeduction,
+          quantity: movementQty,
           movement_type: 'delivery',
           status: 'approved',
           created_by: workerId!,
