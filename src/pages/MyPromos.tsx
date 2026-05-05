@@ -118,7 +118,7 @@ const MyPromosContent: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [promosRes, customersRes, productsRes] = await Promise.all([
+      const [promosRes, customersRes, productsRes, offersRes] = await Promise.all([
         supabase
           .from('promos')
           .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity)`)
