@@ -24,11 +24,11 @@ interface AggregatedRow {
   productId: string;
   productName: string;
   imageUrl?: string | null;
-  loaded: number;   // مجموع الشحن (B.P)
-  unloaded: number; // مجموع التفريغ (B.P)
-  sold: number;     // مجموع المبيعات (B.P)
-  gifts: number;    // مجموع الهدايا (B.P)
-  expected: number; // المتوقع المتبقي (B.P)
+  loaded: number;   // قطع إجمالية
+  unloaded: number; // قطع إجمالية
+  sold: number;     // قطع إجمالية
+  gifts: number;    // قطع إجمالية
+  expected: number; // قطع إجمالية المتبقي
   expectedBoxes: number;
   expectedPieces: number;
   actualBoxes: string;
@@ -36,6 +36,16 @@ interface AggregatedRow {
   confirmed: boolean;
   ppb: number;
 }
+
+// عرض موحّد بصيغة B.P (boxes.pp) — يطابق formatGiftDisplay في تجميعات المبيعات والعروض
+const formatBP = (totalPieces: number, piecesPerBox: number): string => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  const p = Math.max(0, Math.round(totalPieces));
+  if (ppb <= 1) return `${p}`;
+  const boxes = Math.floor(p / ppb);
+  const remaining = p % ppb;
+  return `${boxes}.${String(remaining).padStart(2, '0')}`;
+};
 
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   open, onOpenChange, workerId, workerName, branchId,
