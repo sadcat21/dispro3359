@@ -287,7 +287,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       setEditingIsUnitSale(!!existingItem.isUnitSale);
     } else {
       setEditingProductMode(false);
-      setEditingInitialQuantity(1);
+      setEditingInitialQuantity(0);
       setEditingInitialGiftPieces(0);
       setEditingInitialOfferApplied(false);
       setEditingInitialGiftOfferId(undefined);
