@@ -140,18 +140,30 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           confirmed: false,
           ppb: prod.pieces_per_box || 1,
         });
+        // helper: B.P stored value (e.g. 5.03 with ppb=20) → total pieces
+        const bpToPieces = (val: number, ppb: number): number => {
+          const v = Number(val || 0);
+          const boxes = Math.floor(Math.round(v * 100) / 100);
+          const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
+          return boxes * ppb + piecesDec;
+        };
+
         for (const it of loadItems) {
           const pid = it.product_id;
           const prod = it.product || {};
           const ex = map.get(pid) || baseRow(pid, prod);
-          ex.loaded += Number(it.quantity || 0);
+          const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+          ex.loaded += bpToPieces(Number(it.quantity || 0), ppb);
+          // gift_quantity in loading_session_items represents pieces
+          ex.gifts += Math.max(0, Number((it as any).gift_quantity || 0));
           map.set(pid, ex);
         }
         for (const m of (unloadMoves || [])) {
           const pid = m.product_id;
           const prod = (m as any).product || {};
           const ex = map.get(pid) || baseRow(pid, prod);
-          ex.unloaded += Number(m.quantity || 0);
+          const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+          ex.unloaded += bpToPieces(Number(m.quantity || 0), ppb);
           map.set(pid, ex);
         }
 
@@ -166,43 +178,32 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         if (deliveredIds.length > 0) {
           const { data: soldItems } = await supabase
             .from('order_items')
-            .select('product_id, quantity, gift_quantity, gift_pieces, product:products(id, name, image_url, pieces_per_box)')
+            .select('product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
           for (const it of (soldItems || [])) {
             const pid = (it as any).product_id;
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
-            const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
-            // total quantity & gift are stored in B.P format → convert to total pieces
-            const totalPieces = parseBP(Number((it as any).quantity || 0).toFixed(2), ppb).totalPieces;
-            const giftBoxes = Number((it as any).gift_quantity || 0);
-            const giftExtraPieces = Number((it as any).gift_pieces || 0);
-            const giftTotalPieces = Math.floor(giftBoxes) * ppb + giftExtraPieces
-              + Math.round((giftBoxes - Math.floor(giftBoxes)) * 100); // tolerate B.P stored gift_quantity
+            const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
+            // total quantity stored in B.P → total pieces
+            const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
+            // gifts: gift_quantity (boxes) * ppb + gift_pieces (extra pieces) — same convention as WorkerGiftsSummaryDialog
+            const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
+            const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
+            const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
             const soldPieces = Math.max(0, totalPieces - giftTotalPieces);
-            // store back in B.P format (boxes.pieces with pieces as 2-digit decimal of piece count)
-            const piecesToBP = (p: number) => {
-              const b = Math.floor(p / ppb);
-              const r = p % ppb;
-              return b + r / 100;
-            };
-            ex.sold += piecesToBP(soldPieces);
-            ex.gifts += piecesToBP(giftTotalPieces);
+            ex.sold += soldPieces;
+            ex.gifts += giftTotalPieces;
             map.set(pid, ex);
           }
         }
 
         const list = Array.from(map.values()).map(r => {
           const ppb = Math.max(1, Math.round(r.ppb || 1));
-          const loadedPieces = parseBP(Number(r.loaded).toFixed(2), ppb).totalPieces;
-          const unloadedPieces = parseBP(Number(r.unloaded).toFixed(2), ppb).totalPieces;
-          const soldPieces = parseBP(Number(r.sold).toFixed(2), ppb).totalPieces;
-          const giftsPieces = parseBP(Number(r.gifts).toFixed(2), ppb).totalPieces;
-          const expectedTotalPieces = Math.max(0, loadedPieces - unloadedPieces - soldPieces - giftsPieces);
+          const expectedTotalPieces = Math.max(0, r.loaded - r.unloaded - r.sold - r.gifts);
           const expectedBoxes = Math.floor(expectedTotalPieces / ppb);
           const expectedPieces = expectedTotalPieces % ppb;
-          const expected = expectedBoxes + expectedPieces / 100;
-          return { ...r, expected, expectedBoxes, expectedPieces };
+          return { ...r, expected: expectedTotalPieces, expectedBoxes, expectedPieces };
         });
         list.sort((a, b) => a.productName.localeCompare(b.productName));
         if (!cancelled) setRows(list);
