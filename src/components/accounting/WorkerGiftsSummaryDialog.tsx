@@ -338,9 +338,8 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       // Fetch order items with gifts
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_offer_id, pieces_per_box, product:products(name, pieces_per_box, image_url)')
-        .in('order_id', orderIds)
-        .gt('gift_quantity', 0);
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(name, pieces_per_box, image_url)')
+        .in('order_id', orderIds);
 
       // Fetch offer names + rules (single tier or multi-tier)
       const giftOfferIds = new Set<string>();
