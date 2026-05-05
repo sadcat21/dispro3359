@@ -69,6 +69,15 @@ const BranchManagerApprovals: React.FC = () => {
       badge: counts?.warehouseReviews,
       color: 'from-amber-500 to-orange-600',
     },
+    {
+      key: 'stock_receipts',
+      title: 'موافقات الاستلام والتسليم',
+      description: 'مراجعة وصولات استلام وتسليم البضاعة بين العمال والمخزن',
+      icon: PackageCheck,
+      path: '/stock-receipts',
+      badge: counts?.stockReceipts,
+      color: 'from-emerald-500 to-teal-600',
+    },
   ];
 
   return (
