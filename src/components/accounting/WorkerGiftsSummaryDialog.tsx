@@ -20,6 +20,7 @@ import ThermalPreview, { ThermalLine } from '@/components/stock/ThermalPreview';
 import GiftsPrintView, { GiftPrintRow, SummaryRow } from '@/components/accounting/GiftsPrintView';
 import GiftsPrintSettingsDialog, { GiftPrintSettings } from '@/components/accounting/GiftsPrintSettingsDialog';
 import TemplatePrintDialog, { TemplatePrintConfig } from '@/components/accounting/TemplatePrintDialog';
+import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 
 interface Props {
   open: boolean;
@@ -422,10 +423,22 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         if (!order) continue;
 
         const piecesPerBox = Number((item as any).pieces_per_box || (item as any).product?.pieces_per_box || 1);
-        const rawGift = Number(item.gift_quantity || 0);
+        const rawGift = getGiftTotalPieces({
+          quantity: item.quantity,
+          gift_quantity: item.gift_quantity,
+          gift_pieces: (item as any).gift_pieces,
+          pieces_per_box: piecesPerBox,
+        });
         const isDirectSale = String(order?.notes || '').includes('بيع مباشر');
-        const giftPieces = (isDirectSale || piecesPerBox <= 1) ? rawGift : rawGift * piecesPerBox;
-        const soldQty = Math.max(0, Number(item.quantity || 0));
+        const giftPieces = (isDirectSale || piecesPerBox <= 1) ? rawGift : rawGift;
+        const soldQty = getPaidQuantity({
+          quantity: item.quantity,
+          gift_quantity: item.gift_quantity,
+          gift_pieces: (item as any).gift_pieces,
+          pieces_per_box: piecesPerBox,
+          unit_price: (item as any).unit_price,
+          total_price: (item as any).total_price,
+        });
 
         const offerId = item.gift_offer_id || 'unknown';
         const offerRules = offerRulesMap[offerId] || [];
