@@ -317,12 +317,16 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
 
         // Calculate gift value and promo tracking from items
         for (const item of (order.order_items || [])) {
-          const giftQtyRaw = Number(item.gift_quantity || 0);
+          const piecesPerBox = Number((item as any).pieces_per_box || (item as any).product?.pieces_per_box || 1);
+          const giftQtyRaw = getGiftTotalPieces({
+            quantity: item.quantity,
+            gift_quantity: item.gift_quantity,
+            gift_pieces: (item as any).gift_pieces,
+            pieces_per_box: piecesPerBox,
+          });
           if (giftQtyRaw > 0) {
             const boxPrice = calcBoxPrice(item.product);
-            const piecesPerBox = Number((item as any).pieces_per_box || (item as any).product?.pieces_per_box || 1);
             const giftPieces = normalizeOrderGiftToPieces(order, item, piecesPerBox);
-            const giftBoxesForSoldCalc = piecesPerBox > 0 ? giftPieces / piecesPerBox : 0;
             const soldQuantity = getPaidQuantity({
               quantity: item.quantity,
               gift_quantity: item.gift_quantity,
