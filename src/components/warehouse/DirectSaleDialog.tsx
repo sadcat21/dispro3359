@@ -745,10 +745,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const giftBoxesQty = Number(item.giftQuantity || 0);
           const giftPiecesQty = Number(item.giftPieces || 0);
 
-          // Convert sold quantity (box.pieces format) to total pieces
+          // Convert sold quantity (box.pieces format) to total pieces, including gift pieces
           const soldBoxes = Math.floor(Math.round(Number(item.quantity || 0) * 100) / 100);
           const soldDec = Math.round((Math.round(Number(item.quantity || 0) * 100) / 100 - soldBoxes) * 100);
-          const soldPieces = soldBoxes * piecesPerBox + soldDec;
+          const soldPieces = soldBoxes * piecesPerBox + soldDec + giftPiecesQty;
 
           // Convert current stock to total pieces
           const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
