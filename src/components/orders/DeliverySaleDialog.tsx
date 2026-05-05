@@ -735,8 +735,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       // Record gifts in promos table
       const giftItems = activeItems.filter(i => i.giftQuantity > 0);
       for (const item of giftItems) {
-        const offerUnit = item.appliedOffer?.min_quantity_unit || 'box';
-        const giftUnit = item.appliedOffer?.gift_quantity_unit || 'piece';
+        const matchedOffer = activeOffers.find((offer) => offer.id === item.giftOfferId);
+        const offerUnit = matchedOffer?.min_quantity_unit || 'box';
+        const giftUnit = matchedOffer?.gift_quantity_unit || 'piece';
         await supabase.from('promos').insert({
           worker_id: workerId!,
           customer_id: order.customer_id,
@@ -745,7 +746,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           sale_quantity_unit: offerUnit,
           gratuite_quantity: item.giftQuantity,
           gift_quantity_unit: giftUnit,
-          offer_id: item.appliedOffer?.id || null,
+          offer_id: item.giftOfferId || null,
           has_bonus: false,
           bonus_amount: 0,
           notes: `هدية عرض - طلبية ${order.id.slice(0, 8)}`,
