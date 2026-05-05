@@ -553,11 +553,9 @@ const AssistantApprovals: React.FC = () => {
       />
 
       {detailsReceiptId && (
-        <FactoryReceiptQuickDialog
+        <FactoryApprovalsDialog
           open={!!detailsReceiptId}
-          onOpenChange={(v) => { if (!v) setDetailsReceiptId(null); }}
-          editReceiptId={detailsReceiptId}
-          onSaved={() => { setDetailsReceiptId(null); qc.invalidateQueries(); }}
+          onOpenChange={(v) => { if (!v) { setDetailsReceiptId(null); qc.invalidateQueries(); } }}
         />
       )}
     </div>
