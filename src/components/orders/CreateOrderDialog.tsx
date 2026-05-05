@@ -40,6 +40,7 @@ import { useProductOffers } from '@/hooks/useProductOffers';
 import { cn } from '@/lib/utils';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 import { filterCurrentlyActiveOffers } from '@/utils/productOffers';
 import { sendSmsDirectly } from '@/utils/smsHelper';
 
