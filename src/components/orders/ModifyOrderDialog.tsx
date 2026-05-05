@@ -340,14 +340,11 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }, [recalcGiftBoxes]);
 
   const getPaidQuantity = useCallback((item: ModifiedItem) => {
-    return getStoredPaidQuantity({
-      quantity: item.new_quantity,
-      gift_quantity: item.gift_quantity,
-      gift_pieces: item.gift_pieces,
-      pieces_per_box: item.pieces_per_box,
-      unit_price: item.unit_price,
-      total_price: item.unit_price * Math.max(0, item.new_quantity - getGiftTotalBoxes(item)),
-    });
+    // Paid quantity = total boxes minus full-box gifts only.
+    // gift_pieces are EXTRA pieces gifted on top of the paid boxes
+    // (e.g. buy 20 boxes, get 10 pieces free → paid = 20, gift = 10 pieces).
+    const giftBoxes = Math.max(0, Number(item.gift_quantity || 0));
+    return Math.max(0, Number(item.new_quantity || 0) - giftBoxes);
   }, []);
 
   const getProductById = useCallback((productId: string) => {
