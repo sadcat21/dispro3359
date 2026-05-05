@@ -18,7 +18,7 @@ import { useHasPermission } from '@/hooks/usePermissions';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import ProductOfferBadge from '@/components/offers/ProductOfferBadge';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
-import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { parseBP } from '@/utils/boxPieceInput';
 
 export interface GiftInfo {
   giftQuantity: number;
@@ -32,6 +32,39 @@ export interface PerItemPricing {
   priceSubType: PriceSubType;
   customUnitPrice?: number;
 }
+
+interface QuantityFields {
+  boxes: string;
+  pieces: string;
+}
+
+const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
+
+const getPieceDigits = (piecesPerBox: number) => Math.max(2, String(Math.max(0, piecesPerBox - 1)).length);
+
+const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
+  const ppb = Math.max(1, piecesPerBox);
+  const totalPieces = Math.max(0, Math.round(quantity * ppb));
+  const boxes = Math.floor(totalPieces / ppb);
+  const pieces = totalPieces % ppb;
+  const pieceDigits = getPieceDigits(ppb);
+
+  return {
+    boxes: String(boxes),
+    pieces: String(pieces).padStart(pieceDigits, '0'),
+  };
+};
+
+const fieldsToParsedQuantity = (fields: QuantityFields, piecesPerBox: number) => {
+  const boxes = fields.boxes || '0';
+  const pieces = fields.pieces || '0';
+  return parseBP(`${boxes}.${pieces}`, piecesPerBox);
+};
+
+const formatBPQuantity = (quantity: number, piecesPerBox: number) => {
+  const { boxes, pieces } = quantityToFields(quantity, piecesPerBox);
+  return `${boxes}.${pieces}`;
+};
 
 interface ProductQuantityDialogProps {
   open: boolean;
@@ -75,8 +108,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
   const invoiceSaleAllowed = (product as any)?.allow_invoice_sale !== false;
-  const [quantityInput, setQuantityInput] = useState(String(initialQuantity));
   const piecesPerBox = product?.pieces_per_box || 1;
+  const pieceDigits = getPieceDigits(piecesPerBox);
+  const [unitQuantityInput, setUnitQuantityInput] = useState(String(initialQuantity));
+  const [paidQuantity, setPaidQuantity] = useState(initialIsUnitSale ? 0 : initialQuantity);
+  const [quantityFields, setQuantityFields] = useState<QuantityFields>(() => quantityToFields(initialQuantity, piecesPerBox));
   const [giftPieces, setGiftPieces] = useState(initialGiftPieces || 0);
   const [giftOfferId, setGiftOfferId] = useState<string | undefined>(initialGiftOfferId);
   const [offerApplied, setOfferApplied] = useState(initialOfferApplied || initialGiftPieces > 0);
@@ -94,10 +130,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     return value && value !== key ? value : fallback;
   }, [t]);
 
-  // Derived quantity from B.P input
-  const parsed = useMemo(() => parseBP(quantityInput, piecesPerBox), [quantityInput, piecesPerBox]);
-  const quantity = isUnitSale ? (parseInt(quantityInput) || 0) : parsed.boxes;
-  const quantityPieces = isUnitSale ? 0 : parsed.pieces;
+  const quantity = isUnitSale ? (parseInt(unitQuantityInput) || 0) : Math.floor(Math.max(0, paidQuantity));
   const customUnitPriceValue = Number(customUnitPriceInput || 0);
   const hasCustomUnitPrice = Number.isFinite(customUnitPriceValue) && customUnitPriceValue > 0;
   const pricingUnit = product?.pricing_unit || 'box';
@@ -176,7 +209,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   useEffect(() => {
     if (open) {
       setIsUnitSale(initialIsUnitSale);
-      setQuantityInput(initialIsUnitSale ? String(initialQuantity) : boxesToBP(initialQuantity, piecesPerBox));
+      setUnitQuantityInput(String(initialQuantity));
+      setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
     }
   }, [open, initialQuantity, piecesPerBox, initialIsUnitSale]);
 
@@ -209,11 +244,17 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     }
   }, [invoiceSaleAllowed, itemPaymentType]);
 
+  useEffect(() => {
+    if (!open || isUnitSale) return;
+    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
+    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
+  }, [open, isUnitSale, offerApplied, giftPieces, paidQuantity, piecesPerBox]);
+
   // Offer must be applied before confirming (mandatory)
   const hasUnappliedOffer = !isUnitSale && giftPieces > 0 && !offerApplied;
 
   const handleConfirm = () => {
-    const effectiveQty = isUnitSale ? quantity : parsed.totalBoxes;
+    const effectiveQty = isUnitSale ? quantity : Math.max(0, paidQuantity);
     if (product && effectiveQty > 0 && !hasUnappliedOffer) {
       const perItemPricing: PerItemPricing | undefined = (hasPricingSelectionChanges || hasCustomUnitPrice) ? {
         paymentType: itemPaymentType,
@@ -238,7 +279,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           onConfirm(product.id, effectiveQty, undefined, false, perItemPricing);
         }
       }
-      setQuantityInput('1');
+      setUnitQuantityInput('1');
+      setPaidQuantity(1);
+      setQuantityFields(quantityToFields(1, piecesPerBox));
       setGiftPieces(0);
       setGiftOfferId(undefined);
       setOfferApplied(false);
@@ -250,12 +293,15 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   };
 
   const handleQuantityChange = (delta: number) => {
-    const newQty = Math.max(1, quantity + delta);
     if (isUnitSale) {
-      setQuantityInput(String(newQty));
-    } else {
-      setQuantityInput(boxesToBP(newQty + quantityPieces / piecesPerBox, piecesPerBox));
+      const newQty = Math.max(1, quantity + delta);
+      setUnitQuantityInput(String(newQty));
+      return;
     }
+
+    const currentPieces = Math.max(piecesPerBox, Math.round(paidQuantity * piecesPerBox));
+    const newQtyPieces = Math.max(piecesPerBox, currentPieces + (delta * piecesPerBox));
+    setPaidQuantity(newQtyPieces / piecesPerBox);
   };
 
   const handleGiftCalculated = useCallback((pieces: number, offerId?: string) => {
@@ -280,7 +326,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     if (!isOpen) {
       setGiftPieces(initialGiftPieces || 0);
       setGiftOfferId(initialGiftOfferId);
-      setQuantityInput(initialIsUnitSale ? String(initialQuantity) : boxesToBP(initialQuantity, piecesPerBox));
+      setUnitQuantityInput(String(initialQuantity));
+      setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
       setOfferApplied((initialOfferApplied || initialGiftPieces > 0) && !initialIsUnitSale);
       setIsUnitSale(initialIsUnitSale);
       setShowPricingOverride(false);
@@ -292,10 +340,26 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     onOpenChange(isOpen);
   };
 
-  const handleQuantityInput = (value: string) => {
-    // Allow digits, dots for B.P notation
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    setQuantityInput(cleaned);
+  const handleQuantityFieldChange = (field: keyof QuantityFields, value: string) => {
+    const nextFields = {
+      ...quantityFields,
+      [field]: sanitizeDigits(value, field === 'boxes' ? 5 : pieceDigits),
+    };
+
+    setQuantityFields(nextFields);
+
+    const parsedValue = fieldsToParsedQuantity(nextFields, piecesPerBox);
+    const enteredTotalPieces = parsedValue.totalPieces;
+    const nextPaidPieces = offerApplied
+      ? Math.max(0, enteredTotalPieces - giftPieces)
+      : enteredTotalPieces;
+
+    setPaidQuantity(nextPaidPieces / piecesPerBox);
+  };
+
+  const normalizeQuantityFields = () => {
+    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
+    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
   };
 
   if (!product) return null;
@@ -304,12 +368,13 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const giftRemainingPieces = product.pieces_per_box > 0 ? giftPieces % product.pieces_per_box : 0;
   const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
   const appliedGiftPieces = offerApplied ? giftPieces : 0;
-  const baseQuantity = quantity;
-  const basePieces = isUnitSale ? quantity : parsed.totalPieces;
-  const totalPieces = isUnitSale ? quantity : (parsed.totalPieces + appliedGiftPieces);
+  const totalBpQuantity = paidQuantity + (appliedGiftPieces / piecesPerBox);
+  const baseQuantityDisplay = formatBPQuantity(paidQuantity, piecesPerBox);
+  const totalQuantityDisplay = formatBPQuantity(totalBpQuantity, piecesPerBox);
+  const giftQuantityDisplay = formatBPQuantity(giftPieces / piecesPerBox, piecesPerBox);
   const baseUnitPrice = isUnitSale ? selectedPiecePrice : selectedBoxPrice;
   const displayPrice = hasCustomUnitPrice ? resolveSaleUnitPrice(customUnitPriceValue, isUnitSale) : baseUnitPrice;
-  const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * parsed.totalBoxes);
+  const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * paidQuantity);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -365,7 +430,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   checked={isUnitSale}
                   onCheckedChange={(checked) => {
                     setIsUnitSale(checked);
-                    setQuantityInput('1');
+                    setUnitQuantityInput('1');
+                    setPaidQuantity(1);
+                    setQuantityFields(quantityToFields(1, piecesPerBox));
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }}
@@ -461,32 +528,56 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             {/* Quantity Selector - compact */}
             <div className="space-y-1">
               <Label className="text-center block text-xs">
-                {isUnitSale ? t('orders.quantity_pieces') || 'الكمية (قطع)' : `${t('orders.quantity_boxes')} (صندوق.قطعة)`}
+                {isUnitSale ? t('orders.quantity_pieces') || 'الكمية (قطع)' : `${t('orders.quantity_boxes')} (B.P)`}
               </Label>
               <div className="flex items-center justify-center gap-3">
                 <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(-1)} disabled={quantity <= (isUnitSale ? 1 : 0)}>
                   <Minus className="w-4 h-4" />
                 </Button>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  value={quantityInput}
-                  onChange={(e) => handleQuantityInput(e.target.value)}
-                  onBlur={() => {
-                    if (!isUnitSale) {
-                      setQuantityInput(parsed.display || '0');
-                    }
-                  }}
-                  className="w-24 h-11 text-center text-xl font-bold"
-                  placeholder={isUnitSale ? '1' : '0.00'}
-                />
+                {isUnitSale ? (
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={unitQuantityInput}
+                    onChange={(e) => setUnitQuantityInput(e.target.value.replace(/\D/g, ''))}
+                    className="w-24 h-11 text-center text-xl font-bold"
+                    placeholder="1"
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 w-[12.5rem]">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-center block text-muted-foreground">الصندوق</Label>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={quantityFields.boxes}
+                        onChange={(e) => handleQuantityFieldChange('boxes', e.target.value)}
+                        onBlur={normalizeQuantityFields}
+                        className="h-11 text-center text-xl font-bold"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-center block text-muted-foreground">القطعة</Label>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={quantityFields.pieces}
+                        onChange={(e) => handleQuantityFieldChange('pieces', e.target.value)}
+                        onBlur={normalizeQuantityFields}
+                        className="h-11 text-center text-xl font-bold"
+                        placeholder={String(0).padStart(pieceDigits, '0')}
+                      />
+                    </div>
+                  </div>
+                )}
                 <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(1)}>
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              {!isUnitSale && quantityPieces > 0 && (
+              {!isUnitSale && (
                 <p className="text-center text-[10px] text-muted-foreground">
-                  {quantity} صندوق + {quantityPieces} قطعة
+                  {offerApplied ? totalQuantityDisplay : baseQuantityDisplay}
                 </p>
               )}
             </div>
@@ -496,7 +587,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               <div className="rounded-lg border border-border bg-muted/30 divide-y divide-border text-xs">
                 <div className="flex justify-between items-center px-2.5 py-1.5">
                   <span className="text-muted-foreground">{t('orders.quantity_boxes') || 'الكمية'}</span>
-                  <span className="font-bold">{baseQuantity} {t('offers.unit_box')}</span>
+                  <span className="font-bold">{baseQuantityDisplay}</span>
                 </div>
                 {displayPrice > 0 && (
                   <div className="flex justify-between items-center px-2.5 py-1.5">
@@ -508,11 +599,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <>
                     <div className="flex justify-between items-center px-2.5 py-1.5 text-green-700 dark:text-green-400">
                       <span className="flex items-center gap-1"><Gift className="w-3.5 h-3.5" />{t('common.free') || 'العرض'}</span>
-                      <span className="font-bold">
-                        {giftBoxes > 0 ? `${giftBoxes} ${t('offers.unit_box')}` : ''}
-                        {giftBoxes > 0 && giftRemainingPieces > 0 ? ' + ' : ''}
-                        {giftRemainingPieces > 0 ? `${giftRemainingPieces} ${t('offers.unit_piece')}` : ''}
-                      </span>
+                      <span className="font-bold">{giftQuantityDisplay}</span>
                     </div>
                     <div className="flex justify-between items-center px-2.5 py-1.5 text-green-700 dark:text-green-400">
                       <span className="text-muted-foreground">{t('orders.subtotal') || 'المجموع الفرعي (العرض)'}</span>
@@ -520,7 +607,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     </div>
                     <div className="flex justify-between items-center px-2.5 py-1.5 font-bold">
                       <span>{t('orders.total_boxes') || 'إجمالي الصناديق'}</span>
-                      <span className="text-primary">{quantity + appliedGiftBoxes} {t('offers.unit_box')}</span>
+                      <span className="text-primary">{totalQuantityDisplay}</span>
                     </div>
                   </>
                 )}
@@ -571,7 +658,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 </div>
                 <p className="text-sm mt-1 text-green-100">
                   {(appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
-                    <>{t('orders.total')}: {quantity + appliedGiftBoxes} {t('offers.unit_box')} ({quantity} + {appliedGiftBoxes} {t('common.free')})</>
+                    <>{t('orders.total')}: {totalQuantityDisplay}</>
                   )}
                   {appliedGiftBoxes > 0 && giftRemainingPieces > 0 && <br />}
                   {giftRemainingPieces > 0 && <>+ {giftRemainingPieces} {t('offers.unit_piece')} {t('common.free')}</>}
