@@ -18,7 +18,7 @@ import { useHasPermission } from '@/hooks/usePermissions';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import ProductOfferBadge from '@/components/offers/ProductOfferBadge';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
-import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { parseBP } from '@/utils/boxPieceInput';
 
 export interface GiftInfo {
   giftQuantity: number;
@@ -32,6 +32,39 @@ export interface PerItemPricing {
   priceSubType: PriceSubType;
   customUnitPrice?: number;
 }
+
+interface QuantityFields {
+  boxes: string;
+  pieces: string;
+}
+
+const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
+
+const getPieceDigits = (piecesPerBox: number) => Math.max(2, String(Math.max(0, piecesPerBox - 1)).length);
+
+const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
+  const ppb = Math.max(1, piecesPerBox);
+  const totalPieces = Math.max(0, Math.round(quantity * ppb));
+  const boxes = Math.floor(totalPieces / ppb);
+  const pieces = totalPieces % ppb;
+  const pieceDigits = getPieceDigits(ppb);
+
+  return {
+    boxes: String(boxes),
+    pieces: String(pieces).padStart(pieceDigits, '0'),
+  };
+};
+
+const fieldsToParsedQuantity = (fields: QuantityFields, piecesPerBox: number) => {
+  const boxes = fields.boxes || '0';
+  const pieces = fields.pieces || '0';
+  return parseBP(`${boxes}.${pieces}`, piecesPerBox);
+};
+
+const formatBPQuantity = (quantity: number, piecesPerBox: number) => {
+  const { boxes, pieces } = quantityToFields(quantity, piecesPerBox);
+  return `${boxes}.${pieces}`;
+};
 
 interface ProductQuantityDialogProps {
   open: boolean;
@@ -75,8 +108,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
   const invoiceSaleAllowed = (product as any)?.allow_invoice_sale !== false;
-  const [quantityInput, setQuantityInput] = useState(String(initialQuantity));
   const piecesPerBox = product?.pieces_per_box || 1;
+  const pieceDigits = getPieceDigits(piecesPerBox);
+  const [unitQuantityInput, setUnitQuantityInput] = useState(String(initialQuantity));
+  const [paidQuantity, setPaidQuantity] = useState(initialIsUnitSale ? 0 : initialQuantity);
+  const [quantityFields, setQuantityFields] = useState<QuantityFields>(() => quantityToFields(initialQuantity, piecesPerBox));
   const [giftPieces, setGiftPieces] = useState(initialGiftPieces || 0);
   const [giftOfferId, setGiftOfferId] = useState<string | undefined>(initialGiftOfferId);
   const [offerApplied, setOfferApplied] = useState(initialOfferApplied || initialGiftPieces > 0);
@@ -94,10 +130,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     return value && value !== key ? value : fallback;
   }, [t]);
 
-  // Derived quantity from B.P input
-  const parsed = useMemo(() => parseBP(quantityInput, piecesPerBox), [quantityInput, piecesPerBox]);
-  const quantity = isUnitSale ? (parseInt(quantityInput) || 0) : parsed.boxes;
-  const quantityPieces = isUnitSale ? 0 : parsed.pieces;
+  const quantity = isUnitSale ? (parseInt(unitQuantityInput) || 0) : Math.floor(Math.max(0, paidQuantity));
+  const quantityPieces = isUnitSale ? 0 : Math.max(0, Math.round((paidQuantity - Math.floor(paidQuantity)) * piecesPerBox));
   const customUnitPriceValue = Number(customUnitPriceInput || 0);
   const hasCustomUnitPrice = Number.isFinite(customUnitPriceValue) && customUnitPriceValue > 0;
   const pricingUnit = product?.pricing_unit || 'box';
@@ -176,7 +210,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   useEffect(() => {
     if (open) {
       setIsUnitSale(initialIsUnitSale);
-      setQuantityInput(initialIsUnitSale ? String(initialQuantity) : boxesToBP(initialQuantity, piecesPerBox));
+      setUnitQuantityInput(String(initialQuantity));
+      setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
     }
   }, [open, initialQuantity, piecesPerBox, initialIsUnitSale]);
 
@@ -209,11 +245,17 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     }
   }, [invoiceSaleAllowed, itemPaymentType]);
 
+  useEffect(() => {
+    if (!open || isUnitSale) return;
+    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
+    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
+  }, [open, isUnitSale, offerApplied, giftPieces, paidQuantity, piecesPerBox]);
+
   // Offer must be applied before confirming (mandatory)
   const hasUnappliedOffer = !isUnitSale && giftPieces > 0 && !offerApplied;
 
   const handleConfirm = () => {
-    const effectiveQty = isUnitSale ? quantity : parsed.totalBoxes;
+    const effectiveQty = isUnitSale ? quantity : Math.max(0, paidQuantity);
     if (product && effectiveQty > 0 && !hasUnappliedOffer) {
       const perItemPricing: PerItemPricing | undefined = (hasPricingSelectionChanges || hasCustomUnitPrice) ? {
         paymentType: itemPaymentType,
@@ -238,7 +280,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           onConfirm(product.id, effectiveQty, undefined, false, perItemPricing);
         }
       }
-      setQuantityInput('1');
+      setUnitQuantityInput('1');
+      setPaidQuantity(1);
+      setQuantityFields(quantityToFields(1, piecesPerBox));
       setGiftPieces(0);
       setGiftOfferId(undefined);
       setOfferApplied(false);
@@ -250,12 +294,15 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   };
 
   const handleQuantityChange = (delta: number) => {
-    const newQty = Math.max(1, quantity + delta);
     if (isUnitSale) {
-      setQuantityInput(String(newQty));
-    } else {
-      setQuantityInput(boxesToBP(newQty + quantityPieces / piecesPerBox, piecesPerBox));
+      const newQty = Math.max(1, quantity + delta);
+      setUnitQuantityInput(String(newQty));
+      return;
     }
+
+    const currentPieces = Math.max(piecesPerBox, Math.round(paidQuantity * piecesPerBox));
+    const newQtyPieces = Math.max(piecesPerBox, currentPieces + (delta * piecesPerBox));
+    setPaidQuantity(newQtyPieces / piecesPerBox);
   };
 
   const handleGiftCalculated = useCallback((pieces: number, offerId?: string) => {
@@ -280,7 +327,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     if (!isOpen) {
       setGiftPieces(initialGiftPieces || 0);
       setGiftOfferId(initialGiftOfferId);
-      setQuantityInput(initialIsUnitSale ? String(initialQuantity) : boxesToBP(initialQuantity, piecesPerBox));
+      setUnitQuantityInput(String(initialQuantity));
+      setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
       setOfferApplied((initialOfferApplied || initialGiftPieces > 0) && !initialIsUnitSale);
       setIsUnitSale(initialIsUnitSale);
       setShowPricingOverride(false);
@@ -292,10 +341,26 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     onOpenChange(isOpen);
   };
 
-  const handleQuantityInput = (value: string) => {
-    // Allow digits, dots for B.P notation
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    setQuantityInput(cleaned);
+  const handleQuantityFieldChange = (field: keyof QuantityFields, value: string) => {
+    const nextFields = {
+      ...quantityFields,
+      [field]: sanitizeDigits(value, field === 'boxes' ? 5 : pieceDigits),
+    };
+
+    setQuantityFields(nextFields);
+
+    const parsedValue = fieldsToParsedQuantity(nextFields, piecesPerBox);
+    const enteredTotalPieces = parsedValue.totalPieces;
+    const nextPaidPieces = offerApplied
+      ? Math.max(0, enteredTotalPieces - giftPieces)
+      : enteredTotalPieces;
+
+    setPaidQuantity(nextPaidPieces / piecesPerBox);
+  };
+
+  const normalizeQuantityFields = () => {
+    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
+    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
   };
 
   if (!product) return null;
@@ -305,11 +370,13 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
   const appliedGiftPieces = offerApplied ? giftPieces : 0;
   const baseQuantity = quantity;
-  const basePieces = isUnitSale ? quantity : parsed.totalPieces;
-  const totalPieces = isUnitSale ? quantity : (parsed.totalPieces + appliedGiftPieces);
+  const totalBpQuantity = paidQuantity + (appliedGiftPieces / piecesPerBox);
+  const baseQuantityDisplay = formatBPQuantity(paidQuantity, piecesPerBox);
+  const totalQuantityDisplay = formatBPQuantity(totalBpQuantity, piecesPerBox);
+  const giftQuantityDisplay = formatBPQuantity(giftPieces / piecesPerBox, piecesPerBox);
   const baseUnitPrice = isUnitSale ? selectedPiecePrice : selectedBoxPrice;
   const displayPrice = hasCustomUnitPrice ? resolveSaleUnitPrice(customUnitPriceValue, isUnitSale) : baseUnitPrice;
-  const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * parsed.totalBoxes);
+  const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * paidQuantity);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
