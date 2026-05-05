@@ -193,13 +193,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const filtered = useMemo(
     () => rows
-      .filter(r => !search.trim() || r.productName.includes(search))
       .slice()
       .sort((a, b) => {
         if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
         return a.productName.localeCompare(b.productName);
       }),
-    [rows, search]
+    [rows]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
