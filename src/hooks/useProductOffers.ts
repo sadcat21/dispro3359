@@ -9,9 +9,24 @@ export const useProductOffers = () => {
   const [activeOffers, setActiveOffers] = useState<ProductOfferWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const deactivateExpiredOffers = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await supabase
+        .from('product_offers')
+        .update({ is_active: false })
+        .eq('is_active', true)
+        .not('end_date', 'is', null)
+        .lt('end_date', today);
+    } catch (e) {
+      console.error('Error auto-deactivating expired offers:', e);
+    }
+  };
+
   const fetchOffers = async () => {
     setIsLoading(true);
     try {
+      await deactivateExpiredOffers();
       const { data, error } = await supabase
         .from('product_offers')
         .select(`
@@ -51,6 +66,7 @@ export const useProductOffers = () => {
 
   const fetchActiveOffers = async () => {
     try {
+      await deactivateExpiredOffers();
       const { data, error } = await supabase
         .from('product_offers')
         .select(`
