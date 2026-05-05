@@ -1,0 +1,1 @@
+UPDATE public.worker_stock SET quantity = 21 WHERE id = 'ebb7ef67-bd37-45d4-8f47-4ef9ad66bbf4';
