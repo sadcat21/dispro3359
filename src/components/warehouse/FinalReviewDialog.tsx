@@ -423,6 +423,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
                         فُرّغ <strong>{dbBPDisplay(r.unloaded, ppb)}</strong>
                       </Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                        مُباع <strong>{dbBPDisplay(r.sold, ppb)}</strong>
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
+                        🎁 هدية <strong>{dbBPDisplay(r.gifts, ppb)}</strong>
+                      </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 bg-primary/10 text-primary">
                         متوقع <strong>{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong>
                       </Badge>
