@@ -147,8 +147,10 @@ const computeCompliance = (r: LedgerRow): Compliance => {
   const tierGiftPieces = toPieces(Number(r.tier_gift_quantity), r.tier_gift_quantity_unit, ppb);
   if (tierMinPieces <= 0) return { status: "na" };
   const expected = (salePieces / tierMinPieces) * tierGiftPieces;
-  // tolerance of 0.01 pieces
-  const status: Compliance["status"] = giftPieces + 0.01 >= expected ? "compliant" : "violation";
+  // يجب أن تكون الهدية مطابقة للمتوقع بالضبط (مع تسامح 0.01 قطعة)
+  // أي زيادة أو نقصان يُعتبر عدم التزام (مثلاً إعطاء صناديق بدل قطع)
+  const status: Compliance["status"] =
+    Math.abs(giftPieces - expected) <= 0.01 ? "compliant" : "violation";
   return { status, expected, actual: giftPieces };
 };
 
