@@ -464,7 +464,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
                       <span className="text-[11px] font-medium text-primary">المتوقع</span>
                       <span className="text-sm font-bold text-primary">
-                        {r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}
+                        {dbBPDisplay(r.expected, ppb)}
                       </span>
                     </div>
 
