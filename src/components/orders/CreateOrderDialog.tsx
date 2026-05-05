@@ -961,19 +961,19 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           )}
                         >
                           <div className={cn(
-                            "px-2 py-2 border-b",
+                            "px-1.5 py-1 border-b",
                             hasAppliedGift
                               ? 'bg-green-500 border-green-500'
                               : inCart ? 'bg-primary border-primary' : 'bg-red-50 border-red-100'
                           )}>
                             <span className={cn(
-                              "font-bold leading-tight block text-center truncate text-sm",
+                              "font-bold leading-tight block text-center truncate text-xs",
                               inCart ? 'text-white' : 'text-red-900'
                             )}>
                               {getProductDisplayName(product)}
                             </span>
                             {inCart && (
-                              <span className="text-lg font-extrabold block text-center mt-1 rounded-md px-2 py-0.5 bg-primary text-primary-foreground">
+                              <span className="text-sm font-extrabold block text-center mt-0.5 rounded-md px-1.5 py-0.5 bg-primary text-primary-foreground">
                                 {productCartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0).toLocaleString()} {t('common.currency')}
                               </span>
                             )}
