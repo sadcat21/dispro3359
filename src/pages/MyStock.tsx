@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
@@ -172,8 +173,7 @@ const MyStock: React.FC = () => {
     }
     for (const item of (soldData || [])) {
       if (!stats[item.product_id]) stats[item.product_id] = { loaded: 0, totalLoad: 0, sold: 0 };
-      // Subtract gift quantities from sold to show only paid sales
-      stats[item.product_id].sold += item.quantity - (item.gift_quantity || 0);
+      stats[item.product_id].sold += getPaidQuantity(item);
     }
     return stats;
   }, [loadedData, soldData]);
@@ -196,11 +196,11 @@ const MyStock: React.FC = () => {
     
     // Also add gifts from delivered orders (given to customers)
     for (const item of (soldData || [])) {
-      if ((item.gift_quantity || 0) > 0) {
+      if (getGiftTotalPieces(item) > 0) {
         const pid = item.product_id;
         const unit = (item as any).gift_unit || 'piece';
         if (!stats[pid]) stats[pid] = { totalGifts: 0, unit };
-        stats[pid].totalGifts += item.gift_quantity;
+        stats[pid].totalGifts += getGiftTotalBoxes(item);
       }
     }
     return stats;
