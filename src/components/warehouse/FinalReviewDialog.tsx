@@ -40,11 +40,12 @@ interface AggregatedRow {
 // عرض موحّد بصيغة B.P (boxes.pp) — يطابق formatGiftDisplay في تجميعات المبيعات والعروض
 const formatBP = (totalPieces: number, piecesPerBox: number): string => {
   const ppb = Math.max(1, Math.round(piecesPerBox || 1));
-  const p = Math.max(0, Math.round(totalPieces));
-  if (ppb <= 1) return `${p}`;
+  const sign = totalPieces < 0 ? '-' : '';
+  const p = Math.abs(Math.round(totalPieces));
+  if (ppb <= 1) return `${sign}${p}`;
   const boxes = Math.floor(p / ppb);
   const remaining = p % ppb;
-  return `${boxes}.${String(remaining).padStart(2, '0')}`;
+  return `${sign}${boxes}.${String(remaining).padStart(2, '0')}`;
 };
 
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
@@ -200,9 +201,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
         const list = Array.from(map.values()).map(r => {
           const ppb = Math.max(1, Math.round(r.ppb || 1));
-          const expectedTotalPieces = Math.max(0, r.loaded - r.unloaded - r.sold - r.gifts);
-          const expectedBoxes = Math.floor(expectedTotalPieces / ppb);
-          const expectedPieces = expectedTotalPieces % ppb;
+          const expectedTotalPieces = r.loaded - r.unloaded - r.sold - r.gifts;
+          const absPieces = Math.abs(expectedTotalPieces);
+          const sign = expectedTotalPieces < 0 ? -1 : 1;
+          const expectedBoxes = sign * Math.floor(absPieces / ppb);
+          const expectedPieces = absPieces % ppb;
           return { ...r, expected: expectedTotalPieces, expectedBoxes, expectedPieces };
         });
         list.sort((a, b) => a.productName.localeCompare(b.productName));
