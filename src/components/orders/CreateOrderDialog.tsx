@@ -124,6 +124,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProductMode, setEditingProductMode] = useState(false);
   const [editingInitialQuantity, setEditingInitialQuantity] = useState(1);
+  const [editingInitialGiftPieces, setEditingInitialGiftPieces] = useState(0);
+  const [editingInitialOfferApplied, setEditingInitialOfferApplied] = useState(false);
+  const [editingInitialGiftOfferId, setEditingInitialGiftOfferId] = useState<string | undefined>(undefined);
   const [editingCustomUnitPrice, setEditingCustomUnitPrice] = useState<number | undefined>(undefined);
   const [editingIsUnitSale, setEditingIsUnitSale] = useState(false);
 
@@ -274,12 +277,19 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     if (existingItem) {
       setEditingProductMode(true);
       const existingPaidQuantity = Math.max(1, existingItem.quantity - (existingItem.giftQuantity || 0));
+      const existingTotalGiftPieces = ((existingItem.giftQuantity || 0) * (existingItem.piecesPerBox || product.pieces_per_box || 1)) + (existingItem.giftPieces || 0);
       setEditingInitialQuantity(existingPaidQuantity);
+      setEditingInitialGiftPieces(existingTotalGiftPieces);
+      setEditingInitialOfferApplied(((existingItem.giftQuantity || 0) > 0 || (existingItem.giftPieces || 0) > 0) && !existingItem.isUnitSale);
+      setEditingInitialGiftOfferId(existingItem.giftOfferId);
       setEditingCustomUnitPrice(existingItem.customUnitPrice);
       setEditingIsUnitSale(!!existingItem.isUnitSale);
     } else {
       setEditingProductMode(false);
       setEditingInitialQuantity(1);
+      setEditingInitialGiftPieces(0);
+      setEditingInitialOfferApplied(false);
+      setEditingInitialGiftOfferId(undefined);
       setEditingCustomUnitPrice(undefined);
       setEditingIsUnitSale(false);
     }
@@ -1365,6 +1375,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         defaultPriceSubType={priceSubType}
         defaultInvoicePaymentMethod={invoicePaymentMethod}
         initialQuantity={editingInitialQuantity}
+        initialGiftPieces={editingInitialGiftPieces}
+        initialGiftOfferId={editingInitialGiftOfferId}
+        initialOfferApplied={editingInitialOfferApplied}
         initialCustomUnitPrice={editingCustomUnitPrice}
         initialIsUnitSale={editingIsUnitSale}
         mode={editingProductMode ? 'edit' : 'add'}
