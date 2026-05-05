@@ -445,13 +445,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 const filled = isFilled(r);
                 const status = filled ? getStatus(r) : 'match';
                 const ppb = Math.max(1, Math.round(r.ppb || 1));
-                const expectedPiecesTotal = r.expectedBoxes * ppb + r.expectedPieces;
+                const expectedPiecesTotal = r.expected;
                 const actualPiecesTotal = (parseInt(r.actualBoxes || '0', 10) || 0) * ppb + (parseInt(r.actualPieces || '0', 10) || 0);
                 const diffTotalPieces = filled ? actualPiecesTotal - expectedPiecesTotal : 0;
                 const absPieces = Math.abs(diffTotalPieces);
-                const diffBoxes = Math.floor(absPieces / ppb);
-                const diffPieces = absPieces % ppb;
-                const diffLabel = diffPieces > 0 ? `${diffBoxes}.${String(diffPieces).padStart(2, '0')}` : `${diffBoxes}`;
+                const diffLabel = formatBP(absPieces, ppb);
                 const ring = !r.confirmed
                   ? 'border-border'
                   : status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20'
