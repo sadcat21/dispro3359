@@ -299,12 +299,13 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   const handleQuantityChange = (delta: number) => {
     if (isUnitSale) {
-      const newQty = Math.max(1, quantity + delta);
+      const current = parseInt(unitQuantityInput) || 0;
+      const newQty = Math.max(1, current + delta);
       setUnitQuantityInput(String(newQty));
       return;
     }
 
-    const currentPieces = Math.max(piecesPerBox, Math.round(paidQuantity * piecesPerBox));
+    const currentPieces = Math.max(0, Math.round(paidQuantity * piecesPerBox));
     const newQtyPieces = Math.max(piecesPerBox, currentPieces + (delta * piecesPerBox));
     setPaidQuantity(newQtyPieces / piecesPerBox);
   };
