@@ -379,9 +379,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             {stats.surplus > 0 && <Badge className="bg-amber-500 text-white text-[10px]">{stats.surplus} فائض</Badge>}
             {stats.deficit > 0 && <Badge variant="destructive" className="text-[10px]">{stats.deficit} عجز</Badge>}
           </div>
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input placeholder="بحث..." value={search} onChange={e => setSearch(e.target.value)} className="pr-9 h-9 text-sm" />
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="outline" className="text-[10px] gap-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+              📦 جلسات الشحن: <strong>{loadCount}</strong>
+            </Badge>
+            <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+              📤 حركات التفريغ: <strong>{unloadCount}</strong>
+            </Badge>
           </div>
         </div>
 
