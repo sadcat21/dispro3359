@@ -106,20 +106,22 @@ const DebtAggregatesDialog: React.FC<{
     queryKey: ['worker-achievement-debt-aggregates', workerId, dateFrom, dateTo],
     queryFn: async () => {
       if (!workerId) return { newDebts: [], collectedDebts: [] };
+      const isoFrom = new Date(`${dateFrom}T00:00:00`).toISOString();
+      const isoTo = new Date(`${dateTo}T23:59:59`).toISOString();
       const [{ data: newDebts }, { data: collectedDebts }] = await Promise.all([
         supabase
           .from('customer_debts')
           .select('id,total_amount,remaining_amount,created_at,status,customer:customers(name,store_name,phone)')
           .eq('worker_id', workerId)
-          .gte('created_at', `${dateFrom}T00:00:00`)
-          .lte('created_at', `${dateTo}T23:59:59`)
+          .gte('created_at', isoFrom)
+          .lte('created_at', isoTo)
           .order('created_at', { ascending: false }),
         supabase
           .from('debt_collections')
           .select('id,amount_collected,collection_date,payment_method,debt:customer_debts(customer:customers(name,store_name,phone))')
           .eq('worker_id', workerId)
-          .gte('collected_at', `${dateFrom}T00:00:00`)
-          .lte('collected_at', `${dateTo}T23:59:59`)
+          .gte('collected_at', isoFrom)
+          .lte('collected_at', isoTo)
           .order('collected_at', { ascending: false }),
       ]);
       return { newDebts: newDebts || [], collectedDebts: collectedDebts || [] };
@@ -319,8 +321,9 @@ const MyAchievements: React.FC = () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       // عند عرض "اليوم" فقط: ابدأ من نهاية آخر جلsة محاسبية مكتملة وحتى اللحظة الحالية
       const isTodayOnly = dateFrom === today && dateTo === today;
-      let lowerBound = `${dateFrom}T00:00:00`;
-      let upperBound = `${dateTo}T23:59:59`;
+      // Use local timezone-aware ISO bounds so UTC+X users see correct "today"
+      let lowerBound = new Date(`${dateFrom}T00:00:00`).toISOString();
+      let upperBound = new Date(`${dateTo}T23:59:59`).toISOString();
 
       if (isTodayOnly) {
         const { data: lastSession } = await supabase
@@ -332,7 +335,15 @@ const MyAchievements: React.FC = () => {
           .limit(1)
           .maybeSingle();
         const lastEnd = lastSession?.completed_at || lastSession?.period_end;
-        if (lastEnd) lowerBound = new Date(lastEnd).toISOString();
+        if (lastEnd) {
+          const lastEndDate = new Date(lastEnd);
+          const startOfLocalDay = new Date();
+          startOfLocalDay.setHours(0, 0, 0, 0);
+          // Use whichever is later: last session end or start of local day
+          lowerBound = lastEndDate > startOfLocalDay
+            ? lastEndDate.toISOString()
+            : startOfLocalDay.toISOString();
+        }
         upperBound = new Date().toISOString();
       }
 
