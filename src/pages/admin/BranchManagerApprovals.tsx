@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon,
+  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
