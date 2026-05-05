@@ -21,6 +21,8 @@ type LedgerRow = {
   movement_type: string;
   sale_quantity: number;
   gift_quantity: number;
+  sale_quantity_unit: string | null;
+  gift_quantity_unit: string | null;
   signed_sale: number | null;
   signed_gift: number | null;
   running_sale_balance: number | null;
@@ -30,6 +32,7 @@ type LedgerRow = {
   created_at: string;
   offer_name: string | null;
   product_name: string | null;
+  pieces_per_box: number | null;
   worker_name: string | null;
   customer_name: string | null;
   branch_name: string | null;
@@ -77,6 +80,34 @@ const movementLabels: Record<string, { label: string; color: string }> = {
 };
 
 const fmt = (n: number | null | undefined) => (n == null ? "-" : Number(n).toFixed(2));
+
+// تحويل كمية بصيغة b.p (الجزء الصحيح = صناديق، العشري = قطع) إلى "X box + Y pcs"
+const formatBoxPieces = (
+  qty: number | null | undefined,
+  unit: string | null | undefined,
+  piecesPerBox: number | null | undefined
+): string => {
+  if (qty == null || qty === 0) return "0";
+  const absQty = Math.abs(Number(qty));
+  const sign = Number(qty) < 0 ? "-" : "";
+  if (unit === "piece") {
+    return `${sign}${Math.round(absQty)} pcs`;
+  }
+  const ppb = Math.max(Number(piecesPerBox) || 1, 1);
+  const rounded = Math.round(absQty * 100) / 100;
+  const boxes = Math.floor(rounded);
+  const pieces = Math.round((rounded - boxes) * 100);
+  if (boxes > 0 && pieces > 0) return `${sign}${boxes} box + ${pieces} pcs`;
+  if (boxes > 0) return `${sign}${boxes} box`;
+  if (pieces > 0) return `${sign}${pieces} pcs`;
+  return "0";
+};
+
+const formatDateEn = (d: string) =>
+  new Date(d).toLocaleString("en-GB", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  });
 
 export default function OfferLedger() {
   const [search, setSearch] = useState("");
@@ -284,6 +315,7 @@ export default function OfferLedger() {
                         <TableHead>العميل</TableHead>
                         <TableHead className="text-center">بيع</TableHead>
                         <TableHead className="text-center">هدية</TableHead>
+                        <TableHead className="text-center">تفاصيل العرض</TableHead>
                         <TableHead className="text-center">رصيد بيع</TableHead>
                         <TableHead className="text-center">رصيد هدية</TableHead>
                         <TableHead>ملاحظات</TableHead>
@@ -292,10 +324,12 @@ export default function OfferLedger() {
                     <TableBody>
                       {filtered.map((r) => {
                         const m = movementLabels[r.movement_type] ?? { label: r.movement_type, color: "" };
+                        const saleDetail = formatBoxPieces(r.sale_quantity, r.sale_quantity_unit, r.pieces_per_box);
+                        const giftDetail = formatBoxPieces(r.gift_quantity, r.gift_quantity_unit, r.pieces_per_box);
                         return (
                           <TableRow key={r.id}>
                             <TableCell className="whitespace-nowrap text-xs">
-                              {new Date(r.created_at).toLocaleString("ar-EG")}
+                              {formatDateEn(r.created_at)}
                             </TableCell>
                             <TableCell>
                               <Badge className={m.color} variant="secondary">
@@ -316,6 +350,20 @@ export default function OfferLedger() {
                                 {fmt(r.signed_gift)}
                               </span>
                             </TableCell>
+                            <TableCell className="text-center text-xs whitespace-nowrap">
+                              <div className="flex flex-col gap-0.5">
+                                <span>
+                                  <span className="text-muted-foreground">بيع:</span>{" "}
+                                  <span className="font-mono">{saleDetail}</span>
+                                </span>
+                                {Number(r.gift_quantity) !== 0 && (
+                                  <span>
+                                    <span className="text-muted-foreground">هدية:</span>{" "}
+                                    <span className="font-mono text-purple-600">{giftDetail}</span>
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell className="text-center font-mono font-semibold">
                               {fmt(r.running_sale_balance)}
                             </TableCell>
@@ -328,7 +376,7 @@ export default function OfferLedger() {
                       })}
                       {filtered.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
                             لا توجد حركات
                           </TableCell>
                         </TableRow>
@@ -464,7 +512,7 @@ export default function OfferLedger() {
                           <TableCell className="text-center font-mono text-xs">{fmt(it.expected)}</TableCell>
                           <TableCell className="text-center font-mono text-xs">{fmt(it.actual)}</TableCell>
                           <TableCell className="text-xs whitespace-nowrap">
-                            {new Date(it.created_at).toLocaleString("ar-EG")}
+                            {formatDateEn(it.created_at)}
                           </TableCell>
                         </TableRow>
                       ))}
