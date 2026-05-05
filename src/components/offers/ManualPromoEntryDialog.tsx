@@ -399,7 +399,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           customer_id: entry.customerId,
           product_id: selectedProductId,
           vente_quantity: parsedSold.raw,
-          sale_quantity_unit: selectedTier.min_quantity_unit || 'box',
           gratuite_quantity: entry.giftQuantity,
           gift_quantity_unit: selectedTier.gift_quantity_unit || 'piece',
           offer_id: selectedOffer.id,
