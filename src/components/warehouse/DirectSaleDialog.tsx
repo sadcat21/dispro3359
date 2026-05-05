@@ -39,6 +39,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
+import { useProductOffers } from '@/hooks/useProductOffers';
 
 interface StockItem {
   id: string;
@@ -94,6 +95,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const queryClient = useQueryClient();
   const { companyInfo } = useCompanyInfo();
   const { data: stampTiers } = useActiveStampTiers();
+  const { activeOffers } = useProductOffers();
   const createDebt = useCreateDebt();
   const { trackVisit } = useTrackVisit();
   // Data states
