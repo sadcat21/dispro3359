@@ -932,7 +932,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-bold text-sm truncate">{getProductDisplayName(product)}</span>
                                 {inCart && (
-                                  <Badge variant="default" className="text-xs px-2 shrink-0">{totalCartQuantity}</Badge>
+                                  <Badge variant="default" className="text-xs px-2 shrink-0 font-mono" dir="ltr">{boxesToBPAlways(totalCartQuantity + (totalGiftPieces / Math.max(1, product.pieces_per_box || 1)), product.pieces_per_box || 1)}</Badge>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1">
