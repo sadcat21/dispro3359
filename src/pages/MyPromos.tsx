@@ -23,6 +23,21 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
+import { isOfferCurrentlyActive } from '@/utils/productOffers';
+
+type OfferSnapshot = {
+  id: string;
+  product_id: string;
+  name: string;
+  min_quantity: number | null;
+  min_quantity_unit: 'box' | 'piece' | null;
+  gift_quantity: number | null;
+  gift_quantity_unit: 'box' | 'piece' | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean | null;
+  priority: number | null;
+};
 
 const getDateLocale = (language: string) => {
   switch (language) {
@@ -69,6 +84,7 @@ const MyPromosContent: React.FC = () => {
   const [promos, setPromos] = useState<PromoWithDetails[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [offers, setOffers] = useState<OfferSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -110,12 +126,20 @@ const MyPromosContent: React.FC = () => {
           .order('promo_date', { ascending: false }),
         supabase.from('customers').select('*').order('name'),
         supabase.from('products').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('name'),
+        supabase
+          .from('product_offers')
+          .select('id, product_id, name, min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, start_date, end_date, is_active, priority')
+          .order('priority', { ascending: false })
+          .order('created_at', { ascending: false }),
       ]);
 
       if (promosRes.error) throw promosRes.error;
+      if (customersRes.error) throw customersRes.error;
+      if (productsRes.error) throw productsRes.error;
       setPromos((promosRes.data || []) as PromoWithDetails[]);
       if (customersRes.data) setCustomers(customersRes.data);
       if (productsRes.data) setProducts(productsRes.data);
+      setOffers((offersRes.data || []) as OfferSnapshot[]);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error(t('stats.load_failed'));
@@ -326,9 +350,15 @@ const MyPromosContent: React.FC = () => {
                       {/* Body */}
                       <div className="p-4 space-y-3">
                         {(() => {
-                          const offer: any = (promo as any).offer;
+                          const explicitOffer: any = (promo as any).offer;
                           const promoSaleUnit = (promo as any).sale_quantity_unit as 'box' | 'piece' | undefined;
                           const promoGiftUnit = (promo as any).gift_quantity_unit as 'box' | 'piece' | undefined;
+                          const inferredOffer = !explicitOffer && promo.product_id
+                            ? offers
+                                .filter((offer) => offer.product_id === promo.product_id)
+                                .find((offer) => isOfferCurrentlyActive(offer, new Date(promo.promo_date)))
+                            : null;
+                          const offer = explicitOffer || inferredOffer;
                           const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
                           const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
                           const ppb = promo.product?.pieces_per_box;
