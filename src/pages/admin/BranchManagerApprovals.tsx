@@ -48,7 +48,7 @@ const BranchManagerApprovals: React.FC = () => {
     staleTime: 30_000,
   });
 
-  const totalPending = (counts?.invoices || 0) + (counts?.warehouseReviews || 0);
+  const totalPending = (counts?.invoices || 0) + (counts?.warehouseReviews || 0) + (counts?.stockReceipts || 0);
 
   const approvals: ApprovalCard[] = [
     {
