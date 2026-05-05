@@ -80,7 +80,7 @@ const BranchManagerApprovals: React.FC = () => {
       title: 'موافقات الاستلام والتسليم',
       description: 'مراجعة وصولات استلام وتسليم البضاعة بين العمال والمخزن',
       icon: PackageCheck,
-      path: '/stock-receipts',
+      onClick: () => setFactoryOpen(true),
       badge: counts?.stockReceipts,
       color: 'from-emerald-500 to-teal-600',
     },
