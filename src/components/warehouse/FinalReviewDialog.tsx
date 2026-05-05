@@ -348,11 +348,27 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             <CheckCircle className="w-5 h-5 text-primary" />
             المراجعة النهائية — {workerName}
           </DialogTitle>
-          <p className="text-[11px] text-muted-foreground">
-            {periodStart
-              ? `منذ آخر جلسة محاسبة: ${new Date(periodStart).toLocaleString('ar-DZ')}`
-              : 'لا توجد جلسة محاسبة سابقة — يتم احتساب جميع الحركات'}
-          </p>
+          {periodStart ? (
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+              <Badge variant="outline" className="gap-1 border-primary/40 bg-primary/10 text-primary">
+                آخر جلسة محاسبة
+              </Badge>
+              <span className="text-muted-foreground">
+                📅 {new Date(periodStart).toLocaleDateString('ar-DZ', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+              </span>
+              <span className="text-muted-foreground">
+                🕒 {new Date(periodStart).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="text-muted-foreground">— يُحتسب ما بعد هذا التاريخ</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-[11px]">
+              <Badge variant="outline" className="gap-1 border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                ⚠️ لا توجد جلسة محاسبة سابقة
+              </Badge>
+              <span className="text-muted-foreground">— يتم احتساب جميع الحركات منذ البداية</span>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="shrink-0 space-y-2">
