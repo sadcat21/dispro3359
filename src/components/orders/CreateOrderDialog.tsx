@@ -892,7 +892,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       </button>
                     </div>
                   </div>
-                  <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-1.5')}>
+                  <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-3 gap-1.5' : 'flex flex-col gap-1.5')}>
                     {products.map((product) => {
                       const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
                       const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
