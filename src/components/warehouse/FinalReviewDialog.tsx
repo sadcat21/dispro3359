@@ -425,55 +425,65 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground';
                 const BtnIcon = !filled || status === 'match' ? Check : status === 'surplus' ? TrendingUp : TrendingDown;
                 return (
-                  <div key={r.productId} className={`flex flex-col gap-2 p-2 rounded-lg border-2 transition-opacity ${ring} ${r.confirmed ? 'opacity-70' : ''}`}>
+                  <div key={r.productId} className={`flex flex-col gap-2.5 p-3 rounded-xl border-2 transition-opacity shadow-sm ${ring} ${r.confirmed ? 'opacity-70' : ''}`}>
+                    {/* Header: image + name */}
                     <div className="flex items-center gap-2 min-w-0">
                       {r.imageUrl ? (
-                        <img src={r.imageUrl} alt="" className="w-10 h-10 rounded object-cover shrink-0" />
+                        <img src={r.imageUrl} alt="" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-border/50" />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center shrink-0">
+                        <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center shrink-0">
                           <Package className="w-4 h-4 text-muted-foreground" />
                         </div>
                       )}
-                      <div className="text-xs font-medium line-clamp-2 flex-1 min-w-0">{r.productName}</div>
+                      <div className="text-xs font-semibold line-clamp-2 flex-1 min-w-0 leading-tight">{r.productName}</div>
                     </div>
-                    <div className="flex items-center justify-between gap-1 flex-wrap">
-                      <Badge variant="outline" className="text-[10px] gap-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+
+                    {/* Stats grid: 2x2 + expected full-width */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
                         شُحن <strong>{dbBPDisplay(r.loaded, ppb)}</strong>
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
                         فُرّغ <strong>{dbBPDisplay(r.unloaded, ppb)}</strong>
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
                         مُباع <strong>{dbBPDisplay(r.sold, ppb)}</strong>
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
+                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
                         🎁 هدية <strong>{dbBPDisplay(r.gifts, ppb)}</strong>
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 bg-primary/10 text-primary">
-                        متوقع <strong>{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong>
-                      </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-1">
-                      <div className="flex flex-col">
-                        <label className="text-[9px] text-muted-foreground text-center">صناديق</label>
+
+                    {/* Expected — highlighted full width */}
+                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
+                      <span className="text-[11px] font-medium text-primary">المتوقع</span>
+                      <span className="text-sm font-bold text-primary">
+                        {r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}
+                      </span>
+                    </div>
+
+                    {/* Inputs */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-medium text-muted-foreground text-center">صناديق</label>
                         <Input
                           type="text"
                           inputMode="numeric"
                           placeholder="0"
                           value={r.actualBoxes}
                           onChange={e => updateActualBoxes(r.productId, e.target.value)}
-                          className="h-9 text-center text-sm font-bold"
+                          className="h-10 text-center text-base font-bold"
                         />
                       </div>
-                      <div className="flex flex-col">
-                        <label className="text-[9px] text-muted-foreground text-center">قطع</label>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-medium text-muted-foreground text-center">قطع</label>
                         <Input
                           type="text"
                           inputMode="numeric"
                           placeholder="0"
                           value={r.actualPieces}
                           onChange={e => updateActualPieces(r.productId, e.target.value)}
-                          className="h-9 text-center text-sm font-bold"
+                          className="h-10 text-center text-base font-bold"
                         />
                       </div>
                     </div>
