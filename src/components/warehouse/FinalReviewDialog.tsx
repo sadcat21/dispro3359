@@ -227,17 +227,25 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
-  const actualTotalBoxes = (r: AggregatedRow) => {
+  // عدد القطع الفعلي
+  const actualTotalPieces = (r: AggregatedRow) => {
     const ppb = Math.max(1, Math.round(r.ppb || 1));
     const b = Math.max(0, parseInt(r.actualBoxes || '0', 10) || 0);
     const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
-    return b + p / ppb;
+    return b * ppb + p;
   };
-  const getDiff = (r: AggregatedRow) => actualTotalBoxes(r) - r.expected;
+  const getDiff = (r: AggregatedRow) => actualTotalPieces(r) - r.expected; // pieces
   const getStatus = (r: AggregatedRow): 'match' | 'surplus' | 'deficit' => {
     const d = getDiff(r);
-    if (Math.abs(d) < 0.001) return 'match';
+    if (d === 0) return 'match';
     return d > 0 ? 'surplus' : 'deficit';
+  };
+  // تحويل القطع → صيغة B.P للتخزين (boxes.pp)
+  const piecesToBPNum = (pieces: number, ppb: number): number => {
+    const n = Math.max(0, Math.round(pieces));
+    const boxes = Math.floor(n / ppb);
+    const rem = n % ppb;
+    return Number((boxes + rem / 100).toFixed(2));
   };
 
   const stats = useMemo(() => {
