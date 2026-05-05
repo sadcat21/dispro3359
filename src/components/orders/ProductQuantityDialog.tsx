@@ -598,7 +598,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         disabled={!isUnitSale}
                         title={!isUnitSale ? 'القطع تتحدث تلقائياً عند تفعيل العرض' : ''}
                       />
-                      />
                     </div>
                   </div>
                 )}
