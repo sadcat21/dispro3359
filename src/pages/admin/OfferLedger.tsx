@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, TrendingDown, TrendingUp, AlertTriangle, Gift } from "lucide-react";
+import { Loader2, Package, TrendingUp, AlertTriangle, Gift, ShieldCheck, Wrench } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type LedgerRow = {
   id: string;
@@ -48,6 +50,22 @@ type BalanceRow = {
   remaining_gift: number;
   movements_count: number;
   last_movement_at: string;
+};
+
+type IntegrityIssue = {
+  issue_type: string;
+  issue_label: string;
+  severity: string;
+  promo_id: string | null;
+  offer_id: string | null;
+  product_id: string | null;
+  worker_id: string | null;
+  customer_id: string | null;
+  sale_quantity: number | null;
+  gift_quantity: number | null;
+  created_at: string;
+  expected: number | null;
+  actual: number | null;
 };
 
 const movementLabels: Record<string, { label: string; color: string }> = {
@@ -118,6 +136,29 @@ export default function OfferLedger() {
       return map;
     },
   });
+
+  const { data: issues, refetch: refetchIssues, isFetching: loadingIssues } = useQuery({
+    queryKey: ["offer-integrity-issues"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("v_offer_integrity_issues")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data ?? []) as IntegrityIssue[];
+    },
+  });
+
+  const handleRepair = async () => {
+    const { data, error } = await (supabase as any).rpc("repair_offer_ledger");
+    if (error) {
+      toast.error("فشل الإصلاح: " + error.message);
+      return;
+    }
+    toast.success(`تم إصلاح ${data?.repaired ?? 0} حركة`);
+    refetchIssues();
+  };
 
   const filtered = useMemo(() => {
     if (!ledger) return [];
@@ -191,6 +232,12 @@ export default function OfferLedger() {
         <TabsList>
           <TabsTrigger value="ledger">سجل الحركات</TabsTrigger>
           <TabsTrigger value="balances">الأرصدة الحالية</TabsTrigger>
+          <TabsTrigger value="integrity" className="relative">
+            مراقبة السلامة
+            {issues && issues.length > 0 && (
+              <Badge className="mr-2 bg-red-500 text-white">{issues.length}</Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="ledger">
@@ -347,6 +394,84 @@ export default function OfferLedger() {
                   </TableBody>
                 </Table>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="integrity">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5" />
+                مراقبة سلامة بيانات العروض
+              </CardTitle>
+              <Button onClick={handleRepair} disabled={loadingIssues} size="sm" variant="outline">
+                <Wrench className="h-4 w-4 ml-2" />
+                إصلاح الحركات الناقصة
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {loadingIssues ? (
+                <div className="flex justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : !issues || issues.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <ShieldCheck className="h-16 w-16 text-green-500 mb-3" />
+                  <p className="text-lg font-semibold">جميع بيانات العروض سليمة ✓</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    لا توجد فجوات أو تعارضات في حركة العروض عبر النظام
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>الخطورة</TableHead>
+                        <TableHead>نوع المشكلة</TableHead>
+                        <TableHead>المنتج</TableHead>
+                        <TableHead>العامل</TableHead>
+                        <TableHead>العرض</TableHead>
+                        <TableHead className="text-center">المتوقع</TableHead>
+                        <TableHead className="text-center">الفعلي</TableHead>
+                        <TableHead>التاريخ</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {issues.map((it, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <Badge
+                              className={
+                                it.severity === "critical"
+                                  ? "bg-red-600 text-white"
+                                  : it.severity === "high"
+                                  ? "bg-orange-500 text-white"
+                                  : "bg-yellow-500 text-white"
+                              }
+                            >
+                              {it.severity === "critical" ? "حرج" : it.severity === "high" ? "عالي" : "متوسط"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3 text-orange-500" />
+                            {it.issue_label}
+                          </TableCell>
+                          <TableCell className="text-xs">{(it.product_id && productsMap?.[it.product_id]) || "—"}</TableCell>
+                          <TableCell className="text-xs">{(it.worker_id && workersMap?.[it.worker_id]) || "—"}</TableCell>
+                          <TableCell className="text-xs">{(it.offer_id && offersMap?.[it.offer_id]) || "—"}</TableCell>
+                          <TableCell className="text-center font-mono text-xs">{fmt(it.expected)}</TableCell>
+                          <TableCell className="text-center font-mono text-xs">{fmt(it.actual)}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {new Date(it.created_at).toLocaleString("ar-EG")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
