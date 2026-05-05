@@ -43,12 +43,16 @@ const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g
 
 const getPieceDigits = (piecesPerBox: number) => Math.max(2, String(Math.max(0, piecesPerBox - 1)).length);
 
-const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
+const quantityToFields = (quantity: number, piecesPerBox: number, allowEmpty = false): QuantityFields => {
   const ppb = Math.max(1, piecesPerBox);
   const totalPieces = Math.max(0, Math.round(quantity * ppb));
   const boxes = Math.floor(totalPieces / ppb);
   const pieces = totalPieces % ppb;
   const pieceDigits = getPieceDigits(ppb);
+
+  if (allowEmpty && totalPieces === 0) {
+    return { boxes: '', pieces: '' };
+  }
 
   return {
     boxes: String(boxes),
@@ -97,7 +101,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   defaultPaymentType = 'with_invoice',
   defaultPriceSubType = 'gros',
   defaultInvoicePaymentMethod = null,
-  initialQuantity = 1,
+  initialQuantity = 0,
   initialCustomUnitPrice,
   mode = 'add',
   initialIsUnitSale = false,
@@ -210,9 +214,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   useEffect(() => {
     if (open) {
       setIsUnitSale(initialIsUnitSale);
-      setUnitQuantityInput(String(initialQuantity));
+      setUnitQuantityInput(initialQuantity > 0 ? String(initialQuantity) : '');
       setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
-      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox, initialQuantity === 0));
     }
   }, [open, initialQuantity, piecesPerBox, initialIsUnitSale]);
 
