@@ -142,15 +142,15 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
 
     setIsLoading(true);
     try {
-      // تحويل الكميات لقطع للتخزين، حسب وحدة العرض المُعرّفة في إدارة العروض
-      const ventePieces = saleUnit === 'box' ? venteQuantity * piecesPerBox : venteQuantity;
-      const gratuitePieces = giftUnit === 'box' ? gratuiteQuantity * piecesPerBox : gratuiteQuantity;
+      // نخزّن الكميات بنفس الوحدة المعروضة (صندوق/قطعة) مع تثبيت الوحدتين
+      // لمنع أي لبس مستقبلي بين القطع والصناديق.
       const { error } = await supabase.from('promos').insert({
         worker_id: workerId,
         customer_id: selectedCustomerId,
         product_id: product.id,
-        vente_quantity: ventePieces,
-        gratuite_quantity: gratuitePieces,
+        vente_quantity: venteQuantity,
+        gratuite_quantity: gratuiteQuantity,
+        sale_quantity_unit: saleUnit,
         gift_quantity_unit: giftUnit,
         offer_id: activeOffer?.id || null,
         offer_detail: activeOffer
