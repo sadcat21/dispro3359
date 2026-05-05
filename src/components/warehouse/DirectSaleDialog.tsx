@@ -921,7 +921,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         stampPercentage: orderTotals.stampPercentage > 0 ? orderTotals.stampPercentage : undefined,
       });
       setShowReceiptDialog(true);
-      handleClose(false);
+      // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
     } catch (error: any) {
       console.error('Direct sale error:', error);
       toast.error(error.message || t('common.error'));
