@@ -346,6 +346,7 @@ export default function OfferLedger() {
                         <TableHead className="text-center">بيع</TableHead>
                         <TableHead className="text-center">هدية</TableHead>
                         <TableHead className="text-center">تفاصيل العرض</TableHead>
+                        <TableHead className="text-center">الالتزام بالعرض</TableHead>
                         <TableHead className="text-center">رصيد بيع</TableHead>
                         <TableHead className="text-center">رصيد هدية</TableHead>
                         <TableHead>ملاحظات</TableHead>
@@ -356,6 +357,7 @@ export default function OfferLedger() {
                         const m = movementLabels[r.movement_type] ?? { label: r.movement_type, color: "" };
                         const saleDetail = formatBoxPieces(r.sale_quantity, r.sale_quantity_unit, r.pieces_per_box);
                         const giftDetail = formatBoxPieces(r.gift_quantity, r.gift_quantity_unit, r.pieces_per_box);
+                        const comp = computeCompliance(r);
                         return (
                           <TableRow key={r.id}>
                             <TableCell className="whitespace-nowrap text-xs">
@@ -394,6 +396,22 @@ export default function OfferLedger() {
                                 )}
                               </div>
                             </TableCell>
+                            <TableCell className="text-center text-xs whitespace-nowrap">
+                              {comp.status === "compliant" && (
+                                <Badge className="bg-green-100 text-green-800">ملتزم</Badge>
+                              )}
+                              {comp.status === "violation" && (
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <Badge className="bg-red-100 text-red-800">غير ملتزم</Badge>
+                                  <span className="text-[10px] text-muted-foreground font-mono">
+                                    متوقع: {comp.expected?.toFixed(2)} / فعلي: {comp.actual?.toFixed(2)}
+                                  </span>
+                                </div>
+                              )}
+                              {comp.status === "na" && (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
                             <TableCell className="text-center font-mono font-semibold">
                               {fmt(r.running_sale_balance)}
                             </TableCell>
@@ -406,7 +424,7 @@ export default function OfferLedger() {
                       })}
                       {filtered.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
                             لا توجد حركات
                           </TableCell>
                         </TableRow>
