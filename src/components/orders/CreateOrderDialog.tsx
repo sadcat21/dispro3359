@@ -40,6 +40,7 @@ import { useProductOffers } from '@/hooks/useProductOffers';
 import { cn } from '@/lib/utils';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 import { filterCurrentlyActiveOffers } from '@/utils/productOffers';
 import { sendSmsDirectly } from '@/utils/smsHelper';
 
@@ -891,7 +892,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       </button>
                     </div>
                   </div>
-                  <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-1.5')}>
+                  <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-3 gap-1.5' : 'flex flex-col gap-1.5')}>
                     {products.map((product) => {
                       const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
                       const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
@@ -931,7 +932,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-bold text-sm truncate">{getProductDisplayName(product)}</span>
                                 {inCart && (
-                                  <Badge variant="default" className="text-xs px-2 shrink-0">{totalCartQuantity}</Badge>
+                                  <Badge variant="default" className="text-xs px-2 shrink-0 font-mono" dir="ltr">{boxesToBPAlways(totalCartQuantity + (totalGiftPieces / Math.max(1, product.pieces_per_box || 1)), product.pieces_per_box || 1)}</Badge>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1">
@@ -960,19 +961,19 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           )}
                         >
                           <div className={cn(
-                            "px-2 py-2 border-b",
+                            "px-1.5 py-1 border-b",
                             hasAppliedGift
                               ? 'bg-green-500 border-green-500'
                               : inCart ? 'bg-primary border-primary' : 'bg-red-50 border-red-100'
                           )}>
                             <span className={cn(
-                              "font-bold leading-tight block text-center truncate text-sm",
+                              "font-bold leading-tight block text-center truncate text-xs",
                               inCart ? 'text-white' : 'text-red-900'
                             )}>
                               {getProductDisplayName(product)}
                             </span>
                             {inCart && (
-                              <span className="text-lg font-extrabold block text-center mt-1 rounded-md px-2 py-0.5 bg-primary text-primary-foreground">
+                              <span className="text-sm font-extrabold block text-center mt-0.5 rounded-md px-1.5 py-0.5 bg-primary text-primary-foreground">
                                 {productCartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0).toLocaleString()} {t('common.currency')}
                               </span>
                             )}
@@ -1015,15 +1016,15 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                                 </span>
                               )}
                               {inCart ? (
-                                <Badge variant="default" className="text-sm px-2.5 py-0.5 shadow-lg font-bold">
-                                  {totalCartQuantity}
+                                <Badge variant="default" className="text-xs px-2 py-0.5 shadow-lg font-bold font-mono" dir="ltr">
+                                  {boxesToBPAlways(totalCartQuantity + (totalGiftPieces / Math.max(1, product.pieces_per_box || 1)), product.pieces_per_box || 1)}
                                 </Badge>
                               ) : <span />}
                             </div>
                           </div>
 
                           <div className={cn(
-                            "px-2 py-2 border-t",
+                            "px-1.5 py-1.5 border-t",
                             hasAppliedGift
                               ? 'bg-green-50 border-green-100'
                               : 'bg-red-50 border-red-100'

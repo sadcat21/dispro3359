@@ -103,6 +103,18 @@ export const boxesToBP = (quantity: number, piecesPerBox: number): string => {
 };
 
 /**
+ * Always-padded B.P display for badges. e.g. 6 → "6.00", 6.25 (ppb=20) → "6.05"
+ */
+export const boxesToBPAlways = (quantity: number, piecesPerBox: number): string => {
+  const ppb = Math.max(1, Math.round(piecesPerBox));
+  const totalPieces = Math.max(0, Math.round(Number(quantity || 0) * ppb));
+  const boxes = Math.floor(totalPieces / ppb);
+  const pieces = totalPieces % ppb;
+  const digits = String(ppb - 1).length;
+  return `${boxes}.${String(pieces).padStart(Math.max(2, digits), '0')}`;
+};
+
+/**
  * Format a quantity for display with box/piece breakdown.
  * Returns something like "1091 صندوق و 5 قطع"
  */
