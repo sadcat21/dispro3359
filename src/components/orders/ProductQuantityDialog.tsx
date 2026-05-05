@@ -43,12 +43,16 @@ const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g
 
 const getPieceDigits = (piecesPerBox: number) => Math.max(2, String(Math.max(0, piecesPerBox - 1)).length);
 
-const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
+const quantityToFields = (quantity: number, piecesPerBox: number, allowEmpty = false): QuantityFields => {
   const ppb = Math.max(1, piecesPerBox);
   const totalPieces = Math.max(0, Math.round(quantity * ppb));
   const boxes = Math.floor(totalPieces / ppb);
   const pieces = totalPieces % ppb;
   const pieceDigits = getPieceDigits(ppb);
+
+  if (allowEmpty && totalPieces === 0) {
+    return { boxes: '', pieces: '' };
+  }
 
   return {
     boxes: String(boxes),
@@ -97,7 +101,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   defaultPaymentType = 'with_invoice',
   defaultPriceSubType = 'gros',
   defaultInvoicePaymentMethod = null,
-  initialQuantity = 1,
+  initialQuantity = 0,
   initialCustomUnitPrice,
   mode = 'add',
   initialIsUnitSale = false,
@@ -210,9 +214,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   useEffect(() => {
     if (open) {
       setIsUnitSale(initialIsUnitSale);
-      setUnitQuantityInput(String(initialQuantity));
+      setUnitQuantityInput(initialQuantity > 0 ? String(initialQuantity) : '');
       setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
-      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox, initialQuantity === 0));
     }
   }, [open, initialQuantity, piecesPerBox, initialIsUnitSale]);
 
@@ -280,9 +284,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           onConfirm(product.id, effectiveQty, undefined, false, perItemPricing);
         }
       }
-      setUnitQuantityInput('1');
-      setPaidQuantity(1);
-      setQuantityFields(quantityToFields(1, piecesPerBox));
+      setUnitQuantityInput('');
+      setPaidQuantity(0);
+      setQuantityFields({ boxes: '', pieces: '' });
       setGiftPieces(0);
       setGiftOfferId(undefined);
       setOfferApplied(false);
@@ -295,12 +299,13 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   const handleQuantityChange = (delta: number) => {
     if (isUnitSale) {
-      const newQty = Math.max(1, quantity + delta);
+      const current = parseInt(unitQuantityInput) || 0;
+      const newQty = Math.max(1, current + delta);
       setUnitQuantityInput(String(newQty));
       return;
     }
 
-    const currentPieces = Math.max(piecesPerBox, Math.round(paidQuantity * piecesPerBox));
+    const currentPieces = Math.max(0, Math.round(paidQuantity * piecesPerBox));
     const newQtyPieces = Math.max(piecesPerBox, currentPieces + (delta * piecesPerBox));
     setPaidQuantity(newQtyPieces / piecesPerBox);
   };
@@ -327,9 +332,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     if (!isOpen) {
       setGiftPieces(initialGiftPieces || 0);
       setGiftOfferId(initialGiftOfferId);
-      setUnitQuantityInput(String(initialQuantity));
+      setUnitQuantityInput(initialQuantity > 0 ? String(initialQuantity) : '');
       setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
-      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox, initialQuantity === 0));
       setOfferApplied((initialOfferApplied || initialGiftPieces > 0) && !initialIsUnitSale);
       setIsUnitSale(initialIsUnitSale);
       setShowPricingOverride(false);
@@ -428,11 +433,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   !isUnitSale
                     ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
                     : "bg-muted text-muted-foreground border-border"
-                )} variant="outline" onClick={() => {
+                 )} variant="outline" onClick={() => {
                   if (isUnitSale) {
                     setIsUnitSale(false);
-                    setPaidQuantity(1);
-                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setPaidQuantity(0);
+                    setQuantityFields({ boxes: '', pieces: '' });
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }
@@ -444,9 +449,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   checked={isUnitSale}
                   onCheckedChange={(checked) => {
                     setIsUnitSale(checked);
-                    setUnitQuantityInput('1');
-                    setPaidQuantity(1);
-                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setUnitQuantityInput('');
+                    setPaidQuantity(0);
+                    setQuantityFields({ boxes: '', pieces: '' });
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }}
@@ -456,12 +461,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   isUnitSale
                     ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
                     : "bg-muted text-muted-foreground border-border"
-                )} variant="outline" onClick={() => {
+                 )} variant="outline" onClick={() => {
                   if (!isUnitSale) {
                     setIsUnitSale(true);
-                    setUnitQuantityInput('1');
-                    setPaidQuantity(1);
-                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setUnitQuantityInput('');
+                    setPaidQuantity(0);
+                    setQuantityFields({ boxes: '', pieces: '' });
                     setOfferApplied(false);
                     setGiftPieces(0);
                   }
@@ -568,8 +573,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     inputMode="numeric"
                     value={unitQuantityInput}
                     onChange={(e) => setUnitQuantityInput(e.target.value.replace(/\D/g, ''))}
+                    onFocus={(e) => e.target.select()}
                     className="w-24 h-11 text-center text-xl font-bold"
-                    placeholder="1"
+                    placeholder="0"
                   />
                 ) : (
                   <div className="grid grid-cols-2 gap-2 w-[12.5rem]">
@@ -581,6 +587,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         value={quantityFields.boxes}
                         onChange={(e) => handleQuantityFieldChange('boxes', e.target.value)}
                         onBlur={normalizeQuantityFields}
+                        onFocus={(e) => e.target.select()}
                         className="h-11 text-center text-xl font-bold"
                         placeholder="0"
                       />
@@ -593,6 +600,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         value={quantityFields.pieces}
                         onChange={(e) => handleQuantityFieldChange('pieces', e.target.value)}
                         onBlur={normalizeQuantityFields}
+                        onFocus={(e) => e.target.select()}
                         className="h-11 text-center text-xl font-bold"
                         placeholder={String(0).padStart(pieceDigits, '0')}
                         disabled={!isUnitSale}

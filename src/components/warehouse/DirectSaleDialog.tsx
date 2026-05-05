@@ -384,7 +384,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
     if (isUnitSale) {
       const totalPrice = computed.unitPrice * quantity;
-      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType }]);
+      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }]);
       return;
     }
 
@@ -433,7 +433,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             : item
         );
       }
-      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType }];
+      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }];
     });
   };
 
@@ -1326,16 +1326,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                               </Badge>
                             )}
                             {getProductName(item.productId)}
-                            {item.giftQuantity && item.giftQuantity > 0 && (
+                            {((item.giftQuantity && item.giftQuantity > 0) || (item.giftPieces && item.giftPieces > 0)) && !item.isUnitSale && (
                               <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0 border-green-500 text-green-600">
                                 <Gift className="w-3 h-3 ms-0.5" />
-                                {t('common.free')} {item.giftQuantity} {t('offers.unit_box')}
-                              </Badge>
-                            )}
-                            {(!item.giftQuantity || item.giftQuantity === 0) && item.giftPieces && item.giftPieces > 0 && (
-                              <Badge variant="outline" className="ms-1 text-[10px] px-1 py-0 border-green-500 text-green-600">
-                                <Gift className="w-3 h-3 ms-0.5" />
-                                {t('common.free')} {item.giftPieces} {t('offers.unit_piece')}
+                                {item.giftQuantity && item.giftQuantity > 0 ? `${item.giftQuantity} ${t('offers.unit_box')}` : ''}
+                                {item.giftQuantity && item.giftQuantity > 0 && item.giftPieces && item.giftPieces > 0 ? ' + ' : ''}
+                                {item.giftPieces && item.giftPieces > 0 ? `${item.giftPieces} ${t('offers.unit_piece')}` : ''}
+                                {' '}{t('common.free')}
                               </Badge>
                             )}
                           </span>
