@@ -91,6 +91,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           .eq('worker_id', workerId)
           .gte('created_at', sinceTs);
         const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
+        if (!cancelled) setLoadCount(loadSessionIds.length);
 
         // 3. بنود الشحن (موجبة)
         let loadItems: any[] = [];
