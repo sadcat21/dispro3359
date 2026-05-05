@@ -26,6 +26,8 @@ interface AggregatedRow {
   imageUrl?: string | null;
   loaded: number;   // مجموع الشحن (B.P)
   unloaded: number; // مجموع التفريغ (B.P)
+  sold: number;     // مجموع المبيعات (B.P)
+  gifts: number;    // مجموع الهدايا (B.P)
   expected: number; // المتوقع المتبقي (B.P)
   expectedBoxes: number;
   expectedPieces: number;
