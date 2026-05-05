@@ -37,6 +37,7 @@ interface CustomerBreakdown {
   deliveryTime: string | null;
   quantity: number;
   giftQuantity: number;
+  giftPieces: number;
   totalAmount: number;
 }
 
@@ -45,6 +46,7 @@ interface ProductAgg {
   name: string;
   quantity: number;
   giftQuantity: number;
+  giftPieces: number;
   totalAmount: number;
   piecesPerBox: number | null;
   imageUrl: string | null;
@@ -155,14 +157,17 @@ const buildCalcFromOrders = (orders: any[], items: any[]): SessionCalculations =
       }
     }
 
-    for (const item of orderItems) {
-      const giftQty = Number(item.gift_quantity || 0);
-      const qty = Number(item.quantity || 0);
-      const totalPrice = Number(item.total_price || 0);
-      if (giftQty <= 0 || qty <= 0) continue;
-      const estimatedUnit = totalPrice > 0 ? totalPrice / qty : Number(item.unit_price || 0);
-      calc.giftOfferValue += giftQty * estimatedUnit;
-    }
+     for (const item of orderItems) {
+       const giftBoxes = Number(item.gift_quantity || 0);
+       const giftPcs = Number((item as any).gift_pieces || 0);
+       const ppb = Math.max(1, Number((item as any).product?.pieces_per_box || 1));
+       const totalGiftInBoxes = giftBoxes + (giftPcs / ppb);
+       const qty = Number(item.quantity || 0);
+       const totalPrice = Number(item.total_price || 0);
+       if (totalGiftInBoxes <= 0 || qty <= 0) continue;
+       const estimatedUnit = totalPrice > 0 ? totalPrice / qty : Number(item.unit_price || 0);
+       calc.giftOfferValue += totalGiftInBoxes * estimatedUnit;
+     }
   }
 
   calc.physicalCash = calc.invoice2.cash + calc.invoice1.espaceCash + calc.invoice1.versementCash;
@@ -263,8 +268,9 @@ const mergeProducts = (summaries: WorkerSummary[]): ProductAgg[] => {
           productId: item.productId,
           name: item.name,
           quantity: 0,
-          giftQuantity: 0,
-          totalAmount: 0,
+           giftQuantity: 0,
+           giftPieces: 0,
+           totalAmount: 0,
           piecesPerBox: item.piecesPerBox,
           imageUrl: item.imageUrl,
           customers: [],
@@ -274,7 +280,8 @@ const mergeProducts = (summaries: WorkerSummary[]): ProductAgg[] => {
 
       const current = map.get(item.productId)!;
       current.quantity += item.quantity;
-      current.giftQuantity += item.giftQuantity;
+       current.giftQuantity += item.giftQuantity;
+       current.giftPieces += item.giftPieces;
       current.totalAmount += item.totalAmount;
       current.subtypeQuantities = {
         ...(current.subtypeQuantities || {}),
@@ -293,7 +300,8 @@ const mergeProducts = (summaries: WorkerSummary[]): ProductAgg[] => {
         const existing = current.customers.find((c) => c.customerId === customer.customerId);
         if (existing) {
           existing.quantity += customer.quantity;
-          existing.giftQuantity += customer.giftQuantity;
+           existing.giftQuantity += customer.giftQuantity;
+           existing.giftPieces += customer.giftPieces;
           existing.totalAmount += customer.totalAmount;
           existing.deliveryTime = existing.deliveryTime || customer.deliveryTime;
         } else {
@@ -371,8 +379,8 @@ const fetchWorkerSalesSummary = async (
 
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
-    .select('order_id, product_id, quantity, gift_quantity, unit_price, total_price, price_subtype, product:products(name, pieces_per_box, image_url)')
-    .in('order_id', orderIds);
+     .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, price_subtype, product:products(name, pieces_per_box, image_url)')
+     .in('order_id', orderIds);
 
   if (itemsError) throw itemsError;
 
@@ -461,8 +469,9 @@ const fetchWorkerSalesSummary = async (
         productId: item.product_id,
         name: product?.name || 'منتج غير معروف',
         quantity: 0,
-        giftQuantity: 0,
-        totalAmount: 0,
+         giftQuantity: 0,
+         giftPieces: 0,
+         totalAmount: 0,
         piecesPerBox: product?.pieces_per_box || null,
         imageUrl: product?.image_url || null,
         subtypeQuantities: {},
@@ -473,30 +482,33 @@ const fetchWorkerSalesSummary = async (
       };
     }
 
-    agg[item.product_id].quantity += Number(item.quantity || 0);
-    agg[item.product_id].giftQuantity += Number(item.gift_quantity || 0);
-    agg[item.product_id].totalAmount += Number(item.total_price || 0);
-    const subtypeKey = String((item as any).price_subtype || 'retail').toLowerCase();
-    agg[item.product_id].subtypeQuantities = agg[item.product_id].subtypeQuantities || {};
-    agg[item.product_id].subtypeQuantities![subtypeKey] = (agg[item.product_id].subtypeQuantities![subtypeKey] || 0) + Number(item.quantity || 0);
+     agg[item.product_id].quantity += Number(item.quantity || 0);
+     agg[item.product_id].giftQuantity += Number(item.gift_quantity || 0);
+     agg[item.product_id].giftPieces += Number((item as any).gift_pieces || 0);
+     agg[item.product_id].totalAmount += Number(item.total_price || 0);
+     const subtypeKey = String((item as any).price_subtype || 'retail').toLowerCase();
+     agg[item.product_id].subtypeQuantities = agg[item.product_id].subtypeQuantities || {};
+     agg[item.product_id].subtypeQuantities![subtypeKey] = (agg[item.product_id].subtypeQuantities![subtypeKey] || 0) + Number(item.quantity || 0);
 
-    const existing = agg[item.product_id].customers.find((c) => c.customerId === customerId);
-    if (existing) {
-      existing.quantity += Number(item.quantity || 0);
-      existing.giftQuantity += Number(item.gift_quantity || 0);
-      existing.totalAmount += Number(item.total_price || 0);
-    } else {
-      agg[item.product_id].customers.push({
-        customerId,
-        customerName: customerNameMap.get(customerId) || 'عميل غير معروف',
-        storeName: customerStoreMap.get(customerId) || null,
-        phone: customerPhoneMap.get(customerId) || null,
-        deliveryTime: orderTimeMap.get(item.order_id) || null,
-        quantity: Number(item.quantity || 0),
-        giftQuantity: Number(item.gift_quantity || 0),
-        totalAmount: Number(item.total_price || 0),
-      });
-    }
+     const existing = agg[item.product_id].customers.find((c) => c.customerId === customerId);
+     if (existing) {
+       existing.quantity += Number(item.quantity || 0);
+       existing.giftQuantity += Number(item.gift_quantity || 0);
+       existing.giftPieces += Number((item as any).gift_pieces || 0);
+       existing.totalAmount += Number(item.total_price || 0);
+     } else {
+       agg[item.product_id].customers.push({
+         customerId,
+         customerName: customerNameMap.get(customerId) || 'عميل غير معروف',
+         storeName: customerStoreMap.get(customerId) || null,
+         phone: customerPhoneMap.get(customerId) || null,
+         deliveryTime: orderTimeMap.get(item.order_id) || null,
+         quantity: Number(item.quantity || 0),
+         giftQuantity: Number(item.gift_quantity || 0),
+         giftPieces: Number((item as any).gift_pieces || 0),
+         totalAmount: Number(item.total_price || 0),
+       });
+     }
   }
 
   const createdTimes = orders.map((o) => new Date(o.created_at).getTime());
@@ -758,9 +770,13 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
   const aggregate = useMemo(() => buildAggregateSummary(data || [], selectedWorkerId), [data, selectedWorkerId]);
   const totalQuantity = useMemo(() => aggregate.items.reduce((sum, item) => sum + item.quantity, 0), [aggregate.items]);
   const finance = useMemo(() => getSummaryFinance(aggregate.calc), [aggregate.calc]);
-  const giftsDisplay = useMemo(() => {
+   const giftsDisplay = useMemo(() => {
     const promoGiftPieces = aggregate.calc.promoTracking.reduce((sum, item) => sum + Number(item.giftQuantity || 0), 0);
-    const fallbackGiftPieces = aggregate.items.reduce((sum, item) => sum + Number(item.giftQuantity || 0), 0);
+    // Calculate total gift in pieces: gift_quantity (boxes) * piecesPerBox + gift_pieces
+    const fallbackGiftPieces = aggregate.items.reduce((sum, item) => {
+      const ppb = Math.max(1, Number(item.piecesPerBox || 1));
+      return sum + (Number(item.giftQuantity || 0) * ppb) + Number(item.giftPieces || 0);
+    }, 0);
     const totalGiftPieces = Math.max(promoGiftPieces, fallbackGiftPieces);
     const piecesByBox = new Map<number, number>();
     for (const item of aggregate.calc.promoTracking) {
@@ -770,7 +786,8 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
     if (piecesByBox.size === 0) {
       for (const item of aggregate.items) {
         const ppb = Math.max(1, Number(item.piecesPerBox || 1));
-        piecesByBox.set(ppb, (piecesByBox.get(ppb) || 0) + Number(item.giftQuantity || 0));
+        const itemGiftPieces = (Number(item.giftQuantity || 0) * ppb) + Number(item.giftPieces || 0);
+        piecesByBox.set(ppb, (piecesByBox.get(ppb) || 0) + itemGiftPieces);
       }
     }
     const dominantPiecesPerBox =
@@ -1101,11 +1118,14 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                             <Package className="h-3.5 w-3.5" />
                             {item.quantity}
                           </div>
-                          {item.giftQuantity > 0 && (
-                            <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
-                              🎁 {formatGiftDisplay(Number(item.giftQuantity || 0), Math.max(1, Number(item.piecesPerBox || 1)))}
-                            </div>
-                          )}
+                           {(item.giftQuantity > 0 || item.giftPieces > 0) && (
+                             <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
+                               🎁 {formatGiftDisplay(
+                                 (Number(item.giftQuantity || 0) * Math.max(1, Number(item.piecesPerBox || 1))) + Number(item.giftPieces || 0),
+                                 Math.max(1, Number(item.piecesPerBox || 1))
+                               )}
+                             </div>
+                           )}
                         </div>
                         {!!Object.keys(item.subtypeQuantities || {}).length && (
                           <div className="flex flex-wrap gap-1">
