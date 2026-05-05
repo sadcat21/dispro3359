@@ -36,6 +36,12 @@ type LedgerRow = {
   worker_name: string | null;
   customer_name: string | null;
   branch_name: string | null;
+  offer_tier_id?: string | null;
+  tier_min_quantity?: number | null;
+  tier_min_quantity_unit?: string | null;
+  tier_gift_quantity?: number | null;
+  tier_gift_quantity_unit?: string | null;
+  tier_gift_type?: string | null;
 };
 
 type BalanceRow = {
@@ -108,6 +114,30 @@ const formatDateEn = (d: string) =>
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit",
   });
+
+// تحويل كمية إلى قطع
+const toPieces = (qty: number, unit: string | null | undefined, ppb: number | null | undefined) => {
+  const p = Math.max(Number(ppb) || 1, 1);
+  if (unit === "piece") return Number(qty);
+  return Number(qty) * p;
+};
+
+type Compliance = { status: "compliant" | "violation" | "na"; expected?: number; actual?: number };
+
+const computeCompliance = (r: LedgerRow): Compliance => {
+  if (r.movement_type !== "worker_to_customer") return { status: "na" };
+  if (!r.tier_min_quantity || !r.tier_gift_quantity) return { status: "na" };
+  const ppb = r.pieces_per_box;
+  const salePieces = toPieces(Math.abs(Number(r.sale_quantity) || 0), r.sale_quantity_unit, ppb);
+  const giftPieces = toPieces(Math.abs(Number(r.gift_quantity) || 0), r.gift_quantity_unit, ppb);
+  const tierMinPieces = toPieces(Number(r.tier_min_quantity), r.tier_min_quantity_unit, ppb);
+  const tierGiftPieces = toPieces(Number(r.tier_gift_quantity), r.tier_gift_quantity_unit, ppb);
+  if (tierMinPieces <= 0) return { status: "na" };
+  const expected = (salePieces / tierMinPieces) * tierGiftPieces;
+  // tolerance of 0.01 pieces
+  const status: Compliance["status"] = giftPieces + 0.01 >= expected ? "compliant" : "violation";
+  return { status, expected, actual: giftPieces };
+};
 
 export default function OfferLedger() {
   const [search, setSearch] = useState("");
