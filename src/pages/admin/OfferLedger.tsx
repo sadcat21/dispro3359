@@ -512,7 +512,7 @@ export default function OfferLedger() {
                           <TableCell className="text-center font-mono text-xs">{fmt(it.expected)}</TableCell>
                           <TableCell className="text-center font-mono text-xs">{fmt(it.actual)}</TableCell>
                           <TableCell className="text-xs whitespace-nowrap">
-                            {new Date(it.created_at).toLocaleString("ar-EG")}
+                            {formatDateEn(it.created_at)}
                           </TableCell>
                         </TableRow>
                       ))}
