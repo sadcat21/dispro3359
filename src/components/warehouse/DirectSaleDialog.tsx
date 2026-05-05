@@ -35,6 +35,7 @@ import StockOverflowDialog from '@/components/warehouse/StockOverflowDialog';
 import { cn } from '@/lib/utils';
 import CustomerDistanceIndicator from '@/components/orders/CustomerDistanceIndicator';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
