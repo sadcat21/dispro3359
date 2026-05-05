@@ -37,6 +37,7 @@ interface CustomerBreakdown {
   deliveryTime: string | null;
   quantity: number;
   giftQuantity: number;
+  giftPieces: number;
   totalAmount: number;
 }
 
