@@ -740,24 +740,33 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
     if (!workerId || r.frozen_at) return;
     setProcessingId(r.id);
     try {
-      // مدير الفرع لا يوافق نهائياً — فقط يحوّل للإدارة العليا (مساعد المدير العام / مدير النظام)
-      await supabase.from('stock_receipts').update({
-        status: 'pending_assistant',
-        branch_approved_by: workerId,
-        branch_approved_at: new Date().toISOString(),
-        pallet_count: r.pallet_count || 0,
-      }).eq('id', r.id);
-
-      // إذا كان مرتبطاً بتسليم، نحوّله أيضاً للإدارة
-      if (r.linked_delivery_id) {
-        await supabase.from('factory_orders').update({
+      if (isAssistant) {
+        // الموافقة النهائية من مساعد المدير العام
+        const { error } = await supabase.rpc('approve_stock_receipt_two_stage' as never, {
+          p_receipt_id: r.id,
+          p_stage: 'assistant',
+        } as never);
+        if (error) throw error;
+        toast.success('تمت الموافقة النهائية على الاستلام');
+      } else {
+        // مدير الفرع لا يوافق نهائياً — فقط يحوّل للإدارة العليا
+        await supabase.from('stock_receipts').update({
           status: 'pending_assistant',
           branch_approved_by: workerId,
           branch_approved_at: new Date().toISOString(),
-        }).eq('id', r.linked_delivery_id);
-      }
+          pallet_count: r.pallet_count || 0,
+        }).eq('id', r.id);
 
-      toast.success('تم إرسال الطلب للإدارة العليا للموافقة النهائية');
+        if (r.linked_delivery_id) {
+          await supabase.from('factory_orders').update({
+            status: 'pending_assistant',
+            branch_approved_by: workerId,
+            branch_approved_at: new Date().toISOString(),
+          }).eq('id', r.linked_delivery_id);
+        }
+
+        toast.success('تم إرسال الطلب للإدارة العليا للموافقة النهائية');
+      }
       await fetchData();
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
