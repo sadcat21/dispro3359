@@ -131,7 +131,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   }, [t]);
 
   const quantity = isUnitSale ? (parseInt(unitQuantityInput) || 0) : Math.floor(Math.max(0, paidQuantity));
-  const quantityPieces = isUnitSale ? 0 : Math.max(0, Math.round((paidQuantity - Math.floor(paidQuantity)) * piecesPerBox));
   const customUnitPriceValue = Number(customUnitPriceInput || 0);
   const hasCustomUnitPrice = Number.isFinite(customUnitPriceValue) && customUnitPriceValue > 0;
   const pricingUnit = product?.pricing_unit || 'box';
@@ -369,7 +368,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const giftRemainingPieces = product.pieces_per_box > 0 ? giftPieces % product.pieces_per_box : 0;
   const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
   const appliedGiftPieces = offerApplied ? giftPieces : 0;
-  const baseQuantity = quantity;
   const totalBpQuantity = paidQuantity + (appliedGiftPieces / piecesPerBox);
   const baseQuantityDisplay = formatBPQuantity(paidQuantity, piecesPerBox);
   const totalQuantityDisplay = formatBPQuantity(totalBpQuantity, piecesPerBox);
@@ -579,7 +577,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               </div>
               {!isUnitSale && (
                 <p className="text-center text-[10px] text-muted-foreground">
-                  {totalQuantityDisplay}
+                  {offerApplied ? totalQuantityDisplay : baseQuantityDisplay}
                 </p>
               )}
             </div>
