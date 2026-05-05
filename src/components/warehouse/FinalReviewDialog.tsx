@@ -24,11 +24,11 @@ interface AggregatedRow {
   productId: string;
   productName: string;
   imageUrl?: string | null;
-  loaded: number;   // مجموع الشحن (B.P)
-  unloaded: number; // مجموع التفريغ (B.P)
-  sold: number;     // مجموع المبيعات (B.P)
-  gifts: number;    // مجموع الهدايا (B.P)
-  expected: number; // المتوقع المتبقي (B.P)
+  loaded: number;   // قطع إجمالية
+  unloaded: number; // قطع إجمالية
+  sold: number;     // قطع إجمالية
+  gifts: number;    // قطع إجمالية
+  expected: number; // قطع إجمالية المتبقي
   expectedBoxes: number;
   expectedPieces: number;
   actualBoxes: string;
@@ -36,6 +36,16 @@ interface AggregatedRow {
   confirmed: boolean;
   ppb: number;
 }
+
+// عرض موحّد بصيغة B.P (boxes.pp) — يطابق formatGiftDisplay في تجميعات المبيعات والعروض
+const formatBP = (totalPieces: number, piecesPerBox: number): string => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  const p = Math.max(0, Math.round(totalPieces));
+  if (ppb <= 1) return `${p}`;
+  const boxes = Math.floor(p / ppb);
+  const remaining = p % ppb;
+  return `${boxes}.${String(remaining).padStart(2, '0')}`;
+};
 
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   open, onOpenChange, workerId, workerName, branchId,
@@ -130,18 +140,30 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           confirmed: false,
           ppb: prod.pieces_per_box || 1,
         });
+        // helper: B.P stored value (e.g. 5.03 with ppb=20) → total pieces
+        const bpToPieces = (val: number, ppb: number): number => {
+          const v = Number(val || 0);
+          const boxes = Math.floor(Math.round(v * 100) / 100);
+          const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
+          return boxes * ppb + piecesDec;
+        };
+
         for (const it of loadItems) {
           const pid = it.product_id;
           const prod = it.product || {};
           const ex = map.get(pid) || baseRow(pid, prod);
-          ex.loaded += Number(it.quantity || 0);
+          const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+          ex.loaded += bpToPieces(Number(it.quantity || 0), ppb);
+          // gift_quantity in loading_session_items represents pieces
+          ex.gifts += Math.max(0, Number((it as any).gift_quantity || 0));
           map.set(pid, ex);
         }
         for (const m of (unloadMoves || [])) {
           const pid = m.product_id;
           const prod = (m as any).product || {};
           const ex = map.get(pid) || baseRow(pid, prod);
-          ex.unloaded += Number(m.quantity || 0);
+          const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+          ex.unloaded += bpToPieces(Number(m.quantity || 0), ppb);
           map.set(pid, ex);
         }
 
@@ -156,43 +178,32 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         if (deliveredIds.length > 0) {
           const { data: soldItems } = await supabase
             .from('order_items')
-            .select('product_id, quantity, gift_quantity, gift_pieces, product:products(id, name, image_url, pieces_per_box)')
+            .select('product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
           for (const it of (soldItems || [])) {
             const pid = (it as any).product_id;
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
-            const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
-            // total quantity & gift are stored in B.P format → convert to total pieces
-            const totalPieces = parseBP(Number((it as any).quantity || 0).toFixed(2), ppb).totalPieces;
-            const giftBoxes = Number((it as any).gift_quantity || 0);
-            const giftExtraPieces = Number((it as any).gift_pieces || 0);
-            const giftTotalPieces = Math.floor(giftBoxes) * ppb + giftExtraPieces
-              + Math.round((giftBoxes - Math.floor(giftBoxes)) * 100); // tolerate B.P stored gift_quantity
+            const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
+            // total quantity stored in B.P → total pieces
+            const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
+            // gifts: gift_quantity (boxes) * ppb + gift_pieces (extra pieces) — same convention as WorkerGiftsSummaryDialog
+            const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
+            const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
+            const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
             const soldPieces = Math.max(0, totalPieces - giftTotalPieces);
-            // store back in B.P format (boxes.pieces with pieces as 2-digit decimal of piece count)
-            const piecesToBP = (p: number) => {
-              const b = Math.floor(p / ppb);
-              const r = p % ppb;
-              return b + r / 100;
-            };
-            ex.sold += piecesToBP(soldPieces);
-            ex.gifts += piecesToBP(giftTotalPieces);
+            ex.sold += soldPieces;
+            ex.gifts += giftTotalPieces;
             map.set(pid, ex);
           }
         }
 
         const list = Array.from(map.values()).map(r => {
           const ppb = Math.max(1, Math.round(r.ppb || 1));
-          const loadedPieces = parseBP(Number(r.loaded).toFixed(2), ppb).totalPieces;
-          const unloadedPieces = parseBP(Number(r.unloaded).toFixed(2), ppb).totalPieces;
-          const soldPieces = parseBP(Number(r.sold).toFixed(2), ppb).totalPieces;
-          const giftsPieces = parseBP(Number(r.gifts).toFixed(2), ppb).totalPieces;
-          const expectedTotalPieces = Math.max(0, loadedPieces - unloadedPieces - soldPieces - giftsPieces);
+          const expectedTotalPieces = Math.max(0, r.loaded - r.unloaded - r.sold - r.gifts);
           const expectedBoxes = Math.floor(expectedTotalPieces / ppb);
           const expectedPieces = expectedTotalPieces % ppb;
-          const expected = expectedBoxes + expectedPieces / 100;
-          return { ...r, expected, expectedBoxes, expectedPieces };
+          return { ...r, expected: expectedTotalPieces, expectedBoxes, expectedPieces };
         });
         list.sort((a, b) => a.productName.localeCompare(b.productName));
         if (!cancelled) setRows(list);
@@ -216,17 +227,25 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
-  const actualTotalBoxes = (r: AggregatedRow) => {
+  // عدد القطع الفعلي
+  const actualTotalPieces = (r: AggregatedRow) => {
     const ppb = Math.max(1, Math.round(r.ppb || 1));
     const b = Math.max(0, parseInt(r.actualBoxes || '0', 10) || 0);
     const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
-    return b + p / ppb;
+    return b * ppb + p;
   };
-  const getDiff = (r: AggregatedRow) => actualTotalBoxes(r) - r.expected;
+  const getDiff = (r: AggregatedRow) => actualTotalPieces(r) - r.expected; // pieces
   const getStatus = (r: AggregatedRow): 'match' | 'surplus' | 'deficit' => {
     const d = getDiff(r);
-    if (Math.abs(d) < 0.001) return 'match';
+    if (d === 0) return 'match';
     return d > 0 ? 'surplus' : 'deficit';
+  };
+  // تحويل القطع → صيغة B.P للتخزين (boxes.pp)
+  const piecesToBPNum = (pieces: number, ppb: number): number => {
+    const n = Math.max(0, Math.round(pieces));
+    const boxes = Math.floor(n / ppb);
+    const rem = n % ppb;
+    return Number((boxes + rem / 100).toFixed(2));
   };
 
   const stats = useMemo(() => {
@@ -275,8 +294,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     setIsSaving(true);
     try {
 
-      const totalExpected = rows.reduce((s, r) => s + r.expected, 0);
-      const totalActual = rows.reduce((s, r) => s + actualTotalBoxes(r), 0);
+      const totalExpected = rows.reduce((s, r) => {
+        const ppb = Math.max(1, Math.round(r.ppb || 1));
+        return s + piecesToBPNum(r.expected, ppb);
+      }, 0);
+      const totalActual = rows.reduce((s, r) => {
+        const ppb = Math.max(1, Math.round(r.ppb || 1));
+        return s + piecesToBPNum(actualTotalPieces(r), ppb);
+      }, 0);
       const now = new Date().toISOString();
 
       // 2. Create the final review session (locked immediately with both signatures)
@@ -306,14 +331,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const itemRows: any[] = [];
       const discRows: any[] = [];
       for (const r of rows) {
-        const a = actualTotalBoxes(r);
-        const diff = a - r.expected;
+        const ppb = Math.max(1, Math.round(r.ppb || 1));
+        const expectedBP = piecesToBPNum(r.expected, ppb);
+        const actualBP = piecesToBPNum(actualTotalPieces(r), ppb);
+        const diff = actualBP - expectedBP;
         const diffType = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
         itemRows.push({
           final_review_session_id: sessionId,
           product_id: r.productId,
-          expected_qty: r.expected,
-          actual_qty: a,
+          expected_qty: expectedBP,
+          actual_qty: actualBP,
           difference: diff,
           diff_type: diffType,
         });
@@ -327,7 +354,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             remaining_quantity: Math.abs(diff),
             status: 'pending',
             final_review_session_id: sessionId,
-            notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${r.expected}، فعلي ${a}`,
+            notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${formatBP(r.expected, ppb)}، فعلي ${formatBP(actualTotalPieces(r), ppb)}`,
           });
         }
       }
@@ -418,13 +445,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 const filled = isFilled(r);
                 const status = filled ? getStatus(r) : 'match';
                 const ppb = Math.max(1, Math.round(r.ppb || 1));
-                const expectedPiecesTotal = r.expectedBoxes * ppb + r.expectedPieces;
+                const expectedPiecesTotal = r.expected;
                 const actualPiecesTotal = (parseInt(r.actualBoxes || '0', 10) || 0) * ppb + (parseInt(r.actualPieces || '0', 10) || 0);
                 const diffTotalPieces = filled ? actualPiecesTotal - expectedPiecesTotal : 0;
                 const absPieces = Math.abs(diffTotalPieces);
-                const diffBoxes = Math.floor(absPieces / ppb);
-                const diffPieces = absPieces % ppb;
-                const diffLabel = diffPieces > 0 ? `${diffBoxes}.${String(diffPieces).padStart(2, '0')}` : `${diffBoxes}`;
+                const diffLabel = formatBP(absPieces, ppb);
                 const ring = !r.confirmed
                   ? 'border-border'
                   : status === 'match' ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20'
@@ -459,16 +484,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     {/* Stats grid: 2x2 + expected full-width */}
                     <div className="grid grid-cols-2 gap-1.5">
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
-                        شُحن <strong>{dbBPDisplay(r.loaded, ppb)}</strong>
+                        شُحن <strong>{formatBP(r.loaded, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
-                        فُرّغ <strong>{dbBPDisplay(r.unloaded, ppb)}</strong>
+                        فُرّغ <strong>{formatBP(r.unloaded, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
-                        مُباع <strong>{dbBPDisplay(r.sold, ppb)}</strong>
+                        مُباع <strong>{formatBP(r.sold, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
-                        🎁 هدية <strong>{dbBPDisplay(r.gifts, ppb)}</strong>
+                        🎁 هدية <strong>{formatBP(r.gifts, ppb)}</strong>
                       </Badge>
                     </div>
 
@@ -476,7 +501,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
                       <span className="text-[11px] font-medium text-primary">المتوقع</span>
                       <span className="text-sm font-bold text-primary">
-                        {dbBPDisplay(r.expected, ppb)}
+                        {formatBP(r.expected, ppb)}
                       </span>
                     </div>
 
