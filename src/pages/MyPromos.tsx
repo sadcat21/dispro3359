@@ -370,11 +370,16 @@ const MyPromosContent: React.FC = () => {
                           return (
                             <>
                               {offer && (
-                                <div className="text-[11px] text-muted-foreground bg-muted/40 rounded-md py-1.5 px-2 border border-border flex items-center gap-1.5">
-                                  <Gift className="w-3.5 h-3.5 text-primary shrink-0" />
-                                  <span className="font-semibold truncate">{offer.name}:</span>
-                                  <span className="truncate">
-                                    {offer.min_quantity} {unitLabel(saleUnit)} → {offer.gift_quantity} {unitLabel(giftUnit)}
+                                <div className="text-[11px] bg-muted/40 rounded-md py-1.5 px-2 border border-border flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-semibold truncate text-muted-foreground">{offer.name}:</span>
+                                  <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5">
+                                    <ShoppingCart className="w-3 h-3" />
+                                    <span className="font-semibold">{offer.min_quantity} {unitLabel(saleUnit)}</span>
+                                  </span>
+                                  <span className="text-muted-foreground">→</span>
+                                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5">
+                                    <Gift className="w-3 h-3" />
+                                    <span className="font-semibold">{offer.gift_quantity} {unitLabel(giftUnit)}</span>
                                   </span>
                                 </div>
                               )}
