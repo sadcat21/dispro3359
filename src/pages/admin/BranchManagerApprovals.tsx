@@ -31,15 +31,18 @@ const BranchManagerApprovals: React.FC = () => {
     queryKey: ['branch-approvals-counts', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [invoices, warehouseReviews] = await Promise.all([
+      const [invoices, warehouseReviews, stockReceipts] = await Promise.all([
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('status', 'pending_branch'),
         supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true })
           .eq('status', 'pending'),
+        supabase.from('stock_receipts').select('id', { count: 'exact', head: true })
+          .eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
       ]);
       return {
         invoices: invoices.count || 0,
         warehouseReviews: warehouseReviews.count || 0,
+        stockReceipts: stockReceipts.count || 0,
       };
     },
     staleTime: 30_000,
