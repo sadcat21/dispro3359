@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
-import ReceiptDetailsDialog from '@/components/admin/ReceiptDetailsDialog';
+import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -552,10 +552,14 @@ const AssistantApprovals: React.FC = () => {
         requestId={reviewRequestId}
       />
 
-      <ReceiptDetailsDialog
-        receiptId={detailsReceiptId}
-        onOpenChange={(v) => { if (!v) setDetailsReceiptId(null); }}
-      />
+      {detailsReceiptId && (
+        <FactoryReceiptQuickDialog
+          open={!!detailsReceiptId}
+          onOpenChange={(v) => { if (!v) setDetailsReceiptId(null); }}
+          editReceiptId={detailsReceiptId}
+          onSaved={() => { setDetailsReceiptId(null); qc.invalidateQueries(); }}
+        />
+      )}
     </div>
   );
 };
