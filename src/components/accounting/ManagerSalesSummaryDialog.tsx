@@ -767,9 +767,13 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
   const aggregate = useMemo(() => buildAggregateSummary(data || [], selectedWorkerId), [data, selectedWorkerId]);
   const totalQuantity = useMemo(() => aggregate.items.reduce((sum, item) => sum + item.quantity, 0), [aggregate.items]);
   const finance = useMemo(() => getSummaryFinance(aggregate.calc), [aggregate.calc]);
-  const giftsDisplay = useMemo(() => {
+   const giftsDisplay = useMemo(() => {
     const promoGiftPieces = aggregate.calc.promoTracking.reduce((sum, item) => sum + Number(item.giftQuantity || 0), 0);
-    const fallbackGiftPieces = aggregate.items.reduce((sum, item) => sum + Number(item.giftQuantity || 0), 0);
+    // Calculate total gift in pieces: gift_quantity (boxes) * piecesPerBox + gift_pieces
+    const fallbackGiftPieces = aggregate.items.reduce((sum, item) => {
+      const ppb = Math.max(1, Number(item.piecesPerBox || 1));
+      return sum + (Number(item.giftQuantity || 0) * ppb) + Number(item.giftPieces || 0);
+    }, 0);
     const totalGiftPieces = Math.max(promoGiftPieces, fallbackGiftPieces);
     const piecesByBox = new Map<number, number>();
     for (const item of aggregate.calc.promoTracking) {
@@ -779,7 +783,8 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
     if (piecesByBox.size === 0) {
       for (const item of aggregate.items) {
         const ppb = Math.max(1, Number(item.piecesPerBox || 1));
-        piecesByBox.set(ppb, (piecesByBox.get(ppb) || 0) + Number(item.giftQuantity || 0));
+        const itemGiftPieces = (Number(item.giftQuantity || 0) * ppb) + Number(item.giftPieces || 0);
+        piecesByBox.set(ppb, (piecesByBox.get(ppb) || 0) + itemGiftPieces);
       }
     }
     const dominantPiecesPerBox =
