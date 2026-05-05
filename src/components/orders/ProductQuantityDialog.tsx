@@ -572,8 +572,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     inputMode="numeric"
                     value={unitQuantityInput}
                     onChange={(e) => setUnitQuantityInput(e.target.value.replace(/\D/g, ''))}
+                    onFocus={(e) => e.target.select()}
                     className="w-24 h-11 text-center text-xl font-bold"
-                    placeholder="1"
+                    placeholder="0"
                   />
                 ) : (
                   <div className="grid grid-cols-2 gap-2 w-[12.5rem]">
@@ -585,6 +586,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         value={quantityFields.boxes}
                         onChange={(e) => handleQuantityFieldChange('boxes', e.target.value)}
                         onBlur={normalizeQuantityFields}
+                        onFocus={(e) => e.target.select()}
                         className="h-11 text-center text-xl font-bold"
                         placeholder="0"
                       />
@@ -597,6 +599,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         value={quantityFields.pieces}
                         onChange={(e) => handleQuantityFieldChange('pieces', e.target.value)}
                         onBlur={normalizeQuantityFields}
+                        onFocus={(e) => e.target.select()}
                         className="h-11 text-center text-xl font-bold"
                         placeholder={String(0).padStart(pieceDigits, '0')}
                         disabled={!isUnitSale}
