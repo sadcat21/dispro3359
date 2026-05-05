@@ -3358,6 +3358,148 @@ export type Database = {
           },
         ]
       }
+      offer_ledger: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          gift_quantity: number
+          gift_quantity_unit: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          offer_id: string | null
+          offer_tier_id: string | null
+          product_id: string
+          promo_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_gift_balance: number | null
+          running_sale_balance: number | null
+          sale_quantity: number
+          sale_quantity_unit: string | null
+          signed_gift: number | null
+          signed_sale: number | null
+          source_session_id: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          gift_quantity?: number
+          gift_quantity_unit?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          offer_id?: string | null
+          offer_tier_id?: string | null
+          product_id: string
+          promo_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_gift_balance?: number | null
+          running_sale_balance?: number | null
+          sale_quantity?: number
+          sale_quantity_unit?: string | null
+          signed_gift?: number | null
+          signed_sale?: number | null
+          source_session_id?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          gift_quantity?: number
+          gift_quantity_unit?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          offer_id?: string | null
+          offer_tier_id?: string | null
+          product_id?: string
+          promo_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          running_gift_balance?: number | null
+          running_sale_balance?: number | null
+          sale_quantity?: number
+          sale_quantity_unit?: string | null
+          signed_gift?: number | null
+          signed_sale?: number | null
+          source_session_id?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ledger_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_offer_tier_id_fkey"
+            columns: ["offer_tier_id"]
+            isOneToOne: false
+            referencedRelation: "product_offer_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_promo_id_fkey"
+            columns: ["promo_id"]
+            isOneToOne: false
+            referencedRelation: "promos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "loading_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_events: {
         Row: {
           created_at: string
@@ -8771,6 +8913,161 @@ export type Database = {
           },
         ]
       }
+      v_offer_balances: {
+        Row: {
+          branch_id: string | null
+          delivered_gift: number | null
+          delivered_sale: number | null
+          last_movement_at: string | null
+          loaded_gift: number | null
+          loaded_sale: number | null
+          movements_count: number | null
+          offer_id: string | null
+          product_id: string | null
+          remaining_gift: number | null
+          remaining_sale: number | null
+          returned_gift: number | null
+          returned_sale: number | null
+          shortage_gift: number | null
+          shortage_sale: number | null
+          worker_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ledger_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_offer_ledger_full: {
+        Row: {
+          branch_id: string | null
+          branch_name: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_id: string | null
+          customer_name: string | null
+          gift_quantity: number | null
+          gift_quantity_unit: string | null
+          id: string | null
+          movement_type: string | null
+          notes: string | null
+          offer_id: string | null
+          offer_name: string | null
+          offer_tier_id: string | null
+          pieces_per_box: number | null
+          product_id: string | null
+          product_name: string | null
+          promo_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          running_gift_balance: number | null
+          running_sale_balance: number | null
+          sale_quantity: number | null
+          sale_quantity_unit: string | null
+          signed_gift: number | null
+          signed_sale: number | null
+          source_session_id: string | null
+          worker_id: string | null
+          worker_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ledger_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_offer_tier_id_fkey"
+            columns: ["offer_tier_id"]
+            isOneToOne: false
+            referencedRelation: "product_offer_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_promo_id_fkey"
+            columns: ["promo_id"]
+            isOneToOne: false
+            referencedRelation: "promos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "loading_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ledger_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_stock_reconciliation: {
         Row: {
           branch_id: string | null
@@ -9171,6 +9468,40 @@ export type Database = {
           p_reference_id?: string
         }
         Returns: Json
+      }
+      record_offer_adjustment: {
+        Args: {
+          p_gift_qty?: number
+          p_notes?: string
+          p_offer_id: string
+          p_product_id: string
+          p_sale_qty: number
+          p_worker_id: string
+        }
+        Returns: string
+      }
+      record_offer_load: {
+        Args: {
+          p_gift_qty?: number
+          p_notes?: string
+          p_offer_id: string
+          p_product_id: string
+          p_sale_qty: number
+          p_session_id?: string
+          p_worker_id: string
+        }
+        Returns: string
+      }
+      record_offer_shortage: {
+        Args: {
+          p_gift_qty?: number
+          p_notes?: string
+          p_offer_id: string
+          p_product_id: string
+          p_sale_qty: number
+          p_worker_id: string
+        }
+        Returns: string
       }
       record_stock_adjustment_atomic: {
         Args: {
