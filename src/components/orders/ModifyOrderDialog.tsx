@@ -26,6 +26,7 @@ import { InvoicePaymentMethod } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
+import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
 
 interface ModifyOrderDialogProps {
   open: boolean;
@@ -339,7 +340,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }, [recalcGiftBoxes]);
 
   const getPaidQuantity = useCallback((item: ModifiedItem) => {
-    return Math.max(0, item.new_quantity - (item.gift_quantity || 0));
+    return getStoredPaidQuantity({
+      quantity: item.new_quantity,
+      gift_quantity: item.gift_quantity,
+      gift_pieces: item.gift_pieces,
+      pieces_per_box: item.pieces_per_box,
+      unit_price: item.unit_price,
+      total_price: item.unit_price * Math.max(0, item.new_quantity - getGiftTotalBoxes(item)),
+    });
   }, []);
 
   const getProductById = useCallback((productId: string) => {
@@ -390,7 +398,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     const product = getProductById(item.product_id);
     if (!product) return;
 
-    const totalGiftPieces = ((item.gift_quantity || 0) * (item.pieces_per_box || 1)) + (item.gift_pieces || 0);
+    const totalGiftPieces = getGiftTotalPieces(item);
 
     setEditingTargetProductId(item.product_id);
     setEditingInitialQuantity(getPaidQuantity(item));
