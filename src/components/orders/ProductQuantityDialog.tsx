@@ -284,9 +284,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           onConfirm(product.id, effectiveQty, undefined, false, perItemPricing);
         }
       }
-      setUnitQuantityInput('1');
-      setPaidQuantity(1);
-      setQuantityFields(quantityToFields(1, piecesPerBox));
+      setUnitQuantityInput('');
+      setPaidQuantity(0);
+      setQuantityFields({ boxes: '', pieces: '' });
       setGiftPieces(0);
       setGiftOfferId(undefined);
       setOfferApplied(false);
@@ -331,9 +331,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     if (!isOpen) {
       setGiftPieces(initialGiftPieces || 0);
       setGiftOfferId(initialGiftOfferId);
-      setUnitQuantityInput(String(initialQuantity));
+      setUnitQuantityInput(initialQuantity > 0 ? String(initialQuantity) : '');
       setPaidQuantity(initialIsUnitSale ? 0 : initialQuantity);
-      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox));
+      setQuantityFields(quantityToFields(initialQuantity, piecesPerBox, initialQuantity === 0));
       setOfferApplied((initialOfferApplied || initialGiftPieces > 0) && !initialIsUnitSale);
       setIsUnitSale(initialIsUnitSale);
       setShowPricingOverride(false);
