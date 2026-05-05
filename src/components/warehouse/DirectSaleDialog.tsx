@@ -1268,8 +1268,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                               </span>
                             )}
                             {inCart && (
-                              <Badge variant="default" className="text-sm px-2.5 py-0.5 shadow-lg font-bold">
-                                {totalCartQuantity}
+                              <Badge variant="default" className="text-xs px-2 py-0.5 shadow-lg font-bold font-mono" dir="ltr">
+                                {boxesToBPAlways(totalCartQuantity + (totalGiftPieces / Math.max(1, product.pieces_per_box || 1)), product.pieces_per_box || 1)}
                               </Badge>
                             )}
                           </div>
@@ -1277,7 +1277,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
                         {/* السعر أسفل الصورة */}
                         <div className={cn(
-                          "px-2 py-2 border-t",
+                          "px-1.5 py-1.5 border-t",
                           hasAppliedGift
                             ? 'bg-green-50 border-green-100'
                             : 'bg-red-50 border-red-100'
