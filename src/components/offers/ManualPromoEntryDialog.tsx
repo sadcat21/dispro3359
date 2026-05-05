@@ -398,7 +398,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           worker_id: workerId,
           customer_id: entry.customerId,
           product_id: selectedProductId,
-          // تخزين البيع دائماً بصيغة b.p بعد التطبيع وفق pieces_per_box
           vente_quantity: parsedSold.raw,
           gratuite_quantity: entry.giftQuantity,
           gift_quantity_unit: selectedTier.gift_quantity_unit || 'piece',

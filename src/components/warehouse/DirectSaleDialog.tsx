@@ -39,6 +39,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
+import { useProductOffers } from '@/hooks/useProductOffers';
 
 interface StockItem {
   id: string;
@@ -94,6 +95,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const queryClient = useQueryClient();
   const { companyInfo } = useCompanyInfo();
   const { data: stampTiers } = useActiveStampTiers();
+  const { activeOffers } = useProductOffers();
   const createDebt = useCreateDebt();
   const { trackVisit } = useTrackVisit();
   // Data states
@@ -745,12 +747,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const giftItems = orderItems.filter(i => (i.giftQuantity && i.giftQuantity > 0) || (i.giftPieces && i.giftPieces > 0));
       for (const item of giftItems) {
         const giftInPieces = item.giftPieces || item.giftQuantity || 0;
+        const matchedOffer = item.giftOfferId
+          ? activeOffers.find((offer) => offer.id === item.giftOfferId)
+          : null;
         await supabase.from('promos').insert({
           worker_id: workerId!,
           customer_id: selectedCustomerId,
           product_id: item.productId,
           vente_quantity: item.quantity - (item.giftQuantity || 0),
+          sale_quantity_unit: matchedOffer?.min_quantity_unit || 'box',
           gratuite_quantity: giftInPieces,
+          gift_quantity_unit: matchedOffer?.gift_quantity_unit || 'piece',
+          offer_id: item.giftOfferId || null,
           has_bonus: false,
           bonus_amount: 0,
           notes: `هدية عرض - بيع مباشر ${order.id.slice(0, 8)}`,
