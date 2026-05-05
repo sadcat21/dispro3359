@@ -303,11 +303,31 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     setMode('multi-qty');
   };
 
+  // Compute gift for a given product & paid quantity using its offer tiers
+  const computeGiftForProduct = (productId: string, qty: number): { giftQty: number; giftUnit: string } => {
+    const offer = offersMap[productId];
+    if (!offer || qty <= 0) return { giftQty: 0, giftUnit: 'piece' };
+    const sortedTiers = [...offer.tiers].sort((a, b) => b.minQty - a.minQty);
+    for (const tier of sortedTiers) {
+      if (qty >= tier.minQty) {
+        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
+        return { giftQty: gQty, giftUnit: tier.giftUnit };
+      }
+    }
+    return { giftQty: 0, giftUnit: 'piece' };
+  };
+
   const handleConfirmMulti = () => {
-    const items = Array.from(multiSelected).map(id => ({
-      productId: id,
-      quantity: uniformQty ? unifiedQtyValue : (individualQtys[id] || 1),
-    })).filter(i => i.quantity > 0);
+    const items = Array.from(multiSelected).map(id => {
+      const qty = uniformQty ? unifiedQtyValue : (individualQtys[id] || 1);
+      const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
+      return {
+        productId: id,
+        quantity: qty + giftQty,
+        giftQuantity: giftQty,
+        giftUnit,
+      };
+    }).filter(i => i.quantity > 0);
     if (items.length === 0) return;
     onAddProducts(items);
     setMultiSelected(new Set());
@@ -437,7 +457,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-2 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-1.5">
-            {selectedProducts.map(p => (
+            {selectedProducts.map(p => {
+              const qty = uniformQty ? unifiedQtyValue : (individualQtys[p.id] || 1);
+              const gift = computeGiftForProduct(p.id, qty);
+              return (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg ring-1 ring-border/40 bg-card">
                 {p.image_url ? (
                   <img src={p.image_url} alt={getProductDisplayName(p)} className="w-9 h-9 rounded-lg object-cover shrink-0" />
@@ -449,6 +472,12 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-semibold truncate">{getProductDisplayName(p)}</div>
                   <div className="text-[9px] text-muted-foreground">المتاح: {fmtQty(p.warehouseQty)}</div>
+                  {gift.giftQty > 0 && (
+                    <div className="text-[9px] text-green-600 font-bold flex items-center gap-1 mt-0.5">
+                      <Gift className="w-3 h-3" />
+                      هدية: {fmtQty(gift.giftQty)} {gift.giftUnit === 'box' ? 'صندوق' : 'قطعة'}
+                    </div>
+                  )}
                 </div>
                 {!uniformQty && (
                   <Input
@@ -463,7 +492,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <Badge variant="secondary" className="text-xs">{fmtQty(unifiedQtyValue)}</Badge>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
