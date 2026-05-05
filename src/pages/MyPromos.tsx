@@ -361,9 +361,12 @@ const MyPromosContent: React.FC = () => {
                           const offer = explicitOffer || inferredOffer;
                           const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
                           const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
-                          // القيمة مخزّنة بنفس وحدة العرض (الصندوق أو القطعة) — تُعرض كما هي دون تحويل
-                          const displaySale = String(Number(promo.vente_quantity || 0));
-                          const displayGift = String(Number(promo.gratuite_quantity || 0));
+                          // عرض الكميات بصيغة b.P (صناديق.قطع)
+                          const ppb = Number(promo.product?.pieces_per_box || 0);
+                          const salePieces = saleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
+                          const giftPieces = giftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
+                          const displaySale = formatBP(salePieces, ppb);
+                          const displayGift = formatBP(giftPieces, ppb);
                           return (
                             <>
                               {offer && (
