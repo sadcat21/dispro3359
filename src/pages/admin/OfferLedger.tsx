@@ -36,6 +36,12 @@ type LedgerRow = {
   worker_name: string | null;
   customer_name: string | null;
   branch_name: string | null;
+  offer_tier_id?: string | null;
+  tier_min_quantity?: number | null;
+  tier_min_quantity_unit?: string | null;
+  tier_gift_quantity?: number | null;
+  tier_gift_quantity_unit?: string | null;
+  tier_gift_type?: string | null;
 };
 
 type BalanceRow = {
@@ -108,6 +114,30 @@ const formatDateEn = (d: string) =>
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit",
   });
+
+// تحويل كمية إلى قطع
+const toPieces = (qty: number, unit: string | null | undefined, ppb: number | null | undefined) => {
+  const p = Math.max(Number(ppb) || 1, 1);
+  if (unit === "piece") return Number(qty);
+  return Number(qty) * p;
+};
+
+type Compliance = { status: "compliant" | "violation" | "na"; expected?: number; actual?: number };
+
+const computeCompliance = (r: LedgerRow): Compliance => {
+  if (r.movement_type !== "worker_to_customer") return { status: "na" };
+  if (!r.tier_min_quantity || !r.tier_gift_quantity) return { status: "na" };
+  const ppb = r.pieces_per_box;
+  const salePieces = toPieces(Math.abs(Number(r.sale_quantity) || 0), r.sale_quantity_unit, ppb);
+  const giftPieces = toPieces(Math.abs(Number(r.gift_quantity) || 0), r.gift_quantity_unit, ppb);
+  const tierMinPieces = toPieces(Number(r.tier_min_quantity), r.tier_min_quantity_unit, ppb);
+  const tierGiftPieces = toPieces(Number(r.tier_gift_quantity), r.tier_gift_quantity_unit, ppb);
+  if (tierMinPieces <= 0) return { status: "na" };
+  const expected = (salePieces / tierMinPieces) * tierGiftPieces;
+  // tolerance of 0.01 pieces
+  const status: Compliance["status"] = giftPieces + 0.01 >= expected ? "compliant" : "violation";
+  return { status, expected, actual: giftPieces };
+};
 
 export default function OfferLedger() {
   const [search, setSearch] = useState("");
@@ -316,6 +346,7 @@ export default function OfferLedger() {
                         <TableHead className="text-center">بيع</TableHead>
                         <TableHead className="text-center">هدية</TableHead>
                         <TableHead className="text-center">تفاصيل العرض</TableHead>
+                        <TableHead className="text-center">الالتزام بالعرض</TableHead>
                         <TableHead className="text-center">رصيد بيع</TableHead>
                         <TableHead className="text-center">رصيد هدية</TableHead>
                         <TableHead>ملاحظات</TableHead>
@@ -326,6 +357,7 @@ export default function OfferLedger() {
                         const m = movementLabels[r.movement_type] ?? { label: r.movement_type, color: "" };
                         const saleDetail = formatBoxPieces(r.sale_quantity, r.sale_quantity_unit, r.pieces_per_box);
                         const giftDetail = formatBoxPieces(r.gift_quantity, r.gift_quantity_unit, r.pieces_per_box);
+                        const comp = computeCompliance(r);
                         return (
                           <TableRow key={r.id}>
                             <TableCell className="whitespace-nowrap text-xs">
@@ -364,6 +396,22 @@ export default function OfferLedger() {
                                 )}
                               </div>
                             </TableCell>
+                            <TableCell className="text-center text-xs whitespace-nowrap">
+                              {comp.status === "compliant" && (
+                                <Badge className="bg-green-100 text-green-800">ملتزم</Badge>
+                              )}
+                              {comp.status === "violation" && (
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <Badge className="bg-red-100 text-red-800">غير ملتزم</Badge>
+                                  <span className="text-[10px] text-muted-foreground font-mono">
+                                    متوقع: {comp.expected?.toFixed(2)} / فعلي: {comp.actual?.toFixed(2)}
+                                  </span>
+                                </div>
+                              )}
+                              {comp.status === "na" && (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
                             <TableCell className="text-center font-mono font-semibold">
                               {fmt(r.running_sale_balance)}
                             </TableCell>
@@ -376,7 +424,7 @@ export default function OfferLedger() {
                       })}
                       {filtered.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
                             لا توجد حركات
                           </TableCell>
                         </TableRow>

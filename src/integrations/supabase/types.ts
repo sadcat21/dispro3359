@@ -9017,6 +9017,11 @@ export type Database = {
           signed_gift: number | null
           signed_sale: number | null
           source_session_id: string | null
+          tier_gift_quantity: number | null
+          tier_gift_quantity_unit: string | null
+          tier_gift_type: string | null
+          tier_min_quantity: number | null
+          tier_min_quantity_unit: string | null
           worker_id: string | null
           worker_name: string | null
         }
