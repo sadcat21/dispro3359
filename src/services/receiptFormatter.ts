@@ -127,21 +127,10 @@ function getPaymentLabel(data: ReceiptData): string | null {
 }
 
 function resolveGiftDisplay(item: ReceiptItem): { paidQuantity: number; giftBoxes: number; giftPieces: number } {
-  const rawGiftBoxes = Math.max(0, Number(item.giftQuantity || 0));
-  const rawGiftPieces = Math.max(0, Number(item.giftPieces || 0));
-  const paidFromTotal = item.unitPrice > 0 ? Number((item.totalPrice / item.unitPrice).toFixed(3)) : null;
-  const inferredGiftBoxes = paidFromTotal !== null ? Math.max(0, Number((item.quantity - paidFromTotal).toFixed(3))) : 0;
-
-  const looksLikeGiftPiecesInGiftQuantity =
-    rawGiftBoxes > 0 && rawGiftPieces === 0 && inferredGiftBoxes <= 0.001 && (item.piecesPerBox || 0) > 1;
-
-  if (looksLikeGiftPiecesInGiftQuantity) {
-    return { paidQuantity: paidFromTotal ?? item.quantity, giftBoxes: 0, giftPieces: rawGiftBoxes };
-  }
-
-  const giftBoxes = inferredGiftBoxes > 0.001 ? inferredGiftBoxes : rawGiftBoxes;
-  const paidQuantity = paidFromTotal ?? Math.max(0, item.quantity - giftBoxes);
-  return { paidQuantity, giftBoxes, giftPieces: rawGiftPieces };
+  const giftBoxes = Math.max(0, Number(item.giftQuantity || 0));
+  const giftPieces = Math.max(0, Number(item.giftPieces || 0));
+  const paidQuantity = Math.max(0, item.quantity - giftBoxes);
+  return { paidQuantity, giftBoxes, giftPieces };
 }
 
 function getUnitLabel(item: ReceiptItem): string {
