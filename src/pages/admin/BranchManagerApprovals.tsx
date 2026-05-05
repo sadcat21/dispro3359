@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon,
+  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -31,21 +31,24 @@ const BranchManagerApprovals: React.FC = () => {
     queryKey: ['branch-approvals-counts', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [invoices, warehouseReviews] = await Promise.all([
+      const [invoices, warehouseReviews, stockReceipts] = await Promise.all([
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('status', 'pending_branch'),
         supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true })
           .eq('status', 'pending'),
+        supabase.from('stock_receipts').select('id', { count: 'exact', head: true })
+          .eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
       ]);
       return {
         invoices: invoices.count || 0,
         warehouseReviews: warehouseReviews.count || 0,
+        stockReceipts: stockReceipts.count || 0,
       };
     },
     staleTime: 30_000,
   });
 
-  const totalPending = (counts?.invoices || 0) + (counts?.warehouseReviews || 0);
+  const totalPending = (counts?.invoices || 0) + (counts?.warehouseReviews || 0) + (counts?.stockReceipts || 0);
 
   const approvals: ApprovalCard[] = [
     {
@@ -65,6 +68,15 @@ const BranchManagerApprovals: React.FC = () => {
       path: '/warehouse-pending-reviews',
       badge: counts?.warehouseReviews,
       color: 'from-amber-500 to-orange-600',
+    },
+    {
+      key: 'stock_receipts',
+      title: 'موافقات الاستلام والتسليم',
+      description: 'مراجعة وصولات استلام وتسليم البضاعة بين العمال والمخزن',
+      icon: PackageCheck,
+      path: '/stock-receipts',
+      badge: counts?.stockReceipts,
+      color: 'from-emerald-500 to-teal-600',
     },
   ];
 
