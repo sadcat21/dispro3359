@@ -157,14 +157,17 @@ const buildCalcFromOrders = (orders: any[], items: any[]): SessionCalculations =
       }
     }
 
-    for (const item of orderItems) {
-      const giftQty = Number(item.gift_quantity || 0);
-      const qty = Number(item.quantity || 0);
-      const totalPrice = Number(item.total_price || 0);
-      if (giftQty <= 0 || qty <= 0) continue;
-      const estimatedUnit = totalPrice > 0 ? totalPrice / qty : Number(item.unit_price || 0);
-      calc.giftOfferValue += giftQty * estimatedUnit;
-    }
+     for (const item of orderItems) {
+       const giftBoxes = Number(item.gift_quantity || 0);
+       const giftPcs = Number((item as any).gift_pieces || 0);
+       const ppb = Math.max(1, Number((item as any).product?.pieces_per_box || 1));
+       const totalGiftInBoxes = giftBoxes + (giftPcs / ppb);
+       const qty = Number(item.quantity || 0);
+       const totalPrice = Number(item.total_price || 0);
+       if (totalGiftInBoxes <= 0 || qty <= 0) continue;
+       const estimatedUnit = totalPrice > 0 ? totalPrice / qty : Number(item.unit_price || 0);
+       calc.giftOfferValue += totalGiftInBoxes * estimatedUnit;
+     }
   }
 
   calc.physicalCash = calc.invoice2.cash + calc.invoice1.espaceCash + calc.invoice1.versementCash;
