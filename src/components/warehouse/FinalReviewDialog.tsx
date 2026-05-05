@@ -484,16 +484,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     {/* Stats grid: 2x2 + expected full-width */}
                     <div className="grid grid-cols-2 gap-1.5">
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
-                        شُحن <strong>{dbBPDisplay(r.loaded, ppb)}</strong>
+                        شُحن <strong>{formatBP(r.loaded, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
-                        فُرّغ <strong>{dbBPDisplay(r.unloaded, ppb)}</strong>
+                        فُرّغ <strong>{formatBP(r.unloaded, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
-                        مُباع <strong>{dbBPDisplay(r.sold, ppb)}</strong>
+                        مُباع <strong>{formatBP(r.sold, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
-                        🎁 هدية <strong>{dbBPDisplay(r.gifts, ppb)}</strong>
+                        🎁 هدية <strong>{formatBP(r.gifts, ppb)}</strong>
                       </Badge>
                     </div>
 
@@ -501,7 +501,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
                       <span className="text-[11px] font-medium text-primary">المتوقع</span>
                       <span className="text-sm font-bold text-primary">
-                        {dbBPDisplay(r.expected, ppb)}
+                        {formatBP(r.expected, ppb)}
                       </span>
                     </div>
 
