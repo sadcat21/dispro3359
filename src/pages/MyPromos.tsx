@@ -327,9 +327,18 @@ const MyPromosContent: React.FC = () => {
                       <div className="p-4 space-y-3">
                         {(() => {
                           const offer: any = (promo as any).offer;
-                          const saleUnit = (offer?.min_quantity_unit || (promo as any).gift_quantity_unit || 'piece') as 'box' | 'piece';
-                          const giftUnit = (offer?.gift_quantity_unit || (promo as any).gift_quantity_unit || 'piece') as 'box' | 'piece';
+                          const promoSaleUnit = (promo as any).sale_quantity_unit as 'box' | 'piece' | undefined;
+                          const promoGiftUnit = (promo as any).gift_quantity_unit as 'box' | 'piece' | undefined;
+                          const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                          const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
                           const ppb = promo.product?.pieces_per_box;
+                          // إذا لم تكن الوحدة مثبّتة على السجل (سجلات قديمة)، نعتبر القيمة مخزّنة بالقطع ونحوّل للعرض
+                          const displaySale = promoSaleUnit
+                            ? String(Number(promo.vente_quantity || 0))
+                            : formatByUnit(promo.vente_quantity, saleUnit, ppb);
+                          const displayGift = promoGiftUnit
+                            ? String(Number(promo.gratuite_quantity || 0))
+                            : formatByUnit(promo.gratuite_quantity, giftUnit, ppb);
                           return (
                             <>
                               {offer && (
@@ -347,8 +356,8 @@ const MyPromosContent: React.FC = () => {
                                   <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                                   <div className="min-w-0">
                                     <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')} ({unitLabel(saleUnit)})</p>
-                                    <p className="font-bold text-primary leading-none" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                                      {formatByUnit(promo.vente_quantity, saleUnit, ppb)}
+                                    <p className="font-bold text-primary leading-none">
+                                      {displaySale}
                                     </p>
                                   </div>
                                 </div>
@@ -356,8 +365,8 @@ const MyPromosContent: React.FC = () => {
                                   <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
                                   <div className="min-w-0">
                                     <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')} ({unitLabel(giftUnit)})</p>
-                                    <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`} title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                                      {formatByUnit(promo.gratuite_quantity, giftUnit, ppb)}
+                                    <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                      {displayGift}
                                     </p>
                                   </div>
                                 </div>
