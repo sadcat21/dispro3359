@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,16 +7,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck,
+  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck, Truck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 
 interface ApprovalCard {
   key: string;
   title: string;
   description: string;
   icon: LucideIcon;
-  path: string;
+  path?: string;
+  onClick?: () => void;
   badge?: number;
   color: string;
 }
@@ -26,29 +28,33 @@ const BranchManagerApprovals: React.FC = () => {
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id;
+  const [factoryOpen, setFactoryOpen] = useState(false);
 
   const { data: counts } = useQuery({
     queryKey: ['branch-approvals-counts', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [invoices, warehouseReviews, stockReceipts] = await Promise.all([
+      const [invoices, warehouseReviews, stockReceipts, factory] = await Promise.all([
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('status', 'pending_branch'),
         supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true })
           .eq('status', 'pending'),
         supabase.from('stock_receipts').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
+        supabase.from('factory_orders').select('id', { count: 'exact', head: true })
+          .eq('branch_id', branchId!).eq('order_type', 'sending').eq('status', 'pending_approval'),
       ]);
       return {
         invoices: invoices.count || 0,
         warehouseReviews: warehouseReviews.count || 0,
         stockReceipts: stockReceipts.count || 0,
+        factory: factory.count || 0,
       };
     },
     staleTime: 30_000,
   });
 
-  const totalPending = (counts?.invoices || 0) + (counts?.warehouseReviews || 0) + (counts?.stockReceipts || 0);
+  const totalPending = (counts?.invoices || 0) + (counts?.warehouseReviews || 0) + (counts?.stockReceipts || 0) + (counts?.factory || 0);
 
   const approvals: ApprovalCard[] = [
     {
@@ -77,6 +83,15 @@ const BranchManagerApprovals: React.FC = () => {
       path: '/stock-receipts',
       badge: counts?.stockReceipts,
       color: 'from-emerald-500 to-teal-600',
+    },
+    {
+      key: 'factory_approvals',
+      title: 'موافقات استلام/تسليم المصنع',
+      description: 'مراجعة طلبات الاستلام والتسليم من وإلى المصنع',
+      icon: Truck,
+      onClick: () => setFactoryOpen(true),
+      badge: counts?.factory,
+      color: 'from-rose-500 to-red-600',
     },
   ];
 
@@ -117,7 +132,7 @@ const BranchManagerApprovals: React.FC = () => {
             <Card
               key={item.key}
               className="cursor-pointer hover:shadow-lg active:scale-[0.99] transition-all border-slate-200 hover:border-blue-300 group overflow-hidden"
-              onClick={() => navigate(item.path)}
+              onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
             >
               <CardContent className="p-4 flex items-center gap-4">
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-md shrink-0`}>
@@ -141,13 +156,9 @@ const BranchManagerApprovals: React.FC = () => {
             </Card>
           );
         })}
-
-        {approvals.length === 0 && (
-          <div className="text-center py-12 text-slate-400 text-sm">
-            لا توجد موافقات متاحة حالياً
-          </div>
-        )}
       </div>
+
+      <FactoryApprovalsDialog open={factoryOpen} onOpenChange={setFactoryOpen} />
     </div>
   );
 };
