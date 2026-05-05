@@ -92,8 +92,9 @@ interface DeliveryRecord {
 
 const fmt = (qty: number, ppb: number): string => ppb > 1 ? dbBPDisplay(qty, ppb) : String(qty);
 
-const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
+const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'branch_manager' }) => {
   const { workerId, activeBranch } = useAuth();
+  const isAssistant = mode === 'assistant';
   const approveFactoryOrder = useApproveFactoryOrder();
   const rejectFactoryOrder = useRejectFactoryOrder();
   const [branchId, setBranchId] = useState<string | null>(null);
