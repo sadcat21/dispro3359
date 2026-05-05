@@ -294,8 +294,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     setIsSaving(true);
     try {
 
-      const totalExpected = rows.reduce((s, r) => s + r.expected, 0);
-      const totalActual = rows.reduce((s, r) => s + actualTotalBoxes(r), 0);
+      const totalExpected = rows.reduce((s, r) => {
+        const ppb = Math.max(1, Math.round(r.ppb || 1));
+        return s + piecesToBPNum(r.expected, ppb);
+      }, 0);
+      const totalActual = rows.reduce((s, r) => {
+        const ppb = Math.max(1, Math.round(r.ppb || 1));
+        return s + piecesToBPNum(actualTotalPieces(r), ppb);
+      }, 0);
       const now = new Date().toISOString();
 
       // 2. Create the final review session (locked immediately with both signatures)
@@ -325,14 +331,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const itemRows: any[] = [];
       const discRows: any[] = [];
       for (const r of rows) {
-        const a = actualTotalBoxes(r);
-        const diff = a - r.expected;
+        const ppb = Math.max(1, Math.round(r.ppb || 1));
+        const expectedBP = piecesToBPNum(r.expected, ppb);
+        const actualBP = piecesToBPNum(actualTotalPieces(r), ppb);
+        const diff = actualBP - expectedBP;
         const diffType = Math.abs(diff) < 0.001 ? 'matched' : diff > 0 ? 'surplus' : 'deficit';
         itemRows.push({
           final_review_session_id: sessionId,
           product_id: r.productId,
-          expected_qty: r.expected,
-          actual_qty: a,
+          expected_qty: expectedBP,
+          actual_qty: actualBP,
           difference: diff,
           diff_type: diffType,
         });
@@ -346,7 +354,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             remaining_quantity: Math.abs(diff),
             status: 'pending',
             final_review_session_id: sessionId,
-            notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${r.expected}، فعلي ${a}`,
+            notes: `مراجعة نهائية للعامل ${workerName} — متوقع ${formatBP(r.expected, ppb)}، فعلي ${formatBP(actualTotalPieces(r), ppb)}`,
           });
         }
       }
