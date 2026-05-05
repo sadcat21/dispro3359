@@ -225,13 +225,15 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
       if (isUnitSale) {
         onConfirm(product.id, effectiveQty, undefined, true, perItemPricing);
       } else {
-        const giftBoxes = product.pieces_per_box > 0 ? Math.floor(giftPieces / product.pieces_per_box) : 0;
+        const ppb = product.pieces_per_box || 1;
+        const giftBoxes = ppb > 0 ? Math.floor(giftPieces / ppb) : 0;
+        const giftRemainder = ppb > 0 ? giftPieces % ppb : giftPieces;
         const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
-        const appliedGiftPieces = offerApplied ? giftPieces : 0;
+        const appliedGiftRemainder = offerApplied ? giftRemainder : 0;
         const totalQuantity = effectiveQty + appliedGiftBoxes;
 
-        if (appliedGiftPieces > 0 || appliedGiftBoxes > 0) {
-          onConfirm(product.id, totalQuantity, { giftQuantity: appliedGiftBoxes, giftPieces: appliedGiftPieces, offerId: giftOfferId }, false, perItemPricing);
+        if (appliedGiftBoxes > 0 || appliedGiftRemainder > 0) {
+          onConfirm(product.id, totalQuantity, { giftQuantity: appliedGiftBoxes, giftPieces: appliedGiftRemainder, offerId: giftOfferId }, false, perItemPricing);
         } else {
           onConfirm(product.id, effectiveQty, undefined, false, perItemPricing);
         }
