@@ -4544,7 +4544,7 @@ export type Database = {
           offer_tier_id: string | null
           product_id: string
           promo_date: string
-          sale_quantity_unit: string
+          sale_quantity_unit: string | null
           vente_quantity: number
           worker_id: string
         }
@@ -4562,7 +4562,7 @@ export type Database = {
           offer_tier_id?: string | null
           product_id: string
           promo_date?: string
-          sale_quantity_unit?: string
+          sale_quantity_unit?: string | null
           vente_quantity: number
           worker_id: string
         }
@@ -4580,7 +4580,7 @@ export type Database = {
           offer_tier_id?: string | null
           product_id?: string
           promo_date?: string
-          sale_quantity_unit?: string
+          sale_quantity_unit?: string | null
           vente_quantity?: number
           worker_id?: string
         }
