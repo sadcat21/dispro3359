@@ -11,13 +11,7 @@ export const useProductOffers = () => {
 
   const deactivateExpiredOffers = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      await supabase
-        .from('product_offers')
-        .update({ is_active: false })
-        .eq('is_active', true)
-        .not('end_date', 'is', null)
-        .lt('end_date', today);
+      await (supabase as any).rpc('deactivate_expired_product_offers');
     } catch (e) {
       console.error('Error auto-deactivating expired offers:', e);
     }

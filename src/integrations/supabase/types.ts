@@ -9264,6 +9264,7 @@ export type Database = {
         Args: { p_branch_id: string }
         Returns: boolean
       }
+      deactivate_expired_product_offers: { Args: never; Returns: undefined }
       delete_promo_ledger_entries: {
         Args: { p_promo_id: string }
         Returns: undefined
