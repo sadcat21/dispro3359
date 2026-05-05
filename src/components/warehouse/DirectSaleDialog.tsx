@@ -1539,7 +1539,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       {receiptData && (
         <ReceiptDialog
           open={showReceiptDialog}
-          onOpenChange={setShowReceiptDialog}
+          onOpenChange={(v) => {
+            setShowReceiptDialog(v);
+            if (!v) handleClose(false);
+          }}
           receiptData={receiptData}
         />
       )}
