@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -422,9 +423,22 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {product.pieces_per_box > 1 && (
               <div className="flex items-center justify-center gap-3">
-                <Label htmlFor="unit-sale-switch" className="text-xs cursor-pointer">
+                <Badge className={cn(
+                  "text-xs px-2 py-0.5 cursor-pointer select-none transition-colors",
+                  !isUnitSale
+                    ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                    : "bg-muted text-muted-foreground border-border"
+                )} variant="outline" onClick={() => {
+                  if (isUnitSale) {
+                    setIsUnitSale(false);
+                    setPaidQuantity(1);
+                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setOfferApplied(false);
+                    setGiftPieces(0);
+                  }
+                }}>
                   {t('offers.unit_box')}
-                </Label>
+                </Badge>
                 <Switch
                   id="unit-sale-switch"
                   checked={isUnitSale}
@@ -437,9 +451,23 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     setGiftPieces(0);
                   }}
                 />
-                <Label htmlFor="unit-sale-switch" className="text-xs cursor-pointer">
+                <Badge className={cn(
+                  "text-xs px-2 py-0.5 cursor-pointer select-none transition-colors",
+                  isUnitSale
+                    ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                    : "bg-muted text-muted-foreground border-border"
+                )} variant="outline" onClick={() => {
+                  if (!isUnitSale) {
+                    setIsUnitSale(true);
+                    setUnitQuantityInput('1');
+                    setPaidQuantity(1);
+                    setQuantityFields(quantityToFields(1, piecesPerBox));
+                    setOfferApplied(false);
+                    setGiftPieces(0);
+                  }
+                }}>
                   {t('offers.unit_piece')}
-                </Label>
+                </Badge>
               </div>
             )}
 
@@ -567,6 +595,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onBlur={normalizeQuantityFields}
                         className="h-11 text-center text-xl font-bold"
                         placeholder={String(0).padStart(pieceDigits, '0')}
+                        disabled={!isUnitSale}
+                        title={!isUnitSale ? 'القطع تتحدث تلقائياً عند تفعيل العرض' : ''}
                       />
                     </div>
                   </div>
