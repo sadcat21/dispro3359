@@ -303,11 +303,31 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     setMode('multi-qty');
   };
 
+  // Compute gift for a given product & paid quantity using its offer tiers
+  const computeGiftForProduct = (productId: string, qty: number): { giftQty: number; giftUnit: string } => {
+    const offer = offersMap[productId];
+    if (!offer || qty <= 0) return { giftQty: 0, giftUnit: 'piece' };
+    const sortedTiers = [...offer.tiers].sort((a, b) => b.minQty - a.minQty);
+    for (const tier of sortedTiers) {
+      if (qty >= tier.minQty) {
+        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
+        return { giftQty: gQty, giftUnit: tier.giftUnit };
+      }
+    }
+    return { giftQty: 0, giftUnit: 'piece' };
+  };
+
   const handleConfirmMulti = () => {
-    const items = Array.from(multiSelected).map(id => ({
-      productId: id,
-      quantity: uniformQty ? unifiedQtyValue : (individualQtys[id] || 1),
-    })).filter(i => i.quantity > 0);
+    const items = Array.from(multiSelected).map(id => {
+      const qty = uniformQty ? unifiedQtyValue : (individualQtys[id] || 1);
+      const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
+      return {
+        productId: id,
+        quantity: qty + giftQty,
+        giftQuantity: giftQty,
+        giftUnit,
+      };
+    }).filter(i => i.quantity > 0);
     if (items.length === 0) return;
     onAddProducts(items);
     setMultiSelected(new Set());
