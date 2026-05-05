@@ -477,30 +477,33 @@ const fetchWorkerSalesSummary = async (
       };
     }
 
-    agg[item.product_id].quantity += Number(item.quantity || 0);
-    agg[item.product_id].giftQuantity += Number(item.gift_quantity || 0);
-    agg[item.product_id].totalAmount += Number(item.total_price || 0);
-    const subtypeKey = String((item as any).price_subtype || 'retail').toLowerCase();
-    agg[item.product_id].subtypeQuantities = agg[item.product_id].subtypeQuantities || {};
-    agg[item.product_id].subtypeQuantities![subtypeKey] = (agg[item.product_id].subtypeQuantities![subtypeKey] || 0) + Number(item.quantity || 0);
+     agg[item.product_id].quantity += Number(item.quantity || 0);
+     agg[item.product_id].giftQuantity += Number(item.gift_quantity || 0);
+     agg[item.product_id].giftPieces += Number((item as any).gift_pieces || 0);
+     agg[item.product_id].totalAmount += Number(item.total_price || 0);
+     const subtypeKey = String((item as any).price_subtype || 'retail').toLowerCase();
+     agg[item.product_id].subtypeQuantities = agg[item.product_id].subtypeQuantities || {};
+     agg[item.product_id].subtypeQuantities![subtypeKey] = (agg[item.product_id].subtypeQuantities![subtypeKey] || 0) + Number(item.quantity || 0);
 
-    const existing = agg[item.product_id].customers.find((c) => c.customerId === customerId);
-    if (existing) {
-      existing.quantity += Number(item.quantity || 0);
-      existing.giftQuantity += Number(item.gift_quantity || 0);
-      existing.totalAmount += Number(item.total_price || 0);
-    } else {
-      agg[item.product_id].customers.push({
-        customerId,
-        customerName: customerNameMap.get(customerId) || 'عميل غير معروف',
-        storeName: customerStoreMap.get(customerId) || null,
-        phone: customerPhoneMap.get(customerId) || null,
-        deliveryTime: orderTimeMap.get(item.order_id) || null,
-        quantity: Number(item.quantity || 0),
-        giftQuantity: Number(item.gift_quantity || 0),
-        totalAmount: Number(item.total_price || 0),
-      });
-    }
+     const existing = agg[item.product_id].customers.find((c) => c.customerId === customerId);
+     if (existing) {
+       existing.quantity += Number(item.quantity || 0);
+       existing.giftQuantity += Number(item.gift_quantity || 0);
+       existing.giftPieces += Number((item as any).gift_pieces || 0);
+       existing.totalAmount += Number(item.total_price || 0);
+     } else {
+       agg[item.product_id].customers.push({
+         customerId,
+         customerName: customerNameMap.get(customerId) || 'عميل غير معروف',
+         storeName: customerStoreMap.get(customerId) || null,
+         phone: customerPhoneMap.get(customerId) || null,
+         deliveryTime: orderTimeMap.get(item.order_id) || null,
+         quantity: Number(item.quantity || 0),
+         giftQuantity: Number(item.gift_quantity || 0),
+         giftPieces: Number((item as any).gift_pieces || 0),
+         totalAmount: Number(item.total_price || 0),
+       });
+     }
   }
 
   const createdTimes = orders.map((o) => new Date(o.created_at).getTime());
