@@ -25,6 +25,7 @@ import { useApproveFactoryOrder, useRejectFactoryOrder } from '@/hooks/useFactor
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode?: 'branch_manager' | 'assistant';
 }
 
 interface ReceiptItemDetail {
@@ -91,8 +92,9 @@ interface DeliveryRecord {
 
 const fmt = (qty: number, ppb: number): string => ppb > 1 ? dbBPDisplay(qty, ppb) : String(qty);
 
-const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
+const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'branch_manager' }) => {
   const { workerId, activeBranch } = useAuth();
+  const isAssistant = mode === 'assistant';
   const approveFactoryOrder = useApproveFactoryOrder();
   const rejectFactoryOrder = useRejectFactoryOrder();
   const [branchId, setBranchId] = useState<string | null>(null);
@@ -738,24 +740,33 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     if (!workerId || r.frozen_at) return;
     setProcessingId(r.id);
     try {
-      // مدير الفرع لا يوافق نهائياً — فقط يحوّل للإدارة العليا (مساعد المدير العام / مدير النظام)
-      await supabase.from('stock_receipts').update({
-        status: 'pending_assistant',
-        branch_approved_by: workerId,
-        branch_approved_at: new Date().toISOString(),
-        pallet_count: r.pallet_count || 0,
-      }).eq('id', r.id);
-
-      // إذا كان مرتبطاً بتسليم، نحوّله أيضاً للإدارة
-      if (r.linked_delivery_id) {
-        await supabase.from('factory_orders').update({
+      if (isAssistant) {
+        // الموافقة النهائية من مساعد المدير العام
+        const { error } = await supabase.rpc('approve_stock_receipt_two_stage' as never, {
+          p_receipt_id: r.id,
+          p_stage: 'assistant',
+        } as never);
+        if (error) throw error;
+        toast.success('تمت الموافقة النهائية على الاستلام');
+      } else {
+        // مدير الفرع لا يوافق نهائياً — فقط يحوّل للإدارة العليا
+        await supabase.from('stock_receipts').update({
           status: 'pending_assistant',
           branch_approved_by: workerId,
           branch_approved_at: new Date().toISOString(),
-        }).eq('id', r.linked_delivery_id);
-      }
+          pallet_count: r.pallet_count || 0,
+        }).eq('id', r.id);
 
-      toast.success('تم إرسال الطلب للإدارة العليا للموافقة النهائية');
+        if (r.linked_delivery_id) {
+          await supabase.from('factory_orders').update({
+            status: 'pending_assistant',
+            branch_approved_by: workerId,
+            branch_approved_at: new Date().toISOString(),
+          }).eq('id', r.linked_delivery_id);
+        }
+
+        toast.success('تم إرسال الطلب للإدارة العليا للموافقة النهائية');
+      }
       await fetchData();
     } catch (e: any) {
       toast.error(e.message || 'خطأ');
@@ -944,7 +955,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={isProcessing || isFrozen}
               onClick={onApprove}>
               {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5 ml-1" />}
-              إرسال للإدارة
+              {isAssistant ? 'موافقة نهائية' : 'إرسال للإدارة'}
             </Button>
             <Button size="sm" variant="destructive" disabled={isProcessing || isFrozen}
               onClick={() => { setRejectingId(record.id); setRejectNote(''); }}>

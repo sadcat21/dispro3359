@@ -556,6 +556,7 @@ const AssistantApprovals: React.FC = () => {
         <FactoryApprovalsDialog
           open={!!detailsReceiptId}
           onOpenChange={(v) => { if (!v) { setDetailsReceiptId(null); qc.invalidateQueries(); } }}
+          mode="assistant"
         />
       )}
     </div>
