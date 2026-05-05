@@ -384,7 +384,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
     if (isUnitSale) {
       const totalPrice = computed.unitPrice * quantity;
-      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType }]);
+      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }]);
       return;
     }
 
@@ -433,7 +433,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             : item
         );
       }
-      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType }];
+      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }];
     });
   };
 
