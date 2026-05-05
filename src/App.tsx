@@ -43,6 +43,7 @@ import WarehouseReview from "./pages/admin/WarehouseReview";
 import PendingWarehouseReviews from "./pages/admin/PendingWarehouseReviews";
 import StockReceipts from "./pages/admin/StockReceipts";
 import StockMovementsLedger from "./pages/admin/StockMovementsLedger";
+import OfferLedger from "./pages/admin/OfferLedger";
 import CashLedger from "./pages/admin/CashLedger";
 import DebtLedger from "./pages/admin/DebtLedger";
 import LoadStock from "./pages/admin/LoadStock";
@@ -386,6 +387,12 @@ const AppRoutes = () => {
       <Route path="/stock-movements" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']} allowedCustomRoles={['warehouse_manager', 'company_manager']}>
           <StockMovementsLedger />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/offer-ledger" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']} allowedCustomRoles={['warehouse_manager', 'company_manager']}>
+          <OfferLedger />
         </ProtectedRoute>
       } />
 
