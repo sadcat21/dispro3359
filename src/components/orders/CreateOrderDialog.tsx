@@ -1024,7 +1024,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           </div>
 
                           <div className={cn(
-                            "px-2 py-2 border-t",
+                            "px-1.5 py-1.5 border-t",
                             hasAppliedGift
                               ? 'bg-green-50 border-green-100'
                               : 'bg-red-50 border-red-100'
