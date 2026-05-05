@@ -26,8 +26,15 @@ export const getGiftTotalBoxes = (item: GiftBreakdownInput): number => {
 
 export const getPaidQuantity = (item: GiftBreakdownInput): number => {
   const quantity = Math.max(0, toNumber(item.quantity));
+  const giftBoxes = Math.max(0, toNumber(item.gift_quantity));
   const unitPrice = toNumber(item.unit_price);
   const totalPrice = toNumber(item.total_price);
+
+  // The stored order quantity represents sold boxes plus any full-box gifts only.
+  // Piece-level gifts are tracked separately in gift_pieces and must not reduce paid boxes.
+  if (quantity > 0) {
+    return Math.max(0, quantity - giftBoxes);
+  }
 
   if (unitPrice > 0 && totalPrice >= 0) {
     const paidFromAmount = Number((totalPrice / unitPrice).toFixed(3));
@@ -36,5 +43,5 @@ export const getPaidQuantity = (item: GiftBreakdownInput): number => {
     }
   }
 
-  return Math.max(0, quantity - getGiftTotalBoxes(item));
+  return 0;
 };
