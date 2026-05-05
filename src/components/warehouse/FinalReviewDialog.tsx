@@ -117,6 +117,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           imageUrl: prod.image_url,
           loaded: 0,
           unloaded: 0,
+          sold: 0,
+          gifts: 0,
           expected: 0,
           expectedBoxes: 0,
           expectedPieces: 0,
@@ -139,6 +141,30 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           ex.unloaded += Number(m.quantity || 0);
           map.set(pid, ex);
         }
+
+        // 4.b طلبيات مسلَّمة للعامل بعد ذلك التاريخ — لجمع المبيعات والهدايا لكل منتج
+        const { data: deliveredOrders } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('assigned_worker_id', workerId)
+          .eq('status', 'delivered')
+          .gte('created_at', sinceTs);
+        const deliveredIds = (deliveredOrders || []).map((o: any) => o.id);
+        if (deliveredIds.length > 0) {
+          const { data: soldItems } = await supabase
+            .from('order_items')
+            .select('product_id, quantity, gift_quantity, product:products(id, name, image_url, pieces_per_box)')
+            .in('order_id', deliveredIds);
+          for (const it of (soldItems || [])) {
+            const pid = (it as any).product_id;
+            const prod = (it as any).product || {};
+            const ex = map.get(pid) || baseRow(pid, prod);
+            ex.sold += Number((it as any).quantity || 0);
+            ex.gifts += Number((it as any).gift_quantity || 0);
+            map.set(pid, ex);
+          }
+        }
+
         const list = Array.from(map.values()).map(r => {
           const ppb = Math.max(1, Math.round(r.ppb || 1));
           const loadedPieces = parseBP(Number(r.loaded).toFixed(2), ppb).totalPieces;
