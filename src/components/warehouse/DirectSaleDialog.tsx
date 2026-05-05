@@ -1155,7 +1155,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     </button>
                   </div>
                 </div>
-                <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-2 gap-3 p-1' : 'flex flex-col gap-1.5 p-1')}>
+                <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-3 gap-1.5 p-1' : 'flex flex-col gap-1.5 p-1')}>
                   {availableProducts.map((product) => {
                     const productCartItems = orderItems.filter(item => item.productId === product.id);
                     const inCart = productCartItems.length > 0 ? productCartItems[0] : null;
