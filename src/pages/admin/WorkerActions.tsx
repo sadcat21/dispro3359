@@ -13,6 +13,7 @@ import { useMyUIOverrides, useMyRoleOverrides } from '@/hooks/useUIOverrides';
 import { Badge } from '@/components/ui/badge';
 import { Worker } from '@/types/database';
 import { getLocalizedName } from '@/utils/sectorName';
+import { getGiftTotalBoxes, getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
@@ -554,11 +555,12 @@ const WorkerActions: React.FC = () => {
 
     for (const item of (truckSoldData || [])) {
       const stat = ensure(item.product_id);
-      const paidQty = Math.max(0, Number(item.quantity || 0) - Number(item.gift_quantity || 0));
+      const paidQty = getPaidQuantity(item);
       stat.sold += paidQty;
       if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
-      if ((item.gift_quantity || 0) > 0) {
-        stat.giftQty += Number(item.gift_quantity || 0);
+      const giftQty = getGiftTotalBoxes(item);
+      if (giftQty > 0) {
+        stat.giftQty += giftQty;
         stat.giftUnit = (item as any).gift_unit || 'piece';
       }
     }

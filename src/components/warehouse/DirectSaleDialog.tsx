@@ -40,6 +40,7 @@ import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
+import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
 
 interface StockItem {
   id: string;
@@ -334,8 +335,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const product = allProducts.find(p => p.id === item.productId) || availableProducts.find(p => p.id === item.productId);
     if (!product) return;
     const piecesPerBox = item.piecesPerBox ?? product.pieces_per_box ?? 1;
-    const paidQuantity = Math.max(1, item.quantity - (item.giftQuantity || 0));
-    const totalGiftPieces = item.isUnitSale ? 0 : ((item.giftQuantity || 0) * piecesPerBox + (item.giftPieces || 0));
+    const paidQuantity = Math.max(1, getStoredPaidQuantity({
+      quantity: item.quantity,
+      gift_quantity: item.giftQuantity,
+      gift_pieces: item.giftPieces,
+      pieces_per_box: piecesPerBox,
+      unit_price: item.unitPrice,
+      total_price: item.totalPrice,
+    }));
+    const totalGiftPieces = item.isUnitSale ? 0 : getGiftTotalPieces({
+      gift_quantity: item.giftQuantity,
+      gift_pieces: item.giftPieces,
+      pieces_per_box: piecesPerBox,
+    });
 
     setEditingProductMode(true);
     setEditingTargetProductId(item.productId);
@@ -376,7 +388,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     }
 
     // Check if quantity exceeds available stock
-    const baseQuantity = giftInfo?.giftQuantity ? quantity - giftInfo.giftQuantity : quantity;
+    const baseQuantity = quantity - getGiftTotalBoxes({
+      gift_quantity: giftInfo?.giftQuantity || 0,
+      gift_pieces: giftInfo?.giftPieces || 0,
+      pieces_per_box: product.pieces_per_box || 1,
+    });
     if (baseQuantity > available) {
       const deliveredGiftPieces = 0;
       const deliveredGiftBoxes = 0;
@@ -395,20 +411,28 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
     const unitPrice = computed.unitPrice;
     const giftQuantity = giftInfo?.giftQuantity || 0;
-    const paidQuantity = quantity - giftQuantity;
+    const giftPieces = giftInfo?.giftPieces || 0;
+    const paidQuantity = Math.max(0, quantity - getGiftTotalBoxes({
+      gift_quantity: giftQuantity,
+      gift_pieces: giftPieces,
+      pieces_per_box: product.pieces_per_box || 1,
+    }));
 
     setOrderItems(prev => {
       const existing = prev.find(item => item.productId === productId && !item.customUnitPrice && !customUnitPrice && item.priceSubType === computed.subType && item.itemPaymentType === computed.payType);
       if (existing) {
-        const newQuantity = Math.min(existing.quantity + quantity, available + giftQuantity);
-        const newPaid = Math.max(0, newQuantity - giftQuantity);
+        const incomingGiftBoxes = getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
+        const newQuantity = Math.min(existing.quantity + quantity, available + incomingGiftBoxes);
+        const mergedGiftBoxes = Number(existing.giftQuantity || 0) + giftQuantity;
+        const mergedGiftPieces = Number(existing.giftPieces || 0) + giftPieces;
+        const newPaid = Math.max(0, newQuantity - getGiftTotalBoxes({ gift_quantity: mergedGiftBoxes, gift_pieces: mergedGiftPieces, pieces_per_box: product.pieces_per_box || 1 }));
         return prev.map(item =>
           item === existing
-            ? { ...item, quantity: newQuantity, totalPrice: newPaid * unitPrice }
+            ? { ...item, quantity: newQuantity, totalPrice: newPaid * unitPrice, giftQuantity: mergedGiftBoxes || undefined, giftPieces: mergedGiftPieces || undefined }
             : item
         );
       }
-      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftInfo?.giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType }];
+      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType }];
     });
   };
 
@@ -445,7 +469,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const unitPrice = computed.unitPrice;
       const giftQuantity = giftInfo?.giftQuantity || 0;
       const giftPieces = giftInfo?.giftPieces || 0;
-      const paidQuantity = Math.max(0, quantity - giftQuantity);
+      const paidQuantity = Math.max(0, quantity - getGiftTotalBoxes({
+        gift_quantity: giftQuantity,
+        gift_pieces: giftPieces,
+        pieces_per_box: product.pieces_per_box || 1,
+      }));
       const totalPrice = paidQuantity * unitPrice;
       setOrderItems(prev => prev.map(item => item.productId === productId ? {
         ...item,
@@ -484,7 +512,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       ? resolveCustomSalePrice(product, overflowData.customUnitPrice, false)
       : getProductPrice(product);
     const giftQuantity = giftInfo?.giftQuantity || 0;
-    const totalQty = deliveredQty + giftQuantity;
+    const giftPieces = giftInfo?.giftPieces || 0;
+    const totalQty = deliveredQty + getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
     const paidQty = deliveredQty;
 
     setOrderItems(prev => [...prev, {
@@ -494,7 +523,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       totalPrice: paidQty * unitPrice,
       customUnitPrice: overflowData.customUnitPrice,
       giftQuantity: giftQuantity || undefined,
-      giftPieces: giftInfo?.giftPieces || undefined,
+      giftPieces: giftPieces || undefined,
       giftOfferId: giftInfo?.offerId,
       offerNote: offerNote || undefined,
     }]);
@@ -554,7 +583,14 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const unitPrice = item.customUnitPrice !== undefined
             ? resolveCustomSalePrice(product, item.customUnitPrice, !!item.isUnitSale)
             : fallbackUnitPrice;
-          const paidQuantity = item.quantity - (item.giftQuantity || 0);
+          const paidQuantity = getStoredPaidQuantity({
+            quantity: item.quantity,
+            gift_quantity: item.giftQuantity,
+            gift_pieces: item.giftPieces,
+            pieces_per_box: product.pieces_per_box || item.piecesPerBox || 1,
+            unit_price: unitPrice,
+            total_price: item.totalPrice,
+          });
           const totalPrice = item.isUnitSale ? unitPrice * item.quantity : paidQuantity * unitPrice;
           return { ...item, unitPrice, totalPrice };
         }
@@ -676,7 +712,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           quantity: item.quantity,
           unit_price: item.unitPrice,
           total_price: item.totalPrice,
-          gift_quantity: item.giftPieces || item.giftQuantity || 0,
+          gift_quantity: item.giftQuantity || 0,
+          gift_pieces: item.giftPieces || 0,
           gift_offer_id: item.giftOfferId || null,
           pricing_unit: item.pricingUnit || prod?.pricing_unit || 'box',
           weight_per_box: item.weightPerBox ?? prod?.weight_per_box ?? null,
@@ -706,22 +743,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const piecesPerBox = product?.pieces_per_box || 20;
           const giftBoxesQty = Number(item.giftQuantity || 0);
           const giftPiecesQty = Number(item.giftPieces || 0);
-          const hasGift = giftBoxesQty > 0 || giftPiecesQty > 0;
 
           // Convert sold quantity (box.pieces format) to total pieces
           const soldBoxes = Math.floor(Math.round(Number(item.quantity || 0) * 100) / 100);
           const soldDec = Math.round((Math.round(Number(item.quantity || 0) * 100) / 100 - soldBoxes) * 100);
           const soldPieces = soldBoxes * piecesPerBox + soldDec;
 
-          // Total gift pieces (boxes converted + loose pieces)
-          const giftTotalPieces = giftBoxesQty * piecesPerBox + giftPiecesQty;
-
           // Convert current stock to total pieces
           const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
           const stockDec = Math.round((Math.round(ws.quantity * 100) / 100 - stockBoxes) * 100);
           const stockPieces = stockBoxes * piecesPerBox + stockDec;
 
-          const remainingPieces = Math.max(0, stockPieces - soldPieces - giftTotalPieces);
+          const remainingPieces = Math.max(0, stockPieces - soldPieces);
           const newBoxes = Math.floor(remainingPieces / piecesPerBox);
           const newRemaining = Math.round(remainingPieces % piecesPerBox);
           const newQty = newBoxes + newRemaining / 100;
@@ -746,7 +779,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       // Record gifts in promos table
       const giftItems = orderItems.filter(i => (i.giftQuantity && i.giftQuantity > 0) || (i.giftPieces && i.giftPieces > 0));
       for (const item of giftItems) {
-        const giftInPieces = item.giftPieces || item.giftQuantity || 0;
+        const giftInPieces = getGiftTotalPieces({
+          gift_quantity: item.giftQuantity,
+          gift_pieces: item.giftPieces,
+          pieces_per_box: availableProducts.find(p => p.id === item.productId)?.pieces_per_box || item.piecesPerBox || 1,
+        });
         const matchedOffer = item.giftOfferId
           ? activeOffers.find((offer) => offer.id === item.giftOfferId)
           : null;
@@ -754,7 +791,14 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           worker_id: workerId!,
           customer_id: selectedCustomerId,
           product_id: item.productId,
-          vente_quantity: item.quantity - (item.giftQuantity || 0),
+          vente_quantity: getStoredPaidQuantity({
+            quantity: item.quantity,
+            gift_quantity: item.giftQuantity,
+            gift_pieces: item.giftPieces,
+            pieces_per_box: availableProducts.find(p => p.id === item.productId)?.pieces_per_box || item.piecesPerBox || 1,
+            unit_price: item.unitPrice,
+            total_price: item.totalPrice,
+          }),
           sale_quantity_unit: matchedOffer?.min_quantity_unit || 'box',
           gratuite_quantity: giftInPieces,
           gift_quantity_unit: matchedOffer?.gift_quantity_unit || 'piece',
@@ -1301,7 +1345,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                           )}
                           {item.unitPrice > 0 && (
                             <span className="text-xs text-muted-foreground">
-                              {item.unitPrice.toLocaleString()} {t('common.currency')} × {item.quantity - (item.giftQuantity || 0)} = {item.totalPrice.toLocaleString()} {t('common.currency')}
+                              {item.unitPrice.toLocaleString()} {t('common.currency')} × {getStoredPaidQuantity({ quantity: item.quantity, gift_quantity: item.giftQuantity, gift_pieces: item.giftPieces, pieces_per_box: item.piecesPerBox || 1, unit_price: item.unitPrice, total_price: item.totalPrice })} = {item.totalPrice.toLocaleString()} {t('common.currency')}
                             </span>
                           )}
                         </div>

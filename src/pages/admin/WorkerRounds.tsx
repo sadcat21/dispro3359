@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
+import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const formatQty = (v: number) => {
   const r = Math.round(v * 100) / 100;
@@ -177,8 +178,8 @@ const WorkerRounds: React.FC = () => {
       periodOrders.forEach((oi: any) => {
         const pid = oi.product_id;
         const ppb = oi.pieces_per_box || 20;
-        const soldPieces = Number(oi.quantity || 0);
-        const giftPieces = Number(oi.gift_quantity || 0) + Number(oi.gift_pieces || 0);
+        const soldPieces = getPaidQuantity({ ...oi, pieces_per_box: ppb }) * ppb;
+        const giftPieces = getGiftTotalPieces({ ...oi, pieces_per_box: ppb });
         if (!productMap.has(pid)) {
           productMap.set(pid, {
             product_id: pid, product_name: pid,

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 
 export interface SessionCalcParams {
   workerId: string;
@@ -246,11 +247,11 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
       };
 
       const normalizeOrderGiftToPieces = (order: any, item: any, piecesPerBox: number): number => {
-        const rawGift = Number(item.gift_quantity || 0);
+        const rawGift = getGiftTotalPieces({ ...item, pieces_per_box: piecesPerBox });
         if (rawGift <= 0) return 0;
         const isDirectSale = String(order?.notes || '').includes('بيع مباشر');
         if (isDirectSale || piecesPerBox <= 1) return rawGift;
-        return rawGift * piecesPerBox;
+        return rawGift;
       };
 
       const normalizePromoGiftToPieces = (promo: any, giftUnit: string, piecesPerBox: number): number => {
@@ -316,13 +317,24 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
 
         // Calculate gift value and promo tracking from items
         for (const item of (order.order_items || [])) {
-          const giftQtyRaw = Number(item.gift_quantity || 0);
+          const piecesPerBox = Number((item as any).pieces_per_box || (item as any).product?.pieces_per_box || 1);
+          const giftQtyRaw = getGiftTotalPieces({
+            quantity: item.quantity,
+            gift_quantity: item.gift_quantity,
+            gift_pieces: (item as any).gift_pieces,
+            pieces_per_box: piecesPerBox,
+          });
           if (giftQtyRaw > 0) {
             const boxPrice = calcBoxPrice(item.product);
-            const piecesPerBox = Number((item as any).pieces_per_box || (item as any).product?.pieces_per_box || 1);
             const giftPieces = normalizeOrderGiftToPieces(order, item, piecesPerBox);
-            const giftBoxesForSoldCalc = piecesPerBox > 0 ? giftPieces / piecesPerBox : 0;
-            const soldQuantity = Math.max(0, Number(item.quantity || 0) - giftBoxesForSoldCalc);
+            const soldQuantity = getPaidQuantity({
+              quantity: item.quantity,
+              gift_quantity: item.gift_quantity,
+              gift_pieces: (item as any).gift_pieces,
+              pieces_per_box: piecesPerBox,
+              unit_price: item.unit_price,
+              total_price: item.total_price,
+            });
 
             const piecePrice = piecesPerBox > 0 ? boxPrice / piecesPerBox : boxPrice;
             giftOfferValue += giftPieces * piecePrice;
