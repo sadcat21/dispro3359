@@ -374,8 +374,8 @@ const fetchWorkerSalesSummary = async (
 
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
-    .select('order_id, product_id, quantity, gift_quantity, unit_price, total_price, price_subtype, product:products(name, pieces_per_box, image_url)')
-    .in('order_id', orderIds);
+     .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, price_subtype, product:products(name, pieces_per_box, image_url)')
+     .in('order_id', orderIds);
 
   if (itemsError) throw itemsError;
 
