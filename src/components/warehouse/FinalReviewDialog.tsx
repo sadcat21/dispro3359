@@ -26,6 +26,8 @@ interface AggregatedRow {
   imageUrl?: string | null;
   loaded: number;   // مجموع الشحن (B.P)
   unloaded: number; // مجموع التفريغ (B.P)
+  sold: number;     // مجموع المبيعات (B.P)
+  gifts: number;    // مجموع الهدايا (B.P)
   expected: number; // المتوقع المتبقي (B.P)
   expectedBoxes: number;
   expectedPieces: number;
@@ -115,6 +117,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           imageUrl: prod.image_url,
           loaded: 0,
           unloaded: 0,
+          sold: 0,
+          gifts: 0,
           expected: 0,
           expectedBoxes: 0,
           expectedPieces: 0,
@@ -137,6 +141,30 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           ex.unloaded += Number(m.quantity || 0);
           map.set(pid, ex);
         }
+
+        // 4.b طلبيات مسلَّمة للعامل بعد ذلك التاريخ — لجمع المبيعات والهدايا لكل منتج
+        const { data: deliveredOrders } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('assigned_worker_id', workerId)
+          .eq('status', 'delivered')
+          .gte('created_at', sinceTs);
+        const deliveredIds = (deliveredOrders || []).map((o: any) => o.id);
+        if (deliveredIds.length > 0) {
+          const { data: soldItems } = await supabase
+            .from('order_items')
+            .select('product_id, quantity, gift_quantity, product:products(id, name, image_url, pieces_per_box)')
+            .in('order_id', deliveredIds);
+          for (const it of (soldItems || [])) {
+            const pid = (it as any).product_id;
+            const prod = (it as any).product || {};
+            const ex = map.get(pid) || baseRow(pid, prod);
+            ex.sold += Number((it as any).quantity || 0);
+            ex.gifts += Number((it as any).gift_quantity || 0);
+            map.set(pid, ex);
+          }
+        }
+
         const list = Array.from(map.values()).map(r => {
           const ppb = Math.max(1, Math.round(r.ppb || 1));
           const loadedPieces = parseBP(Number(r.loaded).toFixed(2), ppb).totalPieces;
@@ -394,6 +422,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
                         فُرّغ <strong>{dbBPDisplay(r.unloaded, ppb)}</strong>
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                        مُباع <strong>{dbBPDisplay(r.sold, ppb)}</strong>
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
+                        🎁 هدية <strong>{dbBPDisplay(r.gifts, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 bg-primary/10 text-primary">
                         متوقع <strong>{r.expectedBoxes}{r.expectedPieces > 0 ? `.${String(r.expectedPieces).padStart(2,'0')}` : ''}</strong>
