@@ -159,8 +159,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const pid = (it as any).product_id;
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
-            ex.sold += Number((it as any).quantity || 0);
-            ex.gifts += Number((it as any).gift_quantity || 0);
+            const giftQ = Number((it as any).gift_quantity || 0);
+            const totalQ = Number((it as any).quantity || 0);
+            ex.sold += Math.max(0, totalQ - giftQ);
+            ex.gifts += giftQ;
             map.set(pid, ex);
           }
         }
