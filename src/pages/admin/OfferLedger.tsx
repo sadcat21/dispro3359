@@ -122,11 +122,24 @@ const toPieces = (qty: number, unit: string | null | undefined, ppb: number | nu
   return Number(qty) * p;
 };
 
+const formatOfferRule = (r: LedgerRow) => {
+  if (r.tier_min_quantity == null || r.tier_gift_quantity == null) return "-";
+  const saleRule = formatBoxPieces(r.tier_min_quantity, r.tier_min_quantity_unit, r.pieces_per_box);
+  const giftRule = formatBoxPieces(r.tier_gift_quantity, r.tier_gift_quantity_unit, r.pieces_per_box);
+  return { saleRule, giftRule };
+};
+
+const formatPieces = (qty: number | null | undefined) => {
+  if (qty == null) return "-";
+  const rounded = Math.round(Number(qty) * 100) / 100;
+  return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(2)} pcs`;
+};
+
 type Compliance = { status: "compliant" | "violation" | "na"; expected?: number; actual?: number };
 
 const computeCompliance = (r: LedgerRow): Compliance => {
   if (r.movement_type !== "worker_to_customer") return { status: "na" };
-  if (!r.tier_min_quantity || !r.tier_gift_quantity) return { status: "na" };
+  if (r.tier_min_quantity == null || r.tier_gift_quantity == null) return { status: "na" };
   const ppb = r.pieces_per_box;
   const salePieces = toPieces(Math.abs(Number(r.sale_quantity) || 0), r.sale_quantity_unit, ppb);
   const giftPieces = toPieces(Math.abs(Number(r.gift_quantity) || 0), r.gift_quantity_unit, ppb);
@@ -357,6 +370,7 @@ export default function OfferLedger() {
                         const m = movementLabels[r.movement_type] ?? { label: r.movement_type, color: "" };
                         const saleDetail = formatBoxPieces(r.sale_quantity, r.sale_quantity_unit, r.pieces_per_box);
                         const giftDetail = formatBoxPieces(r.gift_quantity, r.gift_quantity_unit, r.pieces_per_box);
+                        const offerRule = formatOfferRule(r);
                         const comp = computeCompliance(r);
                         return (
                           <TableRow key={r.id}>
@@ -386,25 +400,30 @@ export default function OfferLedger() {
                               <div className="flex flex-col gap-0.5">
                                 <span>
                                   <span className="text-muted-foreground">بيع:</span>{" "}
-                                  <span className="font-mono">{saleDetail}</span>
+                                  <span className="font-mono">{offerRule === "-" ? "-" : offerRule.saleRule}</span>
                                 </span>
-                                {Number(r.gift_quantity) !== 0 && (
+                                {offerRule !== "-" && (
                                   <span>
                                     <span className="text-muted-foreground">هدية:</span>{" "}
-                                    <span className="font-mono text-purple-600">{giftDetail}</span>
+                                    <span className="font-mono text-purple-600">{offerRule.giftRule}</span>
                                   </span>
                                 )}
                               </div>
                             </TableCell>
                             <TableCell className="text-center text-xs whitespace-nowrap">
                               {comp.status === "compliant" && (
-                                <Badge className="bg-green-100 text-green-800">ملتزم</Badge>
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <Badge className="bg-green-100 text-green-800">ملتزم</Badge>
+                                  <span className="text-[10px] text-muted-foreground font-mono">
+                                    متوقع: {formatPieces(comp.expected)} / فعلي: {formatPieces(comp.actual)}
+                                  </span>
+                                </div>
                               )}
                               {comp.status === "violation" && (
                                 <div className="flex flex-col items-center gap-0.5">
                                   <Badge className="bg-red-100 text-red-800">غير ملتزم</Badge>
                                   <span className="text-[10px] text-muted-foreground font-mono">
-                                    متوقع: {comp.expected?.toFixed(2)} / فعلي: {comp.actual?.toFixed(2)}
+                                    متوقع: {formatPieces(comp.expected)} / فعلي: {formatPieces(comp.actual)}
                                   </span>
                                 </div>
                               )}
