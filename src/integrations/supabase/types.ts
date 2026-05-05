@@ -8970,6 +8970,24 @@ export type Database = {
           },
         ]
       }
+      v_offer_integrity_issues: {
+        Row: {
+          actual: number | null
+          created_at: string | null
+          customer_id: string | null
+          expected: number | null
+          gift_quantity: number | null
+          issue_label: string | null
+          issue_type: string | null
+          offer_id: string | null
+          product_id: string | null
+          promo_id: string | null
+          sale_quantity: number | null
+          severity: string | null
+          worker_id: string | null
+        }
+        Relationships: []
+      }
       v_offer_ledger_full: {
         Row: {
           branch_id: string | null
@@ -9534,6 +9552,7 @@ export type Database = {
         Args: { p_order_id: string; p_reason: string }
         Returns: Json
       }
+      repair_offer_ledger: { Args: never; Returns: Json }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
