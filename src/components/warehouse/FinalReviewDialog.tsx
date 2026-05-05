@@ -110,6 +110,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           .eq('worker_id', workerId)
           .eq('movement_type', 'return')
           .gte('created_at', sinceTs);
+        if (!cancelled) setUnloadCount((unloadMoves || []).length);
 
         // 5. تجميع
         const map = new Map<string, AggregatedRow>();
