@@ -689,6 +689,30 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         throw new Error('فشل تحديث حالة الطلبية: ' + statusError.message);
       }
 
+      // Sales tracking ledger
+      try {
+        const { recordSaleTracking } = await import('@/utils/salesTracking');
+        await recordSaleTracking({
+          source: isWarehouseManager ? 'warehouse_sale' : 'delivery_sale',
+          orderId: order.id,
+          branchId: order.branch_id || activeBranch?.id || null,
+          branchName: activeBranch?.name || null,
+          workerId: workerId || null,
+          customerId: order.customer_id,
+          customerName: order.customer?.name || null,
+          items: activeItems.map((item) => ({
+            productId: item.productId,
+            productName: item.productName || null,
+            quantity: item.quantity,
+            giftBoxes: Number(item.giftQuantity || 0),
+            giftPieces: Number((item as any).giftPieces || 0),
+            piecesPerBox: Number(item.piecesPerBox || 20),
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+          })),
+        });
+      } catch (e) { console.warn('sales_tracking failed', e); }
+
       // Deduct from stock (warehouse_stock for warehouse manager, worker_stock for regular workers)
       for (const item of activeItems) {
         const ppb = Number(item.piecesPerBox || 1);
