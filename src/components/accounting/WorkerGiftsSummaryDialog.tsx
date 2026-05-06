@@ -337,10 +337,12 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       const orderIds = orders.map(o => o.id);
 
       // Fetch order items with gifts
-      const { data: items } = await supabase
+      const { data: itemsRaw } = await supabase
         .from('order_items')
         .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(name, pieces_per_box, image_url)')
         .in('order_id', orderIds);
+      const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+      const items = await mergeGiftsFromSalesTracking((itemsRaw || []) as any[]);
 
       // Fetch offer names + rules (single tier or multi-tier)
       const giftOfferIds = new Set<string>();
