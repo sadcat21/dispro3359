@@ -151,7 +151,7 @@ export default function SalesTrackingLedger() {
                     <TableRow key={p.productId}>
                       <TableCell className="font-medium">{p.productName || '—'}</TableCell>
                       <TableCell>{fmtQty(p.soldBoxes, p.soldPieces)}</TableCell>
-                      <TableCell className="text-accent-foreground">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
+                      <TableCell className="font-medium">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
                       <TableCell className="font-semibold">{fmtQty(p.totalBoxes, p.totalPieces)}</TableCell>
                       <TableCell>{p.totalAmount.toLocaleString()} دج</TableCell>
                     </TableRow>
