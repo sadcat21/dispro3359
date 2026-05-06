@@ -54,42 +54,42 @@ export default function SalesTrackingLedger() {
   const byProduct = useMemo(() => aggregateSalesByProduct(filtered), [filtered]);
 
   return (
-    <div className="container mx-auto p-4 space-y-4 max-w-7xl" dir="rtl">
+    <div className="container mx-auto p-4 space-y-4 max-w-7xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold">سجل تتبع المبيعات</h1>
-          <p className="text-sm text-muted-foreground">جميع عمليات البيع والهدايا حسب المصدر</p>
+          <h1 className="text-2xl font-bold">Suivi des ventes</h1>
+          <p className="text-sm text-muted-foreground">Toutes les ventes et cadeaux par source</p>
         </div>
-        <Badge variant="outline" className="text-sm">{filtered.length} سجل</Badge>
+        <Badge variant="outline" className="text-sm">{filtered.length} enregistrements</Badge>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={TrendingUp} label="إجمالي المبيعات" value={`${stats.amount.toLocaleString()} دج`} accent="primary" />
-        <StatCard icon={Package} label="الكميات المباعة" value={fmtQty(stats.boxes, stats.pieces)} />
-        <StatCard icon={Gift} label="الهدايا" value={fmtQty(stats.giftBoxes, stats.giftPieces)} accent="accent" />
-        <StatCard icon={Store} label="عدد العمليات" value={stats.total.toString()} />
+        <StatCard icon={TrendingUp} label="Chiffre d'affaires" value={`${stats.amount.toLocaleString()} DA`} accent="primary" />
+        <StatCard icon={Package} label="Quantités vendues" value={fmtQty(stats.boxes, stats.pieces)} />
+        <StatCard icon={Gift} label="Cadeaux" value={fmtQty(stats.giftBoxes, stats.giftPieces)} accent="accent" />
+        <StatCard icon={Store} label="Nombre d'opérations" value={stats.total.toString()} />
       </div>
 
       {/* Filters */}
       <Card>
         <CardContent className="p-3 flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="بحث (منتج، عامل، عميل، فرع)"
+              placeholder="Rechercher (produit, employé, client, dépôt)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pr-8"
+              className="pl-8"
             />
           </div>
           <Select value={source} onValueChange={setSource}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">كل المصادر</SelectItem>
-              <SelectItem value="direct_sale">بيع مباشر</SelectItem>
-              <SelectItem value="delivery_sale">توصيل</SelectItem>
-              <SelectItem value="warehouse_sale">مخزن</SelectItem>
+              <SelectItem value="all">Toutes les sources</SelectItem>
+              <SelectItem value="direct_sale">Vente directe</SelectItem>
+              <SelectItem value="delivery_sale">Livraison</SelectItem>
+              <SelectItem value="warehouse_sale">Dépôt</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -97,31 +97,31 @@ export default function SalesTrackingLedger() {
 
       <Tabs defaultValue="rows">
         <TabsList>
-          <TabsTrigger value="rows">العمليات</TabsTrigger>
-          <TabsTrigger value="products">حسب المنتج</TabsTrigger>
+          <TabsTrigger value="rows">Opérations</TabsTrigger>
+          <TabsTrigger value="products">Par produit</TabsTrigger>
         </TabsList>
 
         <TabsContent value="rows">
           <Card>
             <CardContent className="p-0 overflow-x-auto">
               {isLoading ? (
-                <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
+                <div className="p-8 text-center text-muted-foreground">Chargement...</div>
               ) : filtered.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">لا توجد بيانات</div>
+                <div className="p-8 text-center text-muted-foreground">Aucune donnée</div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>التاريخ</TableHead>
-                      <TableHead>المصدر</TableHead>
-                      <TableHead>المنتج</TableHead>
-                      <TableHead>المباع</TableHead>
-                      <TableHead>الهدية</TableHead>
-                      <TableHead>الإجمالي</TableHead>
-                      <TableHead>السعر</TableHead>
-                      <TableHead>العامل</TableHead>
-                      <TableHead>العميل</TableHead>
-                      <TableHead>الفرع</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead>Produit</TableHead>
+                      <TableHead>Vendu</TableHead>
+                      <TableHead>Cadeau</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead>Employé</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Dépôt</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -139,11 +139,11 @@ export default function SalesTrackingLedger() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>المنتج</TableHead>
-                    <TableHead>المباع</TableHead>
-                    <TableHead>الهدية</TableHead>
-                    <TableHead>الإجمالي</TableHead>
-                    <TableHead>المبلغ</TableHead>
+                    <TableHead>Produit</TableHead>
+                    <TableHead>Vendu</TableHead>
+                    <TableHead>Cadeau</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Montant</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -153,7 +153,7 @@ export default function SalesTrackingLedger() {
                       <TableCell>{fmtQty(p.soldBoxes, p.soldPieces)}</TableCell>
                       <TableCell className="font-medium">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
                       <TableCell className="font-semibold">{fmtQty(p.totalBoxes, p.totalPieces)}</TableCell>
-                      <TableCell>{p.totalAmount.toLocaleString()} دج</TableCell>
+                      <TableCell>{p.totalAmount.toLocaleString()} DA</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
