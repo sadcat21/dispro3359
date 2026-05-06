@@ -461,20 +461,9 @@ const WorkerActions: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
         .in('order_id', orderIds);
       if (!items || items.length === 0) return [];
-      const offerIds = [...new Set(items.map(i => i.gift_offer_id).filter(Boolean))] as string[];
-      let offerUnits: Record<string, string> = {};
-      if (offerIds.length > 0) {
-        const { data: tiers } = await supabase
-          .from('product_offer_tiers')
-          .select('offer_id, gift_quantity_unit')
-          .in('offer_id', offerIds);
-        for (const t of (tiers || [])) {
-          offerUnits[t.offer_id] = t.gift_quantity_unit || 'piece';
-        }
-      }
       const orderMap = new Map<string, any>(
         orders.map((order: any) => [
           order.id,
@@ -492,7 +481,6 @@ const WorkerActions: React.FC = () => {
         const order = orderMap.get(i.order_id);
         return {
           ...i,
-          gift_unit: i.gift_offer_id ? (offerUnits[i.gift_offer_id] || 'piece') : 'piece',
           order_created_at: order?.created_at || null,
           order_updated_at: order?.updated_at || null,
           order_payment_type: order?.payment_type || null,
