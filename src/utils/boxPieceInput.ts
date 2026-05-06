@@ -150,6 +150,15 @@ export const dbBPDisplay = (quantity: number, piecesPerBox: number): string => {
 };
 
 /**
+ * Always-padded version of dbBPDisplay. e.g. 7 → "7.00", 7.05 → "7.05"
+ */
+export const dbBPDisplayAlways = (quantity: number, piecesPerBox: number): string => {
+  const { boxes, pieces } = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
+  const digits = Math.max(2, String(Math.max(1, piecesPerBox) - 1).length);
+  return `${boxes}.${String(pieces).padStart(digits, '0')}`;
+};
+
+/**
  * Convert a DB-stored B.P format quantity to proper fractional boxes for calculations.
  * e.g. 1308.08 with ppb=20 → 1308.4 (1308 + 8/20)
  */

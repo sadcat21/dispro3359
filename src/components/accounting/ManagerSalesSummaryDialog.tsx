@@ -10,6 +10,7 @@ import { fetchSessionCalculations, SessionCalculations } from '@/hooks/useSessio
 import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBag, Tag, TrendingDown, Wallet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import PromoTrackingSummary from './PromoTrackingSummary';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 
 interface Props {
   open: boolean;
@@ -1116,7 +1117,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                         <div className="flex items-center gap-2">
                           <div className="flex flex-1 items-center justify-center gap-1 rounded-md bg-primary/10 py-1.5 text-xs font-bold text-primary sm:text-sm">
                             <Package className="h-3.5 w-3.5" />
-                            {item.quantity}
+                            {boxesToBPAlways(item.quantity, Math.max(1, Number(item.piecesPerBox || 1)))}
                           </div>
                            {(item.giftQuantity > 0 || item.giftPieces > 0) && (
                              <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
@@ -1149,13 +1150,13 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                           <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-2">
                             <div className="text-[10px] font-medium text-emerald-700">المخزون</div>
                             <div className="mt-1 text-sm font-bold text-emerald-900">
-                              {(item.warehouseQuantity || 0).toLocaleString('ar-DZ')}
+                              {boxesToBPAlways(item.warehouseQuantity || 0, Math.max(1, Number(item.piecesPerBox || 1)))}
                             </div>
                           </div>
                           <div className="rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-2">
                             <div className="text-[10px] font-medium text-blue-700">رصيد العمال</div>
                             <div className="mt-1 text-sm font-bold text-blue-900">
-                              {displayedWorkerStock.toLocaleString('ar-DZ')}
+                              {boxesToBPAlways(displayedWorkerStock, Math.max(1, Number(item.piecesPerBox || 1)))}
                             </div>
                           </div>
                         </div>
