@@ -22,6 +22,11 @@ const fmtQty = (boxes: number, pieces: number) => {
   return `${boxes} c + ${pieces} p`;
 };
 
+const fmtBP = (boxes: number, pieces: number) => {
+  if (!boxes && !pieces) return '—';
+  return `${boxes || 0}.${pieces || 0}`;
+};
+
 export default function SalesTrackingLedger() {
   const [source, setSource] = useState<string>('all');
   const [search, setSearch] = useState('');
