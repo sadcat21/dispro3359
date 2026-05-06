@@ -212,19 +212,20 @@ const AccountingSessions: React.FC = () => {
             {workers.map(worker => {
               const liability = allLiabilities?.find(l => l.workerId === worker.id);
               const hasLiability = liability && liability.totalLiability > 0;
+              const isReviewed = reviewedWorkerIds.has(worker.id);
               return (
                 <Button
                   key={worker.id}
                   variant="outline"
                   className={`h-auto py-3.5 px-4 flex items-center gap-3 justify-start rounded-xl border-2 transition-all ${
-                    hasLiability
-                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
-                      : 'hover:border-primary/40 hover:bg-primary/5'
+                    isReviewed
+                      ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 text-white'
+                      : 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
                   }`}
                   onClick={() => handleWorkerClick(worker.id)}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${hasLiability ? 'bg-white/20' : 'bg-primary/10'}`}>
-                    <User className={`w-4 h-4 ${hasLiability ? 'text-white' : 'text-primary'}`} />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-white/20">
+                    <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex flex-col items-start gap-0.5">
                     <span className="text-sm font-semibold text-wrap text-start">{worker.full_name}</span>
