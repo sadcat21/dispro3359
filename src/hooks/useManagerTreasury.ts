@@ -242,9 +242,12 @@ export const useTreasurySummary = () => {
       // Calculate total gift value (gifts given without payment)
       const totalGiftsValue = (orders || []).reduce((s: number, o: any) => {
         return s + (o.order_items || []).reduce((is: number, item: any) => {
-          const giftQty = Number(item.gift_quantity || 0);
+          const giftBoxes = Number(item.gift_quantity || 0);
+          const giftPieces = Number(item.gift_pieces || 0);
+          const ppb = Math.max(1, Number(item.pieces_per_box || 20));
+          const totalGiftInBoxes = giftBoxes + (giftPieces / ppb);
           const unitPrice = Number(item.unit_price || 0);
-          return is + (giftQty * unitPrice);
+          return is + (totalGiftInBoxes * unitPrice);
         }, 0);
       }, 0);
 
