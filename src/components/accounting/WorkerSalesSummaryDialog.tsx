@@ -387,12 +387,14 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       const orderCustomerMap = new Map(orders.map(o => [o.id, o.customer_id]));
       const orderTimeMap = new Map(orders.map(o => [o.id, o.updated_at]));
 
-      const { data: items, error: itemsError } = await supabase
+      const { data: itemsRaw, error: itemsError } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, unit_price, total_price, price_subtype, payment_type, pricing_unit, weight_per_box, pieces_per_box, product:products(name, pieces_per_box, image_url, pricing_unit, weight_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, price_subtype, payment_type, pricing_unit, weight_per_box, pieces_per_box, product:products(name, pieces_per_box, image_url, pricing_unit, weight_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
         .in('order_id', orderIds);
 
       if (itemsError) throw itemsError;
+      const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+      const items = await mergeGiftsFromSalesTracking((itemsRaw || []) as any[]);
 
       const productInfoMap: Record<string, { name: string; pieces_per_box: number | null; image_url: string | null }> = {};
       for (const item of (items || [])) {
