@@ -41,7 +41,7 @@ import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
-import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
 
 interface StockItem {
   id: string;
@@ -389,11 +389,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     }
 
     // Check if quantity exceeds available stock
-    const baseQuantity = quantity - getGiftTotalBoxes({
-      gift_quantity: giftInfo?.giftQuantity || 0,
-      gift_pieces: giftInfo?.giftPieces || 0,
-      pieces_per_box: product.pieces_per_box || 1,
-    });
+    const baseQuantity = quantity - (giftInfo?.giftQuantity || 0);
     if (baseQuantity > available) {
       const deliveredGiftPieces = 0;
       const deliveredGiftBoxes = 0;
@@ -413,20 +409,17 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const unitPrice = computed.unitPrice;
     const giftQuantity = giftInfo?.giftQuantity || 0;
     const giftPieces = giftInfo?.giftPieces || 0;
-    const paidQuantity = Math.max(0, quantity - getGiftTotalBoxes({
-      gift_quantity: giftQuantity,
-      gift_pieces: giftPieces,
-      pieces_per_box: product.pieces_per_box || 1,
-    }));
+    // Only subtract full gift boxes from quantity; gift pieces are separate loose items
+    const paidQuantity = Math.max(0, quantity - giftQuantity);
 
     setOrderItems(prev => {
       const existing = prev.find(item => item.productId === productId && !item.customUnitPrice && !customUnitPrice && item.priceSubType === computed.subType && item.itemPaymentType === computed.payType);
       if (existing) {
-        const incomingGiftBoxes = getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
+        const incomingGiftBoxes = giftQuantity;
         const newQuantity = Math.min(existing.quantity + quantity, available + incomingGiftBoxes);
         const mergedGiftBoxes = Number(existing.giftQuantity || 0) + giftQuantity;
         const mergedGiftPieces = Number(existing.giftPieces || 0) + giftPieces;
-        const newPaid = Math.max(0, newQuantity - getGiftTotalBoxes({ gift_quantity: mergedGiftBoxes, gift_pieces: mergedGiftPieces, pieces_per_box: product.pieces_per_box || 1 }));
+        const newPaid = Math.max(0, newQuantity - mergedGiftBoxes);
         return prev.map(item =>
           item === existing
             ? { ...item, quantity: newQuantity, totalPrice: newPaid * unitPrice, giftQuantity: mergedGiftBoxes || undefined, giftPieces: mergedGiftPieces || undefined }
@@ -470,11 +463,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const unitPrice = computed.unitPrice;
       const giftQuantity = giftInfo?.giftQuantity || 0;
       const giftPieces = giftInfo?.giftPieces || 0;
-      const paidQuantity = Math.max(0, quantity - getGiftTotalBoxes({
-        gift_quantity: giftQuantity,
-        gift_pieces: giftPieces,
-        pieces_per_box: product.pieces_per_box || 1,
-      }));
+      // Only subtract full gift boxes from quantity; gift pieces are separate loose items
+      const paidQuantity = Math.max(0, quantity - giftQuantity);
       const totalPrice = paidQuantity * unitPrice;
       setOrderItems(prev => prev.map(item => item.productId === productId ? {
         ...item,
@@ -514,7 +504,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       : getProductPrice(product);
     const giftQuantity = giftInfo?.giftQuantity || 0;
     const giftPieces = giftInfo?.giftPieces || 0;
-    const totalQty = deliveredQty + getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
+    // quantity = paid boxes + gift boxes; gift pieces are tracked separately
+    const totalQty = deliveredQty + giftQuantity;
     const paidQty = deliveredQty;
 
     setOrderItems(prev => [...prev, {
