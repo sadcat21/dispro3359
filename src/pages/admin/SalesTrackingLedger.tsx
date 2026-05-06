@@ -151,7 +151,7 @@ export default function SalesTrackingLedger() {
                     <TableRow key={p.productId}>
                       <TableCell className="font-medium">{p.productName || '—'}</TableCell>
                       <TableCell>{fmtQty(p.soldBoxes, p.soldPieces)}</TableCell>
-                      <TableCell className="text-accent-foreground">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
+                      <TableCell className="font-medium">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
                       <TableCell className="font-semibold">{fmtQty(p.totalBoxes, p.totalPieces)}</TableCell>
                       <TableCell>{p.totalAmount.toLocaleString()} دج</TableCell>
                     </TableRow>
@@ -197,8 +197,10 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
       <TableCell>{fmtQty(r.sold_boxes, r.sold_pieces)}</TableCell>
       <TableCell>
         {(r.gift_boxes || r.gift_pieces) ? (
-          <span className="text-accent-foreground font-medium">{fmtQty(r.gift_boxes, r.gift_pieces)}</span>
-        ) : '—'}
+          <Badge variant="outline" className="bg-accent/10 text-foreground border-accent/40 gap-1">
+            <Gift className="h-3 w-3" /> {fmtQty(r.gift_boxes, r.gift_pieces)}
+          </Badge>
+        ) : <span className="text-muted-foreground">—</span>}
       </TableCell>
       <TableCell className="font-semibold">{fmtQty(r.total_boxes, r.total_pieces)}</TableCell>
       <TableCell className="whitespace-nowrap">{Number(r.total_price || 0).toLocaleString()} دج</TableCell>
