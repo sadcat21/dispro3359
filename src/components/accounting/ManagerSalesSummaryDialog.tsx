@@ -385,6 +385,28 @@ const fetchWorkerSalesSummary = async (
 
   if (itemsError) throw itemsError;
 
+  // Authoritative gift figures from sales_tracking (per order_id + product_id)
+  const { data: trackingRows } = await (supabase as any)
+    .from('sales_tracking')
+    .select('order_id, product_id, gift_boxes, gift_pieces, sold_boxes, sold_pieces, pieces_per_box')
+    .in('order_id', orderIds);
+  const trackMap = new Map<string, { giftBoxes: number; giftPieces: number }>();
+  for (const tr of (trackingRows || []) as any[]) {
+    const key = `${tr.order_id}::${tr.product_id}`;
+    const cur = trackMap.get(key) || { giftBoxes: 0, giftPieces: 0 };
+    cur.giftBoxes += Number(tr.gift_boxes || 0);
+    cur.giftPieces += Number(tr.gift_pieces || 0);
+    trackMap.set(key, cur);
+  }
+  // Override gift fields on each order_item from the tracking ledger when present
+  for (const it of (items || []) as any[]) {
+    const t = trackMap.get(`${it.order_id}::${it.product_id}`);
+    if (t) {
+      it.gift_quantity = t.giftBoxes;
+      it.gift_pieces = t.giftPieces;
+    }
+  }
+
   const productIds = [...new Set((items || []).map((item) => item.product_id).filter(Boolean))];
   const [warehouseStockResult, workerStockResult] = await Promise.all([
     productIds.length > 0
