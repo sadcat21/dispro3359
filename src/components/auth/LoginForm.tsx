@@ -597,27 +597,32 @@ const LoginForm: React.FC = () => {
           </form>
 
       <Dialog open={isQuickLoginOpen} onOpenChange={(open) => setQuickLoginMode(open ? quickLoginMode : 'none')}>
-        <DialogContent className="max-w-md border-0 bg-white/95 p-0 shadow-2xl backdrop-blur" dir={dir}>
-          <DialogHeader className={`border-b border-slate-200 px-6 py-5 text-white ${quickLoginMode === 'test' ? 'bg-gradient-to-l from-purple-600 via-fuchsia-600 to-rose-500' : 'bg-red-600'}`}>
-            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold">
-              {quickLoginMode === 'test' ? <FlaskConical className="h-5 w-5" /> : <span className="text-lg">🔑</span>}
-              {quickLoginMode === 'test' ? 'دخول سريع تجريبي' : 'دخول سريع حقيقي'}
+        <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-0 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]" dir={dir}>
+          <DialogHeader className="border-b border-slate-100 bg-white px-6 pt-6 pb-4">
+            <div className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full ${quickLoginMode === 'test' ? 'bg-fuchsia-50 text-fuchsia-600' : 'bg-rose-50 text-rose-600'}`}>
+              {quickLoginMode === 'test' ? <FlaskConical className="h-5 w-5" strokeWidth={2.2} /> : <ShieldCheck className="h-5 w-5" strokeWidth={2.2} />}
+            </div>
+            <DialogTitle className="text-center text-lg font-semibold tracking-tight text-slate-900">
+              {quickLoginMode === 'test' ? 'الدخول السريع — وضع تجريبي' : 'الدخول السريع'}
             </DialogTitle>
+            <DialogDescription className="text-center text-xs text-slate-500">
+              اختر حسابك من القائمة للدخول مباشرة
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[60vh] overflow-y-auto px-4 py-4">
+          <div className="max-h-[62vh] overflow-y-auto bg-slate-50/40 px-5 py-5">
             {quickWorkers.length > 0 ? (
               quickLoginMode === 'real' ? (
                 <Tabs value={realQuickTab} onValueChange={setRealQuickTab} dir={dir}>
-                  <TabsList className="mb-4 h-auto w-full justify-start gap-2 rounded-xl bg-slate-100 p-1">
-                    <TabsTrigger value="admins" className="rounded-lg px-3 text-xs data-[state=active]:bg-white data-[state=active]:text-red-600">
+                  <TabsList className="mb-4 flex h-auto w-full flex-wrap justify-start gap-1 rounded-lg border border-slate-200 bg-white p-1">
+                    <TabsTrigger value="admins" className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm">
                       الإداريون
                     </TabsTrigger>
                     {branchQuickTabs.map((branch) => (
                       <TabsTrigger
                         key={branch.id}
                         value={branch.id}
-                        className="rounded-lg px-3 text-xs data-[state=active]:bg-white data-[state=active]:text-red-600"
+                        className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm"
                       >
                         {branch.name}
                       </TabsTrigger>
@@ -628,7 +633,7 @@ const LoginForm: React.FC = () => {
                     {adminQuickWorkers.length > 0 ? (
                       renderQuickWorkerGroups(adminQuickWorkers)
                     ) : (
-                      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
                         لا يوجد حسابات إدارية مفعّلة حاليًا.
                       </div>
                     )}
@@ -638,8 +643,8 @@ const LoginForm: React.FC = () => {
                     const branchWorkers = realWorkers.filter((worker) => worker.branch_id === branch.id && !isAdminQuickWorker(worker));
                     return (
                       <TabsContent key={branch.id} value={branch.id} className="mt-0 space-y-3">
-                        <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
-                          {branch.name} - مدير الفرع والعمال
+                        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600">
+                          {branch.name} — مدير الفرع والعمال
                         </div>
                         {renderQuickWorkerGroups(branchWorkers)}
                       </TabsContent>
@@ -652,7 +657,7 @@ const LoginForm: React.FC = () => {
                 </div>
               )
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+              <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
                 {quickLoginMode === 'test'
                   ? 'لا يوجد عمال تجريبيون حاليًا.'
                   : 'لا يوجد عمال مفعّلون للدخول السريع حاليًا.'}
