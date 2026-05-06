@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
-import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const formatQty = (v: number) => {
   const r = Math.round(v * 100) / 100;
