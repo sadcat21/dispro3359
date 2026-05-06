@@ -1,0 +1,210 @@
+import { useMemo, useState } from 'react';
+import { useSalesTracking, aggregateSalesByProduct, SalesTrackingRow } from '@/hooks/useSalesTracking';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Package, Gift, TrendingUp, Truck, Store, Warehouse, Search } from 'lucide-react';
+import { format } from 'date-fns';
+
+const SOURCE_META: Record<string, { label: string; icon: any; className: string }> = {
+  direct_sale: { label: 'بيع مباشر', icon: Store, className: 'bg-primary/10 text-primary border-primary/30' },
+  delivery_sale: { label: 'توصيل', icon: Truck, className: 'bg-accent/10 text-accent-foreground border-accent/30' },
+  warehouse_sale: { label: 'مخزن', icon: Warehouse, className: 'bg-secondary text-secondary-foreground border-border' },
+};
+
+const fmtQty = (boxes: number, pieces: number) => {
+  if (!boxes && !pieces) return '—';
+  if (!pieces) return `${boxes} ص`;
+  if (!boxes) return `${pieces} ق`;
+  return `${boxes} ص + ${pieces} ق`;
+};
+
+export default function SalesTrackingLedger() {
+  const [source, setSource] = useState<string>('all');
+  const [search, setSearch] = useState('');
+  const { data: rows = [], isLoading } = useSalesTracking({
+    source: source === 'all' ? undefined : (source as any),
+  });
+
+  const filtered = useMemo(() => {
+    const s = search.trim().toLowerCase();
+    if (!s) return rows;
+    return rows.filter((r) =>
+      [r.product_name, r.worker_name, r.customer_name, r.branch_name]
+        .filter(Boolean).some((v) => String(v).toLowerCase().includes(s))
+    );
+  }, [rows, search]);
+
+  const stats = useMemo(() => {
+    const acc = { total: 0, boxes: 0, pieces: 0, giftBoxes: 0, giftPieces: 0, amount: 0 };
+    for (const r of filtered) {
+      acc.total += 1;
+      acc.boxes += r.sold_boxes || 0;
+      acc.pieces += r.sold_pieces || 0;
+      acc.giftBoxes += r.gift_boxes || 0;
+      acc.giftPieces += r.gift_pieces || 0;
+      acc.amount += Number(r.total_price || 0);
+    }
+    return acc;
+  }, [filtered]);
+
+  const byProduct = useMemo(() => aggregateSalesByProduct(filtered), [filtered]);
+
+  return (
+    <div className="container mx-auto p-4 space-y-4 max-w-7xl" dir="rtl">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-2xl font-bold">سجل تتبع المبيعات</h1>
+          <p className="text-sm text-muted-foreground">جميع عمليات البيع والهدايا حسب المصدر</p>
+        </div>
+        <Badge variant="outline" className="text-sm">{filtered.length} سجل</Badge>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard icon={TrendingUp} label="إجمالي المبيعات" value={`${stats.amount.toLocaleString()} دج`} accent="primary" />
+        <StatCard icon={Package} label="الكميات المباعة" value={fmtQty(stats.boxes, stats.pieces)} />
+        <StatCard icon={Gift} label="الهدايا" value={fmtQty(stats.giftBoxes, stats.giftPieces)} accent="accent" />
+        <StatCard icon={Store} label="عدد العمليات" value={stats.total.toString()} />
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-3 flex flex-wrap gap-2 items-center">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث (منتج، عامل، عميل، فرع)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pr-8"
+            />
+          </div>
+          <Select value={source} onValueChange={setSource}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل المصادر</SelectItem>
+              <SelectItem value="direct_sale">بيع مباشر</SelectItem>
+              <SelectItem value="delivery_sale">توصيل</SelectItem>
+              <SelectItem value="warehouse_sale">مخزن</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="rows">
+        <TabsList>
+          <TabsTrigger value="rows">العمليات</TabsTrigger>
+          <TabsTrigger value="products">حسب المنتج</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rows">
+          <Card>
+            <CardContent className="p-0 overflow-x-auto">
+              {isLoading ? (
+                <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
+              ) : filtered.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">لا توجد بيانات</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>المصدر</TableHead>
+                      <TableHead>المنتج</TableHead>
+                      <TableHead>المباع</TableHead>
+                      <TableHead>الهدية</TableHead>
+                      <TableHead>الإجمالي</TableHead>
+                      <TableHead>السعر</TableHead>
+                      <TableHead>العامل</TableHead>
+                      <TableHead>العميل</TableHead>
+                      <TableHead>الفرع</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.slice(0, 500).map((r) => <RowItem key={r.id} r={r} />)}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="products">
+          <Card>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>المنتج</TableHead>
+                    <TableHead>المباع</TableHead>
+                    <TableHead>الهدية</TableHead>
+                    <TableHead>الإجمالي</TableHead>
+                    <TableHead>المبلغ</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {byProduct.map((p) => (
+                    <TableRow key={p.productId}>
+                      <TableCell className="font-medium">{p.productName || '—'}</TableCell>
+                      <TableCell>{fmtQty(p.soldBoxes, p.soldPieces)}</TableCell>
+                      <TableCell className="text-accent-foreground">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
+                      <TableCell className="font-semibold">{fmtQty(p.totalBoxes, p.totalPieces)}</TableCell>
+                      <TableCell>{p.totalAmount.toLocaleString()} دج</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent?: 'primary' | 'accent' }) {
+  const tone = accent === 'primary' ? 'from-primary/15 to-primary/5 border-primary/20'
+    : accent === 'accent' ? 'from-accent/15 to-accent/5 border-accent/20'
+    : 'from-secondary to-background border-border';
+  return (
+    <Card className={`bg-gradient-to-br ${tone}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+          <Icon className="h-4 w-4" /> {label}
+        </div>
+        <div className="text-lg font-bold">{value}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RowItem({ r }: { r: SalesTrackingRow }) {
+  const meta = SOURCE_META[r.source] || SOURCE_META.direct_sale;
+  const Icon = meta.icon;
+  return (
+    <TableRow>
+      <TableCell className="text-xs whitespace-nowrap">{format(new Date(r.sold_at), 'yyyy-MM-dd HH:mm')}</TableCell>
+      <TableCell>
+        <Badge variant="outline" className={`${meta.className} gap-1`}>
+          <Icon className="h-3 w-3" /> {meta.label}
+        </Badge>
+      </TableCell>
+      <TableCell className="font-medium">{r.product_name || '—'}</TableCell>
+      <TableCell>{fmtQty(r.sold_boxes, r.sold_pieces)}</TableCell>
+      <TableCell>
+        {(r.gift_boxes || r.gift_pieces) ? (
+          <span className="text-accent-foreground font-medium">{fmtQty(r.gift_boxes, r.gift_pieces)}</span>
+        ) : '—'}
+      </TableCell>
+      <TableCell className="font-semibold">{fmtQty(r.total_boxes, r.total_pieces)}</TableCell>
+      <TableCell className="whitespace-nowrap">{Number(r.total_price || 0).toLocaleString()} دج</TableCell>
+      <TableCell className="text-xs">{r.worker_name || '—'}</TableCell>
+      <TableCell className="text-xs">{r.customer_name || '—'}</TableCell>
+      <TableCell className="text-xs">{r.branch_name || '—'}</TableCell>
+    </TableRow>
+  );
+}
