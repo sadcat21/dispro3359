@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
-import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { dbBPDisplay, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const MyStock: React.FC = () => {
@@ -268,7 +268,7 @@ const MyStock: React.FC = () => {
                   )}
                 </div>
                 <div className={`flex items-center justify-center gap-1 py-1 text-xs font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-                  {dbBPDisplay(item.quantity, (item as any).product?.pieces_per_box || 1)} <Package className="h-3 w-3" />
+                  {boxesToBPAlways(item.quantity, (item as any).product?.pieces_per_box || 1)} <Package className="h-3 w-3" />
                 </div>
               </div>
             );
