@@ -270,19 +270,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
   };
   const confirmRow = (pid: string) => {
-    setRows(prev => prev.map(r => {
-      if (r.productId !== pid) return r;
-      // إن لم يدخل شيئاً نعتبره مطابق تلقائياً
-      if (!isFilled(r)) {
-        return {
-          ...r,
-          actualBoxes: String(r.expectedBoxes),
-          actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0',
-          confirmed: true,
-        };
-      }
-      return { ...r, confirmed: true };
-    }));
+    // إن لم يُدخل شيئاً نعتبره مطابقاً تلقائياً (نُبقي الحقول فارغة لتفادي مشاكل الإشارة)
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, confirmed: true } : r));
   };
   const resetRow = (pid: string) => {
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: '', actualPieces: '', confirmed: false } : r));
