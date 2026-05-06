@@ -41,7 +41,7 @@ import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
-import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
 
 interface StockItem {
   id: string;
