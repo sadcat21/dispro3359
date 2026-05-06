@@ -209,6 +209,7 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
       </TableCell>
       <TableCell className="font-medium">{r.product_name || '—'}</TableCell>
       <TableCell>{fmtQty(r.sold_boxes, r.sold_pieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(r.sold_boxes, r.sold_pieces)}</TableCell>
       <TableCell>
         {(r.gift_boxes || r.gift_pieces) ? (
           <Badge variant="outline" className="bg-accent/10 text-foreground border-accent/40 gap-1">
@@ -216,7 +217,9 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
           </Badge>
         ) : <span className="text-muted-foreground">—</span>}
       </TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(r.gift_boxes, r.gift_pieces)}</TableCell>
       <TableCell className="font-semibold">{fmtQty(r.total_boxes, r.total_pieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(r.total_boxes, r.total_pieces)}</TableCell>
       <TableCell className="whitespace-nowrap">{Number(r.total_price || 0).toLocaleString()} DA</TableCell>
       <TableCell className="text-xs">{r.worker_name || '—'}</TableCell>
       <TableCell className="text-xs">{r.customer_name || '—'}</TableCell>
