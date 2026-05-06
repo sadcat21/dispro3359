@@ -508,7 +508,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       : getProductPrice(product);
     const giftQuantity = giftInfo?.giftQuantity || 0;
     const giftPieces = giftInfo?.giftPieces || 0;
-    const totalQty = deliveredQty + getGiftTotalBoxes({ gift_quantity: giftQuantity, gift_pieces: giftPieces, pieces_per_box: product.pieces_per_box || 1 });
+    // quantity = paid boxes + gift boxes; gift pieces are tracked separately
+    const totalQty = deliveredQty + giftQuantity;
     const paidQty = deliveredQty;
 
     setOrderItems(prev => [...prev, {
