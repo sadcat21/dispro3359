@@ -230,8 +230,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
-  // عدد القطع الفعلي
+  // عدد القطع الفعلي — إن لم يُدخل شيء نعتبره مطابقاً للمتوقع
   const actualTotalPieces = (r: AggregatedRow) => {
+    if (!isFilled(r)) return r.expected;
     const ppb = Math.max(1, Math.round(r.ppb || 1));
     const b = Math.max(0, parseInt(r.actualBoxes || '0', 10) || 0);
     const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
