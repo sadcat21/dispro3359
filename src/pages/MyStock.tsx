@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { dbBPDisplay, dbBPDisplayAlways } from '@/utils/boxPieceInput';
-import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
