@@ -50,6 +50,7 @@ const AccountingSessions: React.FC = () => {
     if (!allLiabilities) return new Set<string>();
     return new Set(allLiabilities.filter(l => l.totalLiability > 0).map(l => l.workerId));
   }, [allLiabilities]);
+  const [reviewedWorkerIds, setReviewedWorkerIds] = useState<Set<string>>(new Set());
 
   const { data: sessions, isLoading } = useAccountingSessions({ status: statusFilter });
   const deleteSession = useDeleteSession();
