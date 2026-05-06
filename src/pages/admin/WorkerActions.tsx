@@ -13,7 +13,7 @@ import { useMyUIOverrides, useMyRoleOverrides } from '@/hooks/useUIOverrides';
 import { Badge } from '@/components/ui/badge';
 import { Worker } from '@/types/database';
 import { getLocalizedName } from '@/utils/sectorName';
-import { getGiftTotalBoxes, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
@@ -461,20 +461,9 @@ const WorkerActions: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
         .in('order_id', orderIds);
       if (!items || items.length === 0) return [];
-      const offerIds = [...new Set(items.map(i => i.gift_offer_id).filter(Boolean))] as string[];
-      let offerUnits: Record<string, string> = {};
-      if (offerIds.length > 0) {
-        const { data: tiers } = await supabase
-          .from('product_offer_tiers')
-          .select('offer_id, gift_quantity_unit')
-          .in('offer_id', offerIds);
-        for (const t of (tiers || [])) {
-          offerUnits[t.offer_id] = t.gift_quantity_unit || 'piece';
-        }
-      }
       const orderMap = new Map<string, any>(
         orders.map((order: any) => [
           order.id,
@@ -492,7 +481,6 @@ const WorkerActions: React.FC = () => {
         const order = orderMap.get(i.order_id);
         return {
           ...i,
-          gift_unit: i.gift_offer_id ? (offerUnits[i.gift_offer_id] || 'piece') : 'piece',
           order_created_at: order?.created_at || null,
           order_updated_at: order?.updated_at || null,
           order_payment_type: order?.payment_type || null,
@@ -558,10 +546,11 @@ const WorkerActions: React.FC = () => {
       const paidQty = getPaidQuantity(item);
       stat.sold += paidQty;
       if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
-      const giftQty = getGiftTotalBoxes(item);
-      if (giftQty > 0) {
-        stat.giftQty += giftQty;
-        stat.giftUnit = (item as any).gift_unit || 'piece';
+      const giftBoxes = Number(item.gift_quantity || 0);
+      const giftPieces = Number(item.gift_pieces || 0);
+      const totalGift = giftBoxes + (giftPieces / 100);
+      if (giftBoxes > 0 || giftPieces > 0) {
+        stat.giftQty += totalGift;
       }
     }
 

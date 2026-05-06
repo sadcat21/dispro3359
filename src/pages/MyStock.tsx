@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { dbBPDisplay, dbBPDisplayAlways } from '@/utils/boxPieceInput';
-import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
@@ -128,28 +128,12 @@ const MyStock: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('product_id, quantity, gift_quantity, gift_offer_id')
+        .select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
         .in('order_id', orderIds);
 
       if (!items || items.length === 0) return [];
 
-      // Get unique offer IDs to fetch gift_quantity_unit
-      const offerIds = [...new Set(items.map(i => i.gift_offer_id).filter(Boolean))] as string[];
-      let offerUnits: Record<string, string> = {};
-      if (offerIds.length > 0) {
-        const { data: tiers } = await supabase
-          .from('product_offer_tiers')
-          .select('offer_id, gift_quantity_unit')
-          .in('offer_id', offerIds);
-        for (const t of (tiers || [])) {
-          offerUnits[t.offer_id] = t.gift_quantity_unit || 'piece';
-        }
-      }
-
-      return items.map(i => ({
-        ...i,
-        gift_unit: i.gift_offer_id ? (offerUnits[i.gift_offer_id] || 'piece') : 'piece',
-      }));
+      return items;
     },
     enabled: !!workerId,
   });
@@ -194,13 +178,15 @@ const MyStock: React.FC = () => {
       }
     }
     
-    // Also add gifts from delivered orders (given to customers)
+    // Also add gifts from delivered orders (given to customers) — read directly from columns
     for (const item of (soldData || [])) {
-      if (getGiftTotalPieces(item) > 0) {
+      const giftBoxes = Number(item.gift_quantity || 0);
+      const giftPieces = Number(item.gift_pieces || 0);
+      if (giftBoxes > 0 || giftPieces > 0) {
         const pid = item.product_id;
-        const unit = (item as any).gift_unit || 'piece';
-        if (!stats[pid]) stats[pid] = { totalGifts: 0, unit };
-        stats[pid].totalGifts += getGiftTotalBoxes(item);
+        if (!stats[pid]) stats[pid] = { totalGifts: 0, unit: 'box' };
+        // gift_quantity = boxes, gift_pieces = loose pieces; convert pieces to fractional boxes for aggregation
+        stats[pid].totalGifts += giftBoxes + (giftPieces / 100);
       }
     }
     return stats;

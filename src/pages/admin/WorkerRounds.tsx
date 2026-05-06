@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
-import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getPaidQuantity } from '@/utils/orderItemQuantities';
 
 const formatQty = (v: number) => {
   const r = Math.round(v * 100) / 100;
@@ -162,8 +162,7 @@ const WorkerRounds: React.FC = () => {
         const name = item.product?.app_name || item.product?.name || '—';
         const ppb = item.product?.pieces_per_box || 20;
         const qty = Number(item.quantity || 0);
-        const giftQty = Number(item.gift_quantity || 0);
-        const giftInBoxes = (item.gift_unit === 'box') ? giftQty : giftQty / ppb;
+        const giftBoxes = Number(item.gift_quantity || 0);
         if (!productMap.has(pid)) {
           productMap.set(pid, {
             product_id: pid, product_name: name, image_url: item.product?.image_url,
@@ -173,13 +172,15 @@ const WorkerRounds: React.FC = () => {
         }
         const p = productMap.get(pid)!;
         p.loaded_qty += qty;
-        p.gift_loaded += giftInBoxes;
+        p.gift_loaded += giftBoxes;
       });
       periodOrders.forEach((oi: any) => {
         const pid = oi.product_id;
         const ppb = oi.pieces_per_box || 20;
-        const soldPieces = getPaidQuantity({ ...oi, pieces_per_box: ppb }) * ppb;
-        const giftPieces = getGiftTotalPieces({ ...oi, pieces_per_box: ppb });
+        const giftBoxes = Number(oi.gift_quantity || 0);
+        const giftPieces = Number(oi.gift_pieces || 0);
+        const totalGiftInBoxes = giftBoxes + (giftPieces / ppb);
+        const paidQty = Math.max(0, Number(oi.quantity || 0) - giftBoxes);
         if (!productMap.has(pid)) {
           productMap.set(pid, {
             product_id: pid, product_name: pid,
@@ -188,8 +189,8 @@ const WorkerRounds: React.FC = () => {
           });
         }
         const p = productMap.get(pid)!;
-        p.sold_qty += soldPieces / ppb;
-        p.gift_sold += giftPieces / ppb;
+        p.sold_qty += paidQty;
+        p.gift_sold += totalGiftInBoxes;
       });
       productMap.forEach(p => {
         p.expected_remaining = p.loaded_qty + p.gift_loaded - p.sold_qty - p.gift_sold;

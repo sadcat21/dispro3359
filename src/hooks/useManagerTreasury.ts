@@ -119,7 +119,7 @@ export const useTreasurySummary = () => {
       // Get delivered orders with gift data
       let oQuery = supabase
         .from('orders')
-        .select('id, payment_type, invoice_payment_method, payment_status, total_amount, partial_amount, assigned_worker_id, delivery_date, created_at, document_verification, order_items(total_price, gift_quantity, unit_price)')
+        .select('id, payment_type, invoice_payment_method, payment_status, total_amount, partial_amount, assigned_worker_id, delivery_date, created_at, document_verification, order_items(total_price, gift_quantity, gift_pieces, unit_price, pieces_per_box)')
         .eq('status', 'delivered');
       if (activeBranch?.id) oQuery = oQuery.eq('branch_id', activeBranch.id);
       const { data: orders, error: oErr } = await oQuery;
@@ -242,9 +242,12 @@ export const useTreasurySummary = () => {
       // Calculate total gift value (gifts given without payment)
       const totalGiftsValue = (orders || []).reduce((s: number, o: any) => {
         return s + (o.order_items || []).reduce((is: number, item: any) => {
-          const giftQty = Number(item.gift_quantity || 0);
+          const giftBoxes = Number(item.gift_quantity || 0);
+          const giftPieces = Number(item.gift_pieces || 0);
+          const ppb = Math.max(1, Number(item.pieces_per_box || 20));
+          const totalGiftInBoxes = giftBoxes + (giftPieces / ppb);
           const unitPrice = Number(item.unit_price || 0);
-          return is + (giftQty * unitPrice);
+          return is + (totalGiftInBoxes * unitPrice);
         }, 0);
       }, 0);
 
