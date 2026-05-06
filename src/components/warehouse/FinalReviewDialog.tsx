@@ -230,8 +230,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
-  // عدد القطع الفعلي
+  // عدد القطع الفعلي — إن لم يُدخل شيء نعتبره مطابقاً للمتوقع
   const actualTotalPieces = (r: AggregatedRow) => {
+    if (!isFilled(r)) return r.expected;
     const ppb = Math.max(1, Math.round(r.ppb || 1));
     const b = Math.max(0, parseInt(r.actualBoxes || '0', 10) || 0);
     const p = Math.max(0, parseInt(r.actualPieces || '0', 10) || 0);
@@ -270,19 +271,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualPieces: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
   };
   const confirmRow = (pid: string) => {
-    setRows(prev => prev.map(r => {
-      if (r.productId !== pid) return r;
-      // إن لم يدخل شيئاً نعتبره مطابق تلقائياً
-      if (!isFilled(r)) {
-        return {
-          ...r,
-          actualBoxes: String(r.expectedBoxes),
-          actualPieces: r.expectedPieces > 0 ? String(r.expectedPieces) : '0',
-          confirmed: true,
-        };
-      }
-      return { ...r, confirmed: true };
-    }));
+    // إن لم يُدخل شيئاً نعتبره مطابقاً تلقائياً (نُبقي الحقول فارغة لتفادي مشاكل الإشارة)
+    setRows(prev => prev.map(r => r.productId === pid ? { ...r, confirmed: true } : r));
   };
   const resetRow = (pid: string) => {
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: '', actualPieces: '', confirmed: false } : r));
