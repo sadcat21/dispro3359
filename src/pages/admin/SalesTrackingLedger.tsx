@@ -121,8 +121,11 @@ export default function SalesTrackingLedger() {
                       <TableHead>Source</TableHead>
                       <TableHead>Produit</TableHead>
                       <TableHead>Vendu</TableHead>
+                      <TableHead className="text-center">B.P</TableHead>
                       <TableHead>Cadeau</TableHead>
+                      <TableHead className="text-center">B.P</TableHead>
                       <TableHead>Total</TableHead>
+                      <TableHead className="text-center">B.P</TableHead>
                       <TableHead>Montant</TableHead>
                       <TableHead>Employé</TableHead>
                       <TableHead>Client</TableHead>
