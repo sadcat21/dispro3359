@@ -44,6 +44,7 @@ import PendingWarehouseReviews from "./pages/admin/PendingWarehouseReviews";
 import StockReceipts from "./pages/admin/StockReceipts";
 import StockMovementsLedger from "./pages/admin/StockMovementsLedger";
 import OfferLedger from "./pages/admin/OfferLedger";
+import SalesTrackingLedger from "./pages/admin/SalesTrackingLedger";
 import CashLedger from "./pages/admin/CashLedger";
 import DebtLedger from "./pages/admin/DebtLedger";
 import LoadStock from "./pages/admin/LoadStock";
