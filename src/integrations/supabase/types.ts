@@ -5525,6 +5525,140 @@ export type Database = {
           },
         ]
       }
+      sales_tracking: {
+        Row: {
+          branch_id: string | null
+          branch_name: string | null
+          created_at: string
+          customer_id: string | null
+          customer_name: string | null
+          gift_boxes: number
+          gift_pieces: number
+          id: string
+          notes: string | null
+          order_id: string | null
+          order_item_id: string | null
+          pieces_per_box: number
+          product_id: string | null
+          product_name: string | null
+          sold_at: string
+          sold_boxes: number
+          sold_pieces: number
+          source: string
+          total_boxes: number
+          total_pieces: number
+          total_price: number
+          unit_price: number
+          updated_at: string
+          worker_id: string | null
+          worker_name: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          branch_name?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          gift_boxes?: number
+          gift_pieces?: number
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          pieces_per_box?: number
+          product_id?: string | null
+          product_name?: string | null
+          sold_at?: string
+          sold_boxes?: number
+          sold_pieces?: number
+          source: string
+          total_boxes?: number
+          total_pieces?: number
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+          worker_id?: string | null
+          worker_name?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          branch_name?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          gift_boxes?: number
+          gift_pieces?: number
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          pieces_per_box?: number
+          product_id?: string | null
+          product_name?: string | null
+          sold_at?: string
+          sold_boxes?: number
+          sold_pieces?: number
+          source?: string
+          total_boxes?: number
+          total_pieces?: number
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+          worker_id?: string | null
+          worker_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_tracking_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tracking_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tracking_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tracking_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tracking_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tracking_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tracking_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sector_coverage: {
         Row: {
           absent_worker_id: string
