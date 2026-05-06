@@ -22,6 +22,11 @@ const fmtQty = (boxes: number, pieces: number) => {
   return `${boxes} c + ${pieces} p`;
 };
 
+const fmtBP = (boxes: number, pieces: number) => {
+  if (!boxes && !pieces) return '—';
+  return `${boxes || 0}.${pieces || 0}`;
+};
+
 export default function SalesTrackingLedger() {
   const [source, setSource] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -116,8 +121,11 @@ export default function SalesTrackingLedger() {
                       <TableHead>Source</TableHead>
                       <TableHead>Produit</TableHead>
                       <TableHead>Vendu</TableHead>
+                      <TableHead className="text-center">B.P</TableHead>
                       <TableHead>Cadeau</TableHead>
+                      <TableHead className="text-center">B.P</TableHead>
                       <TableHead>Total</TableHead>
+                      <TableHead className="text-center">B.P</TableHead>
                       <TableHead>Montant</TableHead>
                       <TableHead>Employé</TableHead>
                       <TableHead>Client</TableHead>
@@ -141,8 +149,11 @@ export default function SalesTrackingLedger() {
                   <TableRow>
                     <TableHead>Produit</TableHead>
                     <TableHead>Vendu</TableHead>
+                    <TableHead className="text-center">B.P</TableHead>
                     <TableHead>Cadeau</TableHead>
+                    <TableHead className="text-center">B.P</TableHead>
                     <TableHead>Total</TableHead>
+                    <TableHead className="text-center">B.P</TableHead>
                     <TableHead>Montant</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -151,8 +162,11 @@ export default function SalesTrackingLedger() {
                     <TableRow key={p.productId}>
                       <TableCell className="font-medium">{p.productName || '—'}</TableCell>
                       <TableCell>{fmtQty(p.soldBoxes, p.soldPieces)}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{fmtBP(p.soldBoxes, p.soldPieces)}</TableCell>
                       <TableCell className="font-medium">{fmtQty(p.giftBoxes, p.giftPieces)}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{fmtBP(p.giftBoxes, p.giftPieces)}</TableCell>
                       <TableCell className="font-semibold">{fmtQty(p.totalBoxes, p.totalPieces)}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{fmtBP(p.totalBoxes, p.totalPieces)}</TableCell>
                       <TableCell>{p.totalAmount.toLocaleString()} DA</TableCell>
                     </TableRow>
                   ))}
@@ -195,6 +209,7 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
       </TableCell>
       <TableCell className="font-medium">{r.product_name || '—'}</TableCell>
       <TableCell>{fmtQty(r.sold_boxes, r.sold_pieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(r.sold_boxes, r.sold_pieces)}</TableCell>
       <TableCell>
         {(r.gift_boxes || r.gift_pieces) ? (
           <Badge variant="outline" className="bg-accent/10 text-foreground border-accent/40 gap-1">
@@ -202,7 +217,9 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
           </Badge>
         ) : <span className="text-muted-foreground">—</span>}
       </TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(r.gift_boxes, r.gift_pieces)}</TableCell>
       <TableCell className="font-semibold">{fmtQty(r.total_boxes, r.total_pieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(r.total_boxes, r.total_pieces)}</TableCell>
       <TableCell className="whitespace-nowrap">{Number(r.total_price || 0).toLocaleString()} DA</TableCell>
       <TableCell className="text-xs">{r.worker_name || '—'}</TableCell>
       <TableCell className="text-xs">{r.customer_name || '—'}</TableCell>
