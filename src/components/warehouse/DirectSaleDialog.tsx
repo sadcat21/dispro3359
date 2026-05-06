@@ -413,11 +413,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const unitPrice = computed.unitPrice;
     const giftQuantity = giftInfo?.giftQuantity || 0;
     const giftPieces = giftInfo?.giftPieces || 0;
-    const paidQuantity = Math.max(0, quantity - getGiftTotalBoxes({
-      gift_quantity: giftQuantity,
-      gift_pieces: giftPieces,
-      pieces_per_box: product.pieces_per_box || 1,
-    }));
+    // Only subtract full gift boxes from quantity; gift pieces are separate loose items
+    const paidQuantity = Math.max(0, quantity - giftQuantity);
 
     setOrderItems(prev => {
       const existing = prev.find(item => item.productId === productId && !item.customUnitPrice && !customUnitPrice && item.priceSubType === computed.subType && item.itemPaymentType === computed.payType);
@@ -470,11 +467,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const unitPrice = computed.unitPrice;
       const giftQuantity = giftInfo?.giftQuantity || 0;
       const giftPieces = giftInfo?.giftPieces || 0;
-      const paidQuantity = Math.max(0, quantity - getGiftTotalBoxes({
-        gift_quantity: giftQuantity,
-        gift_pieces: giftPieces,
-        pieces_per_box: product.pieces_per_box || 1,
-      }));
+      // Only subtract full gift boxes from quantity; gift pieces are separate loose items
+      const paidQuantity = Math.max(0, quantity - giftQuantity);
       const totalPrice = paidQuantity * unitPrice;
       setOrderItems(prev => prev.map(item => item.productId === productId ? {
         ...item,
