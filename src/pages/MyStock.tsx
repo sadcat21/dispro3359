@@ -128,28 +128,12 @@ const MyStock: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('product_id, quantity, gift_quantity, gift_offer_id')
+        .select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
         .in('order_id', orderIds);
 
       if (!items || items.length === 0) return [];
 
-      // Get unique offer IDs to fetch gift_quantity_unit
-      const offerIds = [...new Set(items.map(i => i.gift_offer_id).filter(Boolean))] as string[];
-      let offerUnits: Record<string, string> = {};
-      if (offerIds.length > 0) {
-        const { data: tiers } = await supabase
-          .from('product_offer_tiers')
-          .select('offer_id, gift_quantity_unit')
-          .in('offer_id', offerIds);
-        for (const t of (tiers || [])) {
-          offerUnits[t.offer_id] = t.gift_quantity_unit || 'piece';
-        }
-      }
-
-      return items.map(i => ({
-        ...i,
-        gift_unit: i.gift_offer_id ? (offerUnits[i.gift_offer_id] || 'piece') : 'piece',
-      }));
+      return items;
     },
     enabled: !!workerId,
   });
