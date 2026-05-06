@@ -10,7 +10,7 @@ import { fetchSessionCalculations, SessionCalculations } from '@/hooks/useSessio
 import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBag, Tag, TrendingDown, Wallet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import PromoTrackingSummary from './PromoTrackingSummary';
-import { boxesToBPAlways } from '@/utils/boxPieceInput';
+import { boxesToBPAlways, parseBP } from '@/utils/boxPieceInput';
 
 interface Props {
   open: boolean;
