@@ -1152,7 +1152,6 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                             <div className="mt-1 text-sm font-bold text-emerald-900">
                               {boxesToBPAlways(item.warehouseQuantity || 0, Math.max(1, Number(item.piecesPerBox || 1)))}
                             </div>
-                            </div>
                           </div>
                           <div className="rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-2">
                             <div className="text-[10px] font-medium text-blue-700">رصيد العمال</div>
