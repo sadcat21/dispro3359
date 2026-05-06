@@ -178,13 +178,15 @@ const MyStock: React.FC = () => {
       }
     }
     
-    // Also add gifts from delivered orders (given to customers)
+    // Also add gifts from delivered orders (given to customers) — read directly from columns
     for (const item of (soldData || [])) {
-      if (getGiftTotalPieces(item) > 0) {
+      const giftBoxes = Number(item.gift_quantity || 0);
+      const giftPieces = Number(item.gift_pieces || 0);
+      if (giftBoxes > 0 || giftPieces > 0) {
         const pid = item.product_id;
-        const unit = (item as any).gift_unit || 'piece';
-        if (!stats[pid]) stats[pid] = { totalGifts: 0, unit };
-        stats[pid].totalGifts += getGiftTotalBoxes(item);
+        if (!stats[pid]) stats[pid] = { totalGifts: 0, unit: 'box' };
+        // gift_quantity = boxes, gift_pieces = loose pieces; convert pieces to fractional boxes for aggregation
+        stats[pid].totalGifts += giftBoxes + (giftPieces / 100);
       }
     }
     return stats;
