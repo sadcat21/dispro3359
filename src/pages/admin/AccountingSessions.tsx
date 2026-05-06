@@ -50,6 +50,7 @@ const AccountingSessions: React.FC = () => {
     if (!allLiabilities) return new Set<string>();
     return new Set(allLiabilities.filter(l => l.totalLiability > 0).map(l => l.workerId));
   }, [allLiabilities]);
+  const [reviewedWorkerIds, setReviewedWorkerIds] = useState<Set<string>>(new Set());
 
   const { data: sessions, isLoading } = useAccountingSessions({ status: statusFilter });
   const deleteSession = useDeleteSession();
@@ -65,6 +66,24 @@ const AccountingSessions: React.FC = () => {
       setLoadingWorkers(false);
     };
     fetchWorkers();
+  }, [activeBranch?.id]);
+
+  // Fetch workers who completed final review today
+  useEffect(() => {
+    const fetchReviewed = async () => {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      let query = supabase
+        .from('final_review_sessions')
+        .select('worker_id')
+        .eq('review_date', today)
+        .eq('status', 'locked');
+      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      const { data } = await query;
+      setReviewedWorkerIds(new Set((data || []).map((r: any) => r.worker_id)));
+    };
+    fetchReviewed();
+    const interval = setInterval(fetchReviewed, 30000);
+    return () => clearInterval(interval);
   }, [activeBranch?.id]);
 
   // Auto-open create dialog if coming from WorkerActions
@@ -193,19 +212,20 @@ const AccountingSessions: React.FC = () => {
             {workers.map(worker => {
               const liability = allLiabilities?.find(l => l.workerId === worker.id);
               const hasLiability = liability && liability.totalLiability > 0;
+              const isReviewed = reviewedWorkerIds.has(worker.id);
               return (
                 <Button
                   key={worker.id}
                   variant="outline"
                   className={`h-auto py-3.5 px-4 flex items-center gap-3 justify-start rounded-xl border-2 transition-all ${
-                    hasLiability
-                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
-                      : 'hover:border-primary/40 hover:bg-primary/5'
+                    isReviewed
+                      ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 text-white'
+                      : 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
                   }`}
                   onClick={() => handleWorkerClick(worker.id)}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${hasLiability ? 'bg-white/20' : 'bg-primary/10'}`}>
-                    <User className={`w-4 h-4 ${hasLiability ? 'text-white' : 'text-primary'}`} />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-white/20">
+                    <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex flex-col items-start gap-0.5">
                     <span className="text-sm font-semibold text-wrap text-start">{worker.full_name}</span>
