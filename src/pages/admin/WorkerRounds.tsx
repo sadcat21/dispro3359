@@ -162,8 +162,7 @@ const WorkerRounds: React.FC = () => {
         const name = item.product?.app_name || item.product?.name || '—';
         const ppb = item.product?.pieces_per_box || 20;
         const qty = Number(item.quantity || 0);
-        const giftQty = Number(item.gift_quantity || 0);
-        const giftInBoxes = (item.gift_unit === 'box') ? giftQty : giftQty / ppb;
+        const giftBoxes = Number(item.gift_quantity || 0);
         if (!productMap.has(pid)) {
           productMap.set(pid, {
             product_id: pid, product_name: name, image_url: item.product?.image_url,
@@ -173,7 +172,7 @@ const WorkerRounds: React.FC = () => {
         }
         const p = productMap.get(pid)!;
         p.loaded_qty += qty;
-        p.gift_loaded += giftInBoxes;
+        p.gift_loaded += giftBoxes;
       });
       periodOrders.forEach((oi: any) => {
         const pid = oi.product_id;
