@@ -1114,20 +1114,35 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                         )}
                       </div>
                       <div className="flex flex-col gap-2 bg-white px-2.5 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="flex flex-1 items-center justify-center gap-1 rounded-md bg-primary/10 py-1.5 text-xs font-bold text-primary sm:text-sm">
-                            <Package className="h-3.5 w-3.5" />
-                            {boxesToBPAlways(item.quantity, Math.max(1, Number(item.piecesPerBox || 1)))}
-                          </div>
-                           {(item.giftQuantity > 0 || item.giftPieces > 0) && (
-                             <div className="rounded-md bg-secondary px-2 py-1.5 text-[10px] font-semibold text-secondary-foreground sm:text-xs">
-                               🎁 {formatGiftDisplay(
-                                 (Number(item.giftQuantity || 0) * Math.max(1, Number(item.piecesPerBox || 1))) + Number(item.giftPieces || 0),
-                                 Math.max(1, Number(item.piecesPerBox || 1))
-                               )}
-                             </div>
-                           )}
-                        </div>
+                        {(() => {
+                          const ppb = Math.max(1, Number(item.piecesPerBox || 1));
+                          const soldBoxes = Math.floor(Number(item.quantity || 0));
+                          const soldPieces = Math.round((Number(item.quantity || 0) - soldBoxes) * ppb);
+                          const giftBoxes = Number(item.giftQuantity || 0);
+                          const giftPieces = Number(item.giftPieces || 0);
+                          const totalPiecesAll = (soldBoxes * ppb + soldPieces) + (giftBoxes * ppb + giftPieces);
+                          const totalBoxes = Math.floor(totalPiecesAll / ppb);
+                          const totalPiecesRem = totalPiecesAll % ppb;
+                          return (
+                            <div className="grid grid-cols-3 gap-1 text-center">
+                              <div className="rounded-md bg-primary/10 px-1 py-1.5">
+                                <div className="text-[9px] font-medium text-primary/80">مباع</div>
+                                <div className="text-[11px] font-bold text-primary sm:text-xs">{soldBoxes} ص</div>
+                                <div className="text-[10px] font-semibold text-primary/90">{soldPieces} ق</div>
+                              </div>
+                              <div className="rounded-md bg-fuchsia-100 px-1 py-1.5">
+                                <div className="text-[9px] font-medium text-fuchsia-700">🎁 هدية</div>
+                                <div className="text-[11px] font-bold text-fuchsia-800 sm:text-xs">{giftBoxes} ص</div>
+                                <div className="text-[10px] font-semibold text-fuchsia-700">{giftPieces} ق</div>
+                              </div>
+                              <div className="rounded-md bg-amber-100 px-1 py-1.5">
+                                <div className="text-[9px] font-medium text-amber-700">الإجمالي</div>
+                                <div className="text-[11px] font-bold text-amber-900 sm:text-xs">{totalBoxes} ص</div>
+                                <div className="text-[10px] font-semibold text-amber-800">{totalPiecesRem} ق</div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {!!Object.keys(item.subtypeQuantities || {}).length && (
                           <div className="flex flex-wrap gap-1">
                             {Object.entries(item.subtypeQuantities || {})
