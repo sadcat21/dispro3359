@@ -48,6 +48,8 @@ const formatBP = (totalPieces: number, piecesPerBox: number): string => {
   return `${sign}${boxes}.${String(remaining).padStart(2, '0')}`;
 };
 
+const toWholePieces = (value: number): number => Math.round(Number(value || 0));
+
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   open, onOpenChange, workerId, workerName, branchId,
 }) => {
@@ -201,12 +203,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
         const list = Array.from(map.values()).map(r => {
           const ppb = Math.max(1, Math.round(r.ppb || 1));
-          const expectedTotalPieces = r.loaded - r.unloaded - r.sold - r.gifts;
+          const loaded = toWholePieces(r.loaded);
+          const unloaded = toWholePieces(r.unloaded);
+          const sold = toWholePieces(r.sold);
+          const gifts = toWholePieces(r.gifts);
+          const expectedTotalPieces = loaded - unloaded - sold - gifts;
           const absPieces = Math.abs(expectedTotalPieces);
           const sign = expectedTotalPieces < 0 ? -1 : 1;
           const expectedBoxes = sign * Math.floor(absPieces / ppb);
           const expectedPieces = absPieces % ppb;
-          return { ...r, expected: expectedTotalPieces, expectedBoxes, expectedPieces };
+          return { ...r, loaded, unloaded, sold, gifts, expected: expectedTotalPieces, expectedBoxes, expectedPieces };
         });
         list.sort((a, b) => a.productName.localeCompare(b.productName));
         if (!cancelled) setRows(list);
