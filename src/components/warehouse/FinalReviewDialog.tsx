@@ -186,14 +186,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
             const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
-            // total quantity stored in B.P → total pieces
+            // total quantity stored in B.P → total pieces (does NOT include gifts)
             const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
             // gifts: gift_quantity (boxes) * ppb + gift_pieces (extra pieces) — same convention as WorkerGiftsSummaryDialog
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
             const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-            const soldPieces = Math.max(0, totalPieces - giftTotalPieces);
-            ex.sold += soldPieces;
+            // المباع هو الكمية كما هي — الهدية تُحسب بشكل منفصل (إضافة وليست خصم)
+            ex.sold += Math.max(0, totalPieces);
             ex.gifts += giftTotalPieces;
             map.set(pid, ex);
           }
