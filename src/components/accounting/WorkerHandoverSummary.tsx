@@ -398,8 +398,8 @@ const WorkerHandoverSummary: React.FC<WorkerHandoverSummaryProps> = ({
   }
 
   return (
-    <div className="border-2 border-primary/30 rounded-xl p-3.5 space-y-1 bg-primary/5">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="border-2 border-primary/30 rounded-xl p-3.5 bg-gradient-to-br from-primary/5 to-transparent">
+      <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
           <ClipboardList className="w-4 h-4 text-primary" />
         </div>
@@ -407,19 +407,33 @@ const WorkerHandoverSummary: React.FC<WorkerHandoverSummaryProps> = ({
         <div className="h-px flex-1 bg-border" />
       </div>
 
-      {rows.map((r, i) => <SummaryRow key={i} {...r} />)}
+      {rows.length > 0 && (
+        <div className="grid grid-cols-2 gap-2">
+          {rows.map((r, i) => <SummaryRow key={i} {...r} />)}
+        </div>
+      )}
 
       {docRows.length > 0 && (
         <>
-          <div className="border-t my-1" />
-          {docRows.map((r, i) => <SummaryRow key={`d${i}`} {...r} />)}
+          <div className="flex items-center gap-2 mt-3 mb-2">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">المستندات</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {docRows.map((r, i) => <SummaryRow key={`d${i}`} {...r} />)}
+          </div>
         </>
       )}
 
       {logRows.length > 0 && (
         <>
-          <div className="border-t my-1" />
-          {logRows.map((r, i) => <SummaryRow key={`l${i}`} {...r} />)}
+          <div className="flex items-center gap-2 mt-3 mb-2">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">اللوجستيك</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {logRows.map((r, i) => <SummaryRow key={`l${i}`} {...r} />)}
+          </div>
         </>
       )}
     </div>
