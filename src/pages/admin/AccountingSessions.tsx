@@ -68,6 +68,24 @@ const AccountingSessions: React.FC = () => {
     fetchWorkers();
   }, [activeBranch?.id]);
 
+  // Fetch workers who completed final review today
+  useEffect(() => {
+    const fetchReviewed = async () => {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      let query = supabase
+        .from('final_review_sessions')
+        .select('worker_id')
+        .eq('review_date', today)
+        .eq('status', 'locked');
+      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      const { data } = await query;
+      setReviewedWorkerIds(new Set((data || []).map((r: any) => r.worker_id)));
+    };
+    fetchReviewed();
+    const interval = setInterval(fetchReviewed, 30000);
+    return () => clearInterval(interval);
+  }, [activeBranch?.id]);
+
   // Auto-open create dialog if coming from WorkerActions
   useEffect(() => {
     if (contextWorkerId) {
