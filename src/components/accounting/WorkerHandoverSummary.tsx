@@ -26,15 +26,17 @@ interface SummaryRowProps {
 }
 
 const SummaryRow: React.FC<SummaryRowProps> = ({ icon, label, value, color = '', sub }) => (
-  <div className="flex items-center gap-2 py-1.5">
-    <div className="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center shrink-0">
-      {icon}
+  <div className="group relative flex flex-col gap-1.5 p-2.5 rounded-lg bg-background border border-border/60 hover:border-primary/40 hover:shadow-sm transition-all">
+    <div className="flex items-center gap-1.5">
+      <div className="w-6 h-6 rounded-md bg-muted/70 flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <span className="text-[11px] font-medium text-muted-foreground truncate">{label}</span>
     </div>
-    <div className="flex-1 min-w-0">
-      <span className="text-xs font-medium">{label}</span>
-      {sub && <span className="text-[10px] text-muted-foreground ms-1">({sub})</span>}
+    <div className="flex items-baseline justify-between gap-1">
+      <span className={`text-sm font-bold ${color}`}>{value}</span>
+      {sub && <span className="text-[10px] text-muted-foreground">{sub}</span>}
     </div>
-    <span className={`text-xs font-bold shrink-0 ${color}`}>{value}</span>
   </div>
 );
 
