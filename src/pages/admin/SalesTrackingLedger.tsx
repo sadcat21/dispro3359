@@ -203,7 +203,7 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
         ) : <span className="text-muted-foreground">—</span>}
       </TableCell>
       <TableCell className="font-semibold">{fmtQty(r.total_boxes, r.total_pieces)}</TableCell>
-      <TableCell className="whitespace-nowrap">{Number(r.total_price || 0).toLocaleString()} دج</TableCell>
+      <TableCell className="whitespace-nowrap">{Number(r.total_price || 0).toLocaleString()} DA</TableCell>
       <TableCell className="text-xs">{r.worker_name || '—'}</TableCell>
       <TableCell className="text-xs">{r.customer_name || '—'}</TableCell>
       <TableCell className="text-xs">{r.branch_name || '—'}</TableCell>
