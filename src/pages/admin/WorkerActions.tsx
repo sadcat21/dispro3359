@@ -558,10 +558,11 @@ const WorkerActions: React.FC = () => {
       const paidQty = getPaidQuantity(item);
       stat.sold += paidQty;
       if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
-      const giftQty = getGiftTotalBoxes(item);
-      if (giftQty > 0) {
-        stat.giftQty += giftQty;
-        stat.giftUnit = (item as any).gift_unit || 'piece';
+      const giftBoxes = Number(item.gift_quantity || 0);
+      const giftPieces = Number(item.gift_pieces || 0);
+      const totalGift = giftBoxes + (giftPieces / 100);
+      if (giftBoxes > 0 || giftPieces > 0) {
+        stat.giftQty += totalGift;
       }
     }
 
