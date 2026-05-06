@@ -389,11 +389,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     }
 
     // Check if quantity exceeds available stock
-    const baseQuantity = quantity - getGiftTotalBoxes({
-      gift_quantity: giftInfo?.giftQuantity || 0,
-      gift_pieces: giftInfo?.giftPieces || 0,
-      pieces_per_box: product.pieces_per_box || 1,
-    });
+    const baseQuantity = quantity - (giftInfo?.giftQuantity || 0);
     if (baseQuantity > available) {
       const deliveredGiftPieces = 0;
       const deliveredGiftBoxes = 0;
