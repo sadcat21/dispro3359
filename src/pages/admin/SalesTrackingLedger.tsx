@@ -10,16 +10,16 @@ import { Package, Gift, TrendingUp, Truck, Store, Warehouse, Search } from 'luci
 import { format } from 'date-fns';
 
 const SOURCE_META: Record<string, { label: string; icon: any; className: string }> = {
-  direct_sale: { label: 'بيع مباشر', icon: Store, className: 'bg-primary/10 text-primary border-primary/30' },
-  delivery_sale: { label: 'توصيل', icon: Truck, className: 'bg-accent/10 text-accent-foreground border-accent/30' },
-  warehouse_sale: { label: 'مخزن', icon: Warehouse, className: 'bg-secondary text-secondary-foreground border-border' },
+  direct_sale: { label: 'Vente directe', icon: Store, className: 'bg-primary/10 text-primary border-primary/30' },
+  delivery_sale: { label: 'Livraison', icon: Truck, className: 'bg-accent/10 text-accent-foreground border-accent/30' },
+  warehouse_sale: { label: 'Dépôt', icon: Warehouse, className: 'bg-secondary text-secondary-foreground border-border' },
 };
 
 const fmtQty = (boxes: number, pieces: number) => {
   if (!boxes && !pieces) return '—';
-  if (!pieces) return `${boxes} ص`;
-  if (!boxes) return `${pieces} ق`;
-  return `${boxes} ص + ${pieces} ق`;
+  if (!pieces) return `${boxes} c`;
+  if (!boxes) return `${pieces} p`;
+  return `${boxes} c + ${pieces} p`;
 };
 
 export default function SalesTrackingLedger() {
