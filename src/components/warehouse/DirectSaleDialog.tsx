@@ -716,6 +716,34 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const { error: itemsErr } = await supabase.from('order_items').insert(orderItemsData);
       if (itemsErr) throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
 
+      // Sales tracking ledger
+      try {
+        const { recordSaleTracking } = await import('@/utils/salesTracking');
+        const isWarehouseSrc = stockSource === 'warehouse' || isWarehouseManager;
+        await recordSaleTracking({
+          source: isWarehouseSrc ? 'warehouse_sale' : 'direct_sale',
+          orderId: order.id,
+          branchId: activeBranch?.id || null,
+          branchName: activeBranch?.name || null,
+          workerId: workerId || null,
+          customerId: selectedCustomerId,
+          customerName: selectedCustomer?.name || null,
+          items: orderItems.map((item) => {
+            const prod = availableProducts.find((p) => p.id === item.productId);
+            return {
+              productId: item.productId,
+              productName: prod?.name || null,
+              quantity: item.quantity,
+              giftBoxes: Number(item.giftQuantity || 0),
+              giftPieces: Number(item.giftPieces || 0),
+              piecesPerBox: item.piecesPerBox ?? prod?.pieces_per_box ?? 20,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+            };
+          }),
+        });
+      } catch (e) { console.warn('sales_tracking failed', e); }
+
       // إذا كان الطلب يتطلب سلسلة موافقات، نتوقف هنا (لا خصم مخزون، لا وصل، لا SMS)
       if (requiresApprovalChain) {
         queryClient.invalidateQueries({ queryKey: ['orders'] });
