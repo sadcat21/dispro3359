@@ -119,11 +119,21 @@ export const useTreasurySummary = () => {
       // Get delivered orders with gift data
       let oQuery = supabase
         .from('orders')
-        .select('id, payment_type, invoice_payment_method, payment_status, total_amount, partial_amount, assigned_worker_id, delivery_date, created_at, document_verification, order_items(total_price, gift_quantity, gift_pieces, unit_price, pieces_per_box)')
+        .select('id, payment_type, invoice_payment_method, payment_status, total_amount, partial_amount, assigned_worker_id, delivery_date, created_at, document_verification, order_items(product_id, total_price, gift_quantity, gift_pieces, unit_price, pieces_per_box)')
         .eq('status', 'delivered');
       if (activeBranch?.id) oQuery = oQuery.eq('branch_id', activeBranch.id);
       const { data: orders, error: oErr } = await oQuery;
       if (oErr) throw oErr;
+
+      // Override gifts from authoritative sales_tracking ledger
+      {
+        const flat: any[] = [];
+        for (const o of (orders || []) as any[]) {
+          for (const it of o.order_items || []) flat.push(Object.assign(it, { order_id: o.id }));
+        }
+        const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+        await mergeGiftsFromSalesTracking(flat);
+      }
 
       // Get handovers
       let hQuery = supabase.from('manager_handovers').select('id, amount, cash_invoice1, cash_invoice2, checks_amount, check_count, receipts_amount, receipt_count, transfers_amount, transfer_count');

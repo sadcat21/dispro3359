@@ -101,12 +101,22 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
   if (deliveryOrderIds.length > 0) {
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
-      .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, customer:customers(name, store_name, phone, address, sector:sectors(name)), updated_at, notes, order_items(quantity, unit_price, total_price, gift_quantity, gift_offer_id, product_id, pieces_per_box, product:products(name, image_url, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
+      .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, customer:customers(name, store_name, phone, address, sector:sectors(name)), updated_at, notes, order_items(quantity, unit_price, total_price, gift_quantity, gift_pieces, gift_offer_id, product_id, pieces_per_box, product:products(name, image_url, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
       .in('id', deliveryOrderIds)
       .eq('assigned_worker_id', workerId)
       .eq('status', 'delivered');
     ensureNoError(ordersError, 'orders');
     orders = ordersData || [];
+
+    // Override gifts from authoritative sales_tracking ledger
+    {
+      const flat: any[] = [];
+      for (const o of orders as any[]) {
+        for (const it of o.order_items || []) flat.push(Object.assign(it, { order_id: o.id }));
+      }
+      const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+      await mergeGiftsFromSalesTracking(flat);
+    }
   }
 
   let debtsByOrderId: Record<string, { id?: string; total_amount: number; paid_amount: number; remaining_amount: number | null; status?: string | null }> = {};
