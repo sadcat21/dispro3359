@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdminRole } from '@/lib/utils';
 import { formatDate } from '@/utils/formatters';
-import { parseBP, boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
+import { parseBP, boxesToBP, boxesToBPAlways, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
 import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
