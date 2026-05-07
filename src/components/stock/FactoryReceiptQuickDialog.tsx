@@ -122,11 +122,20 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
   // Coupled "factory delivery" (تسليم للمصنع) — only when source = factory
   const [enableDelivery, setEnableDelivery] = useState(false);
-  const [deliveryItems, setDeliveryItems] = useState<{ product_id: string; quantity: number }[]>([]);
+  const [deliveryItems, setDeliveryItems] = useState<Array<{
+    product_id: string;
+    quantity: number;
+    lot_number?: string | null;
+    manufacturing_date?: string | null;
+    manufacturing_time?: string | null;
+    delivery_date?: string | null;
+  }>>([]);
   const [deliveryPalletCount, setDeliveryPalletCount] = useState(0);
-  const [deliveryPickerOpen, setDeliveryPickerOpen] = useState(false);
 
-  // Product picker state
+  // Wizard step: 1=info, 2=receipt products, 3=delivery products
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  // Product picker state (receipt)
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
   const [newQtyFields, setNewQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
@@ -137,6 +146,15 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const [manufacturingDate, setManufacturingDate] = useState('');
   const [manufacturingTime, setManufacturingTime] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
+
+  // Delivery picker state
+  const [showDeliveryPicker, setShowDeliveryPicker] = useState(false);
+  const [deliverySingleProductId, setDeliverySingleProductId] = useState<string | null>(null);
+  const [delivQtyFields, setDelivQtyFields] = useState<QuantityFields>({ boxes: '0', pieces: '' });
+  const [delivLotNumber, setDelivLotNumber] = useState('');
+  const [delivManufacturingDate, setDelivManufacturingDate] = useState('');
+  const [delivManufacturingTime, setDelivManufacturingTime] = useState('');
+  const [delivDeliveryDate, setDelivDeliveryDate] = useState('');
 
   // Multi-select
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
