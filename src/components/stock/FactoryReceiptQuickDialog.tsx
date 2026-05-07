@@ -95,6 +95,7 @@ const formatDbQuantity = (quantity: number, piecesPerBox: number): string => {
 
 const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editReceiptId, onSaved }) => {
   const { workerId, role, activeRole, activeBranch } = useAuth();
+  const { companyInfo } = useCompanyInfo();
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [notes, setNotes] = useState('');
