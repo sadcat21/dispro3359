@@ -1460,7 +1460,14 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           </DialogHeader>
 
           <div className="space-y-3 text-sm">
-            <div className="grid grid-cols-2 gap-2 p-3 rounded-lg bg-muted/40 border">
+            {/* ====== قسم الاستلام ====== */}
+            <div className="rounded-lg border-2 border-lime-300 bg-lime-50/40 overflow-hidden">
+              <div className="bg-lime-600 text-white px-3 py-2 flex items-center gap-2 font-bold text-sm">
+                <ArrowDownToLine className="w-4 h-4" />
+                الاستلام من {receiptSource === 'factory' ? 'المصنع' : 'فرع آخر'}
+              </div>
+              <div className="p-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2 p-3 rounded-lg bg-white border">
               <div><span className="text-muted-foreground">رقم الفاتورة:</span> <strong>{invoiceNumber || '—'}</strong></div>
               <div><span className="text-muted-foreground">المصدر:</span> <strong>{receiptSource === 'factory' ? 'المصنع' : 'فرع آخر'}</strong></div>
               {driverName && <div><span className="text-muted-foreground">السائق:</span> <strong>{driverName}</strong></div>}
@@ -1473,7 +1480,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                 <span>المنتجات ({items.length})</span>
                 <span>إجمالي: {items.reduce((s, i) => s + i.new_quantity + i.compensation_quantity + i.compensation_offers_quantity, 0).toFixed(2)}</span>
               </div>
-              <div className="divide-y">
+              <div className="divide-y bg-white">
                 {items.map((it, idx) => {
                   const p = getProduct(it.product_id);
                   const ppb = p?.pieces_per_box || 1;
@@ -1495,19 +1502,63 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div className="border rounded-lg p-2 text-center">
+              <div className="border rounded-lg p-2 text-center bg-white">
                 <div className="text-[10px] text-muted-foreground">عدد الباليطات</div>
                 <div className="text-lg font-bold">{palletCount || 0}</div>
               </div>
-              <div className="border rounded-lg p-2 text-center">
+              <div className="border rounded-lg p-2 text-center bg-white">
                 <div className="text-[10px] text-muted-foreground">إجمالي المصاريف</div>
                 <div className="text-lg font-bold">{totalExpenses.toLocaleString()} دج</div>
               </div>
             </div>
 
             {notes && (
-              <div className="text-xs p-2 rounded bg-muted/40 border">
+              <div className="text-xs p-2 rounded bg-white border">
                 <span className="text-muted-foreground">ملاحظات: </span>{notes}
+              </div>
+            )}
+              </div>
+            </div>
+
+            {/* ====== قسم التسليم للمصنع (إن وُجد) ====== */}
+            {enableDelivery && receiptSource === 'factory' && (deliveryItems.length > 0 || deliveryPalletCount > 0) && (
+              <div className="rounded-lg border-2 border-orange-300 bg-orange-50/40 overflow-hidden">
+                <div className="bg-orange-600 text-white px-3 py-2 flex items-center gap-2 font-bold text-sm">
+                  <Truck className="w-4 h-4" />
+                  التسليم للمصنع (مرتبط بالاستلام)
+                </div>
+                <div className="p-3 space-y-3">
+                  {deliveryItems.length > 0 && (
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="bg-orange-100 px-3 py-2 text-xs font-bold text-orange-800 flex items-center justify-between">
+                        <span>المنتجات التالفة المرجعة ({deliveryItems.length})</span>
+                      </div>
+                      <div className="divide-y bg-white">
+                        {deliveryItems.map((d, idx) => {
+                          const p = getProduct(d.product_id);
+                          const ppb = p?.pieces_per_box || 1;
+                          return (
+                            <div key={idx} className="px-3 py-2 flex items-center gap-2">
+                              {p?.image_url && <img src={p.image_url} alt="" className="w-9 h-9 rounded object-cover" />}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-semibold truncate">{p ? getProductDisplayName(p) : d.product_id}</div>
+                                <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                                  <span className="text-orange-700">الكمية: <strong>{boxesToBP(d.quantity, ppb)}</strong></span>
+                                  {d.lot_number && <span>LOT: <strong>{d.lot_number}</strong></span>}
+                                  {d.manufacturing_date && <span>تصنيع: <strong>{d.manufacturing_date}</strong></span>}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  <div className="border rounded-lg p-2 text-center bg-white">
+                    <div className="text-[10px] text-muted-foreground">باليطات مرجعة</div>
+                    <div className="text-lg font-bold">{deliveryPalletCount || 0}</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
