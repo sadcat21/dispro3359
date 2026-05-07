@@ -1,0 +1,2 @@
+ALTER TABLE public.factory_orders ADD COLUMN IF NOT EXISTS linked_receipt_id UUID REFERENCES public.stock_receipts(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_factory_orders_linked_receipt ON public.factory_orders(linked_receipt_id);
