@@ -120,6 +120,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const [driverPhone, setDriverPhone] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
 
+  // Coupled "factory delivery" (تسليم للمصنع) — only when source = factory
+  const [enableDelivery, setEnableDelivery] = useState(false);
+  const [deliveryItems, setDeliveryItems] = useState<{ product_id: string; quantity: number }[]>([]);
+  const [deliveryPalletCount, setDeliveryPalletCount] = useState(0);
+  const [deliveryPickerOpen, setDeliveryPickerOpen] = useState(false);
+
   // Product picker state
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
