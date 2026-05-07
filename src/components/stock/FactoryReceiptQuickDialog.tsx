@@ -967,9 +967,14 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                     <ChevronRight className="w-4 h-4 ml-1" /> السابق
                   </Button>
                   {((step === 2 && receiptSource !== 'factory') || step === 3) ? (
-                    <Button onClick={handleSave} disabled={isSaving} className="flex-1 bg-lime-600 hover:bg-lime-700">
+                    <Button onClick={() => {
+                      const validItems = items.filter(i => i.new_quantity > 0 || i.compensation_quantity > 0 || i.compensation_offers_quantity > 0);
+                      if (validItems.length === 0) { toast.error('أضف منتجات للاستلام'); return; }
+                      setShowReview(true);
+                    }} disabled={isSaving} className="flex-1 bg-lime-600 hover:bg-lime-700">
                       {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                      {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+                      <FileCheck2 className="w-4 h-4 ml-1" />
+                      مراجعة قبل الإرسال
                     </Button>
                   ) : (
                     <Button className="flex-1 bg-lime-600 hover:bg-lime-700" onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}>
