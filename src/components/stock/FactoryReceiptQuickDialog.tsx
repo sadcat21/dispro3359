@@ -1480,20 +1480,22 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                 <span>المنتجات ({items.length})</span>
                 <span>إجمالي: {items.reduce((s, i) => s + i.new_quantity + i.compensation_quantity + i.compensation_offers_quantity, 0).toFixed(2)}</span>
               </div>
-              <div className="divide-y bg-white">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-white">
                 {items.map((it, idx) => {
                   const p = getProduct(it.product_id);
                   const ppb = p?.pieces_per_box || 1;
                   return (
-                    <div key={idx} className="px-3 py-2 flex items-center gap-2">
-                      {p?.image_url && <img src={p.image_url} alt="" className="w-9 h-9 rounded object-cover" />}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-semibold truncate">{p ? getProductDisplayName(p) : it.product_id}</div>
-                        <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
-                          {it.new_quantity > 0 && <span>جديد: <strong>{boxesToBP(it.new_quantity, ppb)}</strong></span>}
-                          {it.compensation_quantity > 0 && <span className="text-orange-600">تعويض تلف: <strong>{boxesToBP(it.compensation_quantity, ppb)}</strong></span>}
-                          {it.compensation_offers_quantity > 0 && <span className="text-blue-600">عروض: <strong>{boxesToBP(it.compensation_offers_quantity, ppb)}</strong></span>}
-                        </div>
+                    <div key={idx} className="relative border rounded-lg p-1.5 flex flex-col items-center text-center bg-white">
+                      {p?.image_url ? (
+                        <img src={p.image_url} alt="" className="w-14 h-14 rounded object-cover mb-1" />
+                      ) : (
+                        <div className="w-14 h-14 rounded bg-muted flex items-center justify-center mb-1"><Package className="w-6 h-6 text-muted-foreground" /></div>
+                      )}
+                      <div className="text-[10px] font-semibold leading-tight line-clamp-2 min-h-[24px]">{p ? getProductDisplayName(p) : '—'}</div>
+                      <div className="mt-1 flex flex-col gap-0.5 w-full">
+                        {it.new_quantity > 0 && <span className="text-[10px] bg-lime-100 text-lime-800 rounded px-1 font-bold">+{boxesToBP(it.new_quantity, ppb)}</span>}
+                        {it.compensation_quantity > 0 && <span className="text-[10px] bg-orange-100 text-orange-800 rounded px-1 font-bold">تلف {boxesToBP(it.compensation_quantity, ppb)}</span>}
+                        {it.compensation_offers_quantity > 0 && <span className="text-[10px] bg-blue-100 text-blue-800 rounded px-1 font-bold">عروض {boxesToBP(it.compensation_offers_quantity, ppb)}</span>}
                       </div>
                     </div>
                   );
@@ -1533,20 +1535,21 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                       <div className="bg-orange-100 px-3 py-2 text-xs font-bold text-orange-800 flex items-center justify-between">
                         <span>المنتجات التالفة المرجعة ({deliveryItems.length})</span>
                       </div>
-                      <div className="divide-y bg-white">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-white">
                         {deliveryItems.map((d, idx) => {
                           const p = getProduct(d.product_id);
                           const ppb = p?.pieces_per_box || 1;
                           return (
-                            <div key={idx} className="px-3 py-2 flex items-center gap-2">
-                              {p?.image_url && <img src={p.image_url} alt="" className="w-9 h-9 rounded object-cover" />}
-                              <div className="flex-1 min-w-0">
-                                <div className="text-xs font-semibold truncate">{p ? getProductDisplayName(p) : d.product_id}</div>
-                                <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
-                                  <span className="text-orange-700">الكمية: <strong>{boxesToBP(d.quantity, ppb)}</strong></span>
-                                  {d.lot_number && <span>LOT: <strong>{d.lot_number}</strong></span>}
-                                  {d.manufacturing_date && <span>تصنيع: <strong>{d.manufacturing_date}</strong></span>}
-                                </div>
+                            <div key={idx} className="relative border rounded-lg p-1.5 flex flex-col items-center text-center bg-white">
+                              {p?.image_url ? (
+                                <img src={p.image_url} alt="" className="w-14 h-14 rounded object-cover mb-1" />
+                              ) : (
+                                <div className="w-14 h-14 rounded bg-muted flex items-center justify-center mb-1"><Package className="w-6 h-6 text-muted-foreground" /></div>
+                              )}
+                              <div className="text-[10px] font-semibold leading-tight line-clamp-2 min-h-[24px]">{p ? getProductDisplayName(p) : '—'}</div>
+                              <div className="mt-1 flex flex-col gap-0.5 w-full">
+                                <span className="text-[10px] bg-orange-100 text-orange-800 rounded px-1 font-bold">{boxesToBP(d.quantity, ppb)}</span>
+                                {d.lot_number && <span className="text-[9px] text-muted-foreground truncate">LOT {d.lot_number}</span>}
                               </div>
                             </div>
                           );
