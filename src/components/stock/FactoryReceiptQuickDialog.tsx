@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft, Printer, FileCheck2, Send } from 'lucide-react';
+import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft, Printer, FileCheck2, Send, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -710,6 +710,136 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const filteredProducts = products;
   const alreadyAddedMap = new Map(items.map(i => [i.product_id, i]));
   const alreadyAddedIds = new Set(items.map(i => i.product_id));
+
+  const printDetailedReport = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const dateStr = new Date().toLocaleString('fr');
+    const newItems = items.filter(i => i.new_quantity > 0);
+    const compItems = items.filter(i => i.compensation_quantity > 0);
+    const offersItems = items.filter(i => i.compensation_offers_quantity > 0);
+
+    const buildTable = (
+      title: string,
+      color: string,
+      rows: ReceiptItem[],
+      qtyFn: (it: ReceiptItem) => number,
+      extra: boolean = false,
+    ) => {
+      if (rows.length === 0) return '';
+      const total = rows.reduce((s, i) => s + qtyFn(i), 0);
+      return `
+        <div class="section">
+          <div class="section-title" style="background:${color}">${title} <span style="float:left;font-weight:normal">إجمالي: ${total.toFixed(2)}</span></div>
+          <table>
+            <thead><tr>
+              <th>#</th><th>المنتج</th><th>الكمية (B.P)</th>
+              ${extra ? '<th>LOT</th><th>تاريخ التصنيع</th>' : ''}
+            </tr></thead>
+            <tbody>
+              ${rows.map((it, i) => {
+                const p = getProduct(it.product_id);
+                const ppb = p?.pieces_per_box || 1;
+                return `<tr>
+                  <td>${i + 1}</td>
+                  <td>${p ? getProductDisplayName(p) : '—'}</td>
+                  <td style="text-align:center;font-weight:bold">${boxesToBPAlways(qtyFn(it), ppb)}</td>
+                  ${extra ? `<td>${it.lot_number || '-'}</td><td>${it.manufacturing_date || '-'}</td>` : ''}
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    };
+
+    const deliverySection = (enableDelivery && receiptSource === 'factory' && deliveryItems.length > 0) ? `
+      <div class="big-section" style="border-color:#ea580c">
+        <div class="big-title" style="background:#ea580c">🚚 التسليم للمصنع (مرتبط بالاستلام)</div>
+        <table>
+          <thead><tr><th>#</th><th>المنتج</th><th>الكمية</th><th>LOT</th><th>تاريخ التصنيع</th><th>وقت التصنيع</th></tr></thead>
+          <tbody>
+            ${deliveryItems.map((d, i) => {
+              const p = getProduct(d.product_id);
+              const ppb = p?.pieces_per_box || 1;
+              return `<tr>
+                <td>${i + 1}</td>
+                <td>${p ? getProductDisplayName(p) : '—'}</td>
+                <td style="text-align:center;font-weight:bold">${boxesToBPAlways(d.quantity, ppb)}</td>
+                <td>${d.lot_number || '-'}</td>
+                <td>${d.manufacturing_date || '-'}</td>
+                <td>${d.manufacturing_time || '-'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="meta">باليطات مرجعة: <strong>${deliveryPalletCount || 0}</strong></div>
+      </div>` : '';
+
+    const expensesSection = (expenseLines.length > 0 && totalExpenses > 0) ? `
+      <div class="section">
+        <div class="section-title" style="background:#475569">💰 المصاريف</div>
+        <table>
+          <thead><tr><th>#</th><th>الوصف</th><th>المبلغ (دج)</th></tr></thead>
+          <tbody>
+            ${expenseLines.filter(l => l.description || l.amount).map((l, i) => `
+              <tr><td>${i + 1}</td><td>${l.description || '-'}</td><td style="text-align:center">${Number(l.amount || 0).toLocaleString()}</td></tr>
+            `).join('')}
+            <tr><td colspan="2" style="text-align:left;font-weight:bold">الإجمالي</td><td style="text-align:center;font-weight:bold">${totalExpenses.toLocaleString()} دج</td></tr>
+          </tbody>
+        </table>
+      </div>` : '';
+
+    w.document.write(`<html dir="rtl"><head><title>تقرير مفصل - وصل الاستلام</title><style>
+      * { box-sizing: border-box; }
+      body { font-family: 'Tahoma', Arial, sans-serif; padding: 20px; color: #000; background: #fff; }
+      h1 { text-align:center; font-size:22px; margin:0 0 4px; color:#1e293b; }
+      .subtitle { text-align:center; color:#64748b; font-size:12px; margin-bottom:16px; }
+      .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:16px; background:#f8fafc; font-size:13px; }
+      .info-grid div { padding:4px 0; }
+      .info-grid strong { color:#1e293b; }
+      .big-section { border:2px solid #65a30d; border-radius:8px; overflow:hidden; margin-bottom:16px; }
+      .big-title { background:#65a30d; color:#fff; padding:8px 12px; font-weight:bold; font-size:14px; }
+      .section { border:1px solid #e2e8f0; border-radius:6px; overflow:hidden; margin:8px; }
+      .section-title { color:#fff; padding:6px 10px; font-weight:bold; font-size:12px; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      th, td { border:1px solid #cbd5e1; padding:6px 8px; text-align:right; }
+      th { background:#f1f5f9; font-weight:bold; }
+      .meta { padding:8px 12px; background:#fff7ed; font-size:12px; }
+      .signatures { display:flex; justify-content:space-between; margin-top:30px; }
+      .signatures div { width:40%; text-align:center; border-top:1px solid #000; padding-top:6px; font-size:12px; }
+      @media print { body { padding:10px; } }
+    </style></head><body>
+      <h1>تقرير مفصل — وصل الاستلام</h1>
+      <div class="subtitle">${dateStr}</div>
+      <div class="info-grid">
+        <div>رقم الفاتورة: <strong>${invoiceNumber || '—'}</strong></div>
+        <div>المصدر: <strong>${receiptSource === 'factory' ? 'المصنع' : 'فرع آخر'}</strong></div>
+        <div>السائق: <strong>${driverName || '—'}</strong></div>
+        <div>الهاتف: <strong>${driverPhone || '—'}</strong></div>
+        <div>رقم اللوحة: <strong>${licensePlate || '—'}</strong></div>
+        <div>عدد الباليطات: <strong>${palletCount || 0}</strong></div>
+      </div>
+
+      <div class="big-section">
+        <div class="big-title">📥 الاستلام من ${receiptSource === 'factory' ? 'المصنع' : 'فرع آخر'}</div>
+        ${buildTable('🆕 كمية جديدة', '#65a30d', newItems, (i) => i.new_quantity)}
+        ${buildTable('🛠️ تعويض تلف', '#ea580c', compItems, (i) => i.compensation_quantity, true)}
+        ${buildTable('🎁 تعويض عروض', '#2563eb', offersItems, (i) => i.compensation_offers_quantity, true)}
+      </div>
+
+      ${deliverySection}
+      ${expensesSection}
+
+      ${notes ? `<div style="padding:10px;border:1px dashed #94a3b8;border-radius:6px;margin-top:12px;font-size:12px"><strong>ملاحظات:</strong> ${notes}</div>` : ''}
+
+      <div class="signatures">
+        <div>توقيع المُستلم</div>
+        <div>توقيع المُسلِّم</div>
+      </div>
+    </body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 300);
+  };
 
   return (
     <>
@@ -1580,6 +1710,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           <DialogFooter className="flex-row gap-2 sm:flex-row">
             <Button variant="outline" className="flex-1" onClick={() => setShowPrintPreview(true)}>
               <Printer className="w-4 h-4 ml-1" /> طباعة
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 border-purple-400 text-purple-700 hover:bg-purple-50"
+              onClick={() => printDetailedReport()}>
+              <FileText className="w-4 h-4 ml-1" /> طباعة التفاصيل
             </Button>
             <Button variant="ghost" onClick={() => setShowReview(false)}>
               <X className="w-4 h-4 ml-1" /> رجوع
