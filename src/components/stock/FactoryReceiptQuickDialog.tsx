@@ -1581,7 +1581,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* نافذة المراجعة قبل الإرسال للموافقة */}
       <Dialog open={showReview} onOpenChange={setShowReview}>
-        <DialogContent className="max-w-lg w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6" dir="rtl">
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCheck2 className="w-5 h-5 text-lime-600" />
@@ -1707,21 +1707,23 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
             )}
           </div>
 
-          <DialogFooter className="flex-row gap-2 sm:flex-row">
-            <Button variant="outline" className="flex-1" onClick={() => setShowPrintPreview(true)}>
+          <DialogFooter className="flex flex-wrap gap-2 sm:flex-wrap sm:justify-end">
+            <Button variant="outline" size="sm" className="flex-1 min-w-[110px]" onClick={() => setShowPrintPreview(true)}>
               <Printer className="w-4 h-4 ml-1" /> طباعة
             </Button>
             <Button
               variant="outline"
-              className="flex-1 border-purple-400 text-purple-700 hover:bg-purple-50"
+              size="sm"
+              className="flex-1 min-w-[130px] border-purple-400 text-purple-700 hover:bg-purple-50"
               onClick={() => printDetailedReport()}>
               <FileText className="w-4 h-4 ml-1" /> طباعة التفاصيل
             </Button>
-            <Button variant="ghost" onClick={() => setShowReview(false)}>
+            <Button variant="ghost" size="sm" className="min-w-[90px]" onClick={() => setShowReview(false)}>
               <X className="w-4 h-4 ml-1" /> رجوع
             </Button>
             <Button
-              className="flex-1 bg-lime-600 hover:bg-lime-700"
+              size="sm"
+              className="flex-1 min-w-[150px] bg-lime-600 hover:bg-lime-700"
               disabled={isSaving}
               onClick={async () => { await handleSave(); setShowReview(false); }}>
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
