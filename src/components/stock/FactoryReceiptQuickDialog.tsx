@@ -1707,23 +1707,23 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
             )}
           </div>
 
-          <DialogFooter className="flex flex-wrap gap-2 sm:flex-wrap sm:justify-end">
-            <Button variant="outline" size="sm" className="flex-1 min-w-[110px]" onClick={() => setShowPrintPreview(true)}>
+          <DialogFooter className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-2">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm" onClick={() => setShowPrintPreview(true)}>
               <Printer className="w-4 h-4 ml-1" /> طباعة
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 min-w-[130px] border-purple-400 text-purple-700 hover:bg-purple-50"
+              className="w-full sm:w-auto text-xs sm:text-sm border-purple-400 text-purple-700 hover:bg-purple-50"
               onClick={() => printDetailedReport()}>
               <FileText className="w-4 h-4 ml-1" /> طباعة التفاصيل
             </Button>
-            <Button variant="ghost" size="sm" className="min-w-[90px]" onClick={() => setShowReview(false)}>
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs sm:text-sm" onClick={() => setShowReview(false)}>
               <X className="w-4 h-4 ml-1" /> رجوع
             </Button>
             <Button
               size="sm"
-              className="flex-1 min-w-[150px] bg-lime-600 hover:bg-lime-700"
+              className="w-full sm:w-auto text-xs sm:text-sm bg-lime-600 hover:bg-lime-700"
               disabled={isSaving}
               onClick={async () => { await handleSave(); setShowReview(false); }}>
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
