@@ -15,6 +15,8 @@ import { parseBP, boxesToBP, boxesToBPAlways, dbBPDisplay, dbBPToBoxes } from '@
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
 import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { buildPrintHeaderHTML } from '@/utils/printHeader';
 
 interface ReceiptItem {
   product_id: string;
@@ -93,6 +95,7 @@ const formatDbQuantity = (quantity: number, piecesPerBox: number): string => {
 
 const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editReceiptId, onSaved }) => {
   const { workerId, role, activeRole, activeBranch } = useAuth();
+  const { companyInfo } = useCompanyInfo();
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [notes, setNotes] = useState('');
@@ -809,6 +812,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       .signatures div { width:40%; text-align:center; border-top:1px solid #000; padding-top:6px; font-size:12px; }
       @media print { body { padding:10px; } }
     </style></head><body>
+      ${buildPrintHeaderHTML(companyInfo, { dir: 'rtl' })}
       <h1>تقرير مفصل — وصل الاستلام</h1>
       <div class="subtitle">${dateStr}</div>
       <div class="info-grid">

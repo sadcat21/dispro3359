@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react';
 import { ALGERIAN_WILAYAS } from '@/data/algerianWilayas';
 import { StampPriceTier } from '@/types/stamp';
 import { calculateStampAmount } from '@/hooks/useStampTiers';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { PrintHeader } from '@/utils/printHeader';
 
 interface HandoverItem {
   order_id: string;
@@ -61,6 +63,7 @@ const HandoverPrintView: React.FC<Props> = ({
 }) => {
   const [items, setItems] = useState<HandoverItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { companyInfo } = useCompanyInfo();
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -313,6 +316,7 @@ const HandoverPrintView: React.FC<Props> = ({
 
   return (
     <div className="print-handover bg-white p-8 font-sans text-black" style={{ direction: 'ltr', fontSize: '12px', textAlign: 'left', unicodeBidi: 'plaintext' }}>
+      <PrintHeader companyInfo={companyInfo} dir="ltr" />
       <p className="mb-2" data-pdf-section style={{ textAlign: 'left' }}>
         <strong>Date d'envoi:</strong> {dateStr}{wilayaFr ? `  -  Depot ${wilayaFr}` : ''}
       </p>
