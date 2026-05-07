@@ -138,6 +138,34 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
 
+  // Track virtual keyboard height to keep dialog content visible above it
+  const [viewportHeight, setViewportHeight] = useState<number>(
+    typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 0
+  );
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => setViewportHeight(vv.height);
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    update();
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+  // Top offset of the single-qty dialog (matches top-6 / sm:top-8 classes)
+  const dialogTopOffset = typeof window !== 'undefined' && window.innerWidth >= 640 ? 32 : 24;
+  const singleQtyMaxHeight = Math.max(240, viewportHeight - dialogTopOffset - 8);
+
+  // Auto-scroll focused input into view when keyboard opens
+  const handleInputFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }, []);
+
   const handleOpenChange = (v: boolean) => {
     if (!v) {
       resetPickerState();
