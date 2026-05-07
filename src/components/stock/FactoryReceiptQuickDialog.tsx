@@ -1287,6 +1287,157 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delivery Product Picker Grid */}
+      <Dialog open={showDeliveryPicker} onOpenChange={(v) => { if (!v) setShowDeliveryPicker(false); }}>
+        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0" dir="rtl">
+          <DialogHeader className="px-3 pt-3 pb-1 shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <Truck className="w-5 h-5 text-orange-600" />
+              منتجات التسليم للمصنع (تالف)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
+            <div className="grid grid-cols-4 gap-1.5">
+              {products.map(p => {
+                const added = deliveryItems.find(d => d.product_id === p.id);
+                const ppb = p.pieces_per_box || 1;
+                return (
+                  <button
+                    key={p.id}
+                    className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow-sm border cursor-pointer active:scale-95 ${added ? 'border-orange-500 ring-2 ring-orange-500/40' : 'border-border/50'}`}
+                    onClick={() => {
+                      setShowDeliveryPicker(false);
+                      setDeliverySingleProductId(p.id);
+                      setDelivQtyFields(added ? quantityToFields(added.quantity, ppb) : { boxes: '1', pieces: '' });
+                      setDelivLotNumber(added?.lot_number || '');
+                      setDelivManufacturingDate(added?.manufacturing_date || '');
+                      setDelivManufacturingTime(added?.manufacturing_time || '');
+                      setDelivDeliveryDate(added?.delivery_date || '');
+                    }}
+                  >
+                    {added && (
+                      <div className="absolute top-1 start-1 z-10 w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    {added && (
+                      <div className="absolute bottom-0 inset-x-0 z-10 flex justify-center pb-0.5">
+                        <span className="bg-orange-600 text-white text-[8px] font-bold px-1 py-0.5 rounded-sm">تالف {boxesToBP(added.quantity, ppb)}</span>
+                      </div>
+                    )}
+                    <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full ${added ? 'bg-orange-500/10 text-orange-700' : 'bg-muted/30'}`}>
+                      {getProductDisplayName(p)}
+                    </div>
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={getProductDisplayName(p)} className="w-full aspect-square object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full aspect-square flex items-center justify-center bg-muted/20"><Package className="w-6 h-6 text-muted-foreground/30" /></div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delivery single product detail dialog */}
+      <Dialog open={!!deliverySingleProductId} onOpenChange={(v) => { if (!v) setDeliverySingleProductId(null); }}>
+        <DialogContent className="max-w-sm top-[5dvh] translate-y-0" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Truck className="w-4 h-4 text-orange-600" />
+              تفاصيل المنتج التالف
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const dp = products.find(p => p.id === deliverySingleProductId);
+            if (!dp) return null;
+            const ppb = dp.pieces_per_box || 1;
+            const qty = fieldsToQuantity(delivQtyFields, ppb);
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
+                  {dp.image_url ? (
+                    <img src={dp.image_url} alt={dp.name} className="w-14 h-14 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0"><Package className="w-6 h-6 text-muted-foreground/40" /></div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-extrabold text-base text-primary truncate">{getProductDisplayName(dp)}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">الصندوق = {ppb} قطعة</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1 border rounded-lg p-2.5 bg-orange-50/60 dark:bg-orange-950/20">
+                  <Label className="text-center block text-xs font-semibold text-orange-700">كمية التالف (صندوق.قطع)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-orange-700">الصندوق</Label>
+                      <Input type="text" inputMode="numeric" value={delivQtyFields.boxes}
+                        onChange={e => setDelivQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
+                        onBlur={() => setDelivQtyFields(prev => normalizeFields(prev, ppb))}
+                        className="h-11 text-center text-lg font-bold" placeholder="00000" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-orange-700">القطع</Label>
+                      <Input type="text" inputMode="numeric" value={delivQtyFields.pieces}
+                        onChange={e => setDelivQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
+                        onBlur={() => setDelivQtyFields(prev => normalizeFields(prev, ppb))}
+                        className="h-11 text-center text-lg font-bold" placeholder="000" />
+                    </div>
+                  </div>
+                  <div className="text-center text-[11px] text-muted-foreground">سيُحفظ: {boxesToBP(qty, ppb)}</div>
+                </div>
+
+                <div className="space-y-2 border rounded-lg p-2.5 bg-purple-50/60 dark:bg-purple-950/20">
+                  <Label className="text-center block text-xs font-semibold text-purple-700">📋 تفاصيل التسليم للمصنع</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">N° de LOT</Label>
+                      <Input value={delivLotNumber} onChange={e => setDelivLotNumber(e.target.value)} className="h-8 text-xs" placeholder="LOT 18" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Heure de fabrication</Label>
+                      <Input value={delivManufacturingTime} onChange={e => setDelivManufacturingTime(e.target.value)} className="h-8 text-xs" placeholder="12H33" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Date de fabrication</Label>
+                      <Input type="date" value={delivManufacturingDate} onChange={e => setDelivManufacturingDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-purple-700">Date de livraison</Label>
+                      <Input type="date" value={delivDeliveryDate} onChange={e => setDelivDeliveryDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => {
+                  if (qty <= 0) { toast.error('أدخل كمية صحيحة'); return; }
+                  const payload = {
+                    product_id: deliverySingleProductId!,
+                    quantity: qty,
+                    lot_number: delivLotNumber || null,
+                    manufacturing_date: delivManufacturingDate || null,
+                    manufacturing_time: delivManufacturingTime || null,
+                    delivery_date: delivDeliveryDate || null,
+                  };
+                  setDeliveryItems(prev => {
+                    const idx = prev.findIndex(d => d.product_id === deliverySingleProductId);
+                    if (idx >= 0) return prev.map((d, i) => i === idx ? payload : d);
+                    return [...prev, payload];
+                  });
+                  setDeliverySingleProductId(null);
+                }}>
+                  <Plus className="w-4 h-4 ml-1" /> حفظ المنتج التالف
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setDeliverySingleProductId(null)}>إلغاء</Button>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
