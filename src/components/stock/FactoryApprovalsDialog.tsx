@@ -21,6 +21,8 @@ import { boxesToBP, dbBPDisplay, dbBPToBoxes, parseBP } from '@/utils/boxPieceIn
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import WorkflowStatusBadge from '@/components/stock/WorkflowStatusBadge';
 import { useApproveFactoryOrder, useRejectFactoryOrder } from '@/hooks/useFactoryOrderWorkflow';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { buildPrintHeaderHTML } from '@/utils/printHeader';
 
 interface Props {
   open: boolean;
@@ -94,6 +96,7 @@ const fmt = (qty: number, ppb: number): string => ppb > 1 ? dbBPDisplay(qty, ppb
 
 const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'branch_manager' }) => {
   const { workerId, activeBranch } = useAuth();
+  const { companyInfo } = useCompanyInfo();
   const isAssistant = mode === 'assistant';
   const approveFactoryOrder = useApproveFactoryOrder();
   const rejectFactoryOrder = useRejectFactoryOrder();
