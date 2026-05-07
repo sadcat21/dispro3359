@@ -134,7 +134,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
 
       for (const item of itemsToReturn) {
         // تسجيل عنصر الجلسة
-        await supabase.from('loading_session_items').insert({
+        const { error: itemErr } = await supabase.from('loading_session_items').insert({
           session_id: unloadSession.id,
           product_id: item.product_id,
           quantity: item.returnQty,
@@ -143,31 +143,39 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
           previous_quantity: item.currentQty,
           notes: `تفريغ ${item.returnQty} من ${item.currentQty} - متبقي: ${item.currentQty - item.returnQty}`,
         });
+        if (itemErr) throw new Error(`فشل تسجيل عنصر الجلسة: ${itemErr.message}`);
 
         // خصم من رصيد العامل
         const newWorkerQty = Math.max(0, item.currentQty - item.returnQty);
-        await supabase
+        const { data: updatedRows, error: wsErr } = await supabase
           .from('worker_stock')
           .update({ quantity: newWorkerQty })
-          .eq('id', item.id);
+          .eq('id', item.id)
+          .select('id');
+        if (wsErr) throw new Error(`فشل خصم رصيد العامل: ${wsErr.message}`);
+        if (!updatedRows || updatedRows.length === 0) {
+          throw new Error(`لم يتم خصم رصيد العامل للمنتج "${item.product_name}" — تحقق من صلاحيات RLS على worker_stock`);
+        }
 
         // إضافة للمستودع
         const existingWh = warehouseStock?.find(s => s.product_id === item.product_id);
         if (existingWh) {
-          await supabase
+          const { error: whUpdErr } = await supabase
             .from('warehouse_stock')
             .update({ quantity: existingWh.quantity + item.returnQty })
             .eq('id', existingWh.id);
+          if (whUpdErr) throw new Error(`فشل تحديث مخزون المستودع: ${whUpdErr.message}`);
         } else {
-          await supabase.from('warehouse_stock').insert({
+          const { error: whInsErr } = await supabase.from('warehouse_stock').insert({
             branch_id: branchId,
             product_id: item.product_id,
             quantity: item.returnQty,
           });
+          if (whInsErr) throw new Error(`فشل إضافة مخزون المستودع: ${whInsErr.message}`);
         }
 
         // تسجيل الحركة
-        await supabase.from('stock_movements').insert({
+        const { error: mvErr } = await supabase.from('stock_movements').insert({
           product_id: item.product_id,
           branch_id: branchId,
           quantity: item.returnQty,
@@ -177,6 +185,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
           worker_id: workerId,
           notes: `تفريغ ${item.returnQty} من ${item.product_name} (كان ${item.currentQty}، متبقي ${newWorkerQty})`,
         });
+        if (mvErr) throw new Error(`فشل تسجيل الحركة: ${mvErr.message}`);
       }
 
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
