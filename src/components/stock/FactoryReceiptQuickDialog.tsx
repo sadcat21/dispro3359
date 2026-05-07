@@ -1504,7 +1504,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                               <div className="w-14 h-14 rounded bg-muted flex items-center justify-center mb-1"><Package className="w-6 h-6 text-muted-foreground" /></div>
                             )}
                             <div className="text-[10px] font-semibold leading-tight line-clamp-2 min-h-[24px]">{p ? getProductDisplayName(p) : '—'}</div>
-                            <span className={`mt-1 w-full text-[11px] ${s.badge} rounded px-1 py-0.5 font-bold`}>{boxesToBP(s.qty(it), ppb)}</span>
+                            <span className={`mt-1 w-full text-[11px] ${s.badge} rounded px-1 py-0.5 font-bold`}>{boxesToBPAlways(s.qty(it), ppb)}</span>
                           </div>
                         );
                       })}
@@ -1559,7 +1559,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                               )}
                               <div className="text-[10px] font-semibold leading-tight line-clamp-2 min-h-[24px]">{p ? getProductDisplayName(p) : '—'}</div>
                               <div className="mt-1 flex flex-col gap-0.5 w-full">
-                                <span className="text-[10px] bg-orange-100 text-orange-800 rounded px-1 font-bold">{boxesToBP(d.quantity, ppb)}</span>
+                                <span className="text-[10px] bg-orange-100 text-orange-800 rounded px-1 font-bold">{boxesToBPAlways(d.quantity, ppb)}</span>
                                 {d.lot_number && <span className="text-[9px] text-muted-foreground truncate">LOT {d.lot_number}</span>}
                               </div>
                             </div>
