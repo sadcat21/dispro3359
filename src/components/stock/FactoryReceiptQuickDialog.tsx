@@ -15,6 +15,8 @@ import { parseBP, boxesToBP, boxesToBPAlways, dbBPDisplay, dbBPToBoxes } from '@
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
 import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { buildPrintHeaderHTML } from '@/utils/printHeader';
 
 interface ReceiptItem {
   product_id: string;
