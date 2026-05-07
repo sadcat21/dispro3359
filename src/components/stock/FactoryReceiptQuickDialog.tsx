@@ -862,6 +862,78 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                 )}
               </div>
 
+              {/* Coupled Factory Delivery */}
+              {receiptSource === 'factory' && !editReceiptId && (
+                <div className="border rounded-lg p-2.5 bg-orange-50/40 dark:bg-orange-950/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-orange-600" />
+                      تسليم مرتبط للمصنع (تالف/إرجاع)
+                    </Label>
+                    <Switch checked={enableDelivery} onCheckedChange={setEnableDelivery} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    يستخدم نفس بيانات السائق/الشاحنة. لا حاجة لإدخالها مرتين.
+                  </p>
+
+                  {enableDelivery && (
+                    <div className="space-y-2 pt-1">
+                      <div>
+                        <Label className="text-[11px]">🪵 باليطات للتسليم</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={deliveryPalletCount}
+                          onChange={e => setDeliveryPalletCount(parseInt(e.target.value) || 0)}
+                          className="h-8 text-sm text-center"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[11px] font-semibold">المنتجات التالفة ({deliveryItems.length})</Label>
+                          <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+                            onClick={() => setDeliveryItems(prev => [...prev, { product_id: '', quantity: 0 }])}>
+                            <Plus className="w-3 h-3 ml-1" /> إضافة
+                          </Button>
+                        </div>
+                        {deliveryItems.length === 0 ? (
+                          <p className="text-[10px] text-muted-foreground text-center py-1">لا منتجات للتسليم</p>
+                        ) : (
+                          deliveryItems.map((d, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5">
+                              <select
+                                value={d.product_id}
+                                onChange={e => setDeliveryItems(prev => prev.map((it, i) => i === idx ? { ...it, product_id: e.target.value } : it))}
+                                className="h-8 text-xs flex-1 rounded border bg-background px-2"
+                              >
+                                <option value="">اختر منتج</option>
+                                {products.map(p => (
+                                  <option key={p.id} value={p.id}>{getProductDisplayName(p as any)}</option>
+                                ))}
+                              </select>
+                              <Input
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={d.quantity || ''}
+                                onChange={e => setDeliveryItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it))}
+                                className="h-8 text-xs w-20 text-center"
+                                placeholder="الكمية"
+                              />
+                              <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                                onClick={() => setDeliveryItems(prev => prev.filter((_, i) => i !== idx))}>
+                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Notes */}
               <div>
                 <Label className="text-xs">ملاحظات</Label>
