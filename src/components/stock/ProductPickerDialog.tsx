@@ -138,6 +138,34 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
 
+  // Track virtual keyboard height to keep dialog content visible above it
+  const [viewportHeight, setViewportHeight] = useState<number>(
+    typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 0
+  );
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => setViewportHeight(vv.height);
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    update();
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+  // Top offset of the single-qty dialog (matches top-6 / sm:top-8 classes)
+  const dialogTopOffset = typeof window !== 'undefined' && window.innerWidth >= 640 ? 32 : 24;
+  const singleQtyMaxHeight = Math.max(240, viewportHeight - dialogTopOffset - 8);
+
+  // Auto-scroll focused input into view when keyboard opens
+  const handleInputFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }, []);
+
   const handleOpenChange = (v: boolean) => {
     if (!v) {
       resetPickerState();
@@ -611,7 +639,11 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
           }
         }}
       >
-        <DialogContent className="top-6 sm:top-8 translate-y-0 max-w-sm w-[95vw] max-h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-4rem)] p-0 gap-0 flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent
+          className="top-6 sm:top-8 translate-y-0 max-w-sm w-[95vw] p-0 gap-0 flex flex-col overflow-hidden"
+          style={{ maxHeight: `${singleQtyMaxHeight}px` }}
+          dir="rtl"
+        >
           <DialogHeader className="px-3 pt-3 pb-2 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Package className="w-4 h-4 text-primary" />
@@ -668,6 +700,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       <Input
                         type="text" inputMode="numeric"
                         value={singleQtyFields.boxes}
+                        onFocus={handleInputFocus}
                         onChange={e => setSingleQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
                         onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
                         className={`h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] ${promoMissing ? 'border-destructive text-destructive' : ''}`}
@@ -679,6 +712,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       <Input
                         type="text" inputMode="numeric"
                         value={singleQtyFields.pieces}
+                        onFocus={handleInputFocus}
                         onChange={e => setSingleQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
                         onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
                         className={`h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] ${promoMissing ? 'border-destructive text-destructive' : ''}`}
