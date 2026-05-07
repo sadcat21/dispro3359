@@ -626,13 +626,7 @@ const WorkerHome: React.FC = () => {
               <ArrowDownToLine className="w-6 h-6 text-emerald-600" />
               <span className="font-semibold">{t('worker_home.factory_receipt')}</span>
             </button>
-            <button
-              onClick={() => { setShowStockManagement(false); setShowFactoryDelivery(true); }}
-              className="w-full flex items-center gap-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors"
-            >
-              <Truck className="w-6 h-6 text-orange-600" />
-              <span className="font-semibold">{t('worker_home.factory_delivery')}</span>
-            </button>
+            {/* تم دمج "تسليم للمصنع" داخل نافذة الاستلام عبر سويتش — لا حاجة لزر مستقل */}
             {/* Stock Review - scheduled Sun, Tue, Thu but always accessible */}
             {(() => {
               const today = new Date().getDay();
