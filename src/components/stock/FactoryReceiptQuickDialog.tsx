@@ -439,6 +439,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                     product_id: d.product_id,
                     product_quantity: toDbQuantity(d.quantity, ppb),
                     pallet_quantity: 0,
+                    lot_number: d.lot_number || null,
+                    manufacturing_date: d.manufacturing_date || null,
+                    manufacturing_time: d.manufacturing_time || null,
+                    delivery_date: d.delivery_date || null,
                   };
                 });
                 await supabase.from('factory_order_items').insert(dItems);
