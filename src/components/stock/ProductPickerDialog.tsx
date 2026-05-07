@@ -611,7 +611,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
           }
         }}
       >
-        <DialogContent className="max-w-sm w-[95vw] max-h-[92dvh] p-0 gap-0 flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="top-6 sm:top-8 translate-y-0 max-w-sm w-[95vw] max-h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-4rem)] p-0 gap-0 flex flex-col overflow-hidden" dir="rtl">
           <DialogHeader className="px-3 pt-3 pb-2 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Package className="w-4 h-4 text-primary" />
