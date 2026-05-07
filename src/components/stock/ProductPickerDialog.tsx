@@ -700,6 +700,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       <Input
                         type="text" inputMode="numeric"
                         value={singleQtyFields.boxes}
+                        onFocus={handleInputFocus}
                         onChange={e => setSingleQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
                         onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
                         className={`h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] ${promoMissing ? 'border-destructive text-destructive' : ''}`}
@@ -711,6 +712,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                       <Input
                         type="text" inputMode="numeric"
                         value={singleQtyFields.pieces}
+                        onFocus={handleInputFocus}
                         onChange={e => setSingleQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
                         onBlur={() => setSingleQtyFields(prev => normalizeFields(prev, singlePPB))}
                         className={`h-10 text-center text-base font-bold [font-variant-numeric:tabular-nums] ${promoMissing ? 'border-destructive text-destructive' : ''}`}
