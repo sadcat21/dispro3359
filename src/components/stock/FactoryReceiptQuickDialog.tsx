@@ -1581,7 +1581,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* نافذة المراجعة قبل الإرسال للموافقة */}
       <Dialog open={showReview} onOpenChange={setShowReview}>
-        <DialogContent className="max-w-lg w-[95vw] max-h-[90dvh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-lg w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCheck2 className="w-5 h-5 text-lime-600" />
@@ -1622,7 +1622,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                       <span>{s.title} ({s.items.length})</span>
                       <span>إجمالي: {totalBoxes.toFixed(2)}</span>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-white">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2 bg-white">
                       {s.items.map((it, idx) => {
                         const p = getProduct(it.product_id);
                         const ppb = p?.pieces_per_box || 1;
@@ -1676,7 +1676,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                       <div className="bg-orange-100 px-3 py-2 text-xs font-bold text-orange-800 flex items-center justify-between">
                         <span>المنتجات التالفة المرجعة ({deliveryItems.length})</span>
                       </div>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-white">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-2 bg-white">
                         {deliveryItems.map((d, idx) => {
                           const p = getProduct(d.product_id);
                           const ppb = p?.pieces_per_box || 1;
