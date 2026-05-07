@@ -410,7 +410,6 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                 created_by: workerId,
                 confirmed_at: new Date().toISOString(),
                 pallet_count: deliveryPalletCount,
-                linked_receipt_id: receiptId,
               } as any).select().single();
               if (foErr) throw foErr;
 
