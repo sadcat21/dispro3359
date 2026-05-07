@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft, Printer, FileCheck2, Send } from 'lucide-react';
+import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft, Printer, FileCheck2, Send, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -1580,6 +1580,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           <DialogFooter className="flex-row gap-2 sm:flex-row">
             <Button variant="outline" className="flex-1" onClick={() => setShowPrintPreview(true)}>
               <Printer className="w-4 h-4 ml-1" /> طباعة
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 border-purple-400 text-purple-700 hover:bg-purple-50"
+              onClick={() => printDetailedReport()}>
+              <FileText className="w-4 h-4 ml-1" /> طباعة التفاصيل
             </Button>
             <Button variant="ghost" onClick={() => setShowReview(false)}>
               <X className="w-4 h-4 ml-1" /> رجوع
