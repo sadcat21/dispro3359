@@ -389,6 +389,77 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           else { await supabase.from('branch_pallets').insert({ branch_id: branchId, quantity: palletCount }); }
           await supabase.from('pallet_movements').insert({ branch_id: branchId, quantity: palletCount, movement_type: 'receipt', reference_id: receiptId, notes: `استلام باليطات`, created_by: workerId });
         }
+
+        // Coupled factory delivery (when enabled) — uses same shipment metadata
+        if (enableDelivery && receiptSource === 'factory') {
+          const validDelivery = deliveryItems.filter(d => d.product_id && d.quantity > 0);
+          if (validDelivery.length > 0 || deliveryPalletCount > 0) {
+            try {
+              const deliveryNotes = stringifyReceiptMeta({
+                text: `تسليم مرتبط بالاستلام${invoiceNumber ? ` - فاتورة ${invoiceNumber}` : ''}${notes ? ` - ${notes}` : ''}`,
+                source: 'factory',
+                driver_name: driverName || null,
+                driver_phone: driverPhone || null,
+                license_plate: licensePlate || null,
+              });
+              const { data: foRow, error: foErr } = await supabase.from('factory_orders').insert({
+                order_type: 'sending',
+                branch_id: branchId,
+                status: 'confirmed',
+                notes: deliveryNotes,
+                created_by: workerId,
+                confirmed_at: new Date().toISOString(),
+                pallet_count: deliveryPalletCount,
+                linked_receipt_id: receiptId,
+              } as any).select().single();
+              if (foErr) throw foErr;
+
+              if (validDelivery.length > 0) {
+                const dItems = validDelivery.map(d => {
+                  const ppb = getProduct(d.product_id)?.pieces_per_box || 1;
+                  return {
+                    factory_order_id: foRow.id,
+                    product_id: d.product_id,
+                    product_quantity: toDbQuantity(d.quantity, ppb),
+                    pallet_quantity: 0,
+                  };
+                });
+                await supabase.from('factory_order_items').insert(dItems);
+
+                // Apply stock effects
+                for (const d of validDelivery) {
+                  const { data: stock } = await supabase.from('warehouse_stock')
+                    .select('id, quantity, damaged_quantity, factory_return_quantity')
+                    .eq('branch_id', branchId).eq('product_id', d.product_id).maybeSingle();
+                  if (stock) {
+                    const ppb = getProduct(d.product_id)?.pieces_per_box || 1;
+                    const currentQty = fromDbQuantity(Number(stock.quantity) || 0, ppb);
+                    const currentDamaged = fromDbQuantity(Number((stock as any).damaged_quantity) || 0, ppb);
+                    const currentReturn = fromDbQuantity(Number((stock as any).factory_return_quantity) || 0, ppb);
+                    await supabase.from('warehouse_stock').update({
+                      quantity: toDbQuantity(Math.max(0, currentQty - d.quantity), ppb),
+                      damaged_quantity: toDbQuantity(Math.max(0, currentDamaged - d.quantity), ppb),
+                      factory_return_quantity: toDbQuantity(currentReturn + d.quantity, ppb),
+                    }).eq('id', stock.id);
+                  }
+                }
+              }
+
+              if (deliveryPalletCount > 0) {
+                const { data: bp } = await supabase.from('branch_pallets').select('id, quantity').eq('branch_id', branchId).maybeSingle();
+                if (bp) await supabase.from('branch_pallets').update({ quantity: Math.max(0, bp.quantity - deliveryPalletCount) }).eq('id', bp.id);
+                await supabase.from('pallet_movements').insert({
+                  branch_id: branchId, quantity: -deliveryPalletCount, movement_type: 'delivery',
+                  reference_id: foRow.id, notes: 'تسليم باليطات للمصنع (مرتبط بالاستلام)', created_by: workerId,
+                });
+              }
+            } catch (de: any) {
+              console.error('Coupled delivery failed', de);
+              toast.error('تم الاستلام لكن فشل تسجيل التسليم: ' + (de.message || ''));
+            }
+          }
+        }
+
         toast.success('تم تأكيد الاستلام');
       } else {
         toast.success('تم إرسال طلب الاستلام للموافقة');
