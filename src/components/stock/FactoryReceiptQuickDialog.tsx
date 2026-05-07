@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft, Printer, FileCheck2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +14,7 @@ import { formatDate } from '@/utils/formatters';
 import { parseBP, boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
+import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
 
 interface ReceiptItem {
   product_id: string;
@@ -160,6 +161,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+
+  // Review summary before submit (for warehouse manager)
+  const [showReview, setShowReview] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const isAdmin = isAdminRole(role);
