@@ -597,6 +597,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
     setEnableDelivery(false);
     setDeliveryItems([]);
     setDeliveryPalletCount(0);
+    setStep(1);
   };
 
   const getProduct = (id: string) => products.find(p => p.id === id);
