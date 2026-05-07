@@ -136,6 +136,13 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   // Wizard step: 1=info, 2=receipt products, 3=delivery products
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
+  // Confirmation flags: user must explicitly confirm the lists before proceeding
+  const [itemsConfirmed, setItemsConfirmed] = useState(false);
+  const [deliveryItemsConfirmed, setDeliveryItemsConfirmed] = useState(false);
+  // Reset confirmations whenever the underlying lists change
+  useEffect(() => { setItemsConfirmed(false); }, [items]);
+  useEffect(() => { setDeliveryItemsConfirmed(false); }, [deliveryItems]);
+
   // Product picker state (receipt)
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
@@ -988,6 +995,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                       اضغط "إضافة منتجات" لاختيار المنتجات
                     </div>
                   ) : (
+                    <>
                     <div className="space-y-1.5">
                       {items.map((item, index) => {
                         const prod = getProduct(item.product_id);
@@ -1014,6 +1022,21 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                         );
                       })}
                     </div>
+                    {!editReceiptId && (
+                      <Button
+                        type="button"
+                        className={`w-full mt-2 ${itemsConfirmed ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-lime-600 hover:bg-lime-700'}`}
+                        onClick={() => setItemsConfirmed(true)}
+                        disabled={itemsConfirmed}
+                      >
+                        {itemsConfirmed ? (
+                          <><CheckCircle className="w-4 h-4 ml-1" /> تم تأكيد قائمة الاستلام</>
+                        ) : (
+                          <><Check className="w-4 h-4 ml-1" /> تأكيد قائمة الاستلام ({items.length})</>
+                        )}
+                      </Button>
+                    )}
+                    </>
                   )}
                 </div>
               )}
@@ -1047,7 +1070,8 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                         {deliveryItems.length === 0 ? (
                           <p className="text-[10px] text-muted-foreground text-center py-2">اضغط "إضافة منتجات" لاختيار التالف</p>
                         ) : (
-                          deliveryItems.map((d, idx) => {
+                          <>
+                          {deliveryItems.map((d, idx) => {
                             const prod = getProduct(d.product_id);
                             const ppb = prod?.pieces_per_box || 1;
                             return (
@@ -1076,7 +1100,20 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                                 </Button>
                               </div>
                             );
-                          })
+                          })}
+                          <Button
+                            type="button"
+                            className={`w-full mt-1 ${deliveryItemsConfirmed ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-orange-600 hover:bg-orange-700'}`}
+                            onClick={() => setDeliveryItemsConfirmed(true)}
+                            disabled={deliveryItemsConfirmed}
+                          >
+                            {deliveryItemsConfirmed ? (
+                              <><CheckCircle className="w-4 h-4 ml-1" /> تم تأكيد قائمة التسليم</>
+                            ) : (
+                              <><Check className="w-4 h-4 ml-1" /> تأكيد قائمة التسليم ({deliveryItems.length})</>
+                            )}
+                          </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -1100,6 +1137,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                     <Button onClick={() => {
                       const validItems = items.filter(i => i.new_quantity > 0 || i.compensation_quantity > 0 || i.compensation_offers_quantity > 0);
                       if (validItems.length === 0) { toast.error('أضف منتجات للاستلام'); return; }
+                      if (!itemsConfirmed) { toast.error('اضغط "تأكيد قائمة الاستلام" أولاً'); return; }
+                      if (step === 3 && enableDelivery && deliveryItems.length > 0 && !deliveryItemsConfirmed) {
+                        toast.error('اضغط "تأكيد قائمة التسليم" أولاً'); return;
+                      }
                       setShowReview(true);
                     }} disabled={isSaving} className="flex-1 bg-lime-600 hover:bg-lime-700">
                       {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
@@ -1107,7 +1148,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                       مراجعة قبل الإرسال
                     </Button>
                   ) : (
-                    <Button className="flex-1 bg-lime-600 hover:bg-lime-700" onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}>
+                    <Button className="flex-1 bg-lime-600 hover:bg-lime-700" onClick={() => {
+                      if (step === 2 && items.length > 0 && !itemsConfirmed) {
+                        toast.error('اضغط "تأكيد قائمة الاستلام" أولاً'); return;
+                      }
+                      setStep(s => (s + 1) as 1 | 2 | 3);
+                    }}>
                       التالي <ChevronLeft className="w-4 h-4 mr-1" />
                     </Button>
                   )}
