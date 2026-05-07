@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck, ChevronRight, ChevronLeft, Printer, FileCheck2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +14,7 @@ import { formatDate } from '@/utils/formatters';
 import { parseBP, boxesToBP, dbBPDisplay, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { buildReceiptItemRows, parseReceiptItemBreakdown, parseReceiptMeta, stringifyReceiptMeta, ReceiptSource } from '@/utils/stockReceipt';
+import ReceiptPrintView from '@/components/stock/ReceiptPrintView';
 
 interface ReceiptItem {
   product_id: string;
@@ -160,6 +161,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+
+  // Review summary before submit (for warehouse manager)
+  const [showReview, setShowReview] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const isAdmin = isAdminRole(role);
@@ -962,9 +967,14 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                     <ChevronRight className="w-4 h-4 ml-1" /> السابق
                   </Button>
                   {((step === 2 && receiptSource !== 'factory') || step === 3) ? (
-                    <Button onClick={handleSave} disabled={isSaving} className="flex-1 bg-lime-600 hover:bg-lime-700">
+                    <Button onClick={() => {
+                      const validItems = items.filter(i => i.new_quantity > 0 || i.compensation_quantity > 0 || i.compensation_offers_quantity > 0);
+                      if (validItems.length === 0) { toast.error('أضف منتجات للاستلام'); return; }
+                      setShowReview(true);
+                    }} disabled={isSaving} className="flex-1 bg-lime-600 hover:bg-lime-700">
                       {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                      {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+                      <FileCheck2 className="w-4 h-4 ml-1" />
+                      مراجعة قبل الإرسال
                     </Button>
                   ) : (
                     <Button className="flex-1 bg-lime-600 hover:bg-lime-700" onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}>
@@ -1438,6 +1448,116 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* نافذة المراجعة قبل الإرسال للموافقة */}
+      <Dialog open={showReview} onOpenChange={setShowReview}>
+        <DialogContent className="max-w-lg w-[95vw] max-h-[90dvh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileCheck2 className="w-5 h-5 text-lime-600" />
+              مراجعة وصل الاستلام
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-2 p-3 rounded-lg bg-muted/40 border">
+              <div><span className="text-muted-foreground">رقم الفاتورة:</span> <strong>{invoiceNumber || '—'}</strong></div>
+              <div><span className="text-muted-foreground">المصدر:</span> <strong>{receiptSource === 'factory' ? 'المصنع' : 'فرع آخر'}</strong></div>
+              {driverName && <div><span className="text-muted-foreground">السائق:</span> <strong>{driverName}</strong></div>}
+              {driverPhone && <div><span className="text-muted-foreground">الهاتف:</span> <strong>{driverPhone}</strong></div>}
+              {licensePlate && <div className="col-span-2"><span className="text-muted-foreground">رقم اللوحة:</span> <strong>{licensePlate}</strong></div>}
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-lime-50 px-3 py-2 text-xs font-bold text-lime-800 flex items-center justify-between">
+                <span>المنتجات ({items.length})</span>
+                <span>إجمالي: {items.reduce((s, i) => s + i.new_quantity + i.compensation_quantity + i.compensation_offers_quantity, 0).toFixed(2)}</span>
+              </div>
+              <div className="divide-y">
+                {items.map((it, idx) => {
+                  const p = getProduct(it.product_id);
+                  const ppb = p?.pieces_per_box || 1;
+                  return (
+                    <div key={idx} className="px-3 py-2 flex items-center gap-2">
+                      {p?.image_url && <img src={p.image_url} alt="" className="w-9 h-9 rounded object-cover" />}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold truncate">{p ? getProductDisplayName(p) : it.product_id}</div>
+                        <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                          {it.new_quantity > 0 && <span>جديد: <strong>{boxesToBP(it.new_quantity, ppb)}</strong></span>}
+                          {it.compensation_quantity > 0 && <span className="text-orange-600">تعويض تلف: <strong>{boxesToBP(it.compensation_quantity, ppb)}</strong></span>}
+                          {it.compensation_offers_quantity > 0 && <span className="text-blue-600">عروض: <strong>{boxesToBP(it.compensation_offers_quantity, ppb)}</strong></span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="border rounded-lg p-2 text-center">
+                <div className="text-[10px] text-muted-foreground">عدد الباليطات</div>
+                <div className="text-lg font-bold">{palletCount || 0}</div>
+              </div>
+              <div className="border rounded-lg p-2 text-center">
+                <div className="text-[10px] text-muted-foreground">إجمالي المصاريف</div>
+                <div className="text-lg font-bold">{totalExpenses.toLocaleString()} دج</div>
+              </div>
+            </div>
+
+            {notes && (
+              <div className="text-xs p-2 rounded bg-muted/40 border">
+                <span className="text-muted-foreground">ملاحظات: </span>{notes}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex-row gap-2 sm:flex-row">
+            <Button variant="outline" className="flex-1" onClick={() => setShowPrintPreview(true)}>
+              <Printer className="w-4 h-4 ml-1" /> طباعة
+            </Button>
+            <Button variant="ghost" onClick={() => setShowReview(false)}>
+              <X className="w-4 h-4 ml-1" /> رجوع
+            </Button>
+            <Button
+              className="flex-1 bg-lime-600 hover:bg-lime-700"
+              disabled={isSaving}
+              onClick={async () => { await handleSave(); setShowReview(false); }}>
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
+              {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* معاينة الطباعة */}
+      {showPrintPreview && (
+        <ReceiptPrintView
+          open={showPrintPreview}
+          onOpenChange={setShowPrintPreview}
+          type="reception"
+          invoiceNumber={invoiceNumber || null}
+          date={new Date().toISOString()}
+          items={items.map((it) => {
+            const p = getProduct(it.product_id);
+            const ppb = p?.pieces_per_box || 1;
+            return {
+              product_name: p ? getProductDisplayName(p) : it.product_id,
+              new_qty: toDbQuantity(it.new_quantity, ppb),
+              comp_qty: toDbQuantity(it.compensation_quantity, ppb),
+              comp_offers_qty: toDbQuantity(it.compensation_offers_quantity, ppb),
+              pieces_per_box: ppb,
+              image_url: p?.image_url,
+            };
+          })}
+          driverInfo={{ driver_name: driverName, driver_phone: driverPhone, license_plate: licensePlate }}
+          notes={notes}
+          palletCount={palletCount}
+          receiptExpenses={totalExpenses}
+          expensesDescription={expensesDescription}
+          expensesBreakdown={expenseLines.filter(l => l.description || l.amount)}
+        />
+      )}
     </>
   );
 };
