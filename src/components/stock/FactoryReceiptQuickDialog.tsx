@@ -812,6 +812,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       .signatures div { width:40%; text-align:center; border-top:1px solid #000; padding-top:6px; font-size:12px; }
       @media print { body { padding:10px; } }
     </style></head><body>
+      ${buildPrintHeaderHTML(companyInfo, { dir: 'rtl' })}
       <h1>تقرير مفصل — وصل الاستلام</h1>
       <div class="subtitle">${dateStr}</div>
       <div class="info-grid">
