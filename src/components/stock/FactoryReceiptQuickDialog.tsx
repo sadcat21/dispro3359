@@ -1475,33 +1475,44 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
               {licensePlate && <div className="col-span-2"><span className="text-muted-foreground">رقم اللوحة:</span> <strong>{licensePlate}</strong></div>}
             </div>
 
-            <div className="border rounded-lg overflow-hidden">
-              <div className="bg-lime-50 px-3 py-2 text-xs font-bold text-lime-800 flex items-center justify-between">
-                <span>المنتجات ({items.length})</span>
-                <span>إجمالي: {items.reduce((s, i) => s + i.new_quantity + i.compensation_quantity + i.compensation_offers_quantity, 0).toFixed(2)}</span>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-white">
-                {items.map((it, idx) => {
-                  const p = getProduct(it.product_id);
-                  const ppb = p?.pieces_per_box || 1;
-                  return (
-                    <div key={idx} className="relative border rounded-lg p-1.5 flex flex-col items-center text-center bg-white">
-                      {p?.image_url ? (
-                        <img src={p.image_url} alt="" className="w-14 h-14 rounded object-cover mb-1" />
-                      ) : (
-                        <div className="w-14 h-14 rounded bg-muted flex items-center justify-center mb-1"><Package className="w-6 h-6 text-muted-foreground" /></div>
-                      )}
-                      <div className="text-[10px] font-semibold leading-tight line-clamp-2 min-h-[24px]">{p ? getProductDisplayName(p) : '—'}</div>
-                      <div className="mt-1 flex flex-col gap-0.5 w-full">
-                        {it.new_quantity > 0 && <span className="text-[10px] bg-lime-100 text-lime-800 rounded px-1 font-bold">+{boxesToBP(it.new_quantity, ppb)}</span>}
-                        {it.compensation_quantity > 0 && <span className="text-[10px] bg-orange-100 text-orange-800 rounded px-1 font-bold">تلف {boxesToBP(it.compensation_quantity, ppb)}</span>}
-                        {it.compensation_offers_quantity > 0 && <span className="text-[10px] bg-blue-100 text-blue-800 rounded px-1 font-bold">عروض {boxesToBP(it.compensation_offers_quantity, ppb)}</span>}
-                      </div>
+            {(() => {
+              const newItems = items.filter(i => i.new_quantity > 0);
+              const compItems = items.filter(i => i.compensation_quantity > 0);
+              const offersItems = items.filter(i => i.compensation_offers_quantity > 0);
+              const sections = [
+                { key: 'new', title: 'كمية جديدة', items: newItems, qty: (i: ReceiptItem) => i.new_quantity, color: 'lime', border: 'border-lime-300', headerBg: 'bg-lime-100', headerText: 'text-lime-800', badge: 'bg-lime-600 text-white' },
+                { key: 'comp', title: 'تعويض تلف', items: compItems, qty: (i: ReceiptItem) => i.compensation_quantity, color: 'orange', border: 'border-orange-300', headerBg: 'bg-orange-100', headerText: 'text-orange-800', badge: 'bg-orange-600 text-white' },
+                { key: 'offers', title: 'تعويض عروض', items: offersItems, qty: (i: ReceiptItem) => i.compensation_offers_quantity, color: 'blue', border: 'border-blue-300', headerBg: 'bg-blue-100', headerText: 'text-blue-800', badge: 'bg-blue-600 text-white' },
+              ];
+              return sections.filter(s => s.items.length > 0).map(s => {
+                const totalBoxes = s.items.reduce((sum, i) => sum + s.qty(i), 0);
+                return (
+                  <div key={s.key} className={`border-2 ${s.border} rounded-lg overflow-hidden`}>
+                    <div className={`${s.headerBg} ${s.headerText} px-3 py-1.5 text-xs font-bold flex items-center justify-between`}>
+                      <span>{s.title} ({s.items.length})</span>
+                      <span>إجمالي: {totalBoxes.toFixed(2)}</span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-white">
+                      {s.items.map((it, idx) => {
+                        const p = getProduct(it.product_id);
+                        const ppb = p?.pieces_per_box || 1;
+                        return (
+                          <div key={idx} className="border rounded-lg p-1.5 flex flex-col items-center text-center bg-white">
+                            {p?.image_url ? (
+                              <img src={p.image_url} alt="" className="w-14 h-14 rounded object-cover mb-1" />
+                            ) : (
+                              <div className="w-14 h-14 rounded bg-muted flex items-center justify-center mb-1"><Package className="w-6 h-6 text-muted-foreground" /></div>
+                            )}
+                            <div className="text-[10px] font-semibold leading-tight line-clamp-2 min-h-[24px]">{p ? getProductDisplayName(p) : '—'}</div>
+                            <span className={`mt-1 w-full text-[11px] ${s.badge} rounded px-1 py-0.5 font-bold`}>{boxesToBP(s.qty(it), ppb)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
 
             <div className="grid grid-cols-2 gap-2">
               <div className="border rounded-lg p-2 text-center bg-white">
