@@ -995,6 +995,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                       اضغط "إضافة منتجات" لاختيار المنتجات
                     </div>
                   ) : (
+                    <>
                     <div className="space-y-1.5">
                       {items.map((item, index) => {
                         const prod = getProduct(item.product_id);
@@ -1021,6 +1022,21 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                         );
                       })}
                     </div>
+                    {!editReceiptId && (
+                      <Button
+                        type="button"
+                        className={`w-full mt-2 ${itemsConfirmed ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-lime-600 hover:bg-lime-700'}`}
+                        onClick={() => setItemsConfirmed(true)}
+                        disabled={itemsConfirmed}
+                      >
+                        {itemsConfirmed ? (
+                          <><CheckCircle className="w-4 h-4 ml-1" /> تم تأكيد قائمة الاستلام</>
+                        ) : (
+                          <><Check className="w-4 h-4 ml-1" /> تأكيد قائمة الاستلام ({items.length})</>
+                        )}
+                      </Button>
+                    )}
+                    </>
                   )}
                 </div>
               )}
