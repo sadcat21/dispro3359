@@ -158,6 +158,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
         .signature div{text-align:center;width:40%}
         .sig-line{border-top:1px solid #000;margin-top:50px;padding-top:5px}
       </style></head><body>
+        ${buildPrintHeaderHTML(companyInfo, { dir: "ltr" })}
         <h1>Bon de Transfert</h1>
         <h2>Détails de réception</h2>
         <div class="row"><span class="label">Date:</span> <strong>${dateStr}</strong></div>
@@ -285,6 +286,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
         .signature div{text-align:center;width:40%}
         .sig-line{border-top:1px solid #000;margin-top:50px;padding-top:5px}
       </style></head><body>
+        ${buildPrintHeaderHTML(companyInfo, { dir: "ltr" })}
         <h1>Bon de Livraison Usine</h1>
         <h2>Détails de livraison (produits endommagés)</h2>
         <div class="row"><span class="label">Date:</span> <strong>${dateStr}</strong></div>
@@ -377,6 +379,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
         .center-sig .sig-title{margin-bottom:55px}
         .center-sig .sig-line{display:inline-block;border-top:1px solid #000;padding-top:4px;min-width:240px}
       </style></head><body>
+        ${buildPrintHeaderHTML(companyInfo, { dir: "ltr" })}
 
         <div class="header">
           <div class="logo">AROMA<i>Café</i></div>
@@ -506,6 +509,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
         .center-sig .sig-title{margin-bottom:55px;font-size:13px}
         .center-sig .sig-line{display:inline-block;border-top:1px solid #000;padding-top:4px;min-width:240px;margin-top:0}
       </style></head><body>
+        ${buildPrintHeaderHTML(companyInfo, { dir: "ltr" })}
 
         <div class="header">
           <div class="logo">AROMA<i>Café</i></div>
