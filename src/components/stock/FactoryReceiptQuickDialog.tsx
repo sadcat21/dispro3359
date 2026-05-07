@@ -136,6 +136,13 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   // Wizard step: 1=info, 2=receipt products, 3=delivery products
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
+  // Confirmation flags: user must explicitly confirm the lists before proceeding
+  const [itemsConfirmed, setItemsConfirmed] = useState(false);
+  const [deliveryItemsConfirmed, setDeliveryItemsConfirmed] = useState(false);
+  // Reset confirmations whenever the underlying lists change
+  useEffect(() => { setItemsConfirmed(false); }, [items]);
+  useEffect(() => { setDeliveryItemsConfirmed(false); }, [deliveryItems]);
+
   // Product picker state (receipt)
   const [showPicker, setShowPicker] = useState(false);
   const [singleProductId, setSingleProductId] = useState<string | null>(null);
