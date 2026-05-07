@@ -1399,7 +1399,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
               if (!w) return;
               w.document.write(`<html dir="rtl"><head><title>ملخص الاستلام</title>
                 <style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}</style>
-                </head><body><h2>ملخص الاستلام للإدارة</h2>${node.innerHTML}</body></html>`);
+                </head><body>${buildPrintHeaderHTML(companyInfo, { dir: 'rtl' })}<h2>ملخص الاستلام للإدارة</h2>${node.innerHTML}</body></html>`);
               w.document.close();
               w.focus();
               setTimeout(() => { w.print(); w.close(); }, 300);
