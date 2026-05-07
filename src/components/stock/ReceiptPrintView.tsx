@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { dbBPDisplay, dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
 import { formatDate } from '@/utils/formatters';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
+import { PrintHeader, buildPrintHeaderHTML } from '@/utils/printHeader';
 
 interface ReceiptPrintItem {
   product_name: string;
@@ -53,6 +55,7 @@ const ReceiptPrintView: React.FC<Props> = ({
   palletCount, receiptExpenses, expensesDescription, expensesBreakdown, deliveryDetail,
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const { companyInfo } = useCompanyInfo();
 
   const title = 'Bon de Transfert';
 
@@ -81,6 +84,7 @@ const ReceiptPrintView: React.FC<Props> = ({
           </style>
         </head>
         <body>
+          ${buildPrintHeaderHTML(companyInfo, { dir: 'ltr' })}
           ${printRef.current.innerHTML}
         </body>
       </html>
@@ -100,6 +104,7 @@ const ReceiptPrintView: React.FC<Props> = ({
         </DialogHeader>
 
         <div ref={printRef}>
+          <PrintHeader companyInfo={companyInfo} dir="ltr" />
           <h1 style={{ textAlign: 'center', fontSize: '22px', marginBottom: '10px' }}>{title}</h1>
 
           <div style={{ margin: '15px 0', fontSize: '13px' }}>
