@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Package, Plus, Minus, Trash2, Loader2, ArrowDownToLine, Camera, CheckCircle, XCircle, Check, User, Phone, Car, X, Truck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -118,6 +119,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const [driverName, setDriverName] = useState('');
   const [driverPhone, setDriverPhone] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
+
+  // Coupled "factory delivery" (تسليم للمصنع) — only when source = factory
+  const [enableDelivery, setEnableDelivery] = useState(false);
+  const [deliveryItems, setDeliveryItems] = useState<{ product_id: string; quantity: number }[]>([]);
+  const [deliveryPalletCount, setDeliveryPalletCount] = useState(0);
+  const [deliveryPickerOpen, setDeliveryPickerOpen] = useState(false);
 
   // Product picker state
   const [showPicker, setShowPicker] = useState(false);
@@ -382,6 +389,76 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           else { await supabase.from('branch_pallets').insert({ branch_id: branchId, quantity: palletCount }); }
           await supabase.from('pallet_movements').insert({ branch_id: branchId, quantity: palletCount, movement_type: 'receipt', reference_id: receiptId, notes: `استلام باليطات`, created_by: workerId });
         }
+
+        // Coupled factory delivery (when enabled) — uses same shipment metadata
+        if (enableDelivery && receiptSource === 'factory') {
+          const validDelivery = deliveryItems.filter(d => d.product_id && d.quantity > 0);
+          if (validDelivery.length > 0 || deliveryPalletCount > 0) {
+            try {
+              const deliveryNotes = stringifyReceiptMeta({
+                text: `تسليم مرتبط بالاستلام${invoiceNumber ? ` - فاتورة ${invoiceNumber}` : ''}${notes ? ` - ${notes}` : ''}`,
+                source: 'factory',
+                driver_name: driverName || null,
+                driver_phone: driverPhone || null,
+                license_plate: licensePlate || null,
+              });
+              const { data: foRow, error: foErr } = await supabase.from('factory_orders').insert({
+                order_type: 'sending',
+                branch_id: branchId,
+                status: 'confirmed',
+                notes: deliveryNotes,
+                created_by: workerId,
+                confirmed_at: new Date().toISOString(),
+                pallet_count: deliveryPalletCount,
+              } as any).select().single();
+              if (foErr) throw foErr;
+
+              if (validDelivery.length > 0) {
+                const dItems = validDelivery.map(d => {
+                  const ppb = getProduct(d.product_id)?.pieces_per_box || 1;
+                  return {
+                    factory_order_id: foRow.id,
+                    product_id: d.product_id,
+                    product_quantity: toDbQuantity(d.quantity, ppb),
+                    pallet_quantity: 0,
+                  };
+                });
+                await supabase.from('factory_order_items').insert(dItems);
+
+                // Apply stock effects
+                for (const d of validDelivery) {
+                  const { data: stock } = await supabase.from('warehouse_stock')
+                    .select('id, quantity, damaged_quantity, factory_return_quantity')
+                    .eq('branch_id', branchId).eq('product_id', d.product_id).maybeSingle();
+                  if (stock) {
+                    const ppb = getProduct(d.product_id)?.pieces_per_box || 1;
+                    const currentQty = fromDbQuantity(Number(stock.quantity) || 0, ppb);
+                    const currentDamaged = fromDbQuantity(Number((stock as any).damaged_quantity) || 0, ppb);
+                    const currentReturn = fromDbQuantity(Number((stock as any).factory_return_quantity) || 0, ppb);
+                    await supabase.from('warehouse_stock').update({
+                      quantity: toDbQuantity(Math.max(0, currentQty - d.quantity), ppb),
+                      damaged_quantity: toDbQuantity(Math.max(0, currentDamaged - d.quantity), ppb),
+                      factory_return_quantity: toDbQuantity(currentReturn + d.quantity, ppb),
+                    }).eq('id', stock.id);
+                  }
+                }
+              }
+
+              if (deliveryPalletCount > 0) {
+                const { data: bp } = await supabase.from('branch_pallets').select('id, quantity').eq('branch_id', branchId).maybeSingle();
+                if (bp) await supabase.from('branch_pallets').update({ quantity: Math.max(0, bp.quantity - deliveryPalletCount) }).eq('id', bp.id);
+                await supabase.from('pallet_movements').insert({
+                  branch_id: branchId, quantity: -deliveryPalletCount, movement_type: 'delivery',
+                  reference_id: foRow.id, notes: 'تسليم باليطات للمصنع (مرتبط بالاستلام)', created_by: workerId,
+                });
+              }
+            } catch (de: any) {
+              console.error('Coupled delivery failed', de);
+              toast.error('تم الاستلام لكن فشل تسجيل التسليم: ' + (de.message || ''));
+            }
+          }
+        }
+
         toast.success('تم تأكيد الاستلام');
       } else {
         toast.success('تم إرسال طلب الاستلام للموافقة');
@@ -495,6 +572,9 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
     setDriverName('');
     setDriverPhone('');
     setLicensePlate('');
+    setEnableDelivery(false);
+    setDeliveryItems([]);
+    setDeliveryPalletCount(0);
   };
 
   const getProduct = (id: string) => products.find(p => p.id === id);
@@ -781,6 +861,78 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                   </div>
                 )}
               </div>
+
+              {/* Coupled Factory Delivery */}
+              {receiptSource === 'factory' && !editReceiptId && (
+                <div className="border rounded-lg p-2.5 bg-orange-50/40 dark:bg-orange-950/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-orange-600" />
+                      تسليم مرتبط للمصنع (تالف/إرجاع)
+                    </Label>
+                    <Switch checked={enableDelivery} onCheckedChange={setEnableDelivery} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    يستخدم نفس بيانات السائق/الشاحنة. لا حاجة لإدخالها مرتين.
+                  </p>
+
+                  {enableDelivery && (
+                    <div className="space-y-2 pt-1">
+                      <div>
+                        <Label className="text-[11px]">🪵 باليطات للتسليم</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={deliveryPalletCount}
+                          onChange={e => setDeliveryPalletCount(parseInt(e.target.value) || 0)}
+                          className="h-8 text-sm text-center"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[11px] font-semibold">المنتجات التالفة ({deliveryItems.length})</Label>
+                          <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+                            onClick={() => setDeliveryItems(prev => [...prev, { product_id: '', quantity: 0 }])}>
+                            <Plus className="w-3 h-3 ml-1" /> إضافة
+                          </Button>
+                        </div>
+                        {deliveryItems.length === 0 ? (
+                          <p className="text-[10px] text-muted-foreground text-center py-1">لا منتجات للتسليم</p>
+                        ) : (
+                          deliveryItems.map((d, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5">
+                              <select
+                                value={d.product_id}
+                                onChange={e => setDeliveryItems(prev => prev.map((it, i) => i === idx ? { ...it, product_id: e.target.value } : it))}
+                                className="h-8 text-xs flex-1 rounded border bg-background px-2"
+                              >
+                                <option value="">اختر منتج</option>
+                                {products.map(p => (
+                                  <option key={p.id} value={p.id}>{getProductDisplayName(p as any)}</option>
+                                ))}
+                              </select>
+                              <Input
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={d.quantity || ''}
+                                onChange={e => setDeliveryItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it))}
+                                className="h-8 text-xs w-20 text-center"
+                                placeholder="الكمية"
+                              />
+                              <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                                onClick={() => setDeliveryItems(prev => prev.filter((_, i) => i !== idx))}>
+                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Notes */}
               <div>
