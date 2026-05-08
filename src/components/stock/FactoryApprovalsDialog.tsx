@@ -219,40 +219,43 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
           `;
         })()}
 
-        ${linkedD ? `
-          <div class="box">
-            <h3>Livraison liée</h3>
-            <div class="row"><span class="label">Date livraison:</span> <strong>${new Date(linkedD.created_at).toLocaleString('fr')}</strong></div>
-            <div class="row"><span class="label">Palettes livrées:</span> <strong>${linkedD.pallet_count ?? 0}</strong></div>
-            ${linkedD.notes ? `<div class="row"><span class="label">Remarques:</span> ${linkedD.notes}</div>` : ''}
-            <table><thead><tr><th>#</th><th>Produit</th><th>Quantité</th></tr></thead><tbody>
-              ${linkedD.items.map((it, i) => `<tr><td>${i + 1}</td><td>${it.product_app_name || it.product_name}</td><td>${it.quantity}</td></tr>`).join('')}
-            </tbody></table>
-          </div>
-        ` : ''}
-
         ${(() => {
-          const deliveryItems = r.items.filter(it => (it.comp_qty || 0) > 0 || (it.comp_offers_qty || 0) > 0);
-          if (deliveryItems.length === 0) return '';
-          const rows = deliveryItems.map((it, i) => `
-            <tr>
+          if (!linkedD || linkedD.items.length === 0) return '';
+          const rows = linkedD.items.map((it, i) => {
+            const ppb = it.pieces_per_box || 1;
+            const parsed = parseBP(Number(it.quantity || 0).toFixed(2), ppb);
+            return `<tr>
               <td>${i + 1}</td>
               <td>${it.product_app_name || it.product_name}</td>
-              <td style="text-align:center">${it.comp_qty > 0 ? dbBPDisplay(it.comp_qty, it.pieces_per_box) : '-'}</td>
-              <td style="text-align:center">${it.comp_offers_qty > 0 ? dbBPDisplay(it.comp_offers_qty, it.pieces_per_box) : '-'}</td>
-            </tr>`).join('');
+              <td style="text-align:center">${it.manufacturing_date ? new Date(it.manufacturing_date).toLocaleDateString('fr') : '-'}</td>
+              <td style="text-align:center">${it.lot_number || '-'}</td>
+              <td style="text-align:center">${it.manufacturing_time || '-'}</td>
+              <td style="text-align:center">${parsed.boxes}</td>
+              <td style="text-align:center">${parsed.pieces}</td>
+              <td style="text-align:center;font-weight:bold">${parsed.display}</td>
+              <td style="text-align:center">${it.delivery_date ? new Date(it.delivery_date).toLocaleDateString('fr') : new Date(linkedD.created_at).toLocaleDateString('fr')}</td>
+            </tr>`;
+          }).join('');
           return `
             <div class="box">
-              <h3>Détails de livraison (Tableau des livraisons)</h3>
+              <h3>Désignation et référence du produit incriminé (Livraison liée)</h3>
+              <div class="row"><span class="label">Date livraison:</span> <strong>${new Date(linkedD.created_at).toLocaleString('fr')}</strong></div>
+              <div class="row"><span class="label">Palettes livrées:</span> <strong>${linkedD.pallet_count ?? 0}</strong></div>
+              ${linkedD.notes ? `<div class="row"><span class="label">Remarques:</span> ${linkedD.notes}</div>` : ''}
               <table>
                 <thead>
                   <tr>
-                    <th>#</th><th>Produit</th>
-                    <th style="text-align:center">Comp. Dommage (livré)</th>
-                    <th style="text-align:center">Comp. Offres (livré)</th>
+                    <th>Produit concerné</th>
+                    <th style="text-align:center">Date de Fabrication</th>
+                    <th style="text-align:center">N° de LOT</th>
+                    <th style="text-align:center">Heure de fabrication</th>
+                    <th style="text-align:center">Boîtes</th>
+                    <th style="text-align:center">Pièces</th>
+                    <th style="text-align:center">Total (B.P)</th>
+                    <th style="text-align:center">Date de livraison</th>
                   </tr>
                 </thead>
-                <tbody>${rows}</tbody>
+                <tbody>${rows.replace(/<td>\d+<\/td>\s*<td>/g, '<td>')}</tbody>
               </table>
             </div>
           `;
