@@ -235,9 +235,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           }
         });
         setItems(Array.from(grouped.values()));
+        if (previewOnly) setShowReview(true);
       })();
     }
-  }, [open, branchId, editReceiptId]);
+  }, [open, branchId, editReceiptId, previewOnly]);
 
   const fetchPendingReceipts = async () => {
     if (!branchId) return;
