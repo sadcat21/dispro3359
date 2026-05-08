@@ -231,6 +231,33 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
           </div>
         ` : ''}
 
+        ${(() => {
+          const deliveryItems = r.items.filter(it => (it.comp_qty || 0) > 0 || (it.comp_offers_qty || 0) > 0);
+          if (deliveryItems.length === 0) return '';
+          const rows = deliveryItems.map((it, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${it.product_app_name || it.product_name}</td>
+              <td style="text-align:center">${it.comp_qty > 0 ? dbBPDisplay(it.comp_qty, it.pieces_per_box) : '-'}</td>
+              <td style="text-align:center">${it.comp_offers_qty > 0 ? dbBPDisplay(it.comp_offers_qty, it.pieces_per_box) : '-'}</td>
+            </tr>`).join('');
+          return `
+            <div class="box">
+              <h3>Détails de livraison (Tableau des livraisons)</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th><th>Produit</th>
+                    <th style="text-align:center">Comp. Dommage (livré)</th>
+                    <th style="text-align:center">Comp. Offres (livré)</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          `;
+        })()}
+
         ${r.meta.text ? `<div class="box"><h3>Remarques</h3><div class="row">${r.meta.text}</div></div>` : ''}
 
         <div class="signature">
