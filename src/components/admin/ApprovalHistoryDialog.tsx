@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, History, CheckCircle2, XCircle } from 'lucide-react';
+import ReceiptPrintViewById from '@/components/stock/ReceiptPrintViewById';
+import { useState } from 'react';
 
 export type ApprovalHistoryType = 'factory_in' | 'sector' | 'invoices';
 
@@ -27,6 +29,7 @@ const statusBadge = (status: string) => {
 };
 
 const ApprovalHistoryDialog: React.FC<Props> = ({ open, onOpenChange, type, title, branchFilter }) => {
+  const [previewReceiptId, setPreviewReceiptId] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ['approval-history', type, branchFilter],
     enabled: open,
@@ -109,7 +112,11 @@ const ApprovalHistoryDialog: React.FC<Props> = ({ open, onOpenChange, type, titl
             </div>
           ) : (
             data.map((row) => (
-              <Card key={row.id} className="border-slate-200">
+              <Card
+                key={row.id}
+                className={`border-slate-200 ${type === 'factory_in' ? 'cursor-pointer hover:border-primary hover:shadow-md transition' : ''}`}
+                onClick={() => { if (type === 'factory_in') setPreviewReceiptId(row.id); }}
+              >
                 <CardContent className="p-3 flex items-center justify-between gap-3 flex-wrap">
                   <div className="space-y-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{row.title}</p>
@@ -122,6 +129,12 @@ const ApprovalHistoryDialog: React.FC<Props> = ({ open, onOpenChange, type, titl
             ))
           )}
         </div>
+
+        <ReceiptPrintViewById
+          receiptId={previewReceiptId}
+          open={!!previewReceiptId}
+          onOpenChange={(v) => { if (!v) setPreviewReceiptId(null); }}
+        />
       </DialogContent>
     </Dialog>
   );
