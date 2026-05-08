@@ -578,6 +578,18 @@ const AssistantApprovals: React.FC = () => {
         requestId={reviewRequestId}
       />
 
+      <ApprovalHistoryDialog
+        open={!!historyType}
+        onOpenChange={(v) => { if (!v) setHistoryType(null); }}
+        type={historyType || 'factory_in'}
+        title={
+          historyType === 'sector' ? 'تعويض السكتورات'
+            : historyType === 'invoices' ? 'طلبات الفواتير'
+            : 'استلامات/تسليمات المصنع'
+        }
+        branchFilter={branchFilter}
+      />
+
       {detailsReceiptId && (
         <FactoryApprovalsDialog
           open={!!detailsReceiptId}
