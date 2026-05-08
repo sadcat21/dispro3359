@@ -1170,13 +1170,52 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
     });
   };
 
+  // Receipts that include an embedded "delivery to factory" section (compensation items)
+  const embeddedDeliveryReceipts = receipts.filter(r =>
+    r.items.some(it => (it.comp_qty || 0) > 0 || (it.comp_offers_qty || 0) > 0)
+  );
+
   // ─── Deliveries list ───────────────────────────────────────────────
   const renderDeliveries = () => {
     if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
     const standalone = deliveries.filter(d => !receipts.some(r => r.linked_delivery_id === d.id));
-    if (standalone.length === 0) return <div className="text-center py-8 text-sm text-muted-foreground">لا توجد عمليات تسليم معلقة</div>;
+    if (standalone.length === 0 && embeddedDeliveryReceipts.length === 0) {
+      return <div className="text-center py-8 text-sm text-muted-foreground">لا توجد عمليات تسليم معلقة</div>;
+    }
 
-    return standalone.map(d => {
+    const embeddedCards = embeddedDeliveryReceipts.map(r => {
+      const compItems = r.items.filter(it => (it.comp_qty || 0) > 0 || (it.comp_offers_qty || 0) > 0);
+      return (
+        <div key={`emb-${r.id}`} className="border-2 border-purple-300 rounded-lg overflow-hidden bg-purple-50/40 dark:bg-purple-950/20">
+          <button
+            className="w-full flex items-center gap-2 p-3 text-start"
+            onClick={() => setFullEditReceiptId(r.id)}
+          >
+            <Send className="w-4 h-4 text-purple-700 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-sm font-semibold">تسليم للمصنع (مرتبط بالاستلام)</span>
+                {r.invoice_number && <Badge variant="outline" className="text-[10px]">#{r.invoice_number}</Badge>}
+                <Badge className="bg-purple-600 text-white text-[10px]">
+                  <Inbox className="w-2.5 h-2.5 ml-0.5" />ضمن استلام
+                </Badge>
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {r.creator_name} • {formatDate(r.created_at, 'dd/MM HH:mm', 'ar')}
+              </div>
+            </div>
+            <Badge variant="secondary" className="text-[10px]">{compItems.length} منتج</Badge>
+          </button>
+          <div className="px-3 pb-3 text-[11px] text-muted-foreground">
+            اضغط لمراجعة تفاصيل التسليم/الاستلام والموافقة من نافذة الاستلام.
+          </div>
+        </div>
+      );
+    });
+
+    if (standalone.length === 0) return embeddedCards;
+
+    return [...embeddedCards, ...standalone.map(d => {
       const isExpanded = expandedId === d.id;
       const isEditing = editingId === d.id;
 
