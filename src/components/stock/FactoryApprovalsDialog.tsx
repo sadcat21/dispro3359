@@ -1312,7 +1312,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
           )}
         </div>
       );
-    });
+    })];
   };
 
   const totalReceipts = receipts.length;
