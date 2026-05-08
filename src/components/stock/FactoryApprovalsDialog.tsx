@@ -1316,7 +1316,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
   };
 
   const totalReceipts = receipts.length;
-  const standaloneDeliveries = deliveries.filter(d => !receipts.some(r => r.linked_delivery_id === d.id)).length;
+  const standaloneDeliveries = deliveries.filter(d => !receipts.some(r => r.linked_delivery_id === d.id)).length + embeddedDeliveryReceipts.length;
 
   return (
     <>
