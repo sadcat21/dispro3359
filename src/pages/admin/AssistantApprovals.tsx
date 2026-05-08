@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2, Info } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Truck, Package, Users, FileText, ShieldCheck, X, Eye, Lock, Globe2, Info, History } from 'lucide-react';
 import { toast } from 'sonner';
 import InvoiceRequestReviewDialog from '@/components/admin/InvoiceRequestReviewDialog';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
+import ApprovalHistoryDialog, { ApprovalHistoryType } from '@/components/admin/ApprovalHistoryDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -57,6 +58,7 @@ const AssistantApprovals: React.FC = () => {
   const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
   const [detailsReceiptId, setDetailsReceiptId] = useState<string | null>(null);
+  const [historyType, setHistoryType] = useState<ApprovalHistoryType | null>(null);
   const branchFilter = searchParams.get('branch');
 
   // اسم الفرع المختار للعرض
