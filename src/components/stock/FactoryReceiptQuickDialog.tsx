@@ -1587,7 +1587,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       </Dialog>
 
       {/* نافذة المراجعة قبل الإرسال للموافقة */}
-      <Dialog open={showReview} onOpenChange={setShowReview}>
+      <Dialog open={showReview} onOpenChange={(v) => { setShowReview(v); if (!v && previewOnly) onOpenChange(false); }}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
