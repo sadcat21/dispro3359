@@ -576,11 +576,29 @@ const MyDeliveries: React.FC = () => {
   const isDirectSale = (order: OrderWithDetails) => 
     order.notes?.includes('بيع مباشر') || false;
 
-  // Helper to check if order is postponed (delivery_date is in the future, not today)
+  // Fetch IDs of orders that were explicitly postponed via the postpone action
+  const orderIds = useMemo(() => (orders || []).map(o => o.id), [orders]);
+  const { data: postponedOrderIds } = useQuery({
+    queryKey: ['postponed-order-ids', orderIds],
+    queryFn: async () => {
+      if (!orderIds.length) return new Set<string>();
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('entity_id')
+        .eq('action_type', 'postpone')
+        .eq('entity_type', 'order')
+        .in('entity_id', orderIds);
+      if (error) throw error;
+      return new Set((data || []).map((r: any) => r.entity_id as string));
+    },
+    enabled: orderIds.length > 0,
+  });
+
+  // An order is "postponed" only if it was explicitly postponed via the action
+  // (not just because its delivery_date is in the future)
   const isPostponed = (order: OrderWithDetails) => {
-    if (!order.delivery_date) return false;
-    const today = format(new Date(), 'yyyy-MM-dd');
-    return order.delivery_date > today && !isDirectSale(order);
+    if (isDirectSale(order)) return false;
+    return postponedOrderIds?.has(order.id) || false;
   };
 
   // Filter by delivery type first
