@@ -350,14 +350,32 @@ const AssistantApprovals: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* زر سجل الموافقات يتبع التبويبة الحالية */}
+          <div className="flex justify-end mt-3">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const map: Record<string, ApprovalHistoryType> = {
+                  factory_in: 'factory_in',
+                  sector: 'sector',
+                  invoices: 'invoices',
+                  factory_out: 'factory_in',
+                };
+                setHistoryType(map[tab] || 'factory_in');
+              }}
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              <History className="w-4 h-4 me-1" />
+              سجل {tab === 'sector' ? 'تعويض السكتورات'
+                : tab === 'invoices' ? 'طلبات الفواتير'
+                : tab === 'factory_out' ? 'تسليمات المصنع'
+                : 'استلامات المصنع'}
+            </Button>
+          </div>
+
           {/* استلامات المصنع */}
           <TabsContent value="factory_in" className="mt-4 space-y-3">
-            <div className="flex justify-end">
-              <Button size="sm" variant="outline" onClick={() => setHistoryType('factory_in')} className="border-red-300 text-red-700 hover:bg-red-50">
-                <History className="w-4 h-4 me-1" />
-                سجل الموافقات
-              </Button>
-            </div>
             {!receiptsQ.data || receiptsQ.data.length === 0
               ? renderEmpty(receiptsQ.isLoading)
               : receiptsQ.data.map((r) => (
@@ -393,12 +411,6 @@ const AssistantApprovals: React.FC = () => {
 
           {/* تعويض السكتورات */}
           <TabsContent value="sector" className="mt-4 space-y-3">
-            <div className="flex justify-end">
-              <Button size="sm" variant="outline" onClick={() => setHistoryType('sector')} className="border-red-300 text-red-700 hover:bg-red-50">
-                <History className="w-4 h-4 me-1" />
-                سجل الموافقات
-              </Button>
-            </div>
             {!coverageQ.data || coverageQ.data.length === 0
               ? renderEmpty(coverageQ.isLoading)
               : coverageQ.data.map((c) => (
@@ -432,12 +444,6 @@ const AssistantApprovals: React.FC = () => {
 
           {/* طلبات الفواتير */}
           <TabsContent value="invoices" className="mt-4 space-y-3">
-            <div className="flex justify-end">
-              <Button size="sm" variant="outline" onClick={() => setHistoryType('invoices')} className="border-red-300 text-red-700 hover:bg-red-50">
-                <History className="w-4 h-4 me-1" />
-                سجل الموافقات
-              </Button>
-            </div>
             {!invoicesQ.data || invoicesQ.data.length === 0
               ? renderEmpty(invoicesQ.isLoading)
               : invoicesQ.data.map((i) => (
@@ -501,12 +507,6 @@ const AssistantApprovals: React.FC = () => {
 
           {/* تسليمات للمصنع */}
           <TabsContent value="factory_out" className="mt-4">
-            <div className="flex justify-end mb-3">
-              <Button size="sm" variant="outline" onClick={() => setHistoryType('factory_in')} className="border-red-300 text-red-700 hover:bg-red-50">
-                <History className="w-4 h-4 me-1" />
-                سجل الموافقات
-              </Button>
-            </div>
             <Card className="border-slate-200 bg-white">
               <CardContent className="p-6 text-center text-slate-500">
                 <Package className="w-12 h-12 mx-auto mb-3 opacity-40" />
