@@ -1025,8 +1025,8 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
 
       return (
         <div key={r.id} className="border rounded-lg overflow-hidden bg-card">
-          <button className="w-full flex items-center gap-2 p-3 text-start"
-            onClick={() => setExpandedId(isExpanded ? null : r.id)}>
+          <button className="w-full flex items-center gap-2 p-3 text-start hover:bg-muted/40 transition"
+            onClick={() => setPreviewReceiptId(r.id)}>
             <Inbox className="w-4 h-4 text-blue-600 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -1035,7 +1035,9 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
                 </span>
                 {r.invoice_number && <Badge variant="outline" className="text-[10px]">#{r.invoice_number}</Badge>}
                 {r.frozen_at && <Badge className="bg-blue-600 text-white text-[10px]"><Lock className="w-2.5 h-2.5 ml-0.5" />مؤجّل</Badge>}
-                {r.linked_delivery_id && <Badge className="bg-purple-600 text-white text-[10px]"><Truck className="w-2.5 h-2.5 ml-0.5" />مرتبط بتسليم</Badge>}
+                {(r.linked_delivery_id || r.items.some(it => (it.comp_qty || 0) > 0 || (it.comp_offers_qty || 0) > 0)) && (
+                  <Badge className="bg-purple-600 text-white text-[10px]"><Truck className="w-2.5 h-2.5 ml-0.5" />مرتبط بتسليم</Badge>
+                )}
               </div>
               <div className="text-[10px] text-muted-foreground">
                 {r.creator_name} • {formatDate(r.created_at, 'dd/MM HH:mm', 'ar')}
@@ -1044,128 +1046,14 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
             <Badge variant="secondary" className="text-[10px]">{r.items.length} منتج</Badge>
           </button>
 
-          {isExpanded && (
-            <div className="p-3 pt-0 space-y-3">
-              {/* Driver/Source info */}
-              {(r.meta.driver_name || r.meta.driver_phone || r.meta.license_plate) && (
-                <div className="bg-muted/50 rounded p-2 text-[11px] flex flex-wrap gap-3">
-                  {r.meta.driver_name && <span className="flex items-center gap-1"><User className="w-3 h-3" />{r.meta.driver_name}</span>}
-                  {r.meta.driver_phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{r.meta.driver_phone}</span>}
-                  {r.meta.license_plate && <span className="flex items-center gap-1"><Car className="w-3 h-3" />{r.meta.license_plate}</span>}
-                </div>
-              )}
-
-              {r.meta.text && (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-2 text-[11px]">
-                  <FileText className="w-3 h-3 inline ml-1" />{r.meta.text}
-                </div>
-              )}
-
-              {r.invoice_photo_url && (
-                <a href={r.invoice_photo_url} target="_blank" rel="noopener noreferrer"
-                  className="block text-[11px] text-primary underline">📷 عرض صورة الفاتورة</a>
-              )}
-
-              {/* Pallets */}
-              {(r.pallet_count || 0) > 0 && (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold flex items-center gap-1">🪵 باليطات مستلمة</span>
-                  <Badge className="bg-amber-600 text-white">{r.pallet_count}</Badge>
-                </div>
-              )}
-
-              {/* Products grid */}
-              <div className="grid grid-cols-2 gap-2">
-                {(isEditing ? editReceiptItems : r.items).map((item, idx) => {
-                  const displayName = getProductDisplayName({ name: item.product_name, app_name: item.product_app_name });
-                  const ppb = item.pieces_per_box;
-                  return (
-                    <div key={item.product_id} className="border rounded-lg p-2 bg-background">
-                      <div className="flex items-start gap-2 mb-2">
-                        {item.image_url ? (
-                          <img src={item.image_url} className="w-12 h-12 rounded object-cover border shrink-0" alt="" />
-                        ) : (
-                          <div className="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0 border">
-                            <Package className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold leading-tight line-clamp-2">{displayName}</p>
-                          <p className="text-[9px] text-muted-foreground mt-0.5">{ppb} قطعة/صندوق</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        {/* New */}
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] text-emerald-700 dark:text-emerald-400 flex items-center gap-1 font-semibold">
-                            <Sparkles className="w-3 h-3" />جديد
-                          </span>
-                          {isEditing ? (
-                            <Input type="number" min={0} step={0.01} value={item.new_qty}
-                              onChange={e => setEditReceiptItems(prev => prev.map((p, i) =>
-                                i === idx ? { ...p, new_qty: parseFloat(e.target.value) || 0 } : p))}
-                              className="h-6 w-20 text-[10px] text-center px-1" />
-                          ) : (
-                            <Badge className="bg-emerald-600 text-white text-[10px] h-5 px-1.5">{fmt(item.new_qty, ppb)}</Badge>
-                          )}
-                        </div>
-
-                        {/* Compensation damaged */}
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] text-orange-700 dark:text-orange-400 flex items-center gap-1 font-semibold">
-                            <Wrench className="w-3 h-3" />تعويض تالف
-                          </span>
-                          {isEditing ? (
-                            <Input type="number" min={0} step={0.01} value={item.comp_qty}
-                              onChange={e => setEditReceiptItems(prev => prev.map((p, i) =>
-                                i === idx ? { ...p, comp_qty: parseFloat(e.target.value) || 0 } : p))}
-                              className="h-6 w-20 text-[10px] text-center px-1" />
-                          ) : (
-                            <Badge className="bg-orange-600 text-white text-[10px] h-5 px-1.5">{fmt(item.comp_qty, ppb)}</Badge>
-                          )}
-                        </div>
-
-                        {/* Compensation offers */}
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] text-purple-700 dark:text-purple-400 flex items-center gap-1 font-semibold">
-                            <Boxes className="w-3 h-3" />تعويض عروض
-                          </span>
-                          {isEditing ? (
-                            <Input type="number" min={0} step={0.01} value={item.comp_offers_qty}
-                              onChange={e => setEditReceiptItems(prev => prev.map((p, i) =>
-                                i === idx ? { ...p, comp_offers_qty: parseFloat(e.target.value) || 0 } : p))}
-                              className="h-6 w-20 text-[10px] text-center px-1" />
-                          ) : (
-                            <Badge className="bg-purple-600 text-white text-[10px] h-5 px-1.5">{fmt(item.comp_offers_qty, ppb)}</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+          <div className="px-3 pb-3" onClick={(e) => e.stopPropagation()}>
+            {r.meta.text && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-2 text-[11px] mb-2">
+                <FileText className="w-3 h-3 inline ml-1" />{r.meta.text}
               </div>
-
-              {/* Linked delivery preview */}
-              {linkedD && (
-                <div className="border-2 border-purple-300 bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-2 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-purple-700 dark:text-purple-300">
-                    <Truck className="w-3.5 h-3.5" />تسليم مرتبط — سيتم تأكيده تلقائياً عند الموافقة
-                  </div>
-                  <div className="text-[11px] space-y-0.5">
-                    {linkedD.pallet_count > 0 && <div>🪵 باليطات للتسليم: <strong>{linkedD.pallet_count}</strong></div>}
-                    {linkedD.items.map(it => (
-                      <div key={it.id}>
-                        • {getProductDisplayName({ name: it.product_name, app_name: it.product_app_name })}: <strong>{fmt(it.quantity, it.pieces_per_box)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {renderActionsBar('receipt', r, () => setSummaryReceipt(r), () => saveReceiptEdits(r), () => setFullEditReceiptId(r.id))}
-            </div>
-          )}
+            )}
+            {renderActionsBar('receipt', r, () => setSummaryReceipt(r), () => saveReceiptEdits(r), () => setFullEditReceiptId(r.id))}
+          </div>
         </div>
       );
     });
