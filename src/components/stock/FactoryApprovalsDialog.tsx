@@ -221,11 +221,10 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
 
         ${(() => {
           if (!linkedD || linkedD.items.length === 0) return '';
-          const rows = linkedD.items.map((it, i) => {
+          const rows = linkedD.items.map((it) => {
             const ppb = it.pieces_per_box || 1;
             const parsed = parseBP(Number(it.quantity || 0).toFixed(2), ppb);
             return `<tr>
-              <td>${i + 1}</td>
               <td>${it.product_app_name || it.product_name}</td>
               <td style="text-align:center">${it.manufacturing_date ? new Date(it.manufacturing_date).toLocaleDateString('fr') : '-'}</td>
               <td style="text-align:center">${it.lot_number || '-'}</td>
