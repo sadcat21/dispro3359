@@ -1725,17 +1725,19 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
               onClick={() => printDetailedReport()}>
               <FileText className="w-4 h-4 ml-1" /> طباعة التفاصيل
             </Button>
-            <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs sm:text-sm" onClick={() => setShowReview(false)}>
-              <X className="w-4 h-4 ml-1" /> رجوع
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs sm:text-sm" onClick={() => { setShowReview(false); if (previewOnly) onOpenChange(false); }}>
+              <X className="w-4 h-4 ml-1" /> {previewOnly ? 'إغلاق' : 'رجوع'}
             </Button>
-            <Button
-              size="sm"
-              className="w-full sm:w-auto text-xs sm:text-sm bg-lime-600 hover:bg-lime-700"
-              disabled={isSaving}
-              onClick={async () => { await handleSave(); setShowReview(false); }}>
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
-              {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
-            </Button>
+            {!previewOnly && (
+              <Button
+                size="sm"
+                className="w-full sm:w-auto text-xs sm:text-sm bg-lime-600 hover:bg-lime-700"
+                disabled={isSaving}
+                onClick={async () => { await handleSave(); setShowReview(false); }}>
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
+                {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
