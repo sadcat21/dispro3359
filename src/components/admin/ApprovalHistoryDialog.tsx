@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, History, CheckCircle2, XCircle } from 'lucide-react';
-import ReceiptPrintViewById from '@/components/stock/ReceiptPrintViewById';
+import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
 import { useState } from 'react';
 
 export type ApprovalHistoryType = 'factory_in' | 'sector' | 'invoices';
@@ -130,11 +130,14 @@ const ApprovalHistoryDialog: React.FC<Props> = ({ open, onOpenChange, type, titl
           )}
         </div>
 
-        <ReceiptPrintViewById
-          receiptId={previewReceiptId}
-          open={!!previewReceiptId}
-          onOpenChange={(v) => { if (!v) setPreviewReceiptId(null); }}
-        />
+        {previewReceiptId && (
+          <FactoryReceiptQuickDialog
+            open={!!previewReceiptId}
+            onOpenChange={(v) => { if (!v) setPreviewReceiptId(null); }}
+            editReceiptId={previewReceiptId}
+            previewOnly
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

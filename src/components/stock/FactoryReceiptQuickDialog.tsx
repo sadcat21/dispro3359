@@ -54,6 +54,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   editReceiptId?: string | null;
   onSaved?: () => void;
+  /** Open directly in read-only review mode (used by approval-history preview) */
+  previewOnly?: boolean;
 }
 
 interface QuantityFields {
@@ -93,7 +95,7 @@ const formatDbQuantity = (quantity: number, piecesPerBox: number): string => {
   return piecesPerBox > 1 ? dbBPDisplay(quantity, piecesPerBox) : String(quantity);
 };
 
-const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editReceiptId, onSaved }) => {
+const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editReceiptId, onSaved, previewOnly }) => {
   const { workerId, role, activeRole, activeBranch } = useAuth();
   const { companyInfo } = useCompanyInfo();
   const [items, setItems] = useState<ReceiptItem[]>([]);
@@ -233,9 +235,10 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
           }
         });
         setItems(Array.from(grouped.values()));
+        if (previewOnly) setShowReview(true);
       })();
     }
-  }, [open, branchId, editReceiptId]);
+  }, [open, branchId, editReceiptId, previewOnly]);
 
   const fetchPendingReceipts = async () => {
     if (!branchId) return;
@@ -847,7 +850,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open && !previewOnly} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md w-[95vw] h-[90dvh] max-h-[90dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0" dir="rtl">
           <DialogHeader className="px-4 pt-4 pb-2 shrink-0 border-b">
             <DialogTitle className="flex items-center gap-2">
@@ -1584,7 +1587,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       </Dialog>
 
       {/* نافذة المراجعة قبل الإرسال للموافقة */}
-      <Dialog open={showReview} onOpenChange={setShowReview}>
+      <Dialog open={showReview} onOpenChange={(v) => { setShowReview(v); if (!v && previewOnly) onOpenChange(false); }}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1722,17 +1725,19 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
               onClick={() => printDetailedReport()}>
               <FileText className="w-4 h-4 ml-1" /> طباعة التفاصيل
             </Button>
-            <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs sm:text-sm" onClick={() => setShowReview(false)}>
-              <X className="w-4 h-4 ml-1" /> رجوع
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs sm:text-sm" onClick={() => { setShowReview(false); if (previewOnly) onOpenChange(false); }}>
+              <X className="w-4 h-4 ml-1" /> {previewOnly ? 'إغلاق' : 'رجوع'}
             </Button>
-            <Button
-              size="sm"
-              className="w-full sm:w-auto text-xs sm:text-sm bg-lime-600 hover:bg-lime-700"
-              disabled={isSaving}
-              onClick={async () => { await handleSave(); setShowReview(false); }}>
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
-              {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
-            </Button>
+            {!previewOnly && (
+              <Button
+                size="sm"
+                className="w-full sm:w-auto text-xs sm:text-sm bg-lime-600 hover:bg-lime-700"
+                disabled={isSaving}
+                onClick={async () => { await handleSave(); setShowReview(false); }}>
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <Send className="w-4 h-4 ml-1" />}
+                {isWarehouseManager && !isAdmin ? 'إرسال للموافقة' : 'تأكيد الاستلام'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
