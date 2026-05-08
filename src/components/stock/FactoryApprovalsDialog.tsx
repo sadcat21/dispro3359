@@ -1122,8 +1122,18 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
             </div>
             <Badge variant="secondary" className="text-[10px]">{compItems.length} منتج</Badge>
           </button>
-          <div className="px-3 pb-3 text-[11px] text-muted-foreground">
-            اضغط لمراجعة تفاصيل التسليم/الاستلام والموافقة من نافذة الاستلام.
+          <div className="px-3 pb-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+            <div className="text-[11px] text-muted-foreground">
+              اضغط لمراجعة تفاصيل التسليم/الاستلام والموافقة من نافذة الاستلام.
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full border-purple-500 text-purple-700"
+              onClick={() => printReceiptDetails(r)}
+            >
+              <FileText className="w-3.5 h-3.5 ml-1" /> طباعة تفاصيل الاستلام/التسليم
+            </Button>
           </div>
         </div>
       );
