@@ -850,7 +850,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open && !previewOnly} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md w-[95vw] h-[90dvh] max-h-[90dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0" dir="rtl">
           <DialogHeader className="px-4 pt-4 pb-2 shrink-0 border-b">
             <DialogTitle className="flex items-center gap-2">
