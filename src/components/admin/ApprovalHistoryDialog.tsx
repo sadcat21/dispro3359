@@ -130,11 +130,14 @@ const ApprovalHistoryDialog: React.FC<Props> = ({ open, onOpenChange, type, titl
           )}
         </div>
 
-        <ReceiptPrintViewById
-          receiptId={previewReceiptId}
-          open={!!previewReceiptId}
-          onOpenChange={(v) => { if (!v) setPreviewReceiptId(null); }}
-        />
+        {previewReceiptId && (
+          <FactoryReceiptQuickDialog
+            open={!!previewReceiptId}
+            onOpenChange={(v) => { if (!v) setPreviewReceiptId(null); }}
+            editReceiptId={previewReceiptId}
+            previewOnly
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
