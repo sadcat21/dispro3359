@@ -54,6 +54,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   editReceiptId?: string | null;
   onSaved?: () => void;
+  /** Open directly in read-only review mode (used by approval-history preview) */
+  previewOnly?: boolean;
 }
 
 interface QuantityFields {
