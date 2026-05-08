@@ -254,7 +254,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
                     <th style="text-align:center">Date de livraison</th>
                   </tr>
                 </thead>
-                <tbody>${rows.replace(/<td>\d+<\/td>\s*<td>/g, '<td>')}</tbody>
+                <tbody>${rows}</tbody>
               </table>
             </div>
           `;
