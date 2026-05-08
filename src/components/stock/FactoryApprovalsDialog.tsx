@@ -1395,6 +1395,14 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
           onSaved={() => { setFullEditDeliveryId(null); fetchData(); }}
         />
       )}
+      {previewReceiptId && (
+        <FactoryReceiptQuickDialog
+          open={!!previewReceiptId}
+          onOpenChange={(o) => { if (!o) setPreviewReceiptId(null); }}
+          editReceiptId={previewReceiptId}
+          previewOnly
+        />
+      )}
     </>
   );
 };
