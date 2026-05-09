@@ -3,11 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Package, Check, Plus, X, Gift, Truck, Trash2, Warehouse } from 'lucide-react';
+import { Package, Check, Plus, X, Gift, Truck, Trash2, Warehouse, SlidersHorizontal } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { parseBP } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 
 interface ProductOption {
@@ -63,26 +62,30 @@ type PickerMode = 'browse' | 'single-qty' | 'multi-qty';
 const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
 
 const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
-  const parsed = parseBP(boxesToBP(quantity, piecesPerBox), piecesPerBox);
+  const parsed = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
   return {
     boxes: String(parsed.boxes),
     pieces: parsed.pieces > 0 ? String(parsed.pieces) : '',
   };
 };
 
-const fieldsToQuantity = (fields: QuantityFields, piecesPerBox: number): number => {
-  const boxes = sanitizeDigits(fields.boxes, 5) || '0';
-  const pieces = sanitizeDigits(fields.pieces, 3) || '0';
-  return parseBP(`${boxes}.${pieces}`, piecesPerBox).totalBoxes;
-};
-
 const normalizeFields = (fields: QuantityFields, piecesPerBox: number): QuantityFields => {
-  return quantityToFields(fieldsToQuantity(fields, piecesPerBox), piecesPerBox);
+  const parsed = parseBP(`${fields.boxes || '0'}.${fields.pieces || '0'}`, piecesPerBox);
+  return {
+    boxes: String(parsed.boxes),
+    pieces: parsed.pieces > 0 ? String(parsed.pieces) : '',
+  };
 };
 
 const toCustomFormat = (p: { boxes: number; pieces: number }) => p.boxes + p.pieces / 100;
 
 const createDefaultSingleFields = (): QuantityFields => ({ boxes: '', pieces: '' });
+const createDefaultMultiFields = (): QuantityFields => ({ boxes: '1', pieces: '' });
+
+const fieldsToCustomQuantity = (fields: QuantityFields, piecesPerBox: number): number => {
+  const parsedFields = parseBP(`${fields.boxes || '0'}.${fields.pieces || '0'}`, piecesPerBox);
+  return toCustomFormat(parsedFields);
+};
 
 const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   open,
@@ -110,8 +113,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     setMultiSelected(new Set());
     setMode('browse');
     setUniformQty(true);
-    setUnifiedQtyValue(1);
-    setIndividualQtys({});
+    setUnifiedQtyFields(createDefaultMultiFields());
+    setIndividualQtyFields({});
     setSingleGiftQty(0);
     setSingleGiftUnit('piece');
     setIsEditMode(false);
@@ -132,8 +135,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<PickerMode>('browse');
   const [uniformQty, setUniformQty] = useState(true);
-  const [unifiedQtyValue, setUnifiedQtyValue] = useState(1);
-  const [individualQtys, setIndividualQtys] = useState<Record<string, number>>({});
+  const [unifiedQtyFields, setUnifiedQtyFields] = useState<QuantityFields>(() => createDefaultMultiFields());
+  const [individualQtyFields, setIndividualQtyFields] = useState<Record<string, QuantityFields>>({});
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
@@ -304,8 +307,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const giftQty = toCustomFormat(parsedGift);
     const item = {
       productId: singleProductId,
-      quantity: regularQty + giftQty,
-      giftQuantity: giftQty,
+      quantity: regularQty,
+      giftQuantity: parsedGift.boxes > 0 && parsedGift.pieces === 0 ? parsedGift.boxes : parsedGift.totalPieces,
       giftUnit: parsedGift.boxes > 0 && parsedGift.pieces === 0 ? 'box' : 'piece',
     };
     if (isEditMode && onEditProduct) {
@@ -324,10 +327,14 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   // Multi-select
   const handleOpenMultiQty = () => {
     if (multiSelected.size === 0) return;
-    const initQtys: Record<string, number> = {};
-    multiSelected.forEach(id => { initQtys[id] = needsMap[id] || 1; });
-    setIndividualQtys(initQtys);
-    setUnifiedQtyValue(1);
+    const initQtys: Record<string, QuantityFields> = {};
+    multiSelected.forEach(id => {
+      const product = products.find(p => p.id === id);
+      const ppb = product?.pieces_per_box || 1;
+      initQtys[id] = needsMap[id] > 0 ? quantityToFields(needsMap[id], ppb) : createDefaultMultiFields();
+    });
+    setIndividualQtyFields(initQtys);
+    setUnifiedQtyFields(createDefaultMultiFields());
     setMode('multi-qty');
   };
 
@@ -347,11 +354,14 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
   const handleConfirmMulti = () => {
     const items = Array.from(multiSelected).map(id => {
-      const qty = uniformQty ? unifiedQtyValue : (individualQtys[id] || 1);
+      const product = products.find(p => p.id === id);
+      const ppb = product?.pieces_per_box || 1;
+      const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[id] || createDefaultMultiFields());
+      const qty = fieldsToCustomQuantity(qtyFields, ppb);
       const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
       return {
         productId: id,
-        quantity: qty + giftQty,
+        quantity: qty,
         giftQuantity: giftQty,
         giftUnit,
       };
@@ -360,13 +370,13 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     onAddProducts(items);
     setMultiSelected(new Set());
     setMode('browse');
-    setIndividualQtys({});
+    setIndividualQtyFields({});
   };
 
   const handleCancelMulti = () => {
     setMultiSelected(new Set());
     setMode('browse');
-    setIndividualQtys({});
+    setIndividualQtyFields({});
   };
 
   const renderProductButton = (p: ProductOption) => {
@@ -463,22 +473,47 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
         <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
           <span className="text-sm font-bold">{selectedProducts.length} منتج محدد</span>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground">{uniformQty ? 'كمية موحدة' : 'كميات مختلفة'}</span>
-            <Switch checked={!uniformQty} onCheckedChange={v => setUniformQty(!v)} />
+            <Button
+              type="button"
+              variant={uniformQty ? 'outline' : 'default'}
+              size="sm"
+              className="h-8 px-2 text-[11px] font-bold"
+              onClick={() => setUniformQty(prev => !prev)}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 me-1" />
+              {uniformQty ? 'تفعيل لكل منتج' : 'كمية موحدة'}
+            </Button>
           </div>
         </div>
 
         {uniformQty && (
           <div className="px-3 py-2 border-b shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">الكمية لكل منتج:</span>
-              <Input
-                type="number" min={0.01} step="any"
-                value={unifiedQtyValue}
-                onFocus={e => e.target.select()}
-                onChange={e => setUnifiedQtyValue(parseFloat(e.target.value) || 0)}
-                className="w-24 h-8 text-center font-bold"
-              />
+            <div className="flex items-end gap-2">
+              <span className="text-xs text-muted-foreground pb-2">الكمية لكل منتج:</span>
+              <div className="grid grid-cols-2 gap-2 flex-1">
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">الصندوق</Label>
+                  <Input
+                    type="text" inputMode="numeric"
+                    value={unifiedQtyFields.boxes}
+                    onFocus={e => e.target.select()}
+                    onChange={e => setUnifiedQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
+                    className="h-8 text-center text-sm font-bold [font-variant-numeric:tabular-nums]"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">القطع</Label>
+                  <Input
+                    type="text" inputMode="numeric"
+                    value={unifiedQtyFields.pieces}
+                    onFocus={e => e.target.select()}
+                    onChange={e => setUnifiedQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
+                    className="h-8 text-center text-sm font-bold [font-variant-numeric:tabular-nums]"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -486,7 +521,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-2 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-1.5">
             {selectedProducts.map(p => {
-              const qty = uniformQty ? unifiedQtyValue : (individualQtys[p.id] || 1);
+              const ppb = p.pieces_per_box || 1;
+              const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
+              const qty = fieldsToCustomQuantity(qtyFields, ppb);
               const gift = computeGiftForProduct(p.id, qty);
               return (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg ring-1 ring-border/40 bg-card">
@@ -508,16 +545,29 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   )}
                 </div>
                 {!uniformQty && (
-                  <Input
-                    type="number" min={0} step="any"
-                    value={individualQtys[p.id] || 1}
-                    onFocus={e => e.target.select()}
-                    onChange={e => setIndividualQtys(prev => ({ ...prev, [p.id]: parseFloat(e.target.value) || 0 }))}
-                    className="w-16 h-8 text-center text-sm font-bold"
-                  />
+                  <div className="grid grid-cols-2 gap-1 w-28 shrink-0">
+                    <Input
+                      type="text" inputMode="numeric"
+                      value={qtyFields.boxes}
+                      aria-label="الصندوق"
+                      onFocus={e => e.target.select()}
+                      onChange={e => setIndividualQtyFields(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || createDefaultMultiFields()), boxes: sanitizeDigits(e.target.value, 5) } }))}
+                      className="h-8 text-center text-xs font-bold [font-variant-numeric:tabular-nums]"
+                      placeholder="ص"
+                    />
+                    <Input
+                      type="text" inputMode="numeric"
+                      value={qtyFields.pieces}
+                      aria-label="القطع"
+                      onFocus={e => e.target.select()}
+                      onChange={e => setIndividualQtyFields(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || createDefaultMultiFields()), pieces: sanitizeDigits(e.target.value, 3) } }))}
+                      className="h-8 text-center text-xs font-bold [font-variant-numeric:tabular-nums]"
+                      placeholder="ق"
+                    />
+                  </div>
                 )}
                 {uniformQty && (
-                  <Badge variant="secondary" className="text-xs">{fmtQty(unifiedQtyValue)}</Badge>
+                  <Badge variant="secondary" className="text-xs">{parseBP(`${unifiedQtyFields.boxes || '0'}.${unifiedQtyFields.pieces || '0'}`, ppb).display}</Badge>
                 )}
               </div>
               );

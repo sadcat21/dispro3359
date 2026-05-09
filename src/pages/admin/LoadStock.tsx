@@ -738,7 +738,15 @@ const LoadStock: React.FC = () => {
         const warehousePieces = customToTotalPieces(warehouseItem.quantity, piecesPerBox);
         const alreadyInSession = sessionItems
           .filter(si => si.product_id === item.productId)
-          .reduce((sum, si) => sum + customToTotalPieces(si.quantity + (si.gift_quantity || 0), piecesPerBox), 0);
+          .reduce((sum, si) => {
+            const existingGift = si.gift_unit === 'box'
+              ? (si.gift_quantity || 0)
+              : totalPiecesToCustom(si.gift_quantity || 0, piecesPerBox);
+            const existingTotal = si.gift_quantity > 0
+              ? addCustomQty(si.quantity, existingGift, piecesPerBox)
+              : si.quantity;
+            return sum + customToTotalPieces(existingTotal, piecesPerBox);
+          }, 0);
         const loadPieces = customToTotalPieces(totalLoadQty, piecesPerBox);
         if (warehousePieces < loadPieces + alreadyInSession) {
           toast.error(`${t('load_stock.insufficient_stock')} - ${product?.name || ''}`);
