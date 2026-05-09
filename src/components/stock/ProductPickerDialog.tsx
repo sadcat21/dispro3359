@@ -292,22 +292,27 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   // Calculate suggested gift based on regular quantity and offer tiers
   const suggestedGift = React.useMemo(() => {
     if (!singleOffer || toCustomFormat(parsed) <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
-    const qty = toCustomFormat(parsed);
+    const qtyCustom = toCustomFormat(parsed);
+    const qtyPieces = parsed.totalPieces;
     const sortedTiers = [...singleOffer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
-      if (qty >= tier.minQty) {
-        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
-        const totalPieces = tier.giftUnit === 'box' ? gQty * singlePPB : gQty;
+      const minPieces = (tier.minUnit || singleOffer.minUnit) === 'piece'
+        ? tier.minQty
+        : Math.round(tier.minQty * singlePPB);
+      const eligibleQty = (tier.minUnit || singleOffer.minUnit) === 'piece' ? qtyPieces : qtyCustom;
+      const threshold = (tier.minUnit || singleOffer.minUnit) === 'piece' ? minPieces : tier.minQty;
+      if (eligibleQty >= threshold) {
+        const gQty = Math.floor(eligibleQty / threshold) * tier.giftQty;
+        const totalPieces = giftToPieces(gQty, tier.giftUnit, singlePPB);
         return { qty: gQty, unit: tier.giftUnit, totalPieces };
       }
     }
     return { qty: 0, unit: 'piece', totalPieces: 0 };
-  }, [singleOffer, parsed.boxes, parsed.pieces, singlePPB]);
+  }, [singleOffer, parsed.boxes, parsed.pieces, parsed.totalPieces, singlePPB]);
 
   const suggestedSplit = React.useMemo(() => {
-    const boxes = Math.floor(suggestedGift.totalPieces / singlePPB);
-    const pieces = suggestedGift.totalPieces % singlePPB;
-    return { boxes, pieces };
+    const fields = piecesToFields(suggestedGift.totalPieces, singlePPB);
+    return { boxes: Number(fields.boxes), pieces: Number(fields.pieces) };
   }, [suggestedGift.totalPieces, singlePPB]);
 
   // Total = regular + gift (in pieces, then formatted as B.P)
