@@ -191,7 +191,6 @@ const WorkerHome: React.FC = () => {
       let query = supabase
         .from('customers')
         .select('*')
-        .eq('status', 'active')
         .order('name');
       if (effectiveBranchId) {
         query = query.or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
