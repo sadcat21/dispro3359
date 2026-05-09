@@ -751,7 +751,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           )}
           <Button
             onClick={handleSave}
-            disabled={isSaving || loading || rows.length === 0 || selectedSessionId !== 'all'}
+            disabled={isSaving || loading || rows.length === 0 || isPreviewMode}
             className="w-full gap-2"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
