@@ -512,6 +512,34 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
               📤 حركات التفريغ: <strong>{unloadCount}</strong>
             </Badge>
           </div>
+          {loadSessionsList.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
+              <span className="text-[10px] text-muted-foreground">معاينة:</span>
+              <Button
+                type="button"
+                size="sm"
+                variant={selectedSessionId === 'all' ? 'default' : 'outline'}
+                onClick={() => setSelectedSessionId('all')}
+                className="h-6 px-2 text-[10px] gap-1"
+              >
+                <Package className="w-3 h-3" />
+                الكل ({loadSessionsList.length})
+              </Button>
+              {loadSessionsList.map((s, idx) => (
+                <Button
+                  key={s.id}
+                  type="button"
+                  size="sm"
+                  variant={selectedSessionId === s.id ? 'default' : 'outline'}
+                  onClick={() => setSelectedSessionId(s.id)}
+                  className="h-6 px-2 text-[10px]"
+                  title={new Date(s.created_at).toLocaleString('ar-DZ')}
+                >
+                  شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto pe-1">
