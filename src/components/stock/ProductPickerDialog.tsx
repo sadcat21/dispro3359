@@ -566,8 +566,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
             </button>
 
             <div className="flex items-stretch border-t bg-muted/40 divide-x rtl:divide-x-reverse divide-border h-7">
-              {(() => null)()}
-            <>
               <button
                 type="button"
                 onClick={() => handleProductTap(p)}
@@ -585,9 +583,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   {fmtBP(neededQty, p.pieces_per_box || 1)}
                 </button>
               )}
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     );
   };
