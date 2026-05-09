@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Package, Check, Plus, X, Gift, Truck, Trash2, Warehouse, SlidersHorizontal } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -310,8 +309,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const giftQty = toCustomFormat(parsedGift);
     const item = {
       productId: singleProductId,
-      quantity: regularQty + giftQty,
-      giftQuantity: giftQty,
+      quantity: regularQty,
+      giftQuantity: parsedGift.boxes > 0 && parsedGift.pieces === 0 ? parsedGift.boxes : parsedGift.totalPieces,
       giftUnit: parsedGift.boxes > 0 && parsedGift.pieces === 0 ? 'box' : 'piece',
     };
     if (isEditMode && onEditProduct) {
@@ -364,7 +363,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
       return {
         productId: id,
-        quantity: qty + giftQty,
+        quantity: qty,
         giftQuantity: giftQty,
         giftUnit,
       };
