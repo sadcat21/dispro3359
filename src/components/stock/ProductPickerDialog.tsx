@@ -203,6 +203,15 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   };
 
+  // Format quantity in Box.Piece (B.P) form, e.g. "2.5" = 2 boxes + 5 pieces
+  const fmtBP = (n: number, ppb: number): string => {
+    const total = Math.max(0, Math.round(Number(n) || 0));
+    if (!ppb || ppb <= 1) return `0.${total}`;
+    const boxes = Math.floor(total / ppb);
+    const pieces = total % ppb;
+    return `${boxes}.${pieces}`;
+  };
+
   // Display gift amount converting pieces → boxes when divisible by ppb
   const formatGiftDisplay = (giftQty: number, giftUnit: string, ppb: number): string => {
     if (giftUnit === 'box') return `${fmtQty(giftQty)} صندوق`;
@@ -498,7 +507,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 <Truck className="w-3 h-3" />
-                {fmtQty(loadedQty - giftQty)}
+                {fmtBP(loadedQty - giftQty, p.pieces_per_box || 1)}
               </button>
               {giftQty > 0 && (
                 <button
@@ -507,7 +516,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-purple-700 hover:bg-purple-500/10 transition-colors"
                 >
                   <Gift className="w-3 h-3" />
-                  {fmtQty(giftQty)}
+                  {fmtBP(giftQty, p.pieces_per_box || 1)}
                 </button>
               )}
             </>
@@ -519,7 +528,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className={`flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold hover:bg-accent transition-colors ${isOutOfStock ? 'text-destructive' : 'text-foreground'}`}
               >
                 <Warehouse className="w-3 h-3" />
-                {fmtQty(p.warehouseQty)}
+                {fmtBP(p.warehouseQty, p.pieces_per_box || 1)}
               </button>
               {neededQty > 0 && (
                 <button
@@ -527,7 +536,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   onClick={() => handleProductTap(p)}
                   className="flex items-center justify-center flex-1 text-[10px] font-semibold text-destructive hover:bg-destructive/10 transition-colors"
                 >
-                  {fmtQty(neededQty)}
+                  {fmtBP(neededQty, p.pieces_per_box || 1)}
                 </button>
               )}
             </>
