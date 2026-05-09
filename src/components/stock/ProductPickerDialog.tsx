@@ -489,6 +489,30 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
         <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
           <span className="text-sm font-bold">{selectedProducts.length} منتج محدد</span>
           <div className="flex items-center gap-2">
+            {(() => {
+              const offerProducts = selectedProducts.filter(p => !!offersMap[p.id]);
+              if (offerProducts.length === 0) return null;
+              const allActivated = offerProducts.every(p => !!offerActivated[p.id]);
+              return (
+                <Button
+                  type="button"
+                  variant={allActivated ? 'default' : 'outline'}
+                  size="sm"
+                  className={`h-8 px-2 text-[11px] font-bold ${allActivated ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
+                  onClick={() => {
+                    setOfferActivated(prev => {
+                      const next = { ...prev };
+                      offerProducts.forEach(p => { next[p.id] = !allActivated; });
+                      return next;
+                    });
+                  }}
+                  title={allActivated ? 'إلغاء تفعيل الهدية للكل' : 'تفعيل الهدية للكل'}
+                >
+                  <Gift className="w-3.5 h-3.5 me-1" />
+                  {allActivated ? 'إلغاء الهدية' : 'تفعيل الهدية'}
+                </Button>
+              );
+            })()}
             <Button
               type="button"
               variant={uniformQty ? 'outline' : 'default'}
