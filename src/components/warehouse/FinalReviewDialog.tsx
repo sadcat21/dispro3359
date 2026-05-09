@@ -382,9 +382,43 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
+  // Subtract loaded contributions of UI-hidden sessions
+  const effectiveRows = useMemo<AggregatedRow[]>(() => {
+    if (hiddenSessionIds.size === 0) return rows;
+    const bpToPieces = (val: number, ppb: number): number => {
+      const v = Number(val || 0);
+      const boxes = Math.floor(Math.round(v * 100) / 100);
+      const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
+      return boxes * ppb + piecesDec;
+    };
+    const subtractByPid = new Map<string, number>();
+    for (const sid of hiddenSessionIds) {
+      for (const it of (loadItemsBySession[sid] || [])) {
+        const ppb = Math.max(1, Math.round(Number((it as any).product?.pieces_per_box || 1)));
+        const pid = (it as any).product_id;
+        subtractByPid.set(pid, (subtractByPid.get(pid) || 0) + bpToPieces(Number((it as any).quantity || 0), ppb));
+      }
+    }
+    return rows.map(r => {
+      const sub = subtractByPid.get(r.productId) || 0;
+      if (!sub) return r;
+      const newLoaded = Math.max(0, r.loaded - sub);
+      const expectedTotal = newLoaded - r.unloaded - r.sold - r.gifts;
+      const absP = Math.abs(expectedTotal);
+      const sign = expectedTotal < 0 ? -1 : 1;
+      return {
+        ...r,
+        loaded: newLoaded,
+        expected: expectedTotal,
+        expectedBoxes: sign * Math.floor(absP / r.ppb),
+        expectedPieces: absP % r.ppb,
+      };
+    });
+  }, [rows, hiddenSessionIds, loadItemsBySession]);
+
   const filtered = useMemo(
     () => {
-      const source = isPreviewMode ? sessionPreviewRows : rows;
+      const source = isPreviewMode ? sessionPreviewRows : effectiveRows;
       return source
         .slice()
         .sort((a, b) => {
@@ -392,7 +426,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           return a.productName.localeCompare(b.productName);
         });
     },
-    [rows, sessionPreviewRows, isPreviewMode]
+    [effectiveRows, sessionPreviewRows, isPreviewMode]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
