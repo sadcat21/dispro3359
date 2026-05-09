@@ -64,6 +64,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [periodStart, setPeriodStart] = useState<string | null>(null);
   const [workerPin, setWorkerPin] = useState('');
   const [hasPin, setHasPin] = useState<boolean | null>(null);
+  // Per-session preview support
+  const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
+  const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
+  const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
 
   // Check if worker has set up a review PIN
   useEffect(() => {
@@ -101,22 +105,33 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         // 2. جلسات الشحن للعامل بعد ذلك التاريخ (استثناء جلسات المراجعة حتى لا تُحتسب كشحن)
         const { data: loadSessions } = await supabase
           .from('loading_sessions')
-          .select('id, status')
+          .select('id, status, created_at')
           .eq('worker_id', workerId)
           .neq('status', 'review')
-          .gte('created_at', sinceTs);
+          .gte('created_at', sinceTs)
+          .order('created_at', { ascending: true });
         const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
-        if (!cancelled) setLoadCount(loadSessionIds.length);
+        if (!cancelled) {
+          setLoadCount(loadSessionIds.length);
+          setLoadSessionsList((loadSessions || []).map((s: any) => ({ id: s.id, created_at: s.created_at })));
+        }
 
         // 3. بنود الشحن (موجبة)
         let loadItems: any[] = [];
+        const itemsBySession: Record<string, any[]> = {};
         if (loadSessionIds.length > 0) {
           const { data } = await supabase
             .from('loading_session_items')
-            .select('product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
+            .select('session_id, product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
             .in('session_id', loadSessionIds);
           loadItems = data || [];
+          for (const it of loadItems) {
+            const sid = (it as any).session_id;
+            if (!sid) continue;
+            (itemsBySession[sid] = itemsBySession[sid] || []).push(it);
+          }
         }
+        if (!cancelled) setLoadItemsBySession(itemsBySession);
 
         // 4. حركات التفريغ (return) من stock_movements للعامل
         const { data: unloadMoves } = await supabase
@@ -250,14 +265,47 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     return () => { cancelled = true; };
   }, [open, workerId]);
 
+  // Per-session preview: rebuild rows from a single session's items only
+  const sessionPreviewRows = useMemo<AggregatedRow[]>(() => {
+    if (selectedSessionId === 'all') return [];
+    const items = loadItemsBySession[selectedSessionId] || [];
+    const bpToPieces = (val: number, ppb: number): number => {
+      const v = Number(val || 0);
+      const boxes = Math.floor(Math.round(v * 100) / 100);
+      const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
+      return boxes * ppb + piecesDec;
+    };
+    const map = new Map<string, AggregatedRow>();
+    for (const it of items) {
+      const pid = (it as any).product_id;
+      const prod = (it as any).product || {};
+      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+      const ex = map.get(pid) || {
+        productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
+        loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
+        expected: 0, expectedBoxes: 0, expectedPieces: 0,
+        actualBoxes: '', actualPieces: '', confirmed: false, ppb,
+      };
+      ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+      ex.expected = ex.loaded;
+      ex.expectedBoxes = Math.floor(ex.loaded / ppb);
+      ex.expectedPieces = ex.loaded % ppb;
+      map.set(pid, ex);
+    }
+    return Array.from(map.values()).sort((a, b) => a.productName.localeCompare(b.productName));
+  }, [selectedSessionId, loadItemsBySession]);
+
   const filtered = useMemo(
-    () => rows
-      .slice()
-      .sort((a, b) => {
-        if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
-        return a.productName.localeCompare(b.productName);
-      }),
-    [rows]
+    () => {
+      const source = selectedSessionId === 'all' ? rows : sessionPreviewRows;
+      return source
+        .slice()
+        .sort((a, b) => {
+          if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
+          return a.productName.localeCompare(b.productName);
+        });
+    },
+    [rows, sessionPreviewRows, selectedSessionId]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
@@ -464,6 +512,34 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
               📤 حركات التفريغ: <strong>{unloadCount}</strong>
             </Badge>
           </div>
+          {loadSessionsList.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
+              <span className="text-[10px] text-muted-foreground">معاينة:</span>
+              <Button
+                type="button"
+                size="sm"
+                variant={selectedSessionId === 'all' ? 'default' : 'outline'}
+                onClick={() => setSelectedSessionId('all')}
+                className="h-6 px-2 text-[10px] gap-1"
+              >
+                <Package className="w-3 h-3" />
+                الكل ({loadSessionsList.length})
+              </Button>
+              {loadSessionsList.map((s, idx) => (
+                <Button
+                  key={s.id}
+                  type="button"
+                  size="sm"
+                  variant={selectedSessionId === s.id ? 'default' : 'outline'}
+                  onClick={() => setSelectedSessionId(s.id)}
+                  className="h-6 px-2 text-[10px]"
+                  title={new Date(s.created_at).toLocaleString('ar-DZ')}
+                >
+                  شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto pe-1">
@@ -602,10 +678,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           )}
         </div>
 
-        <DialogFooter className="shrink-0">
+        <DialogFooter className="shrink-0 flex-col gap-2">
+          {selectedSessionId !== 'all' && (
+            <div className="w-full text-center text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded-md py-1.5 border border-amber-200 dark:border-amber-800">
+              👁️ وضع المعاينة — ارجع إلى "الكل" للتأكيد والقفل
+            </div>
+          )}
           <Button
             onClick={handleSave}
-            disabled={isSaving || loading || rows.length === 0}
+            disabled={isSaving || loading || rows.length === 0 || selectedSessionId !== 'all'}
             className="w-full gap-2"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
