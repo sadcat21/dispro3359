@@ -457,22 +457,20 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 onClick={() => { onSelect(customer); onOpenChange(false); }}
                               >
                                 <div className={cn(
-                                  "relative px-2 py-1",
+                                  "relative flex items-stretch",
                                   hasPendingOrder ? "bg-green-500" : "bg-foreground"
                                 )}>
-                                  <div className="flex items-center justify-center gap-1 min-w-0">
-                                    {search.trim() && sectorName && (
-                                      <span className="shrink-0 text-[9px] font-semibold px-1 py-[1px] rounded bg-primary/90 text-primary-foreground leading-none">
-                                        {sectorName}
-                                      </span>
-                                    )}
-                                    <p className={cn(
-                                      "text-sm font-bold line-clamp-1 leading-tight min-w-0",
-                                      hasPendingOrder ? "text-foreground" : "text-background"
-                                    )}>
-                                      {storeName || displayName}
-                                    </p>
-                                  </div>
+                                  {search.trim() && sectorName && (
+                                    <span className="shrink-0 flex items-center px-1.5 text-[10px] font-bold bg-primary text-primary-foreground leading-none">
+                                      {sectorName}
+                                    </span>
+                                  )}
+                                  <p className={cn(
+                                    "flex-1 min-w-0 px-2 py-1 text-sm font-bold line-clamp-1 leading-tight text-center",
+                                    hasPendingOrder ? "text-foreground" : "text-background"
+                                  )}>
+                                    {storeName || displayName}
+                                  </p>
                                 </div>
                                 <div className={cn(
                                   "px-2 py-0.5 flex-1 flex items-center justify-center",
