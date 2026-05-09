@@ -452,7 +452,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       >
         <button
           type="button"
-          className="flex flex-col text-center cursor-pointer active:scale-[0.98] transition-transform"
+          className="flex items-center gap-2 text-start cursor-pointer active:scale-[0.99] transition-transform"
           onClick={() => handleProductTap(p)}
           onPointerDown={() => handlePointerDown(p.id)}
           onPointerUp={handlePointerUp}
@@ -460,24 +460,24 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
           onContextMenu={e => e.preventDefault()}
         >
           {isMultiSelected && (
-            <div className="absolute top-1 start-1 z-10 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-              <Check className="w-3 h-3 text-primary-foreground" />
+            <div className="absolute top-1 start-1 z-10 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+              <Check className="w-2.5 h-2.5 text-primary-foreground" />
             </div>
           )}
 
-          <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
-            ${isAlreadyAdded ? 'bg-green-500/10 text-green-700' : neededQty > 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted/30 text-foreground'}
+          {p.image_url ? (
+            <img src={p.image_url} alt={getProductDisplayName(p)} className="w-12 h-12 object-cover shrink-0" loading="lazy" />
+          ) : (
+            <div className={`w-12 h-12 flex items-center justify-center shrink-0 ${isOutOfStock ? 'bg-destructive/5' : 'bg-muted/20'}`}>
+              <Package className={`w-5 h-5 ${isOutOfStock ? 'text-destructive/40' : 'text-muted-foreground/30'}`} />
+            </div>
+          )}
+
+          <div className={`flex-1 px-2 py-1 text-[11px] font-bold leading-tight truncate
+            ${isAlreadyAdded ? 'text-green-700' : neededQty > 0 ? 'text-destructive' : 'text-foreground'}
           `}>
             {getProductDisplayName(p)}
           </div>
-
-          {p.image_url ? (
-            <img src={p.image_url} alt={getProductDisplayName(p)} className="w-full aspect-square object-cover" loading="lazy" />
-          ) : (
-            <div className={`w-full aspect-square flex items-center justify-center ${isOutOfStock ? 'bg-destructive/5' : 'bg-muted/20'}`}>
-              <Package className={`w-6 h-6 ${isOutOfStock ? 'text-destructive/40' : 'text-muted-foreground/30'}`} />
-            </div>
-          )}
         </button>
 
         {/* Integrated bottom action bar */}
