@@ -140,7 +140,7 @@ const CustomerQuickProfileDialog: React.FC<CustomerQuickProfileDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-auto h-[92vh] max-h-[92vh] p-0 gap-0 rounded-3xl overflow-hidden flex flex-col" dir={dir}>
+      <DialogContent className="max-w-md mx-auto h-[92vh] max-h-[92vh] p-0 gap-0 rounded-3xl overflow-hidden flex flex-col [&>button.absolute]:hidden" dir={dir}>
         <DialogHeader className="sr-only">
           <DialogTitle>{storeName || displayName}</DialogTitle>
         </DialogHeader>
