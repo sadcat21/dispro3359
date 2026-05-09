@@ -7,7 +7,8 @@ import { Customer } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Loader2, Phone, MapPin, Store, ShoppingCart, Wallet, AlertCircle, CheckCircle2, Footprints, PackageX, X, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/utils/formatters';
+import { formatAmount } from '@/utils/formatters';
+const formatCurrency = (n: number) => `${formatAmount(n)} دج`;
 
 interface CustomerQuickProfileDialogProps {
   open: boolean;
