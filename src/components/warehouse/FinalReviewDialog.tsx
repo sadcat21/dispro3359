@@ -183,14 +183,27 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             .from('order_items')
             .select('product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
-          for (const it of (soldItems || [])) {
+          // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
+          const flatItems: any[] = (soldItems || []).map((it: any, idx: number) => ({
+            ...it,
+            order_id: deliveredIds[Math.min(idx, deliveredIds.length - 1)], // placeholder; real mapping below
+          }));
+          // Re-fetch with order_id so the merge can key correctly
+          const { data: soldItemsWithOrder } = await supabase
+            .from('order_items')
+            .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
+            .in('order_id', deliveredIds);
+          const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({ ...it }));
+          const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+          await mergeGiftsFromSalesTracking(itemsForMerge);
+          for (const it of itemsForMerge) {
             const pid = (it as any).product_id;
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
             const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
             // total quantity stored in B.P → total pieces (does NOT include gifts)
             const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
-            // gifts: gift_quantity (boxes) * ppb + gift_pieces (extra pieces) — same convention as WorkerGiftsSummaryDialog
+            // gifts (after merge with sales_tracking): gift_quantity = full boxes, gift_pieces = extra pieces
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
             const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
