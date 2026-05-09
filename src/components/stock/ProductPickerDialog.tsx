@@ -442,13 +442,17 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const isMultiSelected = multiSelected.has(p.id);
 
     return (
-      <div key={p.id} className="flex flex-col gap-1">
+      <div
+        key={p.id}
+        className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow-sm border
+          ${isAlreadyAdded ? 'border-green-500 ring-2 ring-green-500/40' : ''}
+          ${isMultiSelected ? 'border-primary ring-2 ring-primary/50' : ''}
+          ${!isAlreadyAdded && !isMultiSelected ? (neededQty > 0 ? 'border-destructive/50' : 'border-border/50') : ''}
+        `}
+      >
         <button
-          className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow-sm border cursor-pointer active:scale-95
-            ${isAlreadyAdded ? 'border-green-500 ring-2 ring-green-500/40' : ''}
-            ${isMultiSelected ? 'border-primary ring-2 ring-primary/50' : ''}
-            ${!isAlreadyAdded && !isMultiSelected ? (neededQty > 0 ? 'border-destructive/50' : 'border-border/50') : ''}
-          `}
+          type="button"
+          className="flex flex-col text-center cursor-pointer active:scale-[0.98] transition-transform"
           onClick={() => handleProductTap(p)}
           onPointerDown={() => handlePointerDown(p.id)}
           onPointerUp={handlePointerUp}
@@ -476,14 +480,22 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
           )}
         </button>
 
-        {/* Action buttons below the card */}
-        <div className="flex items-center justify-center gap-1 flex-wrap min-h-[24px]">
+        {/* Integrated bottom action bar */}
+        <div className="flex items-stretch border-t bg-muted/40 divide-x rtl:divide-x-reverse divide-border h-7">
           {isAlreadyAdded && onRemoveProduct ? (
             <>
               <button
                 type="button"
+                onClick={(e) => { e.stopPropagation(); onRemoveProduct(p.id); }}
+                className="flex items-center justify-center w-8 text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                aria-label="حذف"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
                 onClick={() => handleProductTap(p)}
-                className="flex items-center gap-1 bg-secondary text-secondary-foreground rounded px-2 h-6 text-[10px] font-semibold"
+                className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 <Truck className="w-3 h-3" />
                 {fmtQty(loadedQty - giftQty)}
@@ -492,29 +504,19 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <button
                   type="button"
                   onClick={() => handleProductTap(p)}
-                  className="flex items-center gap-1 bg-purple-600 text-white rounded px-2 h-6 text-[10px] font-semibold"
+                  className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-purple-700 hover:bg-purple-500/10 transition-colors"
                 >
                   <Gift className="w-3 h-3" />
                   {fmtQty(giftQty)}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemoveProduct(p.id);
-                }}
-                className="flex items-center justify-center bg-destructive text-destructive-foreground rounded h-6 w-7"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
             </>
           ) : (
             <>
               <button
                 type="button"
                 onClick={() => handleProductTap(p)}
-                className={`flex items-center gap-1 rounded px-2 h-6 text-[10px] font-semibold ${isOutOfStock ? 'bg-destructive text-destructive-foreground' : 'bg-secondary text-secondary-foreground'}`}
+                className={`flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold hover:bg-accent transition-colors ${isOutOfStock ? 'text-destructive' : 'text-foreground'}`}
               >
                 <Warehouse className="w-3 h-3" />
                 {fmtQty(p.warehouseQty)}
@@ -523,7 +525,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <button
                   type="button"
                   onClick={() => handleProductTap(p)}
-                  className="flex items-center bg-destructive text-destructive-foreground rounded px-2 h-6 text-[10px] font-semibold"
+                  className="flex items-center justify-center flex-1 text-[10px] font-semibold text-destructive hover:bg-destructive/10 transition-colors"
                 >
                   {fmtQty(neededQty)}
                 </button>
