@@ -588,6 +588,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     title={`${new Date(s.created_at).toLocaleString('ar-DZ')} — اضغط مطوّلاً للتحديد المتعدد`}
                   >
                     {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                    <span className="ms-1 px-1 rounded bg-primary/15 text-primary font-mono text-[9px] tracking-tight">
+                      🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </span>
                   </Button>
                 );
               })}
