@@ -179,21 +179,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           .gte('created_at', sinceTs);
         const deliveredIds = (deliveredOrders || []).map((o: any) => o.id);
         if (deliveredIds.length > 0) {
-          const { data: soldItems } = await supabase
-            .from('order_items')
-            .select('product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
-            .in('order_id', deliveredIds);
-          // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
-          const flatItems: any[] = (soldItems || []).map((it: any, idx: number) => ({
-            ...it,
-            order_id: deliveredIds[Math.min(idx, deliveredIds.length - 1)], // placeholder; real mapping below
-          }));
-          // Re-fetch with order_id so the merge can key correctly
           const { data: soldItemsWithOrder } = await supabase
             .from('order_items')
             .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
           const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({ ...it }));
+          // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
           const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
           await mergeGiftsFromSalesTracking(itemsForMerge);
           for (const it of itemsForMerge) {
