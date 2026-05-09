@@ -370,7 +370,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const ppb = product?.pieces_per_box || 1;
       const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[id] || createDefaultMultiFields());
       const qty = fieldsToCustomQuantity(qtyFields, ppb);
-      const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
+      const activated = !!offerActivated[id];
+      const { giftQty, giftUnit } = activated
+        ? computeGiftForProduct(id, qty)
+        : { giftQty: 0, giftUnit: 'piece' };
       return {
         productId: id,
         quantity: qty,
