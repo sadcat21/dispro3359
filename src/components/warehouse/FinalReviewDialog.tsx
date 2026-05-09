@@ -198,9 +198,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
             const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-            // quantity في order_items يشمل الهدية (مدفوع + مجاني)
-            // لذا المباع الفعلي = الكمية الإجمالية - الهدية، والهدية تُحسب منفصلة
-            ex.sold += Math.max(0, totalPieces - giftTotalPieces);
+            // quantity في order_items يشمل gift_quantity (هدية بالصناديق) لكن لا يشمل gift_pieces (هدية إضافية بالقطع)
+            // لذا المباع = الإجمالي − صناديق الهدية فقط
+            ex.sold += Math.max(0, totalPieces - giftBoxes * ppb);
             ex.gifts += giftTotalPieces;
             map.set(pid, ex);
           }
