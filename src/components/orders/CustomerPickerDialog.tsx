@@ -465,12 +465,20 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                       {sectorName}
                                     </span>
                                   )}
-                                  <p className={cn(
-                                    "flex-1 min-w-0 px-2 py-1 text-sm font-bold line-clamp-1 leading-tight text-center",
-                                    hasPendingOrder ? "text-foreground" : "text-background"
-                                  )}>
-                                    {storeName || displayName}
-                                  </p>
+                                  {(() => {
+                                    const topText = (storeName || displayName || '') as string;
+                                    const len = topText.length;
+                                    const sizeClass = len > 22 ? "text-[9px]" : len > 16 ? "text-[10px]" : len > 12 ? "text-xs" : "text-sm";
+                                    return (
+                                      <p className={cn(
+                                        "flex-1 min-w-0 px-2 py-1 font-bold leading-tight text-center whitespace-nowrap overflow-hidden text-ellipsis",
+                                        sizeClass,
+                                        hasPendingOrder ? "text-foreground" : "text-background"
+                                      )}>
+                                        {topText}
+                                      </p>
+                                    );
+                                  })()}
                                 </div>
                                 <div className={cn(
                                   "px-2 py-0.5 flex-1 flex items-center justify-center",
