@@ -454,15 +454,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const stats = useMemo(() => {
     let surplus = 0, deficit = 0, matched = 0, untouched = 0;
-    for (const r of rows) {
+    for (const r of effectiveRows) {
       if (!r.confirmed) { untouched++; continue; }
       const s = getStatus(r);
       if (s === 'match') matched++;
       else if (s === 'surplus') surplus++;
       else deficit++;
     }
-    return { surplus, deficit, matched, untouched, total: rows.length };
-  }, [rows]);
+    return { surplus, deficit, matched, untouched, total: effectiveRows.length };
+  }, [effectiveRows]);
 
   const updateActualBoxes = (pid: string, val: string) => {
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
