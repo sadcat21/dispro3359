@@ -532,6 +532,14 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         </ScrollArea>
       </DialogContent>
     </Dialog>
+    {previewCustomer && (
+      <CustomerQuickProfileDialog
+        open={!!previewCustomer}
+        onOpenChange={(o) => { if (!o) setPreviewCustomer(null); }}
+        customer={previewCustomer}
+      />
+    )}
+    </>
   );
 };
 
