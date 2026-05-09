@@ -192,14 +192,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
             const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
-            // total quantity stored in B.P → total pieces (does NOT include gifts)
+            // total quantity stored in B.P → total pieces (INCLUDES gifts: paid + free)
             const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
             // gifts (after merge with sales_tracking): gift_quantity = full boxes, gift_pieces = extra pieces
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
             const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-            // المباع هو الكمية كما هي — الهدية تُحسب بشكل منفصل (إضافة وليست خصم)
-            ex.sold += Math.max(0, totalPieces);
+            // quantity في order_items يشمل الهدية (مدفوع + مجاني)
+            // لذا المباع الفعلي = الكمية الإجمالية - الهدية، والهدية تُحسب منفصلة
+            ex.sold += Math.max(0, totalPieces - giftTotalPieces);
             ex.gifts += giftTotalPieces;
             map.set(pid, ex);
           }
