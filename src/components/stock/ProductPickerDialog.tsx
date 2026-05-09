@@ -749,7 +749,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-1 touch-pan-y"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <div className="grid grid-cols-4 gap-1.5">
+                <div className="flex flex-col gap-1.5">
                   {products.filter(p => p.warehouseQty > 0 || selectedProductIds.includes(p.id)).map(renderProductButton)}
                 </div>
                 {products.filter(p => p.warehouseQty > 0 || selectedProductIds.includes(p.id)).length === 0 && (
