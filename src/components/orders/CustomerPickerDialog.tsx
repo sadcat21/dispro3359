@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import ClientTrustBadge from '@/components/customers/ClientTrustBadge';
 import { computeClientTrustScoreFromHistory } from '@/utils/clientTrustScore';
+import CustomerQuickProfileDialog from '@/components/orders/CustomerQuickProfileDialog';
 
 interface CustomerPickerDialogProps {
   open: boolean;
@@ -52,6 +53,24 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
+  const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
+  const longPressTimerRef = React.useRef<number | null>(null);
+  const longPressFiredRef = React.useRef(false);
+
+  const startLongPress = (customer: Customer) => {
+    longPressFiredRef.current = false;
+    if (longPressTimerRef.current) window.clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressFiredRef.current = true;
+      setPreviewCustomer(customer);
+    }, 450);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
 
   // Self-fetch sectors when not provided via props — restrict to sectors actually used by the visible customers
   const customerSectorIds = useMemo(
@@ -281,6 +300,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md mx-auto h-[95vh] max-h-[95vh] p-0 gap-0 rounded-2xl flex flex-col" dir={dir}>
         {/* Hidden title for accessibility */}
@@ -454,7 +474,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
                                   isSelected ? "border-primary ring-2 ring-primary/40" : borderClass
                                 )}
-                                onClick={() => { onSelect(customer); onOpenChange(false); }}
+                                onClick={() => {
+                                  if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
+                                  onSelect(customer); onOpenChange(false);
+                                }}
+                                onPointerDown={() => startLongPress(customer)}
+                                onPointerUp={cancelLongPress}
+                                onPointerLeave={cancelLongPress}
+                                onPointerCancel={cancelLongPress}
+                                onContextMenu={(e) => { e.preventDefault(); setPreviewCustomer(customer); longPressFiredRef.current = true; }}
                               >
                                 <div className={cn(
                                   "relative flex items-stretch",
@@ -505,6 +533,14 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
         </ScrollArea>
       </DialogContent>
     </Dialog>
+    {previewCustomer && (
+      <CustomerQuickProfileDialog
+        open={!!previewCustomer}
+        onOpenChange={(o) => { if (!o) setPreviewCustomer(null); }}
+        customer={previewCustomer}
+      />
+    )}
+    </>
   );
 };
 
