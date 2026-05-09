@@ -744,7 +744,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         </div>
 
         <DialogFooter className="shrink-0 flex-col gap-2">
-          {selectedSessionId !== 'all' && (
+          {isPreviewMode && (
             <div className="w-full text-center text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded-md py-1.5 border border-amber-200 dark:border-amber-800">
               👁️ وضع المعاينة — ارجع إلى "الكل" للتأكيد والقفل
             </div>
