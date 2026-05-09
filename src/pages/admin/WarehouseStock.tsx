@@ -131,6 +131,21 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
+  // Fetch warehouse_sale totals from sales_tracking (these reduce warehouse stock directly)
+  const { data: warehouseSalesData } = useQuery({
+    queryKey: ['warehouse-sales-tracking', branchId],
+    queryFn: async () => {
+      if (!branchId) return [];
+      const { data } = await supabase
+        .from('sales_tracking')
+        .select('product_id, total_boxes, total_pieces, pieces_per_box')
+        .eq('branch_id', branchId)
+        .eq('source', 'warehouse_sale');
+      return data || [];
+    },
+    enabled: !!branchId,
+  });
+
   const productSummaries = useMemo((): ProductSummary[] => {
     if (!products.length) return [];
 
@@ -222,11 +237,30 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
+    // Subtract warehouse_sale totals (sold directly from warehouse — not yet deducted in warehouse_stock.quantity)
+    const salesByProduct: Record<string, number> = {};
+    for (const s of (warehouseSalesData || [])) {
+      const ppb = Number((s as any).pieces_per_box) || 20;
+      const boxes = Number((s as any).total_boxes || 0);
+      const pieces = Number((s as any).total_pieces || 0);
+      // Convert to box.piece notation (matches receipts format)
+      const totalPieces = boxes * ppb + pieces;
+      const fullBoxes = Math.floor(totalPieces / ppb);
+      const remPieces = totalPieces % ppb;
+      const inBoxPieceFmt = fullBoxes + remPieces / 100;
+      salesByProduct[(s as any).product_id] = (salesByProduct[(s as any).product_id] || 0) + inBoxPieceFmt;
+    }
+    for (const pid of Object.keys(salesByProduct)) {
+      if (summaries[pid]) {
+        summaries[pid].remaining = Math.round((summaries[pid].remaining - salesByProduct[pid]) * 100) / 100;
+      }
+    }
+
     // Hide products where all values are zero
     return Object.values(summaries)
       .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [products, summaryData, soldData, warehouseStock]);
+  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData]);
 
   const filteredSummaries = useMemo(() => {
     if (!search.trim()) return productSummaries;
