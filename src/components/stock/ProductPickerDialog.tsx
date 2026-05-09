@@ -587,19 +587,6 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     </div>
                   )}
                 </div>
-                {hasOffer && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant={activated ? 'default' : 'outline'}
-                    className={`h-8 w-8 shrink-0 ${activated ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
-                    onClick={() => setOfferActivated(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
-                    aria-label={activated ? 'إلغاء تفعيل الهدية' : 'تفعيل الهدية'}
-                    title={activated ? 'إلغاء تفعيل الهدية' : 'تفعيل الهدية'}
-                  >
-                    <Gift className="w-4 h-4" />
-                  </Button>
-                )}
                 {!uniformQty && (
                   <div className="grid grid-cols-2 gap-1 w-28 shrink-0">
                     <Input
