@@ -294,8 +294,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
   // Calculate suggested gift based on regular quantity and offer tiers
   const suggestedGift = React.useMemo(() => {
-    if (!singleOffer || toCustomFormat(parsed) <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
-    const qtyCustom = toCustomFormat(parsed);
+    const qtyCustom = toCustomFormat({ boxes: parsedBoxes, pieces: parsedPieces });
+    if (!singleOffer || qtyCustom <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
     const qtyPieces = parsedTotalPieces;
     const sortedTiers = [...singleOffer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
