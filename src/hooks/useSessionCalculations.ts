@@ -394,26 +394,38 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
           // Check if versement/transfer was paid by cash
           const docVerification = (order as any).document_verification;
           const paidByCash = docVerification && typeof docVerification === 'object' && docVerification.paid_by_cash === true;
-          
+
+          // Budget-based distribution: ensure sum of method buckets never exceeds paidAmount.
+          // Fixes duplication when (directPaid + recovery) > totalAmount (clamped by Math.min above).
+          let budget = paidAmount;
+          const take = (n: number) => {
+            const v = Math.min(budget, Math.max(0, n));
+            budget -= v;
+            return v;
+          };
+
+          // 1) Distribute the direct payment first
           if (paymentStatus === 'check' || invoiceMethod === 'check') {
-            invoice1.check += directPaidAmount;
+            invoice1.check += take(directPaidAmount);
           } else if ((invoiceMethod === 'receipt' || invoiceMethod === 'transfer') && paidByCash) {
-            // Versement/Virement paid by cash - track separately
-            invoice1.versementCash += directPaidAmount;
+            invoice1.versementCash += take(directPaidAmount);
           } else if (invoiceMethod === 'transfer') {
-            invoice1.transfer += directPaidAmount;
+            invoice1.transfer += take(directPaidAmount);
           } else if (invoiceMethod === 'receipt') {
-            invoice1.receipt += directPaidAmount;
-          } else if (invoiceMethod === 'cash') {
-            invoice1.espaceCash += directPaidAmount;
+            invoice1.receipt += take(directPaidAmount);
+          } else if (paymentStatus === 'cash' || invoiceMethod === 'cash') {
+            // Explicit cash branch (Fix #3)
+            invoice1.espaceCash += take(directPaidAmount);
           } else {
-            invoice1.espaceCash += directPaidAmount;
+            // Unknown invoice method — fall back to cash bucket
+            invoice1.espaceCash += take(directPaidAmount);
           }
 
-          if (temporaryDebtRecovery.check > 0) invoice1.check += temporaryDebtRecovery.check;
-          if (temporaryDebtRecovery.transfer > 0) invoice1.transfer += temporaryDebtRecovery.transfer;
-          if (temporaryDebtRecovery.receipt > 0) invoice1.receipt += temporaryDebtRecovery.receipt;
-          if (temporaryDebtRecovery.cash > 0) invoice1.espaceCash += temporaryDebtRecovery.cash;
+          // 2) Then distribute temporary-debt recovery within the remaining budget
+          if (temporaryDebtRecovery.check > 0) invoice1.check += take(temporaryDebtRecovery.check);
+          if (temporaryDebtRecovery.transfer > 0) invoice1.transfer += take(temporaryDebtRecovery.transfer);
+          if (temporaryDebtRecovery.receipt > 0) invoice1.receipt += take(temporaryDebtRecovery.receipt);
+          if (temporaryDebtRecovery.cash > 0) invoice1.espaceCash += take(temporaryDebtRecovery.cash);
         } else {
           invoice2.total += paidAmount;
           invoice2.cash += paidAmount;
