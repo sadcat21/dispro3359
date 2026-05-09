@@ -111,7 +111,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         if (loadSessionIds.length > 0) {
           const { data } = await supabase
             .from('loading_session_items')
-            .select('product_id, quantity, gift_quantity, product:products(id, name, image_url, pieces_per_box)')
+            .select('product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
             .in('session_id', loadSessionIds);
           loadItems = data || [];
         }
@@ -157,8 +157,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           const ex = map.get(pid) || baseRow(pid, prod);
           const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
           ex.loaded += bpToPieces(Number(it.quantity || 0), ppb);
-          // gift_quantity in loading_session_items represents pieces
-          ex.gifts += Math.max(0, Number((it as any).gift_quantity || 0));
+          // ملاحظة: gift_quantity في loading_session_items هو تخصيص عرض ترويجي عند الشحن
+          // وليس هدية مُسلَّمة فعلياً للعميل — نُحسب الهدايا فقط من الطلبيات المُسلَّمة أدناه
           map.set(pid, ex);
         }
         for (const m of (unloadMoves || [])) {
