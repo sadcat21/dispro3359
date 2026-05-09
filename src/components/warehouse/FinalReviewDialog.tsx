@@ -68,6 +68,39 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
   const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
   const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
+  // Multi-select via long-press
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = React.useRef(false);
+
+  const startLongPress = (sid: string) => {
+    longPressTriggered.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      setMultiSelected(prev => {
+        const n = new Set(prev);
+        n.add(sid);
+        return n;
+      });
+      setSelectedSessionId('all'); // exit single-preview when entering multi
+    }, 500);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+  };
+  const handleSessionClick = (sid: string) => {
+    if (longPressTriggered.current) { longPressTriggered.current = false; return; }
+    if (multiSelected.size > 0) {
+      setMultiSelected(prev => {
+        const n = new Set(prev);
+        if (n.has(sid)) n.delete(sid); else n.add(sid);
+        return n;
+      });
+      return;
+    }
+    setSelectedSessionId(sid);
+  };
+  const clearMulti = () => setMultiSelected(new Set());
 
   // Check if worker has set up a review PIN
   useEffect(() => {
@@ -265,10 +298,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     return () => { cancelled = true; };
   }, [open, workerId]);
 
-  // Per-session preview: rebuild rows from a single session's items only
+  // Per-session preview: rebuild rows from one or many sessions' items
   const sessionPreviewRows = useMemo<AggregatedRow[]>(() => {
-    if (selectedSessionId === 'all') return [];
-    const items = loadItemsBySession[selectedSessionId] || [];
+    const sourceIds: string[] =
+      multiSelected.size > 0
+        ? Array.from(multiSelected)
+        : (selectedSessionId !== 'all' ? [selectedSessionId] : []);
+    if (sourceIds.length === 0) return [];
+    const items: any[] = sourceIds.flatMap(sid => loadItemsBySession[sid] || []);
     const bpToPieces = (val: number, ppb: number): number => {
       const v = Number(val || 0);
       const boxes = Math.floor(Math.round(v * 100) / 100);
@@ -293,11 +330,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       map.set(pid, ex);
     }
     return Array.from(map.values()).sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [selectedSessionId, loadItemsBySession]);
+  }, [selectedSessionId, multiSelected, loadItemsBySession]);
+
+  const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
   const filtered = useMemo(
     () => {
-      const source = selectedSessionId === 'all' ? rows : sessionPreviewRows;
+      const source = isPreviewMode ? sessionPreviewRows : rows;
       return source
         .slice()
         .sort((a, b) => {
@@ -305,7 +344,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           return a.productName.localeCompare(b.productName);
         });
     },
-    [rows, sessionPreviewRows, selectedSessionId]
+    [rows, sessionPreviewRows, isPreviewMode]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
@@ -514,30 +553,56 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           </div>
           {loadSessionsList.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
-              <span className="text-[10px] text-muted-foreground">معاينة:</span>
+              <span className="text-[10px] text-muted-foreground">
+                معاينة:{multiSelected.size > 0 && <span className="ms-1 text-primary font-bold">({multiSelected.size} محدّد)</span>}
+              </span>
               <Button
                 type="button"
                 size="sm"
-                variant={selectedSessionId === 'all' ? 'default' : 'outline'}
-                onClick={() => setSelectedSessionId('all')}
+                variant={!isPreviewMode ? 'default' : 'outline'}
+                onClick={() => { setSelectedSessionId('all'); clearMulti(); }}
                 className="h-6 px-2 text-[10px] gap-1"
               >
                 <Package className="w-3 h-3" />
                 الكل ({loadSessionsList.length})
               </Button>
-              {loadSessionsList.map((s, idx) => (
+              {loadSessionsList.map((s, idx) => {
+                const isMulti = multiSelected.has(s.id);
+                const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
+                const active = isMulti || isSingle;
+                return (
+                  <Button
+                    key={s.id}
+                    type="button"
+                    size="sm"
+                    variant={active ? 'default' : 'outline'}
+                    onClick={() => handleSessionClick(s.id)}
+                    onMouseDown={() => startLongPress(s.id)}
+                    onMouseUp={cancelLongPress}
+                    onMouseLeave={cancelLongPress}
+                    onTouchStart={() => startLongPress(s.id)}
+                    onTouchEnd={cancelLongPress}
+                    onTouchCancel={cancelLongPress}
+                    onContextMenu={(e) => e.preventDefault()}
+                    className={`h-6 px-2 text-[10px] ${isMulti ? 'ring-2 ring-primary/60' : ''}`}
+                    title={`${new Date(s.created_at).toLocaleString('ar-DZ')} — اضغط مطوّلاً للتحديد المتعدد`}
+                  >
+                    {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                  </Button>
+                );
+              })}
+              {multiSelected.size > 0 && (
                 <Button
-                  key={s.id}
                   type="button"
                   size="sm"
-                  variant={selectedSessionId === s.id ? 'default' : 'outline'}
-                  onClick={() => setSelectedSessionId(s.id)}
-                  className="h-6 px-2 text-[10px]"
-                  title={new Date(s.created_at).toLocaleString('ar-DZ')}
+                  variant="ghost"
+                  onClick={clearMulti}
+                  className="h-6 px-2 text-[10px] text-destructive"
                 >
-                  شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                  <X className="w-3 h-3" />
+                  إلغاء التحديد
                 </Button>
-              ))}
+              )}
             </div>
           )}
         </div>
@@ -679,14 +744,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         </div>
 
         <DialogFooter className="shrink-0 flex-col gap-2">
-          {selectedSessionId !== 'all' && (
+          {isPreviewMode && (
             <div className="w-full text-center text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded-md py-1.5 border border-amber-200 dark:border-amber-800">
               👁️ وضع المعاينة — ارجع إلى "الكل" للتأكيد والقفل
             </div>
           )}
           <Button
             onClick={handleSave}
-            disabled={isSaving || loading || rows.length === 0 || selectedSessionId !== 'all'}
+            disabled={isSaving || loading || rows.length === 0 || isPreviewMode}
             className="w-full gap-2"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
