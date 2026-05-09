@@ -459,69 +459,113 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
           ${!isAlreadyAdded && !isMultiSelected ? (neededQty > 0 ? 'border-destructive/50' : 'border-border/50') : ''}
         `}
       >
-        <button
-          type="button"
-          className="flex items-center gap-2 text-start cursor-pointer active:scale-[0.99] transition-transform"
-          onClick={() => handleProductTap(p)}
-          onPointerDown={() => handlePointerDown(p.id)}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerLeave}
-          onContextMenu={e => e.preventDefault()}
-        >
-          {isMultiSelected && (
-            <div className="absolute top-1 start-1 z-10 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-              <Check className="w-2.5 h-2.5 text-primary-foreground" />
-            </div>
-          )}
-
-          {p.image_url ? (
-            <img src={p.image_url} alt={getProductDisplayName(p)} className="w-12 h-12 object-cover shrink-0" loading="lazy" />
-          ) : (
-            <div className={`w-12 h-12 flex items-center justify-center shrink-0 ${isOutOfStock ? 'bg-destructive/5' : 'bg-muted/20'}`}>
-              <Package className={`w-5 h-5 ${isOutOfStock ? 'text-destructive/40' : 'text-muted-foreground/30'}`} />
-            </div>
-          )}
-
-          <div className={`flex-1 px-2 py-1 text-[11px] font-bold leading-tight truncate
-            ${isAlreadyAdded ? 'text-green-700' : neededQty > 0 ? 'text-destructive' : 'text-foreground'}
-          `}>
-            {getProductDisplayName(p)}
+        {isMultiSelected && (
+          <div className="absolute top-1 start-1 z-10 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+            <Check className="w-2.5 h-2.5 text-primary-foreground" />
           </div>
-        </button>
+        )}
 
-        {/* Integrated bottom action bar */}
-        <div className="flex items-stretch border-t bg-muted/40 divide-x rtl:divide-x-reverse divide-border h-7">
-          {isAlreadyAdded && onRemoveProduct ? (
-            <>
+        {isAlreadyAdded && onRemoveProduct ? (
+          <>
+            {/* Top row: [2 delete] | [3 name] | [1 image] */}
+            <div className="flex items-stretch h-12 divide-x rtl:divide-x-reverse divide-dashed divide-border/70">
+              {/* Section 2 — Delete */}
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onRemoveProduct(p.id); }}
-                className="flex items-center justify-center w-8 text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                className="flex items-center justify-center w-9 shrink-0 text-destructive bg-destructive/5 hover:bg-destructive/15 transition-colors"
                 aria-label="حذف"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
               </button>
+
+              {/* Section 3 — Product name */}
               <button
                 type="button"
                 onClick={() => handleProductTap(p)}
-                className="flex items-center justify-center gap-1 flex-1 text-xs font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                onPointerDown={() => handlePointerDown(p.id)}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
+                onContextMenu={e => e.preventDefault()}
+                className="flex-1 min-w-0 px-2 flex items-center justify-center text-[11px] font-bold leading-tight text-green-700 hover:bg-green-500/5 transition-colors"
               >
-                <Truck className="w-3.5 h-3.5" />
+                <span className="truncate">{getProductDisplayName(p)}</span>
+              </button>
+
+              {/* Section 1 — Product image */}
+              <button
+                type="button"
+                onClick={() => handleProductTap(p)}
+                className="shrink-0 hover:opacity-80 transition-opacity"
+                aria-label={getProductDisplayName(p)}
+              >
+                {p.image_url ? (
+                  <img src={p.image_url} alt={getProductDisplayName(p)} className="w-12 h-12 object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-12 h-12 flex items-center justify-center bg-muted/20">
+                    <Package className="w-5 h-5 text-muted-foreground/30" />
+                  </div>
+                )}
+              </button>
+            </div>
+
+            {/* Gradient divider */}
+            <div className="h-px bg-gradient-to-r from-transparent via-green-500/60 to-transparent" />
+
+            {/* Bottom row: [5 gift] | [4 total shipped] */}
+            <div className="flex items-stretch h-8 divide-x rtl:divide-x-reverse divide-dashed divide-border/70">
+              {/* Section 5 — Gift */}
+              <button
+                type="button"
+                onClick={() => handleProductTap(p)}
+                className={`flex items-center justify-center gap-1 w-1/3 text-[11px] font-bold transition-colors ${
+                  giftQty > 0
+                    ? 'bg-purple-500/10 text-purple-700 hover:bg-purple-500/20'
+                    : 'text-muted-foreground/50 hover:bg-muted/40'
+                }`}
+              >
+                <Gift className="w-3.5 h-3.5" />
+                {giftQty > 0 ? fmtBP(giftQty, p.pieces_per_box || 1) : '—'}
+              </button>
+
+              {/* Section 4 — Total shipped */}
+              <button
+                type="button"
+                onClick={() => handleProductTap(p)}
+                className="flex items-center justify-center gap-1.5 flex-1 text-sm font-extrabold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                <Truck className="w-4 h-4" />
                 {fmtBP(loadedQty, p.pieces_per_box || 1)}
               </button>
-              {giftQty > 0 && (
-                <button
-                  type="button"
-                  onClick={() => handleProductTap(p)}
-                  className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-purple-700 hover:bg-purple-500/10 transition-colors"
-                >
-                  <Gift className="w-3 h-3" />
-                  {fmtBP(giftQty, p.pieces_per_box || 1)}
-                </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="flex items-center gap-2 text-start cursor-pointer active:scale-[0.99] transition-transform"
+              onClick={() => handleProductTap(p)}
+              onPointerDown={() => handlePointerDown(p.id)}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerLeave}
+              onContextMenu={e => e.preventDefault()}
+            >
+              {p.image_url ? (
+                <img src={p.image_url} alt={getProductDisplayName(p)} className="w-12 h-12 object-cover shrink-0" loading="lazy" />
+              ) : (
+                <div className={`w-12 h-12 flex items-center justify-center shrink-0 ${isOutOfStock ? 'bg-destructive/5' : 'bg-muted/20'}`}>
+                  <Package className={`w-5 h-5 ${isOutOfStock ? 'text-destructive/40' : 'text-muted-foreground/30'}`} />
+                </div>
               )}
-            </>
-          ) : (
-            <>
+
+              <div className={`flex-1 px-2 py-1 text-[11px] font-bold leading-tight truncate
+                ${neededQty > 0 ? 'text-destructive' : 'text-foreground'}
+              `}>
+                {getProductDisplayName(p)}
+              </div>
+            </button>
+
+            <div className="flex items-stretch border-t bg-muted/40 divide-x rtl:divide-x-reverse divide-border h-7">
               <button
                 type="button"
                 onClick={() => handleProductTap(p)}
@@ -539,9 +583,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   {fmtBP(neededQty, p.pieces_per_box || 1)}
                 </button>
               )}
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     );
   };
