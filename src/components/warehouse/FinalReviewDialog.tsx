@@ -553,30 +553,56 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           </div>
           {loadSessionsList.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
-              <span className="text-[10px] text-muted-foreground">معاينة:</span>
+              <span className="text-[10px] text-muted-foreground">
+                معاينة:{multiSelected.size > 0 && <span className="ms-1 text-primary font-bold">({multiSelected.size} محدّد)</span>}
+              </span>
               <Button
                 type="button"
                 size="sm"
-                variant={selectedSessionId === 'all' ? 'default' : 'outline'}
-                onClick={() => setSelectedSessionId('all')}
+                variant={!isPreviewMode ? 'default' : 'outline'}
+                onClick={() => { setSelectedSessionId('all'); clearMulti(); }}
                 className="h-6 px-2 text-[10px] gap-1"
               >
                 <Package className="w-3 h-3" />
                 الكل ({loadSessionsList.length})
               </Button>
-              {loadSessionsList.map((s, idx) => (
+              {loadSessionsList.map((s, idx) => {
+                const isMulti = multiSelected.has(s.id);
+                const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
+                const active = isMulti || isSingle;
+                return (
+                  <Button
+                    key={s.id}
+                    type="button"
+                    size="sm"
+                    variant={active ? 'default' : 'outline'}
+                    onClick={() => handleSessionClick(s.id)}
+                    onMouseDown={() => startLongPress(s.id)}
+                    onMouseUp={cancelLongPress}
+                    onMouseLeave={cancelLongPress}
+                    onTouchStart={() => startLongPress(s.id)}
+                    onTouchEnd={cancelLongPress}
+                    onTouchCancel={cancelLongPress}
+                    onContextMenu={(e) => e.preventDefault()}
+                    className={`h-6 px-2 text-[10px] ${isMulti ? 'ring-2 ring-primary/60' : ''}`}
+                    title={`${new Date(s.created_at).toLocaleString('ar-DZ')} — اضغط مطوّلاً للتحديد المتعدد`}
+                  >
+                    {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                  </Button>
+                );
+              })}
+              {multiSelected.size > 0 && (
                 <Button
-                  key={s.id}
                   type="button"
                   size="sm"
-                  variant={selectedSessionId === s.id ? 'default' : 'outline'}
-                  onClick={() => setSelectedSessionId(s.id)}
-                  className="h-6 px-2 text-[10px]"
-                  title={new Date(s.created_at).toLocaleString('ar-DZ')}
+                  variant="ghost"
+                  onClick={clearMulti}
+                  className="h-6 px-2 text-[10px] text-destructive"
                 >
-                  شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                  <X className="w-3 h-3" />
+                  إلغاء التحديد
                 </Button>
-              ))}
+              )}
             </div>
           )}
         </div>
