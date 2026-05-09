@@ -541,10 +541,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 آخر جلسة محاسبة
               </Badge>
               <span className="text-muted-foreground">
-                📅 {new Date(periodStart).toLocaleDateString('ar-DZ', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                📅 {new Date(periodStart).toLocaleDateString('ar-DZ', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
               </span>
               <span className="text-muted-foreground">
-                🕒 {new Date(periodStart).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                🕒 {new Date(periodStart).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Algiers' })}
               </span>
               <span className="text-muted-foreground">— يُحتسب ما بعد هذا التاريخ</span>
             </div>
@@ -608,11 +608,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       onTouchCancel={cancelLongPress}
                       onContextMenu={(e) => e.preventDefault()}
                       className="h-6 px-2 text-[10px] rounded-e-none border-e-0"
-                      title={`${new Date(s.created_at).toLocaleString('ar-DZ')} — اضغط مطوّلاً للتحديد المتعدد`}
+                      title={`${new Date(s.created_at).toLocaleString('ar-DZ', { timeZone: 'Africa/Algiers' })} — اضغط مطوّلاً للتحديد المتعدد`}
                     >
-                      {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                      {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
                       <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-primary/15 text-primary'}`}>
-                        🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                        🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Algiers' })}
                       </span>
                     </Button>
                     <Button
@@ -715,7 +715,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
                       <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
                       <span className="text-sm font-bold text-foreground">
-                        {r.salesAmount.toLocaleString('ar-DZ')} د.ج
+                        {r.salesAmount.toLocaleString('ar-DZ', { timeZone: 'Africa/Algiers' })} د.ج
                       </span>
                     </div>
 
