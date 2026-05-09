@@ -504,9 +504,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               <button
                 type="button"
                 onClick={() => handleProductTap(p)}
-                className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-foreground hover:bg-accent transition-colors"
+                className="flex items-center justify-center gap-1 flex-1 text-xs font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
-                <Truck className="w-3 h-3" />
+                <Truck className="w-3.5 h-3.5" />
                 {fmtBP(loadedQty, p.pieces_per_box || 1)}
               </button>
               {giftQty > 0 && (
