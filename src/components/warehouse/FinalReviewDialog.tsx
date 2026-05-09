@@ -499,11 +499,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     setIsSaving(true);
     try {
 
-      const totalExpected = rows.reduce((s, r) => {
+      const totalExpected = effectiveRows.reduce((s, r) => {
         const ppb = Math.max(1, Math.round(r.ppb || 1));
         return s + piecesToBPNum(r.expected, ppb);
       }, 0);
-      const totalActual = rows.reduce((s, r) => {
+      const totalActual = effectiveRows.reduce((s, r) => {
         const ppb = Math.max(1, Math.round(r.ppb || 1));
         return s + piecesToBPNum(actualTotalPieces(r), ppb);
       }, 0);
@@ -535,7 +535,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       // 3. Insert all line items (audit trail) + discrepancies
       const itemRows: any[] = [];
       const discRows: any[] = [];
-      for (const r of rows) {
+      for (const r of effectiveRows) {
         const ppb = Math.max(1, Math.round(r.ppb || 1));
         const expectedBP = piecesToBPNum(r.expected, ppb);
         const actualBP = piecesToBPNum(actualTotalPieces(r), ppb);
