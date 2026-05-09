@@ -442,80 +442,96 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const isMultiSelected = multiSelected.has(p.id);
 
     return (
-      <button
-        key={p.id}
-        className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow-sm border cursor-pointer active:scale-95
-          ${isAlreadyAdded ? 'border-green-500 ring-2 ring-green-500/40' : ''}
-          ${isMultiSelected ? 'border-primary ring-2 ring-primary/50' : ''}
-          ${!isAlreadyAdded && !isMultiSelected ? (neededQty > 0 ? 'border-destructive/50' : 'border-border/50') : ''}
-        `}
-        onClick={() => handleProductTap(p)}
-        onPointerDown={() => handlePointerDown(p.id)}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerLeave}
-        onContextMenu={e => e.preventDefault()}
-      >
-        {isMultiSelected && (
-          <div className="absolute top-1 start-1 z-10 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-            <Check className="w-3 h-3 text-primary-foreground" />
+      <div key={p.id} className="flex flex-col gap-1">
+        <button
+          className={`flex flex-col rounded-xl overflow-hidden text-center transition-all relative bg-card shadow-sm border cursor-pointer active:scale-95
+            ${isAlreadyAdded ? 'border-green-500 ring-2 ring-green-500/40' : ''}
+            ${isMultiSelected ? 'border-primary ring-2 ring-primary/50' : ''}
+            ${!isAlreadyAdded && !isMultiSelected ? (neededQty > 0 ? 'border-destructive/50' : 'border-border/50') : ''}
+          `}
+          onClick={() => handleProductTap(p)}
+          onPointerDown={() => handlePointerDown(p.id)}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          onContextMenu={e => e.preventDefault()}
+        >
+          {isMultiSelected && (
+            <div className="absolute top-1 start-1 z-10 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+              <Check className="w-3 h-3 text-primary-foreground" />
+            </div>
+          )}
+
+          <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
+            ${isAlreadyAdded ? 'bg-green-500/10 text-green-700' : neededQty > 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted/30 text-foreground'}
+          `}>
+            {getProductDisplayName(p)}
           </div>
-        )}
 
-        <div className={`px-1 py-1 border-b text-[10px] font-bold leading-tight truncate w-full
-          ${isAlreadyAdded ? 'bg-green-500/10 text-green-700' : neededQty > 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted/30 text-foreground'}
-        `}>
-          {getProductDisplayName(p)}
-        </div>
+          {p.image_url ? (
+            <img src={p.image_url} alt={getProductDisplayName(p)} className="w-full aspect-square object-cover" loading="lazy" />
+          ) : (
+            <div className={`w-full aspect-square flex items-center justify-center ${isOutOfStock ? 'bg-destructive/5' : 'bg-muted/20'}`}>
+              <Package className={`w-6 h-6 ${isOutOfStock ? 'text-destructive/40' : 'text-muted-foreground/30'}`} />
+            </div>
+          )}
+        </button>
 
-        {p.image_url ? (
-          <img src={p.image_url} alt={getProductDisplayName(p)} className="w-full aspect-square object-cover" loading="lazy" />
-        ) : (
-          <div className={`w-full aspect-square flex items-center justify-center ${isOutOfStock ? 'bg-destructive/5' : 'bg-muted/20'}`}>
-            <Package className={`w-6 h-6 ${isOutOfStock ? 'text-destructive/40' : 'text-muted-foreground/30'}`} />
-          </div>
-        )}
-
-        <div className="flex items-center justify-center gap-0.5 p-0.5 flex-wrap min-h-[22px]">
+        {/* Action buttons below the card */}
+        <div className="flex items-center justify-center gap-1 flex-wrap min-h-[24px]">
           {isAlreadyAdded && onRemoveProduct ? (
-            <div className="flex items-center gap-0.5 w-full">
-              {/* Shipped qty badge */}
-              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 flex-1 justify-center">
-                <Truck className="w-2.5 h-2.5" />
+            <>
+              <button
+                type="button"
+                onClick={() => handleProductTap(p)}
+                className="flex items-center gap-1 bg-secondary text-secondary-foreground rounded px-2 h-6 text-[10px] font-semibold"
+              >
+                <Truck className="w-3 h-3" />
                 {fmtQty(loadedQty - giftQty)}
-              </Badge>
-              {/* Gift qty badge */}
+              </button>
               {giftQty > 0 && (
-                <Badge className="bg-purple-600 text-white text-[9px] px-1 py-0 h-4 flex items-center gap-0.5 flex-1 justify-center">
-                  <Gift className="w-2.5 h-2.5" />
+                <button
+                  type="button"
+                  onClick={() => handleProductTap(p)}
+                  className="flex items-center gap-1 bg-purple-600 text-white rounded px-2 h-6 text-[10px] font-semibold"
+                >
+                  <Gift className="w-3 h-3" />
                   {fmtQty(giftQty)}
-                </Badge>
+                </button>
               )}
-              {/* Delete button */}
-              <div
-                className="flex items-center justify-center bg-destructive text-destructive-foreground rounded h-4 w-5 cursor-pointer shrink-0"
+              <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onRemoveProduct(p.id);
                 }}
+                className="flex items-center justify-center bg-destructive text-destructive-foreground rounded h-6 w-7"
               >
-                <Trash2 className="w-2.5 h-2.5" />
-              </div>
-            </div>
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </>
           ) : (
             <>
-              <Badge variant={isOutOfStock ? 'destructive' : 'secondary'} className="text-[9px] px-1 py-0 h-4 flex items-center gap-0.5">
-                <Warehouse className="w-2.5 h-2.5" />
+              <button
+                type="button"
+                onClick={() => handleProductTap(p)}
+                className={`flex items-center gap-1 rounded px-2 h-6 text-[10px] font-semibold ${isOutOfStock ? 'bg-destructive text-destructive-foreground' : 'bg-secondary text-secondary-foreground'}`}
+              >
+                <Warehouse className="w-3 h-3" />
                 {fmtQty(p.warehouseQty)}
-              </Badge>
+              </button>
               {neededQty > 0 && (
-                <Badge className="bg-destructive text-destructive-foreground text-[8px] px-1 py-0 h-4">
+                <button
+                  type="button"
+                  onClick={() => handleProductTap(p)}
+                  className="flex items-center bg-destructive text-destructive-foreground rounded px-2 h-6 text-[10px] font-semibold"
+                >
                   {fmtQty(neededQty)}
-                </Badge>
+                </button>
               )}
             </>
           )}
         </div>
-      </button>
+      </div>
     );
   };
 
