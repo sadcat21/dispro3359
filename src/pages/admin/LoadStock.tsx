@@ -2232,13 +2232,16 @@ const LoadStock: React.FC = () => {
         loadedQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => {
           const ppb = (si.product as any)?.pieces_per_box || 20;
           const paidPieces = customToTotalPieces(si.quantity || 0, ppb);
-          const giftPieces = customToTotalPieces(si.gift_quantity || 0, ppb);
+          const rawGift = si.gift_quantity || 0;
+          const giftPieces = (si.gift_unit || 'piece') === 'box' ? rawGift * ppb : rawGift;
           acc[si.product_id] = (acc[si.product_id] || 0) + paidPieces + giftPieces;
           return acc;
         }, {} as Record<string, number>)}
         giftQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => {
           const ppb = (si.product as any)?.pieces_per_box || 20;
-          acc[si.product_id] = (acc[si.product_id] || 0) + customToTotalPieces(si.gift_quantity || 0, ppb);
+          const rawGift = si.gift_quantity || 0;
+          const giftPieces = (si.gift_unit || 'piece') === 'box' ? rawGift * ppb : rawGift;
+          acc[si.product_id] = (acc[si.product_id] || 0) + giftPieces;
           return acc;
         }, {} as Record<string, number>)}
         offersMap={productOffers}
