@@ -28,6 +28,7 @@ interface AggregatedRow {
   unloaded: number; // قطع إجمالية
   sold: number;     // قطع إجمالية
   gifts: number;    // قطع إجمالية
+  salesAmount: number; // قيمة المبيعات من سجل المبيعات
   expected: number; // قطع إجمالية المتبقي
   expectedBoxes: number;
   expectedPieces: number;
@@ -135,6 +136,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           unloaded: 0,
           sold: 0,
           gifts: 0,
+          salesAmount: 0,
           expected: 0,
           expectedBoxes: 0,
           expectedPieces: 0,
