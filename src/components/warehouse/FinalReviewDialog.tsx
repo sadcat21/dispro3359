@@ -28,6 +28,7 @@ interface AggregatedRow {
   unloaded: number; // قطع إجمالية
   sold: number;     // قطع إجمالية
   gifts: number;    // قطع إجمالية
+  salesAmount: number; // قيمة المبيعات من سجل المبيعات
   expected: number; // قطع إجمالية المتبقي
   expectedBoxes: number;
   expectedPieces: number;
@@ -135,6 +136,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           unloaded: 0,
           sold: 0,
           gifts: 0,
+          salesAmount: 0,
           expected: 0,
           expectedBoxes: 0,
           expectedPieces: 0,
@@ -181,12 +183,22 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         if (deliveredIds.length > 0) {
           const { data: soldItemsWithOrder } = await supabase
             .from('order_items')
-            .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
+            .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
           const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({ ...it }));
           // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
           const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
           await mergeGiftsFromSalesTracking(itemsForMerge);
+          const { data: trackingRows } = await (supabase as any)
+            .from('sales_tracking')
+            .select('product_id, total_price')
+            .in('order_id', deliveredIds);
+          const trackingAmountByProduct = new Map<string, number>();
+          for (const tr of (trackingRows || []) as any[]) {
+            const pid = String(tr.product_id || '');
+            if (!pid) continue;
+            trackingAmountByProduct.set(pid, (trackingAmountByProduct.get(pid) || 0) + Math.max(0, Number(tr.total_price || 0)));
+          }
           for (const it of itemsForMerge) {
             const pid = (it as any).product_id;
             const prod = (it as any).product || {};
@@ -202,7 +214,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             // لذا المباع = الإجمالي − صناديق الهدية فقط
             ex.sold += Math.max(0, totalPieces - giftBoxes * ppb);
             ex.gifts += giftTotalPieces;
+            if (!trackingAmountByProduct.has(pid)) {
+              ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
+            }
             map.set(pid, ex);
+          }
+          for (const [pid, amount] of trackingAmountByProduct) {
+            const ex = map.get(pid);
+            if (ex) ex.salesAmount = amount;
           }
         }
 
@@ -511,6 +530,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
                         🎁 هدية <strong>{formatBP(r.gifts, ppb)}</strong>
                       </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
+                      <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
+                      <span className="text-sm font-bold text-foreground">
+                        {r.salesAmount.toLocaleString('ar-DZ')} د.ج
+                      </span>
                     </div>
 
                     {/* Expected — highlighted full width */}
