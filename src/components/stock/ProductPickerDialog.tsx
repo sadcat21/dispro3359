@@ -853,10 +853,22 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <Button variant="outline" className="flex-1 h-9 text-xs" onClick={() => setMode('browse')}>
                   رجوع
                 </Button>
-                <Button className="flex-1 h-9 text-xs" onClick={handleConfirmMulti}>
-                  <Plus className="w-3.5 h-3.5 me-1" />
-                  إضافة {multiSelected.size} منتج
-                </Button>
+                {(() => {
+                  const blocking = selectedProducts.some(p => {
+                    if (!offersMap[p.id]) return false;
+                    if (offerActivated[p.id]) return false;
+                    const ppb = p.pieces_per_box || 1;
+                    const qf = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
+                    const q = fieldsToCustomQuantity(qf, ppb);
+                    return computeGiftForProduct(p.id, q).giftQty > 0;
+                  });
+                  return (
+                    <Button className="flex-1 h-9 text-xs" onClick={handleConfirmMulti} disabled={blocking}>
+                      <Plus className="w-3.5 h-3.5 me-1" />
+                      {blocking ? 'فعّل الهدية أولاً' : `إضافة ${multiSelected.size} منتج`}
+                    </Button>
+                  );
+                })()}
               </DialogFooter>
             </>
           )}
