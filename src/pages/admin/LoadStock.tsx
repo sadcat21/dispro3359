@@ -112,6 +112,13 @@ const LoadStock: React.FC = () => {
   const [showPartialLoadDialog, setShowPartialLoadDialog] = useState(false);
   const [showLoadSheetPrint, setShowLoadSheetPrint] = useState(false);
   const [showBulkLoadNeeds, setShowBulkLoadNeeds] = useState(false);
+  const [insufficientAlert, setInsufficientAlert] = useState<{ name: string; available: string; requested: string } | null>(null);
+
+  useEffect(() => {
+    if (!insufficientAlert) return;
+    const t = setTimeout(() => setInsufficientAlert(null), 2500);
+    return () => clearTimeout(t);
+  }, [insufficientAlert]);
 
   // Auto-open history from URL params
   useEffect(() => {
