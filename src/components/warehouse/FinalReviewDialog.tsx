@@ -722,7 +722,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
                       <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
                       <span className="text-sm font-bold text-foreground">
-                        {r.salesAmount.toLocaleString('ar-DZ', { timeZone: 'Africa/Algiers' })} د.ج
+                        {r.salesAmount.toLocaleString('ar-DZ')} د.ج
                       </span>
                     </div>
 
