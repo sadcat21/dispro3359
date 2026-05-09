@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Package, Check, Plus, X, Gift, Truck, Trash2, Warehouse, SlidersHorizontal } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { parseBP } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 
 interface ProductOption {
