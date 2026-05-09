@@ -594,27 +594,39 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
                 const active = isMulti || isSingle;
                 return (
-                  <Button
-                    key={s.id}
-                    type="button"
-                    size="sm"
-                    variant={active ? 'default' : 'outline'}
-                    onClick={() => handleSessionClick(s.id)}
-                    onMouseDown={() => startLongPress(s.id)}
-                    onMouseUp={cancelLongPress}
-                    onMouseLeave={cancelLongPress}
-                    onTouchStart={() => startLongPress(s.id)}
-                    onTouchEnd={cancelLongPress}
-                    onTouchCancel={cancelLongPress}
-                    onContextMenu={(e) => e.preventDefault()}
-                    className={`h-6 px-2 text-[10px] ${isMulti ? 'ring-2 ring-primary/60' : ''}`}
-                    title={`${new Date(s.created_at).toLocaleString('ar-DZ')} — اضغط مطوّلاً للتحديد المتعدد`}
-                  >
-                    {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
-                    <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-primary/15 text-primary'}`}>
-                      🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </span>
-                  </Button>
+                  <div key={s.id} className={`inline-flex items-center rounded-md ${isMulti ? 'ring-2 ring-primary/60' : ''}`}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={active ? 'default' : 'outline'}
+                      onClick={() => handleSessionClick(s.id)}
+                      onMouseDown={() => startLongPress(s.id)}
+                      onMouseUp={cancelLongPress}
+                      onMouseLeave={cancelLongPress}
+                      onTouchStart={() => startLongPress(s.id)}
+                      onTouchEnd={cancelLongPress}
+                      onTouchCancel={cancelLongPress}
+                      onContextMenu={(e) => e.preventDefault()}
+                      className="h-6 px-2 text-[10px] rounded-e-none border-e-0"
+                      title={`${new Date(s.created_at).toLocaleString('ar-DZ')} — اضغط مطوّلاً للتحديد المتعدد`}
+                    >
+                      {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit' })}
+                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-primary/15 text-primary'}`}>
+                        🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      </span>
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteSession(s.id, `شحنة ${idx + 1}`)}
+                      disabled={deletingSessionId === s.id}
+                      className="h-6 w-6 p-0 rounded-s-none text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      title="حذف هذه الجلسة"
+                    >
+                      {deletingSessionId === s.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    </Button>
+                  </div>
                 );
               })}
               {multiSelected.size > 0 && (
