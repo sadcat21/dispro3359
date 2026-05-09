@@ -275,10 +275,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             .from('order_items')
             .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
-          const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({ ...it }));
-          // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
-          const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
-          await mergeGiftsFromSalesTracking(itemsForMerge);
+           const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({
+             ...it,
+             // احفظ القيم الأصلية قبل الدمج لاستخدامها في حساب المباع (لأن quantity مبنية عليها)
+             _orig_gift_quantity: Number(it.gift_quantity || 0),
+             _orig_gift_pieces: Number(it.gift_pieces || 0),
+           }));
+           // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
+           const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+           await mergeGiftsFromSalesTracking(itemsForMerge);
           const { data: trackingRows } = await (supabase as any)
             .from('sales_tracking')
             .select('product_id, total_price')
@@ -300,9 +305,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
             const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-            // quantity في order_items يشمل gift_quantity (هدية بالصناديق) لكن لا يشمل gift_pieces (هدية إضافية بالقطع)
-            // لذا المباع = الإجمالي − صناديق الهدية فقط
-            ex.sold += Math.max(0, totalPieces - giftBoxes * ppb);
+            // quantity في order_items مبنية على القيم الأصلية لـ gift_quantity وقت إنشاء الطلب
+            // لذا يجب طرح صناديق الهدية الأصلية (وليس المدموجة من sales_tracking) للحصول على المباع الصحيح
+            const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
+            ex.sold += Math.max(0, totalPieces - origGiftBoxes * ppb);
             ex.gifts += giftTotalPieces;
             if (!trackingAmountByProduct.has(pid)) {
               ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
