@@ -2217,8 +2217,18 @@ const LoadStock: React.FC = () => {
         selectedProductIds={sessionItems.map((i: any) => i.product_id)}
         onAddProducts={handleBulkAddFromPicker}
         needsMap={suggestions.reduce((acc, s) => { if (s.suggested_load > 0) acc[s.product_id] = s.suggested_load; return acc; }, {} as Record<string, number>)}
-        loadedQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => { acc[si.product_id] = (acc[si.product_id] || 0) + (si.quantity || 0) + (si.gift_quantity || 0); return acc; }, {} as Record<string, number>)}
-        giftQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => { acc[si.product_id] = (acc[si.product_id] || 0) + (si.gift_quantity || 0); return acc; }, {} as Record<string, number>)}
+        loadedQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => {
+          const ppb = (si.product as any)?.pieces_per_box || 20;
+          const paidPieces = customToTotalPieces(si.quantity || 0, ppb);
+          const giftPieces = customToTotalPieces(si.gift_quantity || 0, ppb);
+          acc[si.product_id] = (acc[si.product_id] || 0) + paidPieces + giftPieces;
+          return acc;
+        }, {} as Record<string, number>)}
+        giftQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => {
+          const ppb = (si.product as any)?.pieces_per_box || 20;
+          acc[si.product_id] = (acc[si.product_id] || 0) + customToTotalPieces(si.gift_quantity || 0, ppb);
+          return acc;
+        }, {} as Record<string, number>)}
         offersMap={productOffers}
         onEditProduct={handleEditFromPicker}
         onRemoveProduct={handleRemoveProductFromPicker}
