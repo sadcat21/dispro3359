@@ -854,7 +854,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   رجوع
                 </Button>
                 {(() => {
-                  const blocking = selectedProducts.some(p => {
+                  const blocking = Array.from(multiSelected).some(id => {
+                    const p = products.find(x => x.id === id);
+                    if (!p) return false;
                     if (!offersMap[p.id]) return false;
                     if (offerActivated[p.id]) return false;
                     const ppb = p.pieces_per_box || 1;
