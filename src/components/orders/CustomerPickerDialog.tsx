@@ -300,6 +300,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md mx-auto h-[95vh] max-h-[95vh] p-0 gap-0 rounded-2xl flex flex-col" dir={dir}>
         {/* Hidden title for accessibility */}
