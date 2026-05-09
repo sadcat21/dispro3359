@@ -186,6 +186,18 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   };
 
+  // Display gift amount converting pieces → boxes when divisible by ppb
+  const formatGiftDisplay = (giftQty: number, giftUnit: string, ppb: number): string => {
+    if (giftUnit === 'box') return `${fmtQty(giftQty)} صندوق`;
+    if (ppb > 1) {
+      const boxes = Math.floor(giftQty / ppb);
+      const pieces = giftQty % ppb;
+      if (boxes > 0 && pieces === 0) return `${boxes} صندوق`;
+      if (boxes > 0) return `${boxes} صندوق + ${pieces} قطعة`;
+    }
+    return `${fmtQty(giftQty)} قطعة`;
+  };
+
   // Long press handlers
   const handlePointerDown = useCallback((productId: string) => {
     longPressTriggered.current = false;
