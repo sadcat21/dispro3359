@@ -376,11 +376,25 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const computeGiftForProduct = (productId: string, qty: number): { giftQty: number; giftUnit: string } => {
     const offer = offersMap[productId];
     if (!offer || qty <= 0) return { giftQty: 0, giftUnit: 'piece' };
+    const product = products.find(p => p.id === productId);
+    const ppb = product?.pieces_per_box || 1;
+    const parsedQty = parseBP(Number(qty || 0).toFixed(2), ppb);
     const sortedTiers = [...offer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
-      if (qty >= tier.minQty) {
-        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
-        return { giftQty: gQty, giftUnit: tier.giftUnit };
+      const minUnit = tier.minUnit || offer.minUnit;
+      const threshold = minUnit === 'piece' ? tier.minQty : tier.minQty;
+      const eligibleQty = minUnit === 'piece' ? parsedQty.totalPieces : qty;
+      if (eligibleQty >= threshold) {
+        const rawGiftQty = Math.floor(eligibleQty / threshold) * tier.giftQty;
+        if (tier.giftUnit === 'piece') {
+          const normalized = piecesToFields(rawGiftQty, ppb);
+          const boxes = Number(normalized.boxes);
+          const pieces = Number(normalized.pieces);
+          return pieces === 0 && boxes > 0
+            ? { giftQty: boxes, giftUnit: 'box' }
+            : { giftQty: rawGiftQty, giftUnit: 'piece' };
+        }
+        return { giftQty: rawGiftQty, giftUnit: tier.giftUnit };
       }
     }
     return { giftQty: 0, giftUnit: 'piece' };
