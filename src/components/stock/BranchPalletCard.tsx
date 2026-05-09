@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import palletImage from '@/assets/pallet.png';
 
 interface Props {
   branchId: string;
@@ -28,7 +29,7 @@ const BranchPalletCard: React.FC<Props> = ({ branchId }) => {
     <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
       <CardContent className="p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🪵</span>
+          <img src={palletImage} alt="باليط" className="w-9 h-9 rounded-md object-cover border shrink-0" />
           <div>
             <div className="text-xs text-muted-foreground">رصيد الباليطات</div>
             <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{quantity}</div>
