@@ -64,6 +64,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [periodStart, setPeriodStart] = useState<string | null>(null);
   const [workerPin, setWorkerPin] = useState('');
   const [hasPin, setHasPin] = useState<boolean | null>(null);
+  // Per-session preview support
+  const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
+  const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
+  const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
 
   // Check if worker has set up a review PIN
   useEffect(() => {
