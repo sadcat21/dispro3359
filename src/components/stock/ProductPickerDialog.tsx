@@ -330,10 +330,14 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   // Multi-select
   const handleOpenMultiQty = () => {
     if (multiSelected.size === 0) return;
-    const initQtys: Record<string, number> = {};
-    multiSelected.forEach(id => { initQtys[id] = needsMap[id] || 1; });
-    setIndividualQtys(initQtys);
-    setUnifiedQtyValue(1);
+    const initQtys: Record<string, QuantityFields> = {};
+    multiSelected.forEach(id => {
+      const product = products.find(p => p.id === id);
+      const ppb = product?.pieces_per_box || 1;
+      initQtys[id] = needsMap[id] > 0 ? quantityToFields(needsMap[id], ppb) : createDefaultMultiFields();
+    });
+    setIndividualQtyFields(initQtys);
+    setUnifiedQtyFields(createDefaultMultiFields());
     setMode('multi-qty');
   };
 
@@ -353,7 +357,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
   const handleConfirmMulti = () => {
     const items = Array.from(multiSelected).map(id => {
-      const qty = uniformQty ? unifiedQtyValue : (individualQtys[id] || 1);
+      const product = products.find(p => p.id === id);
+      const ppb = product?.pieces_per_box || 1;
+      const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[id] || createDefaultMultiFields());
+      const qty = fieldsToCustomQuantity(qtyFields, ppb);
       const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
       return {
         productId: id,
@@ -366,13 +373,13 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     onAddProducts(items);
     setMultiSelected(new Set());
     setMode('browse');
-    setIndividualQtys({});
+    setIndividualQtyFields({});
   };
 
   const handleCancelMulti = () => {
     setMultiSelected(new Set());
     setMode('browse');
-    setIndividualQtys({});
+    setIndividualQtyFields({});
   };
 
   const renderProductButton = (p: ProductOption) => {
