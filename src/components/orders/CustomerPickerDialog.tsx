@@ -420,9 +420,9 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                 );
               }
 
-              // اعرض المجموعات (إما كلها عند البحث، أو منطقة واحدة فقط)
+              // عند البحث: قائمة مسطحة بدون تجميع. بدون بحث: المنطقة المختارة فقط.
               const visibleRegions = search.trim()
-                ? regionEntries
+                ? [['__search__', visibleCustomers] as [string, Customer[]]]
                 : regionEntries.filter(([r]) => r === activeRegionKey);
               return (
                 <div className="p-3 space-y-5">
