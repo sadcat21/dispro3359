@@ -336,24 +336,31 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       return boxes * ppb + piecesDec;
     };
     const map = new Map<string, AggregatedRow>();
+    const rowsByPid = new Map(rows.map(r => [r.productId, r]));
     for (const it of items) {
       const pid = (it as any).product_id;
       const prod = (it as any).product || {};
       const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
-      const ex = map.get(pid) || {
-        productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
-        loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
-        expected: 0, expectedBoxes: 0, expectedPieces: 0,
-        actualBoxes: '', actualPieces: '', confirmed: false, ppb,
-      };
+      const baseRow = rowsByPid.get(pid);
+      const ex = map.get(pid) || (baseRow
+        ? { ...baseRow, loaded: 0, expected: 0, expectedBoxes: 0, expectedPieces: 0, actualBoxes: '', actualPieces: '', confirmed: false }
+        : {
+            productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
+            loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
+            expected: 0, expectedBoxes: 0, expectedPieces: 0,
+            actualBoxes: '', actualPieces: '', confirmed: false, ppb,
+          });
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
-      ex.expected = ex.loaded;
-      ex.expectedBoxes = Math.floor(ex.loaded / ppb);
-      ex.expectedPieces = ex.loaded % ppb;
+      const expectedTotal = ex.loaded - ex.unloaded - ex.sold - ex.gifts;
+      const absP = Math.abs(expectedTotal);
+      const sign = expectedTotal < 0 ? -1 : 1;
+      ex.expected = expectedTotal;
+      ex.expectedBoxes = sign * Math.floor(absP / ex.ppb);
+      ex.expectedPieces = absP % ex.ppb;
       map.set(pid, ex);
     }
     return Array.from(map.values()).sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [selectedSessionId, multiSelected, loadItemsBySession]);
+  }, [selectedSessionId, multiSelected, loadItemsBySession, rows]);
 
   const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
