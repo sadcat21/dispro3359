@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Truck, Package, Loader2, PackageX } from 'lucide-react';
 import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import palletImage from '@/assets/pallet.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWarehouseStock } from '@/hooks/useWarehouseStock';
 import { useWorkerLoadSuggestions } from '@/hooks/useStockAlerts';
@@ -66,6 +67,7 @@ const QuickLoadDialog: React.FC<QuickLoadDialogProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [markingProduct, setMarkingProduct] = useState<string | null>(null);
   const [productsInfo, setProductsInfo] = useState<Record<string, number>>({});
+  const [palletCount, setPalletCount] = useState<string>('');
   const confirmLockRef = useRef(false);
 
   // Fetch pieces_per_box for all products
@@ -174,10 +176,12 @@ const QuickLoadDialog: React.FC<QuickLoadDialogProps> = ({
         quantity: e.quantity,
         notes: `شحن سريع من التنبيهات - ${e.product_name}`,
       }));
-      await loadToWorker(workerId, loadItems);
+      const palletNum = Math.max(0, parseInt(palletCount, 10) || 0);
+      await loadToWorker(workerId, loadItems, palletNum);
       queryClient.invalidateQueries({ queryKey: ['stock-alerts'] });
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
       queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['branch-pallet-qty'] });
       toast.success(t('stock.loaded_success'));
       onOpenChange(false);
     } catch (error: any) {
@@ -300,6 +304,22 @@ const QuickLoadDialog: React.FC<QuickLoadDialogProps> = ({
             <Badge variant="secondary">{totalItems} {t('stock.boxes')}</Badge>
           </div>
         )}
+
+        {/* Pallets input — deducted from branch_pallets on load */}
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/20 p-3">
+          <img src={palletImage} alt="باليط" className="w-10 h-10 rounded-md object-cover border shrink-0" />
+          <div className="flex-1">
+            <label className="text-xs font-medium text-amber-800 dark:text-amber-300">عدد الباليطات المُسلَّمة</label>
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={palletCount}
+              onChange={e => setPalletCount(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              placeholder="0"
+              className="text-center h-9 mt-1"
+            />
+          </div>
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

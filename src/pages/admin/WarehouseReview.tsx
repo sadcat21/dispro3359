@@ -305,10 +305,29 @@ const WarehouseReview: React.FC = () => {
         }
       }
 
+      // الباليطات: لو مطابق نحدّث رصيد الفرع ونسجّل حركة، الفارق يُترك للمراجعة الإدارية
+      {
+        const palletNum = parseFloat(palletActual) || 0;
+        const palletDiff = palletNum - palletQuantity;
+        if (Math.abs(palletDiff) < 0.001) {
+          await supabase.from('branch_pallets')
+            .update({ quantity: palletNum })
+            .eq('branch_id', branchId!);
+          await supabase.from('pallet_movements').insert({
+            branch_id: branchId!,
+            quantity: 0,
+            movement_type: 'review_match',
+            notes: `مراجعة مطابقة — رصيد ${palletNum}`,
+            created_by: workerId!,
+          });
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['warehouse-review-history'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-product-summary'] });
       queryClient.invalidateQueries({ queryKey: ['warehouse-pending-review-items'] });
+      queryClient.invalidateQueries({ queryKey: ['branch-pallet-qty', branchId] });
       const pendingCount = stats.surplus + stats.deficit;
       if (pendingCount > 0) {
         toast.success(`تم حفظ المراجعة: ${stats.matched} مطابق معتمد، و${pendingCount} فارق بانتظار قرار مدير الفرع`);

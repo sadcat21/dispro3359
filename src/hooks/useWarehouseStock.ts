@@ -436,7 +436,8 @@ export const useWarehouseStock = () => {
   // Load products to worker
   const loadToWorker = async (
     targetWorkerId: string,
-    items: { product_id: string; quantity: number; notes?: string }[]
+    items: { product_id: string; quantity: number; notes?: string }[],
+    palletCount?: number
   ) => {
     if (!workerId || !branchId) throw new Error('Missing worker or branch');
 
@@ -516,6 +517,31 @@ export const useWarehouseStock = () => {
         created_by: workerId,
         worker_id: targetWorkerId,
         notes: item.notes || 'شحن من المخزن إلى عامل التوصيل',
+      });
+    }
+
+    // Pallets: deduct from branch_pallets and log a pallet_movement of type 'load'
+    if (palletCount && palletCount > 0) {
+      const { data: bp } = await supabase
+        .from('branch_pallets')
+        .select('id, quantity')
+        .eq('branch_id', branchId)
+        .maybeSingle();
+      const currentQty = Number(bp?.quantity || 0);
+      if (currentQty < palletCount) {
+        throw new Error(`رصيد الباليطات في الفرع (${currentQty}) غير كافٍ لشحن ${palletCount}`);
+      }
+      if (bp) {
+        await supabase.from('branch_pallets')
+          .update({ quantity: currentQty - palletCount })
+          .eq('id', bp.id);
+      }
+      await supabase.from('pallet_movements').insert({
+        branch_id: branchId,
+        quantity: palletCount,
+        movement_type: 'load',
+        notes: `شحن ${palletCount} باليط مع العامل`,
+        created_by: workerId,
       });
     }
 
