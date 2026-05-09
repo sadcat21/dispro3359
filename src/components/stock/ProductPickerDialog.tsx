@@ -118,6 +118,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     setSingleGiftQty(0);
     setSingleGiftUnit('piece');
     setIsEditMode(false);
+    setOfferActivated({});
   };
 
   // Single product quantity entry
