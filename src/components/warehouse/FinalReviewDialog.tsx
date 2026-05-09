@@ -102,6 +102,29 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   };
   const clearMulti = () => setMultiSelected(new Set());
 
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  const handleDeleteSession = async (sid: string, label: string) => {
+    if (!window.confirm(`هل تريد حذف ${label}؟ سيتم حذف بنود الشحن نهائياً.`)) return;
+    setDeletingSessionId(sid);
+    try {
+      await supabase.from('loading_session_items').delete().eq('session_id', sid);
+      const { error } = await supabase.from('loading_sessions').delete().eq('id', sid);
+      if (error) throw error;
+      toast.success('تم حذف جلسة الشحن');
+      setLoadSessionsList(prev => prev.filter(s => s.id !== sid));
+      setLoadItemsBySession(prev => { const n = { ...prev }; delete n[sid]; return n; });
+      setMultiSelected(prev => { const n = new Set(prev); n.delete(sid); return n; });
+      if (selectedSessionId === sid) setSelectedSessionId('all');
+      setLoadCount(c => Math.max(0, c - 1));
+      qc.invalidateQueries({ queryKey: ['warehouse-today-loadings'] });
+      qc.invalidateQueries({ queryKey: ['warehouse-stock'] });
+    } catch (e: any) {
+      toast.error(e.message || 'تعذّر حذف الجلسة');
+    } finally {
+      setDeletingSessionId(null);
+    }
+  };
+
   // Check if worker has set up a review PIN
   useEffect(() => {
     if (!open || !workerId) return;
