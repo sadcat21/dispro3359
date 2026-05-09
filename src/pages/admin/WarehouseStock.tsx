@@ -146,6 +146,21 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
+  // Fetch all stock movements (load / return) for this branch to compute remaining from fundamentals
+  const { data: movementsData } = useQuery({
+    queryKey: ['warehouse-movements-summary', branchId],
+    queryFn: async () => {
+      if (!branchId) return [];
+      const { data } = await supabase
+        .from('stock_movements')
+        .select('product_id, movement_type, quantity')
+        .eq('branch_id', branchId)
+        .in('movement_type', ['load', 'return']);
+      return data || [];
+    },
+    enabled: !!branchId,
+  });
+
   const productSummaries = useMemo((): ProductSummary[] => {
     if (!products.length) return [];
 
@@ -230,37 +245,46 @@ const WarehouseStock: React.FC = () => {
       summaries[ws.product_id].compensation += Number(ws.compensation_quantity || 0);
     }
 
-    // Remaining = warehouse stock
-    for (const ws of warehouseStock) {
-      if (summaries[ws.product_id]) {
-        summaries[ws.product_id].remaining = Number(ws.quantity || 0);
+    // Compute remaining from fundamentals: receipts − load + return − warehouse_sale
+    // (deliveries are deducted from worker stock, not from warehouse stock)
+    const loadByProduct: Record<string, number> = {};
+    const returnByProduct: Record<string, number> = {};
+    for (const m of (movementsData || [])) {
+      const pid = (m as any).product_id;
+      const qty = Number((m as any).quantity || 0);
+      if ((m as any).movement_type === 'load') {
+        loadByProduct[pid] = (loadByProduct[pid] || 0) + qty;
+      } else if ((m as any).movement_type === 'return') {
+        returnByProduct[pid] = (returnByProduct[pid] || 0) + qty;
       }
     }
 
-    // Subtract warehouse_sale totals (sold directly from warehouse — not yet deducted in warehouse_stock.quantity)
-    const salesByProduct: Record<string, number> = {};
+    const warehouseSaleByProduct: Record<string, number> = {};
     for (const s of (warehouseSalesData || [])) {
       const ppb = Number((s as any).pieces_per_box) || 20;
       const boxes = Number((s as any).total_boxes || 0);
       const pieces = Number((s as any).total_pieces || 0);
-      // Convert to box.piece notation (matches receipts format)
       const totalPieces = boxes * ppb + pieces;
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
-      salesByProduct[(s as any).product_id] = (salesByProduct[(s as any).product_id] || 0) + inBoxPieceFmt;
+      const pid = (s as any).product_id;
+      warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
     }
-    for (const pid of Object.keys(salesByProduct)) {
-      if (summaries[pid]) {
-        summaries[pid].remaining = Math.round((summaries[pid].remaining - salesByProduct[pid]) * 100) / 100;
-      }
+
+    for (const pid of Object.keys(summaries)) {
+      const received = summaries[pid].received;
+      const loadT = loadByProduct[pid] || 0;
+      const returnT = returnByProduct[pid] || 0;
+      const wSale = warehouseSaleByProduct[pid] || 0;
+      summaries[pid].remaining = Math.round((received - loadT + returnT - wSale) * 100) / 100;
     }
 
     // Hide products where all values are zero
     return Object.values(summaries)
       .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData]);
+  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData]);
 
   const filteredSummaries = useMemo(() => {
     if (!search.trim()) return productSummaries;
