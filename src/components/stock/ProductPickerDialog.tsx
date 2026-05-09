@@ -206,7 +206,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   // Format quantity in Box.Piece (B.P) form, e.g. "2.5" = 2 boxes + 5 pieces
   const fmtBP = (n: number, ppb: number): string => {
     const total = Math.max(0, Math.round(Number(n) || 0));
-    if (!ppb || ppb <= 1) return `0.${total}`;
+    if (!ppb || ppb <= 1) return `${total}`;
     const boxes = Math.floor(total / ppb);
     const pieces = total % ppb;
     return `${boxes}.${pieces}`;
