@@ -29,7 +29,7 @@ export interface OfferInfo {
   giftUnit: string;
   minQty: number;
   minUnit: string;
-  tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string }[];
+  tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit?: string }[];
 }
 
 interface ProductPickerDialogProps {
@@ -78,6 +78,22 @@ const normalizeFields = (fields: QuantityFields, piecesPerBox: number): Quantity
 };
 
 const toCustomFormat = (p: { boxes: number; pieces: number }) => p.boxes + p.pieces / 100;
+
+const piecesToFields = (totalPieces: number, piecesPerBox: number): QuantityFields => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  const safePieces = Math.max(0, Math.round(totalPieces || 0));
+  const boxes = Math.floor(safePieces / ppb);
+  const pieces = safePieces % ppb;
+  return {
+    boxes: String(boxes),
+    pieces: pieces > 0 ? String(pieces) : '0',
+  };
+};
+
+const giftToPieces = (giftQty: number, giftUnit: string, piecesPerBox: number): number => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  return giftUnit === 'box' ? Math.round(giftQty * ppb) : Math.round(giftQty || 0);
+};
 
 const createDefaultSingleFields = (): QuantityFields => ({ boxes: '', pieces: '' });
 const createDefaultMultiFields = (): QuantityFields => ({ boxes: '1', pieces: '' });
