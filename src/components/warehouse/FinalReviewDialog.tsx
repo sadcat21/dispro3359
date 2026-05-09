@@ -103,17 +103,32 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const clearMulti = () => setMultiSelected(new Set());
 
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
-  const handleDeleteSession = async (sid: string, label: string) => {
-    if (!window.confirm(`هل تريد حذف ${label}؟ سيتم حذف بنود الشحن نهائياً.`)) return;
+  const [hiddenSessionIds, setHiddenSessionIds] = useState<Set<string>>(new Set());
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; label: string } | null>(null);
+
+  const hideSessionFromUI = (sid: string) => {
+    setHiddenSessionIds(prev => { const n = new Set(prev); n.add(sid); return n; });
+    setMultiSelected(prev => { const n = new Set(prev); n.delete(sid); return n; });
+    if (selectedSessionId === sid) setSelectedSessionId('all');
+    setConfirmTarget(null);
+    toast.success('تم إخفاء الجلسة من الواجهة (يمكن استرجاعها)');
+  };
+  const restoreHiddenSessions = () => {
+    setHiddenSessionIds(new Set());
+    toast.success('تم استرجاع الجلسات المخفية');
+  };
+  const deleteSessionFromDB = async (sid: string) => {
     setDeletingSessionId(sid);
+    setConfirmTarget(null);
     try {
       await supabase.from('loading_session_items').delete().eq('session_id', sid);
       const { error } = await supabase.from('loading_sessions').delete().eq('id', sid);
       if (error) throw error;
-      toast.success('تم حذف جلسة الشحن');
+      toast.success('تم حذف جلسة الشحن نهائياً');
       setLoadSessionsList(prev => prev.filter(s => s.id !== sid));
       setLoadItemsBySession(prev => { const n = { ...prev }; delete n[sid]; return n; });
       setMultiSelected(prev => { const n = new Set(prev); n.delete(sid); return n; });
+      setHiddenSessionIds(prev => { const n = new Set(prev); n.delete(sid); return n; });
       if (selectedSessionId === sid) setSelectedSessionId('all');
       setLoadCount(c => Math.max(0, c - 1));
       qc.invalidateQueries({ queryKey: ['warehouse-today-loadings'] });
@@ -123,6 +138,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     } finally {
       setDeletingSessionId(null);
     }
+  };
+  const handleDeleteSession = (sid: string, label: string) => {
+    setConfirmTarget({ id: sid, label });
   };
 
   // Check if worker has set up a review PIN
@@ -364,9 +382,43 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
+  // Subtract loaded contributions of UI-hidden sessions
+  const effectiveRows = useMemo<AggregatedRow[]>(() => {
+    if (hiddenSessionIds.size === 0) return rows;
+    const bpToPieces = (val: number, ppb: number): number => {
+      const v = Number(val || 0);
+      const boxes = Math.floor(Math.round(v * 100) / 100);
+      const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
+      return boxes * ppb + piecesDec;
+    };
+    const subtractByPid = new Map<string, number>();
+    for (const sid of hiddenSessionIds) {
+      for (const it of (loadItemsBySession[sid] || [])) {
+        const ppb = Math.max(1, Math.round(Number((it as any).product?.pieces_per_box || 1)));
+        const pid = (it as any).product_id;
+        subtractByPid.set(pid, (subtractByPid.get(pid) || 0) + bpToPieces(Number((it as any).quantity || 0), ppb));
+      }
+    }
+    return rows.map(r => {
+      const sub = subtractByPid.get(r.productId) || 0;
+      if (!sub) return r;
+      const newLoaded = Math.max(0, r.loaded - sub);
+      const expectedTotal = newLoaded - r.unloaded - r.sold - r.gifts;
+      const absP = Math.abs(expectedTotal);
+      const sign = expectedTotal < 0 ? -1 : 1;
+      return {
+        ...r,
+        loaded: newLoaded,
+        expected: expectedTotal,
+        expectedBoxes: sign * Math.floor(absP / r.ppb),
+        expectedPieces: absP % r.ppb,
+      };
+    });
+  }, [rows, hiddenSessionIds, loadItemsBySession]);
+
   const filtered = useMemo(
     () => {
-      const source = isPreviewMode ? sessionPreviewRows : rows;
+      const source = isPreviewMode ? sessionPreviewRows : effectiveRows;
       return source
         .slice()
         .sort((a, b) => {
@@ -374,7 +426,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           return a.productName.localeCompare(b.productName);
         });
     },
-    [rows, sessionPreviewRows, isPreviewMode]
+    [effectiveRows, sessionPreviewRows, isPreviewMode]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
@@ -402,15 +454,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const stats = useMemo(() => {
     let surplus = 0, deficit = 0, matched = 0, untouched = 0;
-    for (const r of rows) {
+    for (const r of effectiveRows) {
       if (!r.confirmed) { untouched++; continue; }
       const s = getStatus(r);
       if (s === 'match') matched++;
       else if (s === 'surplus') surplus++;
       else deficit++;
     }
-    return { surplus, deficit, matched, untouched, total: rows.length };
-  }, [rows]);
+    return { surplus, deficit, matched, untouched, total: effectiveRows.length };
+  }, [effectiveRows]);
 
   const updateActualBoxes = (pid: string, val: string) => {
     setRows(prev => prev.map(r => r.productId === pid ? { ...r, actualBoxes: val.replace(/[^0-9]/g, ''), confirmed: false } : r));
@@ -447,11 +499,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     setIsSaving(true);
     try {
 
-      const totalExpected = rows.reduce((s, r) => {
+      const totalExpected = effectiveRows.reduce((s, r) => {
         const ppb = Math.max(1, Math.round(r.ppb || 1));
         return s + piecesToBPNum(r.expected, ppb);
       }, 0);
-      const totalActual = rows.reduce((s, r) => {
+      const totalActual = effectiveRows.reduce((s, r) => {
         const ppb = Math.max(1, Math.round(r.ppb || 1));
         return s + piecesToBPNum(actualTotalPieces(r), ppb);
       }, 0);
@@ -483,7 +535,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       // 3. Insert all line items (audit trail) + discrepancies
       const itemRows: any[] = [];
       const discRows: any[] = [];
-      for (const r of rows) {
+      for (const r of effectiveRows) {
         const ppb = Math.max(1, Math.round(r.ppb || 1));
         const expectedBP = piecesToBPNum(r.expected, ppb);
         const actualBP = piecesToBPNum(actualTotalPieces(r), ppb);
@@ -594,9 +646,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 className="h-6 px-2 text-[10px] gap-1"
               >
                 <Package className="w-3 h-3" />
-                الكل ({loadSessionsList.length})
+                الكل ({loadSessionsList.length - hiddenSessionIds.size})
               </Button>
-              {loadSessionsList.map((s, idx) => {
+              {loadSessionsList.filter(s => !hiddenSessionIds.has(s.id)).map((s, idx) => {
                 const isMulti = multiSelected.has(s.id);
                 const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
                 const active = isMulti || isSingle;
@@ -648,9 +700,55 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                   إلغاء التحديد
                 </Button>
               )}
+              {hiddenSessionIds.size > 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={restoreHiddenSessions}
+                  className="h-6 px-2 text-[10px] gap-1 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-400"
+                  title="استرجاع الجلسات المخفية من الواجهة"
+                >
+                  ↺ استرجاع المخفية ({hiddenSessionIds.size})
+                </Button>
+              )}
             </div>
           )}
         </div>
+
+        {/* Confirm delete dialog: hide vs permanent delete */}
+        <Dialog open={!!confirmTarget} onOpenChange={(o) => !o && setConfirmTarget(null)}>
+          <DialogContent className="max-w-sm" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <Trash2 className="w-4 h-4 text-destructive" />
+                حذف {confirmTarget?.label}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="text-sm text-muted-foreground">
+              اختر طريقة الحذف:
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => confirmTarget && hideSessionFromUI(confirmTarget.id)}
+                className="justify-start gap-2 border-amber-400 text-amber-700 hover:bg-amber-50"
+              >
+                👁️‍🗨️ إخفاء من الواجهة فقط (قابل للاسترجاع)
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => confirmTarget && deleteSessionFromDB(confirmTarget.id)}
+                disabled={!!deletingSessionId}
+                className="justify-start gap-2"
+              >
+                {deletingSessionId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                حذف نهائي من قاعدة البيانات
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirmTarget(null)}>إلغاء</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="flex-1 min-h-0 overflow-y-auto pe-1">
           {loading ? (
