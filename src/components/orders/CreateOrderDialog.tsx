@@ -183,7 +183,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const fetchData = async () => {
     setIsLoadingData(true);
     try {
-      let customersQuery = supabase.from('customers').select('*').eq('status', 'active').order('name');
+      let customersQuery = supabase.from('customers').select('*').order('name');
 
       if (activeBranch) {
         customersQuery = customersQuery.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
