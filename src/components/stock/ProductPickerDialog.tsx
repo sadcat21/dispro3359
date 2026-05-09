@@ -483,15 +483,32 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
 
         {uniformQty && (
           <div className="px-3 py-2 border-b shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">الكمية لكل منتج:</span>
-              <Input
-                type="number" min={0.01} step="any"
-                value={unifiedQtyValue}
-                onFocus={e => e.target.select()}
-                onChange={e => setUnifiedQtyValue(parseFloat(e.target.value) || 0)}
-                className="w-24 h-8 text-center font-bold"
-              />
+            <div className="flex items-end gap-2">
+              <span className="text-xs text-muted-foreground pb-2">الكمية لكل منتج:</span>
+              <div className="grid grid-cols-2 gap-2 flex-1">
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">الصندوق</Label>
+                  <Input
+                    type="text" inputMode="numeric"
+                    value={unifiedQtyFields.boxes}
+                    onFocus={e => e.target.select()}
+                    onChange={e => setUnifiedQtyFields(prev => ({ ...prev, boxes: sanitizeDigits(e.target.value, 5) }))}
+                    className="h-8 text-center text-sm font-bold [font-variant-numeric:tabular-nums]"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">القطع</Label>
+                  <Input
+                    type="text" inputMode="numeric"
+                    value={unifiedQtyFields.pieces}
+                    onFocus={e => e.target.select()}
+                    onChange={e => setUnifiedQtyFields(prev => ({ ...prev, pieces: sanitizeDigits(e.target.value, 3) }))}
+                    className="h-8 text-center text-sm font-bold [font-variant-numeric:tabular-nums]"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -499,7 +516,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-2 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-1.5">
             {selectedProducts.map(p => {
-              const qty = uniformQty ? unifiedQtyValue : (individualQtys[p.id] || 1);
+              const ppb = p.pieces_per_box || 1;
+              const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
+              const qty = fieldsToCustomQuantity(qtyFields, ppb);
               const gift = computeGiftForProduct(p.id, qty);
               return (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg ring-1 ring-border/40 bg-card">
@@ -521,16 +540,29 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   )}
                 </div>
                 {!uniformQty && (
-                  <Input
-                    type="number" min={0} step="any"
-                    value={individualQtys[p.id] || 1}
-                    onFocus={e => e.target.select()}
-                    onChange={e => setIndividualQtys(prev => ({ ...prev, [p.id]: parseFloat(e.target.value) || 0 }))}
-                    className="w-16 h-8 text-center text-sm font-bold"
-                  />
+                  <div className="grid grid-cols-2 gap-1 w-28 shrink-0">
+                    <Input
+                      type="text" inputMode="numeric"
+                      value={qtyFields.boxes}
+                      aria-label="الصندوق"
+                      onFocus={e => e.target.select()}
+                      onChange={e => setIndividualQtyFields(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || createDefaultMultiFields()), boxes: sanitizeDigits(e.target.value, 5) } }))}
+                      className="h-8 text-center text-xs font-bold [font-variant-numeric:tabular-nums]"
+                      placeholder="ص"
+                    />
+                    <Input
+                      type="text" inputMode="numeric"
+                      value={qtyFields.pieces}
+                      aria-label="القطع"
+                      onFocus={e => e.target.select()}
+                      onChange={e => setIndividualQtyFields(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || createDefaultMultiFields()), pieces: sanitizeDigits(e.target.value, 3) } }))}
+                      className="h-8 text-center text-xs font-bold [font-variant-numeric:tabular-nums]"
+                      placeholder="ق"
+                    />
+                  </div>
                 )}
                 {uniformQty && (
-                  <Badge variant="secondary" className="text-xs">{fmtQty(unifiedQtyValue)}</Badge>
+                  <Badge variant="secondary" className="text-xs">{parseBP(`${unifiedQtyFields.boxes || '0'}.${unifiedQtyFields.pieces || '0'}`, ppb).display}</Badge>
                 )}
               </div>
               );
