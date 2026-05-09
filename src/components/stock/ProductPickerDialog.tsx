@@ -285,6 +285,9 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const singlePPB = singleProduct?.pieces_per_box || 1;
   const parsed = parseBP(`${singleQtyFields.boxes || '0'}.${singleQtyFields.pieces || '0'}`, singlePPB);
   const parsedGift = parseBP(`${singleGiftFields.boxes || '0'}.${singleGiftFields.pieces || '0'}`, singlePPB);
+  const parsedBoxes = parsed.boxes;
+  const parsedPieces = parsed.pieces;
+  const parsedTotalPieces = parsed.totalPieces;
   const displayBP = `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`;
   const displayGiftBP = `${parsedGift.boxes}.${String(parsedGift.pieces).padStart(2, '0')}`;
   const singleOffer = singleProductId ? offersMap[singleProductId] : undefined;
@@ -293,7 +296,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const suggestedGift = React.useMemo(() => {
     if (!singleOffer || toCustomFormat(parsed) <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
     const qtyCustom = toCustomFormat(parsed);
-    const qtyPieces = parsed.totalPieces;
+    const qtyPieces = parsedTotalPieces;
     const sortedTiers = [...singleOffer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
       const minPieces = (tier.minUnit || singleOffer.minUnit) === 'piece'
@@ -308,7 +311,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       }
     }
     return { qty: 0, unit: 'piece', totalPieces: 0 };
-  }, [singleOffer, parsed.boxes, parsed.pieces, parsed.totalPieces, singlePPB]);
+  }, [singleOffer, parsedBoxes, parsedPieces, parsedTotalPieces, singlePPB]);
 
   const suggestedSplit = React.useMemo(() => {
     const fields = piecesToFields(suggestedGift.totalPieces, singlePPB);
