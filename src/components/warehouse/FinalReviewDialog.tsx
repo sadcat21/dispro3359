@@ -98,11 +98,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const sinceTs = realSince || '1970-01-01';
         if (!cancelled) setPeriodStart(realSince);
 
-        // 2. جلسات الشحن للعامل بعد ذلك التاريخ
+        // 2. جلسات الشحن للعامل بعد ذلك التاريخ (استثناء جلسات المراجعة حتى لا تُحتسب كشحن)
         const { data: loadSessions } = await supabase
           .from('loading_sessions')
-          .select('id')
+          .select('id, status')
           .eq('worker_id', workerId)
+          .neq('status', 'review')
           .gte('created_at', sinceTs);
         const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
         if (!cancelled) setLoadCount(loadSessionIds.length);
