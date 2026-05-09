@@ -298,10 +298,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     return () => { cancelled = true; };
   }, [open, workerId]);
 
-  // Per-session preview: rebuild rows from a single session's items only
+  // Per-session preview: rebuild rows from one or many sessions' items
   const sessionPreviewRows = useMemo<AggregatedRow[]>(() => {
-    if (selectedSessionId === 'all') return [];
-    const items = loadItemsBySession[selectedSessionId] || [];
+    const sourceIds: string[] =
+      multiSelected.size > 0
+        ? Array.from(multiSelected)
+        : (selectedSessionId !== 'all' ? [selectedSessionId] : []);
+    if (sourceIds.length === 0) return [];
+    const items: any[] = sourceIds.flatMap(sid => loadItemsBySession[sid] || []);
     const bpToPieces = (val: number, ppb: number): number => {
       const v = Number(val || 0);
       const boxes = Math.floor(Math.round(v * 100) / 100);
@@ -326,11 +330,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       map.set(pid, ex);
     }
     return Array.from(map.values()).sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [selectedSessionId, loadItemsBySession]);
+  }, [selectedSessionId, multiSelected, loadItemsBySession]);
+
+  const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
   const filtered = useMemo(
     () => {
-      const source = selectedSessionId === 'all' ? rows : sessionPreviewRows;
+      const source = isPreviewMode ? sessionPreviewRows : rows;
       return source
         .slice()
         .sort((a, b) => {
@@ -338,7 +344,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           return a.productName.localeCompare(b.productName);
         });
     },
-    [rows, sessionPreviewRows, selectedSessionId]
+    [rows, sessionPreviewRows, isPreviewMode]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
