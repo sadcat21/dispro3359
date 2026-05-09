@@ -516,6 +516,13 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       </Badge>
                     </div>
 
+                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
+                      <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
+                      <span className="text-sm font-bold text-foreground">
+                        {r.salesAmount.toLocaleString('ar-DZ')} د.ج
+                      </span>
+                    </div>
+
                     {/* Expected — highlighted full width */}
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
                       <span className="text-[11px] font-medium text-primary">المتوقع</span>
