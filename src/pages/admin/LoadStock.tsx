@@ -728,7 +728,7 @@ const LoadStock: React.FC = () => {
         // Validate warehouse availability
         const warehouseItem = warehouseStock.find(s => s.product_id === item.productId);
         if (!warehouseItem) {
-          toast.error(`${t('load_stock.insufficient_stock')} - ${product?.name || ''}`);
+          setInsufficientAlert({ name: product?.name || '', available: '0', requested: String(item.quantity) });
           continue;
         }
 
@@ -758,7 +758,11 @@ const LoadStock: React.FC = () => {
           }, 0);
         const loadPieces = customToTotalPieces(totalLoadQty, piecesPerBox);
         if (warehousePieces < loadPieces + alreadyInSession) {
-          toast.error(`${t('load_stock.insufficient_stock')} - ${product?.name || ''}`);
+          setInsufficientAlert({
+            name: product?.name || '',
+            available: String(warehousePieces - alreadyInSession),
+            requested: String(loadPieces),
+          });
           continue;
         }
 
