@@ -189,6 +189,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
           const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
           await mergeGiftsFromSalesTracking(itemsForMerge);
+          const { data: trackingRows } = await (supabase as any)
+            .from('sales_tracking')
+            .select('product_id, total_price')
+            .in('order_id', deliveredIds);
+          const trackingAmountByProduct = new Map<string, number>();
+          for (const tr of (trackingRows || []) as any[]) {
+            const pid = String(tr.product_id || '');
+            if (!pid) continue;
+            trackingAmountByProduct.set(pid, (trackingAmountByProduct.get(pid) || 0) + Math.max(0, Number(tr.total_price || 0)));
+          }
           for (const it of itemsForMerge) {
             const pid = (it as any).product_id;
             const prod = (it as any).product || {};
@@ -204,8 +214,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             // لذا المباع = الإجمالي − صناديق الهدية فقط
             ex.sold += Math.max(0, totalPieces - giftBoxes * ppb);
             ex.gifts += giftTotalPieces;
-            ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
+            if (!trackingAmountByProduct.has(pid)) {
+              ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
+            }
             map.set(pid, ex);
+          }
+          for (const [pid, amount] of trackingAmountByProduct) {
+            const ex = map.get(pid);
+            if (ex) ex.salesAmount = amount;
           }
         }
 
