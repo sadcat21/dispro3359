@@ -275,10 +275,15 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             .from('order_items')
             .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
-          const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({ ...it }));
-          // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
-          const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
-          await mergeGiftsFromSalesTracking(itemsForMerge);
+           const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({
+             ...it,
+             // احفظ القيم الأصلية قبل الدمج لاستخدامها في حساب المباع (لأن quantity مبنية عليها)
+             _orig_gift_quantity: Number(it.gift_quantity || 0),
+             _orig_gift_pieces: Number(it.gift_pieces || 0),
+           }));
+           // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
+           const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+           await mergeGiftsFromSalesTracking(itemsForMerge);
           const { data: trackingRows } = await (supabase as any)
             .from('sales_tracking')
             .select('product_id, total_price')
