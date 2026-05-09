@@ -112,6 +112,13 @@ const LoadStock: React.FC = () => {
   const [showPartialLoadDialog, setShowPartialLoadDialog] = useState(false);
   const [showLoadSheetPrint, setShowLoadSheetPrint] = useState(false);
   const [showBulkLoadNeeds, setShowBulkLoadNeeds] = useState(false);
+  const [insufficientAlert, setInsufficientAlert] = useState<{ name: string; available: string; requested: string } | null>(null);
+
+  useEffect(() => {
+    if (!insufficientAlert) return;
+    const t = setTimeout(() => setInsufficientAlert(null), 2500);
+    return () => clearTimeout(t);
+  }, [insufficientAlert]);
 
   // Auto-open history from URL params
   useEffect(() => {
@@ -721,7 +728,7 @@ const LoadStock: React.FC = () => {
         // Validate warehouse availability
         const warehouseItem = warehouseStock.find(s => s.product_id === item.productId);
         if (!warehouseItem) {
-          toast.error(`${t('load_stock.insufficient_stock')} - ${product?.name || ''}`);
+          setInsufficientAlert({ name: product?.name || '', available: '0', requested: String(item.quantity) });
           continue;
         }
 
@@ -751,7 +758,11 @@ const LoadStock: React.FC = () => {
           }, 0);
         const loadPieces = customToTotalPieces(totalLoadQty, piecesPerBox);
         if (warehousePieces < loadPieces + alreadyInSession) {
-          toast.error(`${t('load_stock.insufficient_stock')} - ${product?.name || ''}`);
+          setInsufficientAlert({
+            name: product?.name || '',
+            available: String(warehousePieces - alreadyInSession),
+            requested: String(loadPieces),
+          });
           continue;
         }
 
@@ -2356,6 +2367,19 @@ const LoadStock: React.FC = () => {
           onConfirm={handlePartialLoadConfirm}
         />
       )}
+
+      <Dialog open={!!insufficientAlert} onOpenChange={(o) => !o && setInsufficientAlert(null)}>
+        <DialogContent className="max-w-sm border-2 border-destructive bg-destructive text-destructive-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-destructive-foreground text-lg text-center">⚠️ الكمية غير كافية</DialogTitle>
+            <DialogDescription className="text-destructive-foreground/90 text-center text-base pt-2">
+              <div className="font-bold text-xl mb-2">{insufficientAlert?.name}</div>
+              <div>المتاح: {insufficientAlert?.available} قطعة</div>
+              <div>المطلوب: {insufficientAlert?.requested} قطعة</div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
