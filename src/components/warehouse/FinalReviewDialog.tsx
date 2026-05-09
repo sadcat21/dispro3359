@@ -105,22 +105,33 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         // 2. جلسات الشحن للعامل بعد ذلك التاريخ (استثناء جلسات المراجعة حتى لا تُحتسب كشحن)
         const { data: loadSessions } = await supabase
           .from('loading_sessions')
-          .select('id, status')
+          .select('id, status, created_at')
           .eq('worker_id', workerId)
           .neq('status', 'review')
-          .gte('created_at', sinceTs);
+          .gte('created_at', sinceTs)
+          .order('created_at', { ascending: true });
         const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
-        if (!cancelled) setLoadCount(loadSessionIds.length);
+        if (!cancelled) {
+          setLoadCount(loadSessionIds.length);
+          setLoadSessionsList((loadSessions || []).map((s: any) => ({ id: s.id, created_at: s.created_at })));
+        }
 
         // 3. بنود الشحن (موجبة)
         let loadItems: any[] = [];
+        const itemsBySession: Record<string, any[]> = {};
         if (loadSessionIds.length > 0) {
           const { data } = await supabase
             .from('loading_session_items')
-            .select('product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
+            .select('session_id, product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
             .in('session_id', loadSessionIds);
           loadItems = data || [];
+          for (const it of loadItems) {
+            const sid = (it as any).session_id;
+            if (!sid) continue;
+            (itemsBySession[sid] = itemsBySession[sid] || []).push(it);
+          }
         }
+        if (!cancelled) setLoadItemsBySession(itemsBySession);
 
         // 4. حركات التفريغ (return) من stock_movements للعامل
         const { data: unloadMoves } = await supabase
