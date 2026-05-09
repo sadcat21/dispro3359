@@ -5,10 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Loader2, Phone, MapPin, Store, ShoppingCart, Wallet, AlertCircle, CheckCircle2, Footprints, PackageX, X, TrendingUp } from 'lucide-react';
+import { Loader2, Phone, MapPin, Store, ShoppingCart, Wallet, AlertCircle, CheckCircle2, Footprints, PackageX, X, TrendingUp, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatAmount } from '@/utils/formatters';
 const formatCurrency = (n: number) => `${formatAmount(n)} دج`;
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useState, useMemo } from 'react';
 
 interface CustomerQuickProfileDialogProps {
   open: boolean;
@@ -47,6 +49,7 @@ const StatCard: React.FC<{
 
 const CustomerQuickProfileDialog: React.FC<CustomerQuickProfileDialogProps> = ({ open, onOpenChange, customer }) => {
   const { dir, language } = useLanguage();
+  const [chartMode, setChartMode] = useState<'total' | 'weekly' | 'monthly'>('total');
 
   const { data, isLoading } = useQuery({
     queryKey: ['customer-quick-profile', customer?.id],
@@ -77,10 +80,36 @@ const CustomerQuickProfileDialog: React.FC<CustomerQuickProfileDialogProps> = ({
       const visitsNoOrder = visits.filter((v: any) => v.operation_type === 'visit').length;
       const visitsNoCollection = visits.filter((v: any) => v.operation_type === 'delivery_visit').length;
 
+      // Products aggregation
+      const orderIds = orders.map((o: any) => o.id);
+      let productsAgg: { name: string; quantity: number; firstAt: string; lastAt: string }[] = [];
+      if (orderIds.length) {
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('product_id, quantity, created_at, products(name)')
+          .in('order_id', orderIds);
+        const map = new Map<string, { name: string; quantity: number; firstAt: string; lastAt: string }>();
+        (items || []).forEach((it: any) => {
+          const key = it.product_id || 'unknown';
+          const name = it.products?.name || 'منتج';
+          const ex = map.get(key);
+          const at = it.created_at || new Date().toISOString();
+          if (ex) {
+            ex.quantity += Number(it.quantity || 0);
+            if (at < ex.firstAt) ex.firstAt = at;
+            if (at > ex.lastAt) ex.lastAt = at;
+          } else {
+            map.set(key, { name, quantity: Number(it.quantity || 0), firstAt: at, lastAt: at });
+          }
+        });
+        productsAgg = Array.from(map.values());
+      }
+
       return {
         totalPurchases, totalOrders,
         totalDebt, remainingDebt, paidDebt,
         visitsNoOrder, visitsNoCollection,
+        productsAgg,
       };
     },
   });
@@ -90,6 +119,24 @@ const CustomerQuickProfileDialog: React.FC<CustomerQuickProfileDialogProps> = ({
   const storeName = (language !== 'ar' && (customer as any).store_name_fr) ? (customer as any).store_name_fr : customer.store_name;
   const displayName = (language !== 'ar' && (customer as any).name_fr) ? (customer as any).name_fr : customer.name;
   const initial = (storeName || displayName || '?').charAt(0);
+
+  const chartData = useMemo(() => {
+    if (!data?.productsAgg) return [];
+    const now = Date.now();
+    return data.productsAgg.map((p) => {
+      const spanDays = Math.max(1, (now - new Date(p.firstAt).getTime()) / (1000 * 60 * 60 * 24));
+      const weeks = Math.max(1, spanDays / 7);
+      const months = Math.max(1, spanDays / 30);
+      const value = chartMode === 'total'
+        ? p.quantity
+        : chartMode === 'weekly'
+          ? +(p.quantity / weeks).toFixed(1)
+          : +(p.quantity / months).toFixed(1);
+      return { name: p.name.length > 10 ? p.name.slice(0, 10) + '…' : p.name, value };
+    }).sort((a, b) => b.value - a.value).slice(0, 12);
+  }, [data, chartMode]);
+
+  const barColors = ['hsl(var(--primary))', 'hsl(var(--destructive))', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
