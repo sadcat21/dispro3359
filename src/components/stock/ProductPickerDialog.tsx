@@ -603,6 +603,12 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               const activated = !!offerActivated[p.id];
               const potentialGift = computeGiftForProduct(p.id, qty);
               const gift = activated ? potentialGift : { giftQty: 0, giftUnit: 'piece' };
+              const paidPieces = parseBP(Number(qty || 0).toFixed(2), ppb).totalPieces;
+              const giftPieces = giftToPieces(gift.giftQty, gift.giftUnit, ppb);
+              const giftFields = piecesToFields(giftPieces, ppb);
+              const displayedQtyFields = uniformQty && activated && giftPieces > 0
+                ? piecesToFields(paidPieces + giftPieces, ppb)
+                : qtyFields;
               return (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg ring-1 ring-border/40 bg-card">
                 {p.image_url ? (
@@ -616,9 +622,17 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <div className="text-[11px] font-semibold truncate">{getProductDisplayName(p)}</div>
                   <div className="text-[9px] text-muted-foreground">المتاح: {fmtQty(p.warehouseQty)}</div>
                   {hasOffer && potentialGift.giftQty > 0 && (
-                    <div className={`text-[9px] font-bold flex items-center gap-1 mt-0.5 ${activated ? 'text-green-600' : 'text-muted-foreground/70 line-through'}`}>
-                      <Gift className="w-3 h-3" />
-                      هدية: {formatGiftDisplay(potentialGift.giftQty, potentialGift.giftUnit, ppb)}
+                    <div className={`mt-1 space-y-1 ${activated ? '' : 'opacity-50'}`}>
+                      <div className={`text-[9px] font-bold flex items-center gap-1 ${activated ? 'text-green-600' : 'text-muted-foreground/70 line-through'}`}>
+                        <Gift className="w-3 h-3" />
+                        {activated ? 'الهدية مفعلة' : 'هدية متاحة'}
+                      </div>
+                      {activated && (
+                        <div className="grid grid-cols-2 gap-1 max-w-24">
+                          <Input readOnly tabIndex={-1} value={giftFields.boxes || '0'} aria-label="صناديق الهدية" className="h-6 text-center text-[10px] font-bold bg-green-500/10 border-green-500/30 text-green-700 px-1" />
+                          <Input readOnly tabIndex={-1} value={giftFields.pieces || '0'} aria-label="قطع الهدية" className="h-6 text-center text-[10px] font-bold bg-green-500/10 border-green-500/30 text-green-700 px-1" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -648,13 +662,13 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <div className="grid grid-cols-2 gap-1 w-24 shrink-0">
                     <Input
                       type="text" readOnly tabIndex={-1}
-                      value={unifiedQtyFields.boxes || '0'}
+                      value={displayedQtyFields.boxes || '0'}
                       aria-label="الصندوق"
                       className="h-8 text-center text-xs font-bold bg-muted/40 [font-variant-numeric:tabular-nums]"
                     />
                     <Input
                       type="text" readOnly tabIndex={-1}
-                      value={unifiedQtyFields.pieces || '0'}
+                      value={displayedQtyFields.pieces || '0'}
                       aria-label="القطع"
                       className="h-8 text-center text-xs font-bold bg-muted/40 [font-variant-numeric:tabular-nums]"
                     />
