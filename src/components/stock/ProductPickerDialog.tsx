@@ -203,13 +203,15 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   };
 
-  // Format quantity in Box.Piece (B.P) form, e.g. "2.5" = 2 boxes + 5 pieces
+  // Format quantity in pieces → "Bص Pق" (boxes/pieces with Arabic unit suffixes)
   const fmtBP = (n: number, ppb: number): string => {
     const total = Math.max(0, Math.round(Number(n) || 0));
-    if (!ppb || ppb <= 1) return `0.${total}`;
+    if (!ppb || ppb <= 1) return `${total}ق`;
     const boxes = Math.floor(total / ppb);
     const pieces = total % ppb;
-    return `${boxes}.${pieces}`;
+    if (boxes > 0 && pieces === 0) return `${boxes}ص`;
+    if (boxes === 0) return `${pieces}ق`;
+    return `${boxes}ص ${pieces}ق`;
   };
 
   // Display gift amount converting pieces → boxes when divisible by ppb
