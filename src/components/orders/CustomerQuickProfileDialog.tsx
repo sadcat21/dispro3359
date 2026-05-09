@@ -222,6 +222,64 @@ const CustomerQuickProfileDialog: React.FC<CustomerQuickProfileDialogProps> = ({
                     <StatCard icon={Wallet} label="زيارات بدون تحصيل" value={data.visitsNoCollection} tone="warning" />
                   </div>
                 </div>
+
+                {/* Products chart */}
+                <div>
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                      <BarChart3 className="w-4 h-4 text-primary" /> المنتجات
+                    </h3>
+                    <div className="inline-flex bg-muted rounded-full p-0.5 text-[11px] font-bold">
+                      {([
+                        ['total', 'الإجمالي'],
+                        ['weekly', 'أسبوعي'],
+                        ['monthly', 'شهري'],
+                      ] as const).map(([k, l]) => (
+                        <button
+                          key={k}
+                          onClick={() => setChartMode(k)}
+                          className={cn(
+                            'px-2.5 py-1 rounded-full transition-all',
+                            chartMode === k ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'
+                          )}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {chartData.length === 0 ? (
+                    <div className="text-center text-xs text-muted-foreground py-6 rounded-2xl bg-muted/40 border border-dashed">
+                      لا توجد بيانات منتجات
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border bg-gradient-to-br from-card to-muted/40 p-2 pt-3 shadow-sm">
+                      <ResponsiveContainer width="100%" height={Math.max(180, chartData.length * 28)}>
+                        <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 16, left: 4, bottom: 4 }}>
+                          <XAxis type="number" hide />
+                          <YAxis
+                            type="category"
+                            dataKey="name"
+                            width={80}
+                            tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <Tooltip
+                            cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
+                            contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12 }}
+                            formatter={(v: any) => [v, chartMode === 'total' ? 'الكمية' : chartMode === 'weekly' ? 'متوسط/أسبوع' : 'متوسط/شهر']}
+                          />
+                          <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={16}>
+                            {chartData.map((_, i) => (
+                              <Cell key={i} fill={barColors[i % barColors.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </div>
