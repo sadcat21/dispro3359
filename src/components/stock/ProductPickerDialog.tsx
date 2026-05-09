@@ -118,6 +118,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     setSingleGiftQty(0);
     setSingleGiftUnit('piece');
     setIsEditMode(false);
+    setOfferActivated({});
   };
 
   // Single product quantity entry
@@ -184,6 +185,18 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const fmtQty = (n: number): string => {
     const rounded = Math.round(n * 100) / 100;
     return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  };
+
+  // Display gift amount converting pieces → boxes when divisible by ppb
+  const formatGiftDisplay = (giftQty: number, giftUnit: string, ppb: number): string => {
+    if (giftUnit === 'box') return `${fmtQty(giftQty)} صندوق`;
+    if (ppb > 1) {
+      const boxes = Math.floor(giftQty / ppb);
+      const pieces = giftQty % ppb;
+      if (boxes > 0 && pieces === 0) return `${boxes} صندوق`;
+      if (boxes > 0) return `${boxes} صندوق + ${pieces} قطعة`;
+    }
+    return `${fmtQty(giftQty)} قطعة`;
   };
 
   // Long press handlers
@@ -358,7 +371,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const ppb = product?.pieces_per_box || 1;
       const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[id] || createDefaultMultiFields());
       const qty = fieldsToCustomQuantity(qtyFields, ppb);
-      const { giftQty, giftUnit } = computeGiftForProduct(id, qty);
+      const activated = !!offerActivated[id];
+      const { giftQty, giftUnit } = activated
+        ? computeGiftForProduct(id, qty)
+        : { giftQty: 0, giftUnit: 'piece' };
       return {
         productId: id,
         quantity: qty,
@@ -524,7 +540,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               const ppb = p.pieces_per_box || 1;
               const qtyFields = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
               const qty = fieldsToCustomQuantity(qtyFields, ppb);
-              const gift = computeGiftForProduct(p.id, qty);
+              const hasOffer = !!offersMap[p.id];
+              const activated = !!offerActivated[p.id];
+              const potentialGift = computeGiftForProduct(p.id, qty);
+              const gift = activated ? potentialGift : { giftQty: 0, giftUnit: 'piece' };
               return (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg ring-1 ring-border/40 bg-card">
                 {p.image_url ? (
@@ -537,13 +556,26 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-semibold truncate">{getProductDisplayName(p)}</div>
                   <div className="text-[9px] text-muted-foreground">المتاح: {fmtQty(p.warehouseQty)}</div>
-                  {gift.giftQty > 0 && (
-                    <div className="text-[9px] text-green-600 font-bold flex items-center gap-1 mt-0.5">
+                  {hasOffer && potentialGift.giftQty > 0 && (
+                    <div className={`text-[9px] font-bold flex items-center gap-1 mt-0.5 ${activated ? 'text-green-600' : 'text-muted-foreground/70 line-through'}`}>
                       <Gift className="w-3 h-3" />
-                      هدية: {fmtQty(gift.giftQty)} {gift.giftUnit === 'box' ? 'صندوق' : 'قطعة'}
+                      هدية: {formatGiftDisplay(potentialGift.giftQty, potentialGift.giftUnit, ppb)}
                     </div>
                   )}
                 </div>
+                {hasOffer && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant={activated ? 'default' : 'outline'}
+                    className={`h-8 w-8 shrink-0 ${activated ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
+                    onClick={() => setOfferActivated(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
+                    aria-label={activated ? 'إلغاء تفعيل الهدية' : 'تفعيل الهدية'}
+                    title={activated ? 'إلغاء تفعيل الهدية' : 'تفعيل الهدية'}
+                  >
+                    <Gift className="w-4 h-4" />
+                  </Button>
+                )}
                 {!uniformQty && (
                   <div className="grid grid-cols-2 gap-1 w-28 shrink-0">
                     <Input
