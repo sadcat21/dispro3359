@@ -113,7 +113,7 @@ const CustomerDebts: React.FC = () => {
         .select('id, name, store_name, phone, customer_type, wilaya, address, branch_id, latitude, longitude, sector_id, zone_id, status')
         .order('name');
 
-      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
 
       const { data, error } = await query;
       if (error) throw error;
