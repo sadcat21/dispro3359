@@ -271,8 +271,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const ppbVal = p.pieces_per_box || 1;
       const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
-      setSingleQtyFields(regularQty > 0 ? quantityToFields(regularQty, ppbVal) : createDefaultSingleFields());
-      setSingleGiftFields(currentGift > 0 ? quantityToFields(currentGift, ppbVal) : createDefaultSingleFields());
+      setSingleQtyFields(regularQty > 0 ? piecesToFields(regularQty, ppbVal) : createDefaultSingleFields());
+      setSingleGiftFields(currentGift > 0 ? piecesToFields(currentGift, ppbVal) : createDefaultSingleFields());
       if (currentGift > 0) setOfferActivated(prev => ({ ...prev, [p.id]: true }));
       setSingleGiftQty(0);
       setSingleGiftUnit('piece');
