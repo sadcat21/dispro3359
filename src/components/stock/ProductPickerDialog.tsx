@@ -602,12 +602,19 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               const offerProducts = selectedProducts.filter(p => !!offersMap[p.id]);
               if (offerProducts.length === 0) return null;
               const allActivated = offerProducts.every(p => !!offerActivated[p.id]);
+              const anyEligible = offerProducts.some(p => {
+                const ppb = p.pieces_per_box || 1;
+                const qf = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
+                const q = fieldsToCustomQuantity(qf, ppb);
+                return computeGiftForProduct(p.id, q).giftQty > 0;
+              });
+              const highlight = allActivated || anyEligible;
               return (
                 <Button
                   type="button"
-                  variant={allActivated ? 'default' : 'outline'}
+                  variant={highlight ? 'default' : 'outline'}
                   size="sm"
-                  className={`h-8 px-2 text-[11px] font-bold ${allActivated ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
+                  className={`h-8 px-2 text-[11px] font-bold ${highlight ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : ''} ${anyEligible && !allActivated ? 'ring-2 ring-green-400/60 animate-pulse' : ''}`}
                   onClick={() => {
                     setOfferActivated(prev => {
                       const next = { ...prev };
@@ -846,10 +853,24 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 <Button variant="outline" className="flex-1 h-9 text-xs" onClick={() => setMode('browse')}>
                   رجوع
                 </Button>
-                <Button className="flex-1 h-9 text-xs" onClick={handleConfirmMulti}>
-                  <Plus className="w-3.5 h-3.5 me-1" />
-                  إضافة {multiSelected.size} منتج
-                </Button>
+                {(() => {
+                  const blocking = Array.from(multiSelected).some(id => {
+                    const p = products.find(x => x.id === id);
+                    if (!p) return false;
+                    if (!offersMap[p.id]) return false;
+                    if (offerActivated[p.id]) return false;
+                    const ppb = p.pieces_per_box || 1;
+                    const qf = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
+                    const q = fieldsToCustomQuantity(qf, ppb);
+                    return computeGiftForProduct(p.id, q).giftQty > 0;
+                  });
+                  return (
+                    <Button className="flex-1 h-9 text-xs" onClick={handleConfirmMulti} disabled={blocking}>
+                      <Plus className="w-3.5 h-3.5 me-1" />
+                      {blocking ? 'فعّل الهدية أولاً' : `إضافة ${multiSelected.size} منتج`}
+                    </Button>
+                  );
+                })()}
               </DialogFooter>
             </>
           )}
