@@ -441,6 +441,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                               : customer.name;
                             const hasDebt = (customerDebtsMap?.[customer.id]?.total || 0) > 0;
                             const hasPendingOrder = pendingOrderCustomers?.has(customer.id);
+                            const sectorName = getSectorName(customer.sector_id);
                             const borderClass = hasDebt
                               ? "border-destructive"
                               : hasPendingOrder ? "border-green-600" : "border-foreground";
@@ -456,9 +457,14 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 onClick={() => { onSelect(customer); onOpenChange(false); }}
                               >
                                 <div className={cn(
-                                  "px-2 py-1",
+                                  "relative px-2 py-1",
                                   hasPendingOrder ? "bg-green-500" : "bg-foreground"
                                 )}>
+                                  {search.trim() && sectorName && (
+                                    <span className="absolute top-0.5 start-0.5 text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary text-primary-foreground leading-tight">
+                                      {sectorName}
+                                    </span>
+                                  )}
                                   <p className={cn(
                                     "text-sm font-bold line-clamp-1 leading-tight",
                                     hasPendingOrder ? "text-foreground" : "text-background"
