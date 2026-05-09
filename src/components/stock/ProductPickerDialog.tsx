@@ -507,7 +507,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 <Truck className="w-3 h-3" />
-                {fmtQty(loadedQty - giftQty)}
+                {fmtBP(loadedQty - giftQty, p.pieces_per_box || 1)}
               </button>
               {giftQty > 0 && (
                 <button
@@ -516,7 +516,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   className="flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold text-purple-700 hover:bg-purple-500/10 transition-colors"
                 >
                   <Gift className="w-3 h-3" />
-                  {fmtQty(giftQty)}
+                  {fmtBP(giftQty, p.pieces_per_box || 1)}
                 </button>
               )}
             </>
@@ -528,7 +528,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className={`flex items-center justify-center gap-1 flex-1 text-[10px] font-semibold hover:bg-accent transition-colors ${isOutOfStock ? 'text-destructive' : 'text-foreground'}`}
               >
                 <Warehouse className="w-3 h-3" />
-                {fmtQty(p.warehouseQty)}
+                {fmtBP(p.warehouseQty, p.pieces_per_box || 1)}
               </button>
               {neededQty > 0 && (
                 <button
@@ -536,7 +536,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   onClick={() => handleProductTap(p)}
                   className="flex items-center justify-center flex-1 text-[10px] font-semibold text-destructive hover:bg-destructive/10 transition-colors"
                 >
-                  {fmtQty(neededQty)}
+                  {fmtBP(neededQty, p.pieces_per_box || 1)}
                 </button>
               )}
             </>
