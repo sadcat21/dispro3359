@@ -62,21 +62,19 @@ type PickerMode = 'browse' | 'single-qty' | 'multi-qty';
 const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
 
 const quantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
-  const parsed = parseBP(boxesToBP(quantity, piecesPerBox), piecesPerBox);
+  const parsed = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
   return {
     boxes: String(parsed.boxes),
     pieces: parsed.pieces > 0 ? String(parsed.pieces) : '',
   };
 };
 
-const fieldsToQuantity = (fields: QuantityFields, piecesPerBox: number): number => {
-  const boxes = sanitizeDigits(fields.boxes, 5) || '0';
-  const pieces = sanitizeDigits(fields.pieces, 3) || '0';
-  return parseBP(`${boxes}.${pieces}`, piecesPerBox).totalBoxes;
-};
-
 const normalizeFields = (fields: QuantityFields, piecesPerBox: number): QuantityFields => {
-  return quantityToFields(fieldsToQuantity(fields, piecesPerBox), piecesPerBox);
+  const parsed = parseBP(`${fields.boxes || '0'}.${fields.pieces || '0'}`, piecesPerBox);
+  return {
+    boxes: String(parsed.boxes),
+    pieces: parsed.pieces > 0 ? String(parsed.pieces) : '',
+  };
 };
 
 const toCustomFormat = (p: { boxes: number; pieces: number }) => p.boxes + p.pieces / 100;
