@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Package, Check, Plus, X, Gift, Truck, Trash2, Warehouse } from 'lucide-react';
+import { Package, Check, Plus, X, Gift, Truck, Trash2, Warehouse, SlidersHorizontal } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
@@ -83,6 +83,12 @@ const normalizeFields = (fields: QuantityFields, piecesPerBox: number): Quantity
 const toCustomFormat = (p: { boxes: number; pieces: number }) => p.boxes + p.pieces / 100;
 
 const createDefaultSingleFields = (): QuantityFields => ({ boxes: '', pieces: '' });
+const createDefaultMultiFields = (): QuantityFields => ({ boxes: '1', pieces: '' });
+
+const fieldsToCustomQuantity = (fields: QuantityFields, piecesPerBox: number): number => {
+  const parsedFields = parseBP(`${fields.boxes || '0'}.${fields.pieces || '0'}`, piecesPerBox);
+  return toCustomFormat(parsedFields);
+};
 
 const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   open,
@@ -110,8 +116,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     setMultiSelected(new Set());
     setMode('browse');
     setUniformQty(true);
-    setUnifiedQtyValue(1);
-    setIndividualQtys({});
+    setUnifiedQtyFields(createDefaultMultiFields());
+    setIndividualQtyFields({});
     setSingleGiftQty(0);
     setSingleGiftUnit('piece');
     setIsEditMode(false);
@@ -132,8 +138,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<PickerMode>('browse');
   const [uniformQty, setUniformQty] = useState(true);
-  const [unifiedQtyValue, setUnifiedQtyValue] = useState(1);
-  const [individualQtys, setIndividualQtys] = useState<Record<string, number>>({});
+  const [unifiedQtyFields, setUnifiedQtyFields] = useState<QuantityFields>(() => createDefaultMultiFields());
+  const [individualQtyFields, setIndividualQtyFields] = useState<Record<string, QuantityFields>>({});
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
