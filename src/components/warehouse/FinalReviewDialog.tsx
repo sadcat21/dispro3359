@@ -646,9 +646,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 className="h-6 px-2 text-[10px] gap-1"
               >
                 <Package className="w-3 h-3" />
-                الكل ({loadSessionsList.length})
+                الكل ({loadSessionsList.length - hiddenSessionIds.size})
               </Button>
-              {loadSessionsList.map((s, idx) => {
+              {loadSessionsList.filter(s => !hiddenSessionIds.has(s.id)).map((s, idx) => {
                 const isMulti = multiSelected.has(s.id);
                 const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
                 const active = isMulti || isSingle;
