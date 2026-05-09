@@ -103,17 +103,32 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const clearMulti = () => setMultiSelected(new Set());
 
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
-  const handleDeleteSession = async (sid: string, label: string) => {
-    if (!window.confirm(`هل تريد حذف ${label}؟ سيتم حذف بنود الشحن نهائياً.`)) return;
+  const [hiddenSessionIds, setHiddenSessionIds] = useState<Set<string>>(new Set());
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; label: string } | null>(null);
+
+  const hideSessionFromUI = (sid: string) => {
+    setHiddenSessionIds(prev => { const n = new Set(prev); n.add(sid); return n; });
+    setMultiSelected(prev => { const n = new Set(prev); n.delete(sid); return n; });
+    if (selectedSessionId === sid) setSelectedSessionId('all');
+    setConfirmTarget(null);
+    toast.success('تم إخفاء الجلسة من الواجهة (يمكن استرجاعها)');
+  };
+  const restoreHiddenSessions = () => {
+    setHiddenSessionIds(new Set());
+    toast.success('تم استرجاع الجلسات المخفية');
+  };
+  const deleteSessionFromDB = async (sid: string) => {
     setDeletingSessionId(sid);
+    setConfirmTarget(null);
     try {
       await supabase.from('loading_session_items').delete().eq('session_id', sid);
       const { error } = await supabase.from('loading_sessions').delete().eq('id', sid);
       if (error) throw error;
-      toast.success('تم حذف جلسة الشحن');
+      toast.success('تم حذف جلسة الشحن نهائياً');
       setLoadSessionsList(prev => prev.filter(s => s.id !== sid));
       setLoadItemsBySession(prev => { const n = { ...prev }; delete n[sid]; return n; });
       setMultiSelected(prev => { const n = new Set(prev); n.delete(sid); return n; });
+      setHiddenSessionIds(prev => { const n = new Set(prev); n.delete(sid); return n; });
       if (selectedSessionId === sid) setSelectedSessionId('all');
       setLoadCount(c => Math.max(0, c - 1));
       qc.invalidateQueries({ queryKey: ['warehouse-today-loadings'] });
@@ -123,6 +138,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     } finally {
       setDeletingSessionId(null);
     }
+  };
+  const handleDeleteSession = (sid: string, label: string) => {
+    setConfirmTarget({ id: sid, label });
   };
 
   // Check if worker has set up a review PIN
