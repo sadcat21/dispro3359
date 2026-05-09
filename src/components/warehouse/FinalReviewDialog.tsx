@@ -265,14 +265,47 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     return () => { cancelled = true; };
   }, [open, workerId]);
 
+  // Per-session preview: rebuild rows from a single session's items only
+  const sessionPreviewRows = useMemo<AggregatedRow[]>(() => {
+    if (selectedSessionId === 'all') return [];
+    const items = loadItemsBySession[selectedSessionId] || [];
+    const bpToPieces = (val: number, ppb: number): number => {
+      const v = Number(val || 0);
+      const boxes = Math.floor(Math.round(v * 100) / 100);
+      const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
+      return boxes * ppb + piecesDec;
+    };
+    const map = new Map<string, AggregatedRow>();
+    for (const it of items) {
+      const pid = (it as any).product_id;
+      const prod = (it as any).product || {};
+      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+      const ex = map.get(pid) || {
+        productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
+        loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
+        expected: 0, expectedBoxes: 0, expectedPieces: 0,
+        actualBoxes: '', actualPieces: '', confirmed: false, ppb,
+      };
+      ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+      ex.expected = ex.loaded;
+      ex.expectedBoxes = Math.floor(ex.loaded / ppb);
+      ex.expectedPieces = ex.loaded % ppb;
+      map.set(pid, ex);
+    }
+    return Array.from(map.values()).sort((a, b) => a.productName.localeCompare(b.productName));
+  }, [selectedSessionId, loadItemsBySession]);
+
   const filtered = useMemo(
-    () => rows
-      .slice()
-      .sort((a, b) => {
-        if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
-        return a.productName.localeCompare(b.productName);
-      }),
-    [rows]
+    () => {
+      const source = selectedSessionId === 'all' ? rows : sessionPreviewRows;
+      return source
+        .slice()
+        .sort((a, b) => {
+          if (a.confirmed !== b.confirmed) return a.confirmed ? 1 : -1;
+          return a.productName.localeCompare(b.productName);
+        });
+    },
+    [rows, sessionPreviewRows, selectedSessionId]
   );
 
   const isFilled = (r: AggregatedRow) => r.actualBoxes !== '' || r.actualPieces !== '';
