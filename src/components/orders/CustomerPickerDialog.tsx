@@ -460,17 +460,19 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                   "relative px-2 py-1",
                                   hasPendingOrder ? "bg-green-500" : "bg-foreground"
                                 )}>
-                                  {search.trim() && sectorName && (
-                                    <span className="absolute top-0.5 start-0.5 text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary text-primary-foreground leading-tight">
-                                      {sectorName}
-                                    </span>
-                                  )}
-                                  <p className={cn(
-                                    "text-sm font-bold line-clamp-1 leading-tight",
-                                    hasPendingOrder ? "text-foreground" : "text-background"
-                                  )}>
-                                    {storeName || displayName}
-                                  </p>
+                                  <div className="flex items-center justify-center gap-1 min-w-0">
+                                    {search.trim() && sectorName && (
+                                      <span className="shrink-0 text-[9px] font-semibold px-1 py-[1px] rounded bg-primary/90 text-primary-foreground leading-none">
+                                        {sectorName}
+                                      </span>
+                                    )}
+                                    <p className={cn(
+                                      "text-sm font-bold line-clamp-1 leading-tight min-w-0",
+                                      hasPendingOrder ? "text-foreground" : "text-background"
+                                    )}>
+                                      {storeName || displayName}
+                                    </p>
+                                  </div>
                                 </div>
                                 <div className={cn(
                                   "px-2 py-0.5 flex-1 flex items-center justify-center",
