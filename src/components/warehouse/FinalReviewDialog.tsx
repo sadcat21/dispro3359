@@ -68,6 +68,39 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
   const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
   const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
+  // Multi-select via long-press
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = React.useRef(false);
+
+  const startLongPress = (sid: string) => {
+    longPressTriggered.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      setMultiSelected(prev => {
+        const n = new Set(prev);
+        n.add(sid);
+        return n;
+      });
+      setSelectedSessionId('all'); // exit single-preview when entering multi
+    }, 500);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+  };
+  const handleSessionClick = (sid: string) => {
+    if (longPressTriggered.current) { longPressTriggered.current = false; return; }
+    if (multiSelected.size > 0) {
+      setMultiSelected(prev => {
+        const n = new Set(prev);
+        if (n.has(sid)) n.delete(sid); else n.add(sid);
+        return n;
+      });
+      return;
+    }
+    setSelectedSessionId(sid);
+  };
+  const clearMulti = () => setMultiSelected(new Set());
 
   // Check if worker has set up a review PIN
   useEffect(() => {
