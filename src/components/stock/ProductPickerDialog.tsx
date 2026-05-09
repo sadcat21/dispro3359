@@ -623,7 +623,20 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   </div>
                 )}
                 {uniformQty && (
-                  <Badge variant="secondary" className="text-xs">{parseBP(`${unifiedQtyFields.boxes || '0'}.${unifiedQtyFields.pieces || '0'}`, ppb).display}</Badge>
+                  <div className="grid grid-cols-2 gap-1 w-24 shrink-0">
+                    <Input
+                      type="text" readOnly tabIndex={-1}
+                      value={unifiedQtyFields.boxes || '0'}
+                      aria-label="الصندوق"
+                      className="h-8 text-center text-xs font-bold bg-muted/40 [font-variant-numeric:tabular-nums]"
+                    />
+                    <Input
+                      type="text" readOnly tabIndex={-1}
+                      value={unifiedQtyFields.pieces || '0'}
+                      aria-label="القطع"
+                      className="h-8 text-center text-xs font-bold bg-muted/40 [font-variant-numeric:tabular-nums]"
+                    />
+                  </div>
                 )}
               </div>
               );
