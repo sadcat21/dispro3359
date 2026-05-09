@@ -700,9 +700,55 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                   إلغاء التحديد
                 </Button>
               )}
+              {hiddenSessionIds.size > 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={restoreHiddenSessions}
+                  className="h-6 px-2 text-[10px] gap-1 border-amber-400 text-amber-700 hover:bg-amber-50 dark:text-amber-400"
+                  title="استرجاع الجلسات المخفية من الواجهة"
+                >
+                  ↺ استرجاع المخفية ({hiddenSessionIds.size})
+                </Button>
+              )}
             </div>
           )}
         </div>
+
+        {/* Confirm delete dialog: hide vs permanent delete */}
+        <Dialog open={!!confirmTarget} onOpenChange={(o) => !o && setConfirmTarget(null)}>
+          <DialogContent className="max-w-sm" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <Trash2 className="w-4 h-4 text-destructive" />
+                حذف {confirmTarget?.label}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="text-sm text-muted-foreground">
+              اختر طريقة الحذف:
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => confirmTarget && hideSessionFromUI(confirmTarget.id)}
+                className="justify-start gap-2 border-amber-400 text-amber-700 hover:bg-amber-50"
+              >
+                👁️‍🗨️ إخفاء من الواجهة فقط (قابل للاسترجاع)
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => confirmTarget && deleteSessionFromDB(confirmTarget.id)}
+                disabled={!!deletingSessionId}
+                className="justify-start gap-2"
+              >
+                {deletingSessionId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                حذف نهائي من قاعدة البيانات
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirmTarget(null)}>إلغاء</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="flex-1 min-h-0 overflow-y-auto pe-1">
           {loading ? (
