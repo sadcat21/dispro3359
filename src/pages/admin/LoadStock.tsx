@@ -2367,6 +2367,19 @@ const LoadStock: React.FC = () => {
           onConfirm={handlePartialLoadConfirm}
         />
       )}
+
+      <Dialog open={!!insufficientAlert} onOpenChange={(o) => !o && setInsufficientAlert(null)}>
+        <DialogContent className="max-w-sm border-2 border-destructive bg-destructive text-destructive-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-destructive-foreground text-lg text-center">⚠️ الكمية غير كافية</DialogTitle>
+            <DialogDescription className="text-destructive-foreground/90 text-center text-base pt-2">
+              <div className="font-bold text-xl mb-2">{insufficientAlert?.name}</div>
+              <div>المتاح: {insufficientAlert?.available} قطعة</div>
+              <div>المطلوب: {insufficientAlert?.requested} قطعة</div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
