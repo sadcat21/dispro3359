@@ -183,7 +183,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         if (deliveredIds.length > 0) {
           const { data: soldItemsWithOrder } = await supabase
             .from('order_items')
-            .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
+            .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
           const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({ ...it }));
           // Override gifts from authoritative sales_tracking ledger (boxes/pieces convention)
@@ -204,6 +204,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             // لذا المباع = الإجمالي − صناديق الهدية فقط
             ex.sold += Math.max(0, totalPieces - giftBoxes * ppb);
             ex.gifts += giftTotalPieces;
+            ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
             map.set(pid, ex);
           }
         }
