@@ -307,7 +307,7 @@ const LoadStock: React.FC = () => {
 
 
   // Product offers cache (with all tiers for dynamic calc)
-  const [productOffers, setProductOffers] = useState<Record<string, { offerName: string; giftQty: number; giftUnit: string; minQty: number; minUnit: string; tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string }[] }>>({});
+  const [productOffers, setProductOffers] = useState<Record<string, { offerName: string; giftQty: number; giftUnit: string; minQty: number; minUnit: string; tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit: string }[] }>>({});
 
   // Product group map
   const [productGroupMap, setProductGroupMap] = useState<Record<string, string>>({});
@@ -600,6 +600,7 @@ const LoadStock: React.FC = () => {
         maxQty: t.max_quantity,
         giftQty: t.gift_quantity,
         giftUnit: t.gift_quantity_unit || 'piece',
+        minUnit: t.min_quantity_unit || 'piece',
       })),
     };
     setProductOffers(prev => ({ ...prev, [productId]: offer }));

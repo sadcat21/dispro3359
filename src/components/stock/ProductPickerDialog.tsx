@@ -29,7 +29,7 @@ export interface OfferInfo {
   giftUnit: string;
   minQty: number;
   minUnit: string;
-  tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string }[];
+  tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit?: string }[];
 }
 
 interface ProductPickerDialogProps {
@@ -78,6 +78,22 @@ const normalizeFields = (fields: QuantityFields, piecesPerBox: number): Quantity
 };
 
 const toCustomFormat = (p: { boxes: number; pieces: number }) => p.boxes + p.pieces / 100;
+
+const piecesToFields = (totalPieces: number, piecesPerBox: number): QuantityFields => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  const safePieces = Math.max(0, Math.round(totalPieces || 0));
+  const boxes = Math.floor(safePieces / ppb);
+  const pieces = safePieces % ppb;
+  return {
+    boxes: String(boxes),
+    pieces: pieces > 0 ? String(pieces) : '0',
+  };
+};
+
+const giftToPieces = (giftQty: number, giftUnit: string, piecesPerBox: number): number => {
+  const ppb = Math.max(1, Math.round(piecesPerBox || 1));
+  return giftUnit === 'box' ? Math.round(giftQty * ppb) : Math.round(giftQty || 0);
+};
 
 const createDefaultSingleFields = (): QuantityFields => ({ boxes: '', pieces: '' });
 const createDefaultMultiFields = (): QuantityFields => ({ boxes: '1', pieces: '' });
@@ -269,29 +285,37 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const singlePPB = singleProduct?.pieces_per_box || 1;
   const parsed = parseBP(`${singleQtyFields.boxes || '0'}.${singleQtyFields.pieces || '0'}`, singlePPB);
   const parsedGift = parseBP(`${singleGiftFields.boxes || '0'}.${singleGiftFields.pieces || '0'}`, singlePPB);
+  const parsedBoxes = parsed.boxes;
+  const parsedPieces = parsed.pieces;
+  const parsedTotalPieces = parsed.totalPieces;
   const displayBP = `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`;
   const displayGiftBP = `${parsedGift.boxes}.${String(parsedGift.pieces).padStart(2, '0')}`;
   const singleOffer = singleProductId ? offersMap[singleProductId] : undefined;
 
   // Calculate suggested gift based on regular quantity and offer tiers
   const suggestedGift = React.useMemo(() => {
-    if (!singleOffer || toCustomFormat(parsed) <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
-    const qty = toCustomFormat(parsed);
+    const qtyCustom = toCustomFormat({ boxes: parsedBoxes, pieces: parsedPieces });
+    if (!singleOffer || qtyCustom <= 0) return { qty: 0, unit: 'piece', totalPieces: 0 };
+    const qtyPieces = parsedTotalPieces;
     const sortedTiers = [...singleOffer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
-      if (qty >= tier.minQty) {
-        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
-        const totalPieces = tier.giftUnit === 'box' ? gQty * singlePPB : gQty;
+      const minPieces = (tier.minUnit || singleOffer.minUnit) === 'piece'
+        ? tier.minQty
+        : Math.round(tier.minQty * singlePPB);
+      const eligibleQty = (tier.minUnit || singleOffer.minUnit) === 'piece' ? qtyPieces : qtyCustom;
+      const threshold = (tier.minUnit || singleOffer.minUnit) === 'piece' ? minPieces : tier.minQty;
+      if (eligibleQty >= threshold) {
+        const gQty = Math.floor(eligibleQty / threshold) * tier.giftQty;
+        const totalPieces = giftToPieces(gQty, tier.giftUnit, singlePPB);
         return { qty: gQty, unit: tier.giftUnit, totalPieces };
       }
     }
     return { qty: 0, unit: 'piece', totalPieces: 0 };
-  }, [singleOffer, parsed.boxes, parsed.pieces, singlePPB]);
+  }, [singleOffer, parsedBoxes, parsedPieces, parsedTotalPieces, singlePPB]);
 
   const suggestedSplit = React.useMemo(() => {
-    const boxes = Math.floor(suggestedGift.totalPieces / singlePPB);
-    const pieces = suggestedGift.totalPieces % singlePPB;
-    return { boxes, pieces };
+    const fields = piecesToFields(suggestedGift.totalPieces, singlePPB);
+    return { boxes: Number(fields.boxes), pieces: Number(fields.pieces) };
   }, [suggestedGift.totalPieces, singlePPB]);
 
   // Total = regular + gift (in pieces, then formatted as B.P)
@@ -355,11 +379,25 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   const computeGiftForProduct = (productId: string, qty: number): { giftQty: number; giftUnit: string } => {
     const offer = offersMap[productId];
     if (!offer || qty <= 0) return { giftQty: 0, giftUnit: 'piece' };
+    const product = products.find(p => p.id === productId);
+    const ppb = product?.pieces_per_box || 1;
+    const parsedQty = parseBP(Number(qty || 0).toFixed(2), ppb);
     const sortedTiers = [...offer.tiers].sort((a, b) => b.minQty - a.minQty);
     for (const tier of sortedTiers) {
-      if (qty >= tier.minQty) {
-        const gQty = Math.floor(qty / tier.minQty) * tier.giftQty;
-        return { giftQty: gQty, giftUnit: tier.giftUnit };
+      const minUnit = tier.minUnit || offer.minUnit;
+      const threshold = minUnit === 'piece' ? tier.minQty : tier.minQty;
+      const eligibleQty = minUnit === 'piece' ? parsedQty.totalPieces : qty;
+      if (eligibleQty >= threshold) {
+        const rawGiftQty = Math.floor(eligibleQty / threshold) * tier.giftQty;
+        if (tier.giftUnit === 'piece') {
+          const normalized = piecesToFields(rawGiftQty, ppb);
+          const boxes = Number(normalized.boxes);
+          const pieces = Number(normalized.pieces);
+          return pieces === 0 && boxes > 0
+            ? { giftQty: boxes, giftUnit: 'box' }
+            : { giftQty: rawGiftQty, giftUnit: 'piece' };
+        }
+        return { giftQty: rawGiftQty, giftUnit: tier.giftUnit };
       }
     }
     return { giftQty: 0, giftUnit: 'piece' };
@@ -568,6 +606,12 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               const activated = !!offerActivated[p.id];
               const potentialGift = computeGiftForProduct(p.id, qty);
               const gift = activated ? potentialGift : { giftQty: 0, giftUnit: 'piece' };
+              const paidPieces = parseBP(Number(qty || 0).toFixed(2), ppb).totalPieces;
+              const giftPieces = giftToPieces(gift.giftQty, gift.giftUnit, ppb);
+              const giftFields = piecesToFields(giftPieces, ppb);
+              const displayedQtyFields = uniformQty && activated && giftPieces > 0
+                ? piecesToFields(paidPieces + giftPieces, ppb)
+                : qtyFields;
               return (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg ring-1 ring-border/40 bg-card">
                 {p.image_url ? (
@@ -581,9 +625,17 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <div className="text-[11px] font-semibold truncate">{getProductDisplayName(p)}</div>
                   <div className="text-[9px] text-muted-foreground">المتاح: {fmtQty(p.warehouseQty)}</div>
                   {hasOffer && potentialGift.giftQty > 0 && (
-                    <div className={`text-[9px] font-bold flex items-center gap-1 mt-0.5 ${activated ? 'text-green-600' : 'text-muted-foreground/70 line-through'}`}>
-                      <Gift className="w-3 h-3" />
-                      هدية: {formatGiftDisplay(potentialGift.giftQty, potentialGift.giftUnit, ppb)}
+                    <div className={`mt-1 space-y-1 ${activated ? '' : 'opacity-50'}`}>
+                      <div className={`text-[9px] font-bold flex items-center gap-1 ${activated ? 'text-green-600' : 'text-muted-foreground/70 line-through'}`}>
+                        <Gift className="w-3 h-3" />
+                        {activated ? 'الهدية مفعلة' : 'هدية متاحة'}
+                      </div>
+                      {activated && (
+                        <div className="grid grid-cols-2 gap-1 max-w-24">
+                          <Input readOnly tabIndex={-1} value={giftFields.boxes || '0'} aria-label="صناديق الهدية" className="h-6 text-center text-[10px] font-bold bg-green-500/10 border-green-500/30 text-green-700 px-1" />
+                          <Input readOnly tabIndex={-1} value={giftFields.pieces || '0'} aria-label="قطع الهدية" className="h-6 text-center text-[10px] font-bold bg-green-500/10 border-green-500/30 text-green-700 px-1" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -613,13 +665,13 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <div className="grid grid-cols-2 gap-1 w-24 shrink-0">
                     <Input
                       type="text" readOnly tabIndex={-1}
-                      value={unifiedQtyFields.boxes || '0'}
+                      value={displayedQtyFields.boxes || '0'}
                       aria-label="الصندوق"
                       className="h-8 text-center text-xs font-bold bg-muted/40 [font-variant-numeric:tabular-nums]"
                     />
                     <Input
                       type="text" readOnly tabIndex={-1}
-                      value={unifiedQtyFields.pieces || '0'}
+                      value={displayedQtyFields.pieces || '0'}
                       aria-label="القطع"
                       className="h-8 text-center text-xs font-bold bg-muted/40 [font-variant-numeric:tabular-nums]"
                     />
