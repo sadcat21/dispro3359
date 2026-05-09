@@ -330,7 +330,8 @@ const LoadStock: React.FC = () => {
     const seenIds = new Set<string>();
     for (const s of warehouseStock) {
       if (s.product) {
-        options.push({ id: s.product_id, name: (s.product as any).app_name || s.product.name, warehouseQty: s.quantity, groupName: productGroupMap[s.product_id], image_url: (s.product as any).image_url, pieces_per_box: (s.product as any).pieces_per_box });
+        const ppbW = (s.product as any).pieces_per_box || 20;
+        options.push({ id: s.product_id, name: (s.product as any).app_name || s.product.name, warehouseQty: customToTotalPieces(s.quantity || 0, ppbW), groupName: productGroupMap[s.product_id], image_url: (s.product as any).image_url, pieces_per_box: ppbW });
         seenIds.add(s.product_id);
       }
     }
