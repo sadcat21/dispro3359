@@ -602,12 +602,19 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
               const offerProducts = selectedProducts.filter(p => !!offersMap[p.id]);
               if (offerProducts.length === 0) return null;
               const allActivated = offerProducts.every(p => !!offerActivated[p.id]);
+              const anyEligible = offerProducts.some(p => {
+                const ppb = p.pieces_per_box || 1;
+                const qf = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
+                const q = fieldsToCustomQuantity(qf, ppb);
+                return computeGiftForProduct(p.id, q).giftQty > 0;
+              });
+              const highlight = allActivated || anyEligible;
               return (
                 <Button
                   type="button"
-                  variant={allActivated ? 'default' : 'outline'}
+                  variant={highlight ? 'default' : 'outline'}
                   size="sm"
-                  className={`h-8 px-2 text-[11px] font-bold ${allActivated ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
+                  className={`h-8 px-2 text-[11px] font-bold ${highlight ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : ''} ${anyEligible && !allActivated ? 'ring-2 ring-green-400/60 animate-pulse' : ''}`}
                   onClick={() => {
                     setOfferActivated(prev => {
                       const next = { ...prev };
