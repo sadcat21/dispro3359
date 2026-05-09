@@ -436,6 +436,61 @@ const WorkerHandoverSummary: React.FC<WorkerHandoverSummaryProps> = ({
           </div>
         </>
       )}
+
+      {/* Diagnostic panel — verifies sales vs cash equation */}
+      {(() => {
+        const sumInvoice1Methods =
+          calc.invoice1.check + calc.invoice1.transfer + calc.invoice1.receipt +
+          calc.invoice1.espaceCash + calc.invoice1.versementCash;
+        const invoice1Diff = calc.invoice1.total - sumInvoice1Methods;
+        const expectedTotalSales = calc.invoice1.total + calc.invoice2.total + calc.newDebts;
+        const salesDiff = calc.totalSales - expectedTotalSales;
+        const expectedCash =
+          calc.invoice2.cash + calc.invoice1.espaceCash + calc.invoice1.versementCash +
+          calc.debtCollections.cash - calc.cashExpenses + calc.customerSurplusCash;
+        const cashDiff = calc.physicalCash - expectedCash;
+        const hasIssue = Math.abs(invoice1Diff) > 1 || Math.abs(salesDiff) > 1 || Math.abs(cashDiff) > 1;
+
+        return (
+          <>
+            <div className="flex items-center gap-2 mt-3 mb-2">
+              <AlertTriangle className={`w-3.5 h-3.5 ${hasIssue ? 'text-destructive' : 'text-green-600'}`} />
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                تشخيص الفجوة
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-1 gap-1.5 text-[11px]">
+              <div className="flex items-center justify-between p-2 rounded-md bg-background border border-border/60">
+                <span className="text-muted-foreground">إجمالي المبيعات</span>
+                <span className="font-bold">{fmt(calc.totalSales)} DA</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-md bg-background border border-border/60">
+                <span className="text-muted-foreground">= بفاتورة + بدون + ديون جديدة</span>
+                <span className="font-mono">{fmt(expectedTotalSales)} DA</span>
+              </div>
+              <div className={`flex items-center justify-between p-2 rounded-md border ${Math.abs(salesDiff) > 1 ? 'bg-destructive/10 border-destructive/40' : 'bg-green-50 border-green-200'}`}>
+                <span className="text-muted-foreground">فرق المبيعات</span>
+                <span className={`font-bold ${Math.abs(salesDiff) > 1 ? 'text-destructive' : 'text-green-600'}`}>
+                  {salesDiff >= 0 ? '+' : ''}{fmt(salesDiff)} DA
+                </span>
+              </div>
+              <div className={`flex items-center justify-between p-2 rounded-md border ${Math.abs(invoice1Diff) > 1 ? 'bg-destructive/10 border-destructive/40' : 'bg-green-50 border-green-200'}`}>
+                <span className="text-muted-foreground">فاتورة 1: مجموع - تفصيل</span>
+                <span className={`font-bold ${Math.abs(invoice1Diff) > 1 ? 'text-destructive' : 'text-green-600'}`}>
+                  {invoice1Diff >= 0 ? '+' : ''}{fmt(invoice1Diff)} DA
+                </span>
+              </div>
+              <div className={`flex items-center justify-between p-2 rounded-md border ${Math.abs(cashDiff) > 1 ? 'bg-destructive/10 border-destructive/40' : 'bg-green-50 border-green-200'}`}>
+                <span className="text-muted-foreground">رصيد الشاحنة: فعلي - متوقع</span>
+                <span className={`font-bold ${Math.abs(cashDiff) > 1 ? 'text-destructive' : 'text-green-600'}`}>
+                  {cashDiff >= 0 ? '+' : ''}{fmt(cashDiff)} DA
+                </span>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 };
