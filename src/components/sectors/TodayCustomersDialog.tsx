@@ -1247,18 +1247,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayOrders, assignedOrders]);
 
-  // Map customer_id -> number of pending delivery orders (for delivery tab badge & picker)
-  const deliveryOrderCountMap = useMemo(() => {
-    const map = new Map<string, number>();
-    assignedOrders.forEach((o: any) => {
-      if (!o.customer_id) return;
-      if (!ACTIVE_DELIVERY_STATUSES.includes(o.status)) return;
-      if (!isAdmin && o.assigned_worker_id !== effectiveWorkerId) return;
-      map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
-    });
-    return map;
-  }, [assignedOrders, isAdmin, effectiveWorkerId]);
-
   const deliveryOrderGroupMap = useMemo(() => {
     const map = new Map<string, { current: number; postponed: number }>();
     assignedOrders.forEach((o: any) => {
