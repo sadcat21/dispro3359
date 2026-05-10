@@ -5,17 +5,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays } from 'lucide-react';
 import { getPaidQuantity } from '@/utils/orderItemQuantities';
+import { dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
 
-const formatTruckQty = (value: number) => {
-  const safe = Number.isFinite(value) ? value : 0;
-  const rounded = Math.round(safe * 100) / 100;
-  if (Number.isInteger(rounded)) return String(Math.trunc(rounded));
-  const [w, f = ''] = rounded.toFixed(2).split('.');
-  return `${w}.${f.padEnd(2, '0')}`;
-};
+/** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
+const fmtBP = (fractionalBoxes: number, ppb: number) =>
+  boxesToBP(Math.max(0, Number.isFinite(fractionalBoxes) ? fractionalBoxes : 0), Math.max(1, ppb || 1));
 
-const toGiftQty = (boxes: number, pieces: number = 0) =>
-  Math.max(0, Number(boxes || 0) + Number(pieces || 0) / 100);
+/** order_items: gift_quantity = full boxes, gift_pieces = leftover pieces. */
+const giftFractional = (boxes: number, pieces: number, ppb: number) =>
+  Math.max(0, Number(boxes || 0)) + Math.max(0, Number(pieces || 0)) / Math.max(1, ppb || 1);
 
 interface Props {
   workerId: string;
@@ -125,36 +123,53 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     enabled: !!workerId,
   });
 
+  // Map productId -> pieces_per_box from current truck stock (default 20).
+  const ppbMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const it of truckStock as any[]) {
+      m[it.product_id] = Math.max(1, Number(it.product?.pieces_per_box) || 20);
+    }
+    return m;
+  }, [truckStock]);
+  const ppbOf = (pid: string) => ppbMap[pid] || 20;
+
   const stats = useMemo(() => {
     const out: Record<string, any> = {};
     const ensure = (id: string) => (out[id] ||= { loaded: 0, unloaded: 0, sold: 0, giftQty: 0, loadCount: new Set(), unloadCount: new Set(), saleCount: new Set() });
     for (const it of loadedData) {
+      const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const q = Number(it.quantity || 0) + Number(it.gift_quantity || 0);
+      const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const gift = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const q = qty + gift;
       s.loaded += q;
       if (q > 0 && it.session_id) s.loadCount.add(String(it.session_id));
-      s.giftQty += Number(it.gift_quantity || 0);
+      s.giftQty += gift;
     }
     for (const it of unloadedData) {
+      const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const q = Number(it.quantity || 0);
+      const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
       s.unloaded += q;
       if (q > 0 && it.session_id) s.unloadCount.add(String(it.session_id));
     }
     for (const it of soldData) {
+      const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const paid = getPaidQuantity(it);
+      const paidBP = getPaidQuantity(it);
+      const paid = dbBPToBoxes(Number(paidBP || 0), ppb);
       s.sold += paid;
       if (paid > 0 && it.order_id) s.saleCount.add(String(it.order_id));
-      s.giftQty += toGiftQty(it.gift_quantity, it.gift_pieces);
+      s.giftQty += giftFractional(it.gift_quantity, it.gift_pieces, ppb);
     }
     return out;
-  }, [loadedData, unloadedData, soldData]);
+  }, [loadedData, unloadedData, soldData, ppbMap]);
 
   const history = useMemo(() => {
     if (!selected) return null;
     const pid = selected.product_id;
-    const currentQty = Number(selected.quantity || 0);
+    const ppb = ppbOf(pid);
+    const currentQty = dbBPToBoxes(Number(selected.quantity || 0), ppb);
     const lastLabel = lastAccounting
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
@@ -163,21 +178,23 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
-      const giftQty = toGiftQty(it.gift_quantity || 0);
-      const q = Number(it.quantity || 0) + giftQty;
+      const giftQty = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const q = dbBPToBoxes(Number(it.quantity || 0), ppb) + giftQty;
       movements.push({ id: `load-${it.session_id}-${q}`, type: 'load', label: 'شحن', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: q });
     }
     for (const it of unloadedData.filter((x: any) => x.product_id === pid)) {
-      const q = Number(it.quantity || 0);
+      const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
       movements.push({ id: `unload-${it.session_id}-${q}`, type: 'unload', label: 'تفريغ', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: -q });
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
-      const giftBoxes = Math.max(0, Number(it.gift_quantity || 0));
+      const giftBoxesBP = Math.max(0, Number(it.gift_quantity || 0));
       const giftPieces = Math.max(0, Number(it.gift_pieces || 0));
-      const giftQty = toGiftQty(giftBoxes, giftPieces);
-      const saleQty = Math.max(0, Number(it.quantity || 0) - giftBoxes);
+      const giftBoxesFrac = dbBPToBoxes(giftBoxesBP, ppb);
+      const giftQty = giftBoxesFrac + giftPieces / ppb;
+      const totalQtyFrac = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const saleQty = Math.max(0, totalQtyFrac - giftBoxesFrac);
       const when = it.order_updated_at || it.order_created_at || '';
-      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${formatTruckQty(giftQty)}` : null, delta: -saleQty });
+      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
       if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: 'من نفس عملية البيع', delta: -giftQty });
     }
 
@@ -191,8 +208,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
     const totalGift = movements.filter(m => m.type === 'gift').reduce((s, m) => s + m.quantity, 0);
 
-    return { entries, currentQty, totalLoaded, totalUnloaded, totalSold, totalGift, lastLabel, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
-  }, [selected, loadedData, unloadedData, soldData, lastAccounting]);
+    return { entries, currentQty, totalLoaded, totalUnloaded, totalSold, totalGift, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
+  }, [selected, loadedData, unloadedData, soldData, lastAccounting, ppbMap]);
 
   const sorted = [...truckStock].sort((a: any, b: any) => {
     if (a.quantity === 0 && b.quantity > 0) return 1;
@@ -240,7 +257,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-sm truncate">{item.product?.name}</span>
                     <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
-                      {formatTruckQty(Number(item.quantity || 0))}
+                      {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">انقر لعرض سجل الحركة</p>
@@ -248,26 +265,26 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-1.5 border-t pt-2 text-[10px]">
                 <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> الباقي {formatTruckQty(Number(item.quantity || 0))}
+                  <Package className="w-3 h-3" /> الباقي {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> المجموع {formatTruckQty(s.loaded || 0)}
+                  <Package className="w-3 h-3" /> المجموع {fmtBP(s.loaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
-                  <TrendingUp className="w-3 h-3" /> شحن {formatTruckQty(s.loaded || 0)}
+                  <TrendingUp className="w-3 h-3" /> شحن {fmtBP(s.loaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.loadCount?.size > 0 && <span className="font-bold">×{s.loadCount.size}</span>}
                 </span>
                 <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
-                  <PackageOpen className="w-3 h-3" /> تفريغ -{formatTruckQty(s.unloaded || 0)}
+                  <PackageOpen className="w-3 h-3" /> تفريغ -{fmtBP(s.unloaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.unloadCount?.size > 0 && <span className="font-bold">×{s.unloadCount.size}</span>}
                 </span>
                 <span className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">
-                  <TrendingDown className="w-3 h-3" /> مباع {formatTruckQty(s.sold || 0)}
+                  <TrendingDown className="w-3 h-3" /> مباع {fmtBP(s.sold || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.saleCount?.size > 0 && <span className="font-bold">×{s.saleCount.size}</span>}
                 </span>
                 {s.giftQty > 0 && (
                   <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full">
-                    <Gift className="w-3 h-3" /> هدايا {formatTruckQty(s.giftQty)}
+                    <Gift className="w-3 h-3" /> هدايا {fmtBP(s.giftQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   </span>
                 )}
               </div>
@@ -302,15 +319,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{history.productName}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(history.totalLoaded)}</Badge>
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(history.totalLoaded)}</Badge>
-                    <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(history.totalUnloaded)}</Badge>
-                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(history.totalSold)}</Badge>
+                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {fmtBP(history.totalLoaded, history.ppb)}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {fmtBP(history.totalLoaded, history.ppb)}</Badge>
+                    <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {fmtBP(history.totalUnloaded, history.ppb)}</Badge>
+                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {fmtBP(history.totalSold, history.ppb)}</Badge>
                     {history.totalGift > 0 && (
-                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {formatTruckQty(history.totalGift)}</Badge>
+                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {fmtBP(history.totalGift, history.ppb)}</Badge>
                     )}
                   </div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">الباقي {formatTruckQty(history.currentQty)}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">الباقي {fmtBP(history.currentQty, history.ppb)}</div>
                 </div>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto pr-1">
@@ -352,13 +369,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                 </div>
                               </div>
                               <div className={`text-sm font-bold ${deltaColor}`}>
-                                {entry.delta < 0 ? `-${formatTruckQty(Math.abs(entry.quantity))}` : `+${formatTruckQty(entry.quantity)}`}
+                                {entry.delta < 0 ? `-${fmtBP(Math.abs(entry.quantity), history.ppb)}` : `+${fmtBP(entry.quantity, history.ppb)}`}
                               </div>
                             </div>
                             <div className="mt-2 text-[11px]">
                               <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
                                 <div className="text-muted-foreground">الباقي</div>
-                                <div className="font-semibold">{formatTruckQty(entry.after)}</div>
+                                <div className="font-semibold">{fmtBP(entry.after, history.ppb)}</div>
                               </div>
                             </div>
                             {entry.note && (
