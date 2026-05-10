@@ -1000,18 +1000,18 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
                     {/* Stats grid: 2x2 + expected full-width */}
                     <div className="grid grid-cols-2 gap-1.5">
-                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+                      <Badge variant="outline" className="gap-1 justify-center py-1 px-1.5 whitespace-nowrap overflow-hidden [font-size:clamp(8px,2.2cqw,11px)] @container border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
                         {isUnloadOnlyPreview ? 'الرصيد' : 'شُحن'} <strong>{formatBP(r.loaded, ppb)}</strong>
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+                      <Badge variant="outline" className="gap-1 justify-center py-1 px-1.5 whitespace-nowrap overflow-hidden [font-size:clamp(8px,2.2cqw,11px)] border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
                         فُرّغ <strong>{formatBP(r.unloaded, ppb)}</strong>
                       </Badge>
                       {!isUnloadOnlyPreview && (
                         <>
-                          <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                          <Badge variant="outline" className="gap-1 justify-center py-1 px-1.5 whitespace-nowrap overflow-hidden [font-size:clamp(8px,2.2cqw,11px)] border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
                             مُباع <strong>{formatBP(r.sold, ppb)}</strong>
                           </Badge>
-                          <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
+                          <Badge variant="outline" className="gap-1 justify-center py-1 px-1.5 whitespace-nowrap overflow-hidden [font-size:clamp(8px,2.2cqw,11px)] border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
                             🎁 هدية <strong>{formatBP(r.gifts, ppb)}</strong>
                           </Badge>
                         </>
