@@ -1691,7 +1691,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   };
 
   // Handlers
-  const handleDeliveryCustomerClick = async (customer: any) => {
+  const handleDeliveryCustomerClick = async (customer: any, scope: 'current' | 'postponed' = 'current') => {
     setLoadingDeliveryFor(customer.id);
     try {
       let query = supabase
@@ -1703,10 +1703,16 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       if (!isAdmin) query = query.eq('assigned_worker_id', effectiveWorkerId!);
       const { data, error } = await query;
       if (error) throw error;
-      if (data && data.length > 1) {
-        setOrderPickerDialog({ customer, orders: data, type: 'delivery' });
-      } else if (data && data.length === 1) {
-        setPendingDeliveryOrder(data[0] as OrderWithDetails);
+      const scopedOrders = (data || []).filter((order: any) => {
+        const deliveryDate = String(order.delivery_date || '');
+        if (scope === 'postponed') return deliveryDate && deliveryDate < selectedDayBounds.dateKey;
+        return (deliveryDate && deliveryDate.startsWith(selectedDayBounds.dateKey)) ||
+          (!deliveryDate && order.created_at >= selectedDayBounds.start && order.created_at <= selectedDayBounds.end);
+      });
+      if (scopedOrders.length > 1) {
+        setOrderPickerDialog({ customer, orders: scopedOrders, type: 'delivery' });
+      } else if (scopedOrders.length === 1) {
+        setPendingDeliveryOrder(scopedOrders[0] as OrderWithDetails);
         setSalesHubTab('delivery');
         setShowSalesHubDialog(true);
       } else {
