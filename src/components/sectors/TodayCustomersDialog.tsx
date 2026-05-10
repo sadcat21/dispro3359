@@ -1281,7 +1281,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   const postponedDeliveryOrderCountMap = useMemo(() => {
     const map = new Map<string, number>();
-    deliveryOrderGroupMap.forEach((v, k) => { if (v.postponed > 0 && v.current === 0) map.set(k, v.postponed); });
+    deliveryOrderGroupMap.forEach((v, k) => { if (v.postponed > 0) map.set(k, v.postponed); });
     return map;
   }, [deliveryOrderGroupMap]);
 
@@ -1367,13 +1367,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const postponedCustomerIds = useMemo(() => {
     const ids = new Set<string>();
     deliveryOrderGroupMap.forEach((v, k) => {
-      if (v.postponed > 0 && v.current === 0) ids.add(k);
+      if (v.postponed > 0) ids.add(k);
     });
     return ids;
   }, [deliveryOrderGroupMap]);
 
-  const deliveryNotDone = useMemo(() => deliveryCustomers.filter(c => !deliveredCustomerIds.has(c.id) && !deliveryVisitedCustomerIds.has(c.id) && !postponedCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, deliveryVisitedCustomerIds, postponedCustomerIds]);
-  const deliveryNotReceived = useMemo(() => deliveryCustomers.filter(c => deliveryVisitedCustomerIds.has(c.id) && !deliveredCustomerIds.has(c.id) && !postponedCustomerIds.has(c.id)), [deliveryCustomers, deliveryVisitedCustomerIds, deliveredCustomerIds, postponedCustomerIds]);
+  const deliveryNotDone = useMemo(() => deliveryCustomers.filter(c => currentDeliveryOrderCountMap.has(c.id) && !deliveredCustomerIds.has(c.id) && !deliveryVisitedCustomerIds.has(c.id)), [deliveryCustomers, currentDeliveryOrderCountMap, deliveredCustomerIds, deliveryVisitedCustomerIds]);
+  const deliveryNotReceived = useMemo(() => deliveryCustomers.filter(c => currentDeliveryOrderCountMap.has(c.id) && deliveryVisitedCustomerIds.has(c.id) && !deliveredCustomerIds.has(c.id)), [deliveryCustomers, currentDeliveryOrderCountMap, deliveryVisitedCustomerIds, deliveredCustomerIds]);
   const deliveryReceived = useMemo(() => deliveryCustomers.filter(c => deliveredCustomerIds.has(c.id) && !directSoldCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, directSoldCustomerIds]);
 
   // Sub-categorize deliveryNotReceived based on delivery_visit notes
