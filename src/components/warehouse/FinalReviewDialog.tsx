@@ -1021,7 +1021,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     {!isUnloadOnlyPreview && (
                       <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-300 dark:bg-blue-950/30 dark:border-blue-800">
                         <span className="text-sm font-bold text-blue-700 dark:text-blue-400" dir="ltr">
-                          {r.salesAmount.toLocaleString('ar-DZ')} DA
+                          {r.salesAmount.toLocaleString('ar-DZ')} <span className="text-red-600 dark:text-red-400">DA</span>
                         </span>
                       </div>
                     )}
