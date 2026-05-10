@@ -1697,9 +1697,10 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .eq('status', 'delivered')
         .gte('updated_at', todayStart)
         .lte('updated_at', selectedDayBounds.end)
-        .order('updated_at', { ascending: false })
-        .limit(1);
-      if (data && data.length > 0) {
+        .order('updated_at', { ascending: false });
+      if (data && data.length > 1) {
+        setOrderPickerDialog({ customer, orders: data, type: 'delivered' });
+      } else if (data && data.length === 1) {
         const hydratedItems = await hydrateOrderItems(data[0]);
         setOrderDetailsDialog({ ...data[0], items: hydratedItems });
       } else {
@@ -1720,9 +1721,10 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
         .not('status', 'eq', 'cancelled')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      if (data && data.length > 0) {
+        .order('created_at', { ascending: false });
+      if (data && data.length > 1) {
+        setOrderPickerDialog({ customer, orders: data, type: 'order' });
+      } else if (data && data.length === 1) {
         const hydratedItems = await hydrateOrderItems(data[0]);
         setOrderDetailsDialog({ ...data[0], items: hydratedItems, _isOrderRequest: true });
       } else {
