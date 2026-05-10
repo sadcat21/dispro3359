@@ -456,6 +456,16 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
           {!isTodayCustomersHidden && !isFieldWorker && <SectorCustomersPopover />}
+          {!isTodayCustomersHidden && isFieldWorker && (
+            <button
+              onClick={() => setTodayCustomersOpen(true)}
+              className="hidden md:flex relative items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              title={t("tooltip.today_customers")}
+              aria-label={t("tooltip.today_customers")}
+            >
+              <CalendarCheck className="w-4 h-4 text-white" />
+            </button>
+          )}
           {!isReceiptModsHidden && <ReceiptModificationsNotification />}
           {!isStockAlertsHidden && <StockAlertsNotification />}
           {!isOffersHidden && <OffersNotification />}
