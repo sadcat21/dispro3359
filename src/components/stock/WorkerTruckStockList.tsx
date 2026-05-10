@@ -257,7 +257,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-sm truncate">{item.product?.name}</span>
                     <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
-                      {formatTruckQty(Number(item.quantity || 0))}
+                      {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">انقر لعرض سجل الحركة</p>
@@ -265,26 +265,26 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-1.5 border-t pt-2 text-[10px]">
                 <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> الباقي {formatTruckQty(Number(item.quantity || 0))}
+                  <Package className="w-3 h-3" /> الباقي {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> المجموع {formatTruckQty(s.loaded || 0)}
+                  <Package className="w-3 h-3" /> المجموع {fmtBP(s.loaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
-                  <TrendingUp className="w-3 h-3" /> شحن {formatTruckQty(s.loaded || 0)}
+                  <TrendingUp className="w-3 h-3" /> شحن {fmtBP(s.loaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.loadCount?.size > 0 && <span className="font-bold">×{s.loadCount.size}</span>}
                 </span>
                 <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
-                  <PackageOpen className="w-3 h-3" /> تفريغ -{formatTruckQty(s.unloaded || 0)}
+                  <PackageOpen className="w-3 h-3" /> تفريغ -{fmtBP(s.unloaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.unloadCount?.size > 0 && <span className="font-bold">×{s.unloadCount.size}</span>}
                 </span>
                 <span className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">
-                  <TrendingDown className="w-3 h-3" /> مباع {formatTruckQty(s.sold || 0)}
+                  <TrendingDown className="w-3 h-3" /> مباع {fmtBP(s.sold || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.saleCount?.size > 0 && <span className="font-bold">×{s.saleCount.size}</span>}
                 </span>
                 {s.giftQty > 0 && (
                   <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full">
-                    <Gift className="w-3 h-3" /> هدايا {formatTruckQty(s.giftQty)}
+                    <Gift className="w-3 h-3" /> هدايا {fmtBP(s.giftQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   </span>
                 )}
               </div>
