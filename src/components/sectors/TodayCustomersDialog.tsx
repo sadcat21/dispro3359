@@ -1796,6 +1796,24 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   const handleShowDirectSaleDetails = async (customer: any) => {
     try {
+      // Fetch all direct-sale orders for this customer today
+      let dsQuery = supabase
+        .from('orders')
+        .select('*, customer:customers(*), items:order_items(*, product:products(*))')
+        .eq('customer_id', customer.id)
+        .eq('status', 'delivered')
+        .gte('created_at', todayStart)
+        .lte('created_at', selectedDayBounds.end)
+        .order('created_at', { ascending: false });
+      if (!isAdmin || hasSpecificWorker) {
+        dsQuery = dsQuery.eq('created_by', effectiveWorkerId!);
+      }
+      const { data: allDirect } = await dsQuery;
+      if (allDirect && allDirect.length > 1) {
+        setOrderPickerDialog({ customer, orders: allDirect, type: 'direct' });
+        return;
+      }
+
       const directOrder = await fetchDirectSaleOrderDetails(customer.id);
       if (directOrder) {
         setOrderDetailsDialog({ ...directOrder, _isDirectSale: true, customer: directOrder.customer || customer });
