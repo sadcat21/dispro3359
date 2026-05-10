@@ -86,6 +86,16 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+const getOrderDateKey = (order: any) => String(order?.delivery_date || order?.created_at?.split('T')[0] || '');
+const isPostponedOrderForDate = (order: any, dateKey: string) => {
+  const orderDate = getOrderDateKey(order);
+  return !!orderDate && orderDate <= dateKey && (Number(order?.postpone_count || 0) > 0 || orderDate < dateKey);
+};
+const isCurrentDeliveryOrderForDate = (order: any, dateKey: string) => {
+  const orderDate = getOrderDateKey(order);
+  return !!orderDate && orderDate.startsWith(dateKey) && !isPostponedOrderForDate(order, dateKey);
+};
+
 const normalizeSaleItem = (item: any) => ({
   productId: item?.product_id || item?.productId || item?.product?.id || '',
   productName: item?.product?.name || item?.product_name || item?.productName || '—',
