@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye } from 'lucide-react';
+import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -104,6 +104,41 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     enabled: !!workerId && !!branchId,
   });
 
+  // 5) المراجعة النهائية اليوم
+  const reviewsQ = useQuery({
+    queryKey: ['warehouse-today-reviews', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('warehouse_review_sessions')
+        .select('id, status, created_at, completed_at, total_products, total_discrepancies')
+        .eq('reviewer_id', workerId!)
+        .eq('branch_id', branchId)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
+  // 6) الاستبدالات اليوم (حركات مخزون من نوع exchange)
+  const exchangesQ = useQuery({
+    queryKey: ['warehouse-today-exchanges', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stock_movements')
+        .select('id, quantity, notes, status, created_at, products:product_id(name)')
+        .eq('movement_type', 'exchange')
+        .eq('branch_id', branchId)
+        .eq('created_by', workerId!)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
   const accountingClosed = (accountingQ.data || []).some((s: any) => s.status === 'completed' || s.status === 'closed');
 
   const handleDelete = async () => {
@@ -135,7 +170,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     }
   };
 
-  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading;
+  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading || reviewsQ.isLoading || exchangesQ.isLoading;
 
   if (isLoading) {
     return (
@@ -148,7 +183,9 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const loadings = loadingQ.data || [];
   const orders = ordersQ.data || [];
   const receipts = receiptsQ.data || [];
-  const totalCount = loadings.length + orders.length + receipts.length;
+  const reviews = reviewsQ.data || [];
+  const exchanges = exchangesQ.data || [];
+  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length;
 
   return (
     <div className="space-y-3" dir="rtl">
