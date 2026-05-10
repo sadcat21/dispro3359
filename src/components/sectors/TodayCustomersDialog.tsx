@@ -3645,6 +3645,12 @@ const CustomerList: React.FC<{
                         {info.itemCount} منتج
                       </Badge>
                     )}
+                    {(orderCountMap?.get(c.id) || 0) > 1 && (
+                      <Badge className="text-[9px] px-1.5 py-0 h-4 bg-purple-100 text-purple-700 border-0 gap-0.5">
+                        <ShoppingCart className="w-3 h-3" />
+                        {orderCountMap!.get(c.id)} طلبيات
+                      </Badge>
+                    )}
                   </span>
                 );
               })()}
