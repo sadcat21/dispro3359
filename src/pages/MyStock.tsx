@@ -3,13 +3,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Loader2, ShoppingBag, TrendingDown, TrendingUp, Gift } from 'lucide-react';
+import { Package, Loader2, ShoppingBag } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
-import { dbBPDisplay, dbBPDisplayAlways } from '@/utils/boxPieceInput';
-import { getPaidQuantity } from '@/utils/orderItemQuantities';
+import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
@@ -232,34 +231,7 @@ const MyStock: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-4 gap-2 sm:gap-2.5">
-          {sortedItems.map(item => {
-            const isZero = item.quantity === 0;
-            const productImage = (item as any).product?.image_url;
-            const productName = (item as any).product?.name;
-            return (
-              <div key={item.id} className={`flex flex-col overflow-hidden rounded-lg border transition-all ${isZero ? 'border-destructive/30 opacity-50' : 'border-border bg-card'}`}>
-                <div className="px-1 py-0.5 text-center">
-                  <span className="block truncate text-[9px] font-bold text-foreground sm:text-[10px]">
-                    {productName}
-                  </span>
-                </div>
-                <div className="aspect-square w-full overflow-hidden bg-muted/20">
-                  {productImage ? (
-                    <img src={productImage} alt={productName} className="h-full w-full object-contain p-1" loading="lazy" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Package className="h-8 w-8 text-muted-foreground/30" />
-                    </div>
-                  )}
-                </div>
-                <div className={`flex items-center justify-center gap-1 py-1 text-xs font-bold ${isZero ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-                  {dbBPDisplayAlways(item.quantity, (item as any).product?.pieces_per_box || 1)} <Package className="h-3 w-3" />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <WorkerTruckStockList workerId={workerId!} emptyLabel={t('stock.no_stock')} />
       )}
 
       <SalesHubDialog
