@@ -84,7 +84,9 @@ export const useAssignedOrders = () => {
           query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
         }
       } else {
-        query = query.eq('assigned_worker_id', workerId!);
+        // Include orders assigned to this worker OR created by this worker
+        // (even if unassigned or assigned to someone else)
+        query = query.or(`assigned_worker_id.eq.${workerId!},created_by.eq.${workerId!}`);
       }
 
       const { data, error } = await query;
