@@ -385,6 +385,20 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
       return boxes * ppb + piecesDec;
     };
+    // Compute per-shipment windows: [shipment.created_at, nextShipment.created_at)
+    const sortedSessions = [...loadSessionsList].sort((a, b) =>
+      a.created_at.localeCompare(b.created_at)
+    );
+    const windows: Array<[string, string]> = sourceIds.map(sid => {
+      const idx = sortedSessions.findIndex(s => s.id === sid);
+      const start = sortedSessions[idx]?.created_at || '1970-01-01';
+      const end = sortedSessions[idx + 1]?.created_at || '9999-12-31';
+      return [start, end];
+    });
+    const inAnyWindow = (ts?: string | null): boolean => {
+      if (!ts) return false;
+      return windows.some(([s, e]) => ts >= s && ts < e);
+    };
     const map = new Map<string, AggregatedRow>();
     const rowsByPid = new Map(rows.map(r => [r.productId, r]));
     for (const it of items) {
@@ -393,7 +407,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
       const baseRow = rowsByPid.get(pid);
       const ex = map.get(pid) || (baseRow
-        ? { ...baseRow, loaded: 0, expected: 0, expectedBoxes: 0, expectedPieces: 0, actualBoxes: '', actualPieces: '', confirmed: false }
+        ? { ...baseRow, loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0, expected: 0, expectedBoxes: 0, expectedPieces: 0, actualBoxes: '', actualPieces: '', confirmed: false }
         : {
             productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
             loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
@@ -401,16 +415,52 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             actualBoxes: '', actualPieces: '', confirmed: false, ppb,
           });
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+      map.set(pid, ex);
+    }
+    // Aggregate unloads within window(s)
+    for (const m of unloadMovesAll) {
+      if (!inAnyWindow(m.created_at)) continue;
+      const pid = m.product_id;
+      const prod = (m as any).product || {};
+      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+      const ex = map.get(pid);
+      if (!ex) continue; // only show products that were loaded in selected shipments
+      ex.unloaded += bpToPieces(Number(m.quantity || 0), ppb);
+    }
+    // Aggregate sold/gifts/salesAmount within window(s) using delivered orders
+    for (const it of salesItemsAll) {
+      const oid = String((it as any).order_id || '');
+      const ts = orderTimes[oid];
+      if (!inAnyWindow(ts)) continue;
+      const pid = (it as any).product_id;
+      const ex = map.get(pid);
+      if (!ex) continue;
+      const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || ex.ppb || 1)));
+      const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
+      const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
+      const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
+      const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
+      const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
+      ex.sold += Math.max(0, totalPieces - origGiftBoxes * ppb);
+      ex.gifts += giftTotalPieces;
+      const trKey = `${oid}|${pid}`;
+      if (trackingByOrderProduct.has(trKey)) {
+        ex.salesAmount += trackingByOrderProduct.get(trKey) || 0;
+      } else {
+        ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
+      }
+    }
+    // Recompute expected after all aggregates are in
+    for (const ex of map.values()) {
       const expectedTotal = ex.loaded - ex.unloaded - ex.sold - ex.gifts;
       const absP = Math.abs(expectedTotal);
       const sign = expectedTotal < 0 ? -1 : 1;
       ex.expected = expectedTotal;
       ex.expectedBoxes = sign * Math.floor(absP / ex.ppb);
       ex.expectedPieces = absP % ex.ppb;
-      map.set(pid, ex);
     }
     return Array.from(map.values()).sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [selectedSessionId, multiSelected, loadItemsBySession, rows]);
+  }, [selectedSessionId, multiSelected, loadItemsBySession, rows, loadSessionsList, unloadMovesAll, salesItemsAll, trackingByOrderProduct, orderTimes]);
 
   const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
