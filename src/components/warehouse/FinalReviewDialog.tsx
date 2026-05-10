@@ -985,7 +985,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground';
                 const BtnIcon = !filled || status === 'match' ? Check : status === 'surplus' ? TrendingUp : TrendingDown;
                 return (
-                  <div key={r.productId} className={`flex flex-col gap-2.5 p-3 rounded-xl border-2 transition-opacity shadow-sm ${ring} ${r.confirmed ? 'opacity-70' : ''}`}>
+                  <div key={r.productId} className={`flex flex-col gap-2.5 p-3 rounded-xl border-2 border-red-400 dark:border-red-700 transition-opacity shadow-sm ${r.confirmed ? 'opacity-70' : ''}`}>
                     {/* Header: image + name */}
                     <div className="flex items-center gap-2 min-w-0">
                       {r.imageUrl ? (
@@ -1021,7 +1021,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     {!isUnloadOnlyPreview && (
                       <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-300 dark:bg-blue-950/30 dark:border-blue-800">
                         <span className="text-sm font-bold text-blue-700 dark:text-blue-400" dir="ltr">
-                          {r.salesAmount.toLocaleString('ar-DZ')} DA
+                          {r.salesAmount.toLocaleString('ar-DZ')} <span className="text-red-600 dark:text-red-400">DA</span>
                         </span>
                       </div>
                     )}
