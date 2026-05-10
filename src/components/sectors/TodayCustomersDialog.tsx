@@ -1276,6 +1276,18 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [assignedOrders, effectiveWorkerId, isAdmin, selectedDayBounds.dateKey]);
 
+  const currentDeliveryOrderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    deliveryOrderGroupMap.forEach((v, k) => { if (v.current > 0) map.set(k, v.current); });
+    return map;
+  }, [deliveryOrderGroupMap]);
+
+  const postponedDeliveryOrderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    deliveryOrderGroupMap.forEach((v, k) => { if (v.postponed > 0 && v.current === 0) map.set(k, v.postponed); });
+    return map;
+  }, [deliveryOrderGroupMap]);
+
   const deliveredCustomerIds = useMemo(() => new Set(todayDeliveredOrders.map(o => o.customer_id).filter(Boolean)), [todayDeliveredOrders]);
   const customerDeliveryTimeMap = useMemo(() => {
     const map = new Map<string, string>();
