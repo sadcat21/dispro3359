@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Loader2, Trash2, Package, User } from 'lucide-react';
+import { Plus, Loader2, Trash2, Package, User, AlertTriangle } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
@@ -64,6 +65,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
   const [productPickerIndex, setProductPickerIndex] = useState<number | null>(null);
   const [productsInfo, setProductsInfo] = useState<Record<string, number>>({});
   const saveLockRef = useRef(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch pieces_per_box for all products
   useEffect(() => {
@@ -118,17 +120,25 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
 
   const selectedWorkerName = workers.find(w => w.id === selectedWorker)?.full_name;
 
-  const handleSave = async () => {
+  const validItemsForConfirm = items.filter(i => i.product_id && i.quantity > 0);
+
+  const requestSave = () => {
     if (saveLockRef.current || isSaving) return;
     if (!selectedWorker) {
       toast.error('اختر العامل أولاً');
       return;
     }
-    const validItems = items.filter(i => i.product_id && i.quantity > 0);
-    if (validItems.length === 0) {
+    if (validItemsForConfirm.length === 0) {
       toast.error(t('stock.add_products'));
       return;
     }
+    setShowConfirm(true);
+  };
+
+  const handleSave = async () => {
+    if (saveLockRef.current || isSaving) return;
+    const validItems = validItemsForConfirm;
+    if (!selectedWorker || validItems.length === 0) return;
 
     saveLockRef.current = true;
     setIsSaving(true);
@@ -139,6 +149,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
         notes: 'شحن سريع من مخزون الفرع',
       })));
       toast.success('تم شحن العامل بنجاح');
+      setShowConfirm(false);
       onOpenChange(false);
       resetForm();
     } catch (error: any) {
@@ -269,7 +280,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
           </div>
 
           <DialogFooter>
-            <Button onClick={handleSave} disabled={isSaving} className="w-full">
+            <Button onClick={requestSave} disabled={isSaving} className="w-full">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
               شحن العامل
             </Button>
@@ -299,7 +310,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
         }}
         onConfirmLoading={() => {
           setProductPickerIndex(null);
-          handleSave();
+          requestSave();
         }}
         onRemoveProduct={() => {
           setItems(prev => {
@@ -312,6 +323,55 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
           setProductPickerIndex(null);
         }}
       />
+
+      <AlertDialog open={showConfirm} onOpenChange={(o) => { if (!isSaving) setShowConfirm(o); }}>
+        <AlertDialogContent dir="rtl" className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد شحن العامل
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 pt-2">
+                <div className="text-sm text-foreground">
+                  العامل: <strong>{selectedWorkerName}</strong>
+                </div>
+                <div className="rounded-md border bg-amber-50 dark:bg-amber-950/30 p-2 text-xs text-amber-800 dark:text-amber-300">
+                  ⚠️ تأكد من التفريق بين <strong>الصناديق</strong> و<strong>القطع</strong> قبل التأكيد. الكمية المحفوظة ستُحدّث رصيد العامل مباشرة.
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {validItemsForConfirm.map((it, idx) => {
+                    const ppb = getPPB(it.product_id);
+                    const parsed = parseBP(`${it.fields.boxes || '0'}.${it.fields.pieces || '0'}`, ppb);
+                    const totalPieces = Math.round(parsed.totalBoxes * ppb);
+                    const productName = products.find(p => p.id === it.product_id)?.name || '';
+                    return (
+                      <div key={idx} className="rounded-md border p-2 bg-card">
+                        <div className="font-medium text-sm">{productName}</div>
+                        <div className="flex items-center gap-2 mt-1 text-xs">
+                          <Badge variant="secondary">{parsed.boxes} صندوق</Badge>
+                          <span>+</span>
+                          <Badge variant="secondary">{parsed.pieces} قطعة</Badge>
+                          <span className="mr-auto text-muted-foreground">
+                            = <strong className="text-foreground">{totalPieces}</strong> قطعة (الصندوق = {ppb})
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>تعديل</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleSave(); }} disabled={isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+              تأكيد الشحن
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
