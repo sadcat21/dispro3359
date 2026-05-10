@@ -410,6 +410,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     if (sourceIds.length === 0) return [];
     const sessionById = new Map(loadSessionsList.map(s => [s.id, s]));
     const shipmentSourceIds = sourceIds.filter(sid => isShipmentReviewSession(sessionById.get(sid)));
+    const shipmentSourceIdSet = new Set(shipmentSourceIds);
     const items: any[] = shipmentSourceIds.flatMap(sid => loadItemsBySession[sid] || []);
     const bpToPieces = (val: number, ppb: number): number => {
       const v = Number(val || 0);
@@ -430,6 +431,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     const inAnyWindow = (ts?: string | null): boolean => {
       if (!ts) return false;
       return windows.some(([s, e]) => ts >= s && ts < e);
+    };
+    const shipmentWindows = windows.filter((_, idx) => shipmentSourceIdSet.has(sourceIds[idx]));
+    const inAnyShipmentWindow = (ts?: string | null): boolean => {
+      if (!ts) return false;
+      return shipmentWindows.some(([s, e]) => ts >= s && ts < e);
     };
     const map = new Map<string, AggregatedRow>();
     const rowsByPid = new Map(rows.map(r => [r.productId, r]));
@@ -468,7 +474,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     for (const it of salesItemsAll) {
       const oid = String((it as any).order_id || '');
       const ts = orderTimes[oid];
-      if (!inAnyWindow(ts)) continue;
+      if (!inAnyShipmentWindow(ts)) continue;
       const pid = (it as any).product_id;
       const ex = map.get(pid);
       if (!ex) continue;
