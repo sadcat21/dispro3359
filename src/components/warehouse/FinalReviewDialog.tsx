@@ -1029,7 +1029,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
                     {/* Remaining — green "تفريغ كامل" when 0, red otherwise (in unload-only); kept primary in shipment mode */}
                     {isUnloadOnlyPreview ? (
-                      r.expected === 0 ? (
+                      Math.abs(r.expected) < 0.0001 ? (
                         <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 dark:bg-emerald-950/30 dark:border-emerald-800">
                           <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">✓ تفريغ كامل</span>
                         </div>
