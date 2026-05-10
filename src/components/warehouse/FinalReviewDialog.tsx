@@ -38,6 +38,32 @@ interface AggregatedRow {
   ppb: number;
 }
 
+type ReviewSession = {
+  id: string;
+  created_at: string;
+  status?: string | null;
+  notes?: string | null;
+};
+
+const isUnloadReviewSession = (session?: Pick<ReviewSession, 'status' | 'notes'> | null): boolean => {
+  const status = (session?.status || '').toLowerCase();
+  const notes = session?.notes || '';
+  return status === 'unloaded' || status === 'return' || notes.includes('تفريغ');
+};
+
+const isShipmentReviewSession = (session?: Pick<ReviewSession, 'status' | 'notes'> | null): boolean => {
+  const status = (session?.status || '').toLowerCase();
+  return !!session && !isUnloadReviewSession(session) && status !== 'review' && status !== 'exchange';
+};
+
+const getReviewSessionLabel = (session?: Pick<ReviewSession, 'status' | 'notes'> | null): string => {
+  const status = (session?.status || '').toLowerCase();
+  if (isUnloadReviewSession(session)) return 'تفريغ';
+  if (status === 'exchange') return 'تغيير';
+  if (status === 'review') return 'مراجعة';
+  return 'شحنة';
+};
+
 // عرض موحّد بصيغة B.P (boxes.pp) — يطابق formatGiftDisplay في تجميعات المبيعات والعروض
 const formatBP = (totalPieces: number, piecesPerBox: number): string => {
   const ppb = Math.max(1, Math.round(piecesPerBox || 1));
@@ -65,7 +91,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [workerPin, setWorkerPin] = useState('');
   const [hasPin, setHasPin] = useState<boolean | null>(null);
   // Per-session preview support
-  const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
+  const [loadSessionsList, setLoadSessionsList] = useState<ReviewSession[]>([]);
   const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
   const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
   // Raw timestamped data — used to compute per-shipment window aggregates
@@ -181,18 +207,20 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const sinceTs = realSince || '1970-01-01';
         if (!cancelled) setPeriodStart(realSince);
 
-        // 2. جلسات الشحن للعامل بعد ذلك التاريخ (استثناء جلسات المراجعة حتى لا تُحتسب كشحن)
+        // 2. جلسات الشحن/التفريغ للعامل بعد ذلك التاريخ (نستعملها كحدود زمنية، لكن لا نحتسب التفريغ كشحن)
         const { data: loadSessions } = await supabase
           .from('loading_sessions')
-          .select('id, status, created_at')
+          .select('id, status, created_at, notes')
           .eq('worker_id', workerId)
           .neq('status', 'review')
           .gte('created_at', sinceTs)
           .order('created_at', { ascending: true });
-        const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
+        const allReviewSessions = (loadSessions || []) as ReviewSession[];
+        const shipmentSessions = allReviewSessions.filter(isShipmentReviewSession);
+        const loadSessionIds = shipmentSessions.map((s) => s.id);
         if (!cancelled) {
           setLoadCount(loadSessionIds.length);
-          setLoadSessionsList((loadSessions || []).map((s: any) => ({ id: s.id, created_at: s.created_at })));
+          setLoadSessionsList(allReviewSessions.map((s) => ({ id: s.id, created_at: s.created_at, status: s.status, notes: s.notes })));
         }
 
         // 3. بنود الشحن (موجبة)
@@ -380,14 +408,17 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         ? Array.from(multiSelected)
         : (selectedSessionId !== 'all' ? [selectedSessionId] : []);
     if (sourceIds.length === 0) return [];
-    const items: any[] = sourceIds.flatMap(sid => loadItemsBySession[sid] || []);
+    const sessionById = new Map(loadSessionsList.map(s => [s.id, s]));
+    const shipmentSourceIds = sourceIds.filter(sid => isShipmentReviewSession(sessionById.get(sid)));
+    const shipmentSourceIdSet = new Set(shipmentSourceIds);
+    const items: any[] = shipmentSourceIds.flatMap(sid => loadItemsBySession[sid] || []);
     const bpToPieces = (val: number, ppb: number): number => {
       const v = Number(val || 0);
       const boxes = Math.floor(Math.round(v * 100) / 100);
       const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
       return boxes * ppb + piecesDec;
     };
-    // Compute per-shipment windows: [shipment.created_at, nextShipment.created_at)
+    // Compute per-session windows: [selected session.created_at, next session.created_at)
     const sortedSessions = [...loadSessionsList].sort((a, b) =>
       a.created_at.localeCompare(b.created_at)
     );
@@ -401,23 +432,34 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       if (!ts) return false;
       return windows.some(([s, e]) => ts >= s && ts < e);
     };
+    const shipmentWindows = windows.filter((_, idx) => shipmentSourceIdSet.has(sourceIds[idx]));
+    const inAnyShipmentWindow = (ts?: string | null): boolean => {
+      if (!ts) return false;
+      return shipmentWindows.some(([s, e]) => ts >= s && ts < e);
+    };
     const map = new Map<string, AggregatedRow>();
     const rowsByPid = new Map(rows.map(r => [r.productId, r]));
-    for (const it of items) {
-      const pid = (it as any).product_id;
-      const prod = (it as any).product || {};
-      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+    const ensureRow = (pid: string, prod: any, ppb: number): AggregatedRow => {
       const baseRow = rowsByPid.get(pid);
-      const ex = map.get(pid) || (baseRow
+      const existing = map.get(pid);
+      if (existing) return existing;
+      const created = baseRow
         ? { ...baseRow, loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0, expected: 0, expectedBoxes: 0, expectedPieces: 0, actualBoxes: '', actualPieces: '', confirmed: false }
         : {
             productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
             loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
             expected: 0, expectedBoxes: 0, expectedPieces: 0,
             actualBoxes: '', actualPieces: '', confirmed: false, ppb,
-          });
+          };
+      map.set(pid, created);
+      return created;
+    };
+    for (const it of items) {
+      const pid = (it as any).product_id;
+      const prod = (it as any).product || {};
+      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+      const ex = ensureRow(pid, prod, ppb);
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
-      map.set(pid, ex);
     }
     // Aggregate unloads within window(s)
     for (const m of unloadMovesAll) {
@@ -425,15 +467,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const pid = m.product_id;
       const prod = (m as any).product || {};
       const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
-      const ex = map.get(pid);
-      if (!ex) continue; // only show products that were loaded in selected shipments
+      const ex = ensureRow(pid, prod, ppb);
       ex.unloaded += bpToPieces(Number(m.quantity || 0), ppb);
     }
     // Aggregate sold/gifts/salesAmount within window(s) using delivered orders
     for (const it of salesItemsAll) {
       const oid = String((it as any).order_id || '');
       const ts = orderTimes[oid];
-      if (!inAnyWindow(ts)) continue;
+      if (!inAnyShipmentWindow(ts)) continue;
       const pid = (it as any).product_id;
       const ex = map.get(pid);
       if (!ex) continue;
@@ -736,12 +777,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 const isMulti = multiSelected.has(s.id);
                 const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
                 const active = isMulti || isSingle;
+                const sessionLabel = getReviewSessionLabel(s);
+                const isUnloadSession = isUnloadReviewSession(s);
                 return (
                   <div key={s.id} className={`inline-flex items-center rounded-md ${isMulti ? 'ring-2 ring-primary/60' : ''}`}>
                     <Button
                       type="button"
                       size="sm"
-                      variant={active ? 'default' : 'outline'}
+                      variant={active ? (isUnloadSession ? 'destructive' : 'default') : 'outline'}
                       onClick={() => handleSessionClick(s.id)}
                       onMouseDown={() => startLongPress(s.id)}
                       onMouseUp={cancelLongPress}
@@ -750,11 +793,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       onTouchEnd={cancelLongPress}
                       onTouchCancel={cancelLongPress}
                       onContextMenu={(e) => e.preventDefault()}
-                      className="h-6 px-2 text-[10px] rounded-e-none border-e-0"
+                      className={`h-6 px-2 text-[10px] rounded-e-none border-e-0 ${!active && isUnloadSession ? 'border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15' : ''}`}
                       title={`${new Date(s.created_at).toLocaleString('ar-DZ', { timeZone: 'Africa/Algiers' })} — اضغط مطوّلاً للتحديد المتعدد`}
                     >
-                      {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
-                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-primary/15 text-primary'}`}>
+                      {isMulti && '✓ '}{sessionLabel} {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
+                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : isUnloadSession ? 'bg-destructive/15 text-destructive' : 'bg-primary/15 text-primary'}`}>
                         🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Algiers' })}
                       </span>
                     </Button>
@@ -762,7 +805,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteSession(s.id, `شحنة ${idx + 1}`)}
+                      onClick={() => handleDeleteSession(s.id, `${sessionLabel} ${idx + 1}`)}
                       disabled={deletingSessionId === s.id}
                       className="h-6 w-6 p-0 rounded-s-none text-destructive hover:bg-destructive hover:text-destructive-foreground"
                       title="حذف هذه الجلسة"
