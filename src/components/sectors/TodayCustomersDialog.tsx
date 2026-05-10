@@ -1252,12 +1252,29 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     const map = new Map<string, number>();
     assignedOrders.forEach((o: any) => {
       if (!o.customer_id) return;
-      if (!['pending', 'assigned', 'in_progress'].includes(o.status)) return;
+      if (!ACTIVE_DELIVERY_STATUSES.includes(o.status)) return;
       if (!isAdmin && o.assigned_worker_id !== effectiveWorkerId) return;
       map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
     });
     return map;
   }, [assignedOrders, isAdmin, effectiveWorkerId]);
+
+  const deliveryOrderGroupMap = useMemo(() => {
+    const map = new Map<string, { current: number; postponed: number }>();
+    assignedOrders.forEach((o: any) => {
+      if (!o.customer_id || !ACTIVE_DELIVERY_STATUSES.includes(o.status)) return;
+      if (!isAdmin && o.assigned_worker_id !== effectiveWorkerId) return;
+      const deliveryDate = String(o.delivery_date || o.created_at?.split('T')[0] || '');
+      const entry = map.get(o.customer_id) || { current: 0, postponed: 0 };
+      if (deliveryDate && deliveryDate < selectedDayBounds.dateKey) {
+        entry.postponed += 1;
+      } else if (!deliveryDate || deliveryDate.startsWith(selectedDayBounds.dateKey)) {
+        entry.current += 1;
+      }
+      map.set(o.customer_id, entry);
+    });
+    return map;
+  }, [assignedOrders, effectiveWorkerId, isAdmin, selectedDayBounds.dateKey]);
 
   const deliveredCustomerIds = useMemo(() => new Set(todayDeliveredOrders.map(o => o.customer_id).filter(Boolean)), [todayDeliveredOrders]);
   const customerDeliveryTimeMap = useMemo(() => {
@@ -1338,25 +1355,15 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   const deliveryVisitedCustomerIds = useMemo(() => new Set(todayVisits.filter(v => v.operation_type === 'delivery_visit').map(v => v.customer_id).filter(Boolean)), [todayVisits]);
 
-  // Customers whose ALL assigned orders have postpone_count > 0 (rescheduled to today)
-  // These should appear in the "مؤجلة" tab, not in "بدون توصيل"
-  const onlyPostponedCustomerIds = useMemo(() => {
-    const custOrders = new Map<string, { total: number; postponed: number }>();
-    assignedOrders.forEach(o => {
-      if (!o.customer_id || !['pending', 'assigned', 'in_progress'].includes(o.status)) return;
-      const entry = custOrders.get(o.customer_id) || { total: 0, postponed: 0 };
-      entry.total++;
-      if ((o as any).postpone_count > 0) entry.postponed++;
-      custOrders.set(o.customer_id, entry);
-    });
+  const postponedCustomerIds = useMemo(() => {
     const ids = new Set<string>();
-    custOrders.forEach((v, k) => {
-      if (v.total > 0 && v.total === v.postponed) ids.add(k);
+    deliveryOrderGroupMap.forEach((v, k) => {
+      if (v.postponed > 0 && v.current === 0) ids.add(k);
     });
     return ids;
-  }, [assignedOrders]);
+  }, [deliveryOrderGroupMap]);
 
-  const deliveryNotDone = useMemo(() => deliveryCustomers.filter(c => !deliveredCustomerIds.has(c.id) && !deliveryVisitedCustomerIds.has(c.id) && !onlyPostponedCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, deliveryVisitedCustomerIds, onlyPostponedCustomerIds]);
+  const deliveryNotDone = useMemo(() => deliveryCustomers.filter(c => !deliveredCustomerIds.has(c.id) && !deliveryVisitedCustomerIds.has(c.id) && !postponedCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, deliveryVisitedCustomerIds, postponedCustomerIds]);
   const deliveryNotReceived = useMemo(() => deliveryCustomers.filter(c => deliveryVisitedCustomerIds.has(c.id) && !deliveredCustomerIds.has(c.id)), [deliveryCustomers, deliveryVisitedCustomerIds, deliveredCustomerIds]);
   const deliveryReceived = useMemo(() => deliveryCustomers.filter(c => deliveredCustomerIds.has(c.id) && !directSoldCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, directSoldCustomerIds]);
 
@@ -1381,15 +1388,14 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   // Postponed/overdue delivery orders (delivery_date before today, still undelivered)
   const postponedDeliveryOrders = useMemo(() => 
-    assignedOrders.filter(o => o.delivery_date && o.delivery_date < todayDateStr && ['pending', 'assigned', 'in_progress'].includes(o.status)),
-    [assignedOrders, todayDateStr]
+    assignedOrders.filter((o: any) => {
+      if (!o.customer_id || !postponedCustomerIds.has(o.customer_id)) return false;
+      if (!ACTIVE_DELIVERY_STATUSES.includes(o.status)) return false;
+      const deliveryDate = String(o.delivery_date || o.created_at?.split('T')[0] || '');
+      return !!deliveryDate && deliveryDate < selectedDayBounds.dateKey;
+    }),
+    [assignedOrders, postponedCustomerIds, selectedDayBounds.dateKey]
   );
-  const postponedCustomerIds = useMemo(() => {
-    const ids = new Set(postponedDeliveryOrders.map(o => o.customer_id).filter(Boolean));
-    // Also include customers rescheduled TO today (postpone_count > 0)
-    onlyPostponedCustomerIds.forEach(id => ids.add(id));
-    return ids;
-  }, [postponedDeliveryOrders, onlyPostponedCustomerIds]);
   const deliveryPostponed = useMemo(() => {
     const custMap = new Map<string, any>();
     postponedDeliveryOrders.forEach(o => {
