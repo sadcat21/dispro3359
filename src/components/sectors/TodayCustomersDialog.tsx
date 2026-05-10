@@ -1235,6 +1235,17 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayOrders, assignedOrders]);
 
+  // Map customer_id -> number of separate orders (today, by current worker scope)
+  const orderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const orderedIds = new Set(todayOrders.map(o => o.customer_id));
+    assignedOrders.forEach(o => {
+      if (!o.customer_id || !orderedIds.has(o.customer_id)) return;
+      map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
+    });
+    return map;
+  }, [todayOrders, assignedOrders]);
+
   const deliveredCustomerIds = useMemo(() => new Set(todayDeliveredOrders.map(o => o.customer_id).filter(Boolean)), [todayDeliveredOrders]);
   const customerDeliveryTimeMap = useMemo(() => {
     const map = new Map<string, string>();
