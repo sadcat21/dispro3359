@@ -179,8 +179,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
       const giftQty = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
-      const q = dbBPToBoxes(Number(it.quantity || 0), ppb) + giftQty;
-      movements.push({ id: `load-${it.session_id}-${q}`, type: 'load', label: 'شحن', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: q });
+      const paid = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const total = paid + giftQty;
+      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: paid, when: it._session?.created_at || '', note: giftQty > 0 ? `+${fmtBP(giftQty, ppb)} هدية` : (it._session?.notes || null), sourceLabel: it._session?.manager?.full_name || null, delta: total });
     }
     for (const it of unloadedData.filter((x: any) => x.product_id === pid)) {
       const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
