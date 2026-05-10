@@ -271,14 +271,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         // 4.b طلبيات مسلَّمة للعامل بعد ذلك التاريخ — لجمع المبيعات والهدايا لكل منتج
         const { data: deliveredOrders } = await supabase
           .from('orders')
-          .select('id, created_at, delivered_at')
+          .select('id, created_at, updated_at, delivery_date')
           .eq('assigned_worker_id', workerId)
           .eq('status', 'delivered')
           .gte('created_at', sinceTs);
         const deliveredIds = (deliveredOrders || []).map((o: any) => o.id);
         const orderTimesMap: Record<string, string> = {};
         for (const o of (deliveredOrders || []) as any[]) {
-          orderTimesMap[o.id] = o.delivered_at || o.created_at;
+          // For "delivered" orders, updated_at reflects the moment status flipped to delivered.
+          // Fall back to delivery_date, then created_at as last resort.
+          orderTimesMap[o.id] = o.updated_at || o.delivery_date || o.created_at;
         }
         if (!cancelled) setOrderTimes(orderTimesMap);
         if (deliveredIds.length > 0) {
