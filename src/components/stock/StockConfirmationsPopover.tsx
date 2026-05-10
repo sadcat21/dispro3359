@@ -467,8 +467,8 @@ const OutgoingTab: React.FC<{
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
-                          <span className="text-[10px] font-semibold">{fmtQty(item.quantity)} صندوق</span>
-                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">+ {item.gift_quantity} هدية</span>}
+                          <span className="text-[10px] font-semibold">{fmtQty(getConfirmationItemTotalQty(item))}</span>
+                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">يشمل {item.gift_quantity} هدية</span>}
                         </div>
                       </div>
                     ))}
@@ -541,7 +541,7 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
                       <div className="w-7 h-7 rounded bg-muted flex items-center justify-center"><Package className="w-3.5 h-3.5 text-muted-foreground" /></div>
                     )}
                     <p className="text-[10px] font-bold truncate flex-1">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">{fmtQty(item.quantity)}</Badge>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">{fmtQty(getConfirmationItemTotalQty(item))}</Badge>
                   </div>
                 ))}
               </div>
