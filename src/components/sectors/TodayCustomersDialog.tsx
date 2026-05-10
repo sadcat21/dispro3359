@@ -50,6 +50,7 @@ const DAY_NAMES: Record<string, string> = {
   saturday: 'السبت', sunday: 'الأحد', monday: 'الإثنين',
   tuesday: 'الثلاثاء', wednesday: 'الأربعاء', thursday: 'الخميس',
 };
+const ACTIVE_DELIVERY_STATUSES = ['pending', 'assigned', 'in_progress'];
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
 };
@@ -83,6 +84,17 @@ const toNullableNumber = (value: unknown): number | null => {
   if (value === null || value === undefined || value === '') return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+};
+
+type DeliveryOrderLike = Pick<OrderWithDetails, 'delivery_date' | 'created_at' | 'status' | 'customer_id'> & { postpone_count?: number | null };
+const getOrderDateKey = (order: DeliveryOrderLike) => String(order.delivery_date || order.created_at?.split('T')[0] || '');
+const isPostponedOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
+  const orderDate = getOrderDateKey(order);
+  return !!orderDate && orderDate <= dateKey && (Number(order?.postpone_count || 0) > 0 || orderDate < dateKey);
+};
+const isCurrentDeliveryOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
+  const orderDate = getOrderDateKey(order);
+  return !!orderDate && orderDate.startsWith(dateKey) && !isPostponedOrderForDate(order, dateKey);
 };
 
 const normalizeSaleItem = (item: any) => ({
@@ -1246,17 +1258,33 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayOrders, assignedOrders]);
 
-  // Map customer_id -> number of pending delivery orders (for delivery tab badge & picker)
-  const deliveryOrderCountMap = useMemo(() => {
-    const map = new Map<string, number>();
+  const deliveryOrderGroupMap = useMemo(() => {
+    const map = new Map<string, { current: number; postponed: number }>();
     assignedOrders.forEach((o: any) => {
-      if (!o.customer_id) return;
-      if (!['pending', 'assigned', 'in_progress'].includes(o.status)) return;
+      if (!o.customer_id || !ACTIVE_DELIVERY_STATUSES.includes(o.status)) return;
       if (!isAdmin && o.assigned_worker_id !== effectiveWorkerId) return;
-      map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
+      const entry = map.get(o.customer_id) || { current: 0, postponed: 0 };
+      if (isPostponedOrderForDate(o, selectedDayBounds.dateKey)) {
+        entry.postponed += 1;
+      } else if (isCurrentDeliveryOrderForDate(o, selectedDayBounds.dateKey)) {
+        entry.current += 1;
+      }
+      map.set(o.customer_id, entry);
     });
     return map;
-  }, [assignedOrders, isAdmin, effectiveWorkerId]);
+  }, [assignedOrders, effectiveWorkerId, isAdmin, selectedDayBounds.dateKey]);
+
+  const currentDeliveryOrderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    deliveryOrderGroupMap.forEach((v, k) => { if (v.current > 0) map.set(k, v.current); });
+    return map;
+  }, [deliveryOrderGroupMap]);
+
+  const postponedDeliveryOrderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    deliveryOrderGroupMap.forEach((v, k) => { if (v.postponed > 0) map.set(k, v.postponed); });
+    return map;
+  }, [deliveryOrderGroupMap]);
 
   const deliveredCustomerIds = useMemo(() => new Set(todayDeliveredOrders.map(o => o.customer_id).filter(Boolean)), [todayDeliveredOrders]);
   const customerDeliveryTimeMap = useMemo(() => {
@@ -1337,26 +1365,16 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   const deliveryVisitedCustomerIds = useMemo(() => new Set(todayVisits.filter(v => v.operation_type === 'delivery_visit').map(v => v.customer_id).filter(Boolean)), [todayVisits]);
 
-  // Customers whose ALL assigned orders have postpone_count > 0 (rescheduled to today)
-  // These should appear in the "مؤجلة" tab, not in "بدون توصيل"
-  const onlyPostponedCustomerIds = useMemo(() => {
-    const custOrders = new Map<string, { total: number; postponed: number }>();
-    assignedOrders.forEach(o => {
-      if (!o.customer_id || !['pending', 'assigned', 'in_progress'].includes(o.status)) return;
-      const entry = custOrders.get(o.customer_id) || { total: 0, postponed: 0 };
-      entry.total++;
-      if ((o as any).postpone_count > 0) entry.postponed++;
-      custOrders.set(o.customer_id, entry);
-    });
+  const postponedCustomerIds = useMemo(() => {
     const ids = new Set<string>();
-    custOrders.forEach((v, k) => {
-      if (v.total > 0 && v.total === v.postponed) ids.add(k);
+    deliveryOrderGroupMap.forEach((v, k) => {
+      if (v.postponed > 0) ids.add(k);
     });
     return ids;
-  }, [assignedOrders]);
+  }, [deliveryOrderGroupMap]);
 
-  const deliveryNotDone = useMemo(() => deliveryCustomers.filter(c => !deliveredCustomerIds.has(c.id) && !deliveryVisitedCustomerIds.has(c.id) && !onlyPostponedCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, deliveryVisitedCustomerIds, onlyPostponedCustomerIds]);
-  const deliveryNotReceived = useMemo(() => deliveryCustomers.filter(c => deliveryVisitedCustomerIds.has(c.id) && !deliveredCustomerIds.has(c.id)), [deliveryCustomers, deliveryVisitedCustomerIds, deliveredCustomerIds]);
+  const deliveryNotDone = useMemo(() => deliveryCustomers.filter(c => currentDeliveryOrderCountMap.has(c.id) && !deliveredCustomerIds.has(c.id) && !deliveryVisitedCustomerIds.has(c.id)), [deliveryCustomers, currentDeliveryOrderCountMap, deliveredCustomerIds, deliveryVisitedCustomerIds]);
+  const deliveryNotReceived = useMemo(() => deliveryCustomers.filter(c => currentDeliveryOrderCountMap.has(c.id) && deliveryVisitedCustomerIds.has(c.id) && !deliveredCustomerIds.has(c.id)), [deliveryCustomers, currentDeliveryOrderCountMap, deliveryVisitedCustomerIds, deliveredCustomerIds]);
   const deliveryReceived = useMemo(() => deliveryCustomers.filter(c => deliveredCustomerIds.has(c.id) && !directSoldCustomerIds.has(c.id)), [deliveryCustomers, deliveredCustomerIds, directSoldCustomerIds]);
 
   // Sub-categorize deliveryNotReceived based on delivery_visit notes
@@ -1380,15 +1398,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   // Postponed/overdue delivery orders (delivery_date before today, still undelivered)
   const postponedDeliveryOrders = useMemo(() => 
-    assignedOrders.filter(o => o.delivery_date && o.delivery_date < todayDateStr && ['pending', 'assigned', 'in_progress'].includes(o.status)),
-    [assignedOrders, todayDateStr]
+    assignedOrders.filter((o: any) => {
+      if (!o.customer_id || !postponedCustomerIds.has(o.customer_id)) return false;
+      if (!ACTIVE_DELIVERY_STATUSES.includes(o.status)) return false;
+      return isPostponedOrderForDate(o, selectedDayBounds.dateKey);
+    }),
+    [assignedOrders, postponedCustomerIds, selectedDayBounds.dateKey]
   );
-  const postponedCustomerIds = useMemo(() => {
-    const ids = new Set(postponedDeliveryOrders.map(o => o.customer_id).filter(Boolean));
-    // Also include customers rescheduled TO today (postpone_count > 0)
-    onlyPostponedCustomerIds.forEach(id => ids.add(id));
-    return ids;
-  }, [postponedDeliveryOrders, onlyPostponedCustomerIds]);
   const deliveryPostponed = useMemo(() => {
     const custMap = new Map<string, any>();
     postponedDeliveryOrders.forEach(o => {
@@ -1396,7 +1412,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         custMap.set(o.customer_id, o.customer);
       }
     });
-    // Add customers from onlyPostponedCustomerIds
+    // Add customers that only have overdue delivery orders
     customers.forEach(c => {
       if (postponedCustomerIds.has(c.id) && !custMap.has(c.id)) custMap.set(c.id, c);
     });
@@ -1684,7 +1700,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   };
 
   // Handlers
-  const handleDeliveryCustomerClick = async (customer: any) => {
+  const handleDeliveryCustomerClick = async (customer: any, scope: 'current' | 'postponed' = 'current') => {
     setLoadingDeliveryFor(customer.id);
     try {
       let query = supabase
@@ -1696,10 +1712,15 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       if (!isAdmin) query = query.eq('assigned_worker_id', effectiveWorkerId!);
       const { data, error } = await query;
       if (error) throw error;
-      if (data && data.length > 1) {
-        setOrderPickerDialog({ customer, orders: data, type: 'delivery' });
-      } else if (data && data.length === 1) {
-        setPendingDeliveryOrder(data[0] as OrderWithDetails);
+      const scopedOrders = (data || []).filter((order: any) =>
+        scope === 'postponed'
+          ? isPostponedOrderForDate(order, selectedDayBounds.dateKey)
+          : isCurrentDeliveryOrderForDate(order, selectedDayBounds.dateKey)
+      );
+      if (scopedOrders.length > 1) {
+        setOrderPickerDialog({ customer, orders: scopedOrders, type: 'delivery' });
+      } else if (scopedOrders.length === 1) {
+        setPendingDeliveryOrder(scopedOrders[0] as OrderWithDetails);
         setSalesHubTab('delivery');
         setShowSalesHubDialog(true);
       } else {
@@ -2497,7 +2518,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       </Button>
                     </div>
                   )}
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryNotDone} emptyMessage="تم توصيل جميع العملاء ✓" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={rescheduledToTodayIds} postponeCountMap={postponeCountMap} orderCountMap={deliveryOrderCountMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryNotDone} emptyMessage="تم توصيل جميع العملاء ✓" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={rescheduledToTodayIds} postponeCountMap={postponeCountMap} orderCountMap={currentDeliveryOrderCountMap} />
                 </TabsContent>
                 <TabsContent value="not-received" className="m-0 flex-1 min-h-0">
                   <Tabs defaultValue="visit-only" className="flex flex-col h-full min-h-0">
@@ -2559,7 +2580,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                   <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryReceived} emptyMessage="لا توجد توصيلات بعد" onCustomerClick={handleShowDeliveredOrderDetails} showPrintButton onPrint={handlePrintDeliveredOrder} checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} deliveryTimeMap={customerDeliveryTimeMap} timeMap={customerDeliveryTimeMap} distanceMap={customerDistanceMap} />
                 </TabsContent>
                 <TabsContent value="postponed" className="m-0 flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ maxHeight: '60vh' }}>
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryPostponed} emptyMessage="لا توجد طلبيات مؤجلة" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={postponedCustomerIds} postponeCountMap={postponeCountMap} orderCountMap={deliveryOrderCountMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryPostponed} emptyMessage="لا توجد طلبيات مؤجلة" onCustomerClick={(c) => handleDeliveryCustomerClick(c, 'postponed')} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={postponedCustomerIds} postponeCountMap={postponeCountMap} orderCountMap={postponedDeliveryOrderCountMap} />
                 </TabsContent>
               </Tabs>
             </TabsContent>
