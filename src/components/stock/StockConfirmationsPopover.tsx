@@ -218,7 +218,7 @@ const IncomingTab: React.FC<{
                           )}
                           <p className="text-[9px] font-bold leading-tight line-clamp-2 mb-1 min-h-[24px]">{displayName}</p>
                           <Badge className="bg-destructive text-white text-[10px] px-1.5 py-0 font-bold mb-1.5">
-                            {fmtQty(item.quantity)}
+                            {fmtQty(item.quantity + (Number(item.gift_quantity) || 0) / 100)}
                           </Badge>
                           {(item.gift_quantity || 0) > 0 && (
                             <span className="text-[8px] text-green-600 font-bold">+{item.gift_quantity} هدية</span>
