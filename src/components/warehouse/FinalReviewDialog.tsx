@@ -461,6 +461,55 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const ex = ensureRow(pid, prod, ppb);
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
     }
+    // For unload-only selections, carry over the remaining from the previous shipment
+    // (loaded shown for an unload = remaining of prev shipment at the unload moment).
+    const unloadSourceIds = sourceIds.filter(sid => isUnloadReviewSession(sessionById.get(sid)));
+    for (const usid of unloadSourceIds) {
+      const u = sessionById.get(usid);
+      if (!u) continue;
+      const prevShip = [...sortedSessions]
+        .filter(s => isShipmentReviewSession(s) && s.created_at < u.created_at)
+        .pop();
+      if (!prevShip) continue;
+      // Avoid double-counting if that shipment is also explicitly selected
+      if (shipmentSourceIdSet.has(prevShip.id)) continue;
+      const carryStart = prevShip.created_at;
+      const carryEnd = u.created_at;
+      const prevItems = loadItemsBySession[prevShip.id] || [];
+      for (const it of prevItems) {
+        const pid = (it as any).product_id;
+        const prod = (it as any).product || {};
+        const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+        const ex = ensureRow(pid, prod, ppb);
+        ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+      }
+      for (const m of unloadMovesAll) {
+        const ts = (m as any).created_at;
+        if (!ts || ts < carryStart || ts >= carryEnd) continue;
+        const pid = (m as any).product_id;
+        const prod = (m as any).product || {};
+        const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+        const ex = ensureRow(pid, prod, ppb);
+        ex.loaded -= bpToPieces(Number((m as any).quantity || 0), ppb);
+      }
+      for (const it of salesItemsAll) {
+        const oid = String((it as any).order_id || '');
+        const ts = orderTimes[oid];
+        if (!ts || ts < carryStart || ts >= carryEnd) continue;
+        const pid = (it as any).product_id;
+        const ex = map.get(pid);
+        if (!ex) continue;
+        const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || ex.ppb || 1)));
+        const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
+        const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
+        const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
+        const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
+        const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
+        const soldPieces = Math.max(0, totalPieces - origGiftBoxes * ppb);
+        ex.loaded -= soldPieces;
+        ex.loaded -= giftTotalPieces;
+      }
+    }
     // Aggregate unloads within window(s)
     for (const m of unloadMovesAll) {
       if (!inAnyWindow(m.created_at)) continue;
