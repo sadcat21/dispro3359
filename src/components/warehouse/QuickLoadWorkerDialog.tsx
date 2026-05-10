@@ -120,17 +120,25 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
 
   const selectedWorkerName = workers.find(w => w.id === selectedWorker)?.full_name;
 
-  const handleSave = async () => {
+  const validItemsForConfirm = items.filter(i => i.product_id && i.quantity > 0);
+
+  const requestSave = () => {
     if (saveLockRef.current || isSaving) return;
     if (!selectedWorker) {
       toast.error('اختر العامل أولاً');
       return;
     }
-    const validItems = items.filter(i => i.product_id && i.quantity > 0);
-    if (validItems.length === 0) {
+    if (validItemsForConfirm.length === 0) {
       toast.error(t('stock.add_products'));
       return;
     }
+    setShowConfirm(true);
+  };
+
+  const handleSave = async () => {
+    if (saveLockRef.current || isSaving) return;
+    const validItems = validItemsForConfirm;
+    if (!selectedWorker || validItems.length === 0) return;
 
     saveLockRef.current = true;
     setIsSaving(true);
@@ -141,6 +149,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
         notes: 'شحن سريع من مخزون الفرع',
       })));
       toast.success('تم شحن العامل بنجاح');
+      setShowConfirm(false);
       onOpenChange(false);
       resetForm();
     } catch (error: any) {
