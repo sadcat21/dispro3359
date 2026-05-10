@@ -327,6 +327,11 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [checkingLocationFor, setCheckingLocationFor] = useState<string | null>(null);
   const [loadingDeliveryFor, setLoadingDeliveryFor] = useState<string | null>(null);
   const [orderDetailsDialog, setOrderDetailsDialog] = useState<any>(null);
+  const [orderPickerDialog, setOrderPickerDialog] = useState<{
+    customer: any;
+    orders: any[];
+    type: 'order' | 'delivered' | 'direct';
+  } | null>(null);
   const [directSaleCustomerId, setDirectSaleCustomerId] = useState<string | null>(null);
   const [printReceiptData, setPrintReceiptData] = useState<any>(null);
   const [showPrintReceipt, setShowPrintReceipt] = useState(false);
@@ -1230,6 +1235,17 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayOrders, assignedOrders]);
 
+  // Map customer_id -> number of separate orders (today, by current worker scope)
+  const orderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const orderedIds = new Set(todayOrders.map(o => o.customer_id));
+    assignedOrders.forEach(o => {
+      if (!o.customer_id || !orderedIds.has(o.customer_id)) return;
+      map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
+    });
+    return map;
+  }, [todayOrders, assignedOrders]);
+
   const deliveredCustomerIds = useMemo(() => new Set(todayDeliveredOrders.map(o => o.customer_id).filter(Boolean)), [todayDeliveredOrders]);
   const customerDeliveryTimeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -1692,9 +1708,10 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .eq('status', 'delivered')
         .gte('updated_at', todayStart)
         .lte('updated_at', selectedDayBounds.end)
-        .order('updated_at', { ascending: false })
-        .limit(1);
-      if (data && data.length > 0) {
+        .order('updated_at', { ascending: false });
+      if (data && data.length > 1) {
+        setOrderPickerDialog({ customer, orders: data, type: 'delivered' });
+      } else if (data && data.length === 1) {
         const hydratedItems = await hydrateOrderItems(data[0]);
         setOrderDetailsDialog({ ...data[0], items: hydratedItems });
       } else {
@@ -1715,9 +1732,10 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
         .not('status', 'eq', 'cancelled')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      if (data && data.length > 0) {
+        .order('created_at', { ascending: false });
+      if (data && data.length > 1) {
+        setOrderPickerDialog({ customer, orders: data, type: 'order' });
+      } else if (data && data.length === 1) {
         const hydratedItems = await hydrateOrderItems(data[0]);
         setOrderDetailsDialog({ ...data[0], items: hydratedItems, _isOrderRequest: true });
       } else {
@@ -1789,6 +1807,24 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   const handleShowDirectSaleDetails = async (customer: any) => {
     try {
+      // Fetch all direct-sale orders for this customer today
+      let dsQuery = supabase
+        .from('orders')
+        .select('*, customer:customers(*), items:order_items(*, product:products(*))')
+        .eq('customer_id', customer.id)
+        .eq('status', 'delivered')
+        .gte('created_at', todayStart)
+        .lte('created_at', selectedDayBounds.end)
+        .order('created_at', { ascending: false });
+      if (!isAdmin || hasSpecificWorker) {
+        dsQuery = dsQuery.eq('created_by', effectiveWorkerId!);
+      }
+      const { data: allDirect } = await dsQuery;
+      if (allDirect && allDirect.length > 1) {
+        setOrderPickerDialog({ customer, orders: allDirect, type: 'direct' });
+        return;
+      }
+
       const directOrder = await fetchDirectSaleOrderDetails(customer.id);
       if (directOrder) {
         setOrderDetailsDialog({ ...directOrder, _isDirectSale: true, customer: directOrder.customer || customer });
@@ -2570,7 +2606,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       </Button>
                     </div>
                   )}
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={salesWithOrders} emptyMessage="لا توجد طلبيات بعد" onCustomerClick={handleShowOrderDetails} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={orderTimeMap} distanceMap={customerDistanceMap} orderInfoMap={orderInfoMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={salesWithOrders} emptyMessage="لا توجد طلبيات بعد" onCustomerClick={handleShowOrderDetails} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={orderTimeMap} distanceMap={customerDistanceMap} orderInfoMap={orderInfoMap} orderCountMap={orderCountMap} />
                 </TabsContent>
               </Tabs>
             </TabsContent>
@@ -2805,6 +2841,59 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
             }
           }}
         />
+      )}
+
+      {/* Multiple orders picker - when worker entered multiple orders for the same customer */}
+      {orderPickerDialog && (
+        <Dialog open={!!orderPickerDialog} onOpenChange={(o) => !o && setOrderPickerDialog(null)}>
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="text-base">
+                طلبيات {orderPickerDialog.customer?.store_name || orderPickerDialog.customer?.name || 'العميل'} ({orderPickerDialog.orders.length})
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 mt-2">
+              {orderPickerDialog.orders.map((o: any, idx: number) => {
+                const items = Array.isArray(o.items) ? o.items : [];
+                const itemCount = items.length;
+                const total = Number(o.total_amount || 0);
+                const ts = o.created_at || o.updated_at;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={async () => {
+                      const hydratedItems = await hydrateOrderItems(o);
+                      const extra =
+                        orderPickerDialog.type === 'order'
+                          ? { _isOrderRequest: true }
+                          : orderPickerDialog.type === 'direct'
+                          ? { _isDirectSale: true, customer: o.customer || orderPickerDialog.customer }
+                          : {};
+                      setOrderDetailsDialog({ ...o, items: hydratedItems, ...extra });
+                      setOrderPickerDialog(null);
+                    }}
+                    className="w-full text-right p-3 rounded-lg border hover:bg-accent transition-colors flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary/10 text-primary border-0">#{idx + 1}</Badge>
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {ts ? format(new Date(ts), 'HH:mm') : '—'}
+                        </span>
+                        <span className="text-xs flex items-center gap-1">
+                          <Package className="w-3 h-3" /> {itemCount} منتج
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold">{total.toLocaleString()} دج</div>
+                  </button>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Sub-dialogs */}
@@ -3407,7 +3496,8 @@ const CustomerList: React.FC<{
   orderInfoMap?: Map<string, { deliveryDate: string; deliveryDay: string; itemCount: number }>;
   liabilityCustomerIds?: Set<string>;
   noOrderStreakMap?: Map<string, number>;
-}> = ({ customers, emptyMessage, onCustomerClick, onVisitWithoutOrder, onClosed, onUnavailable, onDebtRefused, onCancelled, onNoSale, onPrint, onPostpone, showVisitButton, visitButtonLabel, showActionButtons, showPrintButton, showNoSaleButton, showCancelButton, checkingLocationFor, loadingFor, searchQuery, sectors, allZones, salesRepStatusMap, deliveryTimeMap, timeMap, distanceMap, workerPosition, sortByDistance, postponedBadgeIds, postponeCountMap, noOrderStreakMap, orderInfoMap, liabilityCustomerIds }) => {
+  orderCountMap?: Map<string, number>;
+}> = ({ customers, emptyMessage, onCustomerClick, onVisitWithoutOrder, onClosed, onUnavailable, onDebtRefused, onCancelled, onNoSale, onPrint, onPostpone, showVisitButton, visitButtonLabel, showActionButtons, showPrintButton, showNoSaleButton, showCancelButton, checkingLocationFor, loadingFor, searchQuery, sectors, allZones, salesRepStatusMap, deliveryTimeMap, timeMap, distanceMap, workerPosition, sortByDistance, postponedBadgeIds, postponeCountMap, noOrderStreakMap, orderInfoMap, liabilityCustomerIds, orderCountMap }) => {
   const { language } = useLanguage();
 
   // Compute live distance from worker to each customer
@@ -3553,6 +3643,12 @@ const CustomerList: React.FC<{
                       <Badge className="text-[9px] px-1.5 py-0 h-4 bg-green-100 text-green-700 border-0 gap-0.5">
                         <Package className="w-3 h-3" />
                         {info.itemCount} منتج
+                      </Badge>
+                    )}
+                    {(orderCountMap?.get(c.id) || 0) > 1 && (
+                      <Badge className="text-[9px] px-1.5 py-0 h-4 bg-purple-100 text-purple-700 border-0 gap-0.5">
+                        <ShoppingCart className="w-3 h-3" />
+                        {orderCountMap!.get(c.id)} طلبيات
                       </Badge>
                     )}
                   </span>
