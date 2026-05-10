@@ -60,7 +60,8 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md z-[10100]" overlayClassName="z-[10090]">
+
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5 text-primary" />
