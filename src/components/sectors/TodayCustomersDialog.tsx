@@ -50,6 +50,7 @@ const DAY_NAMES: Record<string, string> = {
   saturday: 'السبت', sunday: 'الأحد', monday: 'الإثنين',
   tuesday: 'الثلاثاء', wednesday: 'الأربعاء', thursday: 'الخميس',
 };
+const ACTIVE_DELIVERY_STATUSES = ['pending', 'assigned', 'in_progress'];
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
 };
