@@ -981,6 +981,11 @@ const MyAchievements: React.FC = () => {
               maxHeightClassName="h-full min-h-0"
               contentClassName="space-y-1.5 pe-1"
             >
+              {isWarehouseManager && activeBranch?.id && (
+                <div className="mb-2">
+                  <WarehouseTodayAchievements branchId={activeBranch.id} />
+                </div>
+              )}
               {filteredVisits.map((visit: any) => {
                 const isOrderLike = ['order', 'direct_sale', 'delivery'].includes(visit.operation_type);
                 const paymentBadge = isOrderLike && visit.order_payment_type
