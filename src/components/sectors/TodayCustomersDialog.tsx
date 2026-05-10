@@ -2864,6 +2864,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                     key={o.id}
                     type="button"
                     onClick={async () => {
+                      if (orderPickerDialog.type === 'delivery') {
+                        setPendingDeliveryOrder(o as OrderWithDetails);
+                        setSalesHubTab('delivery');
+                        setShowSalesHubDialog(true);
+                        setOrderPickerDialog(null);
+                        return;
+                      }
                       const hydratedItems = await hydrateOrderItems(o);
                       const extra =
                         orderPickerDialog.type === 'order'
