@@ -771,12 +771,14 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 const isMulti = multiSelected.has(s.id);
                 const isSingle = multiSelected.size === 0 && selectedSessionId === s.id;
                 const active = isMulti || isSingle;
+                const sessionLabel = getReviewSessionLabel(s);
+                const isUnloadSession = isUnloadReviewSession(s);
                 return (
                   <div key={s.id} className={`inline-flex items-center rounded-md ${isMulti ? 'ring-2 ring-primary/60' : ''}`}>
                     <Button
                       type="button"
                       size="sm"
-                      variant={active ? 'default' : 'outline'}
+                      variant={active ? (isUnloadSession ? 'destructive' : 'default') : 'outline'}
                       onClick={() => handleSessionClick(s.id)}
                       onMouseDown={() => startLongPress(s.id)}
                       onMouseUp={cancelLongPress}
@@ -785,11 +787,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       onTouchEnd={cancelLongPress}
                       onTouchCancel={cancelLongPress}
                       onContextMenu={(e) => e.preventDefault()}
-                      className="h-6 px-2 text-[10px] rounded-e-none border-e-0"
+                      className={`h-6 px-2 text-[10px] rounded-e-none border-e-0 ${!active && isUnloadSession ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400' : ''}`}
                       title={`${new Date(s.created_at).toLocaleString('ar-DZ', { timeZone: 'Africa/Algiers' })} — اضغط مطوّلاً للتحديد المتعدد`}
                     >
-                      {isMulti && '✓ '}شحنة {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
-                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-primary/15 text-primary'}`}>
+                      {isMulti && '✓ '}{sessionLabel} {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
+                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : isUnloadSession ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-primary/15 text-primary'}`}>
                         🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Algiers' })}
                       </span>
                     </Button>
@@ -797,7 +799,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteSession(s.id, `شحنة ${idx + 1}`)}
+                      onClick={() => handleDeleteSession(s.id, `${sessionLabel} ${idx + 1}`)}
                       disabled={deletingSessionId === s.id}
                       className="h-6 w-6 p-0 rounded-s-none text-destructive hover:bg-destructive hover:text-destructive-foreground"
                       title="حذف هذه الجلسة"
