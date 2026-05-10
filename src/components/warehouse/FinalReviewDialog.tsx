@@ -556,6 +556,22 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
+  // Detect if the current preview consists only of unload sessions
+  const isUnloadOnlyPreview = useMemo(() => {
+    const sourceIds: string[] =
+      multiSelected.size > 0
+        ? Array.from(multiSelected)
+        : (selectedSessionId !== 'all' ? [selectedSessionId] : []);
+    if (sourceIds.length === 0) return false;
+    const sessionById = new Map(loadSessionsList.map(s => [s.id, s]));
+    return sourceIds.every(sid => isUnloadReviewSession(sessionById.get(sid)));
+  }, [multiSelected, selectedSessionId, loadSessionsList]);
+
+  const unloadSessionsCount = useMemo(
+    () => loadSessionsList.filter(s => isUnloadReviewSession(s)).length,
+    [loadSessionsList]
+  );
+
   // Subtract loaded contributions of UI-hidden sessions
   const effectiveRows = useMemo<AggregatedRow[]>(() => {
     if (hiddenSessionIds.size === 0) return rows;
