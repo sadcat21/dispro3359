@@ -123,36 +123,53 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     enabled: !!workerId,
   });
 
+  // Map productId -> pieces_per_box from current truck stock (default 20).
+  const ppbMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const it of truckStock as any[]) {
+      m[it.product_id] = Math.max(1, Number(it.product?.pieces_per_box) || 20);
+    }
+    return m;
+  }, [truckStock]);
+  const ppbOf = (pid: string) => ppbMap[pid] || 20;
+
   const stats = useMemo(() => {
     const out: Record<string, any> = {};
     const ensure = (id: string) => (out[id] ||= { loaded: 0, unloaded: 0, sold: 0, giftQty: 0, loadCount: new Set(), unloadCount: new Set(), saleCount: new Set() });
     for (const it of loadedData) {
+      const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const q = Number(it.quantity || 0) + Number(it.gift_quantity || 0);
+      const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const gift = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const q = qty + gift;
       s.loaded += q;
       if (q > 0 && it.session_id) s.loadCount.add(String(it.session_id));
-      s.giftQty += Number(it.gift_quantity || 0);
+      s.giftQty += gift;
     }
     for (const it of unloadedData) {
+      const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const q = Number(it.quantity || 0);
+      const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
       s.unloaded += q;
       if (q > 0 && it.session_id) s.unloadCount.add(String(it.session_id));
     }
     for (const it of soldData) {
+      const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const paid = getPaidQuantity(it);
+      const paidBP = getPaidQuantity(it);
+      const paid = dbBPToBoxes(Number(paidBP || 0), ppb);
       s.sold += paid;
       if (paid > 0 && it.order_id) s.saleCount.add(String(it.order_id));
-      s.giftQty += toGiftQty(it.gift_quantity, it.gift_pieces);
+      s.giftQty += giftFractional(it.gift_quantity, it.gift_pieces, ppb);
     }
     return out;
-  }, [loadedData, unloadedData, soldData]);
+  }, [loadedData, unloadedData, soldData, ppbMap]);
 
   const history = useMemo(() => {
     if (!selected) return null;
     const pid = selected.product_id;
-    const currentQty = Number(selected.quantity || 0);
+    const ppb = ppbOf(pid);
+    const currentQty = dbBPToBoxes(Number(selected.quantity || 0), ppb);
     const lastLabel = lastAccounting
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
@@ -161,21 +178,23 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
-      const giftQty = toGiftQty(it.gift_quantity || 0);
-      const q = Number(it.quantity || 0) + giftQty;
+      const giftQty = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const q = dbBPToBoxes(Number(it.quantity || 0), ppb) + giftQty;
       movements.push({ id: `load-${it.session_id}-${q}`, type: 'load', label: 'شحن', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: q });
     }
     for (const it of unloadedData.filter((x: any) => x.product_id === pid)) {
-      const q = Number(it.quantity || 0);
+      const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
       movements.push({ id: `unload-${it.session_id}-${q}`, type: 'unload', label: 'تفريغ', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: -q });
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
-      const giftBoxes = Math.max(0, Number(it.gift_quantity || 0));
+      const giftBoxesBP = Math.max(0, Number(it.gift_quantity || 0));
       const giftPieces = Math.max(0, Number(it.gift_pieces || 0));
-      const giftQty = toGiftQty(giftBoxes, giftPieces);
-      const saleQty = Math.max(0, Number(it.quantity || 0) - giftBoxes);
+      const giftBoxesFrac = dbBPToBoxes(giftBoxesBP, ppb);
+      const giftQty = giftBoxesFrac + giftPieces / ppb;
+      const totalQtyFrac = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const saleQty = Math.max(0, totalQtyFrac - giftBoxesFrac);
       const when = it.order_updated_at || it.order_created_at || '';
-      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${formatTruckQty(giftQty)}` : null, delta: -saleQty });
+      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
       if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: 'من نفس عملية البيع', delta: -giftQty });
     }
 
@@ -189,8 +208,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
     const totalGift = movements.filter(m => m.type === 'gift').reduce((s, m) => s + m.quantity, 0);
 
-    return { entries, currentQty, totalLoaded, totalUnloaded, totalSold, totalGift, lastLabel, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
-  }, [selected, loadedData, unloadedData, soldData, lastAccounting]);
+    return { entries, currentQty, totalLoaded, totalUnloaded, totalSold, totalGift, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
+  }, [selected, loadedData, unloadedData, soldData, lastAccounting, ppbMap]);
 
   const sorted = [...truckStock].sort((a: any, b: any) => {
     if (a.quantity === 0 && b.quantity > 0) return 1;
