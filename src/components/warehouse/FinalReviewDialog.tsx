@@ -207,18 +207,20 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const sinceTs = realSince || '1970-01-01';
         if (!cancelled) setPeriodStart(realSince);
 
-        // 2. جلسات الشحن للعامل بعد ذلك التاريخ (استثناء جلسات المراجعة حتى لا تُحتسب كشحن)
+        // 2. جلسات الشحن/التفريغ للعامل بعد ذلك التاريخ (نستعملها كحدود زمنية، لكن لا نحتسب التفريغ كشحن)
         const { data: loadSessions } = await supabase
           .from('loading_sessions')
-          .select('id, status, created_at')
+          .select('id, status, created_at, notes')
           .eq('worker_id', workerId)
           .neq('status', 'review')
           .gte('created_at', sinceTs)
           .order('created_at', { ascending: true });
-        const loadSessionIds = (loadSessions || []).map((s: any) => s.id);
+        const allReviewSessions = (loadSessions || []) as ReviewSession[];
+        const shipmentSessions = allReviewSessions.filter(isShipmentReviewSession);
+        const loadSessionIds = shipmentSessions.map((s) => s.id);
         if (!cancelled) {
           setLoadCount(loadSessionIds.length);
-          setLoadSessionsList((loadSessions || []).map((s: any) => ({ id: s.id, created_at: s.created_at })));
+          setLoadSessionsList(allReviewSessions.map((s) => ({ id: s.id, created_at: s.created_at, status: s.status, notes: s.notes })));
         }
 
         // 3. بنود الشحن (موجبة)
