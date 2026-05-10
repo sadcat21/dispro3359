@@ -327,6 +327,11 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [checkingLocationFor, setCheckingLocationFor] = useState<string | null>(null);
   const [loadingDeliveryFor, setLoadingDeliveryFor] = useState<string | null>(null);
   const [orderDetailsDialog, setOrderDetailsDialog] = useState<any>(null);
+  const [orderPickerDialog, setOrderPickerDialog] = useState<{
+    customer: any;
+    orders: any[];
+    type: 'order' | 'delivered' | 'direct';
+  } | null>(null);
   const [directSaleCustomerId, setDirectSaleCustomerId] = useState<string | null>(null);
   const [printReceiptData, setPrintReceiptData] = useState<any>(null);
   const [showPrintReceipt, setShowPrintReceipt] = useState(false);
