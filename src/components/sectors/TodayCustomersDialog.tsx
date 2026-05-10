@@ -86,12 +86,13 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-const getOrderDateKey = (order: any) => String(order?.delivery_date || order?.created_at?.split('T')[0] || '');
-const isPostponedOrderForDate = (order: any, dateKey: string) => {
+type DeliveryOrderLike = Pick<OrderWithDetails, 'delivery_date' | 'created_at' | 'status' | 'customer_id'> & { postpone_count?: number | null };
+const getOrderDateKey = (order: DeliveryOrderLike) => String(order.delivery_date || order.created_at?.split('T')[0] || '');
+const isPostponedOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
   const orderDate = getOrderDateKey(order);
   return !!orderDate && orderDate <= dateKey && (Number(order?.postpone_count || 0) > 0 || orderDate < dateKey);
 };
-const isCurrentDeliveryOrderForDate = (order: any, dateKey: string) => {
+const isCurrentDeliveryOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
   const orderDate = getOrderDateKey(order);
   return !!orderDate && orderDate.startsWith(dateKey) && !isPostponedOrderForDate(order, dateKey);
 };
