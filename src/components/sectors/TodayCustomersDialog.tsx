@@ -3496,7 +3496,8 @@ const CustomerList: React.FC<{
   orderInfoMap?: Map<string, { deliveryDate: string; deliveryDay: string; itemCount: number }>;
   liabilityCustomerIds?: Set<string>;
   noOrderStreakMap?: Map<string, number>;
-}> = ({ customers, emptyMessage, onCustomerClick, onVisitWithoutOrder, onClosed, onUnavailable, onDebtRefused, onCancelled, onNoSale, onPrint, onPostpone, showVisitButton, visitButtonLabel, showActionButtons, showPrintButton, showNoSaleButton, showCancelButton, checkingLocationFor, loadingFor, searchQuery, sectors, allZones, salesRepStatusMap, deliveryTimeMap, timeMap, distanceMap, workerPosition, sortByDistance, postponedBadgeIds, postponeCountMap, noOrderStreakMap, orderInfoMap, liabilityCustomerIds }) => {
+  orderCountMap?: Map<string, number>;
+}> = ({ customers, emptyMessage, onCustomerClick, onVisitWithoutOrder, onClosed, onUnavailable, onDebtRefused, onCancelled, onNoSale, onPrint, onPostpone, showVisitButton, visitButtonLabel, showActionButtons, showPrintButton, showNoSaleButton, showCancelButton, checkingLocationFor, loadingFor, searchQuery, sectors, allZones, salesRepStatusMap, deliveryTimeMap, timeMap, distanceMap, workerPosition, sortByDistance, postponedBadgeIds, postponeCountMap, noOrderStreakMap, orderInfoMap, liabilityCustomerIds, orderCountMap }) => {
   const { language } = useLanguage();
 
   // Compute live distance from worker to each customer
