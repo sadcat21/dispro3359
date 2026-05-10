@@ -1019,10 +1019,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     </div>
 
                     {!isUnloadOnlyPreview && (
-                      <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
-                        <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
-                        <span className="text-sm font-bold text-foreground">
-                          {r.salesAmount.toLocaleString('ar-DZ')} د.ج
+                      <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-300 dark:bg-blue-950/30 dark:border-blue-800">
+                        <span className="text-sm font-bold text-blue-700 dark:text-blue-400">
+                          {r.salesAmount.toLocaleString('ar-DZ')} DA
                         </span>
                       </div>
                     )}
