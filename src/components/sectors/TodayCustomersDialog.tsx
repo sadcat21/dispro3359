@@ -2814,6 +2814,59 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         />
       )}
 
+      {/* Multiple orders picker - when worker entered multiple orders for the same customer */}
+      {orderPickerDialog && (
+        <Dialog open={!!orderPickerDialog} onOpenChange={(o) => !o && setOrderPickerDialog(null)}>
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="text-base">
+                طلبيات {orderPickerDialog.customer?.store_name || orderPickerDialog.customer?.name || 'العميل'} ({orderPickerDialog.orders.length})
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 mt-2">
+              {orderPickerDialog.orders.map((o: any, idx: number) => {
+                const items = Array.isArray(o.items) ? o.items : [];
+                const itemCount = items.length;
+                const total = Number(o.total_amount || 0);
+                const ts = o.created_at || o.updated_at;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={async () => {
+                      const hydratedItems = await hydrateOrderItems(o);
+                      const extra =
+                        orderPickerDialog.type === 'order'
+                          ? { _isOrderRequest: true }
+                          : orderPickerDialog.type === 'direct'
+                          ? { _isDirectSale: true, customer: o.customer || orderPickerDialog.customer }
+                          : {};
+                      setOrderDetailsDialog({ ...o, items: hydratedItems, ...extra });
+                      setOrderPickerDialog(null);
+                    }}
+                    className="w-full text-right p-3 rounded-lg border hover:bg-accent transition-colors flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary/10 text-primary border-0">#{idx + 1}</Badge>
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {ts ? format(new Date(ts), 'HH:mm') : '—'}
+                        </span>
+                        <span className="text-xs flex items-center gap-1">
+                          <Package className="w-3 h-3" /> {itemCount} منتج
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold">{total.toLocaleString()} دج</div>
+                  </button>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Sub-dialogs */}
       <SalesHubDialog
         open={showSalesHubDialog}
