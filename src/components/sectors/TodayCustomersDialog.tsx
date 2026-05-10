@@ -2606,7 +2606,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       </Button>
                     </div>
                   )}
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={salesWithOrders} emptyMessage="لا توجد طلبيات بعد" onCustomerClick={handleShowOrderDetails} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={orderTimeMap} distanceMap={customerDistanceMap} orderInfoMap={orderInfoMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={salesWithOrders} emptyMessage="لا توجد طلبيات بعد" onCustomerClick={handleShowOrderDetails} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={orderTimeMap} distanceMap={customerDistanceMap} orderInfoMap={orderInfoMap} orderCountMap={orderCountMap} />
                 </TabsContent>
               </Tabs>
             </TabsContent>
