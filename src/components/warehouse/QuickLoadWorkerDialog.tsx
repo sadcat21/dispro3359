@@ -280,7 +280,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
           </div>
 
           <DialogFooter>
-            <Button onClick={handleSave} disabled={isSaving} className="w-full">
+            <Button onClick={requestSave} disabled={isSaving} className="w-full">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
               شحن العامل
             </Button>
@@ -310,7 +310,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
         }}
         onConfirmLoading={() => {
           setProductPickerIndex(null);
-          handleSave();
+          requestSave();
         }}
         onRemoveProduct={() => {
           setItems(prev => {
@@ -323,6 +323,55 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
           setProductPickerIndex(null);
         }}
       />
+
+      <AlertDialog open={showConfirm} onOpenChange={(o) => { if (!isSaving) setShowConfirm(o); }}>
+        <AlertDialogContent dir="rtl" className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد شحن العامل
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 pt-2">
+                <div className="text-sm text-foreground">
+                  العامل: <strong>{selectedWorkerName}</strong>
+                </div>
+                <div className="rounded-md border bg-amber-50 dark:bg-amber-950/30 p-2 text-xs text-amber-800 dark:text-amber-300">
+                  ⚠️ تأكد من التفريق بين <strong>الصناديق</strong> و<strong>القطع</strong> قبل التأكيد. الكمية المحفوظة ستُحدّث رصيد العامل مباشرة.
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {validItemsForConfirm.map((it, idx) => {
+                    const ppb = getPPB(it.product_id);
+                    const parsed = parseBP(`${it.fields.boxes || '0'}.${it.fields.pieces || '0'}`, ppb);
+                    const totalPieces = Math.round(parsed.totalBoxes * ppb);
+                    const productName = products.find(p => p.id === it.product_id)?.name || '';
+                    return (
+                      <div key={idx} className="rounded-md border p-2 bg-card">
+                        <div className="font-medium text-sm">{productName}</div>
+                        <div className="flex items-center gap-2 mt-1 text-xs">
+                          <Badge variant="secondary">{parsed.boxes} صندوق</Badge>
+                          <span>+</span>
+                          <Badge variant="secondary">{parsed.pieces} قطعة</Badge>
+                          <span className="mr-auto text-muted-foreground">
+                            = <strong className="text-foreground">{totalPieces}</strong> قطعة (الصندوق = {ppb})
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>تعديل</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleSave(); }} disabled={isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+              تأكيد الشحن
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
