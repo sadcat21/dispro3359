@@ -1403,7 +1403,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         custMap.set(o.customer_id, o.customer);
       }
     });
-    // Add customers from onlyPostponedCustomerIds
+    // Add customers that only have overdue delivery orders
     customers.forEach(c => {
       if (postponedCustomerIds.has(c.id) && !custMap.has(c.id)) custMap.set(c.id, c);
     });
