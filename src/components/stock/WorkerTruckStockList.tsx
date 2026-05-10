@@ -141,9 +141,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const s = ensure(it.product_id);
       const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
       const gift = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
-      const q = qty + gift;
-      s.loaded += q;
-      if (q > 0 && it.session_id) s.loadCount.add(String(it.session_id));
+      // "Charged" = paid quantity only. Gifts are tracked separately.
+      s.loaded += qty;
+      if ((qty + gift) > 0 && it.session_id) s.loadCount.add(String(it.session_id));
       s.giftQty += gift;
     }
     for (const it of unloadedData) {
