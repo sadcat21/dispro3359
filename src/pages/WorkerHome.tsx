@@ -452,7 +452,7 @@ const WorkerHome: React.FC = () => {
           if (hasDebtAccess && !isCollectDebtHidden && !isDebtsPageHidden) {
             quickActions.push({ key: 'debts', icon: <Banknote className="w-6 h-6" />, label: t('debts.title'), onClick: () => navigate('/customer-debts') });
           }
-          if (hasCustomerAccess && !isCustomersPageHidden && !isAddCustomerHidden) {
+          if (hasCustomerAccess) {
             quickActions.push({ key: 'customers', icon: <Users className="w-6 h-6" />, label: t('nav.customers'), onClick: () => navigate('/customers') });
           }
           if (hasExpenseAccess && !isExpensesPageHidden && !isExpensesHidden) {
