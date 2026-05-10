@@ -822,6 +822,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
               📤 حركات التفريغ: <strong>{unloadCount}</strong>
             </Badge>
+            {unloadSessionsCount > 0 && (
+              <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+                🗂️ جلسات التفريغ: <strong>{unloadSessionsCount}</strong>
+              </Badge>
+            )}
           </div>
           {loadSessionsList.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
