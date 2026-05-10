@@ -65,7 +65,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       if (!sessions?.length) return [];
       const { data: items } = await supabase
         .from('loading_session_items')
-        .select('session_id, product_id, quantity, gift_quantity, previous_quantity')
+        .select('session_id, product_id, quantity, gift_quantity, gift_unit, previous_quantity')
         .in('session_id', sessions.map(s => s.id));
       return (items || []).map((it: any) => ({ ...it, _session: sessions.find((s: any) => s.id === it.session_id) }));
     },
@@ -140,7 +140,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
       const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
-      const gift = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const gift = it.gift_unit === 'piece'
+        ? Math.max(0, Number(it.gift_quantity || 0)) / ppb
+        : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
       // "Charged" = paid quantity only. Gifts are tracked separately.
       s.loaded += qty;
       if ((qty + gift) > 0 && it.session_id) s.loadCount.add(String(it.session_id));
@@ -178,7 +180,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
-      const giftQty = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const giftQty = it.gift_unit === 'piece'
+        ? Math.max(0, Number(it.gift_quantity || 0)) / ppb
+        : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
       const paid = dbBPToBoxes(Number(it.quantity || 0), ppb);
       const total = paid + giftQty;
       movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: paid, when: it._session?.created_at || '', note: giftQty > 0 ? `+${fmtBP(giftQty, ppb)} هدية` : (it._session?.notes || null), sourceLabel: it._session?.manager?.full_name || null, delta: total });
