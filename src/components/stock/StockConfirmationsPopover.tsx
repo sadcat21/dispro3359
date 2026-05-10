@@ -52,7 +52,15 @@ interface WorkerVerification {
 }
 
 const getConfirmationItemTotalQty = (item: StockConfirmationItem): number => {
-  return item.quantity + (Number(item.gift_quantity) || 0) / 100;
+  const piecesPerBox = Math.max(1, Number(item.pieces_per_box) || 20);
+  const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
+  const qtyBoxes = Math.floor(qtyRounded);
+  const qtyPieces = Math.round((qtyRounded - qtyBoxes) * 100);
+  const giftQty = Math.max(0, Number(item.gift_quantity) || 0);
+  const giftPieces = item.gift_unit === 'box' ? giftQty * piecesPerBox : giftQty;
+  const totalPieces = (qtyBoxes * piecesPerBox) + qtyPieces + giftPieces;
+
+  return Math.floor(totalPieces / piecesPerBox) + (totalPieces % piecesPerBox) / 100;
 };
 
 const parseMismatches = (note: string | null): { product: string; expected: string; actual: string }[] => {
