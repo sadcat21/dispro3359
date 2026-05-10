@@ -2900,14 +2900,22 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       <div className="flex flex-col items-start gap-0.5">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {ts ? format(new Date(ts), 'HH:mm') : '—'}
+                          {ts ? format(new Date(ts), 'yyyy/MM/dd HH:mm') : '—'}
                         </span>
+                        {o.delivery_date && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            🚚 {format(new Date(o.delivery_date), 'yyyy/MM/dd')}
+                          </span>
+                        )}
                         <span className="text-xs flex items-center gap-1">
                           <Package className="w-3 h-3" /> {itemCount} منتج
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold">{total.toLocaleString()} دج</div>
+                    <Badge className="bg-red-500 hover:bg-red-500 text-white border-0 text-sm font-semibold px-2 py-1">
+                      <span>DA</span>
+                      <span className="mr-1">{total.toLocaleString()}</span>
+                    </Badge>
                   </button>
                 );
               })}
