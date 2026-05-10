@@ -1262,11 +1262,10 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     assignedOrders.forEach((o: any) => {
       if (!o.customer_id || !ACTIVE_DELIVERY_STATUSES.includes(o.status)) return;
       if (!isAdmin && o.assigned_worker_id !== effectiveWorkerId) return;
-      const deliveryDate = String(o.delivery_date || o.created_at?.split('T')[0] || '');
       const entry = map.get(o.customer_id) || { current: 0, postponed: 0 };
-      if (deliveryDate && deliveryDate < selectedDayBounds.dateKey) {
+      if (isPostponedOrderForDate(o, selectedDayBounds.dateKey)) {
         entry.postponed += 1;
-      } else if (!deliveryDate || deliveryDate.startsWith(selectedDayBounds.dateKey)) {
+      } else if (isCurrentDeliveryOrderForDate(o, selectedDayBounds.dateKey)) {
         entry.current += 1;
       }
       map.set(o.customer_id, entry);
@@ -1401,8 +1400,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     assignedOrders.filter((o: any) => {
       if (!o.customer_id || !postponedCustomerIds.has(o.customer_id)) return false;
       if (!ACTIVE_DELIVERY_STATUSES.includes(o.status)) return false;
-      const deliveryDate = String(o.delivery_date || o.created_at?.split('T')[0] || '');
-      return !!deliveryDate && deliveryDate < selectedDayBounds.dateKey;
+      return isPostponedOrderForDate(o, selectedDayBounds.dateKey);
     }),
     [assignedOrders, postponedCustomerIds, selectedDayBounds.dateKey]
   );
