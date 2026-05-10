@@ -65,6 +65,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
   const [productPickerIndex, setProductPickerIndex] = useState<number | null>(null);
   const [productsInfo, setProductsInfo] = useState<Record<string, number>>({});
   const saveLockRef = useRef(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch pieces_per_box for all products
   useEffect(() => {
