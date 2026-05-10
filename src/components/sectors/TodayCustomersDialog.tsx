@@ -1680,12 +1680,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .select('*, customer:customers(*, sector:sectors(id, name, name_fr), zone:sector_zones(id, name, name_fr)), created_by_worker:workers!orders_created_by_fkey(id, full_name, username)')
         .eq('customer_id', customer.id)
         .in('status', ['pending', 'assigned', 'in_progress'])
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('created_at', { ascending: false });
       if (!isAdmin) query = query.eq('assigned_worker_id', effectiveWorkerId!);
       const { data, error } = await query;
       if (error) throw error;
-      if (data && data.length > 0) {
+      if (data && data.length > 1) {
+        setOrderPickerDialog({ customer, orders: data, type: 'delivery' });
+      } else if (data && data.length === 1) {
         setPendingDeliveryOrder(data[0] as OrderWithDetails);
         setSalesHubTab('delivery');
         setShowSalesHubDialog(true);
