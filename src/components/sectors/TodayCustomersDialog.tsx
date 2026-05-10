@@ -1689,7 +1689,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     try {
       let query = supabase
         .from('orders')
-        .select('*, customer:customers(*, sector:sectors(id, name, name_fr), zone:sector_zones(id, name, name_fr)), created_by_worker:workers!orders_created_by_fkey(id, full_name, username)')
+        .select('*, customer:customers(*, sector:sectors(id, name, name_fr), zone:sector_zones(id, name, name_fr)), created_by_worker:workers!orders_created_by_fkey(id, full_name, username), items:order_items(*, product:products(*))')
         .eq('customer_id', customer.id)
         .in('status', ['pending', 'assigned', 'in_progress'])
         .order('created_at', { ascending: false });
