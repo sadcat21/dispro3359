@@ -215,11 +215,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         // 4. حركات التفريغ (return) من stock_movements للعامل
         const { data: unloadMoves } = await supabase
           .from('stock_movements')
-          .select('product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
+          .select('product_id, quantity, created_at, product:products(id, name, image_url, pieces_per_box)')
           .eq('worker_id', workerId)
           .eq('movement_type', 'return')
           .gte('created_at', sinceTs);
         if (!cancelled) setUnloadCount((unloadMoves || []).length);
+        if (!cancelled) setUnloadMovesAll(unloadMoves || []);
 
         // 5. تجميع
         const map = new Map<string, AggregatedRow>();
@@ -270,11 +271,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         // 4.b طلبيات مسلَّمة للعامل بعد ذلك التاريخ — لجمع المبيعات والهدايا لكل منتج
         const { data: deliveredOrders } = await supabase
           .from('orders')
-          .select('id')
+          .select('id, created_at, delivered_at')
           .eq('assigned_worker_id', workerId)
           .eq('status', 'delivered')
           .gte('created_at', sinceTs);
         const deliveredIds = (deliveredOrders || []).map((o: any) => o.id);
+        const orderTimesMap: Record<string, string> = {};
+        for (const o of (deliveredOrders || []) as any[]) {
+          orderTimesMap[o.id] = o.delivered_at || o.created_at;
+        }
+        if (!cancelled) setOrderTimes(orderTimesMap);
         if (deliveredIds.length > 0) {
           const { data: soldItemsWithOrder } = await supabase
             .from('order_items')
@@ -291,13 +297,23 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
            await mergeGiftsFromSalesTracking(itemsForMerge);
           const { data: trackingRows } = await (supabase as any)
             .from('sales_tracking')
-            .select('product_id, total_price')
+            .select('product_id, total_price, order_id')
             .in('order_id', deliveredIds);
           const trackingAmountByProduct = new Map<string, number>();
+          const trackingOrderProductMap = new Map<string, number>();
           for (const tr of (trackingRows || []) as any[]) {
             const pid = String(tr.product_id || '');
             if (!pid) continue;
             trackingAmountByProduct.set(pid, (trackingAmountByProduct.get(pid) || 0) + Math.max(0, Number(tr.total_price || 0)));
+            const oid = String(tr.order_id || '');
+            if (oid) {
+              const key = `${oid}|${pid}`;
+              trackingOrderProductMap.set(key, (trackingOrderProductMap.get(key) || 0) + Math.max(0, Number(tr.total_price || 0)));
+            }
+          }
+          if (!cancelled) {
+            setSalesItemsAll(itemsForMerge);
+            setTrackingByOrderProduct(trackingOrderProductMap);
           }
           for (const it of itemsForMerge) {
             const pid = (it as any).product_id;
@@ -323,6 +339,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           for (const [pid, amount] of trackingAmountByProduct) {
             const ex = map.get(pid);
             if (ex) ex.salesAmount = amount;
+          }
+        } else {
+          if (!cancelled) {
+            setSalesItemsAll([]);
+            setTrackingByOrderProduct(new Map());
           }
         }
 
