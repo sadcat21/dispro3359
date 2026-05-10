@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,166 +31,6 @@ const MyStock: React.FC = () => {
     enabled: !!workerId,
   });
 
-  // Fetch the last completed accounting session date for this worker
-  const { data: lastAccountingSession } = useQuery({
-    queryKey: ['my-last-accounting', workerId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('accounting_sessions')
-        .select('completed_at')
-        .eq('worker_id', workerId!)
-        .eq('status', 'completed')
-        .order('completed_at', { ascending: false })
-        .limit(1)
-        .single();
-      return data?.completed_at || null;
-    },
-    enabled: !!workerId,
-  });
-
-  const lastAccountingDate = lastAccountingSession || null;
-
-  // Fetch loaded quantities from loading_session_items since last accounting
-  const { data: loadedData } = useQuery({
-    queryKey: ['my-stock-loaded', workerId, lastAccountingDate],
-    queryFn: async () => {
-      let sessionsQuery = supabase
-        .from('loading_sessions')
-        .select('id')
-        .eq('worker_id', workerId!)
-        .in('status', ['completed', 'open']);
-      
-      if (lastAccountingDate) {
-        sessionsQuery = sessionsQuery.gte('created_at', lastAccountingDate);
-      }
-
-      const { data: sessions } = await sessionsQuery;
-      if (!sessions || sessions.length === 0) return [];
-
-      const sessionIds = sessions.map(s => s.id);
-      const { data: items } = await supabase
-        .from('loading_session_items')
-        .select('product_id, quantity, gift_quantity, previous_quantity')
-        .in('session_id', sessionIds);
-
-      return items || [];
-    },
-    enabled: !!workerId,
-  });
-
-  // Fetch last review session quantities as fallback for رصيد
-  const { data: reviewData } = useQuery({
-    queryKey: ['my-stock-review', workerId, lastAccountingDate],
-    queryFn: async () => {
-      let reviewQuery = supabase
-        .from('loading_sessions')
-        .select('id')
-        .eq('worker_id', workerId!)
-        .eq('status', 'review')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (lastAccountingDate) {
-        reviewQuery = reviewQuery.gte('created_at', lastAccountingDate);
-      }
-
-      const { data: sessions } = await reviewQuery;
-      if (!sessions || sessions.length === 0) return [];
-
-      const { data: items } = await supabase
-        .from('loading_session_items')
-        .select('product_id, quantity')
-        .eq('session_id', sessions[0].id);
-
-      return items || [];
-    },
-    enabled: !!workerId,
-  });
-
-  // Fetch sold quantities from delivered orders since last accounting
-  const { data: soldData } = useQuery({
-    queryKey: ['my-stock-sold', workerId, lastAccountingDate],
-    queryFn: async () => {
-      let ordersQuery = supabase
-        .from('orders')
-        .select('id')
-        .eq('assigned_worker_id', workerId!)
-        .eq('status', 'delivered');
-
-      if (lastAccountingDate) {
-        ordersQuery = ordersQuery.gte('created_at', lastAccountingDate);
-      }
-
-      const { data: orders } = await ordersQuery;
-      if (!orders || orders.length === 0) return [];
-
-      const orderIds = orders.map(o => o.id);
-      const { data: items } = await supabase
-        .from('order_items')
-        .select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
-        .in('order_id', orderIds);
-
-      if (!items || items.length === 0) return [];
-
-      return items;
-    },
-    enabled: !!workerId,
-  });
-
-  // Build review quantities map (fallback for products not in loading sessions)
-  const reviewQuantities = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const item of (reviewData || [])) {
-      map[item.product_id] = (map[item.product_id] || 0) + item.quantity;
-    }
-    return map;
-  }, [reviewData]);
-
-  // Calculate loaded per product from loading sessions
-  const movementStats = useMemo(() => {
-    const stats: Record<string, { loaded: number; totalLoad: number; sold: number }> = {};
-    for (const item of (loadedData || [])) {
-      if (!stats[item.product_id]) stats[item.product_id] = { loaded: 0, totalLoad: 0, sold: 0 };
-      stats[item.product_id].loaded += item.quantity + (item.gift_quantity || 0);
-      stats[item.product_id].totalLoad += (item.previous_quantity || 0) + item.quantity + (item.gift_quantity || 0);
-    }
-    for (const item of (soldData || [])) {
-      if (!stats[item.product_id]) stats[item.product_id] = { loaded: 0, totalLoad: 0, sold: 0 };
-      stats[item.product_id].sold += getPaidQuantity(item);
-    }
-    return stats;
-  }, [loadedData, soldData]);
-
-  // Calculate gifts per product from both loading sessions and delivered orders
-  const giftStats = useMemo(() => {
-    const stats: Record<string, { totalGifts: number; unit: string }> = {};
-    
-    // Gifts from loading sessions (loaded as gifts for distribution)
-    for (const item of (loadedData || [])) {
-      if ((item.gift_quantity || 0) > 0) {
-        const pid = item.product_id;
-        const unit = (item as any).gift_unit || 'piece';
-        if (!stats[pid]) stats[pid] = { totalGifts: 0, unit };
-        stats[pid].totalGifts += item.gift_quantity;
-        // Use the unit from loading session
-        stats[pid].unit = unit;
-      }
-    }
-    
-    // Also add gifts from delivered orders (given to customers) — read directly from columns
-    for (const item of (soldData || [])) {
-      const giftBoxes = Number(item.gift_quantity || 0);
-      const giftPieces = Number(item.gift_pieces || 0);
-      if (giftBoxes > 0 || giftPieces > 0) {
-        const pid = item.product_id;
-        if (!stats[pid]) stats[pid] = { totalGifts: 0, unit: 'box' };
-        // gift_quantity = boxes, gift_pieces = loose pieces; convert pieces to fractional boxes for aggregation
-        stats[pid].totalGifts += giftBoxes + (giftPieces / 100);
-      }
-    }
-    return stats;
-  }, [loadedData, soldData]);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -200,13 +40,6 @@ const MyStock: React.FC = () => {
   }
 
   const hasStock = stockItems && stockItems.length > 0;
-
-  // Sort: items with stock first, then zero-quantity items
-  const sortedItems = [...(stockItems || [])].sort((a, b) => {
-    if (a.quantity === 0 && b.quantity > 0) return 1;
-    if (a.quantity > 0 && b.quantity === 0) return -1;
-    return ((a as any).product?.name || '').localeCompare((b as any).product?.name || '');
-  });
 
   return (
     <div className="p-4 space-y-4">
