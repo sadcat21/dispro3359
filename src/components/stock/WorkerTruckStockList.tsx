@@ -5,17 +5,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays } from 'lucide-react';
 import { getPaidQuantity } from '@/utils/orderItemQuantities';
+import { dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
 
-const formatTruckQty = (value: number) => {
-  const safe = Number.isFinite(value) ? value : 0;
-  const rounded = Math.round(safe * 100) / 100;
-  if (Number.isInteger(rounded)) return String(Math.trunc(rounded));
-  const [w, f = ''] = rounded.toFixed(2).split('.');
-  return `${w}.${f.padEnd(2, '0')}`;
-};
+/** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
+const fmtBP = (fractionalBoxes: number, ppb: number) =>
+  boxesToBP(Math.max(0, Number.isFinite(fractionalBoxes) ? fractionalBoxes : 0), Math.max(1, ppb || 1));
 
-const toGiftQty = (boxes: number, pieces: number = 0) =>
-  Math.max(0, Number(boxes || 0) + Number(pieces || 0) / 100);
+/** order_items: gift_quantity = full boxes, gift_pieces = leftover pieces. */
+const giftFractional = (boxes: number, pieces: number, ppb: number) =>
+  Math.max(0, Number(boxes || 0)) + Math.max(0, Number(pieces || 0)) / Math.max(1, ppb || 1);
 
 interface Props {
   workerId: string;
