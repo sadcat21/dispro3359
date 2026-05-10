@@ -319,15 +319,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{history.productName}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(history.totalLoaded)}</Badge>
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(history.totalLoaded)}</Badge>
-                    <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(history.totalUnloaded)}</Badge>
-                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(history.totalSold)}</Badge>
+                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {fmtBP(history.totalLoaded, history.ppb)}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {fmtBP(history.totalLoaded, history.ppb)}</Badge>
+                    <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {fmtBP(history.totalUnloaded, history.ppb)}</Badge>
+                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {fmtBP(history.totalSold, history.ppb)}</Badge>
                     {history.totalGift > 0 && (
-                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {formatTruckQty(history.totalGift)}</Badge>
+                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {fmtBP(history.totalGift, history.ppb)}</Badge>
                     )}
                   </div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">الباقي {formatTruckQty(history.currentQty)}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">الباقي {fmtBP(history.currentQty, history.ppb)}</div>
                 </div>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto pr-1">
@@ -369,13 +369,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                 </div>
                               </div>
                               <div className={`text-sm font-bold ${deltaColor}`}>
-                                {entry.delta < 0 ? `-${formatTruckQty(Math.abs(entry.quantity))}` : `+${formatTruckQty(entry.quantity)}`}
+                                {entry.delta < 0 ? `-${fmtBP(Math.abs(entry.quantity), history.ppb)}` : `+${fmtBP(entry.quantity, history.ppb)}`}
                               </div>
                             </div>
                             <div className="mt-2 text-[11px]">
                               <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
                                 <div className="text-muted-foreground">الباقي</div>
-                                <div className="font-semibold">{formatTruckQty(entry.after)}</div>
+                                <div className="font-semibold">{fmtBP(entry.after, history.ppb)}</div>
                               </div>
                             </div>
                             {entry.note && (
