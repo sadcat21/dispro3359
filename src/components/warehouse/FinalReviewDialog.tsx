@@ -793,11 +793,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       onTouchEnd={cancelLongPress}
                       onTouchCancel={cancelLongPress}
                       onContextMenu={(e) => e.preventDefault()}
-                      className={`h-6 px-2 text-[10px] rounded-e-none border-e-0 ${!active && isUnloadSession ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400' : ''}`}
+                      className={`h-6 px-2 text-[10px] rounded-e-none border-e-0 ${!active && isUnloadSession ? 'border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15' : ''}`}
                       title={`${new Date(s.created_at).toLocaleString('ar-DZ', { timeZone: 'Africa/Algiers' })} — اضغط مطوّلاً للتحديد المتعدد`}
                     >
                       {isMulti && '✓ '}{sessionLabel} {idx + 1} · {new Date(s.created_at).toLocaleDateString('ar-DZ', { month: '2-digit', day: '2-digit', timeZone: 'Africa/Algiers' })}
-                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : isUnloadSession ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-primary/15 text-primary'}`}>
+                      <span className={`ms-1 px-1 rounded font-mono text-[9px] tracking-tight ${active ? 'bg-primary-foreground/25 text-primary-foreground' : isUnloadSession ? 'bg-destructive/15 text-destructive' : 'bg-primary/15 text-primary'}`}>
                         🕒 {new Date(s.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Algiers' })}
                       </span>
                     </Button>
