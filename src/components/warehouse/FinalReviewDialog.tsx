@@ -1027,13 +1027,28 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                       </div>
                     )}
 
-                    {/* Expected — highlighted full width */}
-                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
-                      <span className="text-[11px] font-medium text-primary">المتوقع</span>
-                      <span className="text-sm font-bold text-primary">
-                        {formatBP(r.expected, ppb)}
-                      </span>
-                    </div>
+                    {/* Remaining — green "تفريغ كامل" when 0, red otherwise (in unload-only); kept primary in shipment mode */}
+                    {isUnloadOnlyPreview ? (
+                      r.expected === 0 ? (
+                        <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 dark:bg-emerald-950/30 dark:border-emerald-800">
+                          <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">✓ تفريغ كامل</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-destructive/10 border border-destructive/30">
+                          <span className="text-[11px] font-medium text-destructive">المتبقي</span>
+                          <span className="text-sm font-bold text-destructive">
+                            {formatBP(r.expected, ppb)}
+                          </span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
+                        <span className="text-[11px] font-medium text-primary">المتوقع</span>
+                        <span className="text-sm font-bold text-primary">
+                          {formatBP(r.expected, ppb)}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Inputs */}
                     {!isUnloadOnlyPreview && (
