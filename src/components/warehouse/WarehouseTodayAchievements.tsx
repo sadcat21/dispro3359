@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye } from 'lucide-react';
+import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -104,6 +104,41 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     enabled: !!workerId && !!branchId,
   });
 
+  // 5) المراجعة النهائية اليوم
+  const reviewsQ = useQuery({
+    queryKey: ['warehouse-today-reviews', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('warehouse_review_sessions')
+        .select('id, status, created_at, completed_at, total_products, total_discrepancies')
+        .eq('reviewer_id', workerId!)
+        .eq('branch_id', branchId)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
+  // 6) الاستبدالات اليوم (حركات مخزون من نوع exchange)
+  const exchangesQ = useQuery({
+    queryKey: ['warehouse-today-exchanges', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stock_movements')
+        .select('id, quantity, notes, status, created_at, products:product_id(name)')
+        .eq('movement_type', 'exchange')
+        .eq('branch_id', branchId)
+        .eq('created_by', workerId!)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
   const accountingClosed = (accountingQ.data || []).some((s: any) => s.status === 'completed' || s.status === 'closed');
 
   const handleDelete = async () => {
@@ -135,7 +170,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     }
   };
 
-  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading;
+  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading || reviewsQ.isLoading || exchangesQ.isLoading;
 
   if (isLoading) {
     return (
@@ -148,7 +183,9 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const loadings = loadingQ.data || [];
   const orders = ordersQ.data || [];
   const receipts = receiptsQ.data || [];
-  const totalCount = loadings.length + orders.length + receipts.length;
+  const reviews = reviewsQ.data || [];
+  const exchanges = exchangesQ.data || [];
+  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length;
 
   return (
     <div className="space-y-3" dir="rtl">
@@ -285,6 +322,59 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* المراجعة النهائية */}
+      {reviews.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <ClipboardCheck className="w-3 h-3" /> المراجعة النهائية ({reviews.length})
+          </p>
+          {reviews.map((rv: any) => {
+            const isCompleted = rv.status === 'completed';
+            return (
+              <Card key={rv.id} className={isCompleted ? 'border-primary/30' : 'border-amber-300'}>
+                <CardContent className="p-3 flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">جلسة مراجعة #{String(rv.id).slice(0, 8)}</div>
+                    <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                      <span>{Number(rv.total_products || 0)} منتج</span>
+                      <span>{Number(rv.total_discrepancies || 0)} فرق</span>
+                      <span>{format(new Date(rv.created_at), 'HH:mm', { locale: ar })}</span>
+                    </div>
+                  </div>
+                  <Badge className={isCompleted ? 'bg-primary text-primary-foreground' : 'bg-amber-500 text-white'}>
+                    {isCompleted ? 'مكتملة' : rv.status}
+                  </Badge>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* الاستبدالات */}
+      {exchanges.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Repeat className="w-3 h-3" /> استبدالات ({exchanges.length})
+          </p>
+          {exchanges.map((ex: any) => (
+            <Card key={ex.id} className="border-primary/30">
+              <CardContent className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{ex.products?.name || 'استبدال'}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span>{Number(ex.quantity || 0).toFixed(2)}</span>
+                    {ex.notes && <span className="truncate max-w-[180px]">{ex.notes}</span>}
+                    <span>{format(new Date(ex.created_at), 'HH:mm', { locale: ar })}</span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{ex.status || 'completed'}</Badge>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
