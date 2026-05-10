@@ -556,6 +556,22 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   const isPreviewMode = selectedSessionId !== 'all' || multiSelected.size > 0;
 
+  // Detect if the current preview consists only of unload sessions
+  const isUnloadOnlyPreview = useMemo(() => {
+    const sourceIds: string[] =
+      multiSelected.size > 0
+        ? Array.from(multiSelected)
+        : (selectedSessionId !== 'all' ? [selectedSessionId] : []);
+    if (sourceIds.length === 0) return false;
+    const sessionById = new Map(loadSessionsList.map(s => [s.id, s]));
+    return sourceIds.every(sid => isUnloadReviewSession(sessionById.get(sid)));
+  }, [multiSelected, selectedSessionId, loadSessionsList]);
+
+  const unloadSessionsCount = useMemo(
+    () => loadSessionsList.filter(s => isUnloadReviewSession(s)).length,
+    [loadSessionsList]
+  );
+
   // Subtract loaded contributions of UI-hidden sessions
   const effectiveRows = useMemo<AggregatedRow[]>(() => {
     if (hiddenSessionIds.size === 0) return rows;
@@ -806,6 +822,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
               📤 حركات التفريغ: <strong>{unloadCount}</strong>
             </Badge>
+            {unloadSessionsCount > 0 && (
+              <Badge variant="outline" className="text-[10px] gap-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
+                🗂️ جلسات التفريغ: <strong>{unloadSessionsCount}</strong>
+              </Badge>
+            )}
           </div>
           {loadSessionsList.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
@@ -980,25 +1001,31 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     {/* Stats grid: 2x2 + expected full-width */}
                     <div className="grid grid-cols-2 gap-1.5">
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
-                        شُحن <strong>{formatBP(r.loaded, ppb)}</strong>
+                        {isUnloadOnlyPreview ? 'الرصيد' : 'شُحن'} <strong>{formatBP(r.loaded, ppb)}</strong>
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
                         فُرّغ <strong>{formatBP(r.unloaded, ppb)}</strong>
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
-                        مُباع <strong>{formatBP(r.sold, ppb)}</strong>
-                      </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
-                        🎁 هدية <strong>{formatBP(r.gifts, ppb)}</strong>
-                      </Badge>
+                      {!isUnloadOnlyPreview && (
+                        <>
+                          <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                            مُباع <strong>{formatBP(r.sold, ppb)}</strong>
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px] gap-1 justify-center py-1 border-pink-300 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-400 dark:border-pink-800">
+                            🎁 هدية <strong>{formatBP(r.gifts, ppb)}</strong>
+                          </Badge>
+                        </>
+                      )}
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
-                      <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
-                      <span className="text-sm font-bold text-foreground">
-                        {r.salesAmount.toLocaleString('ar-DZ')} د.ج
-                      </span>
-                    </div>
+                    {!isUnloadOnlyPreview && (
+                      <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
+                        <span className="text-[11px] font-medium text-muted-foreground">قيمة المبيعات</span>
+                        <span className="text-sm font-bold text-foreground">
+                          {r.salesAmount.toLocaleString('ar-DZ')} د.ج
+                        </span>
+                      </div>
+                    )}
 
                     {/* Expected — highlighted full width */}
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30">
@@ -1009,6 +1036,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                     </div>
 
                     {/* Inputs */}
+                    {!isUnloadOnlyPreview && (
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1">
                         <label className="text-[10px] font-medium text-muted-foreground text-center">صناديق</label>
@@ -1033,6 +1061,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                         />
                       </div>
                     </div>
+                    )}
+                    {!isUnloadOnlyPreview && (
                     <div className="flex items-center gap-1">
                       <Button
                         type="button"
@@ -1055,6 +1085,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                         <X className="w-3 h-3" />
                       </Button>
                     </div>
+                    )}
                   </div>
                 );
               })}
