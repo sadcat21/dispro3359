@@ -330,7 +330,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [orderPickerDialog, setOrderPickerDialog] = useState<{
     customer: any;
     orders: any[];
-    type: 'order' | 'delivered' | 'direct';
+    type: 'order' | 'delivered' | 'direct' | 'delivery';
   } | null>(null);
   const [directSaleCustomerId, setDirectSaleCustomerId] = useState<string | null>(null);
   const [printReceiptData, setPrintReceiptData] = useState<any>(null);
@@ -1246,6 +1246,18 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayOrders, assignedOrders]);
 
+  // Map customer_id -> number of pending delivery orders (for delivery tab badge & picker)
+  const deliveryOrderCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    assignedOrders.forEach((o: any) => {
+      if (!o.customer_id) return;
+      if (!['pending', 'assigned', 'in_progress'].includes(o.status)) return;
+      if (!isAdmin && o.assigned_worker_id !== effectiveWorkerId) return;
+      map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
+    });
+    return map;
+  }, [assignedOrders, isAdmin, effectiveWorkerId]);
+
   const deliveredCustomerIds = useMemo(() => new Set(todayDeliveredOrders.map(o => o.customer_id).filter(Boolean)), [todayDeliveredOrders]);
   const customerDeliveryTimeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -1680,12 +1692,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .select('*, customer:customers(*, sector:sectors(id, name, name_fr), zone:sector_zones(id, name, name_fr)), created_by_worker:workers!orders_created_by_fkey(id, full_name, username)')
         .eq('customer_id', customer.id)
         .in('status', ['pending', 'assigned', 'in_progress'])
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('created_at', { ascending: false });
       if (!isAdmin) query = query.eq('assigned_worker_id', effectiveWorkerId!);
       const { data, error } = await query;
       if (error) throw error;
-      if (data && data.length > 0) {
+      if (data && data.length > 1) {
+        setOrderPickerDialog({ customer, orders: data, type: 'delivery' });
+      } else if (data && data.length === 1) {
         setPendingDeliveryOrder(data[0] as OrderWithDetails);
         setSalesHubTab('delivery');
         setShowSalesHubDialog(true);
@@ -2484,7 +2497,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       </Button>
                     </div>
                   )}
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryNotDone} emptyMessage="تم توصيل جميع العملاء ✓" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={rescheduledToTodayIds} postponeCountMap={postponeCountMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryNotDone} emptyMessage="تم توصيل جميع العملاء ✓" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={rescheduledToTodayIds} postponeCountMap={postponeCountMap} orderCountMap={deliveryOrderCountMap} />
                 </TabsContent>
                 <TabsContent value="not-received" className="m-0 flex-1 min-h-0">
                   <Tabs defaultValue="visit-only" className="flex flex-col h-full min-h-0">
@@ -2546,7 +2559,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                   <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryReceived} emptyMessage="لا توجد توصيلات بعد" onCustomerClick={handleShowDeliveredOrderDetails} showPrintButton onPrint={handlePrintDeliveredOrder} checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} deliveryTimeMap={customerDeliveryTimeMap} timeMap={customerDeliveryTimeMap} distanceMap={customerDistanceMap} />
                 </TabsContent>
                 <TabsContent value="postponed" className="m-0 flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ maxHeight: '60vh' }}>
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryPostponed} emptyMessage="لا توجد طلبيات مؤجلة" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={postponedCustomerIds} postponeCountMap={postponeCountMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={deliveryPostponed} emptyMessage="لا توجد طلبيات مؤجلة" onCustomerClick={handleDeliveryCustomerClick} onVisitWithoutOrder={handleDeliveryVisitWithoutDelivery} onClosed={handleDeliveryClosedVisit} onUnavailable={handleDeliveryUnavailableVisit} onDebtRefused={handleDeliveryDebtRefused} onCancelled={handleDeliveryCancelled} onPostpone={(c) => setPostponeCustomer(c)} onPrint={handleQuickPrintTempReceipt} showVisitButton visitButtonLabel="بدون تسليم" showActionButtons showCancelButton showPrintButton checkingLocationFor={checkingLocationFor} loadingFor={loadingDeliveryFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} postponedBadgeIds={postponedCustomerIds} postponeCountMap={postponeCountMap} orderCountMap={deliveryOrderCountMap} />
                 </TabsContent>
               </Tabs>
             </TabsContent>
@@ -2863,6 +2876,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                     key={o.id}
                     type="button"
                     onClick={async () => {
+                      if (orderPickerDialog.type === 'delivery') {
+                        setPendingDeliveryOrder(o as OrderWithDetails);
+                        setSalesHubTab('delivery');
+                        setShowSalesHubDialog(true);
+                        setOrderPickerDialog(null);
+                        return;
+                      }
                       const hydratedItems = await hydrateOrderItems(o);
                       const extra =
                         orderPickerDialog.type === 'order'
