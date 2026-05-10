@@ -5,11 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays } from 'lucide-react';
 import { getPaidQuantity } from '@/utils/orderItemQuantities';
-import { dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
+import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
-  boxesToBP(Math.max(0, Number.isFinite(fractionalBoxes) ? fractionalBoxes : 0), Math.max(1, ppb || 1));
+  boxesToBPAlways(Math.max(0, Number.isFinite(fractionalBoxes) ? fractionalBoxes : 0), Math.max(1, ppb || 1));
 
 /** order_items: gift_quantity = full boxes, gift_pieces = leftover pieces. */
 const giftFractional = (boxes: number, pieces: number, ppb: number) =>
