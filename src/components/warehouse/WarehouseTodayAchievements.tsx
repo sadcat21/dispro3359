@@ -325,6 +325,59 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
         </div>
       )}
 
+      {/* المراجعة النهائية */}
+      {reviews.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <ClipboardCheck className="w-3 h-3" /> المراجعة النهائية ({reviews.length})
+          </p>
+          {reviews.map((rv: any) => {
+            const isCompleted = rv.status === 'completed';
+            return (
+              <Card key={rv.id} className={isCompleted ? 'border-primary/30' : 'border-amber-300'}>
+                <CardContent className="p-3 flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">جلسة مراجعة #{String(rv.id).slice(0, 8)}</div>
+                    <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                      <span>{Number(rv.total_products || 0)} منتج</span>
+                      <span>{Number(rv.total_discrepancies || 0)} فرق</span>
+                      <span>{format(new Date(rv.created_at), 'HH:mm', { locale: ar })}</span>
+                    </div>
+                  </div>
+                  <Badge className={isCompleted ? 'bg-primary text-primary-foreground' : 'bg-amber-500 text-white'}>
+                    {isCompleted ? 'مكتملة' : rv.status}
+                  </Badge>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* الاستبدالات */}
+      {exchanges.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Repeat className="w-3 h-3" /> استبدالات ({exchanges.length})
+          </p>
+          {exchanges.map((ex: any) => (
+            <Card key={ex.id} className="border-primary/30">
+              <CardContent className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{ex.products?.name || 'استبدال'}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span>{Number(ex.quantity || 0).toFixed(2)}</span>
+                    {ex.notes && <span className="truncate max-w-[180px]">{ex.notes}</span>}
+                    <span>{format(new Date(ex.created_at), 'HH:mm', { locale: ar })}</span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{ex.status || 'completed'}</Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
