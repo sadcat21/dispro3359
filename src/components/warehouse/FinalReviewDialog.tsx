@@ -68,6 +68,11 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
   const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
   const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
+  // Raw timestamped data — used to compute per-shipment window aggregates
+  const [unloadMovesAll, setUnloadMovesAll] = useState<any[]>([]);
+  const [salesItemsAll, setSalesItemsAll] = useState<any[]>([]);
+  const [trackingByOrderProduct, setTrackingByOrderProduct] = useState<Map<string, number>>(new Map());
+  const [orderTimes, setOrderTimes] = useState<Record<string, string>>({});
   // Multi-select via long-press
   const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
