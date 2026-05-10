@@ -408,14 +408,16 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         ? Array.from(multiSelected)
         : (selectedSessionId !== 'all' ? [selectedSessionId] : []);
     if (sourceIds.length === 0) return [];
-    const items: any[] = sourceIds.flatMap(sid => loadItemsBySession[sid] || []);
+    const sessionById = new Map(loadSessionsList.map(s => [s.id, s]));
+    const shipmentSourceIds = sourceIds.filter(sid => isShipmentReviewSession(sessionById.get(sid)));
+    const items: any[] = shipmentSourceIds.flatMap(sid => loadItemsBySession[sid] || []);
     const bpToPieces = (val: number, ppb: number): number => {
       const v = Number(val || 0);
       const boxes = Math.floor(Math.round(v * 100) / 100);
       const piecesDec = Math.round((Math.round(v * 100) / 100 - boxes) * 100);
       return boxes * ppb + piecesDec;
     };
-    // Compute per-shipment windows: [shipment.created_at, nextShipment.created_at)
+    // Compute per-session windows: [selected session.created_at, next session.created_at)
     const sortedSessions = [...loadSessionsList].sort((a, b) =>
       a.created_at.localeCompare(b.created_at)
     );
@@ -431,21 +433,27 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
     };
     const map = new Map<string, AggregatedRow>();
     const rowsByPid = new Map(rows.map(r => [r.productId, r]));
-    for (const it of items) {
-      const pid = (it as any).product_id;
-      const prod = (it as any).product || {};
-      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+    const ensureRow = (pid: string, prod: any, ppb: number): AggregatedRow => {
       const baseRow = rowsByPid.get(pid);
-      const ex = map.get(pid) || (baseRow
+      const existing = map.get(pid);
+      if (existing) return existing;
+      const created = baseRow
         ? { ...baseRow, loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0, expected: 0, expectedBoxes: 0, expectedPieces: 0, actualBoxes: '', actualPieces: '', confirmed: false }
         : {
             productId: pid, productName: prod.name || '—', imageUrl: prod.image_url,
             loaded: 0, unloaded: 0, sold: 0, gifts: 0, salesAmount: 0,
             expected: 0, expectedBoxes: 0, expectedPieces: 0,
             actualBoxes: '', actualPieces: '', confirmed: false, ppb,
-          });
+          };
+      map.set(pid, created);
+      return created;
+    };
+    for (const it of items) {
+      const pid = (it as any).product_id;
+      const prod = (it as any).product || {};
+      const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
+      const ex = ensureRow(pid, prod, ppb);
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
-      map.set(pid, ex);
     }
     // Aggregate unloads within window(s)
     for (const m of unloadMovesAll) {
@@ -453,8 +461,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const pid = m.product_id;
       const prod = (m as any).product || {};
       const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
-      const ex = map.get(pid);
-      if (!ex) continue; // only show products that were loaded in selected shipments
+      const ex = ensureRow(pid, prod, ppb);
       ex.unloaded += bpToPieces(Number(m.quantity || 0), ppb);
     }
     // Aggregate sold/gifts/salesAmount within window(s) using delivered orders
