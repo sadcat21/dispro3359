@@ -38,6 +38,32 @@ interface AggregatedRow {
   ppb: number;
 }
 
+type ReviewSession = {
+  id: string;
+  created_at: string;
+  status?: string | null;
+  notes?: string | null;
+};
+
+const isUnloadReviewSession = (session?: Pick<ReviewSession, 'status' | 'notes'> | null): boolean => {
+  const status = (session?.status || '').toLowerCase();
+  const notes = session?.notes || '';
+  return status === 'unloaded' || status === 'return' || notes.includes('تفريغ');
+};
+
+const isShipmentReviewSession = (session?: Pick<ReviewSession, 'status' | 'notes'> | null): boolean => {
+  const status = (session?.status || '').toLowerCase();
+  return !!session && !isUnloadReviewSession(session) && status !== 'review' && status !== 'exchange';
+};
+
+const getReviewSessionLabel = (session?: Pick<ReviewSession, 'status' | 'notes'> | null): string => {
+  const status = (session?.status || '').toLowerCase();
+  if (isUnloadReviewSession(session)) return 'تفريغ';
+  if (status === 'exchange') return 'تغيير';
+  if (status === 'review') return 'مراجعة';
+  return 'شحنة';
+};
+
 // عرض موحّد بصيغة B.P (boxes.pp) — يطابق formatGiftDisplay في تجميعات المبيعات والعروض
 const formatBP = (totalPieces: number, piecesPerBox: number): string => {
   const ppb = Math.max(1, Math.round(piecesPerBox || 1));
@@ -65,7 +91,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [workerPin, setWorkerPin] = useState('');
   const [hasPin, setHasPin] = useState<boolean | null>(null);
   // Per-session preview support
-  const [loadSessionsList, setLoadSessionsList] = useState<{ id: string; created_at: string }[]>([]);
+  const [loadSessionsList, setLoadSessionsList] = useState<ReviewSession[]>([]);
   const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
   const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
   // Raw timestamped data — used to compute per-shipment window aggregates
