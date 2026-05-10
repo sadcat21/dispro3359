@@ -51,6 +51,10 @@ interface WorkerVerification {
   [productId: string]: { matched: boolean; qty: number | '' };
 }
 
+const getConfirmationItemTotalQty = (item: StockConfirmationItem): number => {
+  return item.quantity + (Number(item.gift_quantity) || 0) / 100;
+};
+
 const parseMismatches = (note: string | null): { product: string; expected: string; actual: string }[] => {
   if (!note || !note.includes('عدم تطابق الكميات')) return [];
   const detailPart = note.replace('عدم تطابق الكميات:', '').trim();
@@ -88,7 +92,7 @@ const IncomingTab: React.FC<{
 
   const handleMatchAll = useCallback((conf: StockConfirmation) => {
     const inputs: WorkerVerification = {};
-    conf.items.forEach(item => { inputs[item.product_id] = { matched: true, qty: item.quantity }; });
+    conf.items.forEach(item => { inputs[item.product_id] = { matched: true, qty: getConfirmationItemTotalQty(item) }; });
     setWorkerInputs(inputs);
   }, []);
 
@@ -113,11 +117,12 @@ const IncomingTab: React.FC<{
     conf.items.forEach(item => {
       const v = workerInputs[item.product_id];
       if (!v) return;
-      const workerQty = v.matched ? item.quantity : Number(v.qty) || 0;
-      if (Math.abs(workerQty - item.quantity) > 0.001) {
+      const expectedQty = getConfirmationItemTotalQty(item);
+      const workerQty = v.matched ? expectedQty : Number(v.qty) || 0;
+      if (Math.abs(workerQty - expectedQty) > 0.001) {
         mismatches.push({
           product_name: getProductDisplayName({ name: item.product_name, app_name: item.product_app_name }),
-          expected: item.quantity,
+          expected: expectedQty,
           actual: workerQty,
         });
       }
@@ -195,10 +200,11 @@ const IncomingTab: React.FC<{
                   <div className="grid grid-cols-3 gap-2 pb-2">
                     {conf.items.map((item, idx) => {
                       const displayName = getProductDisplayName({ name: item.product_name, app_name: item.product_app_name });
+                      const expectedQty = getConfirmationItemTotalQty(item);
                       const v = workerInputs[item.product_id];
                       const isMatched = v?.matched;
                       const hasCustomQty = !isMatched && v?.qty !== '' && v?.qty !== undefined;
-                      const hasDiff = hasCustomQty && Math.abs(Number(v.qty) - item.quantity) > 0.001;
+                      const hasDiff = hasCustomQty && Math.abs(Number(v.qty) - expectedQty) > 0.001;
 
                       return (
                         <div
@@ -218,14 +224,14 @@ const IncomingTab: React.FC<{
                           )}
                           <p className="text-[9px] font-bold leading-tight line-clamp-2 mb-1 min-h-[24px]">{displayName}</p>
                           <Badge className="bg-destructive text-white text-[10px] px-1.5 py-0 font-bold mb-1.5">
-                            {fmtQty(item.quantity + (Number(item.gift_quantity) || 0) / 100)}
+                            {fmtQty(expectedQty)}
                           </Badge>
                           {(item.gift_quantity || 0) > 0 && (
                             <span className="text-[8px] text-green-600 font-bold">+{item.gift_quantity} هدية</span>
                           )}
                           {!hasCustomQty && (
                             <button
-                              onClick={() => handleToggleMatch(item.product_id, item.quantity)}
+                              onClick={() => handleToggleMatch(item.product_id, expectedQty)}
                               className={`w-full mt-1 rounded-md py-1 text-[10px] font-bold transition-all ${
                                 isMatched ? 'bg-green-600 text-white' : 'bg-muted hover:bg-muted/80 text-foreground'
                               }`}
