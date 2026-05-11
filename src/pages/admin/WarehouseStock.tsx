@@ -134,7 +134,7 @@ const WarehouseStock: React.FC = () => {
   });
 
   // Fetch sold from order_items for delivered orders
-  const { data: soldData } = useQuery({
+  const { data: soldData, isLoading: soldLoading } = useQuery({
     queryKey: ['warehouse-sold-summary', branchId],
     queryFn: async () => {
       if (!branchId) return [];
@@ -157,7 +157,7 @@ const WarehouseStock: React.FC = () => {
   // Fetch sales totals from sales_tracking. We split by source:
   // - warehouse_sale: subtracted from المتبقي AND added to المباع
   // - delivery_sale / direct_sale: added to المباع only (worker stock handles المتبقي)
-  const { data: warehouseSalesData } = useQuery({
+  const { data: warehouseSalesData, isLoading: warehouseSalesLoading } = useQuery({
     queryKey: ['warehouse-sales-tracking', branchId],
     queryFn: async () => {
       if (!branchId) return [];
@@ -185,7 +185,8 @@ const WarehouseStock: React.FC = () => {
       return rows.filter((row) => {
         const order = row.order_id ? orderById.get(row.order_id) : null;
         const inferredBranchId = row.branch_id || order?.branch_id || (row.worker_id ? workerBranchById.get(row.worker_id) : null) || (row.customer_id ? customerBranchById.get(row.customer_id) : null);
-        return inferredBranchId === branchId && (!row.order_id || order?.status === 'delivered');
+        const belongsToBranch = inferredBranchId === branchId || (!row.branch_id && !inferredBranchId);
+        return belongsToBranch && (!row.order_id || order?.status === 'delivered');
       }).map((row) => ({
         ...row,
         order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
@@ -195,7 +196,7 @@ const WarehouseStock: React.FC = () => {
   });
 
   // Fetch all stock movements (load / return) for this branch to compute remaining from fundamentals
-  const { data: movementsData } = useQuery({
+  const { data: movementsData, isLoading: movementsLoading } = useQuery({
     queryKey: ['warehouse-movements-summary', branchId],
     queryFn: async () => {
       if (!branchId) return [];
@@ -378,7 +379,7 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
-  if (isLoading || summaryLoading) {
+  if (isLoading || summaryLoading || soldLoading || warehouseSalesLoading || movementsLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
