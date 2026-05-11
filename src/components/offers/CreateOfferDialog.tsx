@@ -15,8 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Product, Branch } from '@/types/database';
 import { ProductOffer, ProductOfferTier, ProductOfferWithDetails } from '@/types/productOffer';
 import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import OfferTierCard from './OfferTierCard';
 import { isAdminRole } from '@/lib/utils';
