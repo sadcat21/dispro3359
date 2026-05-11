@@ -152,19 +152,14 @@ const ReplaceDamagedDialog: React.FC<Props> = ({ open, onOpenChange, onSaved }) 
         const srcTable = source.kind === 'warehouse' ? 'warehouse_stock' : 'worker_stock';
         await supabase.from(srcTable).update({ quantity: newSrc }).eq('id', stock.id);
 
-        // Add to warehouse damaged_quantity (branch warehouse)
+        // Deduct from warehouse damaged_quantity (replacement reduces damaged)
         const { data: wsRow } = await supabase.from('warehouse_stock')
           .select('id, damaged_quantity').eq('branch_id', branchId)
           .eq('product_id', it.product_id).maybeSingle();
-        const curDamagedPieces = wsRow ? dbToTotalPieces(Number(wsRow.damaged_quantity || 0), ppb) : 0;
-        const newDamaged = totalPiecesToDb(curDamagedPieces + totalPieces, ppb);
         if (wsRow) {
+          const curDamagedPieces = dbToTotalPieces(Number(wsRow.damaged_quantity || 0), ppb);
+          const newDamaged = totalPiecesToDb(Math.max(0, curDamagedPieces - totalPieces), ppb);
           await supabase.from('warehouse_stock').update({ damaged_quantity: newDamaged }).eq('id', wsRow.id);
-        } else {
-          await supabase.from('warehouse_stock').insert({
-            branch_id: branchId, product_id: it.product_id,
-            quantity: 0, damaged_quantity: newDamaged,
-          });
         }
 
         // Movement log
