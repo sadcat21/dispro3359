@@ -34,8 +34,6 @@ export default function SalesTrackingLedger() {
   const [productId, setProductId] = useState<string>('all');
   const { data: rows = [], isLoading } = useSalesTracking({
     source: source === 'all' ? undefined : (source as any),
-    workerId: workerId === 'all' ? undefined : workerId,
-    productId: productId === 'all' ? undefined : productId,
   });
 
   const workerOptions = useMemo(() => {
@@ -52,12 +50,17 @@ export default function SalesTrackingLedger() {
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter((r) =>
-      [r.product_name, r.worker_name, r.customer_name, r.branch_name]
-        .filter(Boolean).some((v) => String(v).toLowerCase().includes(s))
-    );
-  }, [rows, search]);
+    return rows.filter((r) => {
+      if (workerId !== 'all' && r.worker_id !== workerId) return false;
+      if (productId !== 'all' && r.product_id !== productId) return false;
+      if (s) {
+        const hit = [r.product_name, r.worker_name, r.customer_name, r.branch_name]
+          .filter(Boolean).some((v) => String(v).toLowerCase().includes(s));
+        if (!hit) return false;
+      }
+      return true;
+    });
+  }, [rows, search, workerId, productId]);
 
   const stats = useMemo(() => {
     const acc = { total: 0, boxes: 0, pieces: 0, giftBoxes: 0, giftPieces: 0, amount: 0 };
