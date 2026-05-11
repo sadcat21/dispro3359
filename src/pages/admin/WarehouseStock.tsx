@@ -311,6 +311,16 @@ const WarehouseStock: React.FC = () => {
     return productSummaries.filter(s => s.productName.includes(search));
   }, [productSummaries, search]);
 
+  // Map of computed remaining (received - load + return - warehouse_sale) per product,
+  // used as fallback when the warehouse_stock table itself is empty (e.g., after data cleanup).
+  const availableQuantities = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const s of productSummaries) {
+      if (s.remaining > 0) map[s.productId] = s.remaining;
+    }
+    return map;
+  }, [productSummaries]);
+
   // Fetch pallet quantity for review
   const { data: palletData } = useQuery({
     queryKey: ['branch-pallet-qty', branchId],
