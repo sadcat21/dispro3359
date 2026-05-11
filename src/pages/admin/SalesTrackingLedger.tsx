@@ -6,8 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Package, Gift, TrendingUp, Truck, Store, Warehouse, Search } from 'lucide-react';
+import { Package, Gift, TrendingUp, Truck, Store, Warehouse, Search, CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 const SOURCE_META: Record<string, { label: string; icon: any; className: string }> = {
   direct_sale: { label: 'Vente directe', icon: Store, className: 'bg-primary/10 text-primary border-primary/30' },
@@ -32,8 +36,12 @@ export default function SalesTrackingLedger() {
   const [search, setSearch] = useState('');
   const [workerId, setWorkerId] = useState<string>('all');
   const [productId, setProductId] = useState<string>('all');
+  const [fromDate, setFromDate] = useState<Date | undefined>();
+  const [toDate, setToDate] = useState<Date | undefined>();
   const { data: rows = [], isLoading } = useSalesTracking({
     source: source === 'all' ? undefined : (source as any),
+    from: fromDate ? fromDate.toISOString() : undefined,
+    to: toDate ? new Date(toDate.getTime() + 24 * 60 * 60 * 1000).toISOString() : undefined,
   });
 
   const workerOptions = useMemo(() => {
@@ -134,6 +142,33 @@ export default function SalesTrackingLedger() {
               ))}
             </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn('w-[160px] justify-start font-normal', !fromDate && 'text-muted-foreground')}>
+                <CalendarIcon className="ml-2 h-4 w-4" />
+                {fromDate ? format(fromDate, 'yyyy-MM-dd') : 'من تاريخ'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={fromDate} onSelect={setFromDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn('w-[160px] justify-start font-normal', !toDate && 'text-muted-foreground')}>
+                <CalendarIcon className="ml-2 h-4 w-4" />
+                {toDate ? format(toDate, 'yyyy-MM-dd') : 'إلى تاريخ'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={toDate} onSelect={setToDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+            </PopoverContent>
+          </Popover>
+          {(fromDate || toDate) && (
+            <Button variant="ghost" size="icon" onClick={() => { setFromDate(undefined); setToDate(undefined); }}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </CardContent>
       </Card>
 
