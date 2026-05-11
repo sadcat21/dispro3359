@@ -464,17 +464,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       <span className="text-muted-foreground text-sm">{t('offers.select_product')}</span>
                     )}
                   </Button>
-                  <SimpleProductPickerDialog
-                    open={productPickerOpen}
-                    onOpenChange={setProductPickerOpen}
-                    products={products.map(p => ({ id: p.id, name: getProductDisplayName(p), image_url: (p as any).image_url ?? null }))}
-                    selectedProductId={formData.product_id}
-                    onSelect={(id) => {
-                      setFormData({ ...formData, product_id: id });
-                      if (!editOffer) setStep(2);
-                    }}
-                  />
                 </div>
+
 
                 <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
                   <CollapsibleTrigger asChild>
