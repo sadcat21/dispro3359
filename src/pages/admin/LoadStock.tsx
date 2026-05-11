@@ -349,24 +349,77 @@ const LoadStock: React.FC = () => {
     fetchGroups();
   }, []);
 
+  // Fallback: when warehouse_stock table is empty (e.g. after data cleanup),
+  // derive available pieces per product from approved receipts minus loads/sales.
+  const { data: fallbackAvailablePieces = {} } = useQuery({
+    queryKey: ['load-stock-fallback-available', branchId],
+    enabled: !!branchId,
+    queryFn: async (): Promise<Record<string, number>> => {
+      if (!branchId) return {};
+      const { data: receipts } = await supabase
+        .from('stock_receipts')
+        .select('id')
+        .eq('branch_id', branchId);
+      const receiptIds = (receipts || []).map((r: any) => r.id);
+      const [itemsRes, movementsRes, salesRes, productsRes] = await Promise.all([
+        receiptIds.length
+          ? supabase.from('stock_receipt_items').select('product_id, quantity').in('receipt_id', receiptIds)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from('stock_movements').select('product_id, quantity, movement_type').eq('branch_id', branchId).in('movement_type', ['load', 'return']),
+        supabase.from('sales_tracking').select('product_id, total_boxes, total_pieces, pieces_per_box').eq('branch_id', branchId).eq('source', 'warehouse_sale'),
+        supabase.from('products').select('id, pieces_per_box'),
+      ]);
+      const ppbMap: Record<string, number> = {};
+      for (const p of (productsRes.data || []) as any[]) ppbMap[p.id] = p.pieces_per_box || 20;
+      const totals: Record<string, number> = {};
+      const addPieces = (pid: string, pieces: number) => {
+        if (!pid) return;
+        totals[pid] = (totals[pid] || 0) + pieces;
+      };
+      for (const it of ((itemsRes as any).data || []) as any[]) {
+        const ppb = ppbMap[it.product_id] || 20;
+        addPieces(it.product_id, customToTotalPieces(Number(it.quantity || 0), ppb));
+      }
+      for (const m of (movementsRes.data || []) as any[]) {
+        const ppb = ppbMap[m.product_id] || 20;
+        const pieces = customToTotalPieces(Number(m.quantity || 0), ppb);
+        addPieces(m.product_id, m.movement_type === 'return' ? pieces : -pieces);
+      }
+      for (const s of (salesRes.data || []) as any[]) {
+        const ppb = Number(s.pieces_per_box) || ppbMap[s.product_id] || 20;
+        const pieces = Number(s.total_boxes || 0) * ppb + Number(s.total_pieces || 0);
+        addPieces(s.product_id, -pieces);
+      }
+      const out: Record<string, number> = {};
+      for (const [pid, val] of Object.entries(totals)) {
+        if (val > 0) out[pid] = val;
+      }
+      return out;
+    },
+  });
+
   const allProductOptions = useMemo(() => {
     const options: { id: string; name: string; warehouseQty: number; groupName?: string; image_url?: string | null; pieces_per_box?: number }[] = [];
     const seenIds = new Set<string>();
     for (const s of warehouseStock) {
       if (s.product) {
         const ppbW = (s.product as any).pieces_per_box || 20;
-        options.push({ id: s.product_id, name: (s.product as any).app_name || s.product.name, warehouseQty: customToTotalPieces(s.quantity || 0, ppbW), groupName: productGroupMap[s.product_id], image_url: (s.product as any).image_url, pieces_per_box: ppbW });
+        const wsPieces = customToTotalPieces(s.quantity || 0, ppbW);
+        const fallbackPieces = fallbackAvailablePieces[s.product_id] || 0;
+        options.push({ id: s.product_id, name: (s.product as any).app_name || s.product.name, warehouseQty: wsPieces > 0 ? wsPieces : fallbackPieces, groupName: productGroupMap[s.product_id], image_url: (s.product as any).image_url, pieces_per_box: ppbW });
         seenIds.add(s.product_id);
       }
     }
     for (const p of products) {
       if (!seenIds.has(p.id)) {
-        options.push({ id: p.id, name: (p as any).app_name || p.name, warehouseQty: 0, groupName: productGroupMap[p.id], image_url: (p as any).image_url, pieces_per_box: p.pieces_per_box });
+        const ppbP = p.pieces_per_box || 20;
+        const fallbackPieces = fallbackAvailablePieces[p.id] || 0;
+        options.push({ id: p.id, name: (p as any).app_name || p.name, warehouseQty: fallbackPieces, groupName: productGroupMap[p.id], image_url: (p as any).image_url, pieces_per_box: ppbP });
         seenIds.add(p.id);
       }
     }
     return options.sort((a, b) => a.name.localeCompare(b.name));
-  }, [warehouseStock, products, productGroupMap]);
+  }, [warehouseStock, products, productGroupMap, fallbackAvailablePieces]);
 
   const buildReviewDiscrepanciesFromItems = (reviewItems: any[]) => {
     return reviewItems
