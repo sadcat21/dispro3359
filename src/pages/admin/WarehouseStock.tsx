@@ -52,6 +52,7 @@ interface WarehouseSaleSummaryRow {
   total_pieces: number | null;
   pieces_per_box: number | null;
   order_id: string | null;
+  source?: string | null;
   order?: { status: string | null } | { status: string | null }[] | null;
 }
 
