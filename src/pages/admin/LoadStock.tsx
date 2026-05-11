@@ -2043,6 +2043,24 @@ const LoadStock: React.FC = () => {
                           : `المنتجات المشحونة (${viewSessionItems.length})`}
                     </h4>
 
+                    {session.status === 'review' && (
+                      <div className="mb-3">
+                        {(session as any).is_final ? (
+                          <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 text-emerald-700 dark:text-emerald-400 text-sm font-semibold">
+                            <CheckCircle className="w-4 h-4" />
+                            تم تقديم كمراجعة نهائية — العامل مُجمَّد حتى إغلاق جلسة المحاسبة
+                          </div>
+                        ) : (
+                          <Button
+                            className="w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
+                            onClick={() => setConfirmFinalReviewId(session.id)}
+                          >
+                            <CheckCircle className="w-4 h-4 me-2" />
+                            تقديم كمراجعة نهائية
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     {session.status === 'review' ? (
                       viewSessionItems.length === 0 && viewReviewDiscrepancies.length === 0 ? (
                         <div className="text-center py-4">
