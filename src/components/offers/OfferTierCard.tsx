@@ -84,9 +84,6 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <GripVertical className="w-4 h-4 text-muted-foreground cursor-move shrink-0" />
-            <Badge variant="secondary" className="text-xs shrink-0">
-              {t('offers.tier')} {tierIndex + 1}
-            </Badge>
             <Badge className="text-[10px] font-bold tracking-wide truncate">
               {autoTitle}
             </Badge>
