@@ -361,6 +361,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         default_payment_type: defaultPaymentType,
         default_price_subtype: defaultPriceSubtype,
         customer_type: customerType || null,
+        customer_types: customerType ? customerType.split(',').map(s => s.trim()).filter(Boolean) : [],
         is_registered: isRegistered,
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
