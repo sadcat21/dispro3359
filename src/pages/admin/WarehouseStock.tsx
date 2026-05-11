@@ -52,6 +52,7 @@ interface WarehouseSaleSummaryRow {
   total_pieces: number | null;
   pieces_per_box: number | null;
   order_id: string | null;
+  source?: string | null;
   order?: { status: string | null } | { status: string | null }[] | null;
 }
 
@@ -146,16 +147,18 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
-  // Fetch warehouse_sale totals from sales_tracking (only rows that actually reduced warehouse stock)
+  // Fetch sales totals from sales_tracking. We split by source:
+  // - warehouse_sale: subtracted from المتبقي AND added to المباع
+  // - delivery_sale / direct_sale: added to المباع only (worker stock handles المتبقي)
   const { data: warehouseSalesData } = useQuery({
     queryKey: ['warehouse-sales-tracking', branchId],
     queryFn: async () => {
       if (!branchId) return [];
       const { data } = await supabase
         .from('sales_tracking')
-        .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, order:orders(status)')
+        .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, source, order:orders(status)')
         .eq('branch_id', branchId)
-        .eq('source', 'warehouse_sale');
+        .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale']);
       return ((data || []) as WarehouseSaleSummaryRow[]).filter((row) => {
         const order = Array.isArray(row.order) ? row.order[0] : row.order;
         return !row.order_id || order?.status === 'delivered';
@@ -279,6 +282,7 @@ const WarehouseStock: React.FC = () => {
     }
 
     const warehouseSaleByProduct: Record<string, number> = {};
+    const otherSaleByProduct: Record<string, number> = {};
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
@@ -289,7 +293,12 @@ const WarehouseStock: React.FC = () => {
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
-      warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
+      if (s.source === 'warehouse_sale') {
+        warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
+      } else if (!s.order_id) {
+        // مبيعات تسليم/مباشرة بدون طلب — تُضاف للمباع (المرتبطة بطلب يحسبها order_items)
+        otherSaleByProduct[pid] = (otherSaleByProduct[pid] || 0) + inBoxPieceFmt;
+      }
     }
 
     for (const pid of Object.keys(summaries)) {
@@ -297,10 +306,12 @@ const WarehouseStock: React.FC = () => {
       const loadT = loadByProduct[pid] || 0;
       const returnT = returnByProduct[pid] || 0;
       const wSale = warehouseSaleByProduct[pid] || 0;
+      const oSale = otherSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
-      // أضف المبيعات المباشرة من المخزن إلى خانة "المباع"
-      if (wSale > 0) {
-        summaries[pid].sold = Math.round((summaries[pid].sold + wSale) * 100) / 100;
+      // أضف مبيعات المخزن المباشرة + مبيعات التسليم/المباشرة (بدون طلب) إلى المباع
+      const extraSold = wSale + oSale;
+      if (extraSold > 0) {
+        summaries[pid].sold = Math.round((summaries[pid].sold + extraSold) * 100) / 100;
       }
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
