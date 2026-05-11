@@ -135,6 +135,8 @@ const LoadStock: React.FC = () => {
   const [viewSessionItems, setViewSessionItems] = useState<any[]>([]);
   const [viewReviewDiscrepancies, setViewReviewDiscrepancies] = useState<any[]>([]);
   const [isLoadingViewItems, setIsLoadingViewItems] = useState(false);
+  const [confirmFinalReviewId, setConfirmFinalReviewId] = useState<string | null>(null);
+  const [submittingFinalReview, setSubmittingFinalReview] = useState(false);
   // Session history filters
   const [historyDateFilter, setHistoryDateFilter] = useState<Date | undefined>(undefined);
   const [historyProductFilter, setHistoryProductFilter] = useState<string>('');
@@ -2041,6 +2043,24 @@ const LoadStock: React.FC = () => {
                           : `المنتجات المشحونة (${viewSessionItems.length})`}
                     </h4>
 
+                    {session.status === 'review' && (
+                      <div className="mb-3">
+                        {(session as any).is_final ? (
+                          <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 text-emerald-700 dark:text-emerald-400 text-sm font-semibold">
+                            <CheckCircle className="w-4 h-4" />
+                            تم تقديم كمراجعة نهائية — العامل مُجمَّد حتى إغلاق جلسة المحاسبة
+                          </div>
+                        ) : (
+                          <Button
+                            className="w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
+                            onClick={() => setConfirmFinalReviewId(session.id)}
+                          >
+                            <CheckCircle className="w-4 h-4 me-2" />
+                            تقديم كمراجعة نهائية
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     {session.status === 'review' ? (
                       viewSessionItems.length === 0 && viewReviewDiscrepancies.length === 0 ? (
                         <div className="text-center py-4">
@@ -2195,6 +2215,53 @@ const LoadStock: React.FC = () => {
               </div>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Final Review submission */}
+      <Dialog open={!!confirmFinalReviewId} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReviewId(null); }}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد المراجعة النهائية
+            </DialogTitle>
+            <DialogDescription className="text-start pt-2">
+              عند التأكيد، ستُسجَّل هذه المراجعة كنهائية وسيتم <strong>تجميد جميع حركات العامل</strong> (تحميل، تفريغ، بيع) حتى يتم إغلاق جلسة المحاسبة.
+              <br /><br />
+              هل أنت متأكد؟
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" disabled={submittingFinalReview} onClick={() => setConfirmFinalReviewId(null)}>
+              إلغاء
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={submittingFinalReview}
+              onClick={async () => {
+                if (!confirmFinalReviewId) return;
+                setSubmittingFinalReview(true);
+                try {
+                  const { error } = await supabase
+                    .from('loading_sessions')
+                    .update({ is_final: true } as any)
+                    .eq('id', confirmFinalReviewId);
+                  if (error) throw error;
+                  toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
+                  queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+                  setConfirmFinalReviewId(null);
+                  setViewSessionId(null);
+                } catch (e: any) {
+                  toast.error(e.message || 'خطأ في تسجيل المراجعة النهائية');
+                } finally {
+                  setSubmittingFinalReview(false);
+                }
+              }}
+            >
+              {submittingFinalReview ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد المراجعة النهائية'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
