@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import ClientTrustBadge from '@/components/customers/ClientTrustBadge';
 import { computeClientTrustScoreFromHistory } from '@/utils/clientTrustScore';
 import CustomerQuickProfileDialog from '@/components/orders/CustomerQuickProfileDialog';
+import FitText from '@/components/customers/FitText';
+import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
 
 interface CustomerPickerDialogProps {
   open: boolean;
