@@ -27,9 +27,9 @@ const RELATED_DATA: Record<string, { ids: string[]; reason: string }> = {
   debts: { ids: ['treasury'], reason: 'الديون تؤثر على أرصدة الخزينة' },
   accounting: { ids: ['treasury', 'liability'], reason: 'جلسات المحاسبة مرتبطة بالخزينة وذمم العمال' },
   treasury: { ids: ['liability'], reason: 'الخزينة مرتبطة بذمم العمال' },
-  loading: { ids: ['stock'], reason: 'جلسات الشحن تؤثر على المخزون' },
+  loading: { ids: ['stock_movements', 'worker_stock', 'warehouse_stock'], reason: 'جلسات الشحن تؤثر على المخزون' },
   customers: { ids: ['orders', 'debts', 'credits', 'doc_collections', 'approval_requests'], reason: 'العملاء مرتبطون بالطلبات والديون' },
-  products: { ids: ['orders', 'stock', 'offers', 'loading', 'stock_receipts'], reason: 'المنتجات مرتبطة بالطلبات والمخزون' },
+  products: { ids: ['orders', 'stock_movements', 'worker_stock', 'warehouse_stock', 'offers', 'loading', 'stock_receipts'], reason: 'المنتجات مرتبطة بالطلبات والمخزون' },
   
 };
 
