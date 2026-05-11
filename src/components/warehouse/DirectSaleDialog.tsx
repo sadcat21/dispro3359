@@ -27,6 +27,7 @@ import { InvoicePaymentMethod } from '@/types/stamp';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import { useCreateDebt } from '@/hooks/useCustomerDebts';
 import ProductQuantityDialog, { PerItemPricing } from '@/components/orders/ProductQuantityDialog';
+import { getCustomerTypesArray } from '@/utils/customerTypes';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
 import ProductPriceBadge from '@/components/orders/ProductPriceBadge';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
