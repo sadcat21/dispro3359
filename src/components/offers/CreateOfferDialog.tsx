@@ -544,8 +544,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     onValueChange={(v) => setActiveTierTab(parseInt(v) || 0)}
                     dir={dir}
                   >
-                    <div className="-mx-1 px-1 overflow-x-auto">
-                      <TabsList className="h-auto inline-flex w-max gap-1 bg-muted/40 p-1">
+                    <div className="flex items-start gap-2">
+                      <TabsList className="h-auto flex flex-wrap gap-1 bg-muted/40 p-1 flex-1 justify-start">
                         {tiers.map((tier, index) => {
                           const unitShort = (u: string) => (u === 'box' ? 'BOX' : 'PCS');
                           const minPart = tier.max_quantity && tier.max_quantity !== tier.min_quantity
@@ -562,7 +562,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                               key={index}
                               value={String(index)}
                               dir="ltr"
-                              className="p-0 h-7 rounded-full overflow-hidden border border-border data-[state=active]:ring-2 data-[state=active]:ring-foreground"
+                              className="p-0 h-7 rounded-full overflow-hidden border border-border data-[state=active]:ring-2 data-[state=active]:ring-destructive"
                             >
                               <span className="flex items-stretch h-full text-[10px] font-bold tracking-wide" dir="ltr">
                                 <span className="bg-foreground text-background px-2 py-1 flex items-center">{condPart}</span>
@@ -571,20 +571,19 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                             </TabsTrigger>
                           );
                         })}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-[11px] border border-dashed shrink-0"
-                          onClick={() => {
-                            addTier();
-                            setActiveTierTab(tiers.length);
-                          }}
-                        >
-                          <Plus className="w-3 h-3 me-1" />
-                          {t('offers.add_tier')}
-                        </Button>
                       </TabsList>
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label={t('offers.add_tier')}
+                        className="h-7 w-7 shrink-0 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        onClick={() => {
+                          addTier();
+                          setActiveTierTab(tiers.length);
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
                     </div>
 
                     {tiers.map((tier, index) => (
