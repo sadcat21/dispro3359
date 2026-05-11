@@ -701,8 +701,179 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
               </div>
             )}
 
-            {/* Step 4: Summary */}
+            {/* Step 4: Target Audience (optional) */}
             {step === 4 && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">{t('offers.target_audience')}</Label>
+                    <Badge variant="secondary" className="text-[10px]">{t('common.optional')}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('offers.target_audience_hint')}</p>
+                </div>
+
+                {/* Invoice Type */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.invoice_types_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'facture_1', label: t('offers.invoice_1') || 'فاتورة 1' },
+                      { value: 'facture_2', label: t('offers.invoice_2') || 'فاتورة 2' },
+                    ].map(item => {
+                      const checked = (audience.invoice_types || []).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.invoice_types || [];
+                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
+                            setAudience({ ...audience, invoice_types: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Pricing Types */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.pricing_types_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'retail', label: t('offers.retail') || 'التجزئة' },
+                      { value: 'gros', label: t('offers.gros') || 'الجملة (غرو)' },
+                      { value: 'super_gros', label: t('offers.super_gros') || 'سبر غرو' },
+                    ].map(item => {
+                      const checked = (audience.pricing_types || []).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.pricing_types || [];
+                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
+                            setAudience({ ...audience, pricing_types: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Payment Methods */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.payment_methods_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'cash', label: t('offers.cash') || 'كاش' },
+                      { value: 'check', label: t('offers.check') || 'شيك' },
+                      { value: 'versement', label: 'فيرسمو' },
+                      { value: 'virement', label: 'فيرمو' },
+                    ].map(item => {
+                      const checked = (audience.payment_methods || []).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.payment_methods || [];
+                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
+                            setAudience({ ...audience, payment_methods: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Excluded Customer Types */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.excluded_customer_types')}
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground">{t('offers.excluded_customer_types_hint')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {customerTypes.map((ct, i) => {
+                      const checked = (audience.excluded_customer_types || []).includes(ct.ar);
+                      const color = getCustomerTypeColor(ct.short, i, ct);
+                      return (
+                        <button
+                          key={ct.ar}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.excluded_customer_types || [];
+                            const next = checked ? curr.filter(v => v !== ct.ar) : [...curr, ct.ar];
+                            setAudience({ ...audience, excluded_customer_types: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors flex items-center gap-1.5',
+                            checked
+                              ? 'border-destructive bg-destructive/10 text-destructive line-through'
+                              : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                          title={ct.description}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: color.bg }}
+                          />
+                          {ct.ar}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Allow Debt */}
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">{t('offers.allow_debt_label')}</Label>
+                    {audience.allow_debt === false && (
+                      <p className="text-[10px] text-destructive">{t('offers.no_debt_warning')}</p>
+                    )}
+                  </div>
+                  <Switch
+                    checked={audience.allow_debt !== false}
+                    onCheckedChange={(checked) =>
+                      setAudience({ ...audience, allow_debt: checked ? undefined : false })
+                    }
+                  />
+                </div>
+
+                <p className="text-[11px] text-muted-foreground">
+                  {t('offers.target_audience_default_hint')}
+                </p>
+              </div>
+            )}
+
+            {/* Step 5: Summary */}
+            {step === 5 && (
               <div className="space-y-3">
                 <PreviewCard />
                 <div className="rounded-lg border p-3 space-y-2 text-xs">
@@ -711,12 +882,15 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.priority')}</span><span className="font-medium">{formData.priority}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.is_stackable')}</span><span className="font-medium">{formData.is_stackable ? '✓' : '—'}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.is_auto_apply')}</span><span className="font-medium">{formData.is_auto_apply ? '✓' : '—'}</span></div>
+                  {(audience.excluded_customer_types?.length || audience.invoice_types?.length || audience.pricing_types?.length || audience.payment_methods?.length || audience.allow_debt === false) ? (
+                    <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.target_audience')}</span><span className="font-medium">✓</span></div>
+                  ) : null}
                 </div>
               </div>
             )}
 
-            {/* Live preview (compact) — shown on steps 1-3 */}
-            {step < 4 && formData.product_id && <PreviewCard compact />}
+            {/* Live preview (compact) — shown on steps 1-4 */}
+            {step < 5 && formData.product_id && <PreviewCard compact />}
           </div>
 
           {/* Footer with stepper navigation */}
