@@ -71,6 +71,7 @@ const WorkerHome: React.FC = () => {
   }, [location.search, location.pathname, navigate]);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showFinalReviewPicker, setShowFinalReviewPicker] = useState(false);
+  const [showReplaceDamaged, setShowReplaceDamaged] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
 
   const { trackVisit } = useTrackVisit();
