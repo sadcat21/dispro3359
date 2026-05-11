@@ -580,13 +580,37 @@ const Customers: React.FC = () => {
               const sizeClass = len > 22 ? 'text-[10px]' : len > 16 ? 'text-[11px]' : len > 12 ? 'text-xs' : 'text-sm';
               const sectorLabel = getSectorName(customer.sector_id);
               const zoneLabel = getZoneName(customer.zone_id);
+              const longPressTimer = { current: null as number | null };
+              const longPressTriggered = { current: false };
+              const startLongPress = () => {
+                longPressTriggered.current = false;
+                longPressTimer.current = window.setTimeout(() => {
+                  longPressTriggered.current = true;
+                  setProfileCustomer(customer);
+                  setIsProfileOpen(true);
+                }, 500);
+              };
+              const cancelLongPress = () => {
+                if (longPressTimer.current !== null) {
+                  window.clearTimeout(longPressTimer.current);
+                  longPressTimer.current = null;
+                }
+              };
               return (
                 <button
                   key={customer.id}
                   type="button"
-                  onClick={() => { setProfileCustomer(customer); setIsProfileOpen(true); }}
+                  onClick={() => {
+                    if (longPressTriggered.current) return;
+                    openEditDialog(customer);
+                  }}
+                  onPointerDown={startLongPress}
+                  onPointerUp={cancelLongPress}
+                  onPointerLeave={cancelLongPress}
+                  onPointerCancel={cancelLongPress}
+                  onContextMenu={(e) => { e.preventDefault(); setProfileCustomer(customer); setIsProfileOpen(true); }}
                   title={topText}
-                  className="relative flex flex-col items-stretch rounded-xl overflow-hidden border border-foreground/15 text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
+                  className="relative flex flex-col items-stretch rounded-xl overflow-hidden border border-foreground/15 text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5 select-none"
                 >
                   {/* Level 1: store name (black) with integrated type strips */}
                   <div className="flex items-stretch bg-foreground">
