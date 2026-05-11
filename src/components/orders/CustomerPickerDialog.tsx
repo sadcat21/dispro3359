@@ -493,6 +493,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                       {sectorName}
                                     </span>
                                   )}
+                                  {customer.customer_type && (
+                                    <span className="shrink-0 flex items-center px-1.5 text-[10px] font-bold bg-background/15 text-background leading-none border-e border-background/20">
+                                      {customer.customer_type}
+                                    </span>
+                                  )}
                                   {(() => {
                                     const topText = (storeName || displayName || '') as string;
                                     const len = topText.length;
@@ -507,6 +512,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                       </p>
                                     );
                                   })()}
+                                  {customer.customer_type && (
+                                    <span className="shrink-0 flex items-center px-1.5 text-[10px] font-bold bg-background/15 text-background leading-none border-s border-background/20">
+                                      {customer.customer_type}
+                                    </span>
+                                  )}
                                 </div>
                                 <div className={cn(
                                   "px-2 py-0.5 flex-1 flex items-center justify-center",
