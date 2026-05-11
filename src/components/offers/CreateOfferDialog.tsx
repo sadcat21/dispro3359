@@ -545,7 +545,6 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                             : tier.gift_type === 'discount_amount' && tier.discount_amount
                             ? `-${tier.discount_amount}`
                             : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
-                          const title = `${minPart} ${unitShort(tier.min_quantity_unit)} + ${giftPart}`;
                           const condPart = `Buy ${minPart} ${unitShort(tier.min_quantity_unit)}`;
                           return (
                             <TabsTrigger
