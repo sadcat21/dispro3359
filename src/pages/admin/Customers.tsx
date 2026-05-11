@@ -728,7 +728,7 @@ const Customers: React.FC = () => {
               <User className="w-5 h-5 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold leading-tight truncate">{t('customers.title')}</h2>
+              <h2 className="text-base font-bold leading-tight whitespace-nowrap">{t('customers.title')}</h2>
               <p className="text-sm font-bold flex items-center gap-1">
                 <span className="text-red-600">{filteredByBranch.length}</span>
                 <span className="text-muted-foreground">/</span>
@@ -740,23 +740,23 @@ const Customers: React.FC = () => {
                 })()}
               </p>
             </div>
-            <div className="grid grid-flow-col auto-cols-[2.25rem] gap-1.5">
-              <Button size="icon" variant={expandAllSectors ? "default" : "secondary"} className="h-9 w-9" onClick={() => setExpandAllSectors(!expandAllSectors)} title={expandAllSectors ? t('customers.collapse_all') : t('customers.expand_all')}>
-                {expandAllSectors ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            <div className="grid grid-flow-col auto-cols-[1.75rem] gap-1">
+              <Button size="icon" variant={expandAllSectors ? "default" : "secondary"} className="h-7 w-7" onClick={() => setExpandAllSectors(!expandAllSectors)} title={expandAllSectors ? t('customers.collapse_all') : t('customers.expand_all')}>
+                {expandAllSectors ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
               </Button>
               {isManager && (
-                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowSectorsDialog(true)} title={t('customers.sectors')}>
-                  <MapPinPlus className="w-4 h-4" />
+                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setShowSectorsDialog(true)} title={t('customers.sectors')}>
+                  <MapPinPlus className="w-3.5 h-3.5" />
                 </Button>
               )}
               {isManager && (
-                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
-                  <Settings2 className="w-4 h-4" />
+                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
+                  <Settings2 className="w-3.5 h-3.5" />
                 </Button>
               )}
               {!isAddCustomerHidden && (
-                <Button size="icon" className="h-9 w-9" onClick={() => setShowAddDialog(true)}>
-                  <UserPlus className="w-4 h-4" />
+                <Button size="icon" className="h-7 w-7" onClick={() => setShowAddDialog(true)}>
+                  <UserPlus className="w-3.5 h-3.5" />
                 </Button>
               )}
             </div>
