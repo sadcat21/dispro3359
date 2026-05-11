@@ -533,44 +533,44 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     onValueChange={(v) => setActiveTierTab(parseInt(v) || 0)}
                     dir={dir}
                   >
-                    <TabsList className="w-full h-auto flex-wrap justify-start gap-1 bg-muted/40 p-1">
-                      {tiers.map((tier, index) => {
-                        const unitShort = (u: string) => (u === 'box' ? 'BOX' : 'PCS');
-                        const minPart = tier.max_quantity && tier.max_quantity !== tier.min_quantity
-                          ? `${tier.min_quantity}-${tier.max_quantity}`
-                          : `${tier.min_quantity}`;
-                        const giftPart = tier.gift_type === 'discount_percentage' && tier.discount_percentage
-                          ? `${tier.discount_percentage}%`
-                          : tier.gift_type === 'discount_amount' && tier.discount_amount
-                          ? `-${tier.discount_amount}`
-                          : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
-                        const title = `${minPart} ${unitShort(tier.min_quantity_unit)} + ${giftPart}`;
-                        return (
-                          <TabsTrigger
-                            key={index}
-                            value={String(index)}
-                            className="text-[11px] h-7 px-2 data-[state=active]:bg-foreground data-[state=active]:text-background"
-                          >
-                            <span className="font-medium">{t('offers.tier')} {index + 1}</span>
-                            <span className="mx-1 opacity-50">→</span>
-                            <span className="font-bold tracking-wide">{title}</span>
-                          </TabsTrigger>
-                        );
-                      })}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-[11px] border border-dashed"
-                        onClick={() => {
-                          addTier();
-                          setActiveTierTab(tiers.length);
-                        }}
-                      >
-                        <Plus className="w-3 h-3 me-1" />
-                        {t('offers.add_tier')}
-                      </Button>
-                    </TabsList>
+                    <div className="-mx-1 px-1 overflow-x-auto">
+                      <TabsList className="h-auto inline-flex w-max gap-1 bg-muted/40 p-1">
+                        {tiers.map((tier, index) => {
+                          const unitShort = (u: string) => (u === 'box' ? 'BOX' : 'PCS');
+                          const minPart = tier.max_quantity && tier.max_quantity !== tier.min_quantity
+                            ? `${tier.min_quantity}-${tier.max_quantity}`
+                            : `${tier.min_quantity}`;
+                          const giftPart = tier.gift_type === 'discount_percentage' && tier.discount_percentage
+                            ? `${tier.discount_percentage}%`
+                            : tier.gift_type === 'discount_amount' && tier.discount_amount
+                            ? `-${tier.discount_amount}`
+                            : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
+                          const title = `${minPart} ${unitShort(tier.min_quantity_unit)} + ${giftPart}`;
+                          return (
+                            <TabsTrigger
+                              key={index}
+                              value={String(index)}
+                              className="text-[11px] h-7 px-2 whitespace-nowrap font-bold tracking-wide data-[state=active]:bg-foreground data-[state=active]:text-background"
+                            >
+                              {title}
+                            </TabsTrigger>
+                          );
+                        })}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[11px] border border-dashed shrink-0"
+                          onClick={() => {
+                            addTier();
+                            setActiveTierTab(tiers.length);
+                          }}
+                        >
+                          <Plus className="w-3 h-3 me-1" />
+                          {t('offers.add_tier')}
+                        </Button>
+                      </TabsList>
+                    </div>
 
                     {tiers.map((tier, index) => (
                       <TabsContent key={index} value={String(index)} className="mt-3">
