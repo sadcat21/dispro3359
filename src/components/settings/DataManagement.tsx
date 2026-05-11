@@ -194,6 +194,12 @@ const DataManagement: React.FC = () => {
       if (!selectedIds.has('stock')) {
         await del('stock_movements');
       }
+      if (!selectedIds.has('promos')) {
+        // Detach promos/splits from orders so orders can be deleted independently
+        await nullify('promos', 'order_id');
+        await nullify('promo_splits', 'order_id');
+        await nullify('promo_split_customers', 'order_id');
+      }
     }
 
     // === accounting ===
