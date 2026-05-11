@@ -30,7 +30,7 @@ const RELATED_DATA: Record<string, { ids: string[]; reason: string }> = {
   loading: { ids: ['stock'], reason: 'جلسات الشحن تؤثر على المخزون' },
   customers: { ids: ['orders', 'debts', 'credits', 'doc_collections', 'approval_requests'], reason: 'العملاء مرتبطون بالطلبات والديون' },
   products: { ids: ['orders', 'stock', 'offers', 'loading', 'stock_receipts'], reason: 'المنتجات مرتبطة بالطلبات والمخزون' },
-  promos: { ids: ['orders'], reason: 'البروموهات تحتوي على طلبات' },
+  
 };
 
 const GROUP_LABELS: Record<string, { label: string; emoji: string }> = {
