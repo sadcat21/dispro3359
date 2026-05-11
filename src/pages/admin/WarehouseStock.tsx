@@ -352,13 +352,15 @@ const WarehouseStock: React.FC = () => {
       const loadT = loadByProduct[pid] || 0;
       const returnT = returnByProduct[pid] || 0;
       const wSale = warehouseSaleByProduct[pid] || 0;
-      const oSale = otherSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
-      // أضف مبيعات المخزن المباشرة + مبيعات التسليم/المباشرة (بدون طلب) إلى المباع
-      const extraSold = wSale + oSale;
-      if (extraSold > 0) {
-        summaries[pid].sold = Math.round((summaries[pid].sold + extraSold) * 100) / 100;
-      }
+      const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
+      const workerSoldPieces = Math.max(0,
+        dbBPToPieces(loadedAfterReceiptByProduct[pid] || 0, ppb)
+        - dbBPToPieces(returnedAfterReceiptByProduct[pid] || 0, ppb)
+        - dbBPToPieces(summaries[pid].workerStock || 0, ppb)
+      );
+      const warehouseSoldPieces = dbBPToPieces(wSale, ppb);
+      summaries[pid].sold = piecesToDbBP(workerSoldPieces + warehouseSoldPieces, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
