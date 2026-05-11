@@ -1083,7 +1083,10 @@ const WorkerActions: React.FC = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{selectedTruckProductHistory.productName}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalLoaded)}</Badge>
+                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalAvailable)}</Badge>
+                    {selectedTruckProductHistory.openingBalance > 0 && (
+                      <Badge variant="outline">رصيد سابق {formatTruckQty(selectedTruckProductHistory.openingBalance)}</Badge>
+                    )}
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded)}</Badge>
                     <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(selectedTruckProductHistory.totalSold)}</Badge>
