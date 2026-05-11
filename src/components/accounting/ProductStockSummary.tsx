@@ -270,7 +270,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
 
       const { data: items } = await supabase
         .from('loading_session_items')
-        .select('quantity, product:products(name), session_id')
+        .select('quantity, gift_quantity, product:products(name), session_id')
         .in('session_id', allSessionIds);
 
       const loadedMap: Record<string, number> = {};
@@ -284,7 +284,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
       for (const item of (items || [])) {
         const name = (item as any).product?.name || '';
         if (!name) continue;
-        const qty = Number(item.quantity || 0);
+        const qty = Number(item.quantity || 0) + Number((item as any).gift_quantity || 0);
         if (loadSet.has((item as any).session_id)) {
           loadedMap[name] = (loadedMap[name] || 0) + qty;
         } else if (unloadSet.has((item as any).session_id)) {
