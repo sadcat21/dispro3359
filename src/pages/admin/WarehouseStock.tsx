@@ -313,8 +313,6 @@ const WarehouseStock: React.FC = () => {
     const loadByProduct: Record<string, number> = {};
     const returnByProduct: Record<string, number> = {};
     const lastReceiptByProduct: Record<string, string> = {};
-    const loadedAfterReceiptByProduct: Record<string, number> = {};
-    const returnedAfterReceiptByProduct: Record<string, number> = {};
     for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
       const pid = m.product_id;
       if (!pid) continue;
@@ -334,20 +332,8 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
-      const pid = m.product_id;
-      if (!pid || (m.movement_type !== 'load' && m.movement_type !== 'return')) continue;
-      const lastReceiptAt = lastReceiptByProduct[pid];
-      if (lastReceiptAt && m.created_at && m.created_at >= lastReceiptAt) {
-        if (m.movement_type === 'load') {
-          loadedAfterReceiptByProduct[pid] = (loadedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
-        } else {
-          returnedAfterReceiptByProduct[pid] = (returnedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
-        }
-      }
-    }
-
     const warehouseSaleByProduct: Record<string, number> = {};
+    const soldPiecesByProduct: Record<string, number> = {};
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
@@ -360,6 +346,7 @@ const WarehouseStock: React.FC = () => {
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
+      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + (Number(s.sold_boxes || 0) * ppb + Number(s.sold_pieces || 0));
       if (s.source === 'warehouse_sale') {
         warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
       }
@@ -372,13 +359,8 @@ const WarehouseStock: React.FC = () => {
       const wSale = warehouseSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
-      const workerSoldPieces = Math.max(0,
-        dbBPToPieces(loadedAfterReceiptByProduct[pid] || 0, ppb)
-        - dbBPToPieces(returnedAfterReceiptByProduct[pid] || 0, ppb)
-        - dbBPToPieces(summaries[pid].workerStock || 0, ppb)
-      );
       const warehouseSoldPieces = dbBPToPieces(wSale, ppb);
-      summaries[pid].sold = piecesToDbBP(workerSoldPieces + warehouseSoldPieces, ppb);
+      summaries[pid].sold = piecesToDbBP((soldPiecesByProduct[pid] || 0) + warehouseSoldPieces, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
