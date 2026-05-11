@@ -96,6 +96,10 @@ const isCurrentDeliveryOrderForDate = (order: DeliveryOrderLike, dateKey: string
   const orderDate = getOrderDateKey(order);
   return !!orderDate && orderDate.startsWith(dateKey) && !isPostponedOrderForDate(order, dateKey);
 };
+const isVisibleDeliveryOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
+  const orderDate = getOrderDateKey(order);
+  return !!orderDate && orderDate <= dateKey;
+};
 
 const normalizeSaleItem = (item: any) => ({
   productId: item?.product_id || item?.productId || item?.product?.id || '',
@@ -1717,7 +1721,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       const scopedOrders = (data || []).filter((order: any) =>
         scope === 'postponed'
           ? isPostponedOrderForDate(order, selectedDayBounds.dateKey)
-          : isCurrentDeliveryOrderForDate(order, selectedDayBounds.dateKey)
+          : isVisibleDeliveryOrderForDate(order, selectedDayBounds.dateKey)
       );
       if (scopedOrders.length > 1) {
         setOrderPickerDialog({ customer, orders: scopedOrders, type: 'delivery' });
