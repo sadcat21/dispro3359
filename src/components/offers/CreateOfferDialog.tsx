@@ -370,8 +370,27 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
 
 
 
+  const showMainDialog = open && (!!editOffer || !!formData.product_id);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <SimpleProductPickerDialog
+        open={productPickerOpen}
+        onOpenChange={(o) => {
+          setProductPickerOpen(o);
+          // If user closed the picker without selecting a product (new offer flow), close the whole flow
+          if (!o && !formData.product_id && !editOffer) {
+            onOpenChange(false);
+          }
+        }}
+        products={products.map(p => ({ id: p.id, name: getProductDisplayName(p), image_url: (p as any).image_url ?? null }))}
+        selectedProductId={formData.product_id}
+        onSelect={(id) => {
+          setFormData({ ...formData, product_id: id });
+          if (!editOffer) setStep(2);
+        }}
+      />
+    <Dialog open={showMainDialog} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-1rem)] sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] p-0 flex flex-col overflow-hidden gap-0 rounded-xl" dir={dir}>
         {/* Neutral header */}
         <DialogHeader className="px-3 sm:px-5 py-3 sm:py-4 border-b bg-background space-y-3">
@@ -445,17 +464,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       <span className="text-muted-foreground text-sm">{t('offers.select_product')}</span>
                     )}
                   </Button>
-                  <SimpleProductPickerDialog
-                    open={productPickerOpen}
-                    onOpenChange={setProductPickerOpen}
-                    products={products.map(p => ({ id: p.id, name: getProductDisplayName(p), image_url: (p as any).image_url ?? null }))}
-                    selectedProductId={formData.product_id}
-                    onSelect={(id) => {
-                      setFormData({ ...formData, product_id: id });
-                      if (!editOffer) setStep(2);
-                    }}
-                  />
                 </div>
+
 
                 <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
                   <CollapsibleTrigger asChild>
@@ -928,6 +938,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 
