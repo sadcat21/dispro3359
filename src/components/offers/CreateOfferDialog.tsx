@@ -19,6 +19,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import OfferTierCard from './OfferTierCard';
 import { isAdminRole } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 
 interface CreateOfferDialogProps {
   open: boolean;
@@ -60,6 +61,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
 
   // Form state - offer level
   const [formData, setFormData] = useState({
@@ -456,27 +458,43 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t('offers.product')} *</Label>
-                  <Select
-                    value={formData.product_id}
-                    onValueChange={(value) => setFormData({ ...formData, product_id: value })}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-start h-12 px-2 gap-2"
+                    onClick={() => setProductPickerOpen(true)}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('offers.select_product')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          <div className="flex items-center gap-2">
-                            <Package className="w-4 h-4" />
-                            {getProductDisplayName(product)}
-                            <span className="text-xs text-muted-foreground">
-                              ({product.pieces_per_box} {t('offers.unit_piece_short')}/{t('offers.unit_box_short')})
-                            </span>
+                    {selectedProduct ? (
+                      <>
+                        {(selectedProduct as any).image_url ? (
+                          <img
+                            src={(selectedProduct as any).image_url}
+                            alt={selectedProduct.name}
+                            className="w-9 h-9 rounded-md object-cover border"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center border">
+                            <Package className="w-4 h-4 text-muted-foreground" />
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        )}
+                        <div className="min-w-0 flex-1 text-start">
+                          <div className="text-sm font-medium truncate">{getProductDisplayName(selectedProduct)}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {selectedProduct.pieces_per_box} {t('offers.unit_piece_short')} / {t('offers.unit_box_short')}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">{t('offers.select_product')}</span>
+                    )}
+                  </Button>
+                  <SimpleProductPickerDialog
+                    open={productPickerOpen}
+                    onOpenChange={setProductPickerOpen}
+                    products={products.map(p => ({ id: p.id, name: getProductDisplayName(p), image_url: (p as any).image_url ?? null }))}
+                    selectedProductId={formData.product_id}
+                    onSelect={(id) => setFormData({ ...formData, product_id: id })}
+                  />
                 </div>
 
                 <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>

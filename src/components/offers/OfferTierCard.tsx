@@ -220,7 +220,7 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
                   <SimpleProductPickerDialog
                     open={giftProductPickerOpen}
                     onOpenChange={setGiftProductPickerOpen}
-                    products={products.map(p => ({ id: p.id, name: p.name }))}
+                    products={products.map(p => ({ id: p.id, name: p.name, image_url: (p as any).image_url ?? null }))}
                     selectedProductId={tier.gift_product_id || ''}
                     onSelect={(id) => onUpdate(tierIndex, { gift_product_id: id })}
                   />
