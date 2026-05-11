@@ -667,16 +667,22 @@ const Customers: React.FC = () => {
                   </div>
                   {/* Level 2: customer name + zone (integrated, no sector / no credibility badge) */}
                   <div className="flex items-stretch bg-background">
-                    <div className="flex-1 min-w-0 px-2 py-0.5 flex items-center justify-center text-foreground">
+                    {zoneLabel && (
+                      <div
+                        className="px-2 text-[10px] font-bold flex items-center justify-center shrink-0"
+                        style={{
+                          backgroundColor: primaryColors ? primaryColors.bg : 'hsl(var(--destructive))',
+                          color: primaryColors ? primaryColors.text : 'hsl(var(--destructive-foreground))',
+                        }}
+                      >
+                        {zoneLabel}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 px-2 py-1 flex items-center justify-center text-foreground">
                       <FitText className="font-medium text-center" min={8} max={13}>
                         {bottomText || '—'}
                       </FitText>
                     </div>
-                    {zoneLabel && (
-                      <div className="px-2 py-0.5 text-[10px] font-bold leading-tight bg-red-600 text-white flex items-center justify-center shrink-0">
-                        {zoneLabel}
-                      </div>
-                    )}
                   </div>
                   {pendingCount > 0 && (
                     <Badge
