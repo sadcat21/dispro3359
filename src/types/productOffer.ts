@@ -12,6 +12,7 @@ export interface TierConditions {
   pricing_types?: string[];    // ['retail', 'gros', 'super_gros']
   payment_methods?: string[];  // ['cash', 'check', 'versement', 'virement']
   allow_debt?: boolean;        // whether debt payment is allowed for this tier
+  excluded_customer_types?: string[]; // customer types to exclude (offer not applied for them)
 }
 
 export interface ProductOfferTier {

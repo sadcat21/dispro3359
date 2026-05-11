@@ -6,12 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, GripVertical, Gift, Users, Package, Layers, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, GripVertical, Gift, Users, Package, Layers } from 'lucide-react';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types/database';
-import { ProductOfferTier, TierConditions } from '@/types/productOffer';
+import { ProductOfferTier } from '@/types/productOffer';
 
 const UnitToggle: React.FC<{
   value: 'box' | 'piece';
@@ -61,23 +60,7 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
 }) => {
   const { t } = useLanguage();
   const [giftProductPickerOpen, setGiftProductPickerOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const conditions: TierConditions = tier.conditions || {};
-
-  const toggleConditionArray = (field: keyof TierConditions, value: string) => {
-    const current = (conditions[field] || []) as string[];
-    const updated = current.includes(value)
-      ? current.filter(v => v !== value)
-      : [...current, value];
-    onUpdate(tierIndex, { conditions: { ...conditions, [field]: updated.length > 0 ? updated : undefined } });
-  };
-
-  const isConditionChecked = (field: keyof TierConditions, value: string) => {
-    return ((conditions[field] || []) as string[]).includes(value);
-  };
-
-  const hasAnyCondition = !!(conditions.invoice_types?.length || conditions.pricing_types?.length || conditions.payment_methods?.length || conditions.allow_debt === false);
   const getUnitLabel = (unit: string) => {
     return unit === 'box' ? t('offers.unit_box') : t('offers.unit_piece');
   };
@@ -443,104 +426,6 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
           </div>
         </div>
 
-        {/* Advanced Conditions */}
-        <div className="border border-dashed rounded">
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full h-8 text-xs flex items-center justify-between px-2"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-          >
-            <span className="flex items-center gap-1.5">
-              <Settings2 className="w-3.5 h-3.5" />
-              إعدادات متقدمة
-              {hasAnyCondition && <Badge variant="secondary" className="text-[9px] h-4 px-1">مُفعّل</Badge>}
-            </span>
-            {showAdvanced ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </Button>
-          
-          {showAdvanced && (
-            <div className="px-2 pb-2 space-y-3">
-              {/* Invoice Type */}
-              <div className="space-y-1.5">
-                <Label className="text-[10px] text-muted-foreground">نوع الفاتورة (الكل افتراضياً)</Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: 'facture_1', label: 'فاتورة 1' },
-                    { value: 'facture_2', label: 'فاتورة 2 (بدون فاتورة)' },
-                  ].map(item => (
-                    <label key={item.value} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                      <Checkbox
-                        checked={isConditionChecked('invoice_types', item.value)}
-                        onCheckedChange={() => toggleConditionArray('invoice_types', item.value)}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pricing Types */}
-              <div className="space-y-1.5">
-                <Label className="text-[10px] text-muted-foreground">طرق التسعير (الكل افتراضياً)</Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: 'retail', label: 'التجزئة' },
-                    { value: 'gros', label: 'الجملة (غرو)' },
-                    { value: 'super_gros', label: 'سبر غرو' },
-                  ].map(item => (
-                    <label key={item.value} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                      <Checkbox
-                        checked={isConditionChecked('pricing_types', item.value)}
-                        onCheckedChange={() => toggleConditionArray('pricing_types', item.value)}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Payment Methods */}
-              <div className="space-y-1.5">
-                <Label className="text-[10px] text-muted-foreground">طرق الدفع (الكل افتراضياً)</Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: 'cash', label: 'كاش' },
-                    { value: 'check', label: 'شيك' },
-                    { value: 'versement', label: 'فيرسمو' },
-                    { value: 'virement', label: 'فيرمو' },
-                  ].map(item => (
-                    <label key={item.value} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                      <Checkbox
-                        checked={isConditionChecked('payment_methods', item.value)}
-                        onCheckedChange={() => toggleConditionArray('payment_methods', item.value)}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Allow Debt */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] text-muted-foreground">السماح بالدين في هذا العرض</Label>
-                  <Switch
-                    checked={conditions.allow_debt !== false}
-                    onCheckedChange={(checked) => onUpdate(tierIndex, { conditions: { ...conditions, allow_debt: checked ? undefined : false } })}
-                  />
-                </div>
-                {conditions.allow_debt === false && (
-                  <p className="text-[9px] text-destructive">⛔ لن يُطبَّق هذا العرض على الطلبات بالدين</p>
-                )}
-              </div>
-
-              <p className="text-[9px] text-muted-foreground">
-                💡 إذا لم يتم اختيار أي خيار، يُطبَّق العرض على الكل افتراضياً
-              </p>
-            </div>
-          )}
-        </div>
       </CardContent>
     </Card>
   );

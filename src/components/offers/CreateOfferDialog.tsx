@@ -7,13 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, Calendar, Layers, ChevronDown, ChevronUp, Plus, Package, Settings2, CheckCircle2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Loader2, Gift, Calendar, Layers, ChevronDown, ChevronUp, Plus, Package, Settings2, CheckCircle2, ArrowLeft, ArrowRight, Sparkles, Users } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Product, Branch } from '@/types/database';
-import { ProductOffer, ProductOfferTier, ProductOfferWithDetails } from '@/types/productOffer';
+import { ProductOffer, ProductOfferTier, ProductOfferWithDetails, TierConditions } from '@/types/productOffer';
+import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import OfferTierCard from './OfferTierCard';
@@ -62,6 +64,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   const [step, setStep] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const { customerTypes } = useCustomerTypes();
 
   // Form state - offer level
   const [formData, setFormData] = useState({
@@ -77,6 +80,9 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     priority: 0,
     branch_id: null as string | null,
   });
+
+  // Target audience (offer-level conditions, applied to all tiers on save)
+  const [audience, setAudience] = useState<TierConditions>({});
 
   // Tiers state
   const [tiers, setTiers] = useState<ProductOfferTier[]>([{ ...defaultTier, tier_order: 0 }]);
@@ -104,6 +110,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           ...tier,
           tier_order: index,
         })));
+        // Audience conditions are shared across tiers — read from first tier
+        setAudience((editOffer.tiers[0]?.conditions as TierConditions) || {});
       } else {
         // Legacy: convert old single-tier data
         setTiers([{
@@ -122,6 +130,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           tier_order: 0,
           is_stackable: false,
         }]);
+        setAudience({});
       }
     }
   };
@@ -157,6 +166,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       branch_id: null,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
+    setAudience({});
     setStep(1);
     setShowAdvanced(false);
   };
@@ -314,7 +324,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           worker_reward_amount: tier.worker_reward_amount,
           tier_order: index,
           is_stackable: tier.is_stackable ?? false,
-          conditions: tier.conditions || null,
+          conditions: (Object.keys(audience).length > 0 ? audience : tier.conditions) || null,
         }));
 
         const { error: tiersError } = await supabase
@@ -338,7 +348,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     { id: 1, label: t('offers.product') || 'Product', icon: Package },
     { id: 2, label: t('offers.tiers') || 'Tiers', icon: Layers },
     { id: 3, label: t('offers.settings') || 'Settings', icon: Settings2 },
-    { id: 4, label: t('offers.summary') || t('common.review') || 'Summary', icon: CheckCircle2 },
+    { id: 4, label: t('offers.target_audience') || 'Target Audience', icon: Users, optional: true },
+    { id: 5, label: t('offers.summary') || t('common.review') || 'Summary', icon: CheckCircle2 },
   ];
 
   const canGoNext = () => {
@@ -347,7 +358,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     return true;
   };
 
-  const goNext = () => setStep((s) => Math.min(4, s + 1));
+  const goNext = () => setStep((s) => Math.min(5, s + 1));
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
   const selectedProduct = products.find((p) => p.id === formData.product_id) || null;
@@ -441,6 +452,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   >
                     {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
                     <span className="whitespace-nowrap">{s.id}. {s.label}</span>
+                    {(s as any).optional && <span className="text-[9px] opacity-60">·{t('common.optional')}</span>}
                   </button>
                   {i < steps.length - 1 && (
                     <div className={cn('flex-1 h-px', step > s.id ? 'bg-foreground' : 'bg-border')} />
@@ -690,8 +702,179 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
               </div>
             )}
 
-            {/* Step 4: Summary */}
+            {/* Step 4: Target Audience (optional) */}
             {step === 4 && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">{t('offers.target_audience')}</Label>
+                    <Badge variant="secondary" className="text-[10px]">{t('common.optional')}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('offers.target_audience_hint')}</p>
+                </div>
+
+                {/* Invoice Type */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.invoice_types_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'facture_1', label: t('offers.invoice_1') || 'فاتورة 1' },
+                      { value: 'facture_2', label: t('offers.invoice_2') || 'فاتورة 2' },
+                    ].map(item => {
+                      const checked = (audience.invoice_types || []).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.invoice_types || [];
+                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
+                            setAudience({ ...audience, invoice_types: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Pricing Types */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.pricing_types_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'retail', label: t('offers.retail') || 'التجزئة' },
+                      { value: 'gros', label: t('offers.gros') || 'الجملة (غرو)' },
+                      { value: 'super_gros', label: t('offers.super_gros') || 'سبر غرو' },
+                    ].map(item => {
+                      const checked = (audience.pricing_types || []).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.pricing_types || [];
+                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
+                            setAudience({ ...audience, pricing_types: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Payment Methods */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.payment_methods_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'cash', label: t('offers.cash') || 'كاش' },
+                      { value: 'check', label: t('offers.check') || 'شيك' },
+                      { value: 'versement', label: 'فيرسمو' },
+                      { value: 'virement', label: 'فيرمو' },
+                    ].map(item => {
+                      const checked = (audience.payment_methods || []).includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.payment_methods || [];
+                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
+                            setAudience({ ...audience, payment_methods: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Excluded Customer Types */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('offers.excluded_customer_types')}
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground">{t('offers.excluded_customer_types_hint')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {customerTypes.map((ct, i) => {
+                      const checked = (audience.excluded_customer_types || []).includes(ct.ar);
+                      const color = getCustomerTypeColor(ct.short, i, ct);
+                      return (
+                        <button
+                          key={ct.ar}
+                          type="button"
+                          onClick={() => {
+                            const curr = audience.excluded_customer_types || [];
+                            const next = checked ? curr.filter(v => v !== ct.ar) : [...curr, ct.ar];
+                            setAudience({ ...audience, excluded_customer_types: next.length ? next : undefined });
+                          }}
+                          className={cn(
+                            'text-xs px-2.5 py-1 rounded-md border transition-colors flex items-center gap-1.5',
+                            checked
+                              ? 'border-destructive bg-destructive/10 text-destructive line-through'
+                              : 'bg-background hover:bg-muted/50 border-border'
+                          )}
+                          title={ct.description}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: color.bg }}
+                          />
+                          {ct.ar}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Allow Debt */}
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">{t('offers.allow_debt_label')}</Label>
+                    {audience.allow_debt === false && (
+                      <p className="text-[10px] text-destructive">{t('offers.no_debt_warning')}</p>
+                    )}
+                  </div>
+                  <Switch
+                    checked={audience.allow_debt !== false}
+                    onCheckedChange={(checked) =>
+                      setAudience({ ...audience, allow_debt: checked ? undefined : false })
+                    }
+                  />
+                </div>
+
+                <p className="text-[11px] text-muted-foreground">
+                  {t('offers.target_audience_default_hint')}
+                </p>
+              </div>
+            )}
+
+            {/* Step 5: Summary */}
+            {step === 5 && (
               <div className="space-y-3">
                 <PreviewCard />
                 <div className="rounded-lg border p-3 space-y-2 text-xs">
@@ -700,12 +883,15 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.priority')}</span><span className="font-medium">{formData.priority}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.is_stackable')}</span><span className="font-medium">{formData.is_stackable ? '✓' : '—'}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.is_auto_apply')}</span><span className="font-medium">{formData.is_auto_apply ? '✓' : '—'}</span></div>
+                  {(audience.excluded_customer_types?.length || audience.invoice_types?.length || audience.pricing_types?.length || audience.payment_methods?.length || audience.allow_debt === false) ? (
+                    <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.target_audience')}</span><span className="font-medium">✓</span></div>
+                  ) : null}
                 </div>
               </div>
             )}
 
-            {/* Live preview (compact) — shown on steps 1-3 */}
-            {step < 4 && formData.product_id && <PreviewCard compact />}
+            {/* Live preview (compact) — shown on steps 1-4 */}
+            {step < 5 && formData.product_id && <PreviewCard compact />}
           </div>
 
           {/* Footer with stepper navigation */}
@@ -723,7 +909,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
             <div className="flex-1 text-center text-xs text-muted-foreground">
               {step} / {steps.length}
             </div>
-            {step < 4 ? (
+            {step < 5 ? (
               <Button
                 type="button"
                 onClick={goNext}
