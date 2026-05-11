@@ -351,7 +351,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     { id: 1, label: t('offers.product') || 'Product', icon: Package },
     { id: 2, label: t('offers.tiers') || 'Tiers', icon: Layers },
     { id: 3, label: t('offers.settings') || 'Settings', icon: Settings2 },
-    { id: 4, label: t('offers.target_audience') || 'Target Audience', icon: Users, optional: true },
+    { id: 4, label: dir === 'rtl' ? 'الجمهور' : 'Target', icon: Users, optional: true },
     { id: 5, label: t('offers.summary') || t('common.review') || 'Summary', icon: CheckCircle2 },
   ];
 
