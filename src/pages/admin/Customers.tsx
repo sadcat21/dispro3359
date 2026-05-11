@@ -52,15 +52,13 @@ const normalizeArabic = (text: string): string =>
   text.replace(/[إأآءٱ]/g, 'ا').replace(/[ىة]/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي');
 
 // Collapsible sector group component
-const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: boolean; defaultOpen: boolean; children: React.ReactNode }> = ({ label, count, forceOpen, defaultOpen, children }) => {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  React.useEffect(() => { setIsOpen(defaultOpen); }, [defaultOpen]);
-  React.useEffect(() => { if (forceOpen !== undefined) setIsOpen(forceOpen); }, [forceOpen]);
+const SectorCustomerGroup: React.FC<{ label: string; count: number; expandAll?: boolean; isActive?: boolean; onToggle?: () => void; children: React.ReactNode }> = ({ label, count, expandAll, isActive, onToggle, children }) => {
+  const isOpen = expandAll || !!isActive;
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={() => onToggle?.()}>
       <CollapsibleTrigger asChild>
         <button
-          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-foreground select-none transition-transform hover:-translate-y-0.5"
+          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-background select-none transition-transform hover:-translate-y-0.5"
           style={{
             border: '1.5px solid hsl(var(--foreground))',
             boxShadow:
@@ -75,9 +73,9 @@ const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: 
           <div className="px-3 flex items-center justify-center font-bold text-xs font-mono shrink-0 bg-destructive text-destructive-foreground">
             {count}
           </div>
-          {/* Black header strip with white title */}
-          <div className="flex-1 min-w-0 flex items-center justify-center bg-foreground px-3 py-1.5">
-            <span className="font-bold text-sm text-background truncate">{label}</span>
+          {/* White header strip with black title */}
+          <div className="flex-1 min-w-0 flex items-center justify-center bg-background px-3 py-1.5">
+            <span className="font-bold text-sm text-foreground truncate">{label}</span>
           </div>
         </button>
       </CollapsibleTrigger>
@@ -108,6 +106,7 @@ const Customers: React.FC = () => {
   const [sectorZones, setSectorZones] = useState<{ id: string; name: string; name_fr: string | null; sector_id: string }[]>([]);
   const [allZones, setAllZones] = useState<{ id: string; name: string; name_fr: string | null; sector_id: string }[]>([]);
   const [expandAllSectors, setExpandAllSectors] = useState(false);
+  const [openSectorKey, setOpenSectorKey] = useState<string | null>(null);
   const isAddCustomerHidden = useIsElementHidden('button', 'add_customer');
   const isEditCustomerHidden = useIsElementHidden('action', 'edit_customer');
   const isDeleteCustomerHidden = useIsElementHidden('action', 'delete_customer');
@@ -567,8 +566,9 @@ const Customers: React.FC = () => {
             key={group.key}
             label={group.label}
             count={group.customers.length}
-            defaultOpen={!!searchQuery.trim()}
-            forceOpen={expandAllSectors}
+            expandAll={expandAllSectors || !!searchQuery.trim()}
+            isActive={openSectorKey === group.key}
+            onToggle={() => setOpenSectorKey(openSectorKey === group.key ? null : group.key)}
           >
             <div className="grid grid-cols-2 gap-2">
             {group.customers.map((customer) => {
@@ -728,7 +728,7 @@ const Customers: React.FC = () => {
               <User className="w-5 h-5 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold leading-tight truncate">{t('customers.title')}</h2>
+              <h2 className="text-base font-bold leading-tight whitespace-nowrap">{t('customers.title')}</h2>
               <p className="text-sm font-bold flex items-center gap-1">
                 <span className="text-red-600">{filteredByBranch.length}</span>
                 <span className="text-muted-foreground">/</span>
@@ -740,23 +740,23 @@ const Customers: React.FC = () => {
                 })()}
               </p>
             </div>
-            <div className="grid grid-flow-col auto-cols-[2.25rem] gap-1.5">
-              <Button size="icon" variant={expandAllSectors ? "default" : "secondary"} className="h-9 w-9" onClick={() => setExpandAllSectors(!expandAllSectors)} title={expandAllSectors ? t('customers.collapse_all') : t('customers.expand_all')}>
-                {expandAllSectors ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            <div className="grid grid-flow-col auto-cols-[1.75rem] gap-1">
+              <Button size="icon" variant={expandAllSectors ? "default" : "secondary"} className="h-7 w-7" onClick={() => setExpandAllSectors(!expandAllSectors)} title={expandAllSectors ? t('customers.collapse_all') : t('customers.expand_all')}>
+                {expandAllSectors ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
               </Button>
               {isManager && (
-                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowSectorsDialog(true)} title={t('customers.sectors')}>
-                  <MapPinPlus className="w-4 h-4" />
+                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setShowSectorsDialog(true)} title={t('customers.sectors')}>
+                  <MapPinPlus className="w-3.5 h-3.5" />
                 </Button>
               )}
               {isManager && (
-                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
-                  <Settings2 className="w-4 h-4" />
+                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
+                  <Settings2 className="w-3.5 h-3.5" />
                 </Button>
               )}
               {!isAddCustomerHidden && (
-                <Button size="icon" className="h-9 w-9" onClick={() => setShowAddDialog(true)}>
-                  <UserPlus className="w-4 h-4" />
+                <Button size="icon" className="h-7 w-7" onClick={() => setShowAddDialog(true)}>
+                  <UserPlus className="w-3.5 h-3.5" />
                 </Button>
               )}
             </div>
