@@ -96,6 +96,10 @@ const isCurrentDeliveryOrderForDate = (order: DeliveryOrderLike, dateKey: string
   const orderDate = getOrderDateKey(order);
   return !!orderDate && orderDate.startsWith(dateKey) && !isPostponedOrderForDate(order, dateKey);
 };
+const isVisibleDeliveryOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
+  const orderDate = getOrderDateKey(order);
+  return !!orderDate && orderDate <= dateKey;
+};
 
 const normalizeSaleItem = (item: any) => ({
   productId: item?.product_id || item?.productId || item?.product?.id || '',
