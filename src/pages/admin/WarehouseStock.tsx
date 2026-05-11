@@ -311,6 +311,8 @@ const WarehouseStock: React.FC = () => {
     // (deliveries are deducted from worker stock, not from warehouse stock)
     const loadByProduct: Record<string, number> = {};
     const returnByProduct: Record<string, number> = {};
+    const lastReceiptByProduct: Record<string, string> = {};
+    const loadedAfterReceiptByProduct: Record<string, number> = {};
     for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
       const pid = m.product_id;
       if (!pid) continue;
@@ -319,6 +321,23 @@ const WarehouseStock: React.FC = () => {
         loadByProduct[pid] = (loadByProduct[pid] || 0) + qty;
       } else if (m.movement_type === 'return') {
         returnByProduct[pid] = (returnByProduct[pid] || 0) + qty;
+      }
+    }
+
+    for (const r of (summaryData?.receipts || [])) {
+      const pid = r.product_id;
+      const createdAt = (r as any).created_at as string | undefined;
+      if (pid && createdAt && (!lastReceiptByProduct[pid] || createdAt > lastReceiptByProduct[pid])) {
+        lastReceiptByProduct[pid] = createdAt;
+      }
+    }
+
+    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
+      const pid = m.product_id;
+      if (!pid || m.movement_type !== 'load') continue;
+      const lastReceiptAt = lastReceiptByProduct[pid];
+      if (lastReceiptAt && m.created_at && m.created_at >= lastReceiptAt) {
+        loadedAfterReceiptByProduct[pid] = (loadedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
       }
     }
 
