@@ -5,6 +5,8 @@ export interface GiftBreakdownInput {
   pieces_per_box?: number | null;
   unit_price?: number | null;
   total_price?: number | null;
+  delivered_quantity?: number | null;
+  stock_movement_quantity?: number | null;
 }
 
 const toNumber = (value: unknown): number => {
@@ -44,4 +46,13 @@ export const getPaidQuantity = (item: GiftBreakdownInput): number => {
   }
 
   return 0;
+};
+
+export const getDeliveredPaidQuantity = (item: GiftBreakdownInput): number => {
+  const movementQuantity = item.delivered_quantity ?? item.stock_movement_quantity;
+  if (movementQuantity !== undefined && movementQuantity !== null) {
+    return Math.max(0, toNumber(movementQuantity));
+  }
+
+  return getPaidQuantity(item);
 };
