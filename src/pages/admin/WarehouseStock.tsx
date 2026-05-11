@@ -176,7 +176,7 @@ const WarehouseStock: React.FC = () => {
       if (!branchId) return [];
       const { data: rawSales } = await supabase
         .from('sales_tracking')
-        .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source')
+        .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source, sold_at')
         .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
         .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
@@ -215,7 +215,7 @@ const WarehouseStock: React.FC = () => {
       if (!branchId) return [];
       const { data } = await supabase
         .from('stock_movements')
-        .select('product_id, movement_type, quantity')
+        .select('product_id, movement_type, quantity, created_at')
         .eq('branch_id', branchId)
         .in('movement_type', ['load', 'return']);
       return data || [];
