@@ -12,6 +12,7 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 interface ProductOption {
   id: string;
   name: string;
+  /** Available stock passed as total pieces; displayed as صندوق.قطع using pieces_per_box */
   warehouseQty: number;
   groupName?: string;
   image_url?: string | null;
@@ -701,7 +702,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-semibold truncate">{getProductDisplayName(p)}</div>
-                  <div className="text-[9px] text-muted-foreground">المتاح: {fmtQty(p.warehouseQty)}</div>
+                  <div className="text-[9px] text-muted-foreground">المتاح: {fmtBP(p.warehouseQty, p.pieces_per_box || 1)}</div>
                   {hasOffer && potentialGift.giftQty > 0 && (
                     <div className={`mt-1 space-y-1 ${activated ? '' : 'opacity-50'}`}>
                       <div className={`text-[9px] font-bold flex items-center gap-1 ${activated ? 'text-green-600' : 'text-muted-foreground/70 line-through'}`}>
@@ -916,7 +917,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   <div className="flex-1 min-w-0">
                     <h3 className="font-extrabold text-sm text-primary truncate">{getProductDisplayName(singleProduct)}</h3>
                     <div className="flex items-center gap-2 flex-wrap text-[10px] text-muted-foreground mt-0.5">
-                      <span>المتاح: <strong className="text-foreground">{fmtQty(singleProduct.warehouseQty)}</strong></span>
+                      <span>المتاح: <strong className="text-foreground">{fmtBP(singleProduct.warehouseQty, singleProduct.pieces_per_box || 1)}</strong></span>
                       {(loadedQtyMap[singleProduct.id] || 0) > 0 && (
                         <span>الشاحنة: <strong className="text-green-600">{fmtQty(loadedQtyMap[singleProduct.id])}</strong></span>
                       )}

@@ -93,6 +93,9 @@ const fmtQty = (n: number) => {
   return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 };
 
+const fmtPiecesAsCustomQty = (pieces: number, piecesPerBox: number) =>
+  fmtQty(totalPiecesToCustom(Math.max(0, pieces), piecesPerBox));
+
 const LoadStock: React.FC = () => {
   const { t } = useLanguage();
   const { workerId: currentWorkerId } = useAuth();
@@ -647,9 +650,6 @@ const LoadStock: React.FC = () => {
     }
   }, [selectedWorker, sessions]);
 
-  const getAvailableQuantity = (productId: string) =>
-    warehouseStock.find(s => s.product_id === productId)?.quantity || 0;
-
   // Returns the available quantity in PIECES, with a fallback derived from
   // approved receipts when the warehouse_stock row is missing (e.g. after cleanup).
   const getWarehousePiecesAvailable = (productId: string, piecesPerBox: number): number => {
@@ -840,8 +840,8 @@ const LoadStock: React.FC = () => {
         if (warehousePieces < loadPieces + alreadyInSession) {
           setInsufficientAlert({
             name: product?.name || '',
-            available: String(warehousePieces - alreadyInSession),
-            requested: String(loadPieces),
+            available: fmtPiecesAsCustomQty(warehousePieces - alreadyInSession, piecesPerBox),
+            requested: fmtPiecesAsCustomQty(loadPieces, piecesPerBox),
           });
           continue;
         }
@@ -1635,7 +1635,8 @@ const LoadStock: React.FC = () => {
           </DialogHeader>
           {addProductId && (() => {
             const product = allProductOptions.find(p => p.id === addProductId);
-            const available = getAvailableQuantity(addProductId);
+            const piecesPerBox = product?.pieces_per_box || 20;
+            const available = totalPiecesToCustom(getWarehousePiecesAvailable(addProductId, piecesPerBox), piecesPerBox);
             const suggestion = suggestions.find(s => s.product_id === addProductId);
             const offer = productOffers[addProductId];
             // Calculate loaded this session for this product
@@ -2495,8 +2496,8 @@ const LoadStock: React.FC = () => {
             <DialogTitle className="text-destructive-foreground text-lg text-center">⚠️ الكمية غير كافية</DialogTitle>
             <DialogDescription className="text-destructive-foreground/90 text-center text-base pt-2">
               <div className="font-bold text-xl mb-2">{insufficientAlert?.name}</div>
-              <div>المتاح: {insufficientAlert?.available} قطعة</div>
-              <div>المطلوب: {insufficientAlert?.requested} قطعة</div>
+              <div>المتاح: {insufficientAlert?.available} صندوق.قطع</div>
+              <div>المطلوب: {insufficientAlert?.requested} صندوق.قطع</div>
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
