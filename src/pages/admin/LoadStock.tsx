@@ -650,6 +650,16 @@ const LoadStock: React.FC = () => {
   const getAvailableQuantity = (productId: string) =>
     warehouseStock.find(s => s.product_id === productId)?.quantity || 0;
 
+  // Returns the available quantity in PIECES, with a fallback derived from
+  // approved receipts when the warehouse_stock row is missing (e.g. after cleanup).
+  const getWarehousePiecesAvailable = (productId: string, piecesPerBox: number): number => {
+    const ws = warehouseStock.find(s => s.product_id === productId);
+    if (ws && (ws.quantity || 0) > 0) {
+      return customToTotalPieces(ws.quantity, piecesPerBox);
+    }
+    return fallbackAvailablePieces[productId] || 0;
+  };
+
   const fetchProductOffer = async (productId: string) => {
     if (productOffers[productId]) return productOffers[productId];
     const { data: offers } = await supabase
