@@ -298,6 +298,10 @@ const WarehouseStock: React.FC = () => {
       const returnT = returnByProduct[pid] || 0;
       const wSale = warehouseSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
+      // أضف المبيعات المباشرة من المخزن إلى خانة "المباع"
+      if (wSale > 0) {
+        summaries[pid].sold = Math.round((summaries[pid].sold + wSale) * 100) / 100;
+      }
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
