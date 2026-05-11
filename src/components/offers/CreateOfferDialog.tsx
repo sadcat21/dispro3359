@@ -147,6 +147,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           loadEditOfferData();
         } else {
           resetForm();
+          // Auto-open product picker for new offers
+          setProductPickerOpen(true);
         }
       };
       loadData();
