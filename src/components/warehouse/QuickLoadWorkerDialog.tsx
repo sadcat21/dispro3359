@@ -57,7 +57,7 @@ const quantityToFields = (quantity: number, ppb: number): QuantityFields => {
 };
 
 const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
-  open, onOpenChange, products, workers, warehouseStock, loadToWorker
+  open, onOpenChange, products, workers, warehouseStock, availableQuantities, loadToWorker
 }) => {
   const { t } = useLanguage();
   const [selectedWorker, setSelectedWorker] = useState('');
