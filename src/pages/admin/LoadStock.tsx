@@ -2218,6 +2218,53 @@ const LoadStock: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Confirm Final Review submission */}
+      <Dialog open={!!confirmFinalReviewId} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReviewId(null); }}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد المراجعة النهائية
+            </DialogTitle>
+            <DialogDescription className="text-start pt-2">
+              عند التأكيد، ستُسجَّل هذه المراجعة كنهائية وسيتم <strong>تجميد جميع حركات العامل</strong> (تحميل، تفريغ، بيع) حتى يتم إغلاق جلسة المحاسبة.
+              <br /><br />
+              هل أنت متأكد؟
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" disabled={submittingFinalReview} onClick={() => setConfirmFinalReviewId(null)}>
+              إلغاء
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={submittingFinalReview}
+              onClick={async () => {
+                if (!confirmFinalReviewId) return;
+                setSubmittingFinalReview(true);
+                try {
+                  const { error } = await supabase
+                    .from('loading_sessions')
+                    .update({ is_final: true } as any)
+                    .eq('id', confirmFinalReviewId);
+                  if (error) throw error;
+                  toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
+                  qc.invalidateQueries({ queryKey: ['loading-sessions'] });
+                  setConfirmFinalReviewId(null);
+                  setViewSessionId(null);
+                } catch (e: any) {
+                  toast.error(e.message || 'خطأ في تسجيل المراجعة النهائية');
+                } finally {
+                  setSubmittingFinalReview(false);
+                }
+              }}
+            >
+              {submittingFinalReview ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد المراجعة النهائية'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showEmptyDialog} onOpenChange={setShowEmptyDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
