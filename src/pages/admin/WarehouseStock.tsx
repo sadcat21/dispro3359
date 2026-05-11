@@ -189,7 +189,7 @@ const WarehouseStock: React.FC = () => {
       }).map((row) => ({
         ...row,
         order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
-      });
+      }));
     },
     enabled: !!branchId,
   });
