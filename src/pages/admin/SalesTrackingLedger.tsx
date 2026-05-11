@@ -30,18 +30,37 @@ const fmtBP = (boxes: number, pieces: number) => {
 export default function SalesTrackingLedger() {
   const [source, setSource] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [workerId, setWorkerId] = useState<string>('all');
+  const [productId, setProductId] = useState<string>('all');
   const { data: rows = [], isLoading } = useSalesTracking({
     source: source === 'all' ? undefined : (source as any),
   });
 
+  const workerOptions = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of rows) if (r.worker_id) m.set(r.worker_id, r.worker_name || '—');
+    return Array.from(m, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows]);
+
+  const productOptions = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of rows) if (r.product_id) m.set(r.product_id, r.product_name || '—');
+    return Array.from(m, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter((r) =>
-      [r.product_name, r.worker_name, r.customer_name, r.branch_name]
-        .filter(Boolean).some((v) => String(v).toLowerCase().includes(s))
-    );
-  }, [rows, search]);
+    return rows.filter((r) => {
+      if (workerId !== 'all' && r.worker_id !== workerId) return false;
+      if (productId !== 'all' && r.product_id !== productId) return false;
+      if (s) {
+        const hit = [r.product_name, r.worker_name, r.customer_name, r.branch_name]
+          .filter(Boolean).some((v) => String(v).toLowerCase().includes(s));
+        if (!hit) return false;
+      }
+      return true;
+    });
+  }, [rows, search, workerId, productId]);
 
   const stats = useMemo(() => {
     const acc = { total: 0, boxes: 0, pieces: 0, giftBoxes: 0, giftPieces: 0, amount: 0 };
@@ -95,6 +114,24 @@ export default function SalesTrackingLedger() {
               <SelectItem value="direct_sale">Vente directe</SelectItem>
               <SelectItem value="delivery_sale">Livraison</SelectItem>
               <SelectItem value="warehouse_sale">Dépôt</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={workerId} onValueChange={setWorkerId}>
+            <SelectTrigger className="w-[200px]"><SelectValue placeholder="البائع" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل البائعين</SelectItem>
+              {workerOptions.map((w) => (
+                <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={productId} onValueChange={setProductId}>
+            <SelectTrigger className="w-[200px]"><SelectValue placeholder="المنتج" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل المنتجات</SelectItem>
+              {productOptions.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </CardContent>
