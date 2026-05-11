@@ -587,15 +587,9 @@ const Customers: React.FC = () => {
                   title={topText}
                   className="relative flex flex-col items-stretch rounded-xl overflow-hidden border border-foreground/15 text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
-                  {/* Level 1: store name */}
-                  <div
-                    className="px-2 py-1"
-                    style={primaryColors ? { backgroundColor: primaryColors.bg } : undefined}
-                  >
-                    <p
-                      className={`font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${sizeClass} ${primaryColors ? '' : 'text-background bg-foreground'}`}
-                      style={primaryColors ? { color: primaryColors.text } : undefined}
-                    >
+                  {/* Level 1: store name (always black) */}
+                  <div className="px-2 py-1 bg-foreground">
+                    <p className={`font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-background ${sizeClass}`}>
                       {topText}
                       {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
                     </p>
