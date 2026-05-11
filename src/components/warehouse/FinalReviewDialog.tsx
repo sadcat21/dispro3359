@@ -836,7 +836,19 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
               <span className="text-[10px] text-muted-foreground">
                 معاينة:{multiSelected.size > 0 && <span className="ms-1 text-primary font-bold">({multiSelected.size} محدّد)</span>}
               </span>
-              <Button
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" size="sm" variant="outline" className="h-7 px-2 text-[11px] gap-1">
+                    <Package className="w-3 h-3" />
+                    اختر جلسة الشحن
+                    <span className="ms-1 px-1 rounded bg-primary/15 text-primary text-[10px]">
+                      {isPreviewMode ? (multiSelected.size > 0 ? `${multiSelected.size} محدّد` : 'جلسة واحدة') : `الكل (${loadSessionsList.length - hiddenSessionIds.size})`}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-[min(92vw,520px)] p-2" dir="rtl">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button
                 type="button"
                 size="sm"
                 variant={!isPreviewMode ? 'default' : 'outline'}
@@ -912,6 +924,9 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                   ↺ استرجاع المخفية ({hiddenSessionIds.size})
                 </Button>
               )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
         </div>
