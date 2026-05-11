@@ -297,9 +297,25 @@ const LoadStock: React.FC = () => {
     enabled: !!selectedWorker,
   });
 
+  // Fetch current truck stock to determine if it's empty (review not required when empty)
+  const { data: isTruckEmpty = false } = useQuery({
+    queryKey: ['worker-truck-empty', selectedWorker],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('worker_stock')
+        .select('quantity')
+        .eq('worker_id', selectedWorker!);
+      if (!data || data.length === 0) return true;
+      return data.every((r: any) => Number(r.quantity || 0) <= 0);
+    },
+    enabled: !!selectedWorker,
+  });
+
   // Check if the last session is a review - review must separate load/unload sessions
   const hasReviewToday = useMemo(() => {
     if (sessions.length === 0) return true; // No sessions = allow first load
+    // Truck completely empty → no review required (nothing to review)
+    if (isTruckEmpty) return true;
     // Sessions are ordered by created_at DESC, so first is the latest
     const lastSession = sessions[0];
     // If last session is review, allow load/unload
@@ -310,7 +326,7 @@ const LoadStock: React.FC = () => {
     if (lastSession.status === 'exchange') return true;
     // Last session is loading (completed) or unloaded → require review first
     return false;
-  }, [sessions]);
+  }, [sessions, isTruckEmpty]);
 
 
   // Product offers cache (with all tiers for dynamic calc)
