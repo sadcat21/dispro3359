@@ -174,7 +174,7 @@ const WarehouseStock: React.FC = () => {
 
       const [ordersRes, workersRes, customersRes] = await Promise.all([
         orderIds.length ? supabase.from('orders').select('id, status, branch_id').in('id', orderIds) : Promise.resolve({ data: [] }),
-        workerIds.length ? supabase.from('workers').select('id, branch_id').in('id', workerIds) : Promise.resolve({ data: [] }),
+        workerIds.length ? supabase.from('workers_safe').select('id, branch_id').in('id', workerIds) : Promise.resolve({ data: [] }),
         customerIds.length ? supabase.from('customers').select('id, branch_id').in('id', customerIds) : Promise.resolve({ data: [] }),
       ]);
 
