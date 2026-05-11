@@ -262,10 +262,8 @@ const WarehouseStock: React.FC = () => {
     }
 
     // Gifts from delivered order_items only; sold is reconciled below from current stock balances.
-    const countedOrderProductKeys = new Set<string>();
     for (const oi of (soldData || [])) {
       if (summaries[oi.product_id]) {
-        if (oi.order_id) countedOrderProductKeys.add(`${oi.order_id}:${oi.product_id}`);
         const rawGiftPieces = Number(oi.gift_quantity || 0);
         summaries[oi.product_id].gifts += rawGiftPieces;
       }
