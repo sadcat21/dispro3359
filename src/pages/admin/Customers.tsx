@@ -59,9 +59,26 @@ const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
-        <button className="sticky top-0 z-10 w-full bg-muted/80 backdrop-blur-sm px-4 py-2 border-b border-t flex items-center justify-between rounded-lg">
-          <p className="text-xs font-bold text-primary">{label} ({count})</p>
-          {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        <button
+          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-background select-none transition-transform hover:-translate-y-0.5"
+          style={{
+            border: '1.5px solid hsl(var(--primary))',
+            boxShadow:
+              '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.08) inset, 0 2px 6px hsl(var(--primary) / 0.25), 0 1px 2px hsl(0 0% 0% / 0.08)',
+          }}
+        >
+          {/* Black header strip with title (matches button level 1) */}
+          <div className="flex-1 min-w-0 flex items-center justify-center bg-foreground px-3 py-1.5">
+            <span className="font-bold text-sm text-background truncate">{label}</span>
+          </div>
+          {/* Count chip in primary color (matches type strip) */}
+          <div className="px-3 flex items-center justify-center font-bold text-xs font-mono shrink-0 bg-primary text-primary-foreground">
+            {count}
+          </div>
+          {/* Chevron tab */}
+          <div className="px-2 flex items-center justify-center bg-muted shrink-0">
+            {isOpen ? <ChevronUp className="w-4 h-4 text-foreground" /> : <ChevronDown className="w-4 h-4 text-foreground" />}
+          </div>
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent>
