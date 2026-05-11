@@ -413,7 +413,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     queryFn: async () => {
       const { data } = await supabase
         .from('orders')
-        .select('customer_id, created_at')
+        .select('id, customer_id, created_at')
         .eq('created_by', effectiveWorkerId!)
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
@@ -1196,7 +1196,9 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   }, [customers, todaySalesSectors]);
 
   const visitedCustomerIds = useMemo(() => new Set(todayVisits.filter(v => v.operation_type === 'visit').map(v => v.customer_id).filter(Boolean)), [todayVisits]);
-  const orderedCustomerIds = useMemo(() => new Set(todayOrders.map(o => o.customer_id).filter(Boolean)), [todayOrders]);
+  const directSaleOrderIds = useMemo(() => new Set(todayDirectSales.map((s: any) => s.order_id).filter(Boolean)), [todayDirectSales]);
+  const realTodayOrders = useMemo(() => todayOrders.filter((o: any) => !o.id || !directSaleOrderIds.has(o.id)), [todayOrders, directSaleOrderIds]);
+  const orderedCustomerIds = useMemo(() => new Set(realTodayOrders.map((o: any) => o.customer_id).filter(Boolean)), [realTodayOrders]);
   const salesNotVisited = useMemo(() => salesCustomers.filter(c => !visitedCustomerIds.has(c.id) && !orderedCustomerIds.has(c.id)), [salesCustomers, visitedCustomerIds, orderedCustomerIds]);
   const salesVisitedNoOrder = useMemo(() => salesCustomers.filter(c => visitedCustomerIds.has(c.id) && !orderedCustomerIds.has(c.id)), [salesCustomers, visitedCustomerIds, orderedCustomerIds]);
 
@@ -1218,7 +1220,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     const map = new Map<string, { deliveryDate: string; deliveryDay: string; itemCount: number }>();
     const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     // Use todayOrders customer_ids to filter assignedOrders for full data
-    const orderedIds = new Set(todayOrders.map(o => o.customer_id));
+    const orderedIds = new Set(realTodayOrders.map((o: any) => o.customer_id));
     assignedOrders.forEach(o => {
       if (!o.customer_id || !orderedIds.has(o.customer_id)) return;
       const items = (o as any).items || [];
@@ -1245,18 +1247,18 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
     });
     return map;
-  }, [todayOrders, assignedOrders]);
+  }, [realTodayOrders, assignedOrders]);
 
   // Map customer_id -> number of separate orders (today, by current worker scope)
   const orderCountMap = useMemo(() => {
     const map = new Map<string, number>();
-    const orderedIds = new Set(todayOrders.map(o => o.customer_id));
+    const orderedIds = new Set(realTodayOrders.map((o: any) => o.customer_id));
     assignedOrders.forEach(o => {
       if (!o.customer_id || !orderedIds.has(o.customer_id)) return;
       map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
     });
     return map;
-  }, [todayOrders, assignedOrders]);
+  }, [realTodayOrders, assignedOrders]);
 
   const deliveryOrderGroupMap = useMemo(() => {
     const map = new Map<string, { current: number; postponed: number }>();
@@ -1310,7 +1312,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
   const orderTimeMap = useMemo(() => {
     const map = new Map<string, string>();
-    todayOrders.forEach(o => {
+    realTodayOrders.forEach((o: any) => {
       if (o.customer_id && o.created_at) {
         if (!map.has(o.customer_id) || o.created_at > map.get(o.customer_id)!) {
           map.set(o.customer_id, o.created_at);
@@ -1318,7 +1320,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
     });
     return map;
-  }, [todayOrders]);
+  }, [realTodayOrders]);
 
   const directSaleTimeMap = useMemo(() => {
     const map = new Map<string, string>();
