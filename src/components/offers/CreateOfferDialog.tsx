@@ -382,30 +382,24 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
 
           {/* Stepper */}
           <div className="-mx-1 px-1 overflow-x-auto">
-            <div className="flex items-center gap-1.5 w-max min-w-full">
-              {steps.map((s, i) => {
+            <div className="flex items-center gap-1 w-max min-w-full">
+              {steps.map((s) => {
                 const isActive = step === s.id;
                 const isDone = step > s.id;
-                const Icon = s.icon;
                 return (
-                  <React.Fragment key={s.id}>
-                    <button
-                      type="button"
-                      onClick={() => (isDone || isActive ? setStep(s.id) : null)}
-                      className={cn(
-                        'flex items-center gap-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-colors px-2 sm:px-2.5 py-1 border shrink-0',
-                        isActive && 'bg-foreground text-background border-foreground',
-                        isDone && 'bg-muted text-foreground border-border hover:bg-muted/70',
-                        !isActive && !isDone && 'bg-background text-muted-foreground border-border'
-                      )}
-                    >
-                      {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
-                      <span className="whitespace-nowrap">{s.id}. {s.label}</span>
-                    </button>
-                    {i < steps.length - 1 && (
-                      <div className={cn('w-3 sm:flex-1 h-px shrink-0', step > s.id ? 'bg-foreground' : 'bg-border')} />
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => (isDone || isActive ? setStep(s.id) : null)}
+                    className={cn(
+                      'rounded-full text-[10px] sm:text-[11px] font-medium transition-colors px-2 py-1 border shrink-0 whitespace-nowrap',
+                      isActive && 'bg-foreground text-background border-foreground',
+                      isDone && 'bg-muted text-foreground border-border hover:bg-muted/70',
+                      !isActive && !isDone && 'bg-background text-muted-foreground border-border'
                     )}
-                  </React.Fragment>
+                  >
+                    {s.label}
+                  </button>
                 );
               })}
             </div>
