@@ -27,9 +27,9 @@ const RELATED_DATA: Record<string, { ids: string[]; reason: string }> = {
   debts: { ids: ['treasury'], reason: 'الديون تؤثر على أرصدة الخزينة' },
   accounting: { ids: ['treasury', 'liability'], reason: 'جلسات المحاسبة مرتبطة بالخزينة وذمم العمال' },
   treasury: { ids: ['liability'], reason: 'الخزينة مرتبطة بذمم العمال' },
-  loading: { ids: ['stock'], reason: 'جلسات الشحن تؤثر على المخزون' },
+  loading: { ids: ['stock_movements', 'worker_stock', 'warehouse_stock'], reason: 'جلسات الشحن تؤثر على المخزون' },
   customers: { ids: ['orders', 'debts', 'credits', 'doc_collections', 'approval_requests'], reason: 'العملاء مرتبطون بالطلبات والديون' },
-  products: { ids: ['orders', 'stock', 'offers', 'loading', 'stock_receipts'], reason: 'المنتجات مرتبطة بالطلبات والمخزون' },
+  products: { ids: ['orders', 'stock_movements', 'worker_stock', 'warehouse_stock', 'offers', 'loading', 'stock_receipts'], reason: 'المنتجات مرتبطة بالطلبات والمخزون' },
   
 };
 
@@ -61,7 +61,9 @@ const DATA_CATEGORIES: DataCategory[] = [
   // Stock
   { id: 'loading', label: 'جلسات الشحن والتفريغ', tables: ['loading_session_items', 'loading_sessions'], description: 'تحميل وتفريغ الشاحنات', order: 7.5, group: 'stock' },
   { id: 'stock_receipts', label: 'أوامر الاستلام', tables: ['stock_receipt_items', 'stock_receipts'], description: 'أوامر استلام المخزون', order: 3.5, group: 'stock' },
-  { id: 'stock', label: 'حركات المخزون', tables: ['stock_discrepancies', 'stock_movements', 'worker_stock', 'warehouse_stock'], description: 'جميع حركات وأرصدة المخزون', order: 3, group: 'stock' },
+  { id: 'stock_movements', label: 'حركات المخزون (السجل)', tables: ['stock_discrepancies', 'stock_movements'], description: 'سجل حركات التحميل/الإرجاع والفروقات', order: 3.2, group: 'stock' },
+  { id: 'worker_stock', label: 'مخزون العمال', tables: ['worker_stock'], description: 'الأرصدة الحالية لدى العمال', order: 3.1, group: 'stock' },
+  { id: 'warehouse_stock', label: 'مخزون الفرع', tables: ['warehouse_stock'], description: 'أرصدة مخزون الفرع/المستودع', order: 3.0, group: 'stock' },
   { id: 'pallets', label: 'البليطات', tables: ['pallet_movements', 'branch_pallets'], description: 'تصفير رصيد البليطات وحذف سجل حركتها', order: 2.5, group: 'stock' },
   // System
   { id: 'offers', label: 'العروض', tables: ['product_offer_tiers', 'product_offers'], description: 'عروض المنتجات', order: 5.5, group: 'system' },
@@ -194,7 +196,7 @@ const DataManagement: React.FC = () => {
       if (!selectedIds.has('treasury')) {
         await nullify('handover_items', 'order_id');
       }
-      if (!selectedIds.has('stock')) {
+      if (!selectedIds.has('stock_movements')) {
         await del('stock_movements');
       }
       if (!selectedIds.has('promos')) {
@@ -267,9 +269,13 @@ const DataManagement: React.FC = () => {
         await del('order_items');
         await del('product_shortage_tracking');
       }
-      if (!selectedIds.has('stock')) {
+      if (!selectedIds.has('stock_movements')) {
         await del('stock_movements');
+      }
+      if (!selectedIds.has('warehouse_stock')) {
         await del('warehouse_stock');
+      }
+      if (!selectedIds.has('worker_stock')) {
         await del('worker_stock');
       }
       if (!selectedIds.has('loading')) {
