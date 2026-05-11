@@ -546,13 +546,18 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                             ? `-${tier.discount_amount}`
                             : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
                           const title = `${minPart} ${unitShort(tier.min_quantity_unit)} + ${giftPart}`;
+                          const condPart = `Buy ${minPart} ${unitShort(tier.min_quantity_unit)}`;
                           return (
                             <TabsTrigger
                               key={index}
                               value={String(index)}
-                              className="text-[11px] h-7 px-2 whitespace-nowrap font-bold tracking-wide data-[state=active]:bg-foreground data-[state=active]:text-background"
+                              dir="ltr"
+                              className="p-0 h-7 rounded-full overflow-hidden border border-border data-[state=active]:ring-2 data-[state=active]:ring-foreground"
                             >
-                              {title}
+                              <span className="flex items-stretch h-full text-[10px] font-bold tracking-wide" dir="ltr">
+                                <span className="bg-foreground text-background px-2 py-1 flex items-center">{condPart}</span>
+                                <span className="bg-destructive text-destructive-foreground px-2 py-1 flex items-center">{giftPart}</span>
+                              </span>
                             </TabsTrigger>
                           );
                         })}
