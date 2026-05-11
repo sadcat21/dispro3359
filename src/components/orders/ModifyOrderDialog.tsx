@@ -2068,6 +2068,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         initialOfferApplied={editingInitialOfferApplied}
         initialIsUnitSale={editingInitialIsUnitSale}
         initialCustomUnitPrice={editingInitialCustomUnitPrice}
+        customerTypes={getCustomerTypesArray(order.customer)}
       />
 
       {/* Post-delivery confirmation dialog */}
