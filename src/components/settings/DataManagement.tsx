@@ -330,7 +330,45 @@ const DataManagement: React.FC = () => {
       await nullifyFkReferences(selected);
       let hasErrors = false;
       const errors: string[] = [];
+
+      // Special case: delete ONLY delivered orders (keep pending worker-entered ones)
+      if (selected.has('delivered_orders') && !selected.has('orders')) {
+        setDeletionProgress('جاري حذف الطلبات المُسلَّمة فقط...');
+        try {
+          const { data: deliveredOrders } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('status', 'delivered');
+          const ids = (deliveredOrders || []).map(o => o.id);
+          if (ids.length > 0) {
+            await (supabase as any).from('sales_tracking').delete().in('order_id', ids);
+            await (supabase as any).from('receipts').delete().in('order_id', ids);
+            await (supabase as any).from('order_events').delete().in('order_id', ids);
+            await (supabase as any).from('product_shortage_tracking').delete().in('order_id', ids);
+            await (supabase as any).from('order_items').delete().in('order_id', ids);
+            // detach references that may block deletion
+            await (supabase as any).from('customer_debts').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('customer_credits').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('customer_credits').update({ used_in_order_id: null }).in('used_in_order_id', ids);
+            await (supabase as any).from('document_collections').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('handover_items').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('promos').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('promo_splits').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('promo_split_customers').update({ order_id: null }).in('order_id', ids);
+            const { error: ordErr } = await supabase.from('orders').delete().in('id', ids);
+            if (ordErr) {
+              hasErrors = true;
+              errors.push(`الطلبات المُسلَّمة: ${ordErr.message}`);
+            }
+          }
+        } catch (e: any) {
+          hasErrors = true;
+          errors.push(`الطلبات المُسلَّمة: ${e.message || e}`);
+        }
+      }
+
       for (const category of categoriesToDelete) {
+        if (category.id === 'delivered_orders') continue;
         setDeletionProgress(`جاري حذف: ${category.label}...`);
         for (const table of category.tables) {
           const result = await deleteFromTable(table);
