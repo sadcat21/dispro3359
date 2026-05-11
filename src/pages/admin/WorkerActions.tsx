@@ -701,6 +701,9 @@ const WorkerActions: React.FC = () => {
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
+    const rawOpeningBalance = currentQty - totalLoaded + totalUnloaded + totalSold + totalGift;
+    const openingBalance = rawOpeningBalance > 0.001 ? rawOpeningBalance : 0;
+    const totalAvailable = totalLoaded + openingBalance;
     const chronological = [...rawMovements].reverse();
     let remainingBalance = currentQty;
     const historyEntries = chronological.map((movement) => {
@@ -718,6 +721,8 @@ const WorkerActions: React.FC = () => {
       computedCurrent: currentQty,
       entries: historyEntries,
       totalLoaded,
+      openingBalance,
+      totalAvailable,
       totalUnloaded,
       totalSold,
       totalGift,
@@ -726,7 +731,7 @@ const WorkerActions: React.FC = () => {
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
       lastAccountingLabel,
-      hasMismatch: false,
+      hasMismatch: rawOpeningBalance < -0.001,
     };
   }, [selectedTruckProduct, truckLoadedData, truckSoldData, truckUnloadedData, truckLoadSessions, truckUnloadSessions, t]);
 
@@ -958,6 +963,7 @@ const WorkerActions: React.FC = () => {
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
+                      const totalAvailable = Number(item.quantity || 0) + unloaded + sold + giftQty;
                       const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
@@ -1006,7 +1012,7 @@ const WorkerActions: React.FC = () => {
                             </span>
                             <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
                               <Package className="w-3 h-3" />
-                              المجموع {formatTruckQty(loaded)}
+                              المجموع {formatTruckQty(totalAvailable)}
                             </span>
                             <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                               <TrendingUp className="w-3 h-3" />
@@ -1077,7 +1083,10 @@ const WorkerActions: React.FC = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{selectedTruckProductHistory.productName}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalLoaded)}</Badge>
+                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalAvailable)}</Badge>
+                    {selectedTruckProductHistory.openingBalance > 0 && (
+                      <Badge variant="outline">رصيد سابق {formatTruckQty(selectedTruckProductHistory.openingBalance)}</Badge>
+                    )}
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded)}</Badge>
                     <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(selectedTruckProductHistory.totalSold)}</Badge>
