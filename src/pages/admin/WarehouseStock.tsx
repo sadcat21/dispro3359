@@ -282,6 +282,7 @@ const WarehouseStock: React.FC = () => {
     }
 
     const warehouseSaleByProduct: Record<string, number> = {};
+    const otherSaleByProduct: Record<string, number> = {};
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
@@ -292,7 +293,12 @@ const WarehouseStock: React.FC = () => {
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
-      warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
+      if (s.source === 'warehouse_sale') {
+        warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
+      } else if (!s.order_id) {
+        // مبيعات تسليم/مباشرة بدون طلب — تُضاف للمباع (المرتبطة بطلب يحسبها order_items)
+        otherSaleByProduct[pid] = (otherSaleByProduct[pid] || 0) + inBoxPieceFmt;
+      }
     }
 
     for (const pid of Object.keys(summaries)) {
@@ -300,10 +306,12 @@ const WarehouseStock: React.FC = () => {
       const loadT = loadByProduct[pid] || 0;
       const returnT = returnByProduct[pid] || 0;
       const wSale = warehouseSaleByProduct[pid] || 0;
+      const oSale = otherSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
-      // أضف المبيعات المباشرة من المخزن إلى خانة "المباع"
-      if (wSale > 0) {
-        summaries[pid].sold = Math.round((summaries[pid].sold + wSale) * 100) / 100;
+      // أضف مبيعات المخزن المباشرة + مبيعات التسليم/المباشرة (بدون طلب) إلى المباع
+      const extraSold = wSale + oSale;
+      if (extraSold > 0) {
+        summaries[pid].sold = Math.round((summaries[pid].sold + extraSold) * 100) / 100;
       }
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
