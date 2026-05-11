@@ -896,7 +896,7 @@ const AudienceFilterCard: React.FC<AudienceFilterCardProps> = ({
           <Label className="text-xs font-medium">{title}</Label>
           {description && <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>}
           <p className="text-[10px] text-muted-foreground mt-0.5">
-            {isAll ? `· ${allLabel}` : list.length === 0 ? '· بدون شرط' : `· ${list.length} محدد`}
+            {isAll || list.length === 0 ? `· ${allLabel}` : `· ${list.length} محدد`}
           </p>
         </div>
         <Switch
