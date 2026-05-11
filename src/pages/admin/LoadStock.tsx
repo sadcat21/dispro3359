@@ -355,18 +355,22 @@ const LoadStock: React.FC = () => {
     for (const s of warehouseStock) {
       if (s.product) {
         const ppbW = (s.product as any).pieces_per_box || 20;
-        options.push({ id: s.product_id, name: (s.product as any).app_name || s.product.name, warehouseQty: customToTotalPieces(s.quantity || 0, ppbW), groupName: productGroupMap[s.product_id], image_url: (s.product as any).image_url, pieces_per_box: ppbW });
+        const wsPieces = customToTotalPieces(s.quantity || 0, ppbW);
+        const fallbackPieces = fallbackAvailablePieces[s.product_id] || 0;
+        options.push({ id: s.product_id, name: (s.product as any).app_name || s.product.name, warehouseQty: wsPieces > 0 ? wsPieces : fallbackPieces, groupName: productGroupMap[s.product_id], image_url: (s.product as any).image_url, pieces_per_box: ppbW });
         seenIds.add(s.product_id);
       }
     }
     for (const p of products) {
       if (!seenIds.has(p.id)) {
-        options.push({ id: p.id, name: (p as any).app_name || p.name, warehouseQty: 0, groupName: productGroupMap[p.id], image_url: (p as any).image_url, pieces_per_box: p.pieces_per_box });
+        const ppbP = p.pieces_per_box || 20;
+        const fallbackPieces = fallbackAvailablePieces[p.id] || 0;
+        options.push({ id: p.id, name: (p as any).app_name || p.name, warehouseQty: fallbackPieces, groupName: productGroupMap[p.id], image_url: (p as any).image_url, pieces_per_box: ppbP });
         seenIds.add(p.id);
       }
     }
     return options.sort((a, b) => a.name.localeCompare(b.name));
-  }, [warehouseStock, products, productGroupMap]);
+  }, [warehouseStock, products, productGroupMap, fallbackAvailablePieces]);
 
   const buildReviewDiscrepanciesFromItems = (reviewItems: any[]) => {
     return reviewItems
