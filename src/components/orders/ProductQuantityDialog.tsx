@@ -89,6 +89,7 @@ interface ProductQuantityDialogProps {
   initialGiftOfferId?: string;
   initialOfferApplied?: boolean;
   hideInvoiceOption?: boolean;
+  customerTypes?: string[] | null;
 }
 
 const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
@@ -109,6 +110,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   initialGiftOfferId,
   initialOfferApplied = false,
   hideInvoiceOption = false,
+  customerTypes,
 }) => {
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
@@ -707,7 +709,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {!isUnitSale && (
               <div className={offerApplied ? 'hidden' : ''}>
-                <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} onGiftCalculated={handleGiftCalculated} />
+                <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} />
               </div>
             )}
 

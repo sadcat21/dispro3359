@@ -27,6 +27,7 @@ import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getCustomerTypesArray } from '@/utils/customerTypes';
 
 interface ModifyOrderDialogProps {
   open: boolean;
@@ -2068,6 +2069,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         initialOfferApplied={editingInitialOfferApplied}
         initialIsUnitSale={editingInitialIsUnitSale}
         initialCustomUnitPrice={editingInitialCustomUnitPrice}
+        customerTypes={getCustomerTypesArray(order.customer)}
       />
 
       {/* Post-delivery confirmation dialog */}

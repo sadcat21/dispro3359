@@ -41,6 +41,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { cn } from '@/lib/utils';
+import { getCustomerTypesArray } from '@/utils/customerTypes';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -1532,6 +1533,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         initialOfferApplied={editingInitialOfferApplied}
         initialIsUnitSale={editingInitialIsUnitSale}
         initialCustomUnitPrice={editingInitialCustomUnitPrice}
+        customerTypes={getCustomerTypesArray(order.customer)}
       />
 
       {/* Payment Dialog - Cash/Without Invoice */}
