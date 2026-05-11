@@ -963,6 +963,7 @@ const WorkerActions: React.FC = () => {
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
+                      const totalAvailable = Number(item.quantity || 0) + unloaded + sold + giftQty;
                       const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
@@ -1011,7 +1012,7 @@ const WorkerActions: React.FC = () => {
                             </span>
                             <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
                               <Package className="w-3 h-3" />
-                              المجموع {formatTruckQty(loaded)}
+                              المجموع {formatTruckQty(totalAvailable)}
                             </span>
                             <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                               <TrendingUp className="w-3 h-3" />
