@@ -43,6 +43,7 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 import { boxesToBPAlways } from '@/utils/boxPieceInput';
 import { filterCurrentlyActiveOffers } from '@/utils/productOffers';
 import { sendSmsDirectly } from '@/utils/smsHelper';
+import { getCustomerTypesArray } from '@/utils/customerTypes';
 
 interface CreateOrderDialogProps {
   open: boolean;
