@@ -72,7 +72,7 @@ const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: 
 
 const Customers: React.FC = () => {
   const navigate = useNavigate();
-  const { workerId, activeBranch, role } = useAuth();
+  const { workerId, activeBranch, role, user } = useAuth();
   const { t, language } = useLanguage();
   const { sectors } = useSectors();
   const { customerTypes } = useCustomerTypes();
@@ -240,14 +240,16 @@ const Customers: React.FC = () => {
     if (!customersQueryLoading) setIsLoading(false);
   }, [customersQueryLoading]);
 
-  // Filter customers by activeBranch (applies to all roles, not just admins)
+  // Filter customers by branch (applies to all roles, not just admins).
+  // Fallback to the logged-in worker's branch_id when activeBranch is not set
+  // (e.g. branch managers who never went through the branch picker).
+  const effectiveBranchId = activeBranch?.id || (user as any)?.branch_id || null;
   const filteredByBranch = useMemo(() => {
-    if (activeBranch) {
-      // Show only customers belonging to the active branch + unassigned ones.
-      return customers.filter(c => c.branch_id === activeBranch.id || c.branch_id === null);
+    if (effectiveBranchId) {
+      return customers.filter(c => c.branch_id === effectiveBranchId || c.branch_id === null);
     }
     return customers;
-  }, [customers, activeBranch]);
+  }, [customers, effectiveBranchId]);
 
   const getCustomerCompletion = (customer: Customer) => {
     const fieldStatus = {
