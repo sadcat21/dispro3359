@@ -766,7 +766,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     return { value: ct.ar, label: ct.ar, dotColor: color.bg, title: ct.description };
                   })}
                   allLabel={t('offers.all_by_default')}
-                  </AudienceFilterCard_REPLACED/>{/* noop */}
+                  />
                 />
 
                 {/* Allow Debt */}
