@@ -182,6 +182,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'cash_ledger', label: 'سجل حركة الأموال', icon: Coins, path: '/cash-ledger' },
         { key: 'debt_ledger', label: 'سجل حركة الديون', icon: HandCoins, path: '/debt-ledger' },
         { key: 'stock_movements', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
+        { key: 'sales_tracking', label: 'سجل تتبع المبيعات', icon: TrendingUp, path: '/sales-tracking' },
       ],
     },
     {
