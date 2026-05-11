@@ -593,34 +593,32 @@ const Customers: React.FC = () => {
                       {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
                     </p>
                   </div>
-                  {/* Level 2: customer name + type */}
-                  <div className="px-2 py-0.5 flex items-center justify-center gap-1 flex-wrap bg-background">
-                    {bottomText && (
-                      <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground">
-                        {bottomText}
-                      </p>
-                    )}
+                  {/* Level 2: customer name + type (integrated band, type as side strip) */}
+                  <div className="flex items-stretch border-t border-foreground/20 bg-background">
                     {typeEntry?.short && (
-                      <Badge
-                        className="text-[9px] px-1 py-0 h-4 border-0 font-bold"
+                      <div
+                        className="px-2 py-0.5 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0"
                         style={typeColors ? { backgroundColor: typeColors.bg, color: typeColors.text } : undefined}
                       >
-                        {typeEntry.short.toUpperCase()}
-                      </Badge>
+                        {typeEntry.short}
+                      </div>
                     )}
+                    <p className="flex-1 px-2 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground flex items-center justify-center">
+                      {bottomText || '—'}
+                    </p>
                   </div>
-                  {/* Level 3: sector + zone */}
+                  {/* Level 3: sector + zone (integrated bands) */}
                   {(sectorLabel || zoneLabel) && (
-                    <div className="px-2 py-0.5 flex items-center justify-center gap-1 flex-wrap bg-muted/40 border-t">
+                    <div className="flex items-stretch border-t border-foreground/20">
                       {sectorLabel && (
-                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/30 text-primary">
+                        <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-primary/10 text-primary flex items-center justify-center">
                           {sectorLabel}
-                        </Badge>
+                        </div>
                       )}
                       {zoneLabel && (
-                        <Badge className="text-[9px] px-1 py-0 h-4 border-0 bg-blue-600 text-white">
+                        <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-blue-600 text-white flex items-center justify-center">
                           {zoneLabel}
-                        </Badge>
+                        </div>
                       )}
                     </div>
                   )}
