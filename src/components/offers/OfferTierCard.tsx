@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Switch } from '@/components/ui/switch';
 import { Trash2, GripVertical, Gift, Users, Package, Layers } from 'lucide-react';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
