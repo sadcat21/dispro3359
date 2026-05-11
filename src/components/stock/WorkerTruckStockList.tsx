@@ -208,8 +208,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const giftPieces = Math.max(0, Number(it.gift_pieces || 0));
       const giftBoxesFrac = dbBPToBoxes(giftBoxesBP, ppb);
       const giftQty = giftBoxesFrac + giftPieces / ppb;
-      const totalQtyFrac = dbBPToBoxes(Number(it.quantity || 0), ppb);
-      const saleQty = Math.max(0, totalQtyFrac - giftBoxesFrac);
+      const saleQty = dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb);
       const when = it.order_updated_at || it.order_created_at || '';
       if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
       if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: 'من نفس عملية البيع', delta: -giftQty });
