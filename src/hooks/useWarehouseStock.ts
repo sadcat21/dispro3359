@@ -473,21 +473,31 @@ export const useWarehouseStock = () => {
 
     try {
 
+    // Validate against warehouse_stock if a row exists; otherwise rely on stock_movements/receipts
+    // (warehouse_stock may have been cleared while receipts/movements still represent real availability).
     for (const item of items) {
       const warehouseItem = warehouseStock.find(s => s.product_id === item.product_id);
-      if (!warehouseItem || warehouseItem.quantity < item.quantity) {
+      if (warehouseItem && warehouseItem.quantity < item.quantity) {
         const productName = products.find(p => p.id === item.product_id)?.name || '';
         throw new Error(`الكمية المتاحة من ${productName} غير كافية`);
       }
     }
 
     for (const item of items) {
-      // Deduct from warehouse
-      const warehouseItem = warehouseStock.find(s => s.product_id === item.product_id)!;
-      await supabase
-        .from('warehouse_stock')
-        .update({ quantity: warehouseItem.quantity - item.quantity })
-        .eq('id', warehouseItem.id);
+      // Deduct from warehouse (create row if missing so balance stays consistent going forward)
+      const warehouseItem = warehouseStock.find(s => s.product_id === item.product_id);
+      if (warehouseItem) {
+        await supabase
+          .from('warehouse_stock')
+          .update({ quantity: Math.max(0, warehouseItem.quantity - item.quantity) })
+          .eq('id', warehouseItem.id);
+      } else {
+        await supabase.from('warehouse_stock').insert({
+          branch_id: branchId,
+          product_id: item.product_id,
+          quantity: 0,
+        });
+      }
 
       // Add to worker stock
       const existingWorkerStock = workerStocks.find(

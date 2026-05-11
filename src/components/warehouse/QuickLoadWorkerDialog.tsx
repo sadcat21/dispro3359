@@ -32,6 +32,8 @@ interface QuickLoadWorkerDialogProps {
   products: Product[];
   workers: { id: string; full_name: string; username: string }[];
   warehouseStock: WarehouseStockItem[];
+  /** Computed remaining per product (fallback when warehouse_stock table is empty). */
+  availableQuantities?: Record<string, number>;
   loadToWorker: (
     targetWorkerId: string,
     items: { product_id: string; quantity: number; notes?: string }[]
@@ -55,7 +57,7 @@ const quantityToFields = (quantity: number, ppb: number): QuantityFields => {
 };
 
 const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
-  open, onOpenChange, products, workers, warehouseStock, loadToWorker
+  open, onOpenChange, products, workers, warehouseStock, availableQuantities, loadToWorker
 }) => {
   const { t } = useLanguage();
   const [selectedWorker, setSelectedWorker] = useState('');
@@ -163,7 +165,10 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
   const availableProducts = products
     .map(p => {
       const ws = warehouseStock.find(s => s.product_id === p.id);
-      return { id: p.id, name: `${p.name} (${ws?.quantity || 0})`, _qty: ws?.quantity || 0 };
+      const wsQty = ws?.quantity || 0;
+      const fallbackQty = availableQuantities?.[p.id] || 0;
+      const qty = wsQty > 0 ? wsQty : fallbackQty;
+      return { id: p.id, name: `${p.name} (${qty})`, _qty: qty };
     })
     .filter(p => p._qty > 0)
     .map(({ _qty, ...rest }) => rest);
