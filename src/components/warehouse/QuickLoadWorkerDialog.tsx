@@ -32,6 +32,8 @@ interface QuickLoadWorkerDialogProps {
   products: Product[];
   workers: { id: string; full_name: string; username: string }[];
   warehouseStock: WarehouseStockItem[];
+  /** Computed remaining per product (fallback when warehouse_stock table is empty). */
+  availableQuantities?: Record<string, number>;
   loadToWorker: (
     targetWorkerId: string,
     items: { product_id: string; quantity: number; notes?: string }[]
