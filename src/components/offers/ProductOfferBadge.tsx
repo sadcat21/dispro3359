@@ -25,6 +25,7 @@ interface ProductOfferBadgeProps {
   productId: string;
   quantity: number;
   piecesPerBox?: number;
+  customerTypes?: string[] | null;
   onGiftCalculated?: (giftPieces: number, offerId?: string) => void;
 }
 
@@ -32,6 +33,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   productId, 
   quantity, 
   piecesPerBox = 1,
+  customerTypes,
   onGiftCalculated 
 }) => {
   const { t, language, dir } = useLanguage();
