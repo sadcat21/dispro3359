@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, Calendar, Layers, ChevronDown, ChevronUp, Plus, Package } from 'lucide-react';
+import { Loader2, Gift, Calendar, Layers, ChevronDown, ChevronUp, Plus, Package, Settings2, CheckCircle2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import OfferTierCard from './OfferTierCard';
 import { isAdminRole } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface CreateOfferDialogProps {
   open: boolean;
