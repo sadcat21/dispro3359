@@ -685,8 +685,8 @@ const WorkerHome: React.FC = () => {
           branchId={activeBranch?.id || null}
         />
       )}
-    </div>
-  );
+      <ReplaceDamagedDialog open={showReplaceDamaged} onOpenChange={setShowReplaceDamaged} />
+    </div>);
 };
 
 export default WorkerHome;
