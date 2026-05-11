@@ -1211,7 +1211,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const salesClosed = useMemo(() => salesVisitedNoOrder.filter(c => closedCustomerIds.has(c.id)), [salesVisitedNoOrder, closedCustomerIds]);
   const salesUnavailable = useMemo(() => salesVisitedNoOrder.filter(c => unavailableCustomerIds.has(c.id)), [salesVisitedNoOrder, unavailableCustomerIds]);
   const salesSuspended = useMemo(() => salesVisitedNoOrder.filter(c => closedCustomerIds.has(c.id) || unavailableCustomerIds.has(c.id)), [salesVisitedNoOrder, closedCustomerIds, unavailableCustomerIds]);
-  const salesWithOrders = useMemo(() => salesCustomers.filter(c => orderedCustomerIds.has(c.id)), [salesCustomers, orderedCustomerIds]);
+  const salesWithOrders = useMemo(() => customers.filter(c => orderedCustomerIds.has(c.id)), [customers, orderedCustomerIds]);
 
   // Map customer_id -> { deliveryDate, deliveryDay, itemCount } for "تم الطلب" tab
   const orderInfoMap = useMemo(() => {
