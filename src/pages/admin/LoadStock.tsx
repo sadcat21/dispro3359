@@ -2490,7 +2490,7 @@ const LoadStock: React.FC = () => {
         open={showVerificationDialog}
         onOpenChange={setShowVerificationDialog}
         workerId={selectedWorker}
-        onComplete={async () => {
+        onComplete={async (sessionId) => {
           await Promise.all([
             refresh(),
             refetchSessions(),
@@ -2498,6 +2498,7 @@ const LoadStock: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] }),
             queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] }),
           ]);
+          if (sessionId) setConfirmFinalReviewId(sessionId);
         }}
       />
       {selectedWorker && branchId && (
