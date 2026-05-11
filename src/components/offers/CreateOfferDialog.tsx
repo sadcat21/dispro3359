@@ -166,6 +166,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       branch_id: null,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
+    setAudience({});
     setStep(1);
     setShowAdvanced(false);
   };
