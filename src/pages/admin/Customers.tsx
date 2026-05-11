@@ -595,22 +595,32 @@ const Customers: React.FC = () => {
                     </p>
                   </div>
                   {/* Level 2: customer name + types (integrated band, types as side strips) */}
-                  <div className="flex items-stretch bg-background">
-                    {typeEntries.map((entry, idx) => {
-                      const c = getCustomerTypeColor(entry.short || '', customerTypes.indexOf(entry), entry);
+                  <div className="flex items-stretch bg-background gap-1 px-1">
+                    {(() => {
+                      const startTypes = typeEntries.length > 1 ? typeEntries.slice(0, Math.ceil(typeEntries.length / 2)) : typeEntries;
+                      const endTypes = typeEntries.length > 1 ? typeEntries.slice(Math.ceil(typeEntries.length / 2)) : [];
+                      const renderChip = (entry: typeof typeEntries[number], idx: number, side: 'start' | 'end') => {
+                        const c = getCustomerTypeColor(entry.short || '', customerTypes.indexOf(entry), entry);
+                        return (
+                          <div
+                            key={`${side}-${entry.ar}-${idx}`}
+                            className="px-2 py-0.5 my-0.5 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0 rounded-full"
+                            style={{ backgroundColor: c.bg, color: c.text }}
+                          >
+                            {entry.short}
+                          </div>
+                        );
+                      };
                       return (
-                        <div
-                          key={`${entry.ar}-${idx}`}
-                          className="px-2 py-0.5 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0"
-                          style={{ backgroundColor: c.bg, color: c.text }}
-                        >
-                          {entry.short}
-                        </div>
+                        <>
+                          {startTypes.map((e, i) => renderChip(e, i, 'start'))}
+                          <p className="flex-1 px-1 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground flex items-center justify-center">
+                            {bottomText || '—'}
+                          </p>
+                          {endTypes.map((e, i) => renderChip(e, i, 'end'))}
+                        </>
                       );
-                    })}
-                    <p className="flex-1 px-2 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground flex items-center justify-center">
-                      {bottomText || '—'}
-                    </p>
+                    })()}
                   </div>
                   {/* Level 3: sector + zone (integrated bands) */}
                   {(sectorLabel || zoneLabel) && (
@@ -621,7 +631,7 @@ const Customers: React.FC = () => {
                         </div>
                       )}
                       {zoneLabel && (
-                        <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-blue-600 text-white flex items-center justify-center">
+                        <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-red-600 text-white flex items-center justify-center">
                           {zoneLabel}
                         </div>
                       )}
