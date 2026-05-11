@@ -261,30 +261,12 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    // Sold from order_items (delivered)
+    // Gifts from delivered order_items only; sold is reconciled below from current stock balances.
     const countedOrderProductKeys = new Set<string>();
     for (const oi of (soldData || [])) {
       if (summaries[oi.product_id]) {
         if (oi.order_id) countedOrderProductKeys.add(`${oi.order_id}:${oi.product_id}`);
-        const product = products.find(p => p.id === oi.product_id);
-        const piecesPerBox = product?.pieces_per_box || 20;
-
-        const rawQty = Number(oi.quantity || 0);
         const rawGiftPieces = Number(oi.gift_quantity || 0);
-
-        // quantity is stored بصيغة صناديق.قطع (تعبيرية) => نحولها لإجمالي قطع أولاً
-        const qtyRounded = Math.round(rawQty * 100) / 100;
-        const qtyBoxes = Math.floor(qtyRounded);
-        const qtyPieces = Math.round((qtyRounded - qtyBoxes) * 100);
-        const totalQtyPieces = (qtyBoxes * piecesPerBox) + qtyPieces;
-
-        // الهدايا لا تُحتسب كمباع: نطرحها من المباع، ونبقيها في خانة الهدايا فقط
-        const paidPieces = Math.max(0, totalQtyPieces - rawGiftPieces);
-        const paidBoxes = Math.floor(paidPieces / piecesPerBox);
-        const paidRemPieces = paidPieces % piecesPerBox;
-        const paidQtyInBoxPieceFormat = paidBoxes + (paidRemPieces / 100);
-
-        summaries[oi.product_id].sold = Math.round((summaries[oi.product_id].sold + paidQtyInBoxPieceFormat) * 100) / 100;
         summaries[oi.product_id].gifts += rawGiftPieces;
       }
     }
@@ -343,7 +325,6 @@ const WarehouseStock: React.FC = () => {
     }
 
     const warehouseSaleByProduct: Record<string, number> = {};
-    const otherSaleByProduct: Record<string, number> = {};
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
@@ -356,9 +337,6 @@ const WarehouseStock: React.FC = () => {
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
       if (s.source === 'warehouse_sale') {
         warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
-      } else if (!s.order_id || !countedOrderProductKeys.has(`${s.order_id}:${pid}`)) {
-        // مبيعات تسليم/مباشرة لم تُحتسب عبر order_items (مثل الطلبات القديمة بدون branch_id) — تُضاف للمباع
-        otherSaleByProduct[pid] = (otherSaleByProduct[pid] || 0) + inBoxPieceFmt;
       }
     }
 
