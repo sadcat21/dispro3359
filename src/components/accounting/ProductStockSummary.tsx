@@ -284,7 +284,8 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
       for (const item of (items || [])) {
         const name = (item as any).product?.name || '';
         if (!name) continue;
-        const qty = Number(item.quantity || 0) + Number((item as any).gift_quantity || 0);
+        const giftPieces = Number((item as any).gift_quantity || 0);
+        const qty = Number(item.quantity || 0) + giftPieces / 100;
         if (loadSet.has((item as any).session_id)) {
           loadedMap[name] = (loadedMap[name] || 0) + qty;
         } else if (unloadSet.has((item as any).session_id)) {
