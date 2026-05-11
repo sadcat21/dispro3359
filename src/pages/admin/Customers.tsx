@@ -62,17 +62,17 @@ const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: 
         <button
           className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-background select-none transition-transform hover:-translate-y-0.5"
           style={{
-            border: '1.5px solid hsl(var(--primary))',
+            border: '1.5px solid hsl(var(--destructive))',
             boxShadow:
-              '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.08) inset, 0 2px 6px hsl(var(--primary) / 0.25), 0 1px 2px hsl(0 0% 0% / 0.08)',
+              '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.06) inset, 0 2px 6px hsl(var(--destructive) / 0.2), 0 1px 2px hsl(0 0% 0% / 0.06)',
           }}
         >
-          {/* Black header strip with title (matches button level 1) */}
-          <div className="flex-1 min-w-0 flex items-center justify-center bg-foreground px-3 py-1.5">
-            <span className="font-bold text-sm text-background truncate">{label}</span>
+          {/* White header strip with red title */}
+          <div className="flex-1 min-w-0 flex items-center justify-center bg-background px-3 py-1.5">
+            <span className="font-bold text-sm text-destructive truncate">{label}</span>
           </div>
-          {/* Count chip in primary color (matches type strip) */}
-          <div className="px-3 flex items-center justify-center font-bold text-xs font-mono shrink-0 bg-primary text-primary-foreground">
+          {/* Count chip in red */}
+          <div className="px-3 flex items-center justify-center font-bold text-xs font-mono shrink-0 bg-destructive text-destructive-foreground">
             {count}
           </div>
           {/* Chevron tab */}
@@ -713,179 +713,183 @@ const Customers: React.FC = () => {
 
   return (
     <div className="p-3 pb-24 space-y-3 touch-pan-y">
-      {/* Compact Header: Title + Stats + Actions merged */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0">
-            <User className="w-5 h-5 text-primary-foreground" />
+      {/* Unified top panel: header + search + filters in one card with consistent grid */}
+      <Card className="overflow-visible">
+        <CardContent className="p-3 space-y-3">
+          {/* Row 1: Title + stats + action buttons */}
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0">
+              <User className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold leading-tight truncate">{t('customers.title')}</h2>
+              <p className="text-sm font-bold flex items-center gap-1">
+                <span className="text-red-600">{filteredByBranch.length}</span>
+                <span className="text-muted-foreground">/</span>
+                <span className="text-blue-600">{filteredCustomers.length}</span>
+                {(() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const todayCount = filteredByBranch.filter(c => c.created_at?.startsWith(today)).length;
+                  return todayCount > 0 ? <span className="text-emerald-700 mr-1"> ({todayCount}+)</span> : null;
+                })()}
+              </p>
+            </div>
+            <div className="grid grid-flow-col auto-cols-[2.25rem] gap-1.5">
+              <Button size="icon" variant={expandAllSectors ? "default" : "secondary"} className="h-9 w-9" onClick={() => setExpandAllSectors(!expandAllSectors)} title={expandAllSectors ? t('customers.collapse_all') : t('customers.expand_all')}>
+                {expandAllSectors ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+              </Button>
+              {isManager && (
+                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowSectorsDialog(true)} title={t('customers.sectors')}>
+                  <MapPinPlus className="w-4 h-4" />
+                </Button>
+              )}
+              {isManager && (
+                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
+                  <Settings2 className="w-4 h-4" />
+                </Button>
+              )}
+              {!isAddCustomerHidden && (
+                <Button size="icon" className="h-9 w-9" onClick={() => setShowAddDialog(true)}>
+                  <UserPlus className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="min-w-0">
-            <h2 className="text-lg font-bold leading-tight">{t('customers.title')}</h2>
-            <p className="text-sm font-bold flex items-center gap-1">
-              <span className="text-red-600">{filteredByBranch.length}</span>
-              <span className="text-muted-foreground">/</span>
-              <span className="text-blue-600">{filteredCustomers.length}</span>
-              {(() => {
-                const today = new Date().toISOString().split('T')[0];
-                const todayCount = filteredByBranch.filter(c => c.created_at?.startsWith(today)).length;
-                return todayCount > 0 ? <span className="text-emerald-700 mr-1"> ({todayCount}+)</span> : null;
-              })()}
-            </p>
+
+          {/* Row 2: Search + map */}
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('customers.search')}
+                className="pr-10 text-right h-9"
+              />
+            </div>
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" title={t('customers.locations_map')}>
+                  <MapPin className="w-4 h-4 text-primary" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="absolute left-3 right-3 z-20 mt-1">
+                <Card className="shadow-xl border-primary/20">
+                  <CardContent className="p-2">
+                    <LazyCustomersMapView
+                      customers={filteredCustomers}
+                      onCustomerClick={(customer) => { setProfileCustomer(customer); setIsProfileOpen(true); }}
+                      branchWilaya={activeBranch?.wilaya}
+                    />
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
-        </div>
-        <div className="flex gap-1.5 shrink-0">
-          <Button size="icon" variant={expandAllSectors ? "default" : "secondary"} className="h-9 w-9" onClick={() => setExpandAllSectors(!expandAllSectors)} title={expandAllSectors ? t('customers.collapse_all') : t('customers.expand_all')}>
-            {expandAllSectors ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </Button>
-          {isManager && (
-            <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowSectorsDialog(true)} title={t('customers.sectors')}>
-              <MapPinPlus className="w-4 h-4" />
-            </Button>
-          )}
-          {isManager && (
-            <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
-              <Settings2 className="w-4 h-4" />
-            </Button>
-          )}
-          {!isAddCustomerHidden && (
-            <Button size="icon" className="h-9 w-9" onClick={() => setShowAddDialog(true)}>
-              <UserPlus className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
 
-      {/* Integrated Search + Map toggle row */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t('customers.search')}
-            className="pr-10 text-right h-9"
-          />
-        </div>
-        <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" title={t('customers.locations_map')}>
-              <MapPin className="w-4 h-4 text-primary" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="absolute left-3 right-3 z-20 mt-1">
-            <Card className="shadow-xl border-primary/20">
-              <CardContent className="p-2">
-                <LazyCustomersMapView
-                  customers={filteredCustomers}
-                  onCustomerClick={(customer) => { setProfileCustomer(customer); setIsProfileOpen(true); }}
-                  branchWilaya={activeBranch?.wilaya}
-                />
-              </CardContent>
-            </Card>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      {/* Compact Filters: Sector + Type + Expand in one strip */}
-      <div className="flex flex-col gap-2">
-        <div className="flex gap-2">
+          {/* Row 3: Sector + Zone selects (always 2-col grid for consistency) */}
           {sectors.length > 0 && (
-            <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="flex-1 h-8 text-xs">
-                <SelectValue placeholder={t('customers.filter_by_sector')} />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-[100]">
-                <SelectItem value="all">{t('customers.all_sectors')}</SelectItem>
-                <SelectItem value="none">{t('customers.no_sector')}</SelectItem>
-                {sectors.map(s => (
-                  <SelectItem key={s.id} value={s.id}>{getLocalizedName(s, language)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-2">
+              <Select value={sectorFilter} onValueChange={setSectorFilter}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder={t('customers.filter_by_sector')} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-[100]">
+                  <SelectItem value="all">{t('customers.all_sectors')}</SelectItem>
+                  <SelectItem value="none">{t('customers.no_sector')}</SelectItem>
+                  {sectors.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{getLocalizedName(s, language)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {sectorZones.length > 0 && sectorFilter !== 'all' && sectorFilter !== 'none' ? (
+                <Select value={zoneFilter} onValueChange={setZoneFilter}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder={t('customers.all_areas')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-[100]">
+                    <SelectItem value="all">{t('customers.all_areas')}</SelectItem>
+                    <SelectItem value="none">{t('customers.no_sector')} ({filteredByBranch.filter(c => c.sector_id === sectorFilter && !c.zone_id).length})</SelectItem>
+                    {sectorZones.map(z => {
+                      const count = filteredByBranch.filter(c => c.zone_id === z.id).length;
+                      return <SelectItem key={z.id} value={z.id}>{getLocalizedName(z, language)} ({count})</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
+              ) : <div />}
+            </div>
           )}
-          {sectorZones.length > 0 && sectorFilter !== 'all' && sectorFilter !== 'none' && (
-            <Select value={zoneFilter} onValueChange={setZoneFilter}>
-              <SelectTrigger className="flex-1 h-8 text-xs">
-                <SelectValue placeholder={t('customers.all_areas')} />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-[100]">
-                <SelectItem value="all">{t('customers.all_areas')}</SelectItem>
-                <SelectItem value="none">{t('customers.no_sector')} ({filteredByBranch.filter(c => c.sector_id === sectorFilter && !c.zone_id).length})</SelectItem>
-                {sectorZones.map(z => {
-                  const count = filteredByBranch.filter(c => c.zone_id === z.id).length;
-                  return <SelectItem key={z.id} value={z.id}>{getLocalizedName(z, language)} ({count})</SelectItem>;
-                })}
-              </SelectContent>
-            </Select>
+
+          {/* Row 4: Customer type pills */}
+          {customerTypes.length > 0 && (
+            <div className="flex gap-1 flex-wrap items-center pt-1 border-t">
+              <Button
+                type="button"
+                variant={typeFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                className="text-[10px] h-6 px-2 rounded-full"
+                onClick={() => setTypeFilter('all')}
+              >
+                {t('customers.all')}
+              </Button>
+              <Button
+                type="button"
+                variant={typeFilter === 'none' ? 'default' : 'outline'}
+                size="sm"
+                className="text-[10px] h-6 px-2 rounded-full"
+                onClick={() => setTypeFilter('none')}
+              >
+                {t('customers.none')}
+              </Button>
+              {customerTypes.map((ct, idx) => {
+                const colors = getCustomerTypeColor(ct.short, idx, ct);
+                const isActive = typeFilter === ct.ar;
+                return (
+                  <button
+                    key={idx}
+                    className={`text-[10px] h-6 px-2.5 rounded-full font-mono uppercase font-semibold transition-shadow ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : ''}`}
+                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                    onClick={() => setTypeFilter(ct.ar)}
+                  >
+                    {ct.short || ct.ar}
+                  </button>
+                );
+              })}
+            </div>
           )}
-        </div>
-        {customerTypes.length > 0 && (
-          <div className="flex gap-1 flex-wrap">
-            <Button
-              type="button"
-              variant={typeFilter === 'all' ? 'default' : 'outline'}
-              size="sm"
-              className="text-[10px] h-6 px-2 rounded-full"
-              onClick={() => setTypeFilter('all')}
-            >
-              {t('customers.all')}
-            </Button>
-            <Button
-              type="button"
-              variant={typeFilter === 'none' ? 'default' : 'outline'}
-              size="sm"
-              className="text-[10px] h-6 px-2 rounded-full"
-              onClick={() => setTypeFilter('none')}
-            >
-              {t('customers.none')}
-            </Button>
-            {customerTypes.map((ct, idx) => {
-              const colors = getCustomerTypeColor(ct.short, idx, ct);
-              const isActive = typeFilter === ct.ar;
-              return (
-                <button
-                  key={idx}
-                  className={`text-[10px] h-6 px-2.5 rounded-full font-mono uppercase font-semibold transition-shadow ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : ''}`}
-                  style={{ backgroundColor: colors.bg, color: colors.text }}
-                  onClick={() => setTypeFilter(ct.ar)}
-                >
-                  {ct.short || ct.ar}
-                </button>
-              );
-            })}
+
+          {/* Row 5: Missing-info filter */}
+          <div className="flex gap-1 flex-wrap items-center pt-1 border-t">
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 me-1">
+              <AlertTriangle className="w-3 h-3" />
+              {t('common.filter')}:
+            </span>
+            {[
+              { value: 'all', label: t('customers.filter_all') },
+              { value: 'incomplete', label: t('customers.filter_incomplete') },
+              { value: 'phone', label: t('customers.filter_phone') },
+              { value: 'location', label: t('customers.filter_location') },
+              { value: 'type', label: t('customers.filter_type') },
+              { value: 'sector', label: t('customers.filter_sector_label') },
+              { value: 'store', label: t('customers.filter_store') },
+              { value: 'address', label: t('customers.filter_address') },
+              { value: 'wilaya', label: t('customers.filter_wilaya') },
+              { value: 'zone', label: t('customers.filter_zone') },
+            ].map(opt => (
+              <Button
+                key={opt.value}
+                type="button"
+                variant={missingFilter === opt.value ? 'default' : 'outline'}
+                size="sm"
+                className={`text-[10px] h-6 px-2 rounded-full ${missingFilter === opt.value && opt.value !== 'all' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}`}
+                onClick={() => setMissingFilter(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
           </div>
-        )}
-        {/* Missing info filter */}
-        <div className="flex gap-1 flex-wrap">
-          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 ml-1">
-            <AlertTriangle className="w-3 h-3" />
-            {t('common.filter')}:
-          </span>
-          {[
-            { value: 'all', label: t('customers.filter_all') },
-            { value: 'incomplete', label: t('customers.filter_incomplete') },
-            { value: 'phone', label: t('customers.filter_phone') },
-            { value: 'location', label: t('customers.filter_location') },
-            { value: 'type', label: t('customers.filter_type') },
-            { value: 'sector', label: t('customers.filter_sector_label') },
-            { value: 'store', label: t('customers.filter_store') },
-            { value: 'address', label: t('customers.filter_address') },
-            { value: 'wilaya', label: t('customers.filter_wilaya') },
-            { value: 'zone', label: t('customers.filter_zone') },
-          ].map(opt => (
-            <Button
-              key={opt.value}
-              type="button"
-              variant={missingFilter === opt.value ? 'default' : 'outline'}
-              size="sm"
-              className={`text-[10px] h-6 px-2 rounded-full ${missingFilter === opt.value && opt.value !== 'all' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}`}
-              onClick={() => setMissingFilter(opt.value)}
-            >
-              {opt.label}
-            </Button>
-          ))}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Tab Interface */}
       {isManager ? (
