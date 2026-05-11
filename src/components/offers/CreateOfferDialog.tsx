@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,6 +66,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [activeTierTab, setActiveTierTab] = useState(0);
+  const productSelectedRef = useRef(false);
   const { customerTypes } = useCustomerTypes();
 
   // Form state - offer level
@@ -147,7 +148,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           loadEditOfferData();
         } else {
           resetForm();
-          // Auto-open product picker for new offers
+          productSelectedRef.current = false;
           setProductPickerOpen(true);
         }
       };
@@ -378,14 +379,14 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         open={productPickerOpen}
         onOpenChange={(o) => {
           setProductPickerOpen(o);
-          // If user closed the picker without selecting a product (new offer flow), close the whole flow
-          if (!o && !formData.product_id && !editOffer) {
+          if (!o && !productSelectedRef.current && !editOffer) {
             onOpenChange(false);
           }
         }}
         products={products.map(p => ({ id: p.id, name: getProductDisplayName(p), image_url: (p as any).image_url ?? null }))}
         selectedProductId={formData.product_id}
         onSelect={(id) => {
+          productSelectedRef.current = true;
           setFormData({ ...formData, product_id: id });
           if (!editOffer) setStep(2);
         }}
