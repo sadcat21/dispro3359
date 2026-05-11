@@ -401,7 +401,6 @@ const WarehouseStock: React.FC = () => {
                         className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition-opacity"
                         onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
                       >
-                        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform ${expandedProduct === s.productId ? 'rotate-180' : ''}`} />
                         {(() => {
                           const prod = products.find(p => p.id === s.productId);
                           return prod?.image_url ? (
@@ -412,7 +411,7 @@ const WarehouseStock: React.FC = () => {
                             </div>
                           );
                         })()}
-                        <span className="font-semibold text-sm text-primary truncate">{s.productName}</span>
+                        <span className="font-semibold text-sm text-primary text-right break-words">{s.productName}</span>
                       </button>
                       <div className="flex items-center gap-3 shrink-0">
                         {!isWarehouseManager && (
@@ -427,13 +426,14 @@ const WarehouseStock: React.FC = () => {
                         </div>
                         {canEdit && (
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="destructive"
-                            className="h-7 gap-1 text-[11px]"
+                            className="h-7 w-7"
+                            aria-label={t('warehouse.manual_edit')}
+                            title={t('warehouse.manual_edit')}
                             onClick={(e) => { e.stopPropagation(); setEditProduct(s); }}
                           >
-                            <Pencil className="w-3 h-3" />
-                            {t('warehouse.manual_edit')}
+                            <Pencil className="w-3.5 h-3.5" />
                           </Button>
                         )}
                       </div>
