@@ -9521,6 +9521,7 @@ export type Database = {
         Returns: boolean
       }
       is_worker: { Args: never; Returns: boolean }
+      is_worker_frozen: { Args: { _worker_id: string }; Returns: boolean }
       is_worker_role_active: {
         Args: {
           p_is_active: boolean
