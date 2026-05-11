@@ -145,20 +145,14 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
                   min={1}
                   value={tier.min_quantity}
                   onChange={(e) => onUpdate(tierIndex, { min_quantity: parseInt(e.target.value) || 1 })}
-                  className="flex-1 h-8 text-sm"
+                  className="flex-1 h-7 text-xs px-2"
                 />
-                <Select
-                  value={tier.min_quantity_unit}
-                  onValueChange={(value: 'box' | 'piece') => onUpdate(tierIndex, { min_quantity_unit: value })}
-                >
-                  <SelectTrigger className="w-16 h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="piece">{t('offers.unit_piece_short')}</SelectItem>
-                    <SelectItem value="box">{t('offers.unit_box_short')}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <UnitToggle
+                  value={tier.min_quantity_unit as 'box' | 'piece'}
+                  onChange={(v) => onUpdate(tierIndex, { min_quantity_unit: v })}
+                  pieceLabel={t('offers.unit_piece_short')}
+                  boxLabel={t('offers.unit_box_short')}
+                />
               </div>
             </div>
             <div className="space-y-1">
@@ -169,7 +163,7 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
                 value={tier.max_quantity || ''}
                 onChange={(e) => onUpdate(tierIndex, { max_quantity: e.target.value ? parseInt(e.target.value) : null })}
                 placeholder="∞"
-                className="h-8 text-sm"
+                className="h-7 text-xs px-2"
               />
             </div>
           </div>
@@ -182,21 +176,15 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
                 min={1}
                 value={tier.min_quantity}
                 onChange={(e) => onUpdate(tierIndex, { min_quantity: parseInt(e.target.value) || 1, max_quantity: null })}
-                className="flex-1 h-8 text-sm"
+                className="flex-1 h-7 text-xs px-2"
               />
-              <Select
-                value={tier.min_quantity_unit}
-                onValueChange={(value: 'box' | 'piece') => onUpdate(tierIndex, { min_quantity_unit: value })}
-              >
-                <SelectTrigger className="w-16 h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="piece">{t('offers.unit_piece_short')}</SelectItem>
-                  <SelectItem value="box">{t('offers.unit_box_short')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">= {t('offers.gift')}</span>
+              <UnitToggle
+                value={tier.min_quantity_unit as 'box' | 'piece'}
+                onChange={(v) => onUpdate(tierIndex, { min_quantity_unit: v })}
+                pieceLabel={t('offers.unit_piece_short')}
+                boxLabel={t('offers.unit_box_short')}
+              />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">= {t('offers.gift')}</span>
             </div>
           </div>
         )}
@@ -256,21 +244,15 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
                 min={0}
                 value={tier.gift_quantity}
                 onChange={(e) => onUpdate(tierIndex, { gift_quantity: parseInt(e.target.value) || 0 })}
-                className={tier.gift_type === 'different_product' ? 'w-16 h-8 text-sm' : 'flex-1 h-8 text-sm'}
+                className={tier.gift_type === 'different_product' ? 'w-14 h-7 text-xs px-2' : 'flex-1 h-7 text-xs px-2'}
                 placeholder={t('offers.qty')}
               />
-              <Select
-                value={tier.gift_quantity_unit}
-                onValueChange={(value: 'box' | 'piece') => onUpdate(tierIndex, { gift_quantity_unit: value })}
-              >
-                <SelectTrigger className="w-16 h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="piece">{t('offers.unit_piece_short')}</SelectItem>
-                  <SelectItem value="box">{t('offers.unit_box_short')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <UnitToggle
+                value={tier.gift_quantity_unit as 'box' | 'piece'}
+                onChange={(v) => onUpdate(tierIndex, { gift_quantity_unit: v })}
+                pieceLabel={t('offers.unit_piece_short')}
+                boxLabel={t('offers.unit_box_short')}
+              />
             </div>
           )}
 
