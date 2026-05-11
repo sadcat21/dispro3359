@@ -908,7 +908,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
             <div className="flex-1 text-center text-xs text-muted-foreground">
               {step} / {steps.length}
             </div>
-            {step < 4 ? (
+            {step < 5 ? (
               <Button
                 type="button"
                 onClick={goNext}
