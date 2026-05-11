@@ -13,6 +13,31 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types/database';
 import { ProductOfferTier, TierConditions } from '@/types/productOffer';
 
+const UnitToggle: React.FC<{
+  value: 'box' | 'piece';
+  onChange: (v: 'box' | 'piece') => void;
+  pieceLabel: string;
+  boxLabel: string;
+}> = ({ value, onChange, pieceLabel, boxLabel }) => (
+  <div className="inline-flex items-stretch h-7 rounded-md border bg-background overflow-hidden text-[11px] shrink-0">
+    {([
+      { v: 'piece' as const, l: pieceLabel },
+      { v: 'box' as const, l: boxLabel },
+    ]).map((o) => (
+      <button
+        key={o.v}
+        type="button"
+        onClick={() => onChange(o.v)}
+        className={`px-2 font-medium transition-colors ${
+          value === o.v ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'
+        }`}
+      >
+        {o.l}
+      </button>
+    ))}
+  </div>
+);
+
 interface OfferTierCardProps {
   tier: ProductOfferTier;
   tierIndex: number;
