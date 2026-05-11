@@ -200,7 +200,7 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
         ? `تم إرسال طلب تأكيد المراجعة للعامل - ${discrepancies.length} فارق`
         : 'تم إرسال طلب تأكيد المراجعة للعامل - مطابق بالكامل');
       onOpenChange(false);
-      await onComplete?.();
+      await onComplete?.(session.id);
     } catch (err: any) {
       toast.error(err.message || 'خطأ في تسجيل المراجعة');
     } finally {
