@@ -618,28 +618,17 @@ const Customers: React.FC = () => {
                       );
                     })()}
                   </div>
-                  {/* Level 2: customer name + loyalty badge */}
-                  <div className="px-2 py-0.5 bg-background flex items-center justify-center gap-1">
-                    {percent === 100 && <BadgeCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
-                    <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground text-center">
+                  {/* Level 2: customer name + zone (integrated, no sector / no credibility badge) */}
+                  <div className="flex items-stretch bg-background">
+                    <p className="flex-1 min-w-0 px-2 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground text-center flex items-center justify-center">
                       {bottomText || '—'}
                     </p>
+                    {zoneLabel && (
+                      <div className="px-2 py-0.5 text-[10px] font-bold leading-tight bg-red-600 text-white flex items-center justify-center shrink-0">
+                        {zoneLabel}
+                      </div>
+                    )}
                   </div>
-                  {/* Level 3: sector + zone (integrated bands) */}
-                  {(sectorLabel || zoneLabel) && (
-                    <div className="flex items-stretch">
-                      {sectorLabel && (
-                        <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-primary/10 text-primary flex items-center justify-center">
-                          {sectorLabel}
-                        </div>
-                      )}
-                      {zoneLabel && (
-                        <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-red-600 text-white flex items-center justify-center">
-                          {zoneLabel}
-                        </div>
-                      )}
-                    </div>
-                  )}
                   {pendingCount > 0 && (
                     <Badge
                       className="absolute top-0.5 start-0.5 bg-destructive text-destructive-foreground text-[9px] px-1 py-0 h-4 cursor-pointer"
