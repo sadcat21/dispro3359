@@ -304,6 +304,21 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
       setShowConfirmation(false);
       onOpenChange(false);
+
+      // Clear the stock confirmation log between this manager and worker
+      // once the accounting session has been saved successfully.
+      try {
+        if (currentWorkerId && selectedWorkerId) {
+          await supabase
+            .from('stock_confirmations')
+            .delete()
+            .eq('manager_id', currentWorkerId)
+            .eq('worker_id', selectedWorkerId);
+        }
+      } catch (e) {
+        // non-blocking
+        console.warn('Failed to clear stock confirmations log', e);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
