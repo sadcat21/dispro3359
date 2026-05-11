@@ -93,6 +93,9 @@ const fmtQty = (n: number) => {
   return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 };
 
+const fmtPiecesAsCustomQty = (pieces: number, piecesPerBox: number) =>
+  fmtQty(totalPiecesToCustom(Math.max(0, pieces), piecesPerBox));
+
 const LoadStock: React.FC = () => {
   const { t } = useLanguage();
   const { workerId: currentWorkerId } = useAuth();
@@ -840,8 +843,8 @@ const LoadStock: React.FC = () => {
         if (warehousePieces < loadPieces + alreadyInSession) {
           setInsufficientAlert({
             name: product?.name || '',
-            available: String(warehousePieces - alreadyInSession),
-            requested: String(loadPieces),
+            available: fmtPiecesAsCustomQty(warehousePieces - alreadyInSession, piecesPerBox),
+            requested: fmtPiecesAsCustomQty(loadPieces, piecesPerBox),
           });
           continue;
         }
