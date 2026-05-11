@@ -49,10 +49,12 @@ export const getPaidQuantity = (item: GiftBreakdownInput): number => {
 };
 
 export const getDeliveredPaidQuantity = (item: GiftBreakdownInput): number => {
+  const paidQuantity = getPaidQuantity(item);
   const movementQuantity = item.delivered_quantity ?? item.stock_movement_quantity;
   if (movementQuantity !== undefined && movementQuantity !== null) {
-    return Math.max(0, toNumber(movementQuantity));
+    const deliveredQuantity = Math.max(0, toNumber(movementQuantity));
+    return paidQuantity > 0 ? Math.min(paidQuantity, deliveredQuantity) : deliveredQuantity;
   }
 
-  return getPaidQuantity(item);
+  return paidQuantity;
 };
