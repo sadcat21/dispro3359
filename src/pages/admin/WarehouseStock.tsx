@@ -147,6 +147,23 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
+  const latestReceiptAtByProduct = useMemo(() => {
+    const latest: Record<string, string> = {};
+    for (const r of (summaryData?.receipts || [])) {
+      const pid = r.product_id;
+      const createdAt = (r as any).created_at as string | undefined;
+      if (pid && createdAt && (!latest[pid] || createdAt > latest[pid])) {
+        latest[pid] = createdAt;
+      }
+    }
+    return latest;
+  }, [summaryData?.receipts]);
+
+  const latestReceiptQueryKey = useMemo(
+    () => Object.entries(latestReceiptAtByProduct).sort(([a], [b]) => a.localeCompare(b)).map(([pid, at]) => `${pid}:${at}`).join('|'),
+    [latestReceiptAtByProduct]
+  );
+
   // Fetch sold from order_items for delivered orders
   const { data: soldData, isLoading: soldLoading } = useQuery({
     queryKey: ['warehouse-sold-summary', branchId],
