@@ -701,9 +701,11 @@ const WorkerActions: React.FC = () => {
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
-    const rawOpeningBalance = currentQty - totalLoaded + totalUnloaded + totalSold + totalGift;
-    const openingBalance = rawOpeningBalance > 0.001 ? rawOpeningBalance : 0;
-    const totalAvailable = totalLoaded + openingBalance;
+    // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
+    const totalAvailable = totalLoaded;
+    const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
+    const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
+    const shortage = discrepancy < -0.001 ? -discrepancy : 0;
     const chronological = [...rawMovements].reverse();
     let remainingBalance = currentQty;
     const historyEntries = chronological.map((movement) => {
