@@ -267,26 +267,28 @@ const WarehouseStock: React.FC = () => {
     // (deliveries are deducted from worker stock, not from warehouse stock)
     const loadByProduct: Record<string, number> = {};
     const returnByProduct: Record<string, number> = {};
-    for (const m of (movementsData || [])) {
-      const pid = (m as any).product_id;
-      const qty = Number((m as any).quantity || 0);
-      if ((m as any).movement_type === 'load') {
+    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
+      const pid = m.product_id;
+      if (!pid) continue;
+      const qty = Number(m.quantity || 0);
+      if (m.movement_type === 'load') {
         loadByProduct[pid] = (loadByProduct[pid] || 0) + qty;
-      } else if ((m as any).movement_type === 'return') {
+      } else if (m.movement_type === 'return') {
         returnByProduct[pid] = (returnByProduct[pid] || 0) + qty;
       }
     }
 
     const warehouseSaleByProduct: Record<string, number> = {};
-    for (const s of (warehouseSalesData || [])) {
-      const ppb = Number((s as any).pieces_per_box) || 20;
-      const boxes = Number((s as any).total_boxes || 0);
-      const pieces = Number((s as any).total_pieces || 0);
+    for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
+      const pid = s.product_id;
+      if (!pid) continue;
+      const ppb = Number(s.pieces_per_box) || 20;
+      const boxes = Number(s.total_boxes || 0);
+      const pieces = Number(s.total_pieces || 0);
       const totalPieces = boxes * ppb + pieces;
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
-      const pid = (s as any).product_id;
       warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
     }
 
