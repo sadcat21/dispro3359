@@ -40,6 +40,21 @@ interface ProductSummary {
   remaining: number;
 }
 
+interface StockMovementSummaryRow {
+  product_id: string | null;
+  movement_type: string | null;
+  quantity: number | null;
+}
+
+interface WarehouseSaleSummaryRow {
+  product_id: string | null;
+  total_boxes: number | null;
+  total_pieces: number | null;
+  pieces_per_box: number | null;
+  order_id: string | null;
+  order?: { status: string | null } | { status: string | null }[] | null;
+}
+
 const WarehouseStock: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -131,17 +146,20 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
-  // Fetch warehouse_sale totals from sales_tracking (these reduce warehouse stock directly)
+  // Fetch warehouse_sale totals from sales_tracking (only rows that actually reduced warehouse stock)
   const { data: warehouseSalesData } = useQuery({
     queryKey: ['warehouse-sales-tracking', branchId],
     queryFn: async () => {
       if (!branchId) return [];
       const { data } = await supabase
         .from('sales_tracking')
-        .select('product_id, total_boxes, total_pieces, pieces_per_box')
+        .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, order:orders(status)')
         .eq('branch_id', branchId)
         .eq('source', 'warehouse_sale');
-      return data || [];
+      return ((data || []) as WarehouseSaleSummaryRow[]).filter((row) => {
+        const order = Array.isArray(row.order) ? row.order[0] : row.order;
+        return !row.order_id || order?.status === 'delivered';
+      });
     },
     enabled: !!branchId,
   });
@@ -249,26 +267,28 @@ const WarehouseStock: React.FC = () => {
     // (deliveries are deducted from worker stock, not from warehouse stock)
     const loadByProduct: Record<string, number> = {};
     const returnByProduct: Record<string, number> = {};
-    for (const m of (movementsData || [])) {
-      const pid = (m as any).product_id;
-      const qty = Number((m as any).quantity || 0);
-      if ((m as any).movement_type === 'load') {
+    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
+      const pid = m.product_id;
+      if (!pid) continue;
+      const qty = Number(m.quantity || 0);
+      if (m.movement_type === 'load') {
         loadByProduct[pid] = (loadByProduct[pid] || 0) + qty;
-      } else if ((m as any).movement_type === 'return') {
+      } else if (m.movement_type === 'return') {
         returnByProduct[pid] = (returnByProduct[pid] || 0) + qty;
       }
     }
 
     const warehouseSaleByProduct: Record<string, number> = {};
-    for (const s of (warehouseSalesData || [])) {
-      const ppb = Number((s as any).pieces_per_box) || 20;
-      const boxes = Number((s as any).total_boxes || 0);
-      const pieces = Number((s as any).total_pieces || 0);
+    for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
+      const pid = s.product_id;
+      if (!pid) continue;
+      const ppb = Number(s.pieces_per_box) || 20;
+      const boxes = Number(s.total_boxes || 0);
+      const pieces = Number(s.total_pieces || 0);
       const totalPieces = boxes * ppb + pieces;
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
-      const pid = (s as any).product_id;
       warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
     }
 
