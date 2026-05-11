@@ -324,7 +324,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           worker_reward_amount: tier.worker_reward_amount,
           tier_order: index,
           is_stackable: tier.is_stackable ?? false,
-          conditions: tier.conditions || null,
+          conditions: (Object.keys(audience).length > 0 ? audience : tier.conditions) || null,
         }));
 
         const { error: tiersError } = await supabase
