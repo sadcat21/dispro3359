@@ -271,6 +271,7 @@ function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: stri
 }
 
 function RowItem({ r }: { r: SalesTrackingRow }) {
+  // moved below
   const meta = SOURCE_META[r.source] || SOURCE_META.direct_sale;
   const Icon = meta.icon;
   return (
