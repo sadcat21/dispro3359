@@ -203,6 +203,7 @@ export default function SalesTrackingLedger() {
                       <TableHead>Client</TableHead>
                       <TableHead>Dépôt</TableHead>
                     </TableRow>
+                    <TotalsRowOps stats={stats} />
                   </TableHeader>
                   <TableBody>
                     {filtered.slice(0, 500).map((r) => <RowItem key={r.id} r={r} />)}
@@ -228,6 +229,7 @@ export default function SalesTrackingLedger() {
                     <TableHead className="text-center">B.P</TableHead>
                     <TableHead>Montant</TableHead>
                   </TableRow>
+                    <TotalsRowProducts byProduct={byProduct} />
                 </TableHeader>
                 <TableBody>
                   {byProduct.map((p) => (
