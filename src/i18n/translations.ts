@@ -991,6 +991,7 @@ export const translations: Translations = {
   'offers.offer_on': { ar: 'عرض على', fr: 'Offre sur', en: 'Offer on' },
   'offers.add_tier': { ar: 'إضافة شريحة', fr: 'Ajouter un palier', en: 'Add Tier' },
   'offers.tier': { ar: 'شريحة', fr: 'Palier', en: 'Tier' },
+  'offers.summary': { ar: 'الملخص', fr: 'Résumé', en: 'Summary' },
   'offers.tiers': { ar: 'الشرائح', fr: 'Paliers', en: 'Tiers' },
   'offers.existing_offers': { ar: 'العروض الحالية على هذا المنتج', fr: 'Offres existantes sur ce produit', en: 'Existing offers on this product' },
   'offers.no_existing_offers': { ar: 'لا توجد عروض أخرى على هذا المنتج', fr: 'Aucune autre offre sur ce produit', en: 'No other offers on this product' },
