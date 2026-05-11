@@ -918,8 +918,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
             {/* Step 5: Summary */}
             {step === 5 && (
               <div className="space-y-3">
-                <PreviewCard />
                 <div className="rounded-lg border p-3 space-y-2 text-xs">
+                  <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.product')}</span><span className="font-medium">{getProductName(formData.product_id)}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.condition_type')}</span><span className="font-medium">{formData.condition_type === 'range' ? t('offers.range') : t('offers.multiplier')}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.tiers')}</span><span className="font-medium">{tiers.length}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-muted-foreground">{t('offers.priority')}</span><span className="font-medium">{formData.priority}</span></div>
@@ -931,9 +931,6 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                 </div>
               </div>
             )}
-
-            {/* Live preview (compact) — shown on steps 1-4 */}
-            {step < 5 && formData.product_id && <PreviewCard compact />}
           </div>
 
           {/* Footer with stepper navigation */}
