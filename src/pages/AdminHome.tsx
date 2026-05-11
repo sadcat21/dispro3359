@@ -22,6 +22,7 @@ import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
 import FactoryDeliveryQuickDialog from '@/components/stock/FactoryDeliveryQuickDialog';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
+import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
 import { cn, isAdminRole, isSuperAdminRole } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -111,6 +112,7 @@ const AdminHome: React.FC = () => {
   const [factoryReceiptOpen, setFactoryReceiptOpen] = useState(false);
   const [factoryDeliveryOpen, setFactoryDeliveryOpen] = useState(false);
   const [warehouseDirectSaleOpen, setWarehouseDirectSaleOpen] = useState(false);
+  const [replaceDamagedOpen, setReplaceDamagedOpen] = useState(false);
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
 
   const isBranchAdmin = role === 'branch_admin';
@@ -352,6 +354,7 @@ const AdminHome: React.FC = () => {
         { path: '/factory-receipt', icon: ArrowDownToLine, label: t('admin_home.item.factory_receipt'), action: () => setFactoryReceiptOpen(true) },
         { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
         ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
+        ...(isWarehouseManager ? [{ path: '/replace-damaged', icon: PackageSearch, label: 'استبدال التالف', action: () => setReplaceDamagedOpen(true) }] : []),
         { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
       ],
     }] : []),
@@ -617,6 +620,7 @@ const AdminHome: React.FC = () => {
       <ManualPromoEntryDialog open={manualPromoOpen} onOpenChange={setManualPromoOpen} />
       <FactoryReceiptQuickDialog open={factoryReceiptOpen} onOpenChange={setFactoryReceiptOpen} />
       <FactoryDeliveryQuickDialog open={factoryDeliveryOpen} onOpenChange={setFactoryDeliveryOpen} />
+      <ReplaceDamagedDialog open={replaceDamagedOpen} onOpenChange={setReplaceDamagedOpen} />
       {warehouseDirectSaleOpen && (
         <SalesHubDialog
           open={warehouseDirectSaleOpen}
