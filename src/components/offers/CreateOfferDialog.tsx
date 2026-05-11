@@ -706,7 +706,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
 
             {/* Step 4: Target Audience (optional) */}
             {step === 4 && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-muted-foreground" />
@@ -717,141 +717,57 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                 </div>
 
                 {/* Invoice Type */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('offers.invoice_types_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { value: 'facture_1', label: t('offers.invoice_1') || 'فاتورة 1' },
-                      { value: 'facture_2', label: t('offers.invoice_2') || 'فاتورة 2' },
-                    ].map(item => {
-                      const checked = (audience.invoice_types || []).includes(item.value);
-                      return (
-                        <button
-                          key={item.value}
-                          type="button"
-                          onClick={() => {
-                            const curr = audience.invoice_types || [];
-                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
-                            setAudience({ ...audience, invoice_types: next.length ? next : undefined });
-                          }}
-                          className={cn(
-                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
-                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
-                          )}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <AudienceFilterCard
+                  title={t('offers.invoice_types_label')}
+                  selected={audience.invoice_types}
+                  onChange={(next) => setAudience({ ...audience, invoice_types: next })}
+                  options={[
+                    { value: 'facture_1', label: t('offers.invoice_1') || 'فاتورة 1' },
+                    { value: 'facture_2', label: t('offers.invoice_2') || 'فاتورة 2' },
+                  ]}
+                  allLabel={t('offers.all_by_default')}
+                />
 
                 {/* Pricing Types */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('offers.pricing_types_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { value: 'retail', label: t('offers.retail') || 'التجزئة' },
-                      { value: 'gros', label: t('offers.gros') || 'الجملة (غرو)' },
-                      { value: 'super_gros', label: t('offers.super_gros') || 'سبر غرو' },
-                    ].map(item => {
-                      const checked = (audience.pricing_types || []).includes(item.value);
-                      return (
-                        <button
-                          key={item.value}
-                          type="button"
-                          onClick={() => {
-                            const curr = audience.pricing_types || [];
-                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
-                            setAudience({ ...audience, pricing_types: next.length ? next : undefined });
-                          }}
-                          className={cn(
-                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
-                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
-                          )}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <AudienceFilterCard
+                  title={t('offers.pricing_types_label')}
+                  selected={audience.pricing_types}
+                  onChange={(next) => setAudience({ ...audience, pricing_types: next })}
+                  options={[
+                    { value: 'retail', label: t('offers.retail') || 'التجزئة' },
+                    { value: 'gros', label: t('offers.gros') || 'الجملة (غرو)' },
+                    { value: 'super_gros', label: t('offers.super_gros') || 'سبر غرو' },
+                  ]}
+                  allLabel={t('offers.all_by_default')}
+                />
 
                 {/* Payment Methods */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('offers.payment_methods_label')} <span className="opacity-60">· {t('offers.all_by_default')}</span>
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { value: 'cash', label: t('offers.cash') || 'كاش' },
-                      { value: 'check', label: t('offers.check') || 'شيك' },
-                      { value: 'versement', label: 'فيرسمو' },
-                      { value: 'virement', label: 'فيرمو' },
-                    ].map(item => {
-                      const checked = (audience.payment_methods || []).includes(item.value);
-                      return (
-                        <button
-                          key={item.value}
-                          type="button"
-                          onClick={() => {
-                            const curr = audience.payment_methods || [];
-                            const next = checked ? curr.filter(v => v !== item.value) : [...curr, item.value];
-                            setAudience({ ...audience, payment_methods: next.length ? next : undefined });
-                          }}
-                          className={cn(
-                            'text-xs px-2.5 py-1 rounded-md border transition-colors',
-                            checked ? 'bg-foreground text-background border-foreground' : 'bg-background hover:bg-muted/50 border-border'
-                          )}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <AudienceFilterCard
+                  title={t('offers.payment_methods_label')}
+                  selected={audience.payment_methods}
+                  onChange={(next) => setAudience({ ...audience, payment_methods: next })}
+                  options={[
+                    { value: 'cash', label: t('offers.cash') || 'كاش' },
+                    { value: 'check', label: t('offers.check') || 'شيك' },
+                    { value: 'versement', label: 'فيرسمو' },
+                    { value: 'virement', label: 'فيرمو' },
+                  ]}
+                  allLabel={t('offers.all_by_default')}
+                />
 
-                {/* Excluded Customer Types */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('offers.excluded_customer_types')}
-                  </Label>
-                  <p className="text-[10px] text-muted-foreground">{t('offers.excluded_customer_types_hint')}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {customerTypes.map((ct, i) => {
-                      const checked = (audience.excluded_customer_types || []).includes(ct.ar);
-                      const color = getCustomerTypeColor(ct.short, i, ct);
-                      return (
-                        <button
-                          key={ct.ar}
-                          type="button"
-                          onClick={() => {
-                            const curr = audience.excluded_customer_types || [];
-                            const next = checked ? curr.filter(v => v !== ct.ar) : [...curr, ct.ar];
-                            setAudience({ ...audience, excluded_customer_types: next.length ? next : undefined });
-                          }}
-                          className={cn(
-                            'text-xs px-2.5 py-1 rounded-md border transition-colors flex items-center gap-1.5',
-                            checked
-                              ? 'border-destructive bg-destructive/10 text-destructive line-through'
-                              : 'bg-background hover:bg-muted/50 border-border'
-                          )}
-                          title={ct.description}
-                        >
-                          <span
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{ backgroundColor: color.bg }}
-                          />
-                          {ct.ar}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                {/* Customer Types */}
+                <AudienceFilterCard
+                  title={t('offers.excluded_customer_types')}
+                  description={t('offers.excluded_customer_types_hint')}
+                  selected={audience.excluded_customer_types}
+                  onChange={(next) => setAudience({ ...audience, excluded_customer_types: next })}
+                  options={customerTypes.map((ct, i) => {
+                    const color = getCustomerTypeColor(ct.short, i, ct);
+                    return { value: ct.ar, label: ct.ar, dotColor: color.bg, title: ct.description };
+                  })}
+                  allLabel={t('offers.all_by_default')}
+                  variant="destructive"
+                />
 
                 {/* Allow Debt */}
                 <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -870,7 +786,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                 </div>
 
                 <p className="text-[11px] text-muted-foreground">
-                  {t('offers.target_audience_default_hint')}
+                  💡 {t('offers.target_audience_default_hint')}
                 </p>
               </div>
             )}
