@@ -104,6 +104,7 @@ const LoadStock: React.FC = () => {
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedWorker, setSelectedWorker] = useState(() => contextWorkerId || '');
   const [showWorkerPicker, setShowWorkerPicker] = useState(false);
+  const [postConfirmDialog, setPostConfirmDialog] = useState<{ open: boolean; workerName: string }>({ open: false, workerName: '' });
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [showExchangeDialog, setShowExchangeDialog] = useState(false);
   const [showProductPicker, setShowProductPicker] = useState(false);
