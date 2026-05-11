@@ -377,6 +377,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         store_name: canEdit('store_name') ? payload.store_name : customer.store_name,
         internal_name: canEdit('internal_name') ? payload.internal_name : customer.internal_name,
         customer_type: canEdit('customer_type') ? payload.customer_type : customer.customer_type,
+        customer_types: canEdit('customer_type') ? payload.customer_types : ((customer as any).customer_types || []),
         sector_id: canEdit('sector_id') ? payload.sector_id : customer.sector_id,
         zone_id: canEdit('zone_id') ? payload.zone_id : customer.zone_id,
         sales_rep_name: canEdit('sales_rep_name') ? payload.sales_rep_name : customer.sales_rep_name,
