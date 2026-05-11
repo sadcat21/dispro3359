@@ -235,7 +235,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setTrustNotes(customer.trust_notes || '');
       setDefaultPaymentType(customer.default_payment_type || 'without_invoice');
       setDefaultPriceSubtype(customer.default_price_subtype || 'gros');
-      setCustomerType(customer.customer_type || '');
+      {
+        const arr = Array.isArray((customer as any).customer_types) ? (customer as any).customer_types : null;
+        setCustomerType(arr && arr.length ? arr.join(', ') : (customer.customer_type || ''));
+      }
       setIsRegistered((customer as any).is_registered || false);
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
@@ -361,6 +364,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         default_payment_type: defaultPaymentType,
         default_price_subtype: defaultPriceSubtype,
         customer_type: customerType || null,
+        customer_types: customerType ? customerType.split(',').map(s => s.trim()).filter(Boolean) : [],
         is_registered: isRegistered,
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
@@ -376,6 +380,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         store_name: canEdit('store_name') ? payload.store_name : customer.store_name,
         internal_name: canEdit('internal_name') ? payload.internal_name : customer.internal_name,
         customer_type: canEdit('customer_type') ? payload.customer_type : customer.customer_type,
+        customer_types: canEdit('customer_type') ? payload.customer_types : ((customer as any).customer_types || []),
         sector_id: canEdit('sector_id') ? payload.sector_id : customer.sector_id,
         zone_id: canEdit('zone_id') ? payload.zone_id : customer.zone_id,
         sales_rep_name: canEdit('sales_rep_name') ? payload.sales_rep_name : customer.sales_rep_name,
