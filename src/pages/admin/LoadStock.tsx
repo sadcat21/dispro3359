@@ -366,7 +366,7 @@ const LoadStock: React.FC = () => {
           ? supabase.from('stock_receipt_items').select('product_id, quantity').in('receipt_id', receiptIds)
           : Promise.resolve({ data: [] as any[] }),
         supabase.from('stock_movements').select('product_id, quantity, movement_type').eq('branch_id', branchId).in('movement_type', ['load', 'return']),
-        supabase.from('warehouse_sales').select('product_id, total_boxes, total_pieces').eq('branch_id', branchId),
+        supabase.from('sales_tracking').select('product_id, total_boxes, total_pieces, pieces_per_box').eq('branch_id', branchId).eq('source', 'warehouse_sale'),
         supabase.from('products').select('id, pieces_per_box'),
       ]);
       const ppbMap: Record<string, number> = {};
@@ -386,7 +386,7 @@ const LoadStock: React.FC = () => {
         addPieces(m.product_id, m.movement_type === 'return' ? pieces : -pieces);
       }
       for (const s of (salesRes.data || []) as any[]) {
-        const ppb = ppbMap[s.product_id] || 20;
+        const ppb = Number(s.pieces_per_box) || ppbMap[s.product_id] || 20;
         const pieces = Number(s.total_boxes || 0) * ppb + Number(s.total_pieces || 0);
         addPieces(s.product_id, -pieces);
       }
