@@ -44,7 +44,8 @@ const GROUP_LABELS: Record<string, { label: string; emoji: string }> = {
 const DATA_CATEGORIES: DataCategory[] = [
   // Sales
   { id: 'promos', label: 'العمليات (البروموهات)', tables: ['promos'], description: 'جميع عمليات البيع والتوزيع', order: 12, group: 'sales' },
-  { id: 'orders', label: 'الطلبات', tables: ['product_shortage_tracking', 'order_items', 'orders'], description: 'جميع الطلبات وعناصرها', order: 11, group: 'sales' },
+  { id: 'delivered_orders', label: 'الطلبات المُسلَّمة فقط', tables: [], description: 'حذف الطلبات بحالة "مُسلَّمة" فقط مع عناصرها وسجل المبيعات، دون المساس بالطلبات قيد التنفيذ', order: 11.5, group: 'sales' },
+  { id: 'orders', label: 'الطلبات (الكل)', tables: ['product_shortage_tracking', 'order_items', 'orders'], description: 'جميع الطلبات وعناصرها (بكل الحالات)', order: 11, group: 'sales' },
   { id: 'deliveries', label: 'التوصيلات', tables: ['order_events', 'receipts'], description: 'سجلات التوصيل والإيصالات', order: 10.8, group: 'sales' },
   { id: 'doc_collections', label: 'تحصيل الوثائق', tables: ['document_collections'], description: 'شيكات، تحويلات...', order: 10.5, group: 'sales' },
   { id: 'delivery_routes', label: 'مسارات التوصيل', tables: ['delivery_route_sectors', 'delivery_routes'], description: 'مسارات التوصيل وقطاعاتها', order: 4.2, group: 'sales' },
