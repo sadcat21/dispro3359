@@ -64,6 +64,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   const [step, setStep] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const { customerTypes } = useCustomerTypes();
 
   // Form state - offer level
   const [formData, setFormData] = useState({
@@ -79,6 +80,9 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     priority: 0,
     branch_id: null as string | null,
   });
+
+  // Target audience (offer-level conditions, applied to all tiers on save)
+  const [audience, setAudience] = useState<TierConditions>({});
 
   // Tiers state
   const [tiers, setTiers] = useState<ProductOfferTier[]>([{ ...defaultTier, tier_order: 0 }]);
