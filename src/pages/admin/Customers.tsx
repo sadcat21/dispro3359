@@ -566,8 +566,9 @@ const Customers: React.FC = () => {
             key={group.key}
             label={group.label}
             count={group.customers.length}
-            defaultOpen={!!searchQuery.trim()}
-            forceOpen={expandAllSectors}
+            expandAll={expandAllSectors || !!searchQuery.trim()}
+            isActive={openSectorKey === group.key}
+            onToggle={() => setOpenSectorKey(openSectorKey === group.key ? null : group.key)}
           >
             <div className="grid grid-cols-2 gap-2">
             {group.customers.map((customer) => {
