@@ -650,6 +650,16 @@ const LoadStock: React.FC = () => {
   const getAvailableQuantity = (productId: string) =>
     warehouseStock.find(s => s.product_id === productId)?.quantity || 0;
 
+  // Returns the available quantity in PIECES, with a fallback derived from
+  // approved receipts when the warehouse_stock row is missing (e.g. after cleanup).
+  const getWarehousePiecesAvailable = (productId: string, piecesPerBox: number): number => {
+    const ws = warehouseStock.find(s => s.product_id === productId);
+    if (ws && (ws.quantity || 0) > 0) {
+      return customToTotalPieces(ws.quantity, piecesPerBox);
+    }
+    return fallbackAvailablePieces[productId] || 0;
+  };
+
   const fetchProductOffer = async (productId: string) => {
     if (productOffers[productId]) return productOffers[productId];
     const { data: offers } = await supabase
@@ -796,8 +806,8 @@ const LoadStock: React.FC = () => {
         const piecesPerBox = product?.pieces_per_box || 20;
 
         // Validate warehouse availability
-        const warehouseItem = warehouseStock.find(s => s.product_id === item.productId);
-        if (!warehouseItem) {
+        const warehousePiecesAvail = getWarehousePiecesAvailable(item.productId, piecesPerBox);
+        if (warehousePiecesAvail <= 0) {
           setInsufficientAlert({ name: product?.name || '', available: '0', requested: String(item.quantity) });
           continue;
         }
@@ -814,7 +824,7 @@ const LoadStock: React.FC = () => {
           totalLoadQty = addCustomQty(totalLoadQty, giftInCustom, piecesPerBox);
         }
 
-        const warehousePieces = customToTotalPieces(warehouseItem.quantity, piecesPerBox);
+        const warehousePieces = warehousePiecesAvail;
         const alreadyInSession = sessionItems
           .filter(si => si.product_id === item.productId)
           .reduce((sum, si) => {
@@ -917,12 +927,10 @@ const LoadStock: React.FC = () => {
       }
 
       // Validate warehouse availability (but don't deduct yet)
-      const warehouseItem = warehouseStock.find(s => s.product_id === addProductId);
-      if (!warehouseItem) {
+      const warehousePieces = getWarehousePiecesAvailable(addProductId, piecesPerBox);
+      if (warehousePieces <= 0) {
         throw new Error(`${t('load_stock.insufficient_stock')} - ${product?.name || ''}`);
       }
-      
-      const warehousePieces = customToTotalPieces(warehouseItem.quantity, piecesPerBox);
       // Also account for items already in this session for the same product
       const alreadyInSession = sessionItems
         .filter(si => si.product_id === addProductId)
@@ -1038,12 +1046,11 @@ const LoadStock: React.FC = () => {
         const piecesPerBox = p.piecesPerBox || 20;
 
         // Validate warehouse availability (but don't deduct yet)
-        const warehouseItem = warehouseStock.find(s => s.product_id === p.productId);
-        if (!warehouseItem) {
+        const warehousePieces = getWarehousePiecesAvailable(p.productId, piecesPerBox);
+        if (warehousePieces <= 0) {
           toast.error(`الكمية المتاحة من ${p.productName} غير كافية — تم تخطيه`);
           continue;
         }
-        const warehousePieces = customToTotalPieces(warehouseItem.quantity, piecesPerBox);
         // Account for items already in session for same product
         const alreadyInSession = sessionItems
           .filter(si => si.product_id === p.productId)
