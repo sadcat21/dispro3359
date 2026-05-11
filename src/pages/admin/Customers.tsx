@@ -52,15 +52,13 @@ const normalizeArabic = (text: string): string =>
   text.replace(/[إأآءٱ]/g, 'ا').replace(/[ىة]/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي');
 
 // Collapsible sector group component
-const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: boolean; defaultOpen: boolean; children: React.ReactNode }> = ({ label, count, forceOpen, defaultOpen, children }) => {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  React.useEffect(() => { setIsOpen(defaultOpen); }, [defaultOpen]);
-  React.useEffect(() => { if (forceOpen !== undefined) setIsOpen(forceOpen); }, [forceOpen]);
+const SectorCustomerGroup: React.FC<{ label: string; count: number; expandAll?: boolean; isActive?: boolean; onToggle?: () => void; children: React.ReactNode }> = ({ label, count, expandAll, isActive, onToggle, children }) => {
+  const isOpen = expandAll || !!isActive;
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={() => onToggle?.()}>
       <CollapsibleTrigger asChild>
         <button
-          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-foreground select-none transition-transform hover:-translate-y-0.5"
+          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-background select-none transition-transform hover:-translate-y-0.5"
           style={{
             border: '1.5px solid hsl(var(--foreground))',
             boxShadow:
@@ -75,9 +73,9 @@ const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: 
           <div className="px-3 flex items-center justify-center font-bold text-xs font-mono shrink-0 bg-destructive text-destructive-foreground">
             {count}
           </div>
-          {/* Black header strip with white title */}
-          <div className="flex-1 min-w-0 flex items-center justify-center bg-foreground px-3 py-1.5">
-            <span className="font-bold text-sm text-background truncate">{label}</span>
+          {/* White header strip with black title */}
+          <div className="flex-1 min-w-0 flex items-center justify-center bg-background px-3 py-1.5">
+            <span className="font-bold text-sm text-foreground truncate">{label}</span>
           </div>
         </button>
       </CollapsibleTrigger>
