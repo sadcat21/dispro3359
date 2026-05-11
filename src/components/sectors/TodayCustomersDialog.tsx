@@ -2594,6 +2594,19 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
             {/* Sales Tab */}
             <TabsContent value="sales" className="m-0 flex-1 min-h-0">
+              {isDeliveryRole ? (
+                <div className="flex flex-col h-full min-h-0 overflow-y-auto overscroll-contain" style={{ maxHeight: '60vh' }}>
+                  {effectiveWorkerId && (
+                    <div className="p-2 border-b">
+                      <Button variant="outline" size="sm" className="w-full gap-2 text-blue-700 border-blue-300 hover:bg-blue-50" onClick={() => { setOrdersSummaryMode('orders'); setShowOrdersSummary(true); }}>
+                        <ClipboardList className="w-4 h-4" />
+                        تجميع الطلبيات
+                      </Button>
+                    </div>
+                  )}
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={salesWithOrders} emptyMessage="لا توجد طلبيات بعد" onCustomerClick={handleShowOrderDetails} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={orderTimeMap} distanceMap={customerDistanceMap} orderInfoMap={orderInfoMap} orderCountMap={orderCountMap} />
+                </div>
+              ) : (
               <Tabs defaultValue="not-visited" className="flex flex-col h-full min-h-0">
                 <TabsList className="w-full rounded-none border-b shrink-0 h-auto p-0.5 gap-0.5">
                   <TabsTrigger value="not-visited" className="flex-1 gap-1 text-[10px] px-1.5 py-1.5 data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700">
@@ -2650,6 +2663,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                   <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={salesWithOrders} emptyMessage="لا توجد طلبيات بعد" onCustomerClick={handleShowOrderDetails} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={orderTimeMap} distanceMap={customerDistanceMap} orderInfoMap={orderInfoMap} orderCountMap={orderCountMap} />
                 </TabsContent>
               </Tabs>
+              )}
             </TabsContent>
 
             {/* Direct Sale Tab */}
