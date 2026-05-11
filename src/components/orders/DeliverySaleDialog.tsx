@@ -41,6 +41,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { cn } from '@/lib/utils';
+import { getCustomerTypesArray } from '@/utils/customerTypes';
 
 interface DeliverySaleDialogProps {
   open: boolean;
