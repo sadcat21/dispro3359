@@ -4,7 +4,7 @@ import StockEmptyDialog from '@/components/warehouse/StockEmptyDialog';
 import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog';
 import { useNavigate } from 'react-router-dom';
 import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil } from 'lucide-react';
-import { boxesToBP, dbBPDisplay, parseBP } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,9 +64,6 @@ interface WarehouseSaleSummaryRow {
   source?: string | null;
   order?: { status: string | null } | { status: string | null }[] | null;
 }
-
-const dbBPToPieces = (quantity: number, piecesPerBox: number) =>
-  parseBP(Number(quantity || 0).toFixed(2), piecesPerBox).totalPieces;
 
 const piecesToDbBP = (pieces: number, piecesPerBox: number) => {
   const ppb = Math.max(1, Math.round(piecesPerBox));
