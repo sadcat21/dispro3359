@@ -370,49 +370,50 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] p-0 flex flex-col overflow-hidden gap-0" dir={dir}>
+      <DialogContent className="w-[calc(100vw-1rem)] sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] p-0 flex flex-col overflow-hidden gap-0 rounded-xl" dir={dir}>
         {/* Neutral header */}
-        <DialogHeader className="px-5 py-4 border-b bg-background space-y-3">
-          <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-            <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center">
+        <DialogHeader className="px-3 sm:px-5 py-3 sm:py-4 border-b bg-background space-y-3">
+          <DialogTitle className="flex items-center gap-2 text-sm sm:text-base font-semibold">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-foreground text-background flex items-center justify-center shrink-0">
               <Gift className="w-4 h-4" />
             </div>
             {editOffer ? t('offers.edit') : t('offers.create')}
           </DialogTitle>
 
           {/* Stepper */}
-          <div className="flex items-center gap-1.5">
-            {steps.map((s, i) => {
-              const isActive = step === s.id;
-              const isDone = step > s.id;
-              const Icon = s.icon;
-              return (
-                <React.Fragment key={s.id}>
-                  <button
-                    type="button"
-                    onClick={() => (isDone || isActive ? setStep(s.id) : null)}
-                    className={cn(
-                      'flex items-center gap-1.5 rounded-full text-[11px] font-medium transition-colors px-2.5 py-1 border',
-                      isActive && 'bg-foreground text-background border-foreground',
-                      isDone && 'bg-muted text-foreground border-border hover:bg-muted/70',
-                      !isActive && !isDone && 'bg-background text-muted-foreground border-border'
+          <div className="-mx-1 px-1 overflow-x-auto">
+            <div className="flex items-center gap-1.5 w-max min-w-full">
+              {steps.map((s, i) => {
+                const isActive = step === s.id;
+                const isDone = step > s.id;
+                const Icon = s.icon;
+                return (
+                  <React.Fragment key={s.id}>
+                    <button
+                      type="button"
+                      onClick={() => (isDone || isActive ? setStep(s.id) : null)}
+                      className={cn(
+                        'flex items-center gap-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-colors px-2 sm:px-2.5 py-1 border shrink-0',
+                        isActive && 'bg-foreground text-background border-foreground',
+                        isDone && 'bg-muted text-foreground border-border hover:bg-muted/70',
+                        !isActive && !isDone && 'bg-background text-muted-foreground border-border'
+                      )}
+                    >
+                      {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
+                      <span className="whitespace-nowrap">{s.id}. {s.label}</span>
+                    </button>
+                    {i < steps.length - 1 && (
+                      <div className={cn('w-3 sm:flex-1 h-px shrink-0', step > s.id ? 'bg-foreground' : 'bg-border')} />
                     )}
-                  >
-                    {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
-                    <span className="whitespace-nowrap">{s.id}. {s.label}</span>
-                    {(s as any).optional && <span className="text-[9px] opacity-60">·{t('common.optional')}</span>}
-                  </button>
-                  {i < steps.length - 1 && (
-                    <div className={cn('flex-1 h-px', step > s.id ? 'bg-foreground' : 'bg-border')} />
-                  )}
-                </React.Fragment>
-              );
-            })}
+                  </React.Fragment>
+                );
+              })}
+            </div>
           </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 sm:py-4 space-y-4">
             {/* Step 1: Product */}
             {step === 1 && (
               <div className="space-y-4">
@@ -601,7 +602,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
             {/* Step 3: Settings */}
             {step === 3 && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
@@ -883,41 +884,43 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           </div>
 
           {/* Footer with stepper navigation */}
-          <div className="p-4 border-t shrink-0 bg-background flex items-center gap-2">
+          <div className="p-3 sm:p-4 border-t shrink-0 bg-background flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               onClick={goBack}
               disabled={step === 1 || isLoading}
-              className="gap-1"
+              className="gap-1 h-9 px-2 sm:px-3"
             >
               <ArrowRight className={cn('w-4 h-4', dir === 'ltr' && 'rotate-180')} />
-              {t('common.back') || 'Back'}
+              <span className="text-xs sm:text-sm">{t('common.back') || 'Back'}</span>
             </Button>
-            <div className="flex-1 text-center text-xs text-muted-foreground">
+            <div className="flex-1 text-center text-[11px] sm:text-xs text-muted-foreground">
               {step} / {steps.length}
             </div>
             {step < 5 ? (
               <Button
                 type="button"
+                size="sm"
                 onClick={goNext}
                 disabled={!canGoNext()}
-                className="gap-1"
+                className="gap-1 h-9 px-2 sm:px-3"
               >
-                {t('common.next') || 'Next'}
+                <span className="text-xs sm:text-sm">{t('common.next') || 'Next'}</span>
                 <ArrowLeft className={cn('w-4 h-4', dir === 'ltr' && 'rotate-180')} />
               </Button>
             ) : (
-              <Button type="submit" disabled={isLoading} className="gap-1">
+              <Button type="submit" size="sm" disabled={isLoading} className="gap-1 h-9 px-2 sm:px-3">
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {t('common.loading')}
+                    <span className="text-xs sm:text-sm">{t('common.loading')}</span>
                   </>
                 ) : (
                   <>
                     <Gift className="w-4 h-4" />
-                    {editOffer ? t('common.save') : t('offers.create')}
+                    <span className="text-xs sm:text-sm">{editOffer ? t('common.save') : t('offers.create')}</span>
                   </>
                 )}
               </Button>
