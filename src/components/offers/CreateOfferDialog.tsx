@@ -452,6 +452,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   >
                     {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
                     <span className="whitespace-nowrap">{s.id}. {s.label}</span>
+                    {(s as any).optional && <span className="text-[9px] opacity-60">·{t('common.optional')}</span>}
                   </button>
                   {i < steps.length - 1 && (
                     <div className={cn('flex-1 h-px', step > s.id ? 'bg-foreground' : 'bg-border')} />
