@@ -291,6 +291,10 @@ const DataManagement: React.FC = () => {
       setDeletionProgress('جاري تنظيف المراجع المرتبطة بالبروموهات...');
       await del('promo_split_customers');
       await del('promo_splits');
+      if (!selectedIds.has('orders')) {
+        // Detach promos from orders so promos can be deleted without touching orders
+        await nullify('promos', 'order_id');
+      }
     }
   };
 
