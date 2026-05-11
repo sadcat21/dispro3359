@@ -13,7 +13,7 @@ import { useMyUIOverrides, useMyRoleOverrides } from '@/hooks/useUIOverrides';
 import { Badge } from '@/components/ui/badge';
 import { Worker } from '@/types/database';
 import { getLocalizedName } from '@/utils/sectorName';
-import { getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
@@ -464,6 +464,17 @@ const WorkerActions: React.FC = () => {
         .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
         .in('order_id', orderIds);
       if (!items || items.length === 0) return [];
+      const { data: movements } = await supabase
+        .from('stock_movements')
+        .select('order_id, product_id, quantity')
+        .eq('worker_id', selectedWorker!.id)
+        .eq('movement_type', 'delivery')
+        .in('order_id', orderIds);
+      const deliveredByOrderProduct = new Map<string, number>();
+      for (const movement of movements || []) {
+        const key = `${movement.order_id}|${movement.product_id}`;
+        deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + Number(movement.quantity || 0));
+      }
       const orderMap = new Map<string, any>(
         orders.map((order: any) => [
           order.id,
@@ -481,6 +492,7 @@ const WorkerActions: React.FC = () => {
         const order = orderMap.get(i.order_id);
         return {
           ...i,
+          delivered_quantity: deliveredByOrderProduct.get(`${i.order_id}|${i.product_id}`),
           order_created_at: order?.created_at || null,
           order_updated_at: order?.updated_at || null,
           order_payment_type: order?.payment_type || null,
@@ -543,7 +555,7 @@ const WorkerActions: React.FC = () => {
 
     for (const item of (truckSoldData || [])) {
       const stat = ensure(item.product_id);
-      const paidQty = getPaidQuantity(item);
+      const paidQty = getDeliveredPaidQuantity(item);
       stat.sold += paidQty;
       if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
       const giftBoxes = Number(item.gift_quantity || 0);
@@ -646,7 +658,7 @@ const WorkerActions: React.FC = () => {
         const giftBoxes = Math.max(0, Number(item.gift_quantity || 0));
         const giftPieces = Math.max(0, Number(item.gift_pieces || 0));
         const giftQty = toGiftTruckQty(giftBoxes, giftPieces);
-        const saleQty = Math.max(0, Number(item.quantity || 0) - giftBoxes);
+        const saleQty = getDeliveredPaidQuantity(item);
         const when = item.order_updated_at || item.order_created_at || '';
         const paymentType = item.order_payment_type || null;
         const customerName = item.customer_name || null;
