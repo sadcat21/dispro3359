@@ -1092,6 +1092,7 @@ const LoadStock: React.FC = () => {
       toast.success(`تم إرسال الشحنة، وهي الآن قيد انتظار موافقة عامل التوصيل ${workerName}`);
       setActiveSessionId(null);
       setSessionItems([]);
+      setShowProductPicker(false);
       setPostConfirmDialog({ open: true, workerName });
     } catch (err: any) { toast.error(err.message); }
     finally {
