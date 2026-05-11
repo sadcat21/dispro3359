@@ -452,9 +452,8 @@ const WorkerHome: React.FC = () => {
           if (hasDebtAccess && !isCollectDebtHidden && !isDebtsPageHidden) {
             quickActions.push({ key: 'debts', icon: <Banknote className="w-6 h-6" />, label: t('debts.title'), onClick: () => navigate('/customer-debts') });
           }
-          if (hasCustomerAccess) {
-            quickActions.push({ key: 'customers', icon: <Users className="w-6 h-6" />, label: t('nav.customers'), onClick: () => navigate('/customers') });
-          }
+          // إظهار زر إدارة العملاء لجميع المستخدمين
+          quickActions.push({ key: 'customers', icon: <Users className="w-6 h-6" />, label: t('nav.customers'), onClick: () => navigate('/customers') });
           if (hasExpenseAccess && !isExpensesPageHidden && !isExpensesHidden) {
             quickActions.push({ key: 'expenses', icon: <Wallet className="w-6 h-6" />, label: t('expenses.my_expenses'), onClick: () => navigate('/expenses') });
           }
