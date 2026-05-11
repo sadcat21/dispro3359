@@ -110,6 +110,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           ...tier,
           tier_order: index,
         })));
+        // Audience conditions are shared across tiers — read from first tier
+        setAudience((editOffer.tiers[0]?.conditions as TierConditions) || {});
       } else {
         // Legacy: convert old single-tier data
         setTiers([{
@@ -128,6 +130,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           tier_order: 0,
           is_stackable: false,
         }]);
+        setAudience({});
       }
     }
   };
