@@ -701,9 +701,11 @@ const WorkerActions: React.FC = () => {
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
-    const rawOpeningBalance = currentQty - totalLoaded + totalUnloaded + totalSold + totalGift;
-    const openingBalance = rawOpeningBalance > 0.001 ? rawOpeningBalance : 0;
-    const totalAvailable = totalLoaded + openingBalance;
+    // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
+    const totalAvailable = totalLoaded;
+    const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
+    const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
+    const shortage = discrepancy < -0.001 ? -discrepancy : 0;
     const chronological = [...rawMovements].reverse();
     let remainingBalance = currentQty;
     const historyEntries = chronological.map((movement) => {
@@ -722,6 +724,7 @@ const WorkerActions: React.FC = () => {
       entries: historyEntries,
       totalLoaded,
       openingBalance,
+      shortage,
       totalAvailable,
       totalUnloaded,
       totalSold,
@@ -731,7 +734,7 @@ const WorkerActions: React.FC = () => {
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
       lastAccountingLabel,
-      hasMismatch: rawOpeningBalance < -0.001,
+      hasMismatch: Math.abs(discrepancy) > 0.001,
     };
   }, [selectedTruckProduct, truckLoadedData, truckSoldData, truckUnloadedData, truckLoadSessions, truckUnloadSessions, t]);
 
@@ -1085,7 +1088,10 @@ const WorkerActions: React.FC = () => {
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
                     <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalAvailable)}</Badge>
                     {selectedTruckProductHistory.openingBalance > 0 && (
-                      <Badge variant="outline">رصيد سابق {formatTruckQty(selectedTruckProductHistory.openingBalance)}</Badge>
+                      <Badge variant="outline" className="border-amber-400 text-amber-700">زيادة غير مفسرة +{formatTruckQty(selectedTruckProductHistory.openingBalance)}</Badge>
+                    )}
+                    {selectedTruckProductHistory.shortage > 0 && (
+                      <Badge variant="outline" className="border-red-400 text-red-700">عجز -{formatTruckQty(selectedTruckProductHistory.shortage)}</Badge>
                     )}
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded)}</Badge>
