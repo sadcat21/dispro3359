@@ -570,75 +570,60 @@ const Customers: React.FC = () => {
               const pendingCount = (pendingRequestsMap[customer.id] || []).length;
               const len = topText.length;
               const sizeClass = len > 22 ? 'text-[10px]' : len > 16 ? 'text-[11px]' : len > 12 ? 'text-xs' : 'text-sm';
+              const sectorLabel = getSectorName(customer.sector_id);
+              const zoneLabel = getZoneName(customer.zone_id);
               return (
-                <div
+                <button
                   key={customer.id}
-                  className="relative flex flex-col items-stretch rounded-lg overflow-hidden border-2 border-foreground text-center min-h-[56px] shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
+                  type="button"
+                  onClick={() => { setProfileCustomer(customer); setIsProfileOpen(true); }}
+                  title={topText}
+                  className="relative flex flex-col items-stretch rounded-lg overflow-hidden border-2 border-foreground text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <button
-                    type="button"
-                    onClick={() => { setProfileCustomer(customer); setIsProfileOpen(true); }}
-                    className="flex flex-col items-stretch text-center flex-1"
-                    title={topText}
+                  {/* Level 1: store name */}
+                  <div
+                    className="px-2 py-1"
+                    style={typeColors ? { backgroundColor: typeColors.bg } : undefined}
                   >
-                    <div
-                      className="relative flex items-stretch"
-                      style={typeColors ? { backgroundColor: typeColors.bg } : undefined}
+                    <p
+                      className={`font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${sizeClass} ${typeColors ? '' : 'text-background bg-foreground'}`}
+                      style={typeColors ? { color: typeColors.text } : undefined}
                     >
-                      <p
-                        className={`flex-1 min-w-0 px-2 py-1 font-bold leading-tight text-center whitespace-nowrap overflow-hidden text-ellipsis ${sizeClass} ${typeColors ? '' : 'text-background bg-foreground'}`}
-                        style={typeColors ? { color: typeColors.text } : undefined}
-                      >
-                        {typeEntry?.short && (
-                          <span className="me-1 font-mono uppercase opacity-90">[{typeEntry.short}]</span>
-                        )}
-                        {topText}
-                        {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
+                      {topText}
+                      {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
+                    </p>
+                  </div>
+                  {/* Level 2: customer name + type */}
+                  <div className="px-2 py-0.5 flex items-center justify-center gap-1 flex-wrap bg-background">
+                    {bottomText && (
+                      <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground">
+                        {bottomText}
                       </p>
-                    </div>
-                    <div className="px-2 py-0.5 flex-1 flex items-center justify-center bg-background gap-1 flex-wrap">
-                      {bottomText && (
-                        <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground">
-                          {bottomText}
-                        </p>
-                      )}
-                      {getSectorName(customer.sector_id) && (
-                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/30 text-primary">
-                          {getSectorName(customer.sector_id)}
-                        </Badge>
-                      )}
-                      {getZoneName(customer.zone_id) && (
-                        <Badge className="text-[9px] px-1 py-0 h-4 border-0 bg-blue-600 text-white">
-                          {getZoneName(customer.zone_id)}
-                        </Badge>
-                      )}
-                    </div>
-                  </button>
-                  {/* Quick actions */}
-                  <div className="flex items-center justify-between gap-0 px-1 py-0.5 border-t bg-muted/40">
-                    {customer.phone ? (
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary"
-                        onClick={() => window.location.href = `tel:${customer.phone}`} title={customer.phone}>
-                        <Phone className="w-3 h-3" />
-                      </Button>
-                    ) : <span className="w-6" />}
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary"
-                      onClick={() => navigate('/orders', { state: { customerId: customer.id, paymentType: customer.default_payment_type } })} title={t('customers.new_order')}>
-                      <PlusCircle className="w-3 h-3" />
-                    </Button>
-                    {!isEditCustomerHidden && (
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary"
-                        onClick={() => openEditDialog(customer)} title={t('common.edit')}>
-                        <Pencil className="w-3 h-3" />
-                      </Button>
                     )}
-                    {!isDeleteCustomerHidden && (
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setCustomerToDelete(customer)} title={t('common.delete')}>
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                    {typeEntry?.short && (
+                      <Badge
+                        className="text-[9px] px-1 py-0 h-4 border-0 font-bold"
+                        style={typeColors ? { backgroundColor: typeColors.bg, color: typeColors.text } : undefined}
+                      >
+                        {typeEntry.short.toUpperCase()}
+                      </Badge>
                     )}
                   </div>
+                  {/* Level 3: sector + zone */}
+                  {(sectorLabel || zoneLabel) && (
+                    <div className="px-2 py-0.5 flex items-center justify-center gap-1 flex-wrap bg-muted/40 border-t">
+                      {sectorLabel && (
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/30 text-primary">
+                          {sectorLabel}
+                        </Badge>
+                      )}
+                      {zoneLabel && (
+                        <Badge className="text-[9px] px-1 py-0 h-4 border-0 bg-blue-600 text-white">
+                          {zoneLabel}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   {pendingCount > 0 && (
                     <Badge
                       className="absolute top-0.5 start-0.5 bg-destructive text-destructive-foreground text-[9px] px-1 py-0 h-4 cursor-pointer"
@@ -647,7 +632,7 @@ const Customers: React.FC = () => {
                       {pendingCount}
                     </Badge>
                   )}
-                </div>
+                </button>
               );
             })}
             </div>
