@@ -92,6 +92,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   const [hasPin, setHasPin] = useState<boolean | null>(null);
   // Per-session preview support
   const [loadSessionsList, setLoadSessionsList] = useState<ReviewSession[]>([]);
+  const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [loadItemsBySession, setLoadItemsBySession] = useState<Record<string, any[]>>({});
   const [selectedSessionId, setSelectedSessionId] = useState<'all' | string>('all');
   // Raw timestamped data — used to compute per-shipment window aggregates
