@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays } from 'lucide-react';
-import { getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
@@ -107,11 +107,23 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         .from('order_items')
         .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
         .in('order_id', orders.map(o => o.id));
+      const { data: movements } = await supabase
+        .from('stock_movements')
+        .select('order_id, product_id, quantity')
+        .eq('worker_id', workerId)
+        .eq('movement_type', 'delivery')
+        .in('order_id', orders.map(o => o.id));
+      const deliveredByOrderProduct = new Map<string, number>();
+      for (const movement of movements || []) {
+        const key = `${movement.order_id}|${movement.product_id}`;
+        deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + Number(movement.quantity || 0));
+      }
       const map = new Map(orders.map((o: any) => [o.id, o]));
       return (items || []).map((i: any) => {
         const o: any = map.get(i.order_id);
         return {
           ...i,
+          delivered_quantity: deliveredByOrderProduct.get(`${i.order_id}|${i.product_id}`),
           order_updated_at: o?.updated_at || null,
           order_created_at: o?.created_at || null,
           order_payment_type: o?.payment_type || null,
@@ -158,7 +170,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     for (const it of soldData) {
       const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const paidBP = getPaidQuantity(it);
+      const paidBP = getDeliveredPaidQuantity(it);
       const paid = dbBPToBoxes(Number(paidBP || 0), ppb);
       s.sold += paid;
       if (paid > 0 && it.order_id) s.saleCount.add(String(it.order_id));
