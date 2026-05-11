@@ -60,24 +60,24 @@ const SectorCustomerGroup: React.FC<{ label: string; count: number; forceOpen?: 
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
         <button
-          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-background select-none transition-transform hover:-translate-y-0.5"
+          className="sticky top-0 z-10 w-full flex items-stretch overflow-hidden rounded-xl bg-foreground select-none transition-transform hover:-translate-y-0.5"
           style={{
-            border: '1.5px solid hsl(var(--destructive))',
+            border: '1.5px solid hsl(var(--foreground))',
             boxShadow:
-              '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.06) inset, 0 2px 6px hsl(var(--destructive) / 0.2), 0 1px 2px hsl(0 0% 0% / 0.06)',
+              '0 1px 0 hsl(0 0% 100% / 0.15) inset, 0 -1px 0 hsl(0 0% 0% / 0.4) inset, 0 2px 6px hsl(0 0% 0% / 0.25), 0 1px 2px hsl(0 0% 0% / 0.15)',
           }}
         >
-          {/* White header strip with red title */}
-          <div className="flex-1 min-w-0 flex items-center justify-center bg-background px-3 py-1.5">
-            <span className="font-bold text-sm text-destructive truncate">{label}</span>
+          {/* Chevron tab */}
+          <div className="px-2 flex items-center justify-center bg-muted shrink-0">
+            {isOpen ? <ChevronUp className="w-4 h-4 text-foreground" /> : <ChevronDown className="w-4 h-4 text-foreground" />}
           </div>
           {/* Count chip in red */}
           <div className="px-3 flex items-center justify-center font-bold text-xs font-mono shrink-0 bg-destructive text-destructive-foreground">
             {count}
           </div>
-          {/* Chevron tab */}
-          <div className="px-2 flex items-center justify-center bg-muted shrink-0">
-            {isOpen ? <ChevronUp className="w-4 h-4 text-foreground" /> : <ChevronDown className="w-4 h-4 text-foreground" />}
+          {/* Black header strip with white title */}
+          <div className="flex-1 min-w-0 flex items-center justify-center bg-foreground px-3 py-1.5">
+            <span className="font-bold text-sm text-background truncate">{label}</span>
           </div>
         </button>
       </CollapsibleTrigger>
