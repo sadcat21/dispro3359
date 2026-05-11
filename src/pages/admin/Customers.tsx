@@ -607,10 +607,12 @@ const Customers: React.FC = () => {
                       return (
                         <>
                           {startTypes.map((e, i) => renderChip(e, i, 'start'))}
-                          <p className={`flex-1 px-2 py-1 font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-background ${sizeClass}`}>
-                            {topText}
-                            {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
-                          </p>
+                          <div className="flex-1 min-w-0 px-2 py-1 flex items-center justify-center text-background">
+                            <FitText className="font-bold text-center" min={8} max={15}>
+                              {topText}
+                              {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
+                            </FitText>
+                          </div>
                           {endTypes.map((e, i) => renderChip(e, i, 'end'))}
                         </>
                       );
