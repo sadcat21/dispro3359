@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, GripVertical, Gift, Users, Package, Layers, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, GripVertical, Gift, Users, Package, Layers } from 'lucide-react';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types/database';
