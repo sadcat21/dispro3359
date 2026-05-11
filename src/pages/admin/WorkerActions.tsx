@@ -724,6 +724,7 @@ const WorkerActions: React.FC = () => {
       entries: historyEntries,
       totalLoaded,
       openingBalance,
+      shortage,
       totalAvailable,
       totalUnloaded,
       totalSold,
@@ -733,7 +734,7 @@ const WorkerActions: React.FC = () => {
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
       lastAccountingLabel,
-      hasMismatch: rawOpeningBalance < -0.001,
+      hasMismatch: Math.abs(discrepancy) > 0.001,
     };
   }, [selectedTruckProduct, truckLoadedData, truckSoldData, truckUnloadedData, truckLoadSessions, truckUnloadSessions, t]);
 
