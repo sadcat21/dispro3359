@@ -1709,9 +1709,9 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .from('orders')
         .select('*, customer:customers(*, sector:sectors(id, name, name_fr), zone:sector_zones(id, name, name_fr)), created_by_worker:workers!orders_created_by_fkey(id, full_name, username), items:order_items(*, product:products(*))')
         .eq('customer_id', customer.id)
-        .in('status', ['pending', 'assigned', 'in_progress'])
+        .in('status', ACTIVE_DELIVERY_STATUSES)
         .order('created_at', { ascending: false });
-      if (!isAdmin) query = query.eq('assigned_worker_id', effectiveWorkerId!);
+      if (!isAdmin) query = query.or(`assigned_worker_id.eq.${effectiveWorkerId},created_by.eq.${effectiveWorkerId}`);
       const { data, error } = await query;
       if (error) throw error;
       const scopedOrders = (data || []).filter((order: any) =>
