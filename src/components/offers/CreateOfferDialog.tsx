@@ -207,7 +207,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     if (formData.name.trim()) {
       return formData.name.trim();
     }
-    return `${t('offers.offer_on')} ${getProductName(formData.product_id)}`;
+    const productName = getProductName(formData.product_id);
+    return productName ? `PROM: ${productName}` : '';
   };
 
   // Tier management
@@ -522,7 +523,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       <Input
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder={formData.product_id ? getProductName(formData.product_id) : t('offers.name_placeholder')}
+                        placeholder={formData.product_id ? `PROM: ${getProductName(formData.product_id)}` : t('offers.name_placeholder')}
                       />
                     </div>
                     <div className="space-y-2">

@@ -65,18 +65,30 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
     return unit === 'box' ? t('offers.unit_box') : t('offers.unit_piece');
   };
 
+  // Auto-generated tier title: e.g. "10 BOX + 1 PCS"
+  const unitShort = (u: string) => (u === 'box' ? 'BOX' : 'PCS');
+  const minPart = tier.max_quantity && tier.max_quantity !== tier.min_quantity
+    ? `${tier.min_quantity}-${tier.max_quantity}`
+    : `${tier.min_quantity}`;
+  const giftPart = tier.gift_type === 'discount_percentage' && tier.discount_percentage
+    ? `${tier.discount_percentage}%`
+    : tier.gift_type === 'discount_amount' && tier.discount_amount
+    ? `-${tier.discount_amount}`
+    : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
+  const autoTitle = `${minPart} ${unitShort(tier.min_quantity_unit)} + ${giftPart}`;
+
   return (
     <Card className="relative border-2 border-dashed bg-muted/30">
       <CardContent className="p-3 space-y-3">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
-            <Badge variant="secondary" className="text-xs">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <GripVertical className="w-4 h-4 text-muted-foreground cursor-move shrink-0" />
+            <Badge variant="secondary" className="text-xs shrink-0">
               {t('offers.tier')} {tierIndex + 1}
             </Badge>
-            <Badge variant="outline" className="text-[9px] px-1">
-              #{tier.tier_order + 1}
+            <Badge className="text-[10px] font-bold tracking-wide truncate">
+              {autoTitle}
             </Badge>
           </div>
           {canDelete && (
@@ -84,7 +96,7 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
               type="button"
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-destructive hover:text-destructive"
+              className="h-7 w-7 text-destructive hover:text-destructive shrink-0"
               onClick={() => onDelete(tierIndex)}
             >
               <Trash2 className="w-4 h-4" />
