@@ -174,6 +174,7 @@ const DataManagement: React.FC = () => {
     if (selectedIds.has('orders')) {
       setDeletionProgress('جاري تنظيف المراجع المرتبطة بالطلبات...');
       // Tables referencing orders that aren't in any category
+      await del('sales_tracking');
       await del('worker_load_request_items');
       await del('worker_load_requests' as any);
       await del('order_events');
