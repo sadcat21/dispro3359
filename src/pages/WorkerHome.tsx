@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Users, Wallet, ClipboardList, MapPin, Trophy, MessageCircle, HardHat, CalendarCheck, ArrowDownToLine, Warehouse, ClipboardCheck } from 'lucide-react';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
+import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -70,6 +71,7 @@ const WorkerHome: React.FC = () => {
   }, [location.search, location.pathname, navigate]);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showFinalReviewPicker, setShowFinalReviewPicker] = useState(false);
+  const [showReplaceDamaged, setShowReplaceDamaged] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
 
   const { trackVisit } = useTrackVisit();
@@ -434,6 +436,7 @@ const WorkerHome: React.FC = () => {
             quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true) });
             quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true) });
             quickActions.push({ key: 'final-review', icon: <ClipboardCheck className="w-6 h-6" />, label: 'المراجعة النهائية', onClick: () => setShowFinalReviewPicker(true) });
+            quickActions.push({ key: 'replace-damaged', icon: <Package className="w-6 h-6" />, label: 'استبدال التالف', onClick: () => setShowReplaceDamaged(true) });
             quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking') });
           }
           if (hasDeliveryAccess && !isMyStockPageHidden && !isMyStockHidden) {
@@ -682,8 +685,8 @@ const WorkerHome: React.FC = () => {
           branchId={activeBranch?.id || null}
         />
       )}
-    </div>
-  );
+      <ReplaceDamagedDialog open={showReplaceDamaged} onOpenChange={setShowReplaceDamaged} />
+    </div>);
 };
 
 export default WorkerHome;
