@@ -106,17 +106,18 @@ const WarehouseStock: React.FC = () => {
       // First get receipt IDs for this branch
       const { data: branchReceipts } = await supabase
         .from('stock_receipts')
-        .select('id')
+        .select('id, created_at')
         .eq('branch_id', branchId);
       
       const receiptIds = (branchReceipts || []).map(r => r.id);
+      const receiptCreatedAtById = new Map((branchReceipts || []).map(r => [r.id, r.created_at]));
 
       const [receiptsRes, discrepanciesRes, workerStocksRes, warehouseRes] = await Promise.all([
         // Total received per product (filter by receipt IDs)
         receiptIds.length > 0
           ? supabase
               .from('stock_receipt_items')
-              .select('product_id, quantity')
+              .select('receipt_id, product_id, quantity')
               .in('receipt_id', receiptIds)
           : Promise.resolve({ data: [], error: null }),
         // Discrepancies (surplus, deficit)
@@ -137,7 +138,7 @@ const WarehouseStock: React.FC = () => {
       ]);
 
       return {
-        receipts: receiptsRes.data || [],
+        receipts: (receiptsRes.data || []).map((r: any) => ({ ...r, created_at: receiptCreatedAtById.get(r.receipt_id) || null })),
         discrepancies: discrepanciesRes.data || [],
         workerStocks: workerStocksRes.data || [],
         warehouseDamaged: warehouseRes.data || [],
