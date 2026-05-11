@@ -997,7 +997,7 @@ export const translations: Translations = {
   'offers.all_by_default': { ar: 'الكل افتراضياً', fr: 'Tous par défaut', en: 'All by default' },
   'offers.no_debt_warning': { ar: '⛔ لن يُطبَّق هذا العرض على الطلبات بالدين', fr: '⛔ Cette offre ne s\'appliquera pas aux commandes à crédit', en: '⛔ This offer will not apply to debt orders' },
   'offers.target_audience_default_hint': { ar: '💡 إذا لم يتم اختيار أي خيار، يُطبَّق العرض على الكل افتراضياً', fr: '💡 Si aucune option n\'est sélectionnée, l\'offre s\'applique à tous par défaut', en: '💡 If no option is selected, the offer applies to everyone by default' },
-  'common.optional': { ar: 'اختياري', fr: 'Optionnel', en: 'Optional' },
+  'offers.target_audience_default_hint': { ar: '💡 إذا لم يتم اختيار أي خيار، يُطبَّق العرض على الكل افتراضياً', fr: '💡 Si aucune option n\'est sélectionnée, l\'offre s\'applique à tous par défaut', en: '💡 If no option is selected, the offer applies to everyone by default' },
   'offers.custom_name': { ar: 'اسم مخصص', fr: 'Nom personnalisé', en: 'Custom Name' },
   'offers.name_hint': { ar: 'اترك فارغاً لاستخدام اسم المنتج تلقائياً', fr: 'Laisser vide pour utiliser le nom du produit', en: 'Leave empty to use product name automatically' },
   'offers.offer_on': { ar: 'عرض على', fr: 'Offre sur', en: 'Offer on' },
