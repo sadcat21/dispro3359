@@ -240,14 +240,14 @@ const Customers: React.FC = () => {
     if (!customersQueryLoading) setIsLoading(false);
   }, [customersQueryLoading]);
 
-  // Filter customers by activeBranch
+  // Filter customers by activeBranch (applies to all roles, not just admins)
   const filteredByBranch = useMemo(() => {
-    if (isAdminRole(role) && activeBranch) {
-      // Match the system manager's branch view: branch customers + unassigned customers.
+    if (activeBranch) {
+      // Show only customers belonging to the active branch + unassigned ones.
       return customers.filter(c => c.branch_id === activeBranch.id || c.branch_id === null);
     }
     return customers;
-  }, [customers, activeBranch, role]);
+  }, [customers, activeBranch]);
 
   const getCustomerCompletion = (customer: Customer) => {
     const fieldStatus = {
