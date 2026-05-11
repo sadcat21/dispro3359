@@ -48,6 +48,13 @@ interface StockMovementSummaryRow {
 
 interface WarehouseSaleSummaryRow {
   product_id: string | null;
+  branch_id?: string | null;
+  worker_id?: string | null;
+  customer_id?: string | null;
+  sold_boxes?: number | null;
+  sold_pieces?: number | null;
+  gift_boxes?: number | null;
+  gift_pieces?: number | null;
   total_boxes: number | null;
   total_pieces: number | null;
   pieces_per_box: number | null;
@@ -140,7 +147,7 @@ const WarehouseStock: React.FC = () => {
       if (orderIds.length === 0) return [];
       const { data } = await supabase
         .from('order_items')
-        .select('product_id, quantity, gift_quantity')
+        .select('order_id, product_id, quantity, gift_quantity')
         .in('order_id', orderIds);
       return data || [];
     },
@@ -154,14 +161,34 @@ const WarehouseStock: React.FC = () => {
     queryKey: ['warehouse-sales-tracking', branchId],
     queryFn: async () => {
       if (!branchId) return [];
-      const { data } = await supabase
+      const { data: rawSales } = await supabase
         .from('sales_tracking')
-        .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, source, order:orders(status)')
-        .eq('branch_id', branchId)
-        .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale']);
-      return ((data || []) as WarehouseSaleSummaryRow[]).filter((row) => {
-        const order = Array.isArray(row.order) ? row.order[0] : row.order;
-        return !row.order_id || order?.status === 'delivered';
+        .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source')
+        .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
+        .or(`branch_id.eq.${branchId},branch_id.is.null`);
+
+      const rows = (rawSales || []) as WarehouseSaleSummaryRow[];
+      const orderIds = Array.from(new Set(rows.map(r => r.order_id).filter(Boolean) as string[]));
+      const workerIds = Array.from(new Set(rows.map(r => r.worker_id).filter(Boolean) as string[]));
+      const customerIds = Array.from(new Set(rows.map(r => r.customer_id).filter(Boolean) as string[]));
+
+      const [ordersRes, workersRes, customersRes] = await Promise.all([
+        orderIds.length ? supabase.from('orders').select('id, status, branch_id').in('id', orderIds) : Promise.resolve({ data: [] }),
+        workerIds.length ? supabase.from('workers').select('id, branch_id').in('id', workerIds) : Promise.resolve({ data: [] }),
+        customerIds.length ? supabase.from('customers').select('id, branch_id').in('id', customerIds) : Promise.resolve({ data: [] }),
+      ]);
+
+      const orderById = new Map((ordersRes.data || []).map((o: any) => [o.id, o]));
+      const workerBranchById = new Map((workersRes.data || []).map((w: any) => [w.id, w.branch_id]));
+      const customerBranchById = new Map((customersRes.data || []).map((c: any) => [c.id, c.branch_id]));
+
+      return rows.filter((row) => {
+        const order = row.order_id ? orderById.get(row.order_id) : null;
+        const inferredBranchId = row.branch_id || order?.branch_id || (row.worker_id ? workerBranchById.get(row.worker_id) : null) || (row.customer_id ? customerBranchById.get(row.customer_id) : null);
+        return inferredBranchId === branchId && (!row.order_id || order?.status === 'delivered');
+      }).map((row) => ({
+        ...row,
+        order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
       });
     },
     enabled: !!branchId,
