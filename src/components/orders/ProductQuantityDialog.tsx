@@ -709,7 +709,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {!isUnitSale && (
               <div className={offerApplied ? 'hidden' : ''}>
-                <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} onGiftCalculated={handleGiftCalculated} />
+                <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} />
               </div>
             )}
 
