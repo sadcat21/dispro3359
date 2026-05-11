@@ -18,6 +18,7 @@ import { ProductOffer, ProductOfferTier, ProductOfferWithDetails, TierConditions
 import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import OfferTierCard from './OfferTierCard';
 import { isAdminRole } from '@/lib/utils';
 import { cn } from '@/lib/utils';
