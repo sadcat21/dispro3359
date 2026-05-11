@@ -413,7 +413,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     queryFn: async () => {
       const { data } = await supabase
         .from('orders')
-        .select('customer_id, created_at')
+        .select('id, customer_id, created_at')
         .eq('created_by', effectiveWorkerId!)
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
