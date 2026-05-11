@@ -522,12 +522,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const ex = map.get(pid);
         if (!ex) continue;
         const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || ex.ppb || 1)));
-        const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
         const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
         const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
         const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-        const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
-        const soldPieces = Math.max(0, totalPieces - origGiftBoxes * ppb);
+        const soldPieces = bpToPieces(getDeliveredSoldBp(it), ppb);
         ex.loaded -= soldPieces;
         ex.loaded -= giftTotalPieces;
       }
@@ -550,12 +548,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const ex = map.get(pid);
       if (!ex) continue;
       const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || ex.ppb || 1)));
-      const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
       const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
       const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
       const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-      const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
-      ex.sold += Math.max(0, totalPieces - origGiftBoxes * ppb);
+      ex.sold += bpToPieces(getDeliveredSoldBp(it), ppb);
       ex.gifts += giftTotalPieces;
       const trKey = `${oid}|${pid}`;
       if (trackingByOrderProduct.has(trKey)) {
