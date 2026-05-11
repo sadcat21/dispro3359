@@ -44,7 +44,8 @@ const GROUP_LABELS: Record<string, { label: string; emoji: string }> = {
 const DATA_CATEGORIES: DataCategory[] = [
   // Sales
   { id: 'promos', label: 'العمليات (البروموهات)', tables: ['promos'], description: 'جميع عمليات البيع والتوزيع', order: 12, group: 'sales' },
-  { id: 'orders', label: 'الطلبات', tables: ['product_shortage_tracking', 'order_items', 'orders'], description: 'جميع الطلبات وعناصرها', order: 11, group: 'sales' },
+  { id: 'delivered_orders', label: 'الطلبات المُسلَّمة فقط', tables: [], description: 'حذف الطلبات بحالة "مُسلَّمة" فقط مع عناصرها وسجل المبيعات، دون المساس بالطلبات قيد التنفيذ', order: 11.5, group: 'sales' },
+  { id: 'orders', label: 'الطلبات (الكل)', tables: ['product_shortage_tracking', 'order_items', 'orders'], description: 'جميع الطلبات وعناصرها (بكل الحالات)', order: 11, group: 'sales' },
   { id: 'deliveries', label: 'التوصيلات', tables: ['order_events', 'receipts'], description: 'سجلات التوصيل والإيصالات', order: 10.8, group: 'sales' },
   { id: 'doc_collections', label: 'تحصيل الوثائق', tables: ['document_collections'], description: 'شيكات، تحويلات...', order: 10.5, group: 'sales' },
   { id: 'delivery_routes', label: 'مسارات التوصيل', tables: ['delivery_route_sectors', 'delivery_routes'], description: 'مسارات التوصيل وقطاعاتها', order: 4.2, group: 'sales' },
@@ -329,7 +330,45 @@ const DataManagement: React.FC = () => {
       await nullifyFkReferences(selected);
       let hasErrors = false;
       const errors: string[] = [];
+
+      // Special case: delete ONLY delivered orders (keep pending worker-entered ones)
+      if (selected.has('delivered_orders') && !selected.has('orders')) {
+        setDeletionProgress('جاري حذف الطلبات المُسلَّمة فقط...');
+        try {
+          const { data: deliveredOrders } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('status', 'delivered');
+          const ids = (deliveredOrders || []).map(o => o.id);
+          if (ids.length > 0) {
+            await (supabase as any).from('sales_tracking').delete().in('order_id', ids);
+            await (supabase as any).from('receipts').delete().in('order_id', ids);
+            await (supabase as any).from('order_events').delete().in('order_id', ids);
+            await (supabase as any).from('product_shortage_tracking').delete().in('order_id', ids);
+            await (supabase as any).from('order_items').delete().in('order_id', ids);
+            // detach references that may block deletion
+            await (supabase as any).from('customer_debts').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('customer_credits').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('customer_credits').update({ used_in_order_id: null }).in('used_in_order_id', ids);
+            await (supabase as any).from('document_collections').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('handover_items').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('promos').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('promo_splits').update({ order_id: null }).in('order_id', ids);
+            await (supabase as any).from('promo_split_customers').update({ order_id: null }).in('order_id', ids);
+            const { error: ordErr } = await supabase.from('orders').delete().in('id', ids);
+            if (ordErr) {
+              hasErrors = true;
+              errors.push(`الطلبات المُسلَّمة: ${ordErr.message}`);
+            }
+          }
+        } catch (e: any) {
+          hasErrors = true;
+          errors.push(`الطلبات المُسلَّمة: ${e.message || e}`);
+        }
+      }
+
       for (const category of categoriesToDelete) {
+        if (category.id === 'delivered_orders') continue;
         setDeletionProgress(`جاري حذف: ${category.label}...`);
         for (const table of category.tables) {
           const result = await deleteFromTable(table);
