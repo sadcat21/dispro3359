@@ -302,3 +302,45 @@ function RowItem({ r }: { r: SalesTrackingRow }) {
     </TableRow>
   );
 }
+
+function TotalsRowOps({ stats }: { stats: { total: number; boxes: number; pieces: number; giftBoxes: number; giftPieces: number; amount: number } }) {
+  const totalBoxes = stats.boxes + stats.giftBoxes;
+  const totalPieces = stats.pieces + stats.giftPieces;
+  return (
+    <TableRow className="bg-muted/60 font-semibold">
+      <TableCell colSpan={3} className="text-xs">المجموع ({stats.total})</TableCell>
+      <TableCell>{fmtQty(stats.boxes, stats.pieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(stats.boxes, stats.pieces)}</TableCell>
+      <TableCell>{fmtQty(stats.giftBoxes, stats.giftPieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(stats.giftBoxes, stats.giftPieces)}</TableCell>
+      <TableCell>{fmtQty(totalBoxes, totalPieces)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(totalBoxes, totalPieces)}</TableCell>
+      <TableCell className="whitespace-nowrap">{stats.amount.toLocaleString()} DA</TableCell>
+      <TableCell colSpan={3} />
+    </TableRow>
+  );
+}
+
+function TotalsRowProducts({ byProduct }: { byProduct: Array<{ soldBoxes: number; soldPieces: number; giftBoxes: number; giftPieces: number; totalBoxes: number; totalPieces: number; totalAmount: number }> }) {
+  const t = byProduct.reduce(
+    (a, p) => ({
+      sB: a.sB + p.soldBoxes, sP: a.sP + p.soldPieces,
+      gB: a.gB + p.giftBoxes, gP: a.gP + p.giftPieces,
+      tB: a.tB + p.totalBoxes, tP: a.tP + p.totalPieces,
+      amt: a.amt + p.totalAmount,
+    }),
+    { sB: 0, sP: 0, gB: 0, gP: 0, tB: 0, tP: 0, amt: 0 },
+  );
+  return (
+    <TableRow className="bg-muted/60 font-semibold">
+      <TableCell className="text-xs">المجموع ({byProduct.length})</TableCell>
+      <TableCell>{fmtQty(t.sB, t.sP)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(t.sB, t.sP)}</TableCell>
+      <TableCell>{fmtQty(t.gB, t.gP)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(t.gB, t.gP)}</TableCell>
+      <TableCell>{fmtQty(t.tB, t.tP)}</TableCell>
+      <TableCell className="text-center font-mono text-xs">{fmtBP(t.tB, t.tP)}</TableCell>
+      <TableCell className="whitespace-nowrap">{t.amt.toLocaleString()} DA</TableCell>
+    </TableRow>
+  );
+}
