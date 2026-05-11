@@ -4,7 +4,7 @@ import StockEmptyDialog from '@/components/warehouse/StockEmptyDialog';
 import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog';
 import { useNavigate } from 'react-router-dom';
 import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil } from 'lucide-react';
-import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPDisplay, parseBP } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,7 @@ interface StockMovementSummaryRow {
   product_id: string | null;
   movement_type: string | null;
   quantity: number | null;
+  created_at?: string | null;
 }
 
 interface WarehouseSaleSummaryRow {
@@ -59,9 +60,21 @@ interface WarehouseSaleSummaryRow {
   total_pieces: number | null;
   pieces_per_box: number | null;
   order_id: string | null;
+  sold_at?: string | null;
   source?: string | null;
   order?: { status: string | null } | { status: string | null }[] | null;
 }
+
+const dbBPToPieces = (quantity: number, piecesPerBox: number) =>
+  parseBP(Number(quantity || 0).toFixed(2), piecesPerBox).totalPieces;
+
+const piecesToDbBP = (pieces: number, piecesPerBox: number) => {
+  const ppb = Math.max(1, Math.round(piecesPerBox));
+  const totalPieces = Math.max(0, Math.round(pieces));
+  const boxes = Math.floor(totalPieces / ppb);
+  const remPieces = totalPieces % ppb;
+  return Number(`${boxes}.${String(remPieces).padStart(2, '0')}`);
+};
 
 const WarehouseStock: React.FC = () => {
   const { t } = useLanguage();
@@ -93,17 +106,18 @@ const WarehouseStock: React.FC = () => {
       // First get receipt IDs for this branch
       const { data: branchReceipts } = await supabase
         .from('stock_receipts')
-        .select('id')
+        .select('id, created_at')
         .eq('branch_id', branchId);
       
       const receiptIds = (branchReceipts || []).map(r => r.id);
+      const receiptCreatedAtById = new Map((branchReceipts || []).map(r => [r.id, r.created_at]));
 
       const [receiptsRes, discrepanciesRes, workerStocksRes, warehouseRes] = await Promise.all([
         // Total received per product (filter by receipt IDs)
         receiptIds.length > 0
           ? supabase
               .from('stock_receipt_items')
-              .select('product_id, quantity')
+              .select('receipt_id, product_id, quantity')
               .in('receipt_id', receiptIds)
           : Promise.resolve({ data: [], error: null }),
         // Discrepancies (surplus, deficit)
@@ -124,7 +138,7 @@ const WarehouseStock: React.FC = () => {
       ]);
 
       return {
-        receipts: receiptsRes.data || [],
+        receipts: (receiptsRes.data || []).map((r: any) => ({ ...r, created_at: receiptCreatedAtById.get(r.receipt_id) || null })),
         discrepancies: discrepanciesRes.data || [],
         workerStocks: workerStocksRes.data || [],
         warehouseDamaged: warehouseRes.data || [],
@@ -163,7 +177,7 @@ const WarehouseStock: React.FC = () => {
       if (!branchId) return [];
       const { data: rawSales } = await supabase
         .from('sales_tracking')
-        .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source')
+        .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source, sold_at')
         .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
         .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
@@ -202,7 +216,7 @@ const WarehouseStock: React.FC = () => {
       if (!branchId) return [];
       const { data } = await supabase
         .from('stock_movements')
-        .select('product_id, movement_type, quantity')
+        .select('product_id, movement_type, quantity, created_at')
         .eq('branch_id', branchId)
         .in('movement_type', ['load', 'return']);
       return data || [];
@@ -247,30 +261,10 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    // Sold from order_items (delivered)
-    const countedOrderProductKeys = new Set<string>();
+    // Gifts from delivered order_items only; sold is reconciled below from current stock balances.
     for (const oi of (soldData || [])) {
       if (summaries[oi.product_id]) {
-        if (oi.order_id) countedOrderProductKeys.add(`${oi.order_id}:${oi.product_id}`);
-        const product = products.find(p => p.id === oi.product_id);
-        const piecesPerBox = product?.pieces_per_box || 20;
-
-        const rawQty = Number(oi.quantity || 0);
         const rawGiftPieces = Number(oi.gift_quantity || 0);
-
-        // quantity is stored بصيغة صناديق.قطع (تعبيرية) => نحولها لإجمالي قطع أولاً
-        const qtyRounded = Math.round(rawQty * 100) / 100;
-        const qtyBoxes = Math.floor(qtyRounded);
-        const qtyPieces = Math.round((qtyRounded - qtyBoxes) * 100);
-        const totalQtyPieces = (qtyBoxes * piecesPerBox) + qtyPieces;
-
-        // الهدايا لا تُحتسب كمباع: نطرحها من المباع، ونبقيها في خانة الهدايا فقط
-        const paidPieces = Math.max(0, totalQtyPieces - rawGiftPieces);
-        const paidBoxes = Math.floor(paidPieces / piecesPerBox);
-        const paidRemPieces = paidPieces % piecesPerBox;
-        const paidQtyInBoxPieceFormat = paidBoxes + (paidRemPieces / 100);
-
-        summaries[oi.product_id].sold = Math.round((summaries[oi.product_id].sold + paidQtyInBoxPieceFormat) * 100) / 100;
         summaries[oi.product_id].gifts += rawGiftPieces;
       }
     }
@@ -298,6 +292,9 @@ const WarehouseStock: React.FC = () => {
     // (deliveries are deducted from worker stock, not from warehouse stock)
     const loadByProduct: Record<string, number> = {};
     const returnByProduct: Record<string, number> = {};
+    const lastReceiptByProduct: Record<string, string> = {};
+    const loadedAfterReceiptByProduct: Record<string, number> = {};
+    const returnedAfterReceiptByProduct: Record<string, number> = {};
     for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
       const pid = m.product_id;
       if (!pid) continue;
@@ -309,11 +306,33 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
+    for (const r of (summaryData?.receipts || [])) {
+      const pid = r.product_id;
+      const createdAt = (r as any).created_at as string | undefined;
+      if (pid && createdAt && (!lastReceiptByProduct[pid] || createdAt > lastReceiptByProduct[pid])) {
+        lastReceiptByProduct[pid] = createdAt;
+      }
+    }
+
+    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
+      const pid = m.product_id;
+      if (!pid || (m.movement_type !== 'load' && m.movement_type !== 'return')) continue;
+      const lastReceiptAt = lastReceiptByProduct[pid];
+      if (lastReceiptAt && m.created_at && m.created_at >= lastReceiptAt) {
+        if (m.movement_type === 'load') {
+          loadedAfterReceiptByProduct[pid] = (loadedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
+        } else {
+          returnedAfterReceiptByProduct[pid] = (returnedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
+        }
+      }
+    }
+
     const warehouseSaleByProduct: Record<string, number> = {};
-    const otherSaleByProduct: Record<string, number> = {};
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
+      const lastReceiptAt = lastReceiptByProduct[pid];
+      if (lastReceiptAt && s.sold_at && s.sold_at < lastReceiptAt) continue;
       const ppb = Number(s.pieces_per_box) || 20;
       const boxes = Number(s.total_boxes || 0);
       const pieces = Number(s.total_pieces || 0);
@@ -323,9 +342,6 @@ const WarehouseStock: React.FC = () => {
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
       if (s.source === 'warehouse_sale') {
         warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
-      } else if (!s.order_id || !countedOrderProductKeys.has(`${s.order_id}:${pid}`)) {
-        // مبيعات تسليم/مباشرة لم تُحتسب عبر order_items (مثل الطلبات القديمة بدون branch_id) — تُضاف للمباع
-        otherSaleByProduct[pid] = (otherSaleByProduct[pid] || 0) + inBoxPieceFmt;
       }
     }
 
@@ -334,13 +350,15 @@ const WarehouseStock: React.FC = () => {
       const loadT = loadByProduct[pid] || 0;
       const returnT = returnByProduct[pid] || 0;
       const wSale = warehouseSaleByProduct[pid] || 0;
-      const oSale = otherSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
-      // أضف مبيعات المخزن المباشرة + مبيعات التسليم/المباشرة (بدون طلب) إلى المباع
-      const extraSold = wSale + oSale;
-      if (extraSold > 0) {
-        summaries[pid].sold = Math.round((summaries[pid].sold + extraSold) * 100) / 100;
-      }
+      const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
+      const workerSoldPieces = Math.max(0,
+        dbBPToPieces(loadedAfterReceiptByProduct[pid] || 0, ppb)
+        - dbBPToPieces(returnedAfterReceiptByProduct[pid] || 0, ppb)
+        - dbBPToPieces(summaries[pid].workerStock || 0, ppb)
+      );
+      const warehouseSoldPieces = dbBPToPieces(wSale, ppb);
+      summaries[pid].sold = piecesToDbBP(workerSoldPieces + warehouseSoldPieces, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
