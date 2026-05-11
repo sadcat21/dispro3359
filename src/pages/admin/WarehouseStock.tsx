@@ -574,6 +574,7 @@ const WarehouseStock: React.FC = () => {
         products={products}
         workers={workers}
         warehouseStock={warehouseStock}
+        availableQuantities={availableQuantities}
         loadToWorker={loadToWorker}
       />
 
