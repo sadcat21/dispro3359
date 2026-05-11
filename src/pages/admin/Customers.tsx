@@ -561,11 +561,18 @@ const Customers: React.FC = () => {
               const personName = (language === 'fr' && customer.name_fr ? customer.name_fr : customer.name) || '';
               const topText = storeName || personName || '—';
               const bottomText = storeName ? personName : '';
-              const typeEntry = customer.customer_type
-                ? customerTypes.find(t => t.ar === customer.customer_type)
-                : null;
-              const typeColors = typeEntry
-                ? getCustomerTypeColor(typeEntry.short || '', customerTypes.indexOf(typeEntry), typeEntry)
+              const typesArr: string[] = (() => {
+                const fromJsonb = (customer as any).customer_types;
+                if (Array.isArray(fromJsonb) && fromJsonb.length) return fromJsonb.filter(Boolean);
+                if (customer.customer_type) return customer.customer_type.split(',').map(s => s.trim()).filter(Boolean);
+                return [];
+              })();
+              const typeEntries = typesArr
+                .map(ar => customerTypes.find(t => t.ar === ar))
+                .filter(Boolean) as typeof customerTypes;
+              const primaryEntry = typeEntries[0] || null;
+              const primaryColors = primaryEntry
+                ? getCustomerTypeColor(primaryEntry.short || '', customerTypes.indexOf(primaryEntry), primaryEntry)
                 : null;
               const pendingCount = (pendingRequestsMap[customer.id] || []).length;
               const len = topText.length;
@@ -578,38 +585,42 @@ const Customers: React.FC = () => {
                   type="button"
                   onClick={() => { setProfileCustomer(customer); setIsProfileOpen(true); }}
                   title={topText}
-                  className="relative flex flex-col items-stretch rounded-lg overflow-hidden border-2 border-foreground text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
+                  className="relative flex flex-col items-stretch rounded-xl overflow-hidden border border-foreground/15 text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
                   {/* Level 1: store name */}
                   <div
                     className="px-2 py-1"
-                    style={typeColors ? { backgroundColor: typeColors.bg } : undefined}
+                    style={primaryColors ? { backgroundColor: primaryColors.bg } : undefined}
                   >
                     <p
-                      className={`font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${sizeClass} ${typeColors ? '' : 'text-background bg-foreground'}`}
-                      style={typeColors ? { color: typeColors.text } : undefined}
+                      className={`font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${sizeClass} ${primaryColors ? '' : 'text-background bg-foreground'}`}
+                      style={primaryColors ? { color: primaryColors.text } : undefined}
                     >
                       {topText}
                       {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
                     </p>
                   </div>
-                  {/* Level 2: customer name + type (integrated band, type as side strip) */}
-                  <div className="flex items-stretch border-t border-foreground/20 bg-background">
-                    {typeEntry?.short && (
-                      <div
-                        className="px-2 py-0.5 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0"
-                        style={typeColors ? { backgroundColor: typeColors.bg, color: typeColors.text } : undefined}
-                      >
-                        {typeEntry.short}
-                      </div>
-                    )}
+                  {/* Level 2: customer name + types (integrated band, types as side strips) */}
+                  <div className="flex items-stretch bg-background">
+                    {typeEntries.map((entry, idx) => {
+                      const c = getCustomerTypeColor(entry.short || '', customerTypes.indexOf(entry), entry);
+                      return (
+                        <div
+                          key={`${entry.ar}-${idx}`}
+                          className="px-2 py-0.5 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0"
+                          style={{ backgroundColor: c.bg, color: c.text }}
+                        >
+                          {entry.short}
+                        </div>
+                      );
+                    })}
                     <p className="flex-1 px-2 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground flex items-center justify-center">
                       {bottomText || '—'}
                     </p>
                   </div>
                   {/* Level 3: sector + zone (integrated bands) */}
                   {(sectorLabel || zoneLabel) && (
-                    <div className="flex items-stretch border-t border-foreground/20">
+                    <div className="flex items-stretch">
                       {sectorLabel && (
                         <div className="flex-1 px-2 py-0.5 text-[10px] font-bold leading-tight bg-primary/10 text-primary flex items-center justify-center">
                           {sectorLabel}
