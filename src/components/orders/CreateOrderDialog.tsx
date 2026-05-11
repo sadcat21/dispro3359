@@ -1382,6 +1382,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         initialCustomUnitPrice={editingCustomUnitPrice}
         initialIsUnitSale={editingIsUnitSale}
         mode={editingProductMode ? 'edit' : 'add'}
+        customerTypes={getCustomerTypesArray(selectedCustomer)}
       />
 
       <AddCustomerDialog
