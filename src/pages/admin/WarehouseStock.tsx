@@ -146,16 +146,18 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
-  // Fetch warehouse_sale totals from sales_tracking (only rows that actually reduced warehouse stock)
+  // Fetch sales totals from sales_tracking. We split by source:
+  // - warehouse_sale: subtracted from المتبقي AND added to المباع
+  // - delivery_sale / direct_sale: added to المباع only (worker stock handles المتبقي)
   const { data: warehouseSalesData } = useQuery({
     queryKey: ['warehouse-sales-tracking', branchId],
     queryFn: async () => {
       if (!branchId) return [];
       const { data } = await supabase
         .from('sales_tracking')
-        .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, order:orders(status)')
+        .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, source, order:orders(status)')
         .eq('branch_id', branchId)
-        .eq('source', 'warehouse_sale');
+        .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale']);
       return ((data || []) as WarehouseSaleSummaryRow[]).filter((row) => {
         const order = Array.isArray(row.order) ? row.order[0] : row.order;
         return !row.order_id || order?.status === 'delivered';
