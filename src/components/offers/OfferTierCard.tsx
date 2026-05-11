@@ -61,23 +61,7 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
 }) => {
   const { t } = useLanguage();
   const [giftProductPickerOpen, setGiftProductPickerOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const conditions: TierConditions = tier.conditions || {};
-
-  const toggleConditionArray = (field: keyof TierConditions, value: string) => {
-    const current = (conditions[field] || []) as string[];
-    const updated = current.includes(value)
-      ? current.filter(v => v !== value)
-      : [...current, value];
-    onUpdate(tierIndex, { conditions: { ...conditions, [field]: updated.length > 0 ? updated : undefined } });
-  };
-
-  const isConditionChecked = (field: keyof TierConditions, value: string) => {
-    return ((conditions[field] || []) as string[]).includes(value);
-  };
-
-  const hasAnyCondition = !!(conditions.invoice_types?.length || conditions.pricing_types?.length || conditions.payment_methods?.length || conditions.allow_debt === false);
   const getUnitLabel = (unit: string) => {
     return unit === 'box' ? t('offers.unit_box') : t('offers.unit_piece');
   };
