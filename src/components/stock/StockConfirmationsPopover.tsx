@@ -13,6 +13,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { useWarehouseStock, WarehouseStockItem } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type ProductPickerOption = {
   id: string;
@@ -646,6 +649,29 @@ const StockConfirmationsPopover: React.FC = () => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
   };
 
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const handleDeleteAllLogs = async () => {
+    if (!confirm('هل أنت متأكد من حذف كل سجل التأكيدات؟ لا يمكن التراجع.')) return;
+    setIsDeletingAll(true);
+    try {
+      let q = supabase.from('stock_confirmations').delete();
+      if (isWarehouseManager && managerHook.currentWorkerId) {
+        q = q.eq('manager_id', managerHook.currentWorkerId);
+      } else if (workerHook.workerId) {
+        q = q.eq('worker_id', workerHook.workerId);
+      }
+      const { error } = await q;
+      if (error) throw error;
+      toast.success('تم حذف سجل التأكيدات');
+      managerHook.refetch();
+      workerHook.refetch();
+    } catch (e: any) {
+      toast.error(e?.message || 'فشل الحذف');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
 
   // Out-of-stock popup
   const [shortageItems, setShortageItems] = useState<StockConfirmationItem[]>([]);
@@ -736,6 +762,20 @@ const StockConfirmationsPopover: React.FC = () => {
                 />
               </TabsContent>
               <TabsContent value="history" className="mt-0">
+                {historyConfirmations.length > 0 && (
+                  <div className="flex justify-end mb-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDeleteAllLogs}
+                      disabled={isDeletingAll}
+                      className="h-7 text-[11px] gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      حذف كل السجل
+                    </Button>
+                  </div>
+                )}
                 <HistoryTab
                   confirmations={historyConfirmations}
                   isLoading={isWarehouseManager ? managerHook.isLoading : workerHook.isLoading}
