@@ -370,44 +370,45 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] p-0 flex flex-col overflow-hidden gap-0" dir={dir}>
+      <DialogContent className="w-[calc(100vw-1rem)] sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] p-0 flex flex-col overflow-hidden gap-0 rounded-xl" dir={dir}>
         {/* Neutral header */}
-        <DialogHeader className="px-5 py-4 border-b bg-background space-y-3">
-          <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-            <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center">
+        <DialogHeader className="px-3 sm:px-5 py-3 sm:py-4 border-b bg-background space-y-3">
+          <DialogTitle className="flex items-center gap-2 text-sm sm:text-base font-semibold">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-foreground text-background flex items-center justify-center shrink-0">
               <Gift className="w-4 h-4" />
             </div>
             {editOffer ? t('offers.edit') : t('offers.create')}
           </DialogTitle>
 
           {/* Stepper */}
-          <div className="flex items-center gap-1.5">
-            {steps.map((s, i) => {
-              const isActive = step === s.id;
-              const isDone = step > s.id;
-              const Icon = s.icon;
-              return (
-                <React.Fragment key={s.id}>
-                  <button
-                    type="button"
-                    onClick={() => (isDone || isActive ? setStep(s.id) : null)}
-                    className={cn(
-                      'flex items-center gap-1.5 rounded-full text-[11px] font-medium transition-colors px-2.5 py-1 border',
-                      isActive && 'bg-foreground text-background border-foreground',
-                      isDone && 'bg-muted text-foreground border-border hover:bg-muted/70',
-                      !isActive && !isDone && 'bg-background text-muted-foreground border-border'
+          <div className="-mx-1 px-1 overflow-x-auto">
+            <div className="flex items-center gap-1.5 w-max min-w-full">
+              {steps.map((s, i) => {
+                const isActive = step === s.id;
+                const isDone = step > s.id;
+                const Icon = s.icon;
+                return (
+                  <React.Fragment key={s.id}>
+                    <button
+                      type="button"
+                      onClick={() => (isDone || isActive ? setStep(s.id) : null)}
+                      className={cn(
+                        'flex items-center gap-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-colors px-2 sm:px-2.5 py-1 border shrink-0',
+                        isActive && 'bg-foreground text-background border-foreground',
+                        isDone && 'bg-muted text-foreground border-border hover:bg-muted/70',
+                        !isActive && !isDone && 'bg-background text-muted-foreground border-border'
+                      )}
+                    >
+                      {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
+                      <span className="whitespace-nowrap">{s.id}. {s.label}</span>
+                    </button>
+                    {i < steps.length - 1 && (
+                      <div className={cn('w-3 sm:flex-1 h-px shrink-0', step > s.id ? 'bg-foreground' : 'bg-border')} />
                     )}
-                  >
-                    {isDone ? <CheckCircle2 className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
-                    <span className="whitespace-nowrap">{s.id}. {s.label}</span>
-                    {(s as any).optional && <span className="text-[9px] opacity-60">·{t('common.optional')}</span>}
-                  </button>
-                  {i < steps.length - 1 && (
-                    <div className={cn('flex-1 h-px', step > s.id ? 'bg-foreground' : 'bg-border')} />
-                  )}
-                </React.Fragment>
-              );
-            })}
+                  </React.Fragment>
+                );
+              })}
+            </div>
           </div>
         </DialogHeader>
 
