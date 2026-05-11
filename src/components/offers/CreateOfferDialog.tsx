@@ -507,28 +507,28 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     <button
                       type="button"
                       className={cn(
-                        'rounded-lg border px-3 py-3 text-start transition-colors',
+                        'rounded-md border px-2 py-1.5 text-start transition-colors',
                         formData.condition_type === 'range'
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-border bg-background hover:bg-muted/50'
                       )}
                       onClick={() => setFormData({ ...formData, condition_type: 'range' })}
                     >
-                      <div className="text-sm font-medium">{t('offers.range')}</div>
-                      <div className="text-[11px] opacity-70 mt-0.5">{t('offers.range_hint')}</div>
+                      <div className="text-xs font-medium">{t('offers.range')}</div>
+                      <div className="text-[10px] opacity-70 leading-tight">{t('offers.range_hint')}</div>
                     </button>
                     <button
                       type="button"
                       className={cn(
-                        'rounded-lg border px-3 py-3 text-start transition-colors',
+                        'rounded-md border px-2 py-1.5 text-start transition-colors',
                         formData.condition_type === 'multiplier'
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-border bg-background hover:bg-muted/50'
                       )}
                       onClick={() => setFormData({ ...formData, condition_type: 'multiplier' })}
                     >
-                      <div className="text-sm font-medium">{t('offers.multiplier')}</div>
-                      <div className="text-[11px] opacity-70 mt-0.5">{t('offers.multiplier_hint')}</div>
+                      <div className="text-xs font-medium">{t('offers.multiplier')}</div>
+                      <div className="text-[10px] opacity-70 leading-tight">{t('offers.multiplier_hint')}</div>
                     </button>
                   </div>
                 </div>
