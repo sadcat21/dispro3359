@@ -75,7 +75,7 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
     : tier.gift_type === 'discount_amount' && tier.discount_amount
     ? `-${tier.discount_amount}`
     : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
-  const autoTitle = `${minPart} ${unitShort(tier.min_quantity_unit)} + ${giftPart}`;
+  const condPart = `Buy ${minPart} ${unitShort(tier.min_quantity_unit)}`;
 
   return (
     <Card className="relative border-2 border-dashed bg-muted/30">
@@ -84,9 +84,13 @@ const OfferTierCard: React.FC<OfferTierCardProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <GripVertical className="w-4 h-4 text-muted-foreground cursor-move shrink-0" />
-            <Badge className="text-[10px] font-bold tracking-wide truncate">
-              {autoTitle}
-            </Badge>
+            <div
+              dir="ltr"
+              className="inline-flex items-stretch h-6 rounded-full overflow-hidden text-[10px] font-bold tracking-wide shrink-0"
+            >
+              <span className="bg-foreground text-background px-2 flex items-center">{condPart}</span>
+              <span className="bg-destructive text-destructive-foreground px-2 flex items-center">{giftPart}</span>
+            </div>
           </div>
           {canDelete && (
             <Button
