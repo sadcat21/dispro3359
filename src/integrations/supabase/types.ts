@@ -1338,6 +1338,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_type: string | null
+          customer_types: Json | null
           default_delivery_worker_id: string | null
           default_payment_type: string | null
           default_price_subtype: string | null
@@ -1369,6 +1370,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_type?: string | null
+          customer_types?: Json | null
           default_delivery_worker_id?: string | null
           default_payment_type?: string | null
           default_price_subtype?: string | null
@@ -1400,6 +1402,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_type?: string | null
+          customer_types?: Json | null
           default_delivery_worker_id?: string | null
           default_payment_type?: string | null
           default_price_subtype?: string | null
