@@ -2240,6 +2240,45 @@ const LoadStock: React.FC = () => {
         onSelect={setSelectedWorker} stockAlerts={stockAlerts}
       />
 
+      {/* Post-confirmation dialog */}
+      <Dialog open={postConfirmDialog.open} onOpenChange={(o) => setPostConfirmDialog((p) => ({ ...p, open: o }))}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <CheckCircle className="w-5 h-5 text-primary" />
+              تم شحن العامل {postConfirmDialog.workerName}
+            </DialogTitle>
+            <DialogDescription>
+              في انتظار الموافقة من عامل التوصيل.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => {
+                setPostConfirmDialog({ open: false, workerName: '' });
+                setSelectedWorker('');
+                setShowWorkerPicker(true);
+              }}
+            >
+              <UserCheck className="w-4 h-4 me-1.5" />
+              شحن لعامل آخر
+            </Button>
+            <Button
+              className="flex-1 rounded-xl"
+              onClick={() => {
+                setPostConfirmDialog({ open: false, workerName: '' });
+                setSelectedWorker('');
+              }}
+            >
+              <X className="w-4 h-4 me-1.5" />
+              الخروج من شحن العامل
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Product Picker */}
       <ProductPickerDialog
         open={showProductPicker} onOpenChange={setShowProductPicker}
