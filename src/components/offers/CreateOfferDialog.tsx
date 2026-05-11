@@ -348,7 +348,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     { id: 1, label: t('offers.product') || 'Product', icon: Package },
     { id: 2, label: t('offers.tiers') || 'Tiers', icon: Layers },
     { id: 3, label: t('offers.settings') || 'Settings', icon: Settings2 },
-    { id: 4, label: t('offers.summary') || t('common.review') || 'Summary', icon: CheckCircle2 },
+    { id: 4, label: t('offers.target_audience') || 'Target Audience', icon: Users, optional: true },
+    { id: 5, label: t('offers.summary') || t('common.review') || 'Summary', icon: CheckCircle2 },
   ];
 
   const canGoNext = () => {
@@ -357,7 +358,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     return true;
   };
 
-  const goNext = () => setStep((s) => Math.min(4, s + 1));
+  const goNext = () => setStep((s) => Math.min(5, s + 1));
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
   const selectedProduct = products.find((p) => p.id === formData.product_id) || null;
