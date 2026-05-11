@@ -81,14 +81,14 @@ const SimpleProductPickerDialog: React.FC<SimpleProductPickerDialogProps> = ({
           />
         </div>
         <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1.5">
             {filtered.map(p => {
               const isSelected = selectedProductIds.includes(p.id);
               return (
                 <button
                   key={p.id}
-                  className={`flex flex-col rounded-2xl overflow-hidden text-center transition-all relative bg-card shadow-lg border-2
-                    ${isSelected ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/60 hover:shadow-xl'}
+                  className={`flex flex-col rounded-lg overflow-hidden text-center transition-all relative bg-card border
+                    ${isSelected ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/60'}
                   `}
                   onClick={() => {
                     onSelect(p.id);
@@ -96,24 +96,24 @@ const SimpleProductPickerDialog: React.FC<SimpleProductPickerDialogProps> = ({
                     if (closeOnSelect) onOpenChange(false);
                   }}
                 >
-                  {/* Product name */}
-                  <div className={`px-2 py-2 border-b ${isSelected ? 'bg-primary border-primary' : 'bg-muted border-border'}`}>
-                    <span className={`font-bold leading-tight block text-center truncate text-sm ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
-                      {p.name}
-                    </span>
-                  </div>
                   {/* Image */}
                   {p.image_url ? (
                     <img src={p.image_url} alt={p.name} className="w-full aspect-square object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full aspect-square bg-muted flex items-center justify-center">
-                      <Package className="w-10 h-10 text-primary/40" />
+                      <Package className="w-6 h-6 text-primary/40" />
                     </div>
                   )}
+                  {/* Product name */}
+                  <div className={`px-1.5 py-1 border-t ${isSelected ? 'bg-primary border-primary' : 'bg-muted/40 border-border'}`}>
+                    <span className={`font-medium leading-tight block text-center truncate text-[11px] ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
+                      {p.name}
+                    </span>
+                  </div>
                   {/* Selected checkmark */}
                   {isSelected && (
-                    <div className="absolute top-1 end-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center">
-                      <Check className="w-3 h-3" />
+                    <div className="absolute top-1 end-1 bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5" />
                     </div>
                   )}
                 </button>
