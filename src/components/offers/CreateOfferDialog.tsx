@@ -884,41 +884,43 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
           </div>
 
           {/* Footer with stepper navigation */}
-          <div className="p-4 border-t shrink-0 bg-background flex items-center gap-2">
+          <div className="p-3 sm:p-4 border-t shrink-0 bg-background flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               onClick={goBack}
               disabled={step === 1 || isLoading}
-              className="gap-1"
+              className="gap-1 h-9 px-2 sm:px-3"
             >
               <ArrowRight className={cn('w-4 h-4', dir === 'ltr' && 'rotate-180')} />
-              {t('common.back') || 'Back'}
+              <span className="text-xs sm:text-sm">{t('common.back') || 'Back'}</span>
             </Button>
-            <div className="flex-1 text-center text-xs text-muted-foreground">
+            <div className="flex-1 text-center text-[11px] sm:text-xs text-muted-foreground">
               {step} / {steps.length}
             </div>
             {step < 5 ? (
               <Button
                 type="button"
+                size="sm"
                 onClick={goNext}
                 disabled={!canGoNext()}
-                className="gap-1"
+                className="gap-1 h-9 px-2 sm:px-3"
               >
-                {t('common.next') || 'Next'}
+                <span className="text-xs sm:text-sm">{t('common.next') || 'Next'}</span>
                 <ArrowLeft className={cn('w-4 h-4', dir === 'ltr' && 'rotate-180')} />
               </Button>
             ) : (
-              <Button type="submit" disabled={isLoading} className="gap-1">
+              <Button type="submit" size="sm" disabled={isLoading} className="gap-1 h-9 px-2 sm:px-3">
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {t('common.loading')}
+                    <span className="text-xs sm:text-sm">{t('common.loading')}</span>
                   </>
                 ) : (
                   <>
                     <Gift className="w-4 h-4" />
-                    {editOffer ? t('common.save') : t('offers.create')}
+                    <span className="text-xs sm:text-sm">{editOffer ? t('common.save') : t('offers.create')}</span>
                   </>
                 )}
               </Button>
