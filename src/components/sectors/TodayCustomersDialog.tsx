@@ -1196,7 +1196,9 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   }, [customers, todaySalesSectors]);
 
   const visitedCustomerIds = useMemo(() => new Set(todayVisits.filter(v => v.operation_type === 'visit').map(v => v.customer_id).filter(Boolean)), [todayVisits]);
-  const orderedCustomerIds = useMemo(() => new Set(todayOrders.map(o => o.customer_id).filter(Boolean)), [todayOrders]);
+  const directSaleOrderIds = useMemo(() => new Set(todayDirectSales.map((s: any) => s.order_id).filter(Boolean)), [todayDirectSales]);
+  const realTodayOrders = useMemo(() => todayOrders.filter((o: any) => !o.id || !directSaleOrderIds.has(o.id)), [todayOrders, directSaleOrderIds]);
+  const orderedCustomerIds = useMemo(() => new Set(realTodayOrders.map((o: any) => o.customer_id).filter(Boolean)), [realTodayOrders]);
   const salesNotVisited = useMemo(() => salesCustomers.filter(c => !visitedCustomerIds.has(c.id) && !orderedCustomerIds.has(c.id)), [salesCustomers, visitedCustomerIds, orderedCustomerIds]);
   const salesVisitedNoOrder = useMemo(() => salesCustomers.filter(c => visitedCustomerIds.has(c.id) && !orderedCustomerIds.has(c.id)), [salesCustomers, visitedCustomerIds, orderedCustomerIds]);
 
