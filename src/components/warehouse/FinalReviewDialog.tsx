@@ -229,7 +229,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         if (loadSessionIds.length > 0) {
           const { data } = await supabase
             .from('loading_session_items')
-            .select('session_id, product_id, quantity, product:products(id, name, image_url, pieces_per_box)')
+            .select('session_id, product_id, quantity, gift_quantity, product:products(id, name, image_url, pieces_per_box)')
             .in('session_id', loadSessionIds);
           loadItems = data || [];
           for (const it of loadItems) {
@@ -283,8 +283,8 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
           const ex = map.get(pid) || baseRow(pid, prod);
           const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
           ex.loaded += bpToPieces(Number(it.quantity || 0), ppb);
-          // ملاحظة: gift_quantity في loading_session_items هو تخصيص عرض ترويجي عند الشحن
-          // وليس هدية مُسلَّمة فعلياً للعميل — نُحسب الهدايا فقط من الطلبيات المُسلَّمة أدناه
+          // gift_quantity في loading_session_items مخزّن بعدد القطع — يُضاف لإجمالي ما تم شحنه
+          ex.loaded += Math.max(0, Math.round(Number((it as any).gift_quantity || 0)));
           map.set(pid, ex);
         }
         for (const m of (unloadMoves || [])) {
@@ -460,6 +460,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
       const ex = ensureRow(pid, prod, ppb);
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+      ex.loaded += Math.max(0, Math.round(Number((it as any).gift_quantity || 0)));
     }
     // For unload-only selections, carry over the remaining from the previous shipment
     // (loaded shown for an unload = remaining of prev shipment at the unload moment).
@@ -482,6 +483,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
         const ex = ensureRow(pid, prod, ppb);
         ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+        ex.loaded += Math.max(0, Math.round(Number((it as any).gift_quantity || 0)));
       }
       for (const m of unloadMovesAll) {
         const ts = (m as any).created_at;
