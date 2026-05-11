@@ -61,7 +61,9 @@ const DATA_CATEGORIES: DataCategory[] = [
   // Stock
   { id: 'loading', label: 'جلسات الشحن والتفريغ', tables: ['loading_session_items', 'loading_sessions'], description: 'تحميل وتفريغ الشاحنات', order: 7.5, group: 'stock' },
   { id: 'stock_receipts', label: 'أوامر الاستلام', tables: ['stock_receipt_items', 'stock_receipts'], description: 'أوامر استلام المخزون', order: 3.5, group: 'stock' },
-  { id: 'stock', label: 'حركات المخزون', tables: ['stock_discrepancies', 'stock_movements', 'worker_stock', 'warehouse_stock'], description: 'جميع حركات وأرصدة المخزون', order: 3, group: 'stock' },
+  { id: 'stock_movements', label: 'حركات المخزون (السجل)', tables: ['stock_discrepancies', 'stock_movements'], description: 'سجل حركات التحميل/الإرجاع والفروقات', order: 3.2, group: 'stock' },
+  { id: 'worker_stock', label: 'مخزون العمال', tables: ['worker_stock'], description: 'الأرصدة الحالية لدى العمال', order: 3.1, group: 'stock' },
+  { id: 'warehouse_stock', label: 'مخزون الفرع', tables: ['warehouse_stock'], description: 'أرصدة مخزون الفرع/المستودع', order: 3.0, group: 'stock' },
   { id: 'pallets', label: 'البليطات', tables: ['pallet_movements', 'branch_pallets'], description: 'تصفير رصيد البليطات وحذف سجل حركتها', order: 2.5, group: 'stock' },
   // System
   { id: 'offers', label: 'العروض', tables: ['product_offer_tiers', 'product_offers'], description: 'عروض المنتجات', order: 5.5, group: 'system' },
