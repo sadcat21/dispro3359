@@ -379,14 +379,14 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         open={productPickerOpen}
         onOpenChange={(o) => {
           setProductPickerOpen(o);
-          // If user closed the picker without selecting a product (new offer flow), close the whole flow
-          if (!o && !formData.product_id && !editOffer) {
+          if (!o && !productSelectedRef.current && !editOffer) {
             onOpenChange(false);
           }
         }}
         products={products.map(p => ({ id: p.id, name: getProductDisplayName(p), image_url: (p as any).image_url ?? null }))}
         selectedProductId={formData.product_id}
         onSelect={(id) => {
+          productSelectedRef.current = true;
           setFormData({ ...formData, product_id: id });
           if (!editOffer) setStep(2);
         }}
