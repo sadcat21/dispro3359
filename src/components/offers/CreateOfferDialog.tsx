@@ -534,44 +534,10 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <Label className="text-sm font-medium">{t('offers.quantity_tiers')}</Label>
-                    <Badge variant="secondary">{tiers.length} {t('offers.tier')}</Badge>
-                  </div>
-
-                  <Tabs
-                    value={String(Math.min(activeTierTab, tiers.length - 1))}
-                    onValueChange={(v) => setActiveTierTab(parseInt(v) || 0)}
-                    dir={dir}
-                  >
-                    <div className="flex items-start gap-2">
-                      <TabsList className="h-auto flex flex-wrap gap-1 bg-muted/40 p-1 flex-1 justify-start">
-                        {tiers.map((tier, index) => {
-                          const unitShort = (u: string) => (u === 'box' ? 'BOX' : 'PCS');
-                          const minPart = tier.max_quantity && tier.max_quantity !== tier.min_quantity
-                            ? `${tier.min_quantity}-${tier.max_quantity}`
-                            : `${tier.min_quantity}`;
-                          const giftPart = tier.gift_type === 'discount_percentage' && tier.discount_percentage
-                            ? `${tier.discount_percentage}%`
-                            : tier.gift_type === 'discount_amount' && tier.discount_amount
-                            ? `-${tier.discount_amount}`
-                            : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
-                          const condPart = `Buy ${minPart} ${unitShort(tier.min_quantity_unit)}`;
-                          return (
-                            <TabsTrigger
-                              key={index}
-                              value={String(index)}
-                              dir="ltr"
-                              className="p-0 h-7 rounded-full overflow-hidden border border-border data-[state=active]:ring-2 data-[state=active]:ring-destructive"
-                            >
-                              <span className="flex items-stretch h-full text-[10px] font-bold tracking-wide" dir="ltr">
-                                <span className="bg-foreground text-background px-2 py-1 flex items-center">{condPart}</span>
-                                <span className="bg-destructive text-destructive-foreground px-2 py-1 flex items-center">{giftPart}</span>
-                              </span>
-                            </TabsTrigger>
-                          );
-                        })}
-                      </TabsList>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{tiers.length} {t('offers.tier')}</Badge>
                       <Button
                         type="button"
                         size="icon"
@@ -585,6 +551,40 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
+                  </div>
+
+                  <Tabs
+                    value={String(Math.min(activeTierTab, tiers.length - 1))}
+                    onValueChange={(v) => setActiveTierTab(parseInt(v) || 0)}
+                    dir={dir}
+                  >
+                    <TabsList className="h-auto grid grid-cols-3 gap-1 bg-muted/40 p-1 w-full">
+                      {tiers.map((tier, index) => {
+                        const unitShort = (u: string) => (u === 'box' ? 'BOX' : 'PCS');
+                        const minPart = tier.max_quantity && tier.max_quantity !== tier.min_quantity
+                          ? `${tier.min_quantity}-${tier.max_quantity}`
+                          : `${tier.min_quantity}`;
+                        const giftPart = tier.gift_type === 'discount_percentage' && tier.discount_percentage
+                          ? `${tier.discount_percentage}%`
+                          : tier.gift_type === 'discount_amount' && tier.discount_amount
+                          ? `-${tier.discount_amount}`
+                          : `${tier.gift_quantity} ${unitShort(tier.gift_quantity_unit)}`;
+                        const condPart = `Buy ${minPart} ${unitShort(tier.min_quantity_unit)}`;
+                        return (
+                          <TabsTrigger
+                            key={index}
+                            value={String(index)}
+                            dir="ltr"
+                            className="p-0 h-7 w-full rounded-full overflow-hidden border border-border data-[state=active]:ring-2 data-[state=active]:ring-destructive"
+                          >
+                            <span className="flex items-stretch h-full w-full text-[10px] font-bold tracking-wide" dir="ltr">
+                              <span className="bg-foreground text-background px-2 py-1 flex-1 flex items-center justify-center">{condPart}</span>
+                              <span className="bg-destructive text-destructive-foreground px-2 py-1 flex-1 flex items-center justify-center">{giftPart}</span>
+                            </span>
+                          </TabsTrigger>
+                        );
+                      })}
+                    </TabsList>
 
                     {tiers.map((tier, index) => (
                       <TabsContent key={index} value={String(index)} className="mt-3">
