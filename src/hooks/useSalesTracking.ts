@@ -62,6 +62,35 @@ export const useSalesTracking = (filters: SalesTrackingFilters = {}) => {
       const { data, error } = await q;
       if (error) throw error;
       let rows = (data || []) as SalesTrackingRow[];
+      // Enrich missing worker_name / customer_name / branch_name / product_name from related tables
+      try {
+        const missingWorkerIds = Array.from(new Set(rows.filter(r => r.worker_id && !r.worker_name).map(r => r.worker_id as string)));
+        if (missingWorkerIds.length) {
+          const { data: ws } = await (supabase as any).from('workers').select('id, full_name').in('id', missingWorkerIds);
+          const map = new Map<string, string>((ws || []).map((w: any) => [w.id, w.full_name]));
+          rows = rows.map(r => (r.worker_id && !r.worker_name && map.has(r.worker_id)) ? { ...r, worker_name: map.get(r.worker_id) || null } : r);
+        }
+        const missingCustomerIds = Array.from(new Set(rows.filter(r => r.customer_id && !r.customer_name).map(r => r.customer_id as string)));
+        if (missingCustomerIds.length) {
+          const { data: cs } = await (supabase as any).from('customers').select('id, name').in('id', missingCustomerIds);
+          const map = new Map<string, string>((cs || []).map((c: any) => [c.id, c.name]));
+          rows = rows.map(r => (r.customer_id && !r.customer_name && map.has(r.customer_id)) ? { ...r, customer_name: map.get(r.customer_id) || null } : r);
+        }
+        const missingBranchIds = Array.from(new Set(rows.filter(r => r.branch_id && !r.branch_name).map(r => r.branch_id as string)));
+        if (missingBranchIds.length) {
+          const { data: bs } = await (supabase as any).from('branches').select('id, name').in('id', missingBranchIds);
+          const map = new Map<string, string>((bs || []).map((b: any) => [b.id, b.name]));
+          rows = rows.map(r => (r.branch_id && !r.branch_name && map.has(r.branch_id)) ? { ...r, branch_name: map.get(r.branch_id) || null } : r);
+        }
+        const missingProductIds = Array.from(new Set(rows.filter(r => r.product_id && !r.product_name).map(r => r.product_id as string)));
+        if (missingProductIds.length) {
+          const { data: ps } = await (supabase as any).from('products').select('id, name').in('id', missingProductIds);
+          const map = new Map<string, string>((ps || []).map((p: any) => [p.id, p.name]));
+          rows = rows.map(r => (r.product_id && !r.product_name && map.has(r.product_id)) ? { ...r, product_name: map.get(r.product_id) || null } : r);
+        }
+      } catch (e) {
+        console.warn('[useSalesTracking] enrichment failed', e);
+      }
       if (filters.giftsOnly) {
         rows = rows.filter((r) => Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0);
       }
