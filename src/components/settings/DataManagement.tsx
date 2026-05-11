@@ -196,7 +196,7 @@ const DataManagement: React.FC = () => {
       if (!selectedIds.has('treasury')) {
         await nullify('handover_items', 'order_id');
       }
-      if (!selectedIds.has('stock')) {
+      if (!selectedIds.has('stock_movements')) {
         await del('stock_movements');
       }
       if (!selectedIds.has('promos')) {
