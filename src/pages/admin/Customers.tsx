@@ -106,6 +106,7 @@ const Customers: React.FC = () => {
   const [sectorZones, setSectorZones] = useState<{ id: string; name: string; name_fr: string | null; sector_id: string }[]>([]);
   const [allZones, setAllZones] = useState<{ id: string; name: string; name_fr: string | null; sector_id: string }[]>([]);
   const [expandAllSectors, setExpandAllSectors] = useState(false);
+  const [openSectorKey, setOpenSectorKey] = useState<string | null>(null);
   const isAddCustomerHidden = useIsElementHidden('button', 'add_customer');
   const isEditCustomerHidden = useIsElementHidden('action', 'edit_customer');
   const isDeleteCustomerHidden = useIsElementHidden('action', 'delete_customer');
