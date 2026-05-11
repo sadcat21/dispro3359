@@ -104,6 +104,7 @@ const LoadStock: React.FC = () => {
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedWorker, setSelectedWorker] = useState(() => contextWorkerId || '');
   const [showWorkerPicker, setShowWorkerPicker] = useState(false);
+  const [postConfirmDialog, setPostConfirmDialog] = useState<{ open: boolean; workerName: string }>({ open: false, workerName: '' });
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [showExchangeDialog, setShowExchangeDialog] = useState(false);
   const [showProductPicker, setShowProductPicker] = useState(false);
@@ -1091,6 +1092,7 @@ const LoadStock: React.FC = () => {
       toast.success(`تم إرسال الشحنة، وهي الآن قيد انتظار موافقة عامل التوصيل ${workerName}`);
       setActiveSessionId(null);
       setSessionItems([]);
+      setPostConfirmDialog({ open: true, workerName });
     } catch (err: any) { toast.error(err.message); }
     finally {
       completeSessionLockRef.current = false;
@@ -2237,6 +2239,45 @@ const LoadStock: React.FC = () => {
         workers={workers} selectedWorkerId={selectedWorker}
         onSelect={setSelectedWorker} stockAlerts={stockAlerts}
       />
+
+      {/* Post-confirmation dialog */}
+      <Dialog open={postConfirmDialog.open} onOpenChange={(o) => setPostConfirmDialog((p) => ({ ...p, open: o }))}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <CheckCircle className="w-5 h-5 text-primary" />
+              تم شحن العامل {postConfirmDialog.workerName}
+            </DialogTitle>
+            <DialogDescription>
+              في انتظار الموافقة من عامل التوصيل.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => {
+                setPostConfirmDialog({ open: false, workerName: '' });
+                setSelectedWorker('');
+                setShowWorkerPicker(true);
+              }}
+            >
+              <UserCheck className="w-4 h-4 me-1.5" />
+              شحن لعامل آخر
+            </Button>
+            <Button
+              className="flex-1 rounded-xl"
+              onClick={() => {
+                setPostConfirmDialog({ open: false, workerName: '' });
+                setSelectedWorker('');
+              }}
+            >
+              <X className="w-4 h-4 me-1.5" />
+              الخروج من شحن العامل
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Product Picker */}
       <ProductPickerDialog
