@@ -323,6 +323,7 @@ const AdminHome: React.FC = () => {
         ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
         { path: '/cash-ledger', icon: Coins, label: 'سجل حركة الأموال' },
         { path: '/debt-ledger', icon: HandCoins, label: 'سجل حركة الديون' },
+        { path: '/sales-tracking', icon: BarChart3, label: 'سجل تتبع المبيعات' },
       ],
     },
     // 2. الطلبات والتوصيل
