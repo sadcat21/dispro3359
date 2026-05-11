@@ -77,6 +77,17 @@ const formatBP = (totalPieces: number, piecesPerBox: number): string => {
 
 const toWholePieces = (value: number): number => Math.round(Number(value || 0));
 
+const getDeliveredSoldBp = (item: any): number => {
+  const deliveredQuantity = item?.delivered_quantity ?? item?.stock_movement_quantity;
+  if (deliveredQuantity !== undefined && deliveredQuantity !== null) {
+    return Math.max(0, Number(deliveredQuantity || 0));
+  }
+
+  const quantity = Math.max(0, Number(item?.quantity || 0));
+  const origGiftBoxes = Math.max(0, Math.floor(Number(item?._orig_gift_quantity ?? item?.gift_quantity ?? 0)));
+  return Math.max(0, quantity - origGiftBoxes);
+};
+
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   open, onOpenChange, workerId, workerName, branchId,
 }) => {
