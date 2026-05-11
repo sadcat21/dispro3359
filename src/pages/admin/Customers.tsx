@@ -552,190 +552,105 @@ const Customers: React.FC = () => {
             defaultOpen={!!searchQuery.trim()}
             forceOpen={expandAllSectors}
           >
+            <div className="grid grid-cols-2 gap-2">
             {group.customers.map((customer) => {
-              const { percent, missing, missingCompletion } = getCustomerCompletion(customer);
-              const lastOrder = lastOrders[customer.id];
+              const { percent } = getCustomerCompletion(customer);
+              const storeName = customer.store_name
+                ? (language === 'fr' && (customer as any).store_name_fr ? (customer as any).store_name_fr : customer.store_name)
+                : '';
+              const personName = (language === 'fr' && customer.name_fr ? customer.name_fr : customer.name) || '';
+              const topText = storeName || personName || '—';
+              const bottomText = storeName ? personName : '';
+              const typeEntry = customer.customer_type
+                ? customerTypes.find(t => t.ar === customer.customer_type)
+                : null;
+              const typeColors = typeEntry
+                ? getCustomerTypeColor(typeEntry.short || '', customerTypes.indexOf(typeEntry), typeEntry)
+                : null;
+              const pendingCount = (pendingRequestsMap[customer.id] || []).length;
+              const len = topText.length;
+              const sizeClass = len > 22 ? 'text-[10px]' : len > 16 ? 'text-[11px]' : len > 12 ? 'text-xs' : 'text-sm';
               return (
-          <Card key={customer.id}>
-            <CardContent className="p-3">
-              {/* Customer Info Row */}
-              <div className="flex items-start gap-2">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5 shrink-0">
-                  <Store className="w-4 h-4 text-primary" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-sm leading-tight flex items-center gap-0.5 flex-wrap">
-                    {(() => {
-                      const storeName = customer.store_name
-                        ? (language === 'fr' && customer.store_name_fr ? customer.store_name_fr : customer.store_name)
-                        : (language === 'fr' && customer.name_fr ? customer.name_fr : customer.name);
-                      const typeEntry = customer.customer_type
-                        ? customerTypes.find(t => t.ar === customer.customer_type)
-                        : null;
-                      const shortLabel = typeEntry?.short || typeEntry?.ar || '';
-                      const pendingReqs = pendingRequestsMap[customer.id] || [];
-                      const pendingCount = pendingReqs.length;
-                      const pendingBadge = pendingCount > 0 ? (
-                        <Badge 
-                          className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0 ml-1 cursor-pointer hover:bg-destructive/90"
-                          onClick={(e) => { e.stopPropagation(); if (isManager) setReviewCustomer(customer); }}
-                        >
-                          طلب تعديل ({pendingCount})
-                        </Badge>
-                      ) : null;
-                      const verifiedBadge = percent === 100 ? (
-                        <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
-                      ) : null;
-                      if (!shortLabel) return <>{storeName}{verifiedBadge}{pendingBadge}</>;
-                      const typeColors = getCustomerTypeColor(typeEntry?.short || '', customerTypes.indexOf(typeEntry!), typeEntry);
-                      return <><span className="inline-flex items-center text-[10px] px-1.5 py-0 font-mono uppercase ml-1 rounded-md font-semibold" style={{ backgroundColor: typeColors.bg, color: typeColors.text }}>{shortLabel}</span>{storeName}{verifiedBadge}{pendingBadge}</>;
-                    })()}
-                  </p>
-                  <div className="flex items-center gap-1 flex-wrap mt-0.5">
-                    {getSectorName(customer.sector_id) && (
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-semibold">
-                        <MapPin className="w-2.5 h-2.5 ml-0.5" />
-                        {getSectorName(customer.sector_id)}
-                      </Badge>
-                    )}
-                    {getZoneName(customer.zone_id) && (
-                      <Badge className="text-[10px] px-1.5 py-0 font-semibold border-0 bg-blue-600 text-white">
-                        {getZoneName(customer.zone_id)}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    <User className="w-2.5 h-2.5 inline ml-0.5" />
-                    {language === 'fr' && customer.name_fr ? customer.name_fr : customer.name}
-                  </p>
-                  <div className="flex items-center gap-1 flex-wrap mt-1">
-                    {customer.internal_name && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">
-                        {customer.internal_name}
-                      </Badge>
-                    )}
-                    {customer.is_trusted && (
-                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] px-1.5 py-0">
-                        <Shield className="w-2.5 h-2.5 ml-0.5" />
-                        {t('customers.trusted')}
-                      </Badge>
-                    )}
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                      {customer.default_payment_type === 'with_invoice' ? t('customers.invoice_1') :
-                        customer.default_price_subtype === 'super_gros' ? t('customers.super_gros') :
-                          customer.default_price_subtype === 'retail' ? t('customers.retail') : t('customers.wholesale')
-                      }
-                    </Badge>
-                  </div>
-                  {customer.phone && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                      <Phone className="w-3 h-3 shrink-0" />
-                      <span dir="ltr">{customer.phone}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                    {customer.wilaya && (
-                      <span className="flex items-center gap-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        {customer.wilaya}
-                      </span>
-                    )}
-                    {customer.branch_id && (
-                      <span className="flex items-center gap-0.5">
-                        <Building2 className="w-3 h-3 shrink-0" />
-                        {getBranchName(customer.branch_id)}
-                      </span>
-                    )}
-                  </div>
-                  {customer.address && (
-                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{customer.address}</p>
-                  )}
-                  {(customer as any).updated_at && (
-                    <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
-                      <FileEdit className="w-2.5 h-2.5" />
-                      آخر تحديث: {format(new Date((customer as any).updated_at), 'dd MMM yyyy HH:mm', { locale: language === 'ar' ? ar : language === 'fr' ? fr : enUS })}
-                    </p>
-                  )}
-                  {lastOrder && (
-                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-primary/20">
-                        <Calendar className="w-2.5 h-2.5" />
-                        {t('customers.last_order_label')} {format(new Date(lastOrder.created_at), 'dd MMM yyyy', { locale: language === 'ar' ? ar : language === 'fr' ? fr : enUS })}
-                        {' '}({differenceInDays(new Date(), new Date(lastOrder.created_at))} {t('customers.days')})
-                      </Badge>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                        {Number(lastOrder.total_amount || 0).toLocaleString()} {t('customers.currency')} ({lastOrder.itemCount || 0} {t('customers.product_count')})
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {percent < 100 && (
-                <div className="mt-2 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Progress value={percent} className="h-1.5 flex-1" />
-                    <span className={`text-[10px] font-semibold ${percent >= 60 ? 'text-muted-foreground' : 'text-destructive'}`}>{percent}%</span>
-                  </div>
-                  {missingCompletion.length > 0 && (
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {missingCompletion.map(m => (
-                        <Badge key={m.key} variant="outline" className="text-[9px] px-1.5 py-0 border-destructive/30 text-destructive bg-destructive/5">
-                          {m.label}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              {(() => {
-                const ab = customerFieldSettings.actionButtons;
-                const renderBtn = (key: CustomerActionButtonKey, icon: React.ReactNode, onClick: () => void, condition = true, extraClass = 'text-muted-foreground hover:text-primary hover:bg-primary/10') => {
-                  const cfg = ab[key];
-                  if (!cfg?.visible || !condition) return null;
-                  return (
-                    <Button key={key} variant="ghost" size={cfg.showLabel ? 'sm' : 'icon'} className={`h-7 ${cfg.showLabel ? 'px-2 gap-1 text-[10px]' : 'w-7'} ${extraClass}`} onClick={onClick} title={cfg.label}>
-                      {icon}
-                      {cfg.showLabel && <span>{cfg.label}</span>}
-                    </Button>
-                  );
-                };
-                return (
-                  <div className="flex items-center justify-end gap-0 mt-2 border-t pt-1.5 flex-wrap">
-                    {renderBtn('view_profile', <Eye className="w-3.5 h-3.5" />, () => { setProfileCustomer(customer); setIsProfileOpen(true); }, !isViewProfileHidden)}
-                    {renderBtn('call', <Phone className="w-3.5 h-3.5" />, () => window.location.href = `tel:${customer.phone}`, !!customer.phone)}
-                    {renderBtn('new_order', <PlusCircle className="w-3.5 h-3.5" />, () => navigate('/orders', { state: { customerId: customer.id, paymentType: customer.default_payment_type } }))}
-                    {renderBtn('debts', <CreditCard className="w-3.5 h-3.5" />, () => navigate('/customer-debts', { state: { customerId: customer.id } }))}
-                    {isManager && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-sky-700 hover:text-sky-800 hover:bg-sky-100"
-                        onClick={() => navigate(`/customer-journey?customerId=${customer.id}`)}
-                        title={t('nav.customer_journey')}
+                <div
+                  key={customer.id}
+                  className="relative flex flex-col items-stretch rounded-lg overflow-hidden border-2 border-foreground text-center min-h-[56px] shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setProfileCustomer(customer); setIsProfileOpen(true); }}
+                    className="flex flex-col items-stretch text-center flex-1"
+                    title={topText}
+                  >
+                    <div
+                      className="relative flex items-stretch"
+                      style={typeColors ? { backgroundColor: typeColors.bg } : undefined}
+                    >
+                      <p
+                        className={`flex-1 min-w-0 px-2 py-1 font-bold leading-tight text-center whitespace-nowrap overflow-hidden text-ellipsis ${sizeClass} ${typeColors ? '' : 'text-background bg-foreground'}`}
+                        style={typeColors ? { color: typeColors.text } : undefined}
                       >
-                        <Activity className="w-3.5 h-3.5" />
+                        {typeEntry?.short && (
+                          <span className="me-1 font-mono uppercase opacity-90">[{typeEntry.short}]</span>
+                        )}
+                        {topText}
+                        {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
+                      </p>
+                    </div>
+                    <div className="px-2 py-0.5 flex-1 flex items-center justify-center bg-background gap-1 flex-wrap">
+                      {bottomText && (
+                        <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground">
+                          {bottomText}
+                        </p>
+                      )}
+                      {getSectorName(customer.sector_id) && (
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/30 text-primary">
+                          {getSectorName(customer.sector_id)}
+                        </Badge>
+                      )}
+                      {getZoneName(customer.zone_id) && (
+                        <Badge className="text-[9px] px-1 py-0 h-4 border-0 bg-blue-600 text-white">
+                          {getZoneName(customer.zone_id)}
+                        </Badge>
+                      )}
+                    </div>
+                  </button>
+                  {/* Quick actions */}
+                  <div className="flex items-center justify-between gap-0 px-1 py-0.5 border-t bg-muted/40">
+                    {customer.phone ? (
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary"
+                        onClick={() => window.location.href = `tel:${customer.phone}`} title={customer.phone}>
+                        <Phone className="w-3 h-3" />
+                      </Button>
+                    ) : <span className="w-6" />}
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary"
+                      onClick={() => navigate('/orders', { state: { customerId: customer.id, paymentType: customer.default_payment_type } })} title={t('customers.new_order')}>
+                      <PlusCircle className="w-3 h-3" />
+                    </Button>
+                    {!isEditCustomerHidden && (
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary"
+                        onClick={() => openEditDialog(customer)} title={t('common.edit')}>
+                        <Pencil className="w-3 h-3" />
                       </Button>
                     )}
-                    {renderBtn('direct_sale', <Banknote className="w-3.5 h-3.5" />, () => navigate('/orders', { state: { customerId: customer.id, action: 'sale' } }))}
-                    {renderBtn('delivery', <Truck className="w-3.5 h-3.5" />, () => navigate('/orders', { state: { customerId: customer.id, action: 'delivery' } }))}
-                    {renderBtn('last_order', <ShoppingBag className="w-3.5 h-3.5" />, () => openLastOrderDetails(customer))}
-                    {renderBtn('navigate', <Navigation className="w-3.5 h-3.5" />, () => window.open(`https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}`, '_blank'), !!(customer.latitude && customer.longitude))}
-                    {renderBtn('special_prices', <Tag className="w-3.5 h-3.5" />, () => setCustomerForPrices(customer))}
-                    {isManager && (pendingRequestsMap[customer.id]?.length || 0) > 0 && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setReviewCustomer(customer)} title={t('customers.review_changes')}>
-                        <FileEdit className="w-3.5 h-3.5" />
+                    {!isDeleteCustomerHidden && (
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setCustomerToDelete(customer)} title={t('common.delete')}>
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
-                    {renderBtn('edit', <Pencil className="w-3.5 h-3.5" />, () => openEditDialog(customer), !isEditCustomerHidden)}
-                    {renderBtn('delete', <Trash2 className="w-3.5 h-3.5" />, () => setCustomerToDelete(customer), !isDeleteCustomerHidden, 'text-destructive hover:text-destructive hover:bg-destructive/10')}
                   </div>
-                );
-              })()}
-            </CardContent>
-           </Card>
-           );
-              })}
+                  {pendingCount > 0 && (
+                    <Badge
+                      className="absolute top-0.5 start-0.5 bg-destructive text-destructive-foreground text-[9px] px-1 py-0 h-4 cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); if (isManager) setReviewCustomer(customer); }}
+                    >
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
+            </div>
           </SectorCustomerGroup>
         ));
       })()}
