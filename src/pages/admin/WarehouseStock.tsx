@@ -297,7 +297,8 @@ const WarehouseStock: React.FC = () => {
       const loadT = loadByProduct[pid] || 0;
       const returnT = returnByProduct[pid] || 0;
       const wSale = warehouseSaleByProduct[pid] || 0;
-      summaries[pid].remaining = Math.round((received - loadT + returnT - wSale) * 100) / 100;
+      const damaged = summaries[pid].damaged || 0;
+      summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
     // Hide products where all values are zero
