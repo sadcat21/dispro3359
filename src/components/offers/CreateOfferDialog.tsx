@@ -66,6 +66,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [activeTierTab, setActiveTierTab] = useState(0);
+  const productSelectedRef = useRef(false);
   const { customerTypes } = useCustomerTypes();
 
   // Form state - offer level
