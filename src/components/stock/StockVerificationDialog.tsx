@@ -25,7 +25,7 @@ interface StockVerificationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   workerId: string;
-  onComplete?: () => void | Promise<void>;
+  onComplete?: (sessionId?: string) => void | Promise<void>;
 }
 
 const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
