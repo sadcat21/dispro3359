@@ -650,9 +650,6 @@ const LoadStock: React.FC = () => {
     }
   }, [selectedWorker, sessions]);
 
-  const getAvailableQuantity = (productId: string) =>
-    warehouseStock.find(s => s.product_id === productId)?.quantity || 0;
-
   // Returns the available quantity in PIECES, with a fallback derived from
   // approved receipts when the warehouse_stock row is missing (e.g. after cleanup).
   const getWarehousePiecesAvailable = (productId: string, piecesPerBox: number): number => {
