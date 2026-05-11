@@ -60,7 +60,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('tiers');
+  const [step, setStep] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Form state - offer level
@@ -157,7 +157,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       branch_id: null,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
-    setActiveTab('tiers');
+    setStep(1);
     setShowAdvanced(false);
   };
 
