@@ -587,15 +587,8 @@ const Customers: React.FC = () => {
                   title={topText}
                   className="relative flex flex-col items-stretch rounded-xl overflow-hidden border border-foreground/15 text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
-                  {/* Level 1: store name (always black) */}
-                  <div className="px-2 py-1 bg-foreground">
-                    <p className={`font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-background ${sizeClass}`}>
-                      {topText}
-                      {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
-                    </p>
-                  </div>
-                  {/* Level 2: customer name + types (integrated band, types as side strips) */}
-                  <div className="flex items-stretch bg-background gap-1 px-1">
+                  {/* Level 1: store name (black) with integrated type strips */}
+                  <div className="flex items-stretch bg-foreground">
                     {(() => {
                       const startTypes = typeEntries.length > 1 ? typeEntries.slice(0, Math.ceil(typeEntries.length / 2)) : typeEntries;
                       const endTypes = typeEntries.length > 1 ? typeEntries.slice(Math.ceil(typeEntries.length / 2)) : [];
@@ -604,7 +597,7 @@ const Customers: React.FC = () => {
                         return (
                           <div
                             key={`${side}-${entry.ar}-${idx}`}
-                            className="px-2 py-0.5 my-0.5 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0 rounded-full"
+                            className="px-2 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0"
                             style={{ backgroundColor: c.bg, color: c.text }}
                           >
                             {entry.short}
@@ -614,13 +607,20 @@ const Customers: React.FC = () => {
                       return (
                         <>
                           {startTypes.map((e, i) => renderChip(e, i, 'start'))}
-                          <p className="flex-1 px-1 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground flex items-center justify-center">
-                            {bottomText || '—'}
+                          <p className={`flex-1 px-2 py-1 font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-background ${sizeClass}`}>
+                            {topText}
+                            {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
                           </p>
                           {endTypes.map((e, i) => renderChip(e, i, 'end'))}
                         </>
                       );
                     })()}
+                  </div>
+                  {/* Level 2: customer name */}
+                  <div className="px-2 py-0.5 bg-background">
+                    <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground text-center">
+                      {bottomText || '—'}
+                    </p>
                   </div>
                   {/* Level 3: sector + zone (integrated bands) */}
                   {(sectorLabel || zoneLabel) && (
