@@ -504,12 +504,24 @@ const Customers: React.FC = () => {
   const renderCustomersList = () => (
     <div className="space-y-2">
       {(() => {
-        // Build sector groups
+        // Build sector groups — bucket customers whose sector can't be resolved
+        // (e.g. sector from another branch) into a single "unknown" group so we
+        // don't end up with multiple groups all labelled "غير معروف".
         const sectorGroups = new Map<string | null, Customer[]>();
+        const unknownGroup: Customer[] = [];
         filteredCustomers.forEach(c => {
-          const key = c.sector_id || null;
-          if (!sectorGroups.has(key)) sectorGroups.set(key, []);
-          sectorGroups.get(key)!.push(c);
+          if (!c.sector_id) {
+            const k = null;
+            if (!sectorGroups.has(k)) sectorGroups.set(k, []);
+            sectorGroups.get(k)!.push(c);
+            return;
+          }
+          if (getSectorName(c.sector_id)) {
+            if (!sectorGroups.has(c.sector_id)) sectorGroups.set(c.sector_id, []);
+            sectorGroups.get(c.sector_id)!.push(c);
+          } else {
+            unknownGroup.push(c);
+          }
         });
 
         const sectorIds = Array.from(sectorGroups.keys()).filter(k => k !== null) as string[];
@@ -525,6 +537,9 @@ const Customers: React.FC = () => {
         });
         if (sectorGroups.has(null) && sectorGroups.get(null)!.length > 0) {
           groups.push({ key: 'no-sector', label: t('customers.no_sector'), customers: sectorGroups.get(null)! });
+        }
+        if (unknownGroup.length > 0) {
+          groups.push({ key: 'unknown-sector', label: t('customers.unknown'), customers: unknownGroup });
         }
 
         return groups.map(group => (
