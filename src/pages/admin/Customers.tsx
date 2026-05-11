@@ -611,7 +611,6 @@ const Customers: React.FC = () => {
                           <div className="flex-1 min-w-0 px-2 py-1 flex items-center justify-center text-background">
                             <FitText className="font-bold text-center" min={8} max={15}>
                               {topText}
-                              {percent === 100 && <BadgeCheck className="w-3 h-3 inline ms-1 text-blue-300" />}
                             </FitText>
                           </div>
                           {endTypes.map((e, i) => renderChip(e, i, 'end'))}
@@ -619,8 +618,9 @@ const Customers: React.FC = () => {
                       );
                     })()}
                   </div>
-                  {/* Level 2: customer name */}
-                  <div className="px-2 py-0.5 bg-background">
+                  {/* Level 2: customer name + loyalty badge */}
+                  <div className="px-2 py-0.5 bg-background flex items-center justify-center gap-1">
+                    {percent === 100 && <BadgeCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
                     <p className="text-[11px] font-medium line-clamp-1 leading-tight text-foreground text-center">
                       {bottomText || '—'}
                     </p>
