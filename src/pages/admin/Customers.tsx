@@ -45,6 +45,7 @@ import CustomerFieldSettingsDialog from '@/components/customers/CustomerFieldSet
 import { useCustomerFieldSettings } from '@/hooks/useCustomerFieldSettings';
 import { CUSTOMER_FIELD_LABELS, CustomerActionButtonKey } from '@/types/customerFieldSettings';
 import { isAdminRole } from '@/lib/utils';
+import FitText from '@/components/customers/FitText';
 
 // Normalize Arabic text: treat all alef variants and hamza as the same
 const normalizeArabic = (text: string): string =>
