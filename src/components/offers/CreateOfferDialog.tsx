@@ -859,4 +859,85 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
   );
 };
 
+interface AudienceOption {
+  value: string;
+  label: string;
+  dotColor?: string;
+  title?: string;
+}
+
+interface AudienceFilterCardProps {
+  title: string;
+  description?: string;
+  allLabel: string;
+  selected: string[] | undefined;
+  onChange: (next: string[] | undefined) => void;
+  options: AudienceOption[];
+  variant?: 'default' | 'destructive';
+}
+
+const AudienceFilterCard: React.FC<AudienceFilterCardProps> = ({
+  title,
+  description,
+  allLabel,
+  selected,
+  onChange,
+  options,
+  variant = 'default',
+}) => {
+  // Switch ON (default) = applies to all. Switch OFF = restrict to chosen options.
+  // We use `selected === undefined` to represent "all".
+  const isAll = selected === undefined;
+  const list = selected || [];
+
+  return (
+    <div className="rounded-lg border p-3 space-y-2 bg-card">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <Label className="text-xs font-medium">{title}</Label>
+          {description && <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>}
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            {isAll ? `· ${allLabel}` : list.length === 0 ? '· بدون شرط' : `· ${list.length} محدد`}
+          </p>
+        </div>
+        <Switch
+          checked={isAll}
+          onCheckedChange={(checked) => onChange(checked ? undefined : [])}
+        />
+      </div>
+
+      {!isAll && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {options.map((opt) => {
+            const checked = list.includes(opt.value);
+            const activeCls = variant === 'destructive'
+              ? 'border-destructive bg-destructive/10 text-destructive'
+              : 'bg-foreground text-background border-foreground';
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                title={opt.title}
+                onClick={() => {
+                  const next = checked ? list.filter(v => v !== opt.value) : [...list, opt.value];
+                  onChange(next);
+                }}
+                className={cn(
+                  'text-xs px-2.5 py-1 rounded-md border transition-colors flex items-center gap-1.5',
+                  checked ? activeCls : 'bg-background hover:bg-muted/50 border-border'
+                )}
+              >
+                {opt.dotColor && (
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.dotColor }} />
+                )}
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default CreateOfferDialog;
