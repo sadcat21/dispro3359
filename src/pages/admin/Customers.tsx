@@ -610,7 +610,13 @@ const Customers: React.FC = () => {
                   onPointerCancel={cancelLongPress}
                   onContextMenu={(e) => { e.preventDefault(); setProfileCustomer(customer); setIsProfileOpen(true); }}
                   title={topText}
-                  className="relative flex flex-col items-stretch rounded-xl overflow-hidden border border-foreground/15 text-center shadow-sm bg-background transition-all hover:shadow-md hover:-translate-y-0.5 select-none"
+                  className="relative flex flex-col items-stretch rounded-xl overflow-hidden text-center bg-background transition-all hover:-translate-y-0.5 select-none"
+                  style={{
+                    border: `1.5px solid ${primaryColors ? primaryColors.bg : 'hsl(var(--foreground) / 0.15)'}`,
+                    boxShadow: primaryColors
+                      ? `0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.08) inset, 0 2px 4px ${primaryColors.bg}33, 0 1px 2px hsl(0 0% 0% / 0.08)`
+                      : '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 1px 3px hsl(0 0% 0% / 0.1)',
+                  }}
                 >
                   {/* Level 1: store name (black) with integrated type strips */}
                   <div className="flex items-stretch bg-foreground">
@@ -644,9 +650,11 @@ const Customers: React.FC = () => {
                   </div>
                   {/* Level 2: customer name + zone (integrated, no sector / no credibility badge) */}
                   <div className="flex items-stretch bg-background">
-                    <p className="flex-1 min-w-0 px-2 py-0.5 text-[11px] font-medium line-clamp-1 leading-tight text-foreground text-center flex items-center justify-center">
-                      {bottomText || '—'}
-                    </p>
+                    <div className="flex-1 min-w-0 px-2 py-0.5 flex items-center justify-center text-foreground">
+                      <FitText className="font-medium text-center" min={8} max={13}>
+                        {bottomText || '—'}
+                      </FitText>
+                    </div>
                     {zoneLabel && (
                       <div className="px-2 py-0.5 text-[10px] font-bold leading-tight bg-red-600 text-white flex items-center justify-center shrink-0">
                         {zoneLabel}
