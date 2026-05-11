@@ -4,7 +4,7 @@ import StockEmptyDialog from '@/components/warehouse/StockEmptyDialog';
 import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog';
 import { useNavigate } from 'react-router-dom';
 import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil } from 'lucide-react';
-import { boxesToBP, dbBPDisplay, parseBP } from '@/utils/boxPieceInput';
+import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,9 +64,6 @@ interface WarehouseSaleSummaryRow {
   source?: string | null;
   order?: { status: string | null } | { status: string | null }[] | null;
 }
-
-const dbBPToPieces = (quantity: number, piecesPerBox: number) =>
-  parseBP(Number(quantity || 0).toFixed(2), piecesPerBox).totalPieces;
 
 const piecesToDbBP = (pieces: number, piecesPerBox: number) => {
   const ppb = Math.max(1, Math.round(piecesPerBox));
@@ -147,6 +144,23 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
+  const latestReceiptAtByProduct = useMemo(() => {
+    const latest: Record<string, string> = {};
+    for (const r of (summaryData?.receipts || [])) {
+      const pid = r.product_id;
+      const createdAt = (r as any).created_at as string | undefined;
+      if (pid && createdAt && (!latest[pid] || createdAt > latest[pid])) {
+        latest[pid] = createdAt;
+      }
+    }
+    return latest;
+  }, [summaryData?.receipts]);
+
+  const latestReceiptQueryKey = useMemo(
+    () => Object.entries(latestReceiptAtByProduct).sort(([a], [b]) => a.localeCompare(b)).map(([pid, at]) => `${pid}:${at}`).join('|'),
+    [latestReceiptAtByProduct]
+  );
+
   // Fetch sold from order_items for delivered orders
   const { data: soldData, isLoading: soldLoading } = useQuery({
     queryKey: ['warehouse-sold-summary', branchId],
@@ -168,17 +182,18 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
-  // Fetch sales totals from sales_tracking. We split by source:
+  // Fetch sales totals from sales_tracking after the latest receipt per product. We split by source:
   // - warehouse_sale: subtracted from المتبقي AND added to المباع
   // - delivery_sale / direct_sale: added to المباع only (worker stock handles المتبقي)
   const { data: warehouseSalesData, isLoading: warehouseSalesLoading } = useQuery({
-    queryKey: ['warehouse-sales-tracking', branchId],
+    queryKey: ['warehouse-sales-tracking', branchId, latestReceiptQueryKey],
     queryFn: async () => {
       if (!branchId) return [];
       const { data: rawSales } = await supabase
         .from('sales_tracking')
         .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source, sold_at')
         .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
+        .gte('sold_at', Object.values(latestReceiptAtByProduct).sort()[0] || new Date(0).toISOString())
         .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
       const rows = (rawSales || []) as WarehouseSaleSummaryRow[];
@@ -200,13 +215,15 @@ const WarehouseStock: React.FC = () => {
         const order = row.order_id ? orderById.get(row.order_id) : null;
         const inferredBranchId = row.branch_id || order?.branch_id || (row.worker_id ? workerBranchById.get(row.worker_id) : null) || (row.customer_id ? customerBranchById.get(row.customer_id) : null);
         const belongsToBranch = inferredBranchId === branchId || (!row.branch_id && !inferredBranchId);
-        return belongsToBranch && (!row.order_id || order?.status === 'delivered');
+        const lastReceiptAt = row.product_id ? latestReceiptAtByProduct[row.product_id] : null;
+        const afterLastReceipt = !!lastReceiptAt && !!row.sold_at && row.sold_at >= lastReceiptAt;
+        return belongsToBranch && afterLastReceipt && (!row.order_id || order?.status === 'delivered');
       }).map((row) => ({
         ...row,
         order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
       }));
     },
-    enabled: !!branchId,
+    enabled: !!branchId && !summaryLoading,
   });
 
   // Fetch all stock movements (load / return) for this branch to compute remaining from fundamentals
@@ -293,8 +310,6 @@ const WarehouseStock: React.FC = () => {
     const loadByProduct: Record<string, number> = {};
     const returnByProduct: Record<string, number> = {};
     const lastReceiptByProduct: Record<string, string> = {};
-    const loadedAfterReceiptByProduct: Record<string, number> = {};
-    const returnedAfterReceiptByProduct: Record<string, number> = {};
     for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
       const pid = m.product_id;
       if (!pid) continue;
@@ -314,20 +329,8 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
-      const pid = m.product_id;
-      if (!pid || (m.movement_type !== 'load' && m.movement_type !== 'return')) continue;
-      const lastReceiptAt = lastReceiptByProduct[pid];
-      if (lastReceiptAt && m.created_at && m.created_at >= lastReceiptAt) {
-        if (m.movement_type === 'load') {
-          loadedAfterReceiptByProduct[pid] = (loadedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
-        } else {
-          returnedAfterReceiptByProduct[pid] = (returnedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
-        }
-      }
-    }
-
     const warehouseSaleByProduct: Record<string, number> = {};
+    const soldPiecesByProduct: Record<string, number> = {};
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
@@ -340,6 +343,7 @@ const WarehouseStock: React.FC = () => {
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       const inBoxPieceFmt = fullBoxes + remPieces / 100;
+      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + (Number(s.sold_boxes || 0) * ppb + Number(s.sold_pieces || 0));
       if (s.source === 'warehouse_sale') {
         warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
       }
@@ -352,13 +356,7 @@ const WarehouseStock: React.FC = () => {
       const wSale = warehouseSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
-      const workerSoldPieces = Math.max(0,
-        dbBPToPieces(loadedAfterReceiptByProduct[pid] || 0, ppb)
-        - dbBPToPieces(returnedAfterReceiptByProduct[pid] || 0, ppb)
-        - dbBPToPieces(summaries[pid].workerStock || 0, ppb)
-      );
-      const warehouseSoldPieces = dbBPToPieces(wSale, ppb);
-      summaries[pid].sold = piecesToDbBP(workerSoldPieces + warehouseSoldPieces, ppb);
+      summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
