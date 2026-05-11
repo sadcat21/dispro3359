@@ -2471,7 +2471,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
               <TabsTrigger value="sales" className="flex-1 gap-1 text-xs">
                 <ShoppingCart className="w-3.5 h-3.5" />
                 طلبات
-                {salesCustomers.length > 0 && <Badge variant="secondary" className="text-[10px] px-1">{salesCustomers.length}</Badge>}
+                {(isDeliveryRole ? salesWithOrders.length : salesCustomers.length) > 0 && <Badge variant="secondary" className="text-[10px] px-1">{isDeliveryRole ? salesWithOrders.length : salesCustomers.length}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="direct-sale" className="flex-1 gap-1 text-xs">
                 <ShoppingBag className="w-3.5 h-3.5" />
