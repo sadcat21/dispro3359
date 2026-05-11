@@ -77,6 +77,17 @@ const formatBP = (totalPieces: number, piecesPerBox: number): string => {
 
 const toWholePieces = (value: number): number => Math.round(Number(value || 0));
 
+const getDeliveredSoldBp = (item: any): number => {
+  const deliveredQuantity = item?.delivered_quantity ?? item?.stock_movement_quantity;
+  if (deliveredQuantity !== undefined && deliveredQuantity !== null) {
+    return Math.max(0, Number(deliveredQuantity || 0));
+  }
+
+  const quantity = Math.max(0, Number(item?.quantity || 0));
+  const origGiftBoxes = Math.max(0, Math.floor(Number(item?._orig_gift_quantity ?? item?.gift_quantity ?? 0)));
+  return Math.max(0, quantity - origGiftBoxes);
+};
+
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
   open, onOpenChange, workerId, workerName, branchId,
 }) => {
@@ -317,8 +328,20 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             .from('order_items')
             .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(id, name, image_url, pieces_per_box)')
             .in('order_id', deliveredIds);
+          const { data: deliveryMoves } = await supabase
+            .from('stock_movements')
+            .select('order_id, product_id, quantity')
+            .eq('worker_id', workerId)
+            .eq('movement_type', 'delivery')
+            .in('order_id', deliveredIds);
+          const deliveredByOrderProduct = new Map<string, number>();
+          for (const move of deliveryMoves || []) {
+            const key = `${(move as any).order_id}|${(move as any).product_id}`;
+            deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + Number((move as any).quantity || 0));
+          }
            const itemsForMerge: any[] = (soldItemsWithOrder || []).map((it: any) => ({
              ...it,
+              delivered_quantity: deliveredByOrderProduct.get(`${it.order_id}|${it.product_id}`),
              // احفظ القيم الأصلية قبل الدمج لاستخدامها في حساب المباع (لأن quantity مبنية عليها)
              _orig_gift_quantity: Number(it.gift_quantity || 0),
              _orig_gift_pieces: Number(it.gift_pieces || 0),
@@ -351,16 +374,12 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
             const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
-            // total quantity stored in B.P → total pieces (INCLUDES gifts: paid + free)
-            const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
+            const soldPieces = bpToPieces(getDeliveredSoldBp(it), ppb);
             // gifts (after merge with sales_tracking): gift_quantity = full boxes, gift_pieces = extra pieces
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
             const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-            // quantity في order_items مبنية على القيم الأصلية لـ gift_quantity وقت إنشاء الطلب
-            // لذا يجب طرح صناديق الهدية الأصلية (وليس المدموجة من sales_tracking) للحصول على المباع الصحيح
-            const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
-            ex.sold += Math.max(0, totalPieces - origGiftBoxes * ppb);
+            ex.sold += soldPieces;
             ex.gifts += giftTotalPieces;
             if (!trackingAmountByProduct.has(pid)) {
               ex.salesAmount += Math.max(0, Number((it as any).total_price || 0));
@@ -503,12 +522,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const ex = map.get(pid);
         if (!ex) continue;
         const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || ex.ppb || 1)));
-        const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
         const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
         const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
         const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-        const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
-        const soldPieces = Math.max(0, totalPieces - origGiftBoxes * ppb);
+        const soldPieces = bpToPieces(getDeliveredSoldBp(it), ppb);
         ex.loaded -= soldPieces;
         ex.loaded -= giftTotalPieces;
       }
@@ -531,12 +548,10 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const ex = map.get(pid);
       if (!ex) continue;
       const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || ex.ppb || 1)));
-      const totalPieces = bpToPieces(Number((it as any).quantity || 0), ppb);
       const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
       const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
       const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-      const origGiftBoxes = Math.max(0, Math.floor(Number((it as any)._orig_gift_quantity || 0)));
-      ex.sold += Math.max(0, totalPieces - origGiftBoxes * ppb);
+      ex.sold += bpToPieces(getDeliveredSoldBp(it), ppb);
       ex.gifts += giftTotalPieces;
       const trKey = `${oid}|${pid}`;
       if (trackingByOrderProduct.has(trKey)) {
