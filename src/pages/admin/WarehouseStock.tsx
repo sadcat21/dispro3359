@@ -296,6 +296,7 @@ const WarehouseStock: React.FC = () => {
     const returnByProduct: Record<string, number> = {};
     const lastReceiptByProduct: Record<string, string> = {};
     const loadedAfterReceiptByProduct: Record<string, number> = {};
+    const returnedAfterReceiptByProduct: Record<string, number> = {};
     for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
       const pid = m.product_id;
       if (!pid) continue;
@@ -317,10 +318,14 @@ const WarehouseStock: React.FC = () => {
 
     for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
       const pid = m.product_id;
-      if (!pid || m.movement_type !== 'load') continue;
+      if (!pid || (m.movement_type !== 'load' && m.movement_type !== 'return')) continue;
       const lastReceiptAt = lastReceiptByProduct[pid];
       if (lastReceiptAt && m.created_at && m.created_at >= lastReceiptAt) {
-        loadedAfterReceiptByProduct[pid] = (loadedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
+        if (m.movement_type === 'load') {
+          loadedAfterReceiptByProduct[pid] = (loadedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
+        } else {
+          returnedAfterReceiptByProduct[pid] = (returnedAfterReceiptByProduct[pid] || 0) + Number(m.quantity || 0);
+        }
       }
     }
 
@@ -328,6 +333,8 @@ const WarehouseStock: React.FC = () => {
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
+      const lastReceiptAt = lastReceiptByProduct[pid];
+      if (lastReceiptAt && s.sold_at && s.sold_at < lastReceiptAt) continue;
       const ppb = Number(s.pieces_per_box) || 20;
       const boxes = Number(s.total_boxes || 0);
       const pieces = Number(s.total_pieces || 0);
