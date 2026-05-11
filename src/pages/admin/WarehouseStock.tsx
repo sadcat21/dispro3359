@@ -40,6 +40,21 @@ interface ProductSummary {
   remaining: number;
 }
 
+interface StockMovementSummaryRow {
+  product_id: string | null;
+  movement_type: string | null;
+  quantity: number | null;
+}
+
+interface WarehouseSaleSummaryRow {
+  product_id: string | null;
+  total_boxes: number | null;
+  total_pieces: number | null;
+  pieces_per_box: number | null;
+  order_id: string | null;
+  order?: { status: string | null } | { status: string | null }[] | null;
+}
+
 const WarehouseStock: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -141,7 +156,10 @@ const WarehouseStock: React.FC = () => {
         .select('product_id, total_boxes, total_pieces, pieces_per_box, order_id, order:orders(status)')
         .eq('branch_id', branchId)
         .eq('source', 'warehouse_sale');
-      return (data || []).filter((row: any) => !row.order_id || row.order?.status === 'delivered');
+      return ((data || []) as WarehouseSaleSummaryRow[]).filter((row) => {
+        const order = Array.isArray(row.order) ? row.order[0] : row.order;
+        return !row.order_id || order?.status === 'delivered';
+      });
     },
     enabled: !!branchId,
   });
