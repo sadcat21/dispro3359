@@ -47,7 +47,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
 
   useEffect(() => {
     fetchProductOffers();
-  }, [productId]);
+  }, [productId, JSON.stringify(customerTypes || [])]);
 
   const fetchProductOffers = async () => {
     try {
@@ -60,7 +60,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
           tiers:product_offer_tiers(
             id, offer_id, min_quantity, max_quantity, min_quantity_unit,
             gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
-            discount_percentage, worker_reward_type, worker_reward_amount, tier_order,
+            discount_percentage, worker_reward_type, worker_reward_amount, tier_order, conditions,
             gift_product:products(id, name, app_name)
           )
         `)
@@ -74,7 +74,20 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
         ...offer,
         tiers: offer.tiers?.sort((a: any, b: any) => a.tier_order - b.tier_order) || [],
       }));
-      setOffers(filterCurrentlyActiveOffers(offersWithSortedTiers));
+
+      // Filter offers by audience: if any tier has a non-empty
+      // `excluded_customer_types` allow-list, the customer must have at least
+      // one matching type (otherwise the offer does not apply).
+      const normalizedTypes = (customerTypes || []).filter(Boolean);
+      const audienceFiltered = offersWithSortedTiers.filter((offer: any) => {
+        const allowList: string[] = offer.tiers
+          ?.flatMap((t: any) => (t.conditions?.excluded_customer_types as string[] | undefined) || [])
+          .filter(Boolean) || [];
+        if (allowList.length === 0) return true; // no restriction
+        return normalizedTypes.some((ct) => allowList.includes(ct));
+      });
+
+      setOffers(filterCurrentlyActiveOffers(audienceFiltered));
     } catch (error) {
       console.error('Error fetching product offers:', error);
     } finally {
