@@ -169,17 +169,24 @@ const ReplaceDamagedDialog: React.FC<Props> = ({ open, onOpenChange, onSaved }) 
           });
         }
 
-        // Movement log
+        // Movement log: damaged replacement is an exchange, not a normal return to warehouse.
+        // Normal returns are added to the remaining stock summary; exchanges must not be.
+        const movementQty = totalPiecesToDb(totalPieces, ppb);
         await supabase.from('stock_movements').insert({
           product_id: it.product_id,
           branch_id: branchId,
-          quantity: totalPiecesToDb(totalPieces, ppb),
-          movement_type: 'return',
+          quantity: movementQty,
+          signed_quantity: -movementQty,
+          movement_type: 'exchange',
           status: 'approved',
           created_by: workerId!,
           worker_id: source.kind === 'worker' ? source.id : workerId!,
           notes: `استبدال تالف من ${source.label}`,
           return_reason: 'damaged',
+          from_location_type: source.kind === 'warehouse' ? 'warehouse' : 'worker',
+          from_location_id: source.kind === 'worker' ? source.id : null,
+          to_location_type: 'damaged',
+          reason: 'damaged_replacement',
         });
       }
       toast.success('تم تسجيل التالف بنجاح');
