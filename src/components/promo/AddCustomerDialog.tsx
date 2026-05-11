@@ -387,6 +387,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
         default_price_subtype: defaultPriceSubtype,
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
         customer_type: customerType || null,
+        customer_types: customerType ? customerType.split(',').map(s => s.trim()).filter(Boolean) : [],
       };
 
       // All roles can add customers directly (approval only for edit/delete)
