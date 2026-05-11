@@ -269,9 +269,13 @@ const DataManagement: React.FC = () => {
         await del('order_items');
         await del('product_shortage_tracking');
       }
-      if (!selectedIds.has('stock')) {
+      if (!selectedIds.has('stock_movements')) {
         await del('stock_movements');
+      }
+      if (!selectedIds.has('warehouse_stock')) {
         await del('warehouse_stock');
+      }
+      if (!selectedIds.has('worker_stock')) {
         await del('worker_stock');
       }
       if (!selectedIds.has('loading')) {
