@@ -460,6 +460,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
       const ex = ensureRow(pid, prod, ppb);
       ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+      ex.loaded += Math.max(0, Math.round(Number((it as any).gift_quantity || 0)));
     }
     // For unload-only selections, carry over the remaining from the previous shipment
     // (loaded shown for an unload = remaining of prev shipment at the unload moment).
@@ -482,6 +483,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const ppb = Math.max(1, Math.round(Number(prod.pieces_per_box || 1)));
         const ex = ensureRow(pid, prod, ppb);
         ex.loaded += bpToPieces(Number((it as any).quantity || 0), ppb);
+        ex.loaded += Math.max(0, Math.round(Number((it as any).gift_quantity || 0)));
       }
       for (const m of unloadMovesAll) {
         const ts = (m as any).created_at;
