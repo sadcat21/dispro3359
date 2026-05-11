@@ -701,6 +701,9 @@ const WorkerActions: React.FC = () => {
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
+    const rawOpeningBalance = currentQty - totalLoaded + totalUnloaded + totalSold + totalGift;
+    const openingBalance = rawOpeningBalance > 0.001 ? rawOpeningBalance : 0;
+    const totalAvailable = totalLoaded + openingBalance;
     const chronological = [...rawMovements].reverse();
     let remainingBalance = currentQty;
     const historyEntries = chronological.map((movement) => {
@@ -718,6 +721,8 @@ const WorkerActions: React.FC = () => {
       computedCurrent: currentQty,
       entries: historyEntries,
       totalLoaded,
+      openingBalance,
+      totalAvailable,
       totalUnloaded,
       totalSold,
       totalGift,
@@ -726,7 +731,7 @@ const WorkerActions: React.FC = () => {
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
       lastAccountingLabel,
-      hasMismatch: false,
+      hasMismatch: rawOpeningBalance < -0.001,
     };
   }, [selectedTruckProduct, truckLoadedData, truckSoldData, truckUnloadedData, truckLoadSessions, truckUnloadSessions, t]);
 
