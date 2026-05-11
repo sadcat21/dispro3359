@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import ClientTrustBadge from '@/components/customers/ClientTrustBadge';
 import { computeClientTrustScoreFromHistory } from '@/utils/clientTrustScore';
 import CustomerQuickProfileDialog from '@/components/orders/CustomerQuickProfileDialog';
+import FitText from '@/components/customers/FitText';
+import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
 
 interface CustomerPickerDialogProps {
   open: boolean;
@@ -50,6 +52,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 }) => {
   const { t, dir, language } = useLanguage();
   const { activeBranch } = useAuth();
+  const { customerTypes } = useCustomerTypes();
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
@@ -456,24 +459,73 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                             const storeName = (language !== 'ar' && (customer as any).store_name_fr)
                               ? (customer as any).store_name_fr
                               : customer.store_name;
-                            const displayName = (language !== 'ar' && (customer as any).name_fr)
+                            const personName = (language !== 'ar' && (customer as any).name_fr)
                               ? (customer as any).name_fr
                               : customer.name;
+                            const topText = storeName || personName || '—';
+                            const bottomText = storeName ? personName : '';
                             const hasDebt = (customerDebtsMap?.[customer.id]?.total || 0) > 0;
                             const hasPendingOrder = pendingOrderCustomers?.has(customer.id);
-                            const sectorName = getSectorName(customer.sector_id);
-                            const borderClass = hasDebt
-                              ? "border-destructive"
-                              : hasPendingOrder ? "border-green-600" : "border-foreground";
+                            const zoneId = (customer as any).zone_id as string | null | undefined;
+                            const zone = zoneId ? zonesMap?.[zoneId] : null;
+                            const zoneLabel = zone
+                              ? ((language !== 'ar' && zone.name_fr) ? zone.name_fr : zone.name)
+                              : null;
+
+                            const typesArr: string[] = (() => {
+                              const fromJsonb = (customer as any).customer_types;
+                              if (Array.isArray(fromJsonb) && fromJsonb.length) return fromJsonb.filter(Boolean);
+                              if (customer.customer_type) return customer.customer_type.split(',').map((s: string) => s.trim()).filter(Boolean);
+                              return [];
+                            })();
+                            const typeEntries = typesArr
+                              .map(ar => customerTypes.find(t => t.ar === ar))
+                              .filter(Boolean) as typeof customerTypes;
+                            const primaryEntry = typeEntries[0] || null;
+                            const primaryColors = primaryEntry
+                              ? getCustomerTypeColor(primaryEntry.short || '', customerTypes.indexOf(primaryEntry), primaryEntry)
+                              : null;
+
+                            const startTypes = typeEntries.length > 1 ? typeEntries.slice(0, Math.ceil(typeEntries.length / 2)) : typeEntries;
+                            const endTypes = typeEntries.length > 1 ? typeEntries.slice(Math.ceil(typeEntries.length / 2)) : [];
+                            const renderChip = (entry: typeof typeEntries[number], idx: number, side: 'start' | 'end') => {
+                              const c = getCustomerTypeColor(entry.short || '', customerTypes.indexOf(entry), entry);
+                              return (
+                                <div
+                                  key={`${side}-${entry.ar}-${idx}`}
+                                  className="px-2 flex items-center justify-center font-bold text-[10px] font-mono uppercase shrink-0"
+                                  style={{ backgroundColor: c.bg, color: c.text }}
+                                >
+                                  {entry.short}
+                                </div>
+                              );
+                            };
+
+                            const borderColor = isSelected
+                              ? 'hsl(var(--primary))'
+                              : hasDebt
+                                ? 'hsl(var(--destructive))'
+                                : hasPendingOrder
+                                  ? 'hsl(142 76% 36%)'
+                                  : (primaryColors ? primaryColors.bg : 'hsl(var(--foreground) / 0.15)');
+
                             return (
                               <button
                                 key={customer.id}
-                                style={{ animationDelay: `${cIdx * 30}ms` }}
+                                type="button"
+                                style={{
+                                  animationDelay: `${cIdx * 30}ms`,
+                                  border: `1.5px solid ${borderColor}`,
+                                  boxShadow: primaryColors
+                                    ? `0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.08) inset, 0 2px 4px ${primaryColors.bg}33, 0 1px 2px hsl(0 0% 0% / 0.08)`
+                                    : '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 1px 3px hsl(0 0% 0% / 0.1)',
+                                }}
                                 className={cn(
-                                  "flex flex-col items-stretch rounded-lg overflow-hidden border-2 text-center transition-all hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md active:scale-95 min-h-[52px] shadow-sm",
+                                  "relative flex flex-col items-stretch rounded-xl overflow-hidden text-center bg-background transition-all hover:-translate-y-0.5 select-none min-h-[52px]",
                                   "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
-                                  isSelected ? "border-primary ring-2 ring-primary/40" : borderClass
+                                  isSelected && "ring-2 ring-primary/40"
                                 )}
+                                title={topText}
                                 onClick={() => {
                                   if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
                                   onSelect(customer); onOpenChange(false);
@@ -484,50 +536,37 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 onPointerCancel={cancelLongPress}
                                 onContextMenu={(e) => { e.preventDefault(); setPreviewCustomer(customer); longPressFiredRef.current = true; }}
                               >
-                                <div className={cn(
-                                  "relative flex items-stretch",
-                                  hasPendingOrder ? "bg-green-500" : "bg-foreground"
-                                )}>
-                                  {search.trim() && sectorName && (
-                                    <span className="shrink-0 flex items-center px-1.5 text-[10px] font-bold bg-primary text-primary-foreground leading-none">
-                                      {sectorName}
-                                    </span>
-                                  )}
-                                  {customer.customer_type && (
-                                    <span className="shrink-0 flex items-center px-1.5 text-[10px] font-bold bg-background/15 text-background leading-none border-e border-background/20">
-                                      {customer.customer_type}
-                                    </span>
-                                  )}
-                                  {(() => {
-                                    const topText = (storeName || displayName || '') as string;
-                                    const len = topText.length;
-                                    const sizeClass = len > 22 ? "text-[9px]" : len > 16 ? "text-[10px]" : len > 12 ? "text-xs" : "text-sm";
-                                    return (
-                                      <p className={cn(
-                                        "flex-1 min-w-0 px-2 py-1 font-bold leading-tight text-center whitespace-nowrap overflow-hidden text-ellipsis",
-                                        sizeClass,
-                                        hasPendingOrder ? "text-foreground" : "text-background"
-                                      )}>
-                                        {topText}
-                                      </p>
-                                    );
-                                  })()}
-                                  {customer.customer_type && (
-                                    <span className="shrink-0 flex items-center px-1.5 text-[10px] font-bold bg-background/15 text-background leading-none border-s border-background/20">
-                                      {customer.customer_type}
-                                    </span>
-                                  )}
+                                {/* Level 1: store name (black) with integrated type chips */}
+                                <div className="flex items-stretch bg-foreground">
+                                  {startTypes.map((e, i) => renderChip(e, i, 'start'))}
+                                  <div className="flex-1 min-w-0 px-2 py-1 flex items-center justify-center text-background">
+                                    <FitText className="font-bold text-center" min={8} max={15}>
+                                      {topText}
+                                    </FitText>
+                                  </div>
+                                  {endTypes.map((e, i) => renderChip(e, i, 'end'))}
                                 </div>
-                                <div className={cn(
-                                  "px-2 py-0.5 flex-1 flex items-center justify-center",
-                                  hasDebt ? "bg-destructive" : "bg-background"
-                                )}>
-                                  <p className={cn(
-                                    "text-[11px] font-medium line-clamp-1 leading-tight",
+                                {/* Level 2: customer name + zone */}
+                                <div className={cn("flex items-stretch", hasDebt ? "bg-destructive" : "bg-background")}>
+                                  <div className={cn(
+                                    "flex-1 min-w-0 px-2 py-1 flex items-center justify-center",
                                     hasDebt ? "text-destructive-foreground" : "text-foreground"
                                   )}>
-                                    {storeName ? displayName : ''}
-                                  </p>
+                                    <FitText className="font-medium text-center" min={8} max={13}>
+                                      {bottomText || '—'}
+                                    </FitText>
+                                  </div>
+                                  {zoneLabel && (
+                                    <div
+                                      className="px-2 text-[10px] font-bold flex items-center justify-center shrink-0"
+                                      style={{
+                                        backgroundColor: primaryColors ? primaryColors.bg : 'hsl(var(--destructive))',
+                                        color: primaryColors ? primaryColors.text : 'hsl(var(--destructive-foreground))',
+                                      }}
+                                    >
+                                      {zoneLabel}
+                                    </div>
+                                  )}
                                 </div>
                               </button>
                             );
