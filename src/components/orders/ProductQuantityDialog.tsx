@@ -89,6 +89,7 @@ interface ProductQuantityDialogProps {
   initialGiftOfferId?: string;
   initialOfferApplied?: boolean;
   hideInvoiceOption?: boolean;
+  customerTypes?: string[] | null;
 }
 
 const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
