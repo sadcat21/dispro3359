@@ -207,7 +207,8 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     if (formData.name.trim()) {
       return formData.name.trim();
     }
-    return `${t('offers.offer_on')} ${getProductName(formData.product_id)}`;
+    const productName = getProductName(formData.product_id);
+    return productName ? `PROM: ${productName}` : '';
   };
 
   // Tier management
