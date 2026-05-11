@@ -359,8 +359,7 @@ const WarehouseStock: React.FC = () => {
       const wSale = warehouseSaleByProduct[pid] || 0;
       const damaged = summaries[pid].damaged || 0;
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
-      const warehouseSoldPieces = dbBPToPieces(wSale, ppb);
-      summaries[pid].sold = piecesToDbBP((soldPiecesByProduct[pid] || 0) + warehouseSoldPieces, ppb);
+      summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
