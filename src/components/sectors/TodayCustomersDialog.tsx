@@ -184,6 +184,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const navigate = useNavigate();
   const isInternalSupervisor = activeRole?.custom_role_code === 'internal_supervisor';
   const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor;
+  const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
   const todayName = JS_DAY_TO_NAME[new Date().getDay()] || '';
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [selectedCustomDate, setSelectedCustomDate] = useState<Date | undefined>(undefined);
