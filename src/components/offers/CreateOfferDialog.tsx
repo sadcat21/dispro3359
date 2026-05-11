@@ -938,6 +938,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 
