@@ -235,7 +235,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setTrustNotes(customer.trust_notes || '');
       setDefaultPaymentType(customer.default_payment_type || 'without_invoice');
       setDefaultPriceSubtype(customer.default_price_subtype || 'gros');
-      setCustomerType(customer.customer_type || '');
+      {
+        const arr = Array.isArray((customer as any).customer_types) ? (customer as any).customer_types : null;
+        setCustomerType(arr && arr.length ? arr.join(', ') : (customer.customer_type || ''));
+      }
       setIsRegistered((customer as any).is_registered || false);
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
