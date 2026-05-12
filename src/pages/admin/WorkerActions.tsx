@@ -707,7 +707,7 @@ const WorkerActions: React.FC = () => {
                 label: 'بيع',
                 quantity: saleQty,
                 when,
-                note: giftQty > 0 ? `هدايا ${formatTruckQty(giftQty)}` : null,
+                note: giftQty > 0 ? `هدايا ${formatTruckQty(giftQty, ppb)}` : null,
                 paymentType,
                 customerName,
                 customerStoreName,
