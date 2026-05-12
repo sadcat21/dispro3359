@@ -437,19 +437,20 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           </DialogHeader>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-1">
-          <div className="space-y-2 py-1">
+        <div className="flex-1 overflow-y-auto px-4 pb-1 relative">
+          {product.image_url && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-center bg-no-repeat bg-contain opacity-[0.06]"
+              style={{ backgroundImage: `url(${product.image_url})` }}
+            />
+          )}
+          <div className="space-y-2 py-1 relative">
 
             <div className="flex items-stretch gap-3">
-              <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={getProductDisplayName(product)}
-                    className="w-20 h-20 rounded-xl object-cover ring-1 ring-border bg-background"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center ring-1 ring-border">
+              <div className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20">
+                {!product.image_url && (
+                  <div className="w-20 h-20 rounded-xl bg-muted/40 flex items-center justify-center ring-1 ring-border">
                     <Package className="w-6 h-6 text-muted-foreground" />
                   </div>
                 )}
