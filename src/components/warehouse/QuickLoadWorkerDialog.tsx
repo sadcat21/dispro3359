@@ -102,6 +102,15 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
     refetchInterval: open ? 5000 : false,
   });
 
+  // If currently selected worker becomes frozen, clear and notify
+  useEffect(() => {
+    if (selectedWorker && frozenWorkerIds.includes(selectedWorker)) {
+      setSelectedWorker('');
+      setShowConfirm(false);
+      window.alert('تم تجميد العامل — تم إلغاء عملية الشحن. أكمل حفظ جلسة المحاسبة لفك التجميد.');
+    }
+  }, [frozenWorkerIds, selectedWorker]);
+
   const getPPB = (productId: string) => productsInfo[productId] || 1;
 
   const addItem = () => setItems(prev => [...prev, { product_id: '', quantity: 0, fields: { boxes: '', pieces: '' } }]);
