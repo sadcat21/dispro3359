@@ -60,22 +60,24 @@ const fetchProductOffersForBadge = async (productId: string, customerTypes?: str
   const pendingRequest = productOfferPendingRequests.get(cacheKey);
   if (pendingRequest) return pendingRequest;
 
-  const request = supabase
-    .from('product_offers')
-    .select(`
-      *,
-      product:products!product_offers_product_id_fkey(id, name, app_name),
-      gift_product:products!product_offers_gift_product_id_fkey(id, name, app_name),
-      tiers:product_offer_tiers(
-        id, offer_id, min_quantity, max_quantity, min_quantity_unit,
-        gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
-        discount_percentage, worker_reward_type, worker_reward_amount, tier_order, conditions,
-        gift_product:products(id, name, app_name)
-      )
-    `)
-    .eq('product_id', productId)
-    .eq('is_active', true)
-    .order('priority', { ascending: false })
+  const request = Promise.resolve(
+    supabase
+      .from('product_offers')
+      .select(`
+        *,
+        product:products!product_offers_product_id_fkey(id, name, app_name),
+        gift_product:products!product_offers_gift_product_id_fkey(id, name, app_name),
+        tiers:product_offer_tiers(
+          id, offer_id, min_quantity, max_quantity, min_quantity_unit,
+          gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
+          discount_percentage, worker_reward_type, worker_reward_amount, tier_order, conditions,
+          gift_product:products(id, name, app_name)
+        )
+      `)
+      .eq('product_id', productId)
+      .eq('is_active', true)
+      .order('priority', { ascending: false })
+  )
     .then(({ data, error }) => {
       if (error) throw error;
       const activeOffers = normalizeProductOffers(data, customerTypes);
