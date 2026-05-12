@@ -2315,8 +2315,11 @@ const LoadStock: React.FC = () => {
                   toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
                   queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
                   queryClient.invalidateQueries({ queryKey: ['last-final-review-info'] });
+                  queryClient.invalidateQueries({ queryKey: ['frozen-workers-load-stock'] });
                   setConfirmFinalReview(null);
                   setViewSessionId(null);
+                  setSelectedWorker('');
+                  navigate('/');
                 } catch (e: any) {
                   toast.error(e.message || 'خطأ في تسجيل المراجعة النهائية');
                 } finally {
