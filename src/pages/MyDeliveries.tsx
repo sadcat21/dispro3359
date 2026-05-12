@@ -803,15 +803,15 @@ const MyDeliveries: React.FC = () => {
         <TabsList className="w-full h-10 p-1 bg-muted/60">
           <TabsTrigger value="orders" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <Truck className="w-4 h-4" />
-            <span className="text-xs font-bold">{t('deliveries.title')} ({orderTypeCount})</span>
+            <span className="text-xs font-bold">توصيلات ({orderTypeCount})</span>
           </TabsTrigger>
           <TabsTrigger value="postponed" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <CalendarClock className="w-4 h-4" />
-            <span className="text-xs font-bold">{t('deliveries.postponed')} ({postponedCount})</span>
+            <span className="text-xs font-bold">مؤجل ({postponedCount})</span>
           </TabsTrigger>
           <TabsTrigger value="direct_sales" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <ShoppingCart className="w-4 h-4" />
-            <span className="text-xs font-bold">{t('stock.direct_sale')} ({directSaleCount})</span>
+            <span className="text-xs font-bold">مباشر ({directSaleCount})</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
