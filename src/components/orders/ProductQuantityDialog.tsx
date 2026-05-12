@@ -401,24 +401,54 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate" dir="ltr">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <Badge className="text-[10px] px-1.5 py-0 h-5 font-semibold bg-primary/10 text-primary border-transparent hover:bg-primary/10">
-                      {product.pieces_per_box} {t('products.piece_per_box')}
-                    </Badge>
-                    {displayPrice > 0 && (
-                      <Badge className="text-[10px] px-1.5 py-0 h-5 font-semibold bg-foreground text-background border-transparent hover:bg-foreground" dir="ltr">
-                        {displayPrice.toLocaleString()} {t('common.currency')}<span className="opacity-60 mx-0.5">/</span>{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}
-                      </Badge>
+                  <div
+                    dir="ltr"
+                    className="mt-1 flex items-stretch w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm divide-x divide-border text-center"
+                  >
+                    {/* 5: units per box (e.g. 5 kg) */}
+                    {pricingUnit !== 'box' && (
+                      <div className="flex-1 min-w-0 px-1.5 py-1 bg-muted/40">
+                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{pricingUnitLabel}/{t('offers.unit_box')}</div>
+                        <div className="text-[11px] font-bold text-foreground leading-tight truncate">
+                          {(product.weight_per_box || 0).toLocaleString()}
+                        </div>
+                      </div>
                     )}
-                    {!isUnitSale && selectedPiecePrice > 0 && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-medium text-muted-foreground" dir="ltr">
-                        {selectedPiecePrice.toLocaleString()} {t('common.currency')}<span className="opacity-60 mx-0.5">/</span>{t('offers.unit_piece')}
-                      </Badge>
-                    )}
+                    {/* 4: price per unit (per kg) */}
                     {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-medium text-muted-foreground" dir="ltr">
-                        {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}<span className="opacity-60 mx-0.5">/</span>{pricingUnitLabel}
-                      </Badge>
+                      <div className="flex-1 min-w-0 px-1.5 py-1">
+                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{t('common.currency')}/{pricingUnitLabel}</div>
+                        <div className="text-[11px] font-bold text-foreground leading-tight truncate">
+                          {selectedPricingUnitPrice.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {/* 1: box price (center, largest) */}
+                    {displayPrice > 0 && (
+                      <div className="flex-[2] min-w-0 px-2 py-1 bg-foreground text-background">
+                        <div className="text-[8px] uppercase tracking-wide opacity-70 leading-none">{t('common.currency')}/{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}</div>
+                        <div className="text-sm font-extrabold leading-tight truncate">
+                          {displayPrice.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {/* 2: pieces per box */}
+                    {product.pieces_per_box > 0 && (
+                      <div className="flex-1 min-w-0 px-1.5 py-1 bg-primary/10">
+                        <div className="text-[8px] uppercase tracking-wide text-primary/70 leading-none">pcs/{t('offers.unit_box')}</div>
+                        <div className="text-[11px] font-bold text-primary leading-tight truncate">
+                          {product.pieces_per_box}
+                        </div>
+                      </div>
+                    )}
+                    {/* 3: price per piece */}
+                    {selectedPiecePrice > 0 && (
+                      <div className="flex-1 min-w-0 px-1.5 py-1">
+                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{t('common.currency')}/{t('offers.unit_piece')}</div>
+                        <div className="text-[11px] font-bold text-foreground leading-tight truncate">
+                          {selectedPiecePrice.toLocaleString()}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
