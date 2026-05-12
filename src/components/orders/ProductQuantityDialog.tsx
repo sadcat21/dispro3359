@@ -392,30 +392,30 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   </h3>
                   <div className="grid grid-cols-5 w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center">
                     {/* Row 1: values */}
-                    <div className="px-1 py-1 bg-foreground text-background border-b border-r border-border/40">
-                      <div className="text-[10px] font-extrabold leading-tight truncate">
+                    <div className="@container px-1 py-1 bg-foreground text-background border-b border-r border-border/40 overflow-hidden">
+                      <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {selectedPiecePrice > 0 ? <>{selectedPiecePrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></> : '—'}
                       </div>
                     </div>
-                    <div className="px-1 py-1 bg-destructive/10 border-b border-r border-border/40">
-                      <div className="text-[10px] font-extrabold text-destructive leading-tight truncate">
+                    <div className="@container px-1 py-1 bg-destructive/10 border-b border-r border-border/40 overflow-hidden">
+                      <div className="font-extrabold text-destructive leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {product.pieces_per_box > 0 ? <>{product.pieces_per_box} <span className="opacity-80">PCS</span></> : '—'}
                       </div>
                     </div>
-                    <div className="px-1.5 py-1 bg-foreground text-background border-b border-r border-border/40">
-                      <div className="text-xs font-extrabold leading-tight truncate">
+                    <div className="@container px-1.5 py-1 bg-foreground text-background border-b border-r border-border/40 overflow-hidden">
+                      <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 22cqw, 15px)' }}>
                         {displayPrice > 0 ? <>{displayPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></> : '—'}
                       </div>
                     </div>
-                    <div className="px-1 py-1 border-b border-r border-border/40">
-                      <div className="text-[10px] font-extrabold text-foreground leading-tight truncate">
+                    <div className="@container px-1 py-1 border-b border-r border-border/40 overflow-hidden">
+                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {pricingUnit !== 'box' && (product.weight_per_box || 0) > 0
                           ? <>{(product.weight_per_box || 0).toLocaleString()} <span className="opacity-70">{pricingUnitLabel}</span></>
                           : '—'}
                       </div>
                     </div>
-                    <div className="px-1 py-1 bg-foreground text-background border-b border-border/40">
-                      <div className="text-[10px] font-extrabold leading-tight truncate">
+                    <div className="@container px-1 py-1 bg-foreground text-background border-b border-border/40 overflow-hidden">
+                      <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {pricingUnit !== 'box' && selectedPricingUnitPrice > 0
                           ? <>{selectedPricingUnitPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></>
                           : '—'}
