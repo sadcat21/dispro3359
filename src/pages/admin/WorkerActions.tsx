@@ -752,15 +752,10 @@ const WorkerActions: React.FC = () => {
     const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
     const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
-    // Use piece-based arithmetic to respect B.P (boxes.pieces) carry semantics.
-    const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
+    // Use piece-based arithmetic to avoid decimal B.P math drift.
     const bpToPieces = (v: number) => {
       const sign = v < 0 ? -1 : 1;
-      const abs = Math.abs(Number(v || 0));
-      const rounded = Math.round(abs * 100) / 100;
-      const boxes = Math.floor(rounded);
-      const pieces = Math.round((rounded - boxes) * 100);
-      return sign * (boxes * ppb + pieces);
+      return sign * Math.round(Math.abs(Number(v || 0)) * ppb);
     };
     const piecesToBP = (totalPieces: number) => {
       const sign = totalPieces < 0 ? -1 : 1;
