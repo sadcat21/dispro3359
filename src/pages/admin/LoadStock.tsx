@@ -231,7 +231,7 @@ const LoadStock: React.FC = () => {
   const { data: stockAlerts = [] } = useStockAlerts();
   const { data: suggestions = [], isLoading: suggestionsLoading } = useWorkerLoadSuggestions(selectedWorker || null);
 
-  // Frozen workers (cannot start a new session until accounting is closed)
+  // Frozen workers list (refreshed only on demand — e.g. after final review save)
   const { data: frozenWorkerIds = [] } = useQuery({
     queryKey: ['frozen-workers-load-stock', (workers || []).map((w: any) => w.id).join(',')],
     queryFn: async () => {
@@ -245,9 +245,9 @@ const LoadStock: React.FC = () => {
       return ids;
     },
     enabled: (workers || []).length > 0,
-    refetchInterval: 5000,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
-  const isSelectedWorkerFrozen = !!selectedWorker && frozenWorkerIds.includes(selectedWorker);
   
   const {
     sessions, createSession, addSessionItem, completeSession, deleteSession,
