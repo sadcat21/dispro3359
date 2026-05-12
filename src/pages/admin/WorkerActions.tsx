@@ -718,13 +718,29 @@ const WorkerActions: React.FC = () => {
     const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
     const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
+    // Use piece-based arithmetic to respect B.P (boxes.pieces) carry semantics.
+    const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
+    const bpToPieces = (v: number) => {
+      const sign = v < 0 ? -1 : 1;
+      const abs = Math.abs(Number(v || 0));
+      const rounded = Math.round(abs * 100) / 100;
+      const boxes = Math.floor(rounded);
+      const pieces = Math.round((rounded - boxes) * 100);
+      return sign * (boxes * ppb + pieces);
+    };
+    const piecesToBP = (totalPieces: number) => {
+      const safe = Math.max(0, Math.round(totalPieces));
+      const boxes = Math.floor(safe / ppb);
+      const pieces = safe % ppb;
+      return boxes + pieces / 100;
+    };
     const chronological = [...rawMovements].reverse();
-    let remainingBalance = currentQty;
+    let remainingPieces = bpToPieces(currentQty);
     const historyEntries = chronological.map((movement) => {
-      const after = remainingBalance;
-      const before = remainingBalance - movement.delta;
-      remainingBalance = before;
-      return { ...movement, before, after };
+      const afterPieces = remainingPieces;
+      const beforePieces = afterPieces - bpToPieces(movement.delta);
+      remainingPieces = beforePieces;
+      return { ...movement, before: piecesToBP(beforePieces), after: piecesToBP(afterPieces) };
     });
 
     return {
