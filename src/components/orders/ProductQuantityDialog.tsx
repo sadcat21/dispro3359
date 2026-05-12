@@ -645,6 +645,27 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               )}
             </div>
 
+            {/* Offer badge */}
+            {!isUnitSale && !offerApplied && giftPieces > 0 && (
+              <div className="bg-green-100 dark:bg-green-900/30 border border-green-500 rounded-lg p-3">
+                <div className="flex items-center justify-center gap-2">
+                  <Gift className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="font-bold text-green-700 dark:text-green-300">
+                    +{giftPieces} {t('offers.unit_piece')} {t('common.free')}
+                    {(giftBoxes > 0 || giftRemainingPieces > 0) && (
+                      <span className="text-green-600 dark:text-green-400 font-normal">
+                        {' '}({giftBoxes > 0 ? `${giftBoxes} ${t('offers.unit_box')}` : ''}{giftBoxes > 0 && giftRemainingPieces > 0 ? ' + ' : ''}{giftRemainingPieces > 0 ? `${giftRemainingPieces} ${t('offers.unit_piece')}` : ''})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <Button className="w-full mt-3 bg-green-600 hover:bg-green-700 text-white" onClick={handleApplyOffer}>
+                  <Gift className="w-4 h-4 ms-2" />
+                  {t('offers.apply_offer')} ({giftBoxes > 0 ? `+${giftBoxes} ${t('offers.unit_box')}` : ''}{giftBoxes > 0 && giftRemainingPieces > 0 ? ' + ' : ''}{giftRemainingPieces > 0 ? `+${giftRemainingPieces} ${t('offers.unit_piece')}` : ''})
+                </Button>
+              </div>
+            )}
+
             {!isUnitSale && offerApplied && (appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
               <div className="rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-900/20 p-2 space-y-1.5">
                 <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300 text-xs font-bold">
