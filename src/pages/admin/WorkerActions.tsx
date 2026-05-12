@@ -729,19 +729,23 @@ const WorkerActions: React.FC = () => {
       return sign * (boxes * ppb + pieces);
     };
     const piecesToBP = (totalPieces: number) => {
-      const safe = Math.max(0, Math.round(totalPieces));
+      const sign = totalPieces < 0 ? -1 : 1;
+      const safe = Math.round(Math.abs(totalPieces));
       const boxes = Math.floor(safe / ppb);
       const pieces = safe % ppb;
-      return boxes + pieces / 100;
+      return sign * (boxes + pieces / 100);
     };
-    const chronological = [...rawMovements].reverse();
-    let remainingPieces = bpToPieces(currentQty);
-    const historyEntries = chronological.map((movement) => {
-      const afterPieces = remainingPieces;
-      const beforePieces = afterPieces - bpToPieces(movement.delta);
-      remainingPieces = beforePieces;
+    // Walk FORWARD from opening balance so each row reflects the true running
+    // balance after that movement, independent of any later shortage/discrepancy.
+    let runningPieces = bpToPieces(openingBalance);
+    const forwardEntries = rawMovements.map((movement) => {
+      const beforePieces = runningPieces;
+      const afterPieces = beforePieces + bpToPieces(movement.delta);
+      runningPieces = afterPieces;
       return { ...movement, before: piecesToBP(beforePieces), after: piecesToBP(afterPieces) };
     });
+    // Display newest first.
+    const historyEntries = [...forwardEntries].reverse();
 
     return {
       productId,
