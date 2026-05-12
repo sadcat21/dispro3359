@@ -321,6 +321,40 @@ const WorkerHome: React.FC = () => {
     enabled: isWarehouseManager && !!effectiveBranchId,
   });
 
+  // Frozen workers (single SQL — same logic as LoadStock)
+  const { data: frozenWorkerIds = [] } = useQuery({
+    queryKey: ['frozen-workers-wh', (loadWorkersList || []).map((w: any) => w.id).sort().join(',')],
+    queryFn: async () => {
+      const ids = (loadWorkersList || []).map((w: any) => w.id);
+      if (ids.length === 0) return [] as string[];
+      const { data: finals, error: e1 } = await supabase
+        .from('loading_sessions')
+        .select('worker_id, created_at')
+        .in('worker_id', ids)
+        .eq('status', 'review')
+        .eq('is_final', true);
+      if (e1 || !finals || finals.length === 0) return [] as string[];
+      const { data: accs } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, created_at, period_end, review_session_id')
+        .in('worker_id', ids)
+        .eq('status', 'completed');
+      const frozen: string[] = [];
+      for (const f of finals) {
+        const unfrozen = (accs || []).some((a: any) => {
+          if (a.worker_id !== f.worker_id) return false;
+          if (a.review_session_id) return true;
+          const ref = a.period_end || a.created_at;
+          return new Date(ref).getTime() >= new Date(f.created_at).getTime();
+        });
+        if (!unfrozen && !frozen.includes(f.worker_id)) frozen.push(f.worker_id);
+      }
+      return frozen;
+    },
+    enabled: (loadWorkersList || []).length > 0,
+    staleTime: 30_000,
+  });
+
 
   // Loading skeleton for permissions
   if (permissionsLoading) {
@@ -659,7 +693,13 @@ const WorkerHome: React.FC = () => {
         onOpenChange={setShowLoadWorkerPicker}
         workers={loadWorkersList}
         selectedWorkerId=""
+        frozenWorkerIds={frozenWorkerIds}
         onSelect={(wId) => {
+          if (frozenWorkerIds.includes(wId)) {
+            window.alert('هذا العامل مجمّد. يجب فك التجميد عبر حفظ جلسة المحاسبة قبل المتابعة.');
+            toast.error('العامل مجمّد');
+            return;
+          }
           const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
           setShowLoadWorkerPicker(false);
           setWarehouseActionFor({ id: wId, name: w?.full_name || '' });
@@ -672,6 +712,12 @@ const WorkerHome: React.FC = () => {
         workerName={warehouseActionFor?.name}
         onSelect={(action: WarehouseAction) => {
           if (!warehouseActionFor) return;
+          if (frozenWorkerIds.includes(warehouseActionFor.id)) {
+            window.alert('هذا العامل مجمّد. يجب فك التجميد عبر حفظ جلسة المحاسبة قبل المتابعة.');
+            toast.error('العامل مجمّد');
+            setWarehouseActionFor(null);
+            return;
+          }
           setContextWorker(warehouseActionFor.id);
           const id = warehouseActionFor.id;
           setWarehouseActionFor(null);
@@ -685,6 +731,7 @@ const WorkerHome: React.FC = () => {
         onOpenChange={setShowFinalReviewPicker}
         workers={loadWorkersList}
         selectedWorkerId=""
+        frozenWorkerIds={frozenWorkerIds}
         onSelect={(wId) => {
           const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
           setFinalReviewWorker({ id: wId, name: w?.full_name || '' });
