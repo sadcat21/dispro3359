@@ -650,8 +650,8 @@ const StockConfirmationsPopover: React.FC = () => {
   };
 
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [confirmDeleteAllOpen, setConfirmDeleteAllOpen] = useState(false);
   const handleDeleteAllLogs = async () => {
-    if (!confirm('هل أنت متأكد من حذف كل سجل التأكيدات؟ لا يمكن التراجع.')) return;
     setIsDeletingAll(true);
     try {
       let q = supabase.from('stock_confirmations').delete();
@@ -665,6 +665,7 @@ const StockConfirmationsPopover: React.FC = () => {
       toast.success('تم حذف سجل التأكيدات');
       managerHook.refetch();
       workerHook.refetch();
+      setConfirmDeleteAllOpen(false);
     } catch (e: any) {
       toast.error(e?.message || 'فشل الحذف');
     } finally {
