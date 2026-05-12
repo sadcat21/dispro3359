@@ -371,6 +371,31 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
             </div>
           </div>
         </div>
+
+        {isApplicable && (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background border-t">
+            <div className="text-[10px] font-bold">
+              {(offer as any).is_mandatory && (
+                <span className="text-destructive">★ تفعيل إجباري</span>
+              )}
+              {(offer as any).auto_fill_quantities === false && (
+                <span className="text-muted-foreground"> · إدخال يدوي</span>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant={activatedOfferIds.has(offer.id) ? 'secondary' : 'default'}
+              className="h-6 px-2 text-[10px]"
+              onClick={(e) => { e.stopPropagation(); toggleActivation(offer.id); }}
+            >
+              {activatedOfferIds.has(offer.id) ? (
+                <><Check className="w-3 h-3 mr-1" /> مفعّل</>
+              ) : (
+                'تفعيل العرض'
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     );
   };
