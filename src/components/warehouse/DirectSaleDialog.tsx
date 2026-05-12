@@ -916,6 +916,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       });
       const combinedNotes = [notes, offerNotes].filter(Boolean).join(' | ');
 
+      const isWarehouseSrcReceipt = stockSource === 'warehouse' || isWarehouseManager;
       setReceiptData({
         receiptType: 'direct_sale' as ReceiptType,
         orderId: order.id,
@@ -939,6 +940,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         orderInvoicePaymentMethod: frozenInvoiceMethod || undefined,
         stampAmount: orderTotals.stampAmount > 0 ? orderTotals.stampAmount : undefined,
         stampPercentage: orderTotals.stampPercentage > 0 ? orderTotals.stampPercentage : undefined,
+        isWarehouseSale: isWarehouseSrcReceipt,
+        receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
       });
       setShowReceiptDialog(true);
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
