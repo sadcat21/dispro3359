@@ -17,9 +17,11 @@ import { InvoicePaymentMethod } from '@/types/stamp';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHasPermission } from '@/hooks/usePermissions';
 import { getProductDisplayName } from '@/utils/productDisplayName';
-import ProductOfferBadge from '@/components/offers/ProductOfferBadge';
+import ProductOfferBadge, { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
 import { parseBP } from '@/utils/boxPieceInput';
+import { ProductOfferWithDetails } from '@/types/productOffer';
+import { getProductOfferLookupKey } from '@/utils/productOffers';
 
 export interface GiftInfo {
   giftQuantity: number;
@@ -132,6 +134,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const [itemInvoicePaymentMethod, setItemInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(defaultInvoicePaymentMethod);
   const [customPriceOpen, setCustomPriceOpen] = useState(false);
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
+  const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
   const safeT = useCallback((key: string, fallback: string) => {
     const value = t(key);
     return value && value !== key ? value : fallback;
@@ -378,6 +381,21 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const baseUnitPrice = isUnitSale ? selectedPiecePrice : selectedBoxPrice;
   const displayPrice = hasCustomUnitPrice ? resolveSaleUnitPrice(customUnitPriceValue, isUnitSale) : baseUnitPrice;
   const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * paidQuantity);
+  const customerTypesKey = JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
+  const currentOfferLookupKey = product ? getProductOfferLookupKey(product.id, customerTypes) : '';
+  const currentPrefetchedOffers = currentOfferLookupKey ? prefetchedOffersByKey[currentOfferLookupKey] : undefined;
+
+  const prefetchOffers = useCallback(async (productId: string, nextCustomerTypes?: string[] | null) => {
+    const lookupKey = getProductOfferLookupKey(productId, nextCustomerTypes);
+    const activeOffers = await preloadProductOffersForBadge(productId, nextCustomerTypes);
+    setPrefetchedOffersByKey((prev) => ({ ...prev, [lookupKey]: activeOffers }));
+    return activeOffers;
+  }, []);
+
+  useEffect(() => {
+    if (!open || !product || isUnitSale) return;
+    prefetchOffers(product.id, customerTypes);
+  }, [open, product, isUnitSale, customerTypesKey, prefetchOffers]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -437,7 +455,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           </DialogHeader>
           {!isUnitSale && (
             <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
-              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} />
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
             </div>
           )}
           {!isUnitSale && !offerApplied && giftPieces > 0 && (
