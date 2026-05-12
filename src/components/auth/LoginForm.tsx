@@ -593,6 +593,35 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
 
+      <Dialog open={quickPasswordOpen} onOpenChange={setQuickPasswordOpen}>
+        <DialogContent className="max-w-xs" dir={dir}>
+          <DialogHeader>
+            <DialogTitle className="text-center">كلمة مرور الدخول السريع</DialogTitle>
+            <DialogDescription className="text-center text-xs">
+              أدخل كلمة المرور لعرض نافذة الدخول السريع
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="password"
+              autoFocus
+              value={quickPasswordValue}
+              onChange={(e) => { setQuickPasswordValue(e.target.value); setQuickPasswordError(''); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitQuickPassword(); } }}
+              placeholder="••••••••"
+              className="h-11 text-center tracking-widest"
+            />
+            {quickPasswordError && (
+              <p className="text-xs text-destructive text-center">{quickPasswordError}</p>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setQuickPasswordOpen(false)}>إلغاء</Button>
+              <Button className="flex-1" onClick={submitQuickPassword} disabled={!quickPasswordValue}>دخول</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isQuickLoginOpen} onOpenChange={(open) => setQuickLoginMode(open ? quickLoginMode : 'none')}>
         <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-0 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]" dir={dir}>
           <DialogHeader className="border-b border-slate-100 bg-white px-6 pt-6 pb-4">
