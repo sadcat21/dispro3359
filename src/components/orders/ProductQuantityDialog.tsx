@@ -700,22 +700,22 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 </div>
                 <div dir="ltr" className="grid grid-cols-2 gap-3">
                   <div className="flex items-stretch h-10 rounded-md border border-input bg-background overflow-hidden">
-                    <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                     <Input
                       type="text"
                       readOnly
                       value={String(appliedGiftBoxes)}
                       className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                     />
+                    <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                   </div>
                   <div className="flex items-stretch h-10 rounded-md border border-input bg-background overflow-hidden">
-                    <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                     <Input
                       type="text"
                       readOnly
                       value={String(giftRemainingPieces).padStart(pieceDigits, '0')}
                       className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                     />
+                    <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                   </div>
                 </div>
               </div>
