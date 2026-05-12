@@ -633,7 +633,6 @@ const MyDeliveries: React.FC = () => {
     { value: 'all', label: t('deliveries.tab_all'), icon: ListFilter, color: 'text-foreground' },
     { value: 'pending', label: t('orders.pending'), icon: Clock, color: 'text-yellow-600' },
     { value: 'assigned', label: t('orders.assigned'), icon: UserCheck, color: 'text-blue-600' },
-    { value: 'in_progress', label: t('orders.in_progress'), icon: Truck, color: 'text-purple-600' },
     { value: 'delivered', label: t('orders.delivered'), icon: CheckCircle, color: 'text-green-600' },
     { value: 'cancelled', label: t('orders.cancelled'), icon: XCircle, color: 'text-red-600' },
   ];
@@ -660,9 +659,9 @@ const MyDeliveries: React.FC = () => {
     return (
       <Card key={order.id} className={`overflow-hidden border-r-4 ${sideBorder}`} dir="rtl">
         <CardContent className="p-0">
-          {/* Compact grid: store icon | customer info | status + people */}
-          <div className="px-3 py-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-0.5 border-b bg-muted/20">
-            <Store className="w-4 h-4 text-muted-foreground row-span-2 self-center" />
+          {/* Compact grid: store icon | customer info + creator | status badge + assigned worker */}
+          <div className="px-3 py-2 grid grid-cols-[auto_1fr_auto] items-start gap-x-2 gap-y-0.5 border-b bg-muted/20">
+            <Store className="w-4 h-4 text-muted-foreground self-center" />
             <div className="min-w-0 text-right">
               {order.customer?.store_name && (
                 <p className="font-bold text-sm truncate leading-tight">{order.customer.store_name}</p>
@@ -670,20 +669,20 @@ const MyDeliveries: React.FC = () => {
               {order.customer?.name && (
                 <p className="text-[11px] text-muted-foreground truncate leading-tight">{order.customer.name}</p>
               )}
-            </div>
-            <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0 row-span-2 self-center`}>
-              <StatusIcon className="w-3 h-3" />
-              {STATUS_CONFIG[order.status]?.label}
-            </Badge>
-            <div className="col-start-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground min-w-0">
-              {order.created_by_worker?.full_name ? (
-                <span className="flex items-center gap-1 min-w-0">
+              {order.created_by_worker?.full_name && (
+                <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-muted-foreground min-w-0">
                   <User className="w-3 h-3 shrink-0" />
                   <span className="truncate">{order.created_by_worker.full_name}</span>
                 </span>
-              ) : <span />}
+              )}
+            </div>
+            <div className="flex flex-col items-end gap-0.5 min-w-0">
+              <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0`}>
+                <StatusIcon className="w-3 h-3" />
+                {STATUS_CONFIG[order.status]?.label}
+              </Badge>
               {order.assigned_worker?.full_name && (
-                <span className="flex items-center gap-1 min-w-0 text-primary">
+                <span className="inline-flex items-center gap-1 text-[10px] text-primary min-w-0 max-w-[140px]">
                   <UserCheck className="w-3 h-3 shrink-0" />
                   <span className="truncate">{order.assigned_worker.full_name}</span>
                 </span>
@@ -708,12 +707,7 @@ const MyDeliveries: React.FC = () => {
               </Button>
             )}
 
-            {(order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && !isModifyHidden && order.payment_type !== 'with_invoice' && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit') || 'تعديل'} onClick={() => setModifyOrder(order)}>
-                <Edit2 className="w-4 h-4" />
-              </Button>
-            )}
-            {order.status === 'delivered' && !isModifyHidden && (
+            {!isModifyHidden && (order.status === 'delivered' || ((order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && order.payment_type !== 'with_invoice')) && (
               <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit') || 'تعديل'} onClick={() => setModifyOrder(order)}>
                 <Edit2 className="w-4 h-4" />
               </Button>
@@ -725,13 +719,8 @@ const MyDeliveries: React.FC = () => {
               </Button>
             )}
 
-            {(order.status === 'pending' || order.status === 'assigned') && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-primary" title={t('orders.in_progress')} onClick={() => handleUpdateStatus(order.id, 'in_progress')} disabled={updateStatus.isPending}>
-                <Truck className="w-4 h-4" />
-              </Button>
-            )}
-
-            {order.status === 'in_progress' && (
+            {/* Mark delivered: directly from assigned (no in_progress step) */}
+            {(order.status === 'assigned' || order.status === 'in_progress') && (
               <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600" title={t('orders.delivered')} onClick={() => handleDeliverClick(order)} disabled={updateStatus.isPending}>
                 <CheckCircle className="w-4 h-4" />
               </Button>
@@ -749,12 +738,13 @@ const MyDeliveries: React.FC = () => {
               </Button>
             )}
 
-            {!isCancelHidden && (order.status === 'pending' || order.status === 'assigned') && (
+            {!isCancelHidden && order.status === 'pending' && (
               <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" title={t('orders.cancelled')} onClick={() => handleCancelOrder(order.id)} disabled={cancelOrder.isPending}>
                 <XCircle className="w-4 h-4" />
               </Button>
             )}
-            {!isCancelHidden && order.status === 'in_progress' && (
+            {/* Cancel by delivery worker from assigned/in_progress */}
+            {!isCancelHidden && (order.status === 'assigned' || order.status === 'in_progress') && (
               <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" title={t('orders.cancelled')} onClick={() => handleCancelOrder_direct(order)} disabled={cancelOrder.isPending || checkingLocation}>
                 {checkingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
               </Button>
