@@ -224,6 +224,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const [newProductId, setNewProductId] = useState('');
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [initializedItemsKey, setInitializedItemsKey] = useState<string | null>(null);
+  const [baselineKey, setBaselineKey] = useState<string | null>(null);
   const [partialDeliveryAction, setPartialDeliveryAction] = useState<'none' | 'create_order' | 'deliver_only'>('none');
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
