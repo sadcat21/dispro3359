@@ -75,7 +75,8 @@ export const useAssignedOrders = () => {
         .select(`
           *,
           customer:customers(*, sector:sectors(id, name, name_fr), zone:sector_zones(id, name, name_fr)),
-          created_by_worker:workers!orders_created_by_fkey(id, full_name, username)
+          created_by_worker:workers!orders_created_by_fkey(id, full_name, username),
+          assigned_worker:workers!orders_assigned_worker_id_fkey(id, full_name, username)
         `)
         .order('created_at', { ascending: false });
 
