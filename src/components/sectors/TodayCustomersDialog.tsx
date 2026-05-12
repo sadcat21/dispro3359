@@ -185,6 +185,8 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const isInternalSupervisor = activeRole?.custom_role_code === 'internal_supervisor';
   const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor;
   const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
+  const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
+  const directSaleLabel = isWarehouseManager ? 'بيع من المخزن' : 'بيع مباشر';
   const todayName = JS_DAY_TO_NAME[new Date().getDay()] || '';
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [selectedCustomDate, setSelectedCustomDate] = useState<Date | undefined>(undefined);
@@ -2475,7 +2477,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
               </TabsTrigger>
               <TabsTrigger value="direct-sale" className="flex-1 gap-1 text-xs">
                 <ShoppingBag className="w-3.5 h-3.5" />
-                بيع مباشر
+                {directSaleLabel}
                 {directSaleCustomers.length > 0 && <Badge className="text-[10px] px-1 bg-emerald-500">{directSaleCustomers.length}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="debts" className="flex-1 gap-1 text-xs">
@@ -2998,7 +3000,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 { key: 'orders' as const, label: 'طلبات', color: 'bg-blue-100 text-blue-700 border-blue-300', active: 'bg-blue-600 text-white border-blue-600' },
                 { key: 'debts' as const, label: 'ديون جديدة', color: 'bg-red-100 text-red-700 border-red-300', active: 'bg-red-600 text-white border-red-600' },
                 { key: 'collections' as const, label: 'تحصيل', color: 'bg-green-100 text-green-700 border-green-300', active: 'bg-green-600 text-white border-green-600' },
-                { key: 'sales' as const, label: 'بيع مباشر', color: 'bg-amber-100 text-amber-700 border-amber-300', active: 'bg-amber-600 text-white border-amber-600' },
+                { key: 'sales' as const, label: directSaleLabel, color: 'bg-amber-100 text-amber-700 border-amber-300', active: 'bg-amber-600 text-white border-amber-600' },
               ]).map(btn => (
                 <button
                   key={btn.key}
