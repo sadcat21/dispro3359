@@ -2477,7 +2477,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
               </TabsTrigger>
               <TabsTrigger value="direct-sale" className="flex-1 gap-1 text-xs">
                 <ShoppingBag className="w-3.5 h-3.5" />
-                بيع مباشر
+                {directSaleLabel}
                 {directSaleCustomers.length > 0 && <Badge className="text-[10px] px-1 bg-emerald-500">{directSaleCustomers.length}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="debts" className="flex-1 gap-1 text-xs">
