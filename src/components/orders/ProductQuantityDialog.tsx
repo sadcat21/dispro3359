@@ -591,6 +591,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 </p>
               )}
             </div>
+              </div>
+            </div>
 
             {/* Quantity Selector - compact */}
             <div className="space-y-1">
