@@ -14,6 +14,7 @@ import { useOrderItems } from '@/hooks/useOrders';
 import { OrderItem, OrderWithDetails, Product } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAmountWithMaxFraction } from '@/utils/amountFormatting';
+import { dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface OrderDetailsDialogProps {
   open: boolean;
