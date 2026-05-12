@@ -390,77 +390,53 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div className="flex items-stretch w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm divide-x divide-border text-center">
-                    {/* 1. DA/PCS value */}
-                    {selectedPiecePrice > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-foreground text-background">
-                        <div className="text-[10px] font-extrabold leading-tight truncate">
-                          {selectedPiecePrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span>
-                        </div>
+                  <div className="grid grid-cols-5 w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center">
+                    {/* Row 1: values */}
+                    <div className="px-1 py-1 bg-foreground text-background border-b border-r border-border/40">
+                      <div className="text-[10px] font-extrabold leading-tight truncate">
+                        {selectedPiecePrice > 0 ? <>{selectedPiecePrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></> : '—'}
                       </div>
-                    )}
-                    {/* 2. PCS label */}
-                    {selectedPiecePrice > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-muted/40 flex items-center justify-center">
-                        <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">PCS</div>
+                    </div>
+                    <div className="px-1 py-1 bg-destructive/10 border-b border-r border-border/40">
+                      <div className="text-[10px] font-extrabold text-destructive leading-tight truncate">
+                        {product.pieces_per_box > 0 ? <>{product.pieces_per_box} <span className="opacity-80">PCS</span></> : '—'}
                       </div>
-                    )}
-                    {/* 3. PCS/BOX value */}
-                    {product.pieces_per_box > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-destructive/10">
-                        <div className="text-[10px] font-extrabold text-destructive leading-tight truncate">
-                          {product.pieces_per_box} <span className="opacity-80">PCS</span>
-                        </div>
+                    </div>
+                    <div className="px-1.5 py-1 bg-foreground text-background border-b border-r border-border/40">
+                      <div className="text-xs font-extrabold leading-tight truncate">
+                        {displayPrice > 0 ? <>{displayPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></> : '—'}
                       </div>
-                    )}
-                    {/* 4. BOX label */}
-                    {product.pieces_per_box > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-muted/40 flex items-center justify-center">
-                        <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                    </div>
+                    <div className="px-1 py-1 border-b border-r border-border/40">
+                      <div className="text-[10px] font-extrabold text-foreground leading-tight truncate">
+                        {pricingUnit !== 'box' && (product.weight_per_box || 0) > 0
+                          ? <>{(product.weight_per_box || 0).toLocaleString()} <span className="opacity-70">{pricingUnitLabel}</span></>
+                          : '—'}
                       </div>
-                    )}
-                    {/* 5. DA/BOX value (center, largest) */}
-                    {displayPrice > 0 && (
-                      <div className="flex-[1.4] min-w-0 px-1.5 py-1 bg-foreground text-background">
-                        <div className="text-xs font-extrabold leading-tight truncate">
-                          {displayPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span>
-                        </div>
+                    </div>
+                    <div className="px-1 py-1 bg-foreground text-background border-b border-border/40">
+                      <div className="text-[10px] font-extrabold leading-tight truncate">
+                        {pricingUnit !== 'box' && selectedPricingUnitPrice > 0
+                          ? <>{selectedPricingUnitPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></>
+                          : '—'}
                       </div>
-                    )}
-                    {/* 6. BOX label */}
-                    {displayPrice > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-muted/40 flex items-center justify-center">
-                        <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
-                      </div>
-                    )}
-                    {/* 7. KG/BOX value */}
-                    {pricingUnit !== 'box' && (product.weight_per_box || 0) > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1">
-                        <div className="text-[10px] font-extrabold text-foreground leading-tight truncate">
-                          {(product.weight_per_box || 0).toLocaleString()} <span className="opacity-70">{pricingUnitLabel}</span>
-                        </div>
-                      </div>
-                    )}
-                    {/* 8. BOX label */}
-                    {pricingUnit !== 'box' && (product.weight_per_box || 0) > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-muted/40 flex items-center justify-center">
-                        <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
-                      </div>
-                    )}
-                    {/* 9. DA/KG value */}
-                    {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-foreground text-background">
-                        <div className="text-[10px] font-extrabold leading-tight truncate">
-                          {selectedPricingUnitPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span>
-                        </div>
-                      </div>
-                    )}
-                    {/* 10. KG label */}
-                    {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
-                      <div className="flex-1 min-w-0 px-1 py-1 bg-muted/40 flex items-center justify-center">
-                        <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{pricingUnitLabel}</div>
-                      </div>
-                    )}
+                    </div>
+                    {/* Row 2: labels */}
+                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">PCS</div>
+                    </div>
+                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                    </div>
+                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                    </div>
+                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                    </div>
+                    <div className="px-1 py-1 bg-muted/40 flex items-center justify-center">
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{pricingUnitLabel}</div>
+                    </div>
                   </div>
                 </div>
                 {product.image_url ? (
