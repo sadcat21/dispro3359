@@ -629,12 +629,12 @@ const MyDeliveries: React.FC = () => {
     : typeFilteredOrders?.filter(o => o.status === activeTab);
 
   // Tab definitions
-  const tabs: { value: TabStatus; label: string; icon: React.ElementType; color: string }[] = [
-    { value: 'all', label: t('deliveries.tab_all'), icon: ListFilter, color: 'text-foreground' },
-    { value: 'pending', label: t('orders.pending'), icon: Clock, color: 'text-yellow-600' },
-    { value: 'assigned', label: t('orders.assigned'), icon: UserCheck, color: 'text-blue-600' },
-    { value: 'delivered', label: t('orders.delivered'), icon: CheckCircle, color: 'text-green-600' },
-    { value: 'cancelled', label: t('orders.cancelled'), icon: XCircle, color: 'text-red-600' },
+  const tabs: { value: TabStatus; label: string; short: string; icon: React.ElementType; color: string }[] = [
+    { value: 'all', label: t('deliveries.tab_all'), short: 'الكل', icon: ListFilter, color: 'text-foreground' },
+    { value: 'pending', label: t('orders.pending'), short: 'انتظار', icon: Clock, color: 'text-yellow-600' },
+    { value: 'assigned', label: t('orders.assigned'), short: 'تعيين', icon: UserCheck, color: 'text-blue-600' },
+    { value: 'delivered', label: t('orders.delivered'), short: 'تم', icon: CheckCircle, color: 'text-green-600' },
+    { value: 'cancelled', label: t('orders.cancelled'), short: 'ملغي', icon: XCircle, color: 'text-red-600' },
   ];
 
   if (isLoading) {
@@ -822,7 +822,10 @@ const MyDeliveries: React.FC = () => {
                   value={tab.value}
                   className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-1.5 px-1 data-[state=active]:shadow-sm"
                 >
-                  <TabIcon className={`w-3.5 h-3.5 ${tab.color}`} />
+                  <div className="flex items-center gap-1">
+                    <TabIcon className={`w-3.5 h-3.5 ${tab.color}`} />
+                    <span className="text-[10px] font-medium leading-tight">{tab.short}</span>
+                  </div>
                   <span className="text-[10px] font-bold leading-tight">{count}</span>
                 </TabsTrigger>
               );
