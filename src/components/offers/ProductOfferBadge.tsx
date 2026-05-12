@@ -224,82 +224,61 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
         key={offer.id}
         onClick={() => handleOfferClick(offer)}
         className={cn(
-          "relative overflow-hidden rounded-lg p-3 cursor-pointer transition-all duration-300 border-2",
-          isApplicable 
-            ? "bg-green-600 text-white border-green-500 animate-pulse shadow-lg shadow-green-500/40" 
-            : "bg-destructive text-white border-destructive"
+          "cursor-pointer rounded-lg overflow-hidden ring-1 shadow-sm transition-all",
+          isApplicable
+            ? "ring-green-500 shadow-green-500/30"
+            : "ring-destructive/40"
         )}
       >
-        {/* Success icon for applicable offers */}
-        {isApplicable && (
-          <div className="absolute top-1 end-1">
-            <div className="bg-white rounded-full p-0.5">
-              <Check className="w-4 h-4 text-green-600" />
+        <div
+          className="grid w-full text-center divide-x divide-white/20"
+          style={{ gridTemplateColumns: '1.4fr 1.4fr 0.9fr' }}
+        >
+          {/* Col 1: Condition */}
+          <div className={cn(
+            "@container px-1.5 py-1.5 flex flex-col items-center justify-center gap-0.5 text-white",
+            isApplicable ? "bg-green-700" : "bg-destructive"
+          )}>
+            <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 22cqw, 13px)' }}>
+              {t('offers.buy')} {offer.min_quantity}+ {getUnitLabel(offer.min_quantity_unit || 'piece')}
+            </div>
+            <div className="text-[9px] font-bold uppercase tracking-wide opacity-80">
+              {t('offers.condition') || 'الشرط'}
             </div>
           </div>
-        )}
-        
-        <div className="flex items-start gap-2">
-          <Gift className="w-5 h-5 flex-shrink-0 mt-0.5 text-white" />
-          
-          <div className="flex-1 min-w-0">
-            {/* Status Badge */}
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <Badge 
-                variant="secondary"
-                className={cn(
-                  "text-[10px] px-1.5 py-0",
-                  isApplicable 
-                    ? "bg-white/20 text-white border-white/30" 
-                    : "bg-white/20 text-white border-white/30"
-                )}
-              >
-                {isApplicable ? t('offers.offer_applied') : t('offers.available_offer')}
-              </Badge>
-              
-              {/* Days remaining badge */}
-              {daysRemaining !== null && (
-                <Badge 
-                  variant="outline" 
-                  className="text-[10px] px-1.5 py-0 bg-white/20 text-white border-white/30"
-                >
-                  {daysRemaining === 0 
-                    ? t('offers.ends_today')
-                    : daysRemaining === 1 
-                      ? t('offers.ends_tomorrow')
-                      : `${t('offers.days_remaining')}: ${daysRemaining}`
-                  }
-                </Badge>
-              )}
+          {/* Col 2: Gift */}
+          <div className={cn(
+            "@container px-1.5 py-1.5 flex flex-col items-center justify-center gap-0.5",
+            isApplicable ? "bg-green-50 text-green-800" : "bg-destructive/10 text-destructive"
+          )}>
+            <div className="font-extrabold leading-tight whitespace-nowrap flex items-center gap-1" style={{ fontSize: 'clamp(8px, 22cqw, 13px)' }}>
+              <Gift className="w-3 h-3" />
+              {isApplicable && giftPieces > 0
+                ? `+${giftPieces} ${t('offers.unit_piece')}`
+                : getGiftText(offer)}
             </div>
-            
-            {/* Offer condition and reward */}
-            <p className="text-sm font-bold text-white">
-              {t('offers.buy')} {offer.min_quantity}+ → {getGiftText(offer)}
-            </p>
-            
-            {/* Gift calculation when applicable */}
-            {isApplicable && giftPieces > 0 && (
-              <div className="mt-2 p-2 bg-white/20 rounded-md">
-                <div className="flex items-center gap-1 text-xs text-white">
-                  <Sparkles className="w-3 h-3" />
-                  <span className="font-bold">
-                    {t('offers.you_get')}: +{giftPieces} {t('offers.unit_piece')} {t('common.free')}
-                  </span>
-                </div>
-                <p className="text-[10px] text-white/80 mt-0.5">
-                  ({timesApplied} × {offer.gift_quantity} {getUnitLabel(offer.gift_quantity_unit || 'piece')})
-                </p>
-              </div>
-            )}
-            
-            {/* Worker reward if exists */}
-            {getWorkerRewardText(offer) && (
-              <div className="flex items-center gap-1 mt-1 text-xs text-white/80">
-                <Users className="w-3 h-3" />
-                <span>{t('offers.your_reward')}: {getWorkerRewardText(offer)}</span>
-              </div>
-            )}
+            <div className="text-[9px] font-bold uppercase tracking-wide opacity-70">
+              {t('common.free') || 'هدية'}
+            </div>
+          </div>
+          {/* Col 3: Days remaining */}
+          <div className={cn(
+            "@container px-1 py-1.5 flex flex-col items-center justify-center gap-0.5 text-white",
+            isApplicable ? "bg-green-600" : "bg-foreground"
+          )}>
+            <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 22cqw, 13px)' }}>
+              {daysRemaining === null
+                ? '∞'
+                : daysRemaining === 0
+                  ? t('offers.ends_today')
+                  : daysRemaining === 1
+                    ? t('offers.ends_tomorrow')
+                    : daysRemaining}
+            </div>
+            <div className="text-[9px] font-bold uppercase tracking-wide opacity-70">
+              {daysRemaining !== null && daysRemaining > 1 ? (t('offers.days_remaining') || 'يوم') : ''}
+              {daysRemaining === null ? (t('offers.available_offer') || '') : ''}
+            </div>
           </div>
         </div>
       </div>
