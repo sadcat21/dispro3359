@@ -680,28 +680,42 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {!isUnitSale && offerApplied && (appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
               <div className="rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-900/20 p-3 space-y-2">
-                <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300 text-xs font-bold">
-                  <Gift className="w-4 h-4" />
-                  <span>برومو</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-green-700 dark:text-green-300 text-xs font-bold">
+                    <Gift className="w-4 h-4" />
+                    <span>برومو</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] border-red-400 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={() => {
+                      setOfferApplied(false);
+                      setGiftPieces(0);
+                    }}
+                  >
+                    إلغاء العرض
+                  </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1 flex flex-col items-center">
-                    <Label className="text-[10px] text-center block text-muted-foreground">الصندوق</Label>
+                  <div className="relative">
                     <Input
                       type="text"
                       readOnly
                       value={String(appliedGiftBoxes)}
-                      className="h-10 w-full text-center text-base font-bold bg-background"
+                      className="h-10 w-full text-center text-base font-bold bg-background ps-10"
                     />
+                    <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground tracking-wide pointer-events-none">BOX</span>
                   </div>
-                  <div className="space-y-1 flex flex-col items-center">
-                    <Label className="text-[10px] text-center block text-muted-foreground">القطعة</Label>
+                  <div className="relative">
                     <Input
                       type="text"
                       readOnly
                       value={String(giftRemainingPieces).padStart(pieceDigits, '0')}
-                      className="h-10 w-full text-center text-base font-bold bg-background"
+                      className="h-10 w-full text-center text-base font-bold bg-background ps-10"
                     />
+                    <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-foreground text-background tracking-wide pointer-events-none">PCS</span>
                   </div>
                 </div>
               </div>
