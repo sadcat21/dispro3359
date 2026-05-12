@@ -382,37 +382,42 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-sm max-h-[90vh] flex flex-col overflow-hidden p-0" dir={dir}>
-        <div className="px-4 pt-4 pb-1">
+        <div className="px-4 pt-4 pb-2 border-b bg-gradient-to-l from-primary/5 to-transparent">
           <DialogHeader>
             <DialogTitle asChild>
               <div className="flex items-center gap-3 text-start">
-                {product.image_url && (
-                  <img src={product.image_url} alt={getProductDisplayName(product)} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={getProductDisplayName(product)}
+                    className="w-14 h-14 rounded-xl object-cover flex-shrink-0 ring-1 ring-border bg-background"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 ring-1 ring-border">
+                    <Package className="w-6 h-6 text-muted-foreground" />
+                  </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-base text-primary tracking-wide truncate" dir="ltr">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate" dir="ltr">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  {(product as any).app_name && product.name && (product as any).app_name !== product.name && (
-                    <div className="text-[11px] text-muted-foreground truncate">{(product as any).app_name}</div>
-                  )}
-                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <Badge className="text-[10px] px-1.5 py-0 h-5 font-semibold bg-primary/10 text-primary border-transparent hover:bg-primary/10">
                       {product.pieces_per_box} {t('products.piece_per_box')}
                     </Badge>
                     {displayPrice > 0 && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-primary font-bold">
-                        {displayPrice.toLocaleString()} {t('common.currency')}/{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}
+                      <Badge className="text-[10px] px-1.5 py-0 h-5 font-semibold bg-foreground text-background border-transparent hover:bg-foreground" dir="ltr">
+                        {displayPrice.toLocaleString()} {t('common.currency')}<span className="opacity-60 mx-0.5">/</span>{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}
                       </Badge>
                     )}
                     {!isUnitSale && selectedPiecePrice > 0 && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
-                        {selectedPiecePrice.toLocaleString()} {t('common.currency')}/{t('offers.unit_piece')}
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-medium text-muted-foreground" dir="ltr">
+                        {selectedPiecePrice.toLocaleString()} {t('common.currency')}<span className="opacity-60 mx-0.5">/</span>{t('offers.unit_piece')}
                       </Badge>
                     )}
                     {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
-                      <Badge className="text-[10px] px-1.5 py-0 bg-amber-400 text-black hover:bg-amber-400 border-transparent">
-                        {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}/{pricingUnitLabel}
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-medium text-muted-foreground" dir="ltr">
+                        {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}<span className="opacity-60 mx-0.5">/</span>{pricingUnitLabel}
                       </Badge>
                     )}
                   </div>
