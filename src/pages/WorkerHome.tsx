@@ -61,6 +61,7 @@ const WorkerHome: React.FC = () => {
   const [showFactoryDelivery, setShowFactoryDelivery] = useState(false);
   const [showStockManagement, setShowStockManagement] = useState(false);
   const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
+  const [warehouseActionFor, setWarehouseActionFor] = useState<{ id: string; name: string } | null>(null);
   // Open load-worker picker when navigated with ?openLoadWorker=1 (e.g. center nav button)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
