@@ -139,6 +139,39 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     enabled: !!workerId && !!branchId,
   });
 
+  // 7) ديون جديدة أنشأها مدير المخزن اليوم
+  const newDebtsQ = useQuery({
+    queryKey: ['warehouse-today-new-debts', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('customer_debts')
+        .select('id, total_amount, remaining_amount, status, created_at, customer:customer_id(name)')
+        .eq('worker_id', workerId!)
+        .eq('branch_id', branchId)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
+  // 8) تحصيلات الديون اليوم
+  const debtCollectionsQ = useQuery({
+    queryKey: ['warehouse-today-debt-collections', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('debt_payments')
+        .select('id, amount, payment_method, notes, created_at, debt:debt_id(customer:customer_id(name), branch_id)')
+        .eq('worker_id', workerId!)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).filter((p: any) => !branchId || p.debt?.branch_id === branchId);
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
   const accountingClosed = (accountingQ.data || []).some((s: any) => s.status === 'completed' || s.status === 'closed');
 
   const handleDelete = async () => {
