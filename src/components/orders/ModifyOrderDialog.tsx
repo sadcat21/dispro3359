@@ -1943,7 +1943,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                           <span className="text-[11px] text-muted-foreground">
                             {item.is_unit_sale ? (t('orders.quantity_pieces') || 'Pieces') : (t('orders.quantity_boxes') || 'Boxes')}
                           </span>
-                          <span className="font-bold text-sm">{paidQty}</span>
+                          <span className="font-bold text-sm">{item.is_unit_sale ? paidQty : boxesToBP(paidQty, product?.pieces_per_box || 1)}</span>
                         </div>
                         <div className="text-[11px] text-muted-foreground text-end">
                           {t('orders.tap_product_to_edit') || 'Tap the product to edit'}
