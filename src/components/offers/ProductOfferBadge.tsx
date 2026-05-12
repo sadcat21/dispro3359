@@ -27,6 +27,7 @@ interface ProductOfferBadgeProps {
   piecesPerBox?: number;
   customerTypes?: string[] | null;
   onGiftCalculated?: (giftPieces: number, offerId?: string) => void;
+  onOffersLoadingChange?: (isLoading: boolean) => void;
   prefetchedOffers?: ProductOfferWithDetails[];
   onPrefetchOffers?: (productId: string, customerTypes?: string[] | null) => Promise<ProductOfferWithDetails[]>;
 }
@@ -105,6 +106,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   piecesPerBox = 1,
   customerTypes,
   onGiftCalculated,
+  onOffersLoadingChange,
   prefetchedOffers,
   onPrefetchOffers,
 }) => {
@@ -125,6 +127,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     if (nextPrefetchedOffers) {
       setOffers(nextPrefetchedOffers);
       setIsLoading(false);
+      onOffersLoadingChange?.(false);
       return;
     }
 
@@ -133,6 +136,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
 
   const fetchProductOffers = async () => {
     setIsLoading(true);
+    onOffersLoadingChange?.(true);
     try {
       const activeOffers = onPrefetchOffers
         ? await onPrefetchOffers(productId, customerTypes)
@@ -142,6 +146,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
       console.error('Error fetching product offers:', error);
     } finally {
       setIsLoading(false);
+      onOffersLoadingChange?.(false);
     }
   };
 
