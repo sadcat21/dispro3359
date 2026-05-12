@@ -408,7 +408,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     {/* 5: units per box (e.g. 5 kg) */}
                     {pricingUnit !== 'box' && (
                       <div className="flex-1 min-w-0 px-1.5 py-1 bg-muted/40">
-                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{pricingUnitLabel}/{t('offers.unit_box')}</div>
+                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{pricingUnitLabel}/BOX</div>
                         <div className="text-[11px] font-bold text-foreground leading-tight truncate">
                           {(product.weight_per_box || 0).toLocaleString()}
                         </div>
@@ -426,7 +426,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     {/* 1: box price (center, largest) */}
                     {displayPrice > 0 && (
                       <div className="flex-[2] min-w-0 px-2 py-1 bg-foreground text-background">
-                        <div className="text-[8px] uppercase tracking-wide opacity-70 leading-none">{t('common.currency')}/{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}</div>
+                        <div className="text-[8px] uppercase tracking-wide opacity-70 leading-none">{t('common.currency')}/{isUnitSale ? 'PCS' : 'BOX'}</div>
                         <div className="text-sm font-extrabold leading-tight truncate">
                           {displayPrice.toLocaleString()}
                         </div>
@@ -435,7 +435,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     {/* 2: pieces per box */}
                     {product.pieces_per_box > 0 && (
                       <div className="flex-1 min-w-0 px-1.5 py-1 bg-primary/10">
-                        <div className="text-[8px] uppercase tracking-wide text-primary/70 leading-none">pcs/{t('offers.unit_box')}</div>
+                        <div className="text-[8px] uppercase tracking-wide text-primary/70 leading-none">PCS/BOX</div>
                         <div className="text-[11px] font-bold text-primary leading-tight truncate">
                           {product.pieces_per_box}
                         </div>
@@ -444,7 +444,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     {/* 3: price per piece */}
                     {selectedPiecePrice > 0 && (
                       <div className="flex-1 min-w-0 px-1.5 py-1">
-                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{t('common.currency')}/{t('offers.unit_piece')}</div>
+                        <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{t('common.currency')}/PCS</div>
                         <div className="text-[11px] font-bold text-foreground leading-tight truncate">
                           {selectedPiecePrice.toLocaleString()}
                         </div>
