@@ -778,10 +778,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         </Dialog>
 
         <div className="sticky bottom-0 border-t border-border bg-background px-6 py-3 flex flex-row gap-2">
-          <Button className="flex-1" onClick={handleConfirm} disabled={offerCheckPending || hasUnappliedOffer}>
+          <Button className="flex-1" onClick={handleConfirm} disabled={offerCheckPending || hasUnappliedOffer || mandatoryOfferUnactivated}>
             <Plus className="w-4 h-4 ms-2" />
             {offerCheckPending
               ? (safeT('common.loading', 'جاري التحقق من العرض...'))
+              : mandatoryOfferUnactivated
+              ? 'يجب تفعيل العرض الإجباري'
               : hasUnappliedOffer
               ? (t('offers.must_apply_offer') || 'يجب تفعيل العرض أولاً')
               : (mode === 'edit' ? (t('orders.update_item') || 'تحديث المنتج') : t('orders.add_to_order'))}
