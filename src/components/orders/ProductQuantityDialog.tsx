@@ -435,6 +435,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               </div>
             </DialogTitle>
           </DialogHeader>
+          {!isUnitSale && (
+            <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} />
+            </div>
+          )}
           {!isUnitSale && !offerApplied && giftPieces > 0 && (
             <Button className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={handleApplyOffer}>
               <Gift className="w-4 h-4 ms-2" />
@@ -720,11 +725,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <span>{t('orders.grand_total') || 'الإجمالي'}</span>
                   <span className="text-primary">{displayTotal.toLocaleString()} {t('common.currency')}</span>
                 </div>
-              </div>
-            )}
-            {!isUnitSale && (
-              <div className={offerApplied ? 'hidden' : ''}>
-                <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} />
               </div>
             )}
 
