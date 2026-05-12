@@ -707,7 +707,7 @@ const WorkerActions: React.FC = () => {
                 label: 'بيع',
                 quantity: saleQty,
                 when,
-                note: giftQty > 0 ? `هدايا ${formatTruckQty(giftQty)}` : null,
+                note: giftQty > 0 ? `هدايا ${formatTruckQty(giftQty, ppb)}` : null,
                 paymentType,
                 customerName,
                 customerStoreName,
@@ -1144,29 +1144,29 @@ const WorkerActions: React.FC = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{selectedTruckProductHistory.productName}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalAvailable)}</Badge>
+                    <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {formatTruckQty(selectedTruckProductHistory.totalAvailable, selectedTruckProductHistory.ppb)}</Badge>
                     {selectedTruckProductHistory.openingBalance > 0 && (
-                      <Badge variant="outline" className="border-amber-400 text-amber-700">زيادة غير مفسرة +{formatTruckQty(selectedTruckProductHistory.openingBalance)}</Badge>
+                      <Badge variant="outline" className="border-amber-400 text-amber-700">زيادة غير مفسرة +{formatTruckQty(selectedTruckProductHistory.openingBalance, selectedTruckProductHistory.ppb)}</Badge>
                     )}
                     {selectedTruckProductHistory.shortage > 0 && (
-                      <Badge variant="outline" className="border-red-400 text-red-700">عجز -{formatTruckQty(selectedTruckProductHistory.shortage)}</Badge>
+                      <Badge variant="outline" className="border-red-400 text-red-700">عجز -{formatTruckQty(selectedTruckProductHistory.shortage, selectedTruckProductHistory.ppb)}</Badge>
                     )}
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded)}</Badge>
-                    <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded)}</Badge>
-                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(selectedTruckProductHistory.totalSold)}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded, selectedTruckProductHistory.ppb)}</Badge>
+                    <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded, selectedTruckProductHistory.ppb)}</Badge>
+                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(selectedTruckProductHistory.totalSold, selectedTruckProductHistory.ppb)}</Badge>
                     {selectedTruckProductHistory.totalGift > 0 && (
-                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {formatTruckQty(selectedTruckProductHistory.totalGift)}</Badge>
+                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {formatTruckQty(selectedTruckProductHistory.totalGift, selectedTruckProductHistory.ppb)}</Badge>
                     )}
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">
-                    الباقي {formatTruckQty(selectedTruckProductHistory.currentQty)}
+                    الباقي {formatTruckQty(selectedTruckProductHistory.currentQty, selectedTruckProductHistory.ppb)}
                   </div>
                 </div>
               </div>
 
               {selectedTruckProductHistory.hasMismatch && (
                 <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-sm">
-                  تنبيه: الرصيد المحسوب {selectedTruckProductHistory.computedCurrent} بينما المسجل فعليًا {selectedTruckProductHistory.currentQty}
+                  تنبيه: الرصيد المحسوب {formatTruckQty(selectedTruckProductHistory.computedCurrent, selectedTruckProductHistory.ppb)} بينما المسجل فعليًا {formatTruckQty(selectedTruckProductHistory.currentQty, selectedTruckProductHistory.ppb)}
                 </div>
               )}
 
@@ -1228,15 +1228,15 @@ const WorkerActions: React.FC = () => {
                             </div>
                             <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : 'text-blue-700'}`}>
                                 {deltaLabel.startsWith('-')
-                                  ? `-${formatTruckQty(Math.abs(entry.quantity))}`
-                                  : `+${formatTruckQty(entry.quantity)}`
+                                  ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
+                                  : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
                                 }
                               </div>
                             </div>
                             <div className="mt-2 text-[11px]">
                               <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
                                 <div className="text-muted-foreground">الباقي</div>
-                                <div className="font-semibold">{formatTruckQty(entry.after)}</div>
+                                <div className="font-semibold">{formatTruckQty(entry.after, selectedTruckProductHistory.ppb)}</div>
                               </div>
                             </div>
                             {entry.note && (
