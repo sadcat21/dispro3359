@@ -615,7 +615,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   // Show payment dialog before completing
   const handleSave = () => {
     if (!selectedCustomerId) { toast.error(t('orders.select_customer_error')); return; }
-    if (orderItems.length === 0) { toast.error(t('orders.add_products_error')); return; }
+    if (orderItems.length === 0) { window.alert(t('orders.add_products_error')); toast.error(t('orders.add_products_error')); return; }
 
     // Validate stock
     for (const item of orderItems) {
