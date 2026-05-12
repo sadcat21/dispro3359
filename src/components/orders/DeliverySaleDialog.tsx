@@ -598,6 +598,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const handleProceedToPayment = () => {
     const activeItems = saleItems.filter(i => i.quantity > 0 && !shortageProductIds.has(i.productId));
     if (activeItems.length === 0) {
+      window.alert(t('orders.add_products_error'));
       toast.error(t('orders.add_products_error'));
       return;
     }

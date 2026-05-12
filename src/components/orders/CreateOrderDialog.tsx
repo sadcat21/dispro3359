@@ -578,6 +578,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       return;
     }
     if (orderItems.length === 0) {
+      window.alert(t('orders.add_products_error'));
       toast.error(t('orders.add_products_error'));
       return;
     }
