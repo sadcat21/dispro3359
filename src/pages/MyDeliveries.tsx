@@ -648,314 +648,214 @@ const MyDeliveries: React.FC = () => {
 
   const renderOrderCard = (order: OrderWithDetails) => {
     const StatusIcon = STATUS_CONFIG[order.status]?.icon || Clock;
-    const isActive = order.status === 'assigned' || order.status === 'in_progress';
-    
+    const isOverdue = !!order.delivery_date && new Date(order.delivery_date) < new Date() && order.status !== 'delivered' && order.status !== 'cancelled';
+    const itemsCount = Array.isArray((order as any).items) ? (order as any).items.length : 0;
+    const sideBorder = isOverdue ? 'border-r-destructive'
+      : order.status === 'delivered' ? 'border-r-green-500'
+      : order.status === 'in_progress' ? 'border-r-purple-500'
+      : order.status === 'assigned' ? 'border-r-blue-500'
+      : order.status === 'cancelled' ? 'border-r-muted'
+      : 'border-r-yellow-500';
+
     return (
-      <Card key={order.id} className={`overflow-hidden transition-all ${isActive ? 'border-primary/40 shadow-sm' : 'border-border/60'}`}>
+      <Card key={order.id} className={`overflow-hidden border-r-4 ${sideBorder}`} dir="rtl">
         <CardContent className="p-0">
-          {/* Status strip at top */}
-          <div className={`h-1 w-full ${
-            order.status === 'assigned' ? 'bg-blue-500' :
-            order.status === 'in_progress' ? 'bg-purple-500' :
-            order.status === 'delivered' ? 'bg-green-500' :
-            order.status === 'cancelled' ? 'bg-red-500' : 'bg-yellow-500'
-          }`} />
-          
-          <div className="p-4">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                {/* Customer Info */}
-                <div className="flex items-center gap-2 mb-0.5">
-                  <Store className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <CustomerSummary
-                    customer={{
-                      name: order.customer?.name,
-                      store_name: order.customer?.store_name,
-                      customer_type: order.customer?.customer_type,
-                      sector_name: (order.customer as any)?.sector ? getLocalizedName((order.customer as any).sector, language) : undefined,
-                    }}
-                    compact
-                    showAvatar={false}
-                    showMeta={false}
-                  />
-                  {customerDebts[order.customer_id] && (
-                    <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
-                  )}
-                </div>
-                
-                {order.customer?.phone && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-0.5">
-                    <Phone className="w-3 h-3 shrink-0" />
-                    <a href={`tel:${order.customer.phone}`} className="text-primary">
-                      {order.customer.phone}
-                    </a>
-                  </div>
+          {/* Header: status + customer (stacked to avoid truncation) */}
+          <div className="px-3 py-2 bg-muted/30 border-b space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0`}>
+                <StatusIcon className="w-3 h-3" />
+                {STATUS_CONFIG[order.status]?.label}
+              </Badge>
+              <div className="flex items-center gap-1 shrink-0">
+                {customerDebts[order.customer_id] && (
+                  <AlertTriangle className="w-4 h-4 text-destructive" />
                 )}
-                
-                {order.customer?.address && (
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground mb-1.5">
-                    <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                    <span className="line-clamp-1">{order.customer.address}{order.customer.wilaya ? ` - ${order.customer.wilaya}` : ''}</span>
-                  </div>
-                )}
-                
-                {/* Badges row */}
-                <div className="flex flex-wrap items-center gap-1 mt-2">
-                  <Badge className={`text-[10px] px-1.5 py-0.5 ${STATUS_CONFIG[order.status]?.color}`}>
-                    <StatusIcon className="w-3 h-3 ml-0.5" />
-                    {STATUS_CONFIG[order.status]?.label}
-                  </Badge>
-                  
-                  {order.total_amount && Number(order.total_amount) > 0 && (
-                    <Badge variant="outline" className="font-bold text-[10px] px-1.5 py-0.5 text-primary border-primary/30">
-                      {Number(order.total_amount).toLocaleString()} {t('common.currency')}
-                    </Badge>
-                  )}
-
-                  {order.payment_type === 'with_invoice' ? (
-                    <Badge variant="secondary" className="gap-0.5 text-[10px] px-1.5 py-0.5">
-                      <Receipt className="w-3 h-3" />
-                      {t('orders.with_invoice')}
-                    </Badge>
-                  ) : order.payment_type === 'without_invoice' ? (
-                    <Badge variant="secondary" className="gap-0.5 text-[10px] px-1.5 py-0.5">
-                      <Banknote className="w-3 h-3" />
-                      {t('orders.without_invoice')}
-                    </Badge>
-                  ) : null}
-
-                  {order.status === 'delivered' && order.invoice_payment_method && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                      {order.invoice_payment_method === 'check' ? t('accounting.method_check') :
-                       order.invoice_payment_method === 'transfer' ? t('accounting.method_transfer') :
-                       order.invoice_payment_method === 'receipt' ? t('accounting.method_receipt') :
-                       order.invoice_payment_method === 'cash' ? t('accounting.method_cash') :
-                       t('accounting.method_espace_cash')}
-                    </Badge>
-                  )}
-
-                  {isDocumentVerificationPending(order) && (
-                    <Badge className="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent border border-accent/30 gap-0.5">
-                      <FileCheck className="w-3 h-3" />
-                      {t('deliveries.verification_pending')}
-                    </Badge>
-                  )}
-
-                  {order.customer?.default_price_subtype && order.payment_type === 'without_invoice' && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                      {order.customer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
-                       order.customer.default_price_subtype === 'retail' ? t('products.price_retail') :
-                       t('products.price_gros')}
-                    </Badge>
-                  )}
-                </div>
-                
-                {order.delivery_date && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3" />
-                    {format(new Date(order.delivery_date), 'dd MMMM yyyy', { locale: getDateLocale(language) })}
-                  </div>
-                )}
-                
-                {order.notes && (
-                  <p className="text-xs text-muted-foreground mt-1.5 bg-muted/50 p-1.5 rounded line-clamp-2">
-                    {order.notes}
-                  </p>
-                )}
-                
-                <p className="text-[10px] text-muted-foreground mt-1.5">
-                  {t('orders.created_by')}: {order.created_by_worker?.full_name} • {format(new Date(order.created_at), 'dd/MM HH:mm')}
-                </p>
-              </div>
-              
-              {/* Action buttons */}
-              <div className="flex flex-col gap-1.5">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => {
-                    setSelectedOrderId(order.id);
-                    setShowDetailsDialog(true);
-                  }}
-                >
-                  <Package className="w-4 h-4" />
-                </Button>
-                
-                {order.status === 'pending' && (
-                  <>
-                    {!isModifyHidden && order.payment_type !== 'with_invoice' && (
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setModifyOrder(order)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8 text-amber-600 border-amber-300 hover:bg-amber-50"
-                      onClick={() => setPostponeOrderId(order.id)}
-                      title={t('deliveries.postpone')}
-                    >
-                      <CalendarClock className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 bg-primary"
-                      onClick={() => handleUpdateStatus(order.id, 'in_progress')}
-                      disabled={updateStatus.isPending}
-                    >
-                      <Truck className="w-4 h-4" />
-                    </Button>
-                    {!isCancelHidden && (
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8"
-                        onClick={() => handleCancelOrder(order.id)}
-                        disabled={cancelOrder.isPending}
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </>
-                )}
-
-                {order.status === 'assigned' && (
-                  <>
-                    {order.customer?.latitude && order.customer?.longitude && (
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8 text-blue-600 border-blue-300 hover:bg-blue-50"
-                        onClick={() => setNavigationTarget({
-                          lat: order.customer!.latitude!,
-                          lng: order.customer!.longitude!,
-                          name: order.customer!.name,
-                          address: order.customer?.address || undefined,
-                        })}
-                      >
-                        <Route className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {!isModifyHidden && order.payment_type !== 'with_invoice' && (
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setModifyOrder(order)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8 text-amber-600 border-amber-300 hover:bg-amber-50"
-                      onClick={() => setPostponeOrderId(order.id)}
-                      title={t('deliveries.postpone')}
-                    >
-                      <CalendarClock className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 bg-primary"
-                      onClick={() => handleUpdateStatus(order.id, 'in_progress')}
-                      disabled={updateStatus.isPending}
-                    >
-                      <Truck className="w-4 h-4" />
-                    </Button>
-                    {!isCancelHidden && (
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8"
-                        onClick={() => handleCancelOrder(order.id)}
-                        disabled={cancelOrder.isPending}
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </>
-                )}
-                
-                {order.status === 'in_progress' && (
-                  <>
-                    {order.customer?.latitude && order.customer?.longitude && (
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8 text-blue-600 border-blue-300 hover:bg-blue-50"
-                        onClick={() => setNavigationTarget({
-                          lat: order.customer!.latitude!,
-                          lng: order.customer!.longitude!,
-                          name: order.customer!.name,
-                          address: order.customer?.address || undefined,
-                        })}
-                      >
-                        <Route className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {!isModifyHidden && order.payment_type !== 'with_invoice' && (
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setModifyOrder(order)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8 text-amber-600 border-amber-300 hover:bg-amber-50"
-                      onClick={() => setPostponeOrderId(order.id)}
-                      title={t('deliveries.postpone')}
-                    >
-                      <CalendarClock className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 bg-green-600 hover:bg-green-700"
-                      onClick={() => handleDeliverClick(order)}
-                      disabled={updateStatus.isPending}
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                    </Button>
-                    {!isCancelHidden && (
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8"
-                        onClick={() => handleCancelOrder_direct(order)}
-                        disabled={cancelOrder.isPending || checkingLocation}
-                      >
-                        {checkingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                      </Button>
-                    )}
-                  </>
-                )}
-
-                {order.status === 'delivered' && (
-                  <>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8"
-                      onClick={() => handleReprintReceipt(order)}
-                      title={t('deliveries.print_receipt')}
-                    >
-                      <Printer className="w-4 h-4" />
-                    </Button>
-                    {isDocumentOrder(order) && (
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8 border-accent/30 text-accent hover:bg-accent/10"
-                        onClick={() => setCheckVerifyOrder(order)}
-                      >
-                        <FileCheck className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {!isModifyHidden && (
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setModifyOrder(order)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </>
-                )}
+                <Store className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
+            <div className="block w-full text-right">
+              <CustomerSummary
+                customer={{
+                  name: order.customer?.name,
+                  store_name: order.customer?.store_name,
+                  customer_type: order.customer?.customer_type,
+                  sector_name: (order.customer as any)?.sector ? getLocalizedName((order.customer as any).sector, language) : undefined,
+                }}
+                showAvatar={false}
+                showMeta={false}
+              />
+            </div>
+            {(order.customer?.phone || order.customer?.address) && (
+              <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                {order.customer?.phone ? (
+                  <a href={`tel:${order.customer.phone}`} className="flex items-center gap-1 text-primary min-w-0">
+                    <Phone className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{order.customer.phone}</span>
+                  </a>
+                ) : <span />}
+                {order.customer?.address && (
+                  <span className="flex items-center gap-1 min-w-0">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{order.customer.address}{order.customer.wilaya ? ` - ${order.customer.wilaya}` : ''}</span>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Grid: amount + date */}
+          <div className="grid grid-cols-2 divide-x divide-x-reverse divide-border">
+            <div className="px-3 py-2.5">
+              <p className="text-[10px] text-muted-foreground mb-0.5">{t('deliveries.csv_order_id') || 'المبلغ'}</p>
+              <p className="font-bold text-base text-primary truncate">
+                {Number(order.total_amount || 0).toLocaleString()}
+                <span className="text-[10px] font-normal text-muted-foreground mr-1">{t('common.currency')}</span>
+              </p>
+            </div>
+            <div className="px-3 py-2.5">
+              <p className="text-[10px] text-muted-foreground mb-0.5">{order.delivery_date ? t('deliveries.csv_date') || 'تاريخ التسليم' : 'تاريخ الإنشاء'}</p>
+              <p className={`font-semibold text-xs flex items-center gap-1 ${isOverdue ? 'text-destructive' : ''}`}>
+                <Calendar className="w-3 h-3 shrink-0" />
+                <span className="truncate">
+                  {format(new Date(order.delivery_date || order.created_at), 'HH:mm dd/MM/yyyy', { locale: getDateLocale(language) })}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Chips: payment, items, overdue, extra */}
+          <div className="px-3 py-2 border-t flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              {order.payment_type === 'with_invoice' && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Receipt className="w-3 h-3" />
+                  {t('orders.with_invoice')}
+                </Badge>
+              )}
+              {order.payment_type === 'without_invoice' && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Banknote className="w-3 h-3" />
+                  {t('orders.without_invoice')}
+                </Badge>
+              )}
+              {itemsCount > 0 && (
+                <Badge variant="secondary" className="text-[10px] gap-1">
+                  <Package className="w-3 h-3" />
+                  {itemsCount}
+                </Badge>
+              )}
+              {order.status === 'delivered' && order.invoice_payment_method && (
+                <Badge variant="outline" className="text-[10px]">
+                  {order.invoice_payment_method === 'check' ? t('accounting.method_check') :
+                   order.invoice_payment_method === 'transfer' ? t('accounting.method_transfer') :
+                   order.invoice_payment_method === 'receipt' ? t('accounting.method_receipt') :
+                   order.invoice_payment_method === 'cash' ? t('accounting.method_cash') :
+                   t('accounting.method_espace_cash')}
+                </Badge>
+              )}
+              {isDocumentVerificationPending(order) && (
+                <Badge className="text-[10px] bg-accent/10 text-accent border border-accent/30 gap-1">
+                  <FileCheck className="w-3 h-3" />
+                  {t('deliveries.verification_pending')}
+                </Badge>
+              )}
+              {order.customer?.default_price_subtype && order.payment_type === 'without_invoice' && (
+                <Badge variant="outline" className="text-[10px]">
+                  {order.customer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
+                   order.customer.default_price_subtype === 'retail' ? t('products.price_retail') :
+                   t('products.price_gros')}
+                </Badge>
+              )}
+              {isOverdue && (
+                <Badge className="bg-destructive/15 text-destructive border border-destructive/30 text-[10px] gap-1">
+                  <Clock className="w-3 h-3" />
+                  متأخرة
+                </Badge>
+              )}
+            </div>
+            {order.created_by_worker?.full_name && (
+              <div className="flex items-center gap-1 text-[11px] text-muted-foreground min-w-0">
+                <UserCheck className="w-3 h-3 text-primary shrink-0" />
+                <span className="truncate">{order.created_by_worker.full_name}</span>
+              </div>
+            )}
+          </div>
+
+          {order.notes && (
+            <div className="px-3 pb-2">
+              <p className="text-[11px] text-muted-foreground bg-muted/40 p-1.5 rounded line-clamp-2">{order.notes}</p>
+            </div>
+          )}
+
+          {/* Actions strip */}
+          <div className="px-2 py-1.5 border-t bg-muted/20 flex items-center justify-end gap-1 overflow-x-auto">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.details') || 'تفاصيل'} onClick={() => { setSelectedOrderId(order.id); setShowDetailsDialog(true); }}>
+              <Package className="w-4 h-4" />
+            </Button>
+
+            {(order.status === 'assigned' || order.status === 'in_progress') && order.customer?.latitude && order.customer?.longitude && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-blue-600" title={t('deliveries.navigate') || 'توجيه'} onClick={() => setNavigationTarget({
+                lat: order.customer!.latitude!,
+                lng: order.customer!.longitude!,
+                name: order.customer!.name,
+                address: order.customer?.address || undefined,
+              })}>
+                <Route className="w-4 h-4" />
+              </Button>
+            )}
+
+            {(order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && !isModifyHidden && order.payment_type !== 'with_invoice' && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit') || 'تعديل'} onClick={() => setModifyOrder(order)}>
+                <Edit2 className="w-4 h-4" />
+              </Button>
+            )}
+            {order.status === 'delivered' && !isModifyHidden && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit') || 'تعديل'} onClick={() => setModifyOrder(order)}>
+                <Edit2 className="w-4 h-4" />
+              </Button>
+            )}
+
+            {(order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-amber-600" title={t('deliveries.postpone')} onClick={() => setPostponeOrderId(order.id)}>
+                <CalendarClock className="w-4 h-4" />
+              </Button>
+            )}
+
+            {(order.status === 'pending' || order.status === 'assigned') && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-primary" title={t('orders.in_progress')} onClick={() => handleUpdateStatus(order.id, 'in_progress')} disabled={updateStatus.isPending}>
+                <Truck className="w-4 h-4" />
+              </Button>
+            )}
+
+            {order.status === 'in_progress' && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600" title={t('orders.delivered')} onClick={() => handleDeliverClick(order)} disabled={updateStatus.isPending}>
+                <CheckCircle className="w-4 h-4" />
+              </Button>
+            )}
+
+            {order.status === 'delivered' && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('deliveries.print_receipt')} onClick={() => handleReprintReceipt(order)}>
+                <Printer className="w-4 h-4" />
+              </Button>
+            )}
+
+            {order.status === 'delivered' && isDocumentOrder(order) && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-accent" title={t('deliveries.verification_pending')} onClick={() => setCheckVerifyOrder(order)}>
+                <FileCheck className="w-4 h-4" />
+              </Button>
+            )}
+
+            {!isCancelHidden && (order.status === 'pending' || order.status === 'assigned') && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" title={t('orders.cancelled')} onClick={() => handleCancelOrder(order.id)} disabled={cancelOrder.isPending}>
+                <XCircle className="w-4 h-4" />
+              </Button>
+            )}
+            {!isCancelHidden && order.status === 'in_progress' && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" title={t('orders.cancelled')} onClick={() => handleCancelOrder_direct(order)} disabled={cancelOrder.isPending || checkingLocation}>
+                {checkingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
