@@ -771,22 +771,27 @@ const OrdersContent: React.FC = () => {
         <TabsList className="w-full grid grid-cols-5 h-10">
           <TabsTrigger value="all" className="text-[10px] sm:text-xs px-0.5 sm:px-1 gap-0.5 flex flex-col sm:flex-row items-center">
             <Package className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[10px] font-medium">الكل</span>
             <span>{orders.length}</span>
           </TabsTrigger>
           <TabsTrigger value="pending" className="text-[10px] sm:text-xs px-0.5 sm:px-1 gap-0.5 flex flex-col sm:flex-row items-center">
             <Clock className="w-3.5 h-3.5 shrink-0 text-yellow-600" />
+            <span className="text-[10px] font-medium">انتظار</span>
             <span>{orders.filter(o => o.status === 'pending' || o.status === 'assigned').length}</span>
           </TabsTrigger>
           <TabsTrigger value="in_progress" className="text-[10px] sm:text-xs px-0.5 sm:px-1 gap-0.5 flex flex-col sm:flex-row items-center">
             <Truck className="w-3.5 h-3.5 shrink-0 text-purple-600" />
+            <span className="text-[10px] font-medium">جاري</span>
             <span>{orders.filter(o => o.status === 'in_progress').length}</span>
           </TabsTrigger>
           <TabsTrigger value="delivered" className="text-[10px] sm:text-xs px-0.5 sm:px-1 gap-0.5 flex flex-col sm:flex-row items-center">
             <CheckCircle className="w-3.5 h-3.5 shrink-0 text-green-600" />
+            <span className="text-[10px] font-medium">تم</span>
             <span>{orders.filter(o => o.status === 'delivered').length}</span>
           </TabsTrigger>
           <TabsTrigger value="cancelled" className="text-[10px] sm:text-xs px-0.5 sm:px-1 gap-0.5 flex flex-col sm:flex-row items-center">
             <XCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />
+            <span className="text-[10px] font-medium">ملغي</span>
             <span>{orders.filter(o => o.status === 'cancelled').length}</span>
           </TabsTrigger>
         </TabsList>
