@@ -43,7 +43,7 @@ const InvoicePaymentMethodSelect: React.FC<InvoicePaymentMethodSelectProps> = ({
       </div>
       {value === 'cash' && (
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 rounded-lg p-2 text-xs text-amber-800 dark:text-amber-300 text-center">
-          <span className="font-semibold">تنبيه: سيتم احتساب سعر الطابع الجبائي (Timbre) على هذه الطلبية.</span>
+          <span className="font-semibold">سيتم احتساب الطابع الجبائي (Timbre).</span>
         </div>
       )}
     </div>
