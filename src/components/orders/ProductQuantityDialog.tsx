@@ -708,7 +708,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                       className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                     />
                   </div>
-                  <div className="flex items-stretch h-10 rounded-md border border-input bg-background overflow-hidden">
+                  <div className="flex items-stretch h-10 rounded-md border-2 border-foreground bg-background overflow-hidden">
                     <Input
                       type="text"
                       readOnly
