@@ -667,7 +667,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   </div>
                   );
                 })()}
-                <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(1)}>
+                <Button size="icon" className="h-10 w-10 rounded-full bg-foreground hover:bg-foreground/90 text-background" onClick={() => handleQuantityChange(1)}>
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
