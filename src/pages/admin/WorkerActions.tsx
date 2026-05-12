@@ -396,7 +396,7 @@ const WorkerActions: React.FC = () => {
       const sessionIds = sessions.map(s => s.id);
       const { data: items } = await supabase
         .from('loading_session_items')
-        .select('session_id, product_id, quantity, gift_quantity, previous_quantity')
+        .select('session_id, product_id, quantity, gift_quantity, gift_unit, previous_quantity')
         .in('session_id', sessionIds);
       return items || [];
     },
@@ -477,7 +477,7 @@ const WorkerActions: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box')
         .in('order_id', orderIds);
       if (!items || items.length === 0) return [];
       const { data: movements } = await supabase
@@ -521,6 +521,14 @@ const WorkerActions: React.FC = () => {
     enabled: !!selectedWorker?.id && truckStockOpen,
   });
 
+  const truckProductPpbMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const item of truckStock as any[]) {
+      map[item.product_id] = Math.max(1, Number(item.product?.pieces_per_box) || 1);
+    }
+    return map;
+  }, [truckStock]);
+
   const truckMovementStats = useMemo(() => {
     const stats: Record<
       string,
@@ -552,38 +560,45 @@ const WorkerActions: React.FC = () => {
       return stats[productId];
     };
 
+    const ppbOf = (productId: string, fallback?: number) =>
+      truckProductPpbMap[productId] || Math.max(1, Number(fallback) || 1);
+
     for (const item of (truckLoadedData || [])) {
+      const ppb = ppbOf(item.product_id);
       const stat = ensure(item.product_id);
-      const movedQty = Number(item.quantity || 0) + Number(item.gift_quantity || 0);
-      stat.loaded += movedQty;
-      if (movedQty > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
+      const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+      const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
+      stat.loaded += paidQty;
+      if ((paidQty + giftQty) > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
       if ((item.gift_quantity || 0) > 0) {
-        stat.giftQty += Number(item.gift_quantity || 0);
+        stat.giftQty += giftQty;
       }
     }
 
     for (const item of (truckUnloadedData || [])) {
+      const ppb = ppbOf(item.product_id);
       const stat = ensure(item.product_id);
-      const movedQty = Number(item.quantity || 0);
+      const movedQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
       stat.unloaded += movedQty;
       if (movedQty > 0 && item.session_id) stat.unloadSessionIds.add(String(item.session_id));
     }
 
     for (const item of (truckSoldData || [])) {
+      const ppb = ppbOf(item.product_id, item.pieces_per_box);
       const stat = ensure(item.product_id);
-      const paidQty = getDeliveredPaidQuantity(item);
+      const paidQty = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb);
       stat.sold += paidQty;
       if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
       const giftBoxes = Number(item.gift_quantity || 0);
       const giftPieces = Number(item.gift_pieces || 0);
-      const totalGift = giftBoxes + (giftPieces / 100);
+      const totalGift = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
       if (giftBoxes > 0 || giftPieces > 0) {
         stat.giftQty += totalGift;
       }
     }
 
     return stats;
-  }, [truckLoadedData, truckSoldData, truckUnloadedData]);
+  }, [truckLoadedData, truckSoldData, truckUnloadedData, truckProductPpbMap]);
 
   const selectedTruckProductHistory = useMemo(() => {
     if (!selectedTruckProduct) return null;
