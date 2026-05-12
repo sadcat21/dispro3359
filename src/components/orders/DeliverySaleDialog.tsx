@@ -636,13 +636,18 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             // Delete removed item
             await supabase.from('order_items').delete().eq('id', item.originalItemId);
             changes.push({ منتج: item.productName, من: item.originalQuantity, إلى: 0, عملية: 'حذف' });
-          } else if (item.quantity !== item.originalQuantity) {
+          } else if (
+            item.quantity !== item.originalQuantity ||
+            Number(item.giftQuantity || 0) !== Number((orderItems || []).find((oi: any) => oi.id === item.originalItemId)?.gift_quantity || 0) ||
+            Number(item.giftPieces || 0) !== Number((orderItems || []).find((oi: any) => oi.id === item.originalItemId)?.gift_pieces || 0)
+          ) {
             // Update changed quantity
             await supabase.from('order_items').update({
               quantity: item.quantity,
               unit_price: item.unitPrice,
               total_price: item.totalPrice,
               gift_quantity: item.giftQuantity || 0,
+              gift_pieces: item.giftPieces || 0,
               pricing_unit: item.pricingUnit || 'box',
               weight_per_box: item.weightPerBox ?? null,
               pieces_per_box: item.piecesPerBox ?? null,
@@ -658,6 +663,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             unit_price: item.unitPrice,
             total_price: item.totalPrice,
             gift_quantity: item.giftQuantity || 0,
+            gift_pieces: item.giftPieces || 0,
             pricing_unit: item.pricingUnit || 'box',
             weight_per_box: item.weightPerBox || null,
             pieces_per_box: item.piecesPerBox || null,
