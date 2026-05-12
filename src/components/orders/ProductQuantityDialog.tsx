@@ -622,7 +622,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         inputMode="numeric"
                         value={quantityFields.boxes}
                         onChange={(e) => handleQuantityFieldChange('boxes', e.target.value)}
-                        onBlur={normalizeQuantityFields}
                         onFocus={(e) => e.target.select()}
                         className="flex-1 h-full border-0 rounded-none text-center text-xl font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         placeholder="0"
