@@ -17,6 +17,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import { supabase } from '@/integrations/supabase/client';
 import { filterCurrentlyActiveOffers, getProductOfferLookupKey } from '@/utils/productOffers';
+import { isOfferActiveInStage, OfferScopeStage } from '@/constants/offerScope';
+import { Button } from '@/components/ui/button';
 import { format, differenceInDays } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -26,8 +28,10 @@ interface ProductOfferBadgeProps {
   quantity: number;
   piecesPerBox?: number;
   customerTypes?: string[] | null;
+  stage?: OfferScopeStage;
   onGiftCalculated?: (giftPieces: number, offerId?: string) => void;
   onOffersLoadingChange?: (isLoading: boolean) => void;
+  onMandatoryUnactivatedChange?: (hasBlocking: boolean) => void;
   prefetchedOffers?: ProductOfferWithDetails[];
   onPrefetchOffers?: (productId: string, customerTypes?: string[] | null) => Promise<ProductOfferWithDetails[]>;
 }
