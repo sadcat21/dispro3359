@@ -63,7 +63,7 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
 
       const { data: items, error: itemsErr } = await supabase
         .from('order_items')
-        .select('id, quantity, unit_price, total_price, product:products(id, name, app_name, image_url)')
+        .select('id, quantity, gift_quantity, gift_pieces, pieces_per_box, unit_price, total_price, product:products(id, name, app_name, image_url, pieces_per_box)')
         .eq('order_id', entityId!);
       if (itemsErr) throw itemsErr;
 
