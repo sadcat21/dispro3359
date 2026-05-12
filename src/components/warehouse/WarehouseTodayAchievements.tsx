@@ -459,8 +459,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
           ))}
         </div>
       )}
-
-
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
