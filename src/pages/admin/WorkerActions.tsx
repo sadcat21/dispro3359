@@ -721,10 +721,12 @@ const WorkerActions: React.FC = () => {
     // Use piece-based arithmetic to respect B.P (boxes.pieces) carry semantics.
     const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
     const bpToPieces = (v: number) => {
-      const rounded = Math.round(Number(v || 0) * 100) / 100;
+      const sign = v < 0 ? -1 : 1;
+      const abs = Math.abs(Number(v || 0));
+      const rounded = Math.round(abs * 100) / 100;
       const boxes = Math.floor(rounded);
       const pieces = Math.round((rounded - boxes) * 100);
-      return boxes * ppb + pieces;
+      return sign * (boxes * ppb + pieces);
     };
     const piecesToBP = (totalPieces: number) => {
       const safe = Math.max(0, Math.round(totalPieces));
