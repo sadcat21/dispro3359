@@ -1271,6 +1271,55 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         }
       }
 
+      // Sync sales_tracking ledger after post-delivery modification so worker
+      // achievements / sales reports reflect the corrected items + totals.
+      if (isSold && productChanges.length > 0) {
+        try {
+          const { recordSaleTracking } = await import('@/utils/salesTracking');
+          await supabase.from('sales_tracking' as any).delete().eq('order_id', order.id);
+
+          if (!allItemsRemoved) {
+            const { data: freshTrackItems } = await supabase
+              .from('order_items')
+              .select('id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(name)')
+              .eq('order_id', order.id);
+
+            const assignedWorkerId = order.assigned_worker_id || null;
+            let workerName: string | null = (order as any).assigned_worker?.full_name || null;
+            if (assignedWorkerId && !workerName) {
+              const { data: w } = await supabase.from('workers').select('full_name').eq('id', assignedWorkerId).maybeSingle();
+              workerName = (w as any)?.full_name || null;
+            }
+
+            await recordSaleTracking({
+              source: 'delivery_sale',
+              orderId: order.id,
+              branchId: order.branch_id || null,
+              workerId: assignedWorkerId,
+              workerName,
+              customerId: order.customer_id || null,
+              customerName: order.customer?.name || null,
+              notes: 'Post-delivery modification sync',
+              items: (freshTrackItems || []).map((fi: any) => ({
+                productId: fi.product_id,
+                productName: fi.product?.name || null,
+                quantity: Number(fi.quantity || 0),
+                giftBoxes: Number(fi.gift_quantity || 0),
+                giftPieces: Number(fi.gift_pieces || 0),
+                piecesPerBox: fi.pieces_per_box || null,
+                unitPrice: Number(fi.unit_price || 0),
+                totalPrice: Number(fi.total_price || 0),
+                orderItemId: fi.id,
+              })),
+            });
+          }
+          queryClient.invalidateQueries({ queryKey: ['sales-tracking'] });
+          queryClient.invalidateQueries({ queryKey: ['worker-achievements'] });
+        } catch (e) {
+          console.warn('[ModifyOrderDialog] sales_tracking sync failed', e);
+        }
+      }
+
       await logActivity.mutateAsync({
         actionType: 'update',
         entityType: 'order',
