@@ -43,6 +43,29 @@ interface QuantityFields {
 
 const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
 
+/**
+ * Format a price as: <integer>.<small-decimal> DA
+ * The decimal portion renders thinner and smaller than the integer portion.
+ * Currency "DA" always appears to the right of the amount (LTR direction).
+ */
+const PriceDA: React.FC<{ value: number; maximumFractionDigits?: number }> = ({ value, maximumFractionDigits = 3 }) => {
+  if (!Number.isFinite(value)) return <>—</>;
+  const formatted = value.toLocaleString(undefined, { maximumFractionDigits });
+  const sepIndex = Math.max(formatted.lastIndexOf('.'), formatted.lastIndexOf(','));
+  const intPart = sepIndex >= 0 ? formatted.slice(0, sepIndex) : formatted;
+  const sep = sepIndex >= 0 ? formatted[sepIndex] : '';
+  const decPart = sepIndex >= 0 ? formatted.slice(sepIndex + 1) : '';
+  return (
+    <span dir="ltr" className="inline-flex items-baseline gap-0.5 whitespace-nowrap">
+      <span>{intPart}</span>
+      {decPart && (
+        <span className="font-light opacity-80" style={{ fontSize: '0.7em' }}>{sep}{decPart}</span>
+      )}
+      <span className="font-semibold opacity-70" style={{ fontSize: '0.75em' }}>&nbsp;DA</span>
+    </span>
+  );
+};
+
 const getPieceDigits = (piecesPerBox: number) => Math.max(2, String(Math.max(0, piecesPerBox - 1)).length);
 
 const quantityToFields = (quantity: number, piecesPerBox: number, allowEmpty = false): QuantityFields => {
@@ -442,11 +465,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase text-center px-10">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div className="grid w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40" style={{ gridTemplateColumns: '1.3fr 0.7fr 1.3fr 0.7fr 1.3fr' }}>
+                  <div className="grid w-full rounded-lg overflow-hidden ring-1 ring-destructive/40 bg-destructive/10 shadow-sm text-center divide-x divide-destructive/20" style={{ gridTemplateColumns: '1.3fr 0.7fr 1.3fr 0.7fr 1.3fr' }}>
                     {/* Col 1: DA/PCS */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
-                        {selectedPiecePrice > 0 ? <>{selectedPiecePrice.toLocaleString()} <span className="opacity-60">{t('common.currency')}</span></> : '—'}
+                        {selectedPiecePrice > 0 ? <PriceDA value={selectedPiecePrice} /> : '—'}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">PCS</div>
                     </div>
@@ -460,7 +483,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     {/* Col 3: DA/BOX */}
                     <div className="@container px-1.5 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(9px, 28cqw, 20px)' }}>
-                        {displayPrice > 0 ? <>{displayPrice.toLocaleString()} <span className="opacity-60">{t('common.currency')}</span></> : '—'}
+                        {displayPrice > 0 ? <PriceDA value={displayPrice} /> : '—'}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
                     </div>
@@ -477,7 +500,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {pricingUnit !== 'box' && selectedPricingUnitPrice > 0
-                          ? <>{selectedPricingUnitPrice.toLocaleString()} <span className="opacity-60">{t('common.currency')}</span></>
+                          ? <PriceDA value={selectedPricingUnitPrice} />
                           : '—'}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{pricingUnitLabel}</div>
