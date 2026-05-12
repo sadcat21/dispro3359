@@ -841,30 +841,29 @@ const OrdersContent: React.FC = () => {
           return (
             <Card key={order.id} className={`overflow-hidden border-r-4 ${isOverdue ? 'border-r-destructive' : order.status === 'delivered' ? 'border-r-green-500' : order.status === 'in_progress' ? 'border-r-purple-500' : order.status === 'assigned' ? 'border-r-blue-500' : order.status === 'cancelled' ? 'border-r-muted' : 'border-r-yellow-500'}`} dir="rtl">
               <CardContent className="p-0">
-                {/* Header: status + customer */}
-                <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted/30 border-b">
-                  <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0`}>
-                    <StatusIcon className="w-3 h-3" />
-                    {STATUS_CONFIG[order.status]?.label}
-                  </Badge>
+                {/* Header: status + customer (stacked to avoid truncation) */}
+                <div className="px-3 py-2 bg-muted/30 border-b space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0`}>
+                      <StatusIcon className="w-3 h-3" />
+                      {STATUS_CONFIG[order.status]?.label}
+                    </Badge>
+                    <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </div>
                   <button
-                    className="flex items-center gap-1.5 min-w-0 text-right hover:text-primary transition-colors"
+                    className="block w-full text-right hover:text-primary transition-colors"
                     onClick={() => openCreateOrder(order.customer as Customer)}
                   >
-                    <div className="min-w-0">
-                      <CustomerSummary
-                        customer={{
-                          name: order.customer?.name,
-                          store_name: order.customer?.store_name,
-                          customer_type: order.customer?.customer_type,
-                          sector_name: order.customer?.sector_id ? sectorMap.get(order.customer.sector_id) : undefined,
-                        }}
-                        compact
-                        showAvatar={false}
-                        showMeta={false}
-                      />
-                    </div>
-                    <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <CustomerSummary
+                      customer={{
+                        name: order.customer?.name,
+                        store_name: order.customer?.store_name,
+                        customer_type: order.customer?.customer_type,
+                        sector_name: order.customer?.sector_id ? sectorMap.get(order.customer.sector_id) : undefined,
+                      }}
+                      showAvatar={false}
+                      showMeta={false}
+                    />
                   </button>
                 </div>
 
