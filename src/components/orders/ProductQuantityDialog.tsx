@@ -448,7 +448,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           <div className="space-y-2 py-1 relative">
 
             <div className="flex items-stretch gap-3">
-              <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+              <div className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20">
                 {!product.image_url && (
                   <div className="w-20 h-20 rounded-xl bg-muted/40 flex items-center justify-center ring-1 ring-border">
                     <Package className="w-6 h-6 text-muted-foreground" />
