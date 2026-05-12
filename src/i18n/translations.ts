@@ -429,6 +429,7 @@ export const translations: Translations = {
   'orders.without_invoice': { ar: 'Facture 2', fr: 'Facture 2', en: 'Invoice 2' },
   'orders.payment_type': { ar: 'نوع الدفع', fr: 'Type de paiement', en: 'Payment Type' },
   'orders.delivery_date': { ar: 'تاريخ التوصيل', fr: 'Date de livraison', en: 'Delivery Date' },
+  'orders.created_at': { ar: 'تاريخ الإنشاء', fr: 'Date de création', en: 'Created At' },
   'orders.worker': { ar: 'العامل', fr: 'Employé', en: 'Worker' },
   'orders.created_by': { ar: 'أنشأ بواسطة', fr: 'Créé par', en: 'Created by' },
   'orders.delivery_worker': { ar: 'عامل التوصيل', fr: 'Livreur', en: 'Delivery Worker' },
