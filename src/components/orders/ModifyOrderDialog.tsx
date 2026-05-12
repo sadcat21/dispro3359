@@ -1277,7 +1277,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
       // Sync sales_tracking ledger after post-delivery modification so worker
       // achievements / sales reports reflect the corrected items + totals.
-      if (isSold && productChanges.length > 0) {
+      if (isSold && changes.length > 0) {
         try {
           const { recordSaleTracking } = await import('@/utils/salesTracking');
           await supabase.from('sales_tracking' as any).delete().eq('order_id', order.id);
