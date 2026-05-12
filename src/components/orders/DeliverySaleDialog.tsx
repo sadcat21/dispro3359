@@ -128,16 +128,49 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     enabled: !!workerId && open && (isWarehouseManager ? !!effectiveBranchId : true),
   });
 
-  // Shortage tracking - products marked as unavailable for this order
+  // Shortage tracking - products marked as unavailable for this order.
+  // Auto-resolve any shortage whose product now has stock available in the
+  // branch warehouse, so it stops appearing as "غير متوفر في المخزن".
   const { data: shortageProducts } = useQuery({
-    queryKey: ['order-shortage', order.id],
+    queryKey: ['order-shortage', order.id, effectiveBranchId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: shortages } = await supabase
         .from('product_shortage_tracking')
-        .select('product_id')
+        .select('id, product_id')
         .eq('order_id', order.id)
         .eq('status', 'pending');
-      return new Set((data || []).map(d => d.product_id));
+      const list = shortages || [];
+      if (list.length === 0) return new Set<string>();
+
+      // Check current warehouse availability for these products
+      let warehouseMap = new Map<string, number>();
+      if (effectiveBranchId) {
+        const { data: ws } = await supabase
+          .from('warehouse_stock')
+          .select('product_id, quantity')
+          .eq('branch_id', effectiveBranchId)
+          .in('product_id', list.map(s => s.product_id));
+        warehouseMap = new Map((ws || []).map(r => [r.product_id, Number(r.quantity) || 0]));
+      }
+
+      const resolvedIds: string[] = [];
+      const stillUnavailable = new Set<string>();
+      for (const s of list) {
+        if ((warehouseMap.get(s.product_id) || 0) > 0) {
+          resolvedIds.push(s.id);
+        } else {
+          stillUnavailable.add(s.product_id);
+        }
+      }
+
+      if (resolvedIds.length > 0) {
+        await supabase
+          .from('product_shortage_tracking')
+          .update({ status: 'available', resolved_at: new Date().toISOString() })
+          .in('id', resolvedIds);
+      }
+
+      return stillUnavailable;
     },
     enabled: open,
   });
