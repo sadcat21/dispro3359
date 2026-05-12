@@ -729,10 +729,11 @@ const WorkerActions: React.FC = () => {
       return sign * (boxes * ppb + pieces);
     };
     const piecesToBP = (totalPieces: number) => {
-      const safe = Math.max(0, Math.round(totalPieces));
+      const sign = totalPieces < 0 ? -1 : 1;
+      const safe = Math.round(Math.abs(totalPieces));
       const boxes = Math.floor(safe / ppb);
       const pieces = safe % ppb;
-      return boxes + pieces / 100;
+      return sign * (boxes + pieces / 100);
     };
     // Walk FORWARD from opening balance so each row reflects the true running
     // balance after that movement, independent of any later shortage/discrepancy.
