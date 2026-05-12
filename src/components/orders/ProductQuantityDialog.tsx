@@ -385,27 +385,13 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         <div className="px-4 pt-4 pb-2 border-b bg-gradient-to-l from-primary/5 to-transparent">
           <DialogHeader>
             <DialogTitle asChild>
-              <div className="flex items-center gap-3 text-start">
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={getProductDisplayName(product)}
-                    className="w-14 h-14 rounded-xl object-cover flex-shrink-0 ring-1 ring-border bg-background"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 ring-1 ring-border">
-                    <Package className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0 space-y-1">
-                  <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate" dir="ltr">
+              <div dir="ltr" className="flex items-stretch gap-3 text-start">
+                <div className="flex-1 min-w-0 space-y-2">
+                  <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div
-                    dir="ltr"
-                    className="mt-1 flex items-stretch w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm divide-x divide-border text-center"
-                  >
-                    {/* 5: units per box (e.g. 5 kg) */}
+                  <div className="flex items-stretch w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm divide-x divide-border text-center">
+                    {/* KG/BOX */}
                     {pricingUnit !== 'box' && (
                       <div className="flex-1 min-w-0 px-1.5 py-1 bg-muted/40">
                         <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{pricingUnitLabel}/BOX</div>
@@ -414,7 +400,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         </div>
                       </div>
                     )}
-                    {/* 4: price per unit (per kg) */}
+                    {/* DA/KG */}
                     {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
                       <div className="flex-1 min-w-0 px-1.5 py-1">
                         <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{t('common.currency')}/{pricingUnitLabel}</div>
@@ -423,25 +409,25 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         </div>
                       </div>
                     )}
-                    {/* 1: box price (center, largest) */}
+                    {/* DA/BOX (center, largest) */}
                     {displayPrice > 0 && (
-                      <div className="flex-[2] min-w-0 px-2 py-1 bg-foreground text-background">
+                      <div className="flex-[1.4] min-w-0 px-2 py-1 bg-foreground text-background">
                         <div className="text-[8px] uppercase tracking-wide opacity-70 leading-none">{t('common.currency')}/{isUnitSale ? 'PCS' : 'BOX'}</div>
                         <div className="text-sm font-extrabold leading-tight truncate">
                           {displayPrice.toLocaleString()}
                         </div>
                       </div>
                     )}
-                    {/* 2: pieces per box */}
+                    {/* PCS/BOX */}
                     {product.pieces_per_box > 0 && (
-                      <div className="flex-1 min-w-0 px-1.5 py-1 bg-primary/10">
-                        <div className="text-[8px] uppercase tracking-wide text-primary/70 leading-none">PCS/BOX</div>
-                        <div className="text-[11px] font-bold text-primary leading-tight truncate">
+                      <div className="flex-1 min-w-0 px-1.5 py-1 bg-destructive/10">
+                        <div className="text-[8px] uppercase tracking-wide text-destructive/80 leading-none">PCS/BOX</div>
+                        <div className="text-[11px] font-bold text-destructive leading-tight truncate">
                           {product.pieces_per_box}
                         </div>
                       </div>
                     )}
-                    {/* 3: price per piece */}
+                    {/* DA/PCS */}
                     {selectedPiecePrice > 0 && (
                       <div className="flex-1 min-w-0 px-1.5 py-1">
                         <div className="text-[8px] uppercase tracking-wide text-muted-foreground leading-none">{t('common.currency')}/PCS</div>
@@ -452,6 +438,17 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     )}
                   </div>
                 </div>
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={getProductDisplayName(product)}
+                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0 ring-1 ring-border bg-background"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 ring-1 ring-border">
+                    <Package className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                )}
               </div>
             </DialogTitle>
           </DialogHeader>
