@@ -816,6 +816,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           branchId: order.branch_id || activeBranch?.id || null,
           branchName: activeBranch?.name || null,
           workerId: workerId || null,
+          workerName: user?.full_name || null,
           customerId: order.customer_id,
           customerName: order.customer?.name || null,
           items: activeItems.map((item) => ({
