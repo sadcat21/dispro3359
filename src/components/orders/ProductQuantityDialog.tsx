@@ -441,67 +441,65 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           <div className="space-y-2 py-1">
 
             <div className="flex items-stretch gap-3">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={getProductDisplayName(product)}
-                  className="w-20 rounded-xl object-cover flex-shrink-0 ring-1 ring-border bg-background self-stretch"
-                />
-              ) : (
-                <div className="w-20 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 ring-1 ring-border self-stretch">
-                  <Package className="w-6 h-6 text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0 space-y-2">
-            {product.pieces_per_box > 1 && (
-              <div className="flex items-center justify-center gap-3">
-                <Badge className={cn(
-                  "text-xs px-2 py-0.5 cursor-pointer select-none transition-colors",
-                  !isUnitSale
-                    ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
-                    : "bg-muted text-muted-foreground border-border"
-                 )} variant="outline" onClick={() => {
-                  if (isUnitSale) {
-                    setIsUnitSale(false);
-                    setPaidQuantity(0);
-                    setQuantityFields({ boxes: '', pieces: '' });
-                    setOfferApplied(false);
-                    setGiftPieces(0);
-                  }
-                }}>
-                  {t('offers.unit_box')}
-                </Badge>
-                <Switch
-                  id="unit-sale-switch"
-                  checked={isUnitSale}
-                  onCheckedChange={(checked) => {
-                    setIsUnitSale(checked);
-                    setUnitQuantityInput('');
-                    setPaidQuantity(0);
-                    setQuantityFields({ boxes: '', pieces: '' });
-                    setOfferApplied(false);
-                    setGiftPieces(0);
-                  }}
-                />
-                <Badge className={cn(
-                  "text-xs px-2 py-0.5 cursor-pointer select-none transition-colors",
-                  isUnitSale
-                    ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
-                    : "bg-muted text-muted-foreground border-border"
-                 )} variant="outline" onClick={() => {
-                  if (!isUnitSale) {
-                    setIsUnitSale(true);
-                    setUnitQuantityInput('');
-                    setPaidQuantity(0);
-                    setQuantityFields({ boxes: '', pieces: '' });
-                    setOfferApplied(false);
-                    setGiftPieces(0);
-                  }
-                }}>
-                  {t('offers.unit_piece')}
-                </Badge>
+              <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={getProductDisplayName(product)}
+                    className="w-20 h-20 rounded-xl object-cover ring-1 ring-border bg-background"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center ring-1 ring-border">
+                    <Package className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                )}
+                {product.pieces_per_box > 1 && (
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Badge className={cn(
+                      "text-[10px] px-1.5 py-0 cursor-pointer select-none transition-colors",
+                      !isUnitSale
+                        ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                        : "bg-muted text-muted-foreground border-border"
+                     )} variant="outline" onClick={() => {
+                      if (isUnitSale) {
+                        setIsUnitSale(false);
+                        setPaidQuantity(0);
+                        setQuantityFields({ boxes: '', pieces: '' });
+                        setOfferApplied(false);
+                        setGiftPieces(0);
+                      }
+                    }}>BOX</Badge>
+                    <Switch
+                      id="unit-sale-switch"
+                      checked={isUnitSale}
+                      onCheckedChange={(checked) => {
+                        setIsUnitSale(checked);
+                        setUnitQuantityInput('');
+                        setPaidQuantity(0);
+                        setQuantityFields({ boxes: '', pieces: '' });
+                        setOfferApplied(false);
+                        setGiftPieces(0);
+                      }}
+                    />
+                    <Badge className={cn(
+                      "text-[10px] px-1.5 py-0 cursor-pointer select-none transition-colors",
+                      isUnitSale
+                        ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                        : "bg-muted text-muted-foreground border-border"
+                     )} variant="outline" onClick={() => {
+                      if (!isUnitSale) {
+                        setIsUnitSale(true);
+                        setUnitQuantityInput('');
+                        setPaidQuantity(0);
+                        setQuantityFields({ boxes: '', pieces: '' });
+                        setOfferApplied(false);
+                        setGiftPieces(0);
+                      }
+                    }}>PCS</Badge>
+                  </div>
+                )}
               </div>
-            )}
+              <div className="flex-1 min-w-0 space-y-2">
 
             {/* Direct pricing buttons F1 / SG / G / D + custom gear */}
             <div className="space-y-1.5">
