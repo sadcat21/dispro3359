@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye, Repeat } from 'lucide-react';
+import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye, Repeat, Landmark, HandCoins } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -139,6 +139,39 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     enabled: !!workerId && !!branchId,
   });
 
+  // 7) ديون جديدة أنشأها مدير المخزن اليوم
+  const newDebtsQ = useQuery({
+    queryKey: ['warehouse-today-new-debts', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('customer_debts')
+        .select('id, total_amount, remaining_amount, status, created_at, customer:customer_id(name)')
+        .eq('worker_id', workerId!)
+        .eq('branch_id', branchId)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
+  // 8) تحصيلات الديون اليوم
+  const debtCollectionsQ = useQuery({
+    queryKey: ['warehouse-today-debt-collections', workerId, branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('debt_payments')
+        .select('id, amount, payment_method, notes, created_at, debt:debt_id(customer:customer_id(name), branch_id)')
+        .eq('worker_id', workerId!)
+        .gte('created_at', todayStart())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).filter((p: any) => !branchId || p.debt?.branch_id === branchId);
+    },
+    enabled: !!workerId && !!branchId,
+  });
+
   const accountingClosed = (accountingQ.data || []).some((s: any) => s.status === 'completed' || s.status === 'closed');
 
   const handleDelete = async () => {
@@ -170,7 +203,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     }
   };
 
-  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading || reviewsQ.isLoading || exchangesQ.isLoading;
+  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading || reviewsQ.isLoading || exchangesQ.isLoading || newDebtsQ.isLoading || debtCollectionsQ.isLoading;
 
   if (isLoading) {
     return (
@@ -185,7 +218,9 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const receipts = receiptsQ.data || [];
   const reviews = reviewsQ.data || [];
   const exchanges = exchangesQ.data || [];
-  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length;
+  const newDebts = newDebtsQ.data || [];
+  const debtCollections = debtCollectionsQ.data || [];
+  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length + newDebts.length + debtCollections.length;
 
   return (
     <div className="space-y-3" dir="rtl">
@@ -378,6 +413,52 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
         </div>
       )}
 
+      {/* ديون جديدة */}
+      {newDebts.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Landmark className="w-3 h-3" /> ديون جديدة ({newDebts.length})
+          </p>
+          {newDebts.map((d: any) => (
+            <Card key={d.id} className="border-destructive/30">
+              <CardContent className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{d.customer?.name || 'بدون زبون'}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span className="font-semibold text-destructive">{Number(d.total_amount || 0).toLocaleString()} د.ج</span>
+                    {Number(d.remaining_amount || 0) > 0 && <span>متبقي: {Number(d.remaining_amount).toLocaleString()}</span>}
+                    <span>{format(new Date(d.created_at), 'HH:mm', { locale: ar })}</span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{d.status}</Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* تحصيل ديون */}
+      {debtCollections.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <HandCoins className="w-3 h-3" /> تحصيل ديون ({debtCollections.length})
+          </p>
+          {debtCollections.map((p: any) => (
+            <Card key={p.id} className="border-emerald-300">
+              <CardContent className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{p.debt?.customer?.name || 'بدون زبون'}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span className="font-semibold text-emerald-600">{Number(p.amount || 0).toLocaleString()} د.ج</span>
+                    {p.payment_method && <span>{p.payment_method}</span>}
+                    <span>{format(new Date(p.created_at), 'HH:mm', { locale: ar })}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
