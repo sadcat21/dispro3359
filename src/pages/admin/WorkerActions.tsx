@@ -752,26 +752,20 @@ const WorkerActions: React.FC = () => {
     const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
     const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
-    // Use piece-based arithmetic to avoid decimal B.P math drift.
-    const bpToPieces = (v: number) => {
-      const sign = v < 0 ? -1 : 1;
-      return sign * Math.round(Math.abs(Number(v || 0)) * ppb);
-    };
-    const piecesToBP = (totalPieces: number) => {
-      const sign = totalPieces < 0 ? -1 : 1;
-      const safe = Math.round(Math.abs(totalPieces));
-      const boxes = Math.floor(safe / ppb);
-      const pieces = safe % ppb;
-      return sign * (boxes + pieces / 100);
-    };
+    // Piece-based arithmetic to avoid floating-point drift.
+    // Note: values here are already in *fractional boxes* (converted via bpStoredToBoxes upstream),
+    // so we convert to integer pieces, accumulate, then convert back to fractional boxes
+    // for display via formatTruckQty(..., ppb) which itself formats to B.P.
+    const toPieces = (v: number) => Math.round(Number(v || 0) * ppb);
+    const fromPieces = (p: number) => p / ppb;
     // Walk FORWARD from opening balance so each row reflects the true running
     // balance after that movement, independent of any later shortage/discrepancy.
-    let runningPieces = bpToPieces(openingBalance);
+    let runningPieces = toPieces(openingBalance);
     const forwardEntries = rawMovements.map((movement) => {
       const beforePieces = runningPieces;
-      const afterPieces = beforePieces + bpToPieces(movement.delta);
+      const afterPieces = beforePieces + toPieces(movement.delta);
       runningPieces = afterPieces;
-      return { ...movement, before: piecesToBP(beforePieces), after: piecesToBP(afterPieces) };
+      return { ...movement, before: fromPieces(beforePieces), after: fromPieces(afterPieces) };
     });
     // Display newest first.
     const historyEntries = [...forwardEntries].reverse();
