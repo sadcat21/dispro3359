@@ -92,6 +92,7 @@ interface ProductQuantityDialogProps {
   initialOfferApplied?: boolean;
   hideInvoiceOption?: boolean;
   customerTypes?: string[] | null;
+  offerStage?: 'worker_loading' | 'order_creation' | 'direct_sale' | 'warehouse_sale';
 }
 
 const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
