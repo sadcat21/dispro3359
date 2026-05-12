@@ -660,39 +660,35 @@ const MyDeliveries: React.FC = () => {
     return (
       <Card key={order.id} className={`overflow-hidden border-r-4 ${sideBorder}`} dir="rtl">
         <CardContent className="p-0">
-          {/* Header: status badge + store/customer */}
-          <div className="px-3 py-2 bg-muted/30 border-b space-y-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0`}>
-                <StatusIcon className="w-3 h-3" />
-                {STATUS_CONFIG[order.status]?.label}
-              </Badge>
-              <Store className="w-4 h-4 text-muted-foreground shrink-0" />
-            </div>
-            <div className="text-right">
+          {/* Compact grid: store icon | customer info | status + people */}
+          <div className="px-3 py-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-0.5 border-b bg-muted/20">
+            <Store className="w-4 h-4 text-muted-foreground row-span-2 self-center" />
+            <div className="min-w-0 text-right">
               {order.customer?.store_name && (
-                <p className="font-bold text-sm truncate">{order.customer.store_name}</p>
+                <p className="font-bold text-sm truncate leading-tight">{order.customer.store_name}</p>
               )}
               {order.customer?.name && (
-                <p className="text-xs text-muted-foreground truncate">{order.customer.name}</p>
+                <p className="text-[11px] text-muted-foreground truncate leading-tight">{order.customer.name}</p>
               )}
             </div>
-          </div>
-
-          {/* People row: creator + assigned worker */}
-          <div className="px-3 py-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground flex-wrap">
-            {order.created_by_worker?.full_name && (
-              <div className="flex items-center gap-1 min-w-0">
-                <User className="w-3 h-3 shrink-0" />
-                <span className="truncate">{order.created_by_worker.full_name}</span>
-              </div>
-            )}
-            {order.assigned_worker?.full_name && (
-              <div className="flex items-center gap-1 min-w-0 text-primary">
-                <UserCheck className="w-3 h-3 shrink-0" />
-                <span className="truncate">{order.assigned_worker.full_name}</span>
-              </div>
-            )}
+            <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0 row-span-2 self-center`}>
+              <StatusIcon className="w-3 h-3" />
+              {STATUS_CONFIG[order.status]?.label}
+            </Badge>
+            <div className="col-start-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground min-w-0">
+              {order.created_by_worker?.full_name ? (
+                <span className="flex items-center gap-1 min-w-0">
+                  <User className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{order.created_by_worker.full_name}</span>
+                </span>
+              ) : <span />}
+              {order.assigned_worker?.full_name && (
+                <span className="flex items-center gap-1 min-w-0 text-primary">
+                  <UserCheck className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{order.assigned_worker.full_name}</span>
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Actions strip */}
