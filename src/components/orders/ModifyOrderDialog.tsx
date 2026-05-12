@@ -1905,7 +1905,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                             )}
                               {item.id && changed && (
                                 <Badge variant="secondary" className="text-[10px]">
-                                  {`${item.original_quantity} -> ${item.new_quantity}`}
+                                  {`${item.is_unit_sale ? item.original_quantity : boxesToBP(Number(item.original_quantity || 0), product?.pieces_per_box || 1)} -> ${item.is_unit_sale ? item.new_quantity : boxesToBP(Number(item.new_quantity || 0), product?.pieces_per_box || 1)}`}
                                 </Badge>
                               )}
                             {!item.id && (
