@@ -14,6 +14,7 @@ import { useOrderItems } from '@/hooks/useOrders';
 import { OrderItem, OrderWithDetails, Product } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAmountWithMaxFraction } from '@/utils/amountFormatting';
+import { dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -364,15 +365,13 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         )}
                       </div>
                       <div className="px-1 py-1 bg-card flex items-center justify-center gap-1 border-t border-border">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                          {n.quantity}
+                        <span className="flex h-6 min-w-6 px-1.5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                          {n.piecesPerBox > 1 ? dbBPDisplay(n.quantity, n.piecesPerBox) : n.quantity}
                         </span>
-                        {n.giftQuantity > 0 && (() => {
-                          const giftBoxes = n.piecesPerBox > 1 ? Math.floor(n.giftPieces / n.piecesPerBox) : n.giftQuantity;
-                          const giftRemPieces = n.piecesPerBox > 1 ? n.giftPieces % n.piecesPerBox : 0;
-                          const giftLabel = n.piecesPerBox > 1 && n.giftPieces > 0
-                            ? `${giftBoxes}.${String(giftRemPieces).padStart(2, '0')}`
-                            : `${n.giftQuantity}`;
+                        {(n.giftQuantity > 0 || n.giftPieces > 0) && (() => {
+                          const giftLabel = n.piecesPerBox > 1
+                            ? dbBPDisplay(n.giftQuantity || (n.giftPieces / n.piecesPerBox), n.piecesPerBox)
+                            : `${n.giftQuantity || n.giftPieces}`;
                           return (
                             <span className="flex h-6 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-2 text-[10px] font-bold">
                               🎁 {giftLabel}
