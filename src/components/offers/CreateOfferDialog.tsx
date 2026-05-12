@@ -82,6 +82,9 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     is_active: true,
     priority: 0,
     branch_id: null as string | null,
+    scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
+    auto_fill_quantities: true,
+    is_mandatory: false,
   });
 
   // Target audience (offer-level conditions, applied to all tiers on save)
