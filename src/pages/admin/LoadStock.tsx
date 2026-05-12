@@ -696,13 +696,13 @@ const LoadStock: React.FC = () => {
     const { data: tiers } = await supabase
       .from('product_offer_tiers')
       .select('min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, gift_type')
-      .eq('offer_id', offers[0].id)
+      .eq('offer_id', offerRow.id)
       .eq('gift_type', 'same_product')
       .order('tier_order', { ascending: true });
     if (!tiers || tiers.length === 0) return null;
     const firstTier = tiers[0];
     const offer = {
-      offerName: offers[0].name,
+      offerName: offerRow.name,
       giftQty: firstTier.gift_quantity,
       giftUnit: firstTier.gift_quantity_unit || 'piece',
       minQty: firstTier.min_quantity,
