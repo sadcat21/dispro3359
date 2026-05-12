@@ -323,6 +323,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
         workers={workers.map(w => ({ id: w.id, full_name: w.full_name, username: w.username }))}
         selectedWorkerId={selectedWorker}
         onSelect={setSelectedWorker}
+        frozenWorkerIds={frozenWorkerIds}
       />
 
       <SimpleProductPickerDialog
