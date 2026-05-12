@@ -1584,24 +1584,61 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           </ScrollArea>
 
           {/* Footer */}
-          <div className="p-4 border-t bg-background flex items-center gap-2">
-            <Button
-              onClick={handleProceedToPayment}
-              className="flex-1 h-12 text-base bg-green-600 hover:bg-green-700"
-              disabled={isSaving || !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
-            >
-              {isSaving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+          <div className="p-4 border-t bg-background flex flex-col gap-2">
+            {hasPendingChanges && (
+              <Alert className="py-2 border-amber-500/40 bg-amber-50 dark:bg-amber-950/30">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <AlertDescription className="text-xs text-amber-800 dark:text-amber-300">
+                  لديك تعديلات غير محفوظة. احفظ التغييرات أو ألغها قبل تأكيد التوصيل.
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="flex items-center gap-2">
+              {hasPendingChanges ? (
+                <>
+                  <Button
+                    onClick={() => {
+                      setBaselineKey(currentEditsKey);
+                      toast.success('تم حفظ التغييرات');
+                    }}
+                    className="flex-1 h-12 text-base bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CheckCircle className="w-5 h-5 ms-2" />
+                    حفظ التغييرات
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setInitializedItemsKey(null);
+                      setBaselineKey(null);
+                      toast.info('تم إلغاء التغييرات');
+                    }}
+                    className="flex-1 h-12 text-base"
+                  >
+                    <XCircle className="w-5 h-5 ms-2" />
+                    إلغاء التغييرات
+                  </Button>
+                </>
               ) : (
-                <CheckCircle className="w-5 h-5 ms-2" />
+                <Button
+                  onClick={handleProceedToPayment}
+                  className="flex-1 h-12 text-base bg-green-600 hover:bg-green-700"
+                  disabled={isSaving || hasPendingChanges || !saleItems.some(i => i.quantity > 0 && !shortageProductIds.has(i.productId))}
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-5 h-5 ms-2" />
+                  )}
+                  {t('orders.confirm_delivery') || 'تأكيد التوصيل'}
+                  {totals.amountAfterPrepaid > 0 && (
+                    <Badge variant="secondary" className="mr-2 bg-white/20">
+                      {totals.amountAfterPrepaid.toLocaleString()} {t('common.currency')}
+                    </Badge>
+                  )}
+                </Button>
               )}
-              {t('orders.confirm_delivery') || 'تأكيد التوصيل'}
-              {totals.amountAfterPrepaid > 0 && (
-                <Badge variant="secondary" className="mr-2 bg-white/20">
-                  {totals.amountAfterPrepaid.toLocaleString()} {t('common.currency')}
-                </Badge>
-              )}
-            </Button>
+            </div>
           </div>
     </>
   );
