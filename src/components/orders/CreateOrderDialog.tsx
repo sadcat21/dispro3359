@@ -225,12 +225,29 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       if (customersRes.error) throw customersRes.error;
       if (productsRes.error) throw productsRes.error;
 
+      const availableProductIds = new Set((warehouseStockRes.data || []).map(s => s.product_id));
+      const pendingShortageProductIds = (shortageRes.data || [])
+        .map(s => s.product_id)
+        .filter(productId => !availableProductIds.has(productId));
+      const resolvedShortageProductIds = (shortageRes.data || [])
+        .map(s => s.product_id)
+        .filter(productId => availableProductIds.has(productId));
+
+      if (activeBranch?.id && resolvedShortageProductIds.length > 0) {
+        await supabase
+          .from('product_shortage_tracking')
+          .update({ status: 'available', resolved_at: new Date().toISOString() })
+          .eq('branch_id', activeBranch.id)
+          .eq('status', 'pending')
+          .in('product_id', Array.from(new Set(resolvedShortageProductIds)));
+      }
+
       setCustomers(customersRes.data || []);
       setProducts(productsRes.data || []);
       setSectors((sectorsRes.data || []) as Sector[]);
-      setShortageProductIds(new Set((shortageRes.data || []).map(s => s.product_id)));
+      setShortageProductIds(new Set(pendingShortageProductIds));
       setOfferProductIds(new Set(filterCurrentlyActiveOffers(offersRes.data || []).map(o => o.product_id)));
-      setWarehouseStockProductIds(new Set((warehouseStockRes.data || []).map(s => s.product_id)));
+      setWarehouseStockProductIds(availableProductIds);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error(t('orders.fetch_error'));
