@@ -787,6 +787,30 @@ const StockConfirmationsPopover: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Confirm delete all logs */}
+      <Dialog open={confirmDeleteAllOpen} onOpenChange={(o) => { if (!isDeletingAll) setConfirmDeleteAllOpen(o); }}>
+        <DialogContent className="max-w-sm w-[92vw]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد حذف السجل
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">
+            هل أنت متأكد من حذف كل سجل التأكيدات؟ لا يمكن التراجع عن هذا الإجراء.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" disabled={isDeletingAll} onClick={() => setConfirmDeleteAllOpen(false)}>
+              إلغاء
+            </Button>
+            <Button variant="destructive" disabled={isDeletingAll} onClick={handleDeleteAllLogs}>
+              {isDeletingAll && <Loader2 className="w-4 h-4 animate-spin me-2" />}
+              حذف
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Insufficient stock popup */}
       <Dialog open={shortageItems.length > 0} onOpenChange={(o) => { if (!o) setShortageItems([]); }}>
         <DialogContent className="max-w-sm w-[92vw] p-0 gap-0 border-destructive">
