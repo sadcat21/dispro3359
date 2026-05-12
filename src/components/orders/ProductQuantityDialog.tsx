@@ -485,11 +485,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             </DialogTitle>
           </DialogHeader>
           {!isUnitSale && (
-            <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
-              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage={offerStage} onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
+            <div className="mt-2">
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage={offerStage} onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} onOfferActivated={handleOfferActivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
             </div>
           )}
-          {!isUnitSale && !offerApplied && giftPieces > 0 && (
+          {!isUnitSale && !offerApplied && !manualGiftMode && giftPieces > 0 && (
             <Button className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white" onClick={handleApplyOffer}>
               <Gift className="w-4 h-4 ms-2" />
               {t('offers.apply_offer')} +{giftBoxes > 0 ? `${giftBoxes} ${t('offers.unit_box')}` : ''}{giftBoxes > 0 && giftRemainingPieces > 0 ? ' + ' : ''}{giftRemainingPieces > 0 ? `${giftRemainingPieces} ${t('offers.unit_piece')}` : ''}
