@@ -50,6 +50,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
   selectedWorkerId,
   onSelect,
   stockAlerts = [],
+  frozenWorkerIds = [],
 }) => {
   const { t } = useLanguage();
 
