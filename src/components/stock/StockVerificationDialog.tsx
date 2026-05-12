@@ -185,25 +185,30 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
 
       if (confError) throw confError;
 
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] }),
-        queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] }),
-        queryClient.invalidateQueries({ queryKey: ['truck-review-for-stock'] }),
-        queryClient.invalidateQueries({ queryKey: ['truck-review-section'] }),
-        queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] }),
-        queryClient.invalidateQueries({ queryKey: ['loading-sessions'] }),
-        queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] }),
-        queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] }),
-      ]);
-
       toast.success(discrepancies.length > 0 
         ? `تم إرسال طلب تأكيد المراجعة للعامل - ${discrepancies.length} فارق`
         : 'تم إرسال طلب تأكيد المراجعة للعامل - مطابق بالكامل');
-      onOpenChange(false);
+
       const matchCount = items.filter(i => i.status === 'match').length;
       const deficitCount = items.filter(i => i.status === 'deficit').length;
       const surplusCount = items.filter(i => i.status === 'surplus').length;
+
+      // Close this dialog and surface the final-review confirmation FIRST,
+      // before any query invalidations that would re-render the page.
+      onOpenChange(false);
       await onComplete?.({ sessionId: session.id, stats: { match: matchCount, deficit: deficitCount, surplus: surplusCount } });
+
+      // Defer cache invalidations so the confirmation dialog appears without a visible refresh.
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
+        queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+        queryClient.invalidateQueries({ queryKey: ['truck-review-for-stock'] });
+        queryClient.invalidateQueries({ queryKey: ['truck-review-section'] });
+        queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] });
+        queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+        queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
+      }, 0);
     } catch (err: any) {
       toast.error(err.message || 'خطأ في تسجيل المراجعة');
     } finally {
