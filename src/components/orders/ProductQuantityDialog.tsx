@@ -466,27 +466,27 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase text-center px-10">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div className="grid w-full rounded-lg overflow-hidden ring-1 ring-destructive/40 bg-destructive/10 shadow-sm text-center divide-x divide-destructive/20" style={{ gridTemplateColumns: '1.3fr 0.7fr 1.3fr 0.7fr 1.3fr' }}>
+                  <div className="grid w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40" style={{ gridTemplateColumns: '1.3fr 0.7fr 1.3fr 0.7fr 1.3fr' }}>
                     {/* Col 1: DA/PCS */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {selectedPiecePrice > 0 ? <PriceDA value={selectedPiecePrice} /> : '—'}
                       </div>
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">PCS</div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-destructive">PCS</div>
                     </div>
                     {/* Col 2: PCS/BOX */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {product.pieces_per_box > 0 ? <>{product.pieces_per_box} <span className="opacity-60">PCS</span></> : '—'}
                       </div>
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-destructive">BOX</div>
                     </div>
                     {/* Col 3: DA/BOX */}
                     <div className="@container px-1.5 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(9px, 28cqw, 20px)' }}>
                         {displayPrice > 0 ? <PriceDA value={displayPrice} /> : '—'}
                       </div>
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-destructive">BOX</div>
                     </div>
                     {/* Col 4: KG/BOX */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
@@ -495,7 +495,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                           ? <>{(product.weight_per_box || 0).toLocaleString()} <span className="opacity-60">{pricingUnitLabel}</span></>
                           : '—'}
                       </div>
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-destructive">BOX</div>
                     </div>
                     {/* Col 5: DA/KG */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
@@ -504,7 +504,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                           ? <PriceDA value={selectedPricingUnitPrice} />
                           : '—'}
                       </div>
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{pricingUnitLabel}</div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-destructive">{pricingUnitLabel}</div>
                     </div>
                   </div>
                 </div>
