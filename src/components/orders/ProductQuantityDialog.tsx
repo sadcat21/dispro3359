@@ -447,6 +447,19 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         <div className="flex-1 overflow-y-auto px-4 pb-1">
           <div className="space-y-2 py-1">
 
+            <div className="flex items-stretch gap-3">
+              {product.image_url ? (
+                <img
+                  src={product.image_url}
+                  alt={getProductDisplayName(product)}
+                  className="w-20 rounded-xl object-cover flex-shrink-0 ring-1 ring-border bg-background self-stretch"
+                />
+              ) : (
+                <div className="w-20 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 ring-1 ring-border self-stretch">
+                  <Package className="w-6 h-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 space-y-2">
             {product.pieces_per_box > 1 && (
               <div className="flex items-center justify-center gap-3">
                 <Badge className={cn(
