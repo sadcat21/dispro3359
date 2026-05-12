@@ -136,6 +136,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
   const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
   const [offersLoading, setOffersLoading] = useState(false);
+  const [mandatoryOfferUnactivated, setMandatoryOfferUnactivated] = useState(false);
   const safeT = useCallback((key: string, fallback: string) => {
     const value = t(key);
     return value && value !== key ? value : fallback;
