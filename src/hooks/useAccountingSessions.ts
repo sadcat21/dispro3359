@@ -165,6 +165,9 @@ export const useUpdateSessionStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
     },
   });
 };
