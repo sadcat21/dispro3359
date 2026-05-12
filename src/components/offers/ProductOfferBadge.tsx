@@ -404,10 +404,10 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     <>
       <div className="space-y-2 mt-3">
         {/* Show first offer always */}
-        {offers.length > 0 && renderOfferCard(offers[0])}
+        {stageOffers.length > 0 && renderOfferCard(stageOffers[0])}
         
         {/* If more than one offer, show collapsible for the rest */}
-        {offers.length > 1 && (
+        {stageOffers.length > 1 && (
           <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
             <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
               {isExpanded ? (
@@ -418,12 +418,12 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
               ) : (
                 <>
                   <ChevronDown className="w-4 h-4" />
-                  {t('offers.show_other_tiers')} ({offers.length - 1})
+                  {t('offers.show_other_tiers')} ({stageOffers.length - 1})
                 </>
               )}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
-              {offers.slice(1).map(renderOfferCard)}
+              {stageOffers.slice(1).map(renderOfferCard)}
             </CollapsibleContent>
           </Collapsible>
         )}
