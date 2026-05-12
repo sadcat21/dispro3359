@@ -15,14 +15,6 @@ const WorkerSalesSummaryCard: React.FC<WorkerSalesSummaryCardProps> = ({ onOpenS
   const { workerId } = useAuth();
   const { t } = useLanguage();
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-
-  const todayStr = todayStart.toISOString();
-  const todayEndStr = todayEnd.toISOString();
-
   const { data, isLoading } = useQuery({
     queryKey: ['worker-since-session-sales-summary', workerId],
     queryFn: async () => {
