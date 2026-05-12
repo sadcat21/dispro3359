@@ -636,8 +636,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     placeholder="0"
                   />
                 ) : (
-                  <div className="grid grid-cols-2 gap-2 w-[13.5rem]">
-                    <div className="relative">
+                  <div className="grid grid-cols-2 gap-2 w-[14rem]">
+                    <div className="flex items-stretch h-11 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
+                      <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -645,12 +646,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onChange={(e) => handleQuantityFieldChange('boxes', e.target.value)}
                         onBlur={normalizeQuantityFields}
                         onFocus={(e) => e.target.select()}
-                        className="h-11 text-center text-xl font-bold ps-10"
+                        className="flex-1 h-full border-0 rounded-none text-center text-xl font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         placeholder="0"
                       />
-                      <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground tracking-wide pointer-events-none">BOX</span>
                     </div>
-                    <div className="relative">
+                    <div className="flex items-stretch h-11 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
+                      <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -658,10 +659,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onChange={(e) => handleQuantityFieldChange('pieces', e.target.value)}
                         onBlur={normalizeQuantityFields}
                         onFocus={(e) => e.target.select()}
-                        className="h-11 text-center text-xl font-bold ps-10"
+                        className="flex-1 h-full border-0 rounded-none text-center text-xl font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         placeholder={String(0).padStart(pieceDigits, '0')}
                       />
-                      <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-foreground text-background tracking-wide pointer-events-none">PCS</span>
                     </div>
                   </div>
                 )}
@@ -699,23 +699,23 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="relative">
+                  <div className="flex items-stretch h-10 rounded-md border border-input bg-background overflow-hidden">
+                    <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                     <Input
                       type="text"
                       readOnly
                       value={String(appliedGiftBoxes)}
-                      className="h-10 w-full text-center text-base font-bold bg-background ps-10"
+                      className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                     />
-                    <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground tracking-wide pointer-events-none">BOX</span>
                   </div>
-                  <div className="relative">
+                  <div className="flex items-stretch h-10 rounded-md border border-input bg-background overflow-hidden">
+                    <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                     <Input
                       type="text"
                       readOnly
                       value={String(giftRemainingPieces).padStart(pieceDigits, '0')}
-                      className="h-10 w-full text-center text-base font-bold bg-background ps-10"
+                      className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                     />
-                    <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-foreground text-background tracking-wide pointer-events-none">PCS</span>
                   </div>
                 </div>
               </div>
