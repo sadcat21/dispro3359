@@ -253,9 +253,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   useEffect(() => {
     if (!open || isUnitSale) return;
-    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
-    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
-  }, [open, isUnitSale, offerApplied, giftPieces, paidQuantity, piecesPerBox]);
+    // Sales quantity field stays separate from the gift quantity (display-only block below)
+    setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
+  }, [open, isUnitSale, paidQuantity, piecesPerBox]);
 
   // Offer must be applied before confirming (mandatory)
   const hasUnappliedOffer = !isUnitSale && giftPieces > 0 && !offerApplied;
@@ -357,17 +357,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     setQuantityFields(nextFields);
 
     const parsedValue = fieldsToParsedQuantity(nextFields, piecesPerBox);
-    const enteredTotalPieces = parsedValue.totalPieces;
-    const nextPaidPieces = offerApplied
-      ? Math.max(0, enteredTotalPieces - giftPieces)
-      : enteredTotalPieces;
-
-    setPaidQuantity(nextPaidPieces / piecesPerBox);
+    // Quantity field reflects only the paid (sales) quantity; gift is shown in its own block
+    setPaidQuantity(parsedValue.totalPieces / piecesPerBox);
   };
 
   const normalizeQuantityFields = () => {
-    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
-    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
+    setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
   };
 
   if (!product) return null;
@@ -605,8 +600,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onFocus={(e) => e.target.select()}
                         className="h-11 text-center text-xl font-bold"
                         placeholder={String(0).padStart(pieceDigits, '0')}
-                        disabled={!isUnitSale}
-                        title={!isUnitSale ? 'القطع تتحدث تلقائياً عند تفعيل العرض' : ''}
                       />
                     </div>
                   </div>
@@ -691,19 +684,31 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             )}
 
             {!isUnitSale && offerApplied && (appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
-              <div className="bg-green-600 text-white rounded-lg p-3">
-                <div className="flex items-center justify-center gap-2">
-                  <Check className="w-5 h-5" />
-                  <span className="font-bold">{t('offers.offer_applied_success')}</span>
+              <div className="rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-900/20 p-2 space-y-1.5">
+                <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300 text-xs font-bold">
+                  <Gift className="w-4 h-4" />
+                  <span>{t('common.free') || 'الهدية'}</span>
                 </div>
-                <p className="text-sm mt-1 text-green-100">
-                  {(appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
-                    <>{t('orders.total')}: {totalQuantityDisplay}</>
-                  )}
-                  {appliedGiftBoxes > 0 && giftRemainingPieces > 0 && <br />}
-                  {giftRemainingPieces > 0 && <>+ {giftRemainingPieces} {t('offers.unit_piece')} {t('common.free')}</>}
-                  {appliedGiftBoxes === 0 && giftRemainingPieces > 0 && <>{appliedGiftPieces} {t('offers.unit_piece')} {t('common.free')}</>}
-                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-center block text-muted-foreground">الصندوق</Label>
+                    <Input
+                      type="text"
+                      readOnly
+                      value={String(appliedGiftBoxes)}
+                      className="h-10 text-center text-base font-bold bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-center block text-muted-foreground">القطعة</Label>
+                    <Input
+                      type="text"
+                      readOnly
+                      value={String(giftRemainingPieces).padStart(pieceDigits, '0')}
+                      className="h-10 text-center text-base font-bold bg-background"
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
