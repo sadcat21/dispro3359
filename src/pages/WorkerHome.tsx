@@ -660,9 +660,22 @@ const WorkerHome: React.FC = () => {
         workers={loadWorkersList}
         selectedWorkerId=""
         onSelect={(wId) => {
+          const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
           setShowLoadWorkerPicker(false);
-          setContextWorker(wId);
-          navigate('/load-stock');
+          setWarehouseActionFor({ id: wId, name: w?.full_name || '' });
+        }}
+      />
+
+      <WarehouseActionPickerDialog
+        open={!!warehouseActionFor}
+        onOpenChange={(o) => { if (!o) setWarehouseActionFor(null); }}
+        workerName={warehouseActionFor?.name}
+        onSelect={(action: WarehouseAction) => {
+          if (!warehouseActionFor) return;
+          setContextWorker(warehouseActionFor.id);
+          const id = warehouseActionFor.id;
+          setWarehouseActionFor(null);
+          navigate(`/load-stock?worker=${id}&action=${action}`);
         }}
       />
 
