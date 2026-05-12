@@ -461,31 +461,9 @@ const LoginForm: React.FC = () => {
     );
   };
 
-  // Logo tap â†’ real workers
-  const handleLogoTap = () => {
-    const newCount = logoTapCount + 1;
-    setLogoTapCount(newCount);
-    if (logoTapTimer.current) clearTimeout(logoTapTimer.current);
-    if (newCount >= 3) {
-      setQuickLoginMode(prev => prev === 'real' ? 'none' : 'real');
-      setLogoTapCount(0);
-      return;
-    }
-    logoTapTimer.current = setTimeout(() => setLogoTapCount(0), 800);
-  };
+  const handleLogoTap = () => openQuickPassword('real');
+  const handleTitleTap = () => openQuickPassword('test');
 
-  // Title tap â†’ test workers
-  const handleTitleTap = () => {
-    const newCount = titleTapCount + 1;
-    setTitleTapCount(newCount);
-    if (titleTapTimer.current) clearTimeout(titleTapTimer.current);
-    if (newCount >= 3) {
-      setQuickLoginMode(prev => prev === 'test' ? 'none' : 'test');
-      setTitleTapCount(0);
-      return;
-    }
-    titleTapTimer.current = setTimeout(() => setTitleTapCount(0), 800);
-  };
 
   const doLogin = async (user: string, pass: string, isQuickLogin = false) => {
     setIsLoading(true);
