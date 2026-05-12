@@ -50,11 +50,12 @@ const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g
  */
 const PriceDA: React.FC<{ value: number; maximumFractionDigits?: number }> = ({ value, maximumFractionDigits = 3 }) => {
   if (!Number.isFinite(value)) return <>—</>;
-  const formatted = value.toLocaleString(undefined, { maximumFractionDigits });
-  const sepIndex = Math.max(formatted.lastIndexOf('.'), formatted.lastIndexOf(','));
-  const intPart = sepIndex >= 0 ? formatted.slice(0, sepIndex) : formatted;
-  const sep = sepIndex >= 0 ? formatted[sepIndex] : '';
-  const decPart = sepIndex >= 0 ? formatted.slice(sepIndex + 1) : '';
+  // Use en-US so thousands are commas and the decimal separator is a period.
+  const formatted = value.toLocaleString('en-US', { maximumFractionDigits });
+  const dotIndex = formatted.indexOf('.');
+  const intPart = dotIndex >= 0 ? formatted.slice(0, dotIndex) : formatted;
+  const sep = dotIndex >= 0 ? '.' : '';
+  const decPart = dotIndex >= 0 ? formatted.slice(dotIndex + 1) : '';
   return (
     <span dir="ltr" className="inline-flex items-baseline gap-0.5 whitespace-nowrap">
       <span>{intPart}</span>
