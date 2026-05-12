@@ -239,24 +239,27 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     return timesApplied * giftPerThreshold;
   };
 
+  // Filter offers by current stage scope
+  const stageOffers = offers.filter(offer => isOfferActiveInStage(offer as any, stage));
+
   // Find applicable offers based on quantity (using tiers or offer-level)
-  const applicableOffers = offers.filter(offer => {
+  const applicableOffers = stageOffers.filter(offer => {
     const tiers = offer.tiers && offer.tiers.length > 0 ? offer.tiers : null;
     if (tiers) {
-      // For multiplier: applicable if qty >= lowest tier min_quantity
       const lowestMin = Math.min(...tiers.map(t => t.min_quantity));
       return quantity >= lowestMin;
     }
     return quantity >= offer.min_quantity && (offer.max_quantity === null || quantity <= offer.max_quantity);
   });
 
-  // Calculate total gift pieces from all applicable offers
+  // Total gift pieces — only counts offers the user has explicitly activated AND that auto-fill
   const totalGiftPieces = applicableOffers.reduce((total, offer) => {
+    if (!activatedOfferIds.has(offer.id)) return total;
+    if ((offer as any).auto_fill_quantities === false) return total;
     return total + calculateGiftPieces(offer, quantity);
   }, 0);
 
-  // Find the primary applicable offer ID
-  const primaryOfferId = applicableOffers.length > 0 ? applicableOffers[0].id : undefined;
+  const primaryOfferId = applicableOffers.find(o => activatedOfferIds.has(o.id))?.id;
 
   // Notify parent of gift calculation
   useEffect(() => {
@@ -264,6 +267,23 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
       onGiftCalculated(totalGiftPieces, primaryOfferId);
     }
   }, [totalGiftPieces, primaryOfferId, onGiftCalculated]);
+
+  // Notify parent when a mandatory offer is applicable but not activated (blocks save)
+  useEffect(() => {
+    const hasBlocking = applicableOffers.some(
+      o => (o as any).is_mandatory === true && !activatedOfferIds.has(o.id)
+    );
+    onMandatoryUnactivatedChange?.(hasBlocking);
+  }, [applicableOffers, activatedOfferIds, onMandatoryUnactivatedChange]);
+
+  const toggleActivation = (offerId: string) => {
+    setActivatedOfferIds(prev => {
+      const next = new Set(prev);
+      if (next.has(offerId)) next.delete(offerId);
+      else next.add(offerId);
+      return next;
+    });
+  };
 
   const handleOfferClick = (offer: ProductOfferWithDetails) => {
     setSelectedOffer(offer);
