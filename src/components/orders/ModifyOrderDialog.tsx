@@ -27,6 +27,7 @@ import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { boxesToBP } from '@/utils/boxPieceInput';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
 
 interface ModifyOrderDialogProps {
@@ -1904,19 +1905,25 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                             )}
                               {item.id && changed && (
                                 <Badge variant="secondary" className="text-[10px]">
-                                  {`${item.original_quantity} -> ${item.new_quantity}`}
+                                  {`${item.is_unit_sale ? item.original_quantity : boxesToBP(Number(item.original_quantity || 0), product?.pieces_per_box || 1)} -> ${item.is_unit_sale ? item.new_quantity : boxesToBP(Number(item.new_quantity || 0), product?.pieces_per_box || 1)}`}
                                 </Badge>
                               )}
                             {!item.id && (
                               <Badge className="bg-green-100 text-green-800 text-[10px]">{dialogText.newItem}</Badge>
                             )}
                           </div>
-                          {displayUnitPrice > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              {displayUnitPrice.toLocaleString()} DA x {paidQty} = {(displayUnitPrice * paidQty).toLocaleString()} DA
-                              {(item.gift_quantity || 0) > 0 ? ` (${paidQty} + ${item.gift_quantity} gift = ${item.new_quantity})` : ''}
-                            </p>
-                          )}
+                          {displayUnitPrice > 0 && (() => {
+                            const ppb = product?.pieces_per_box || 1;
+                            const paidDisplay = item.is_unit_sale ? String(paidQty) : boxesToBP(paidQty, ppb);
+                            const giftDisplay = item.is_unit_sale ? String(item.gift_quantity || 0) : boxesToBP(Number(item.gift_quantity || 0), ppb);
+                            const totalDisplay = item.is_unit_sale ? String(item.new_quantity) : boxesToBP(Number(item.new_quantity || 0), ppb);
+                            return (
+                              <p className="text-xs text-muted-foreground">
+                                {displayUnitPrice.toLocaleString()} DA x {paidDisplay} = {(displayUnitPrice * paidQty).toLocaleString()} DA
+                                {(item.gift_quantity || 0) > 0 ? ` (${paidDisplay} + ${giftDisplay} gift = ${totalDisplay})` : ''}
+                              </p>
+                            );
+                          })()}
                         </div>
                         <Button
                           type="button"
@@ -1936,7 +1943,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                           <span className="text-[11px] text-muted-foreground">
                             {item.is_unit_sale ? (t('orders.quantity_pieces') || 'Pieces') : (t('orders.quantity_boxes') || 'Boxes')}
                           </span>
-                          <span className="font-bold text-sm">{paidQty}</span>
+                          <span className="font-bold text-sm">{item.is_unit_sale ? paidQty : boxesToBP(paidQty, product?.pieces_per_box || 1)}</span>
                         </div>
                         <div className="text-[11px] text-muted-foreground text-end">
                           {t('orders.tap_product_to_edit') || 'Tap the product to edit'}
