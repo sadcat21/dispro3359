@@ -439,17 +439,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     </div>
                   </div>
                 </div>
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={getProductDisplayName(product)}
-                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0 ring-1 ring-border bg-background"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 ring-1 ring-border">
-                    <Package className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                )}
               </div>
             </DialogTitle>
           </DialogHeader>
