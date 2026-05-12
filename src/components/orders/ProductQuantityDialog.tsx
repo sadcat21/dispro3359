@@ -362,8 +362,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   };
 
   const normalizeQuantityFields = () => {
-    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
-    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
+    setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
   };
 
   if (!product) return null;
