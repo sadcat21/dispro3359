@@ -822,7 +822,10 @@ const MyDeliveries: React.FC = () => {
                   value={tab.value}
                   className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-1.5 px-1 data-[state=active]:shadow-sm"
                 >
-                  <TabIcon className={`w-3.5 h-3.5 ${tab.color}`} />
+                  <div className="flex items-center gap-1">
+                    <TabIcon className={`w-3.5 h-3.5 ${tab.color}`} />
+                    <span className="text-[10px] font-medium leading-tight">{tab.short}</span>
+                  </div>
                   <span className="text-[10px] font-bold leading-tight">{count}</span>
                 </TabsTrigger>
               );
