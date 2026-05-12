@@ -384,44 +384,46 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
       <DialogContent className="max-w-sm max-h-[90vh] flex flex-col overflow-hidden p-0" dir={dir}>
         <div className="px-4 pt-4 pb-1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <Package className="w-4 h-4 text-primary" />
-              {mode === 'edit' ? (t('orders.edit_product') || 'تعديل منتج') : t('orders.add_product')}
+            <DialogTitle asChild>
+              <div className="flex items-center gap-3 text-start">
+                {product.image_url && (
+                  <img src={product.image_url} alt={getProductDisplayName(product)} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-extrabold text-base text-primary tracking-wide truncate" dir="ltr">
+                    {product.name || getProductDisplayName(product)}
+                  </h3>
+                  {(product as any).app_name && product.name && (product as any).app_name !== product.name && (
+                    <div className="text-[11px] text-muted-foreground truncate">{(product as any).app_name}</div>
+                  )}
+                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">
+                      {product.pieces_per_box} {t('products.piece_per_box')}
+                    </Badge>
+                    {displayPrice > 0 && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-primary font-bold">
+                        {displayPrice.toLocaleString()} {t('common.currency')}/{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}
+                      </Badge>
+                    )}
+                    {!isUnitSale && selectedPiecePrice > 0 && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
+                        {selectedPiecePrice.toLocaleString()} {t('common.currency')}/{t('offers.unit_piece')}
+                      </Badge>
+                    )}
+                    {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
+                      <Badge className="text-[10px] px-1.5 py-0 bg-amber-400 text-black hover:bg-amber-400 border-transparent">
+                        {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}/{pricingUnitLabel}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
             </DialogTitle>
           </DialogHeader>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pb-1">
           <div className="space-y-2 py-1">
-            {/* Product Info - compact */}
-            <div className="bg-muted/50 rounded-lg p-2 flex items-center gap-3">
-              {product.image_url && (
-                <img src={product.image_url} alt={getProductDisplayName(product)} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-extrabold text-base text-primary tracking-wide truncate">{getProductDisplayName(product)}</h3>
-                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    {product.pieces_per_box} {t('products.piece_per_box')}
-                  </Badge>
-                  {displayPrice > 0 && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-primary font-bold">
-                      {displayPrice.toLocaleString()} {t('common.currency')}/{isUnitSale ? t('offers.unit_piece') : t('offers.unit_box')}
-                    </Badge>
-                  )}
-                  {!isUnitSale && selectedPiecePrice > 0 && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
-                      {selectedPiecePrice.toLocaleString()} {t('common.currency')}/{t('offers.unit_piece')}
-                    </Badge>
-                  )}
-                  {pricingUnit !== 'box' && selectedPricingUnitPrice > 0 && (
-                    <Badge className="text-[10px] px-1.5 py-0 bg-amber-400 text-black hover:bg-amber-400 border-transparent">
-                      {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')}/{pricingUnitLabel}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
 
             {product.pieces_per_box > 1 && (
               <div className="flex items-center justify-center gap-3">
