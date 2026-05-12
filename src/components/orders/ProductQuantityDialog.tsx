@@ -573,54 +573,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {/* Quantity Selector - compact */}
             <div className="space-y-1">
-              {product.pieces_per_box > 1 && (
-                <div className="flex items-center justify-center gap-1.5 pb-1">
-                  <Badge className={cn(
-                    "text-[10px] px-1.5 py-0 cursor-pointer select-none transition-colors",
-                    !isUnitSale
-                      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
-                      : "bg-muted text-muted-foreground border-border"
-                   )} variant="outline" onClick={() => {
-                    if (isUnitSale) {
-                      setIsUnitSale(false);
-                      setPaidQuantity(0);
-                      setQuantityFields({ boxes: '', pieces: '' });
-                      setOfferApplied(false);
-                      setGiftPieces(0);
-                    }
-                  }}>BOX</Badge>
-                  <Switch
-                    id="unit-sale-switch"
-                    checked={isUnitSale}
-                    onCheckedChange={(checked) => {
-                      setIsUnitSale(checked);
-                      setUnitQuantityInput('');
-                      setPaidQuantity(0);
-                      setQuantityFields({ boxes: '', pieces: '' });
-                      setOfferApplied(false);
-                      setGiftPieces(0);
-                    }}
-                  />
-                  <Badge className={cn(
-                    "text-[10px] px-1.5 py-0 cursor-pointer select-none transition-colors",
-                    isUnitSale
-                      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
-                      : "bg-muted text-muted-foreground border-border"
-                   )} variant="outline" onClick={() => {
-                    if (!isUnitSale) {
-                      setIsUnitSale(true);
-                      setUnitQuantityInput('');
-                      setPaidQuantity(0);
-                      setQuantityFields({ boxes: '', pieces: '' });
-                      setOfferApplied(false);
-                      setGiftPieces(0);
-                    }
-                  }}>PCS</Badge>
-                </div>
-              )}
-              <Label className="text-center block text-xs">
-                {isUnitSale ? t('orders.quantity_pieces') || 'الكمية (قطع)' : `${t('orders.quantity_boxes')} (B.P)`}
-              </Label>
               <div className="flex items-center justify-center gap-3">
                 <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(-1)} disabled={quantity <= (isUnitSale ? 1 : 0)}>
                   <Minus className="w-4 h-4" />
