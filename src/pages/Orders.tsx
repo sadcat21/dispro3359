@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShoppingCart, Loader2, Package, User, Calendar,
+  ShoppingCart, Loader2, Package, User, Calendar, Store,
   CheckCircle, Clock, Truck, XCircle, UserCheck, Receipt, ReceiptText, Printer, Search, Gift, Eye, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
