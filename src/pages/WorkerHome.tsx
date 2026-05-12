@@ -21,6 +21,7 @@ import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Use
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
+import WarehouseActionPickerDialog, { WarehouseAction } from '@/components/warehouse/WarehouseActionPickerDialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link, useLocation } from 'react-router-dom';
