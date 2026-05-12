@@ -2231,10 +2231,24 @@ const LoadStock: React.FC = () => {
               <AlertTriangle className="w-5 h-5" />
               تأكيد المراجعة النهائية
             </DialogTitle>
-            <DialogDescription className="text-start pt-2">
-              عند التأكيد، ستُسجَّل هذه المراجعة كنهائية وسيتم <strong>تجميد جميع حركات العامل</strong> (تحميل، تفريغ، بيع) حتى يتم إغلاق جلسة المحاسبة.
-              <br /><br />
-              هل أنت متأكد؟
+            <DialogDescription className="text-start pt-2 space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 px-2 py-2 text-center">
+                  <div className="text-[11px] text-emerald-700 dark:text-emerald-400">مطابق</div>
+                  <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{confirmFinalReview?.stats.match ?? 0}</div>
+                </div>
+                <div className="rounded-lg bg-destructive/10 border border-destructive/30 px-2 py-2 text-center">
+                  <div className="text-[11px] text-destructive">عجز</div>
+                  <div className="text-lg font-bold text-destructive">{confirmFinalReview?.stats.deficit ?? 0}</div>
+                </div>
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-300 px-2 py-2 text-center">
+                  <div className="text-[11px] text-orange-700 dark:text-orange-400">فائض</div>
+                  <div className="text-lg font-bold text-orange-700 dark:text-orange-400">{confirmFinalReview?.stats.surplus ?? 0}</div>
+                </div>
+              </div>
+              <div className="text-sm">
+                عند التأكيد، ستُسجَّل هذه المراجعة كنهائية وسيتم <strong>تجميد جميع حركات العامل</strong> (تحميل، تفريغ، بيع) حتى إغلاق جلسة المحاسبة.
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
@@ -2251,7 +2265,7 @@ const LoadStock: React.FC = () => {
                   const { error } = await supabase
                     .from('loading_sessions')
                     .update({ is_final: true } as any)
-                    .eq('id', confirmFinalReview);
+                    .eq('id', confirmFinalReview.sessionId);
                   if (error) throw error;
                   toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
                   queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
