@@ -605,7 +605,8 @@ const WorkerActions: React.FC = () => {
     const productId = selectedTruckProduct.product_id;
     const productName = selectedTruckProduct.product?.name || 'المنتج';
     const productImage = selectedTruckProduct.product?.image_url || null;
-    const currentQty = Number(selectedTruckProduct.quantity || 0);
+    const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
+    const currentQty = bpStoredToBoxes(Number(selectedTruckProduct.quantity || 0), ppb);
     const lastAccountingLabel = lastWorkerAccounting
       ? new Date(lastWorkerAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
@@ -651,18 +652,19 @@ const WorkerActions: React.FC = () => {
       .filter((item: any) => item.product_id === productId)
       .map((item: any) => {
         const session = loadSessionMap.get(item.session_id);
-        const giftQty = toGiftTruckQty(item.gift_quantity || 0);
-        const qty = Number(item.quantity || 0) + giftQty;
+        const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+        const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
+        const totalQty = paidQty + giftQty;
         return {
-          id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${qty}-${item.gift_quantity || 0}`,
+          id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${totalQty}-${item.gift_quantity || 0}`,
           type: 'load' as const,
           label: 'شحن',
-          quantity: qty,
+          quantity: paidQty,
           when: session?.created_at || '',
-          note: session?.notes || null,
+          note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
-          delta: qty,
+          delta: totalQty,
         };
       });
 
@@ -670,16 +672,17 @@ const WorkerActions: React.FC = () => {
       .filter((item: any) => item.product_id === productId)
       .map((item: any) => {
         const session = unloadSessionMap.get(item.session_id);
+        const qty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
         return {
-          id: `unload-${item.session_id || item.product_id}-${item.quantity}`,
+          id: `unload-${item.session_id || item.product_id}-${qty}`,
           type: 'unload' as const,
           label: 'تفريغ',
-          quantity: Number(item.quantity || 0),
+          quantity: qty,
           when: session?.created_at || '',
           note: session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
-          delta: -Number(item.quantity || 0),
+          delta: -qty,
         };
       });
 
@@ -688,8 +691,8 @@ const WorkerActions: React.FC = () => {
       .map((item: any) => {
         const giftBoxes = Math.max(0, Number(item.gift_quantity || 0));
         const giftPieces = Math.max(0, Number(item.gift_pieces || 0));
-        const giftQty = toGiftTruckQty(giftBoxes, giftPieces);
-        const saleQty = getDeliveredPaidQuantity(item);
+        const giftQty = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
+        const saleQty = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb);
         const when = item.order_updated_at || item.order_created_at || '';
         const paymentType = item.order_payment_type || null;
         const customerName = item.customer_name || null;
