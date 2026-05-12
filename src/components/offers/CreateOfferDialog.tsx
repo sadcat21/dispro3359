@@ -718,7 +718,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     </div>
                     <Switch
                       checked={formData.auto_fill_quantities}
-                      onCheckedChange={(checked) => setFormData({ ...formData, auto_fill_quantities: checked })}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, auto_fill_quantities: checked }))}
                     />
                   </div>
                   <div className="flex items-center justify-between p-3">
@@ -728,7 +728,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     </div>
                     <Switch
                       checked={formData.is_mandatory}
-                      onCheckedChange={(checked) => setFormData({ ...formData, is_mandatory: checked })}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_mandatory: checked }))}
                     />
                   </div>
                 </div>
@@ -754,10 +754,12 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                             type="checkbox"
                             checked={checked}
                             onChange={(e) => {
-                              const next = e.target.checked
-                                ? [...formData.scope_stages, stage.key]
-                                : formData.scope_stages.filter((s) => s !== stage.key);
-                              setFormData({ ...formData, scope_stages: next });
+                              setFormData((prev) => {
+                                const next = e.target.checked
+                                  ? [...prev.scope_stages, stage.key]
+                                  : prev.scope_stages.filter((s) => s !== stage.key);
+                                return { ...prev, scope_stages: next };
+                              });
                             }}
                           />
                           {stage.label}
