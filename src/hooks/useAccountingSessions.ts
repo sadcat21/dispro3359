@@ -230,6 +230,10 @@ export const useUpdateFullSession = () => {
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-treasury'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
     },
   });
 };
