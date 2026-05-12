@@ -58,33 +58,54 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
     open && effectiveWorkerId ? { workerId: effectiveWorkerId, branchId: activeBranch?.id || undefined, periodStart, periodEnd } : null
   );
 
-  // Fetch the last LOCKED final review session and check for sessions after it
+  // Fetch the most recent final review — either a locked final_review_sessions row
+  // OR a loading_sessions review marked as final (is_final=true) — and count
+  // subsequent worker activity after that timestamp.
   const { data: reviewInfo, isLoading: isCheckingReview } = useQuery({
     queryKey: ['last-final-review-info', effectiveWorkerId],
     queryFn: async () => {
-      const { data: lastFinalReview } = await supabase
-        .from('final_review_sessions')
-        .select('id, locked_at')
-        .eq('worker_id', effectiveWorkerId!)
-        .eq('status', 'locked')
-        .order('locked_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const [{ data: lastFinalReview }, { data: lastFinalLoadingReview }] = await Promise.all([
+        supabase
+          .from('final_review_sessions')
+          .select('locked_at')
+          .eq('worker_id', effectiveWorkerId!)
+          .eq('status', 'locked')
+          .order('locked_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('loading_sessions')
+          .select('created_at')
+          .eq('worker_id', effectiveWorkerId!)
+          .eq('status', 'review')
+          .eq('is_final', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-      if (!lastFinalReview) {
+      const tsA = lastFinalReview?.locked_at ? new Date(lastFinalReview.locked_at).getTime() : 0;
+      const tsB = lastFinalLoadingReview?.created_at ? new Date(lastFinalLoadingReview.created_at).getTime() : 0;
+      const reviewIso = tsA >= tsB
+        ? (lastFinalReview?.locked_at || null)
+        : (lastFinalLoadingReview?.created_at || null);
+
+      if (!reviewIso) {
         return { hasReview: false, sessionsAfterReview: 0, lastReviewDate: null };
       }
 
+      // Count loading sessions created strictly after the final review timestamp.
+      // The final review row itself is excluded by the strict >.
       const { count } = await supabase
         .from('loading_sessions')
         .select('id', { count: 'exact', head: true })
         .eq('worker_id', effectiveWorkerId!)
-        .gt('created_at', lastFinalReview.locked_at);
+        .gt('created_at', reviewIso);
 
       return {
         hasReview: true,
         sessionsAfterReview: count || 0,
-        lastReviewDate: lastFinalReview.locked_at,
+        lastReviewDate: reviewIso,
       };
     },
     enabled: open && !!effectiveWorkerId,
