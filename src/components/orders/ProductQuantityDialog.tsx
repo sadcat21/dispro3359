@@ -390,7 +390,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase text-center px-10">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div className="grid grid-cols-5 w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40">
+                  <div className="grid w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40" style={{ gridTemplateColumns: '1.3fr 0.7fr 1.3fr 0.7fr 1.3fr' }}>
                     {/* Col 1: DA/PCS */}
                     <div className="@container px-1 py-1 bg-foreground text-background overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
