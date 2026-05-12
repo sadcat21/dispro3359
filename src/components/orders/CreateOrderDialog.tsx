@@ -868,30 +868,14 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                 <section className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold">{t('products.title')}</Label>
-                    <div className="inline-flex rounded-lg border bg-muted/40 p-0.5">
-                      <button
-                        type="button"
-                        onClick={() => setProductViewMode('cards')}
-                        className={cn(
-                          "p-1.5 rounded-md transition-colors",
-                          productViewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
-                        )}
-                        aria-label="بطاقات"
-                      >
-                        <LayoutGrid className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setProductViewMode('list')}
-                        className={cn(
-                          "p-1.5 rounded-md transition-colors",
-                          productViewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
-                        )}
-                        aria-label="قائمة"
-                      >
-                        <List className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setProductViewMode(productViewMode === 'cards' ? 'list' : 'cards')}
+                      className="p-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                      aria-label={productViewMode === 'cards' ? 'تبديل إلى قائمة' : 'تبديل إلى بطاقات'}
+                    >
+                      {productViewMode === 'cards' ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
+                    </button>
                   </div>
                   <div className={cn(productViewMode === 'cards' ? 'grid grid-cols-2 gap-1.5' : 'flex flex-col gap-1.5')}>
                     {products.map((product) => {
