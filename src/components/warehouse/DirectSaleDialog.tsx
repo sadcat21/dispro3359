@@ -1523,6 +1523,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           ? (orderItems.find(i => i.productId === editingTargetProductId)?.priceSubType)
           : undefined) || priceSubType}
         customerTypes={getCustomerTypesArray(selectedCustomer)}
+        offerStage="direct_sale"
       />
 
       {/* Payment Dialog */}

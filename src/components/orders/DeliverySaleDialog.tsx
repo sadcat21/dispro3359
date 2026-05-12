@@ -1533,6 +1533,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         initialOfferApplied={editingInitialOfferApplied}
         initialIsUnitSale={editingInitialIsUnitSale}
         initialCustomUnitPrice={editingInitialCustomUnitPrice}
+        offerStage="worker_loading"
         customerTypes={getCustomerTypesArray(order.customer)}
       />
 
