@@ -116,7 +116,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 }) => {
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
-  const invoiceSaleAllowed = (product as any)?.allow_invoice_sale !== false;
+  const invoiceSaleAllowed = product?.allow_invoice_sale !== false;
   const piecesPerBox = product?.pieces_per_box || 1;
   const pieceDigits = getPieceDigits(piecesPerBox);
   const [unitQuantityInput, setUnitQuantityInput] = useState(String(initialQuantity));
@@ -180,8 +180,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     switch (itemPriceSubType) {
       case 'super_gros':
         return Number(product.price_super_gros || product.price_no_invoice || 0);
-      case 'retail':
-        return Number(product.price_retail || 0);
       case 'retail':
         return Number(product.price_retail || product.price_no_invoice || 0);
       default:
@@ -255,12 +253,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     }
   }, [invoiceSaleAllowed, itemPaymentType]);
 
-  useEffect(() => {
-    if (!open || isUnitSale) return;
-    // Sales quantity field stays separate from the gift quantity (display-only block below)
-    setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
-  }, [open, isUnitSale, paidQuantity, piecesPerBox]);
-
   // Offer must be applied before confirming (mandatory)
   const hasUnappliedOffer = !isUnitSale && giftPieces > 0 && !offerApplied;
 
@@ -313,7 +305,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
     const currentPieces = Math.max(0, Math.round(paidQuantity * piecesPerBox));
     const newQtyPieces = Math.max(piecesPerBox, currentPieces + (delta * piecesPerBox));
-    setPaidQuantity(newQtyPieces / piecesPerBox);
+    const nextPaidQuantity = newQtyPieces / piecesPerBox;
+    setPaidQuantity(nextPaidQuantity);
+    setQuantityFields(quantityToFields(nextPaidQuantity, piecesPerBox));
   };
 
   const handleGiftCalculated = useCallback((pieces: number, offerId?: string) => {
@@ -363,10 +357,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     const parsedValue = fieldsToParsedQuantity(nextFields, piecesPerBox);
     // Quantity field reflects only the paid (sales) quantity; gift is shown in its own block
     setPaidQuantity(parsedValue.totalPieces / piecesPerBox);
-  };
-
-  const normalizeQuantityFields = () => {
-    setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
   };
 
   const customerTypesKey = JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
