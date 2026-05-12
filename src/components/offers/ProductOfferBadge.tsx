@@ -32,6 +32,7 @@ interface ProductOfferBadgeProps {
   onGiftCalculated?: (giftPieces: number, offerId?: string) => void;
   onOffersLoadingChange?: (isLoading: boolean) => void;
   onMandatoryUnactivatedChange?: (hasBlocking: boolean) => void;
+  onOfferActivated?: (info: { offerId: string; autoFill: boolean; suggestedGiftPieces: number } | null) => void;
   prefetchedOffers?: ProductOfferWithDetails[];
   onPrefetchOffers?: (productId: string, customerTypes?: string[] | null) => Promise<ProductOfferWithDetails[]>;
 }
