@@ -588,6 +588,51 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {/* Quantity Selector - compact */}
             <div className="space-y-1">
+              {product.pieces_per_box > 1 && (
+                <div className="flex items-center justify-center gap-1.5 pb-1">
+                  <Badge className={cn(
+                    "text-[10px] px-1.5 py-0 cursor-pointer select-none transition-colors",
+                    !isUnitSale
+                      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                      : "bg-muted text-muted-foreground border-border"
+                   )} variant="outline" onClick={() => {
+                    if (isUnitSale) {
+                      setIsUnitSale(false);
+                      setPaidQuantity(0);
+                      setQuantityFields({ boxes: '', pieces: '' });
+                      setOfferApplied(false);
+                      setGiftPieces(0);
+                    }
+                  }}>BOX</Badge>
+                  <Switch
+                    id="unit-sale-switch"
+                    checked={isUnitSale}
+                    onCheckedChange={(checked) => {
+                      setIsUnitSale(checked);
+                      setUnitQuantityInput('');
+                      setPaidQuantity(0);
+                      setQuantityFields({ boxes: '', pieces: '' });
+                      setOfferApplied(false);
+                      setGiftPieces(0);
+                    }}
+                  />
+                  <Badge className={cn(
+                    "text-[10px] px-1.5 py-0 cursor-pointer select-none transition-colors",
+                    isUnitSale
+                      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+                      : "bg-muted text-muted-foreground border-border"
+                   )} variant="outline" onClick={() => {
+                    if (!isUnitSale) {
+                      setIsUnitSale(true);
+                      setUnitQuantityInput('');
+                      setPaidQuantity(0);
+                      setQuantityFields({ boxes: '', pieces: '' });
+                      setOfferApplied(false);
+                      setGiftPieces(0);
+                    }
+                  }}>PCS</Badge>
+                </div>
+              )}
               <Label className="text-center block text-xs">
                 {isUnitSale ? t('orders.quantity_pieces') || 'الكمية (قطع)' : `${t('orders.quantity_boxes')} (B.P)`}
               </Label>
@@ -646,13 +691,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               )}
             </div>
 
-            {/* Offer badge */}
-            {!isUnitSale && !offerApplied && giftPieces > 0 && (
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={handleApplyOffer}>
-                <Gift className="w-4 h-4 ms-2" />
-                {t('offers.apply_offer')} +{giftBoxes > 0 ? `${giftBoxes} ${t('offers.unit_box')}` : ''}{giftBoxes > 0 && giftRemainingPieces > 0 ? ' + ' : ''}{giftRemainingPieces > 0 ? `${giftRemainingPieces} ${t('offers.unit_piece')}` : ''}
-              </Button>
-            )}
+            {/* Offer badge moved to header */}
 
             {!isUnitSale && offerApplied && (appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
               <div className="rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-900/20 p-3 space-y-2">
