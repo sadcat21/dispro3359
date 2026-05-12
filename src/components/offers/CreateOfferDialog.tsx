@@ -175,6 +175,9 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       is_active: true,
       priority: 0,
       branch_id: null,
+      scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
+      auto_fill_quantities: true,
+      is_mandatory: false,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
     setAudience({});
