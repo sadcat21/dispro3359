@@ -148,6 +148,12 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
       toast.error('اختر العامل أولاً');
       return;
     }
+    if (frozenWorkerIds.includes(selectedWorker)) {
+      window.alert('العامل مجمّد — لا يمكن الشحن حتى يتم فك التجميد عبر حفظ جلسة المحاسبة');
+      toast.error('العامل مجمّد');
+      setSelectedWorker('');
+      return;
+    }
     if (validItemsForConfirm.length === 0) {
       toast.error(t('stock.add_products'));
       return;
