@@ -114,6 +114,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   onGiftCalculated,
   onOffersLoadingChange,
   onMandatoryUnactivatedChange,
+  onOfferActivated,
   prefetchedOffers,
   onPrefetchOffers,
 }) => {
