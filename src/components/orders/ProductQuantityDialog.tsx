@@ -445,28 +445,28 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <div className="grid w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40" style={{ gridTemplateColumns: '1.3fr 0.7fr 1.3fr 0.7fr 1.3fr' }}>
                     {/* Col 1: DA/PCS */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
-                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
+                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {selectedPiecePrice > 0 ? <>{selectedPiecePrice.toLocaleString()} <span className="opacity-60">{t('common.currency')}</span></> : '—'}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">PCS</div>
                     </div>
                     {/* Col 2: PCS/BOX */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
-                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
+                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {product.pieces_per_box > 0 ? <>{product.pieces_per_box} <span className="opacity-60">PCS</span></> : '—'}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
                     </div>
                     {/* Col 3: DA/BOX */}
                     <div className="@container px-1.5 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
-                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 22cqw, 15px)' }}>
+                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(9px, 28cqw, 20px)' }}>
                         {displayPrice > 0 ? <>{displayPrice.toLocaleString()} <span className="opacity-60">{t('common.currency')}</span></> : '—'}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
                     </div>
                     {/* Col 4: KG/BOX */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
-                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
+                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {pricingUnit !== 'box' && (product.weight_per_box || 0) > 0
                           ? <>{(product.weight_per_box || 0).toLocaleString()} <span className="opacity-60">{pricingUnitLabel}</span></>
                           : '—'}
@@ -475,7 +475,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     </div>
                     {/* Col 5: DA/KG */}
                     <div className="@container px-1 py-1 overflow-hidden flex flex-col items-center justify-center gap-0.5">
-                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
+                      <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 28cqw, 18px)' }}>
                         {pricingUnit !== 'box' && selectedPricingUnitPrice > 0
                           ? <>{selectedPricingUnitPrice.toLocaleString()} <span className="opacity-60">{t('common.currency')}</span></>
                           : '—'}
