@@ -1028,6 +1028,9 @@ const OrdersContent: React.FC = () => {
             </Card>
           );
         })}
+            </>
+          );
+        })()}
 
         {orders.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
