@@ -357,12 +357,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     setQuantityFields(nextFields);
 
     const parsedValue = fieldsToParsedQuantity(nextFields, piecesPerBox);
-    const enteredTotalPieces = parsedValue.totalPieces;
-    const nextPaidPieces = offerApplied
-      ? Math.max(0, enteredTotalPieces - giftPieces)
-      : enteredTotalPieces;
-
-    setPaidQuantity(nextPaidPieces / piecesPerBox);
+    // Quantity field reflects only the paid (sales) quantity; gift is shown in its own block
+    setPaidQuantity(parsedValue.totalPieces / piecesPerBox);
   };
 
   const normalizeQuantityFields = () => {
