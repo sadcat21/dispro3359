@@ -257,6 +257,8 @@ export const useCancelSession = () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
     },
   });
 };
