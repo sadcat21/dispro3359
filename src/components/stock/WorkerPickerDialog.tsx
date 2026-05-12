@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { User, AlertTriangle, CheckCircle } from 'lucide-react';
+import { User, AlertTriangle, CheckCircle, Snowflake } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WorkerOption {
@@ -17,6 +17,7 @@ interface WorkerPickerDialogProps {
   selectedWorkerId: string;
   onSelect: (workerId: string) => void;
   stockAlerts?: { worker_id: string; deficit: number }[];
+  frozenWorkerIds?: string[];
 }
 
 const AVATAR_COLORS = [
