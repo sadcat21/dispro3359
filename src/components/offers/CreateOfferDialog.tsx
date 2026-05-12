@@ -281,6 +281,9 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         is_active: formData.is_active,
         priority: formData.priority,
         branch_id: formData.branch_id,
+        scope_stages: formData.scope_stages,
+        auto_fill_quantities: formData.auto_fill_quantities,
+        is_mandatory: formData.is_mandatory,
         // Legacy fields from first tier
         min_quantity: firstTier.min_quantity,
         max_quantity: firstTier.max_quantity,
