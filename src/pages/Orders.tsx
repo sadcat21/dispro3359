@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShoppingCart, Loader2, Package, User, Calendar,
+  ShoppingCart, Loader2, Package, User, Calendar, Store,
   CheckCircle, Clock, Truck, XCircle, UserCheck, Receipt, ReceiptText, Printer, Search, Gift, Eye, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -841,54 +841,46 @@ const OrdersContent: React.FC = () => {
           return (
             <Card key={order.id} className={`overflow-hidden border-r-4 ${isOverdue ? 'border-r-destructive' : order.status === 'delivered' ? 'border-r-green-500' : order.status === 'in_progress' ? 'border-r-purple-500' : order.status === 'assigned' ? 'border-r-blue-500' : order.status === 'cancelled' ? 'border-r-muted' : 'border-r-yellow-500'}`} dir="rtl">
               <CardContent className="p-0">
-                {/* Header: status + customer (stacked to avoid truncation) */}
-                <div className="px-3 py-2 bg-muted/30 border-b space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
+                {/* Compact grid: store icon | customer info | status badge + assigned worker */}
+                <div
+                  className="px-3 py-2 grid grid-cols-[auto_1fr_auto] items-start gap-x-2 gap-y-0.5 border-b bg-muted/20 cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => openOrderDetails(order)}
+                >
+                  <Store className="w-4 h-4 text-muted-foreground self-center" />
+                  <div className="min-w-0 text-right">
+                    {order.customer?.store_name && (
+                      <p className="font-bold text-sm truncate leading-tight">{order.customer.store_name}</p>
+                    )}
+                    {order.customer?.name && (
+                      <p className="text-[11px] text-muted-foreground truncate leading-tight">{order.customer.name}</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5 min-w-0">
                     <Badge className={`${STATUS_CONFIG[order.status]?.color} text-[10px] gap-1 shrink-0`}>
                       <StatusIcon className="w-3 h-3" />
                       {STATUS_CONFIG[order.status]?.label}
                     </Badge>
-                    <User className="w-4 h-4 text-muted-foreground shrink-0" />
-                  </div>
-                  <button
-                    className="block w-full text-right hover:text-primary transition-colors"
-                    onClick={() => openCreateOrder(order.customer as Customer)}
-                  >
-                    <CustomerSummary
-                      customer={{
-                        name: order.customer?.name,
-                        store_name: order.customer?.store_name,
-                        customer_type: order.customer?.customer_type,
-                        sector_name: order.customer?.sector_id ? sectorMap.get(order.customer.sector_id) : undefined,
-                      }}
-                      showAvatar={false}
-                      showMeta={false}
-                    />
-                  </button>
-                </div>
-
-                {/* Grid: amount + date */}
-                <div className="grid grid-cols-2 divide-x divide-x-reverse divide-border">
-                  <div className="px-3 py-2.5">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">المبلغ</p>
-                    <p className="font-bold text-base text-primary truncate">
-                      {Number(order.total_amount || 0).toLocaleString()}
-                      <span className="text-[10px] font-normal text-muted-foreground mr-1">دج</span>
-                    </p>
-                  </div>
-                  <div className="px-3 py-2.5">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">{order.delivery_date ? 'تاريخ التسليم' : 'تاريخ الإنشاء'}</p>
-                    <p className={`font-semibold text-xs flex items-center gap-1 ${isOverdue ? 'text-destructive' : ''}`}>
-                      <Calendar className="w-3 h-3 shrink-0" />
-                      <span className="truncate">
-                        {format(new Date(order.delivery_date || order.created_at), 'HH:mm dd/MM/yyyy', { locale: getDateLocale(language) })}
+                    {order.assigned_worker?.full_name && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-primary min-w-0 max-w-[140px]">
+                        <UserCheck className="w-3 h-3 shrink-0" />
+                        <span className="truncate">{order.assigned_worker.full_name}</span>
                       </span>
-                    </p>
+                    )}
+                  </div>
+                  <div className="col-span-3 mt-1 pt-1 border-t border-dashed border-muted-foreground/20 grid grid-cols-2 gap-x-2 text-[10px] text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 min-w-0">
+                      <Calendar className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{t('orders.created_at') || 'تاريخ الإنشاء'}: {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: getDateLocale(language) })}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 min-w-0 justify-end">
+                      <Truck className="w-3 h-3 shrink-0" />
+                      <span className={`truncate ${isOverdue ? 'text-destructive font-semibold' : ''}`}>{t('orders.delivery_date') || 'تاريخ التوصيل'}: {order.delivery_date ? format(new Date(order.delivery_date), 'dd/MM/yyyy', { locale: getDateLocale(language) }) : '—'}</span>
+                    </span>
                   </div>
                 </div>
 
-                {/* Chips: payment, items, overdue, worker */}
-                <div className="px-3 py-2 border-t flex items-center justify-between gap-2 flex-wrap">
+                {/* Amount + chips strip */}
+                <div className="px-3 py-2 border-b flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                     {order.payment_type && (
                       <Badge variant="outline" className={`text-[10px] gap-1 ${PAYMENT_TYPE_CONFIG[order.payment_type]?.color || ''}`}>
@@ -909,12 +901,10 @@ const OrdersContent: React.FC = () => {
                       </Badge>
                     )}
                   </div>
-                  {order.assigned_worker && (
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground min-w-0">
-                      <UserCheck className="w-3 h-3 text-primary shrink-0" />
-                      <span className="truncate">{order.assigned_worker.full_name}</span>
-                    </div>
-                  )}
+                  <p className="font-bold text-base text-primary truncate">
+                    {Number(order.total_amount || 0).toLocaleString()}
+                    <span className="text-[10px] font-normal text-muted-foreground mr-1">دج</span>
+                  </p>
                 </div>
 
                 {/* Actions strip */}
