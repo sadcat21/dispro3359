@@ -130,6 +130,23 @@ const LoadStock: React.FC = () => {
       setShowSessionHistory(true);
     }
   }, [searchParams, selectedWorker]);
+
+  // Auto-trigger action chosen from warehouse manager picker
+  const triggeredActionRef = React.useRef<string | null>(null);
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (!action || !selectedWorker) return;
+    const key = `${selectedWorker}:${action}`;
+    if (triggeredActionRef.current === key) return;
+    triggeredActionRef.current = key;
+    setTimeout(() => {
+      if (action === 'review') setShowVerificationDialog(true);
+      else if (action === 'exchange') setShowExchangeDialog(true);
+      else if (action === 'history') setShowSessionHistory(true);
+      else if (action === 'unload') { handleEmptyTruckPreview().catch(() => {}); }
+      else if (action === 'load') { handleStartSession().catch(() => {}); }
+    }, 250);
+  }, [searchParams, selectedWorker]);
   const [printSessionId, setPrintSessionId] = useState<string | null>(null);
   const [viewSessionId, setViewSessionId] = useState<string | null>(null);
   const [viewSessionItems, setViewSessionItems] = useState<any[]>([]);
