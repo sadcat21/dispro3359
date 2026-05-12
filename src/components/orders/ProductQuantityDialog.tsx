@@ -833,9 +833,22 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               ? (t('offers.must_apply_offer') || 'يجب تفعيل العرض أولاً')
               : (mode === 'edit' ? (t('orders.update_item') || 'تحديث المنتج') : t('orders.add_to_order'))}
           </Button>
-          <Button variant="outline" className="flex-1" onClick={() => handleOpenChange(false)}>
-            {t('common.cancel')}
-          </Button>
+          {mode === 'edit' && onDelete && product ? (
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={() => {
+                onDelete(product.id);
+                onOpenChange(false);
+              }}
+            >
+              {t('common.delete') || 'حذف'}
+            </Button>
+          ) : (
+            <Button variant="outline" className="flex-1" onClick={() => handleOpenChange(false)}>
+              {t('common.cancel')}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
