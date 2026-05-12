@@ -109,8 +109,10 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   quantity, 
   piecesPerBox = 1,
   customerTypes,
+  stage = 'order_creation',
   onGiftCalculated,
   onOffersLoadingChange,
+  onMandatoryUnactivatedChange,
   prefetchedOffers,
   onPrefetchOffers,
 }) => {
@@ -121,6 +123,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   const [selectedOffer, setSelectedOffer] = useState<ProductOfferWithDetails | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activatedOfferIds, setActivatedOfferIds] = useState<Set<string>>(new Set());
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
 
