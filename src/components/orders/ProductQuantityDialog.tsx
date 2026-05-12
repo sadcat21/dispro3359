@@ -135,6 +135,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const [customPriceOpen, setCustomPriceOpen] = useState(false);
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
   const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
+  const [offersLoading, setOffersLoading] = useState(false);
   const safeT = useCallback((key: string, fallback: string) => {
     const value = t(key);
     return value && value !== key ? value : fallback;
@@ -371,12 +372,18 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const customerTypesKey = JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
   const currentOfferLookupKey = product ? getProductOfferLookupKey(product.id, customerTypes) : '';
   const currentPrefetchedOffers = currentOfferLookupKey ? prefetchedOffersByKey[currentOfferLookupKey] : undefined;
+  const offerCheckPending = Boolean(open && product && !isUnitSale && !currentPrefetchedOffers) || offersLoading;
 
   const prefetchOffers = useCallback(async (productId: string, nextCustomerTypes?: string[] | null) => {
     const lookupKey = getProductOfferLookupKey(productId, nextCustomerTypes);
-    const activeOffers = await preloadProductOffersForBadge(productId, nextCustomerTypes);
-    setPrefetchedOffersByKey((prev) => ({ ...prev, [lookupKey]: activeOffers }));
-    return activeOffers;
+    setOffersLoading(true);
+    try {
+      const activeOffers = await preloadProductOffersForBadge(productId, nextCustomerTypes);
+      setPrefetchedOffersByKey((prev) => ({ ...prev, [lookupKey]: activeOffers }));
+      return activeOffers;
+    } finally {
+      setOffersLoading(false);
+    }
   }, []);
 
   useEffect(() => {
