@@ -699,7 +699,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   </Button>
                 </div>
                 <div dir="ltr" className="grid grid-cols-2 gap-3">
-                  <div className="flex items-stretch h-10 rounded-md border border-input bg-background overflow-hidden">
+                  <div className="flex items-stretch h-10 rounded-md border-2 border-destructive bg-background overflow-hidden">
                     <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                     <Input
                       type="text"
