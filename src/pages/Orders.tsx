@@ -885,10 +885,24 @@ const OrdersContent: React.FC = () => {
                           {Number(order.total_amount).toLocaleString()} دج
                         </Badge>
                       )}
+
+                      {Array.isArray(order.items) && order.items.length > 0 && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          <Package className="w-3 h-3 ml-1" />
+                          {order.items.length}
+                        </Badge>
+                      )}
+
+                      {order.delivery_date && new Date(order.delivery_date) < new Date() && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                        <Badge className="bg-destructive/15 text-destructive border border-destructive/30">
+                          <Clock className="w-3 h-3 ml-1" />
+                          متأخرة
+                        </Badge>
+                      )}
                     </div>
 
                     {order.delivery_date && (
-                      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                      <div className={`flex items-center gap-2 mt-2 text-sm ${new Date(order.delivery_date) < new Date() && order.status !== 'delivered' && order.status !== 'cancelled' ? 'text-destructive' : 'text-muted-foreground'}`}>
                         <Calendar className="w-4 h-4" />
                         {format(new Date(order.delivery_date), 'dd MMMM yyyy', { locale: getDateLocale(language) })}
                       </div>
