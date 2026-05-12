@@ -116,6 +116,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   hideInvoiceOption = false,
   customerTypes,
   offerStage = 'order_creation',
+  onDelete,
 }) => {
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
