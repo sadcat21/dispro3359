@@ -85,6 +85,23 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
       });
   }, [open, products]);
 
+  // Fetch frozen worker IDs while dialog is open
+  const { data: frozenWorkerIds = [] } = useQuery({
+    queryKey: ['frozen-workers', open, workers.map(w => w.id).join(',')],
+    queryFn: async () => {
+      const ids: string[] = [];
+      await Promise.all(
+        workers.map(async (w) => {
+          const { data } = await supabase.rpc('is_worker_frozen', { _worker_id: w.id });
+          if (data === true) ids.push(w.id);
+        })
+      );
+      return ids;
+    },
+    enabled: open && workers.length > 0,
+    refetchInterval: open ? 5000 : false,
+  });
+
   const getPPB = (productId: string) => productsInfo[productId] || 1;
 
   const addItem = () => setItems(prev => [...prev, { product_id: '', quantity: 0, fields: { boxes: '', pieces: '' } }]);
