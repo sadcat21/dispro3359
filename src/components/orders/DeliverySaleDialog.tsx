@@ -345,8 +345,33 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       }));
       setNotes(order.notes || '');
       setInitializedItemsKey(orderItemsSnapshotKey);
+      setBaselineKey(null);
     }
   }, [open, orderItems, orderItemsSnapshotKey, initializedItemsKey, order.notes, recalcGift]);
+
+  // Stable serialization of current edits (items + notes) for change-detection.
+  const currentEditsKey = useMemo(() => JSON.stringify({
+    notes,
+    items: [...saleItems]
+      .map(i => ({
+        p: i.productId,
+        q: i.quantity,
+        g: i.giftQuantity,
+        gp: i.giftPieces,
+        up: i.unitPrice,
+        tp: i.totalPrice,
+      }))
+      .sort((a, b) => a.p.localeCompare(b.p)),
+  }), [saleItems, notes]);
+
+  // Capture baseline once items have been initialized.
+  useEffect(() => {
+    if (initializedItemsKey && baselineKey === null) {
+      setBaselineKey(currentEditsKey);
+    }
+  }, [initializedItemsKey, baselineKey, currentEditsKey]);
+
+  const hasPendingChanges = baselineKey !== null && currentEditsKey !== baselineKey;
 
   // Reset on close — but preserve receipt data so ReceiptDialog can show after main dialog closes
   useEffect(() => {
