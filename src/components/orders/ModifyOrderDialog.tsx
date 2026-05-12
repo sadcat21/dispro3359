@@ -1288,10 +1288,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               .select('id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(name)')
               .eq('order_id', order.id);
 
-            const assignedWorkerId = order.assigned_worker_id || null;
-            let workerName: string | null = (order as any).assigned_worker?.full_name || null;
-            if (assignedWorkerId && !workerName) {
-              const { data: w } = await supabase.from('workers').select('full_name').eq('id', assignedWorkerId).maybeSingle();
+            const resolvedWorkerId = assignedWorkerId && assignedWorkerId !== 'none'
+              ? assignedWorkerId
+              : (order.assigned_worker_id || null);
+            let workerName: string | null = resolvedWorkerId === order.assigned_worker_id
+              ? ((order as any).assigned_worker?.full_name || null)
+              : null;
+            if (resolvedWorkerId && !workerName) {
+              const { data: w } = await supabase.from('workers').select('full_name').eq('id', resolvedWorkerId).maybeSingle();
               workerName = (w as any)?.full_name || null;
             }
 
@@ -1299,7 +1303,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               source: 'delivery_sale',
               orderId: order.id,
               branchId: order.branch_id || null,
-              workerId: assignedWorkerId,
+              workerId: resolvedWorkerId,
               workerName,
               customerId: order.customer_id || null,
               customerName: order.customer?.name || null,
