@@ -789,8 +789,6 @@ const OrdersContent: React.FC = () => {
         </TabsList>
       </Tabs>
 
-      {/* Filtered orders + summary */}
-      {(() => null)()}
       {/* Orders List - Filtered by Tab */}
       <div className="space-y-3">
         {(() => {
