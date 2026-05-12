@@ -598,7 +598,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             {/* Quantity Selector - compact */}
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-3">
-                <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(-1)} disabled={quantity <= (isUnitSale ? 1 : 0)}>
+                <Button size="icon" className="h-10 w-10 rounded-full bg-destructive hover:bg-destructive/90 text-white" onClick={() => handleQuantityChange(-1)} disabled={quantity <= (isUnitSale ? 1 : 0)}>
                   <Minus className="w-4 h-4" />
                 </Button>
                 {isUnitSale ? (
@@ -667,7 +667,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   </div>
                   );
                 })()}
-                <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(1)}>
+                <Button size="icon" className="h-10 w-10 rounded-full bg-foreground hover:bg-foreground/90 text-background" onClick={() => handleQuantityChange(1)}>
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
