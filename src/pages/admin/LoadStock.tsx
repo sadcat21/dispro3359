@@ -2269,6 +2269,7 @@ const LoadStock: React.FC = () => {
                   if (error) throw error;
                   toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
                   queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+                  queryClient.invalidateQueries({ queryKey: ['last-final-review-info'] });
                   setConfirmFinalReview(null);
                   setViewSessionId(null);
                 } catch (e: any) {
