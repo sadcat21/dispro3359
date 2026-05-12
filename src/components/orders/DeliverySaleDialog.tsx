@@ -729,6 +729,17 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       const activeItems = saleItems.filter(i => i.quantity > 0 && !shortageProductIds.has(i.productId));
       const changes: Record<string, any>[] = [];
 
+      // Delete original DB items that have been removed from the working list
+      const remainingOriginalIds = new Set(
+        saleItems.map(i => i.originalItemId).filter(Boolean) as string[]
+      );
+      for (const oi of (orderItems || [])) {
+        if (!remainingOriginalIds.has(oi.id)) {
+          await supabase.from('order_items').delete().eq('id', oi.id);
+          changes.push({ منتج: (oi as any).product?.name || oi.product_id, من: oi.quantity, إلى: 0, عملية: 'حذف' });
+        }
+      }
+
       // Update order items in DB
       for (const item of saleItems) {
         if (item.originalItemId) {
