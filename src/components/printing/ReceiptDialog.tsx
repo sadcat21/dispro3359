@@ -297,7 +297,7 @@ const ReceiptDialog: React.FC<ReceiptDialogProps> = ({ open, onOpenChange, recei
         <DialogHeader className="p-4 pb-2 border-b">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Printer className="w-5 h-5" />
-            وصل {receiptData.receiptType === 'direct_sale' ? 'بيع مباشر' : receiptData.receiptType === 'delivery' ? 'توصيل' : 'تسديد دين'}
+            وصل {receiptData.isWarehouseSale ? 'بيع من المخزن' : receiptData.receiptType === 'direct_sale' ? 'بيع مباشر' : receiptData.receiptType === 'delivery' ? 'توصيل' : 'تسديد دين'}
           </DialogTitle>
         </DialogHeader>
 
