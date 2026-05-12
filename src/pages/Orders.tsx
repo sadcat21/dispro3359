@@ -162,9 +162,12 @@ const OrdersContent: React.FC = () => {
   const orders = useMemo(() => {
     const list = rawOrders || [];
 
+    // Exclude direct/store sales — they belong to the deliveries view, not orders
+    const nonDirectSales = list.filter(order => !(order as any).notes?.includes('بيع مباشر'));
+
     const workerScopedOrders = contextWorkerId
-      ? list.filter(order => order.assigned_worker_id === contextWorkerId || order.created_by === contextWorkerId)
-      : list;
+      ? nonDirectSales.filter(order => order.assigned_worker_id === contextWorkerId || order.created_by === contextWorkerId)
+      : nonDirectSales;
 
     if (!contextWorkerCutoff) return workerScopedOrders;
 
