@@ -587,8 +587,34 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     className="w-24 h-11 text-center text-xl font-bold"
                     placeholder="0"
                   />
-                ) : (
-                  <div dir="ltr" className="grid grid-cols-2 gap-2 w-[14rem]">
+                ) : (() => {
+                  const piecesNum = parseInt(quantityFields.pieces || '0', 10);
+                  const boxesNum = parseInt(quantityFields.boxes || '0', 10);
+                  const canConvert = piecesPerBox > 0 && piecesNum >= piecesPerBox;
+                  const extraBoxes = canConvert ? Math.floor(piecesNum / piecesPerBox) : 0;
+                  const remainPcs = canConvert ? piecesNum % piecesPerBox : 0;
+                  const applyConvert = () => {
+                    const next = {
+                      ...quantityFields,
+                      boxes: String(boxesNum + extraBoxes),
+                      pieces: String(remainPcs).padStart(pieceDigits, '0'),
+                    };
+                    setQuantityFields(next);
+                    const parsedValue = fieldsToParsedQuantity(next, piecesPerBox);
+                    setPaidQuantity(parsedValue.totalPieces / piecesPerBox);
+                  };
+                  return (
+                  <div dir="ltr" className="relative grid grid-cols-2 gap-2 w-[14rem]">
+                    {canConvert && (
+                      <button
+                        type="button"
+                        onClick={applyConvert}
+                        title="تحويل إلى صناديق"
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-bold shadow-md hover:bg-primary/90 whitespace-nowrap"
+                      >
+                        {extraBoxes}.{String(remainPcs).padStart(2, '0')}
+                      </button>
+                    )}
                     <div className="flex items-stretch h-11 rounded-md border-2 border-destructive bg-background overflow-hidden focus-within:ring-2 focus-within:ring-destructive">
                       <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                       <Input
@@ -616,7 +642,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                       <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                     </div>
                   </div>
-                )}
+                  );
+                })()}
                 <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => handleQuantityChange(1)}>
                   <Plus className="w-4 h-4" />
                 </Button>
