@@ -2509,16 +2509,16 @@ const LoadStock: React.FC = () => {
         open={showVerificationDialog}
         onOpenChange={setShowVerificationDialog}
         workerId={selectedWorker}
-        onComplete={async (payload) => {
-          // Show the final review confirmation FIRST so it isn't lost behind the refetch re-render
+        onComplete={(payload) => {
+          // Show the final review confirmation FIRST, before any refetch re-renders.
           if (payload) setConfirmFinalReview(payload);
-          await Promise.all([
-            refresh(),
-            refetchSessions(),
-            queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] }),
-            queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] }),
-            queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] }),
-          ]);
+          setTimeout(() => {
+            refresh();
+            refetchSessions();
+            queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
+            queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+            queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] });
+          }, 0);
         }}
       />
       {selectedWorker && branchId && (
