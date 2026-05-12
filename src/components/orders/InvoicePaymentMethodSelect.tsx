@@ -33,16 +33,16 @@ const InvoicePaymentMethodSelect: React.FC<InvoicePaymentMethodSelectProps> = ({
             size="sm"
             disabled={disabled}
             onClick={() => onChange(methodKey)}
-            className={`h-9 px-1 text-xs font-bold transition-opacity ${PAYMENT_COLORS[methodKey]} ${value === methodKey ? 'ring-2 ring-offset-1 ring-blue-400' : ''} ${value !== null && value !== methodKey ? 'opacity-50' : ''}`}
+            className={`@container h-9 px-1 font-bold transition-opacity overflow-hidden ${PAYMENT_COLORS[methodKey]} ${value === methodKey ? 'ring-2 ring-offset-1 ring-blue-400' : ''} ${value !== null && value !== methodKey ? 'opacity-50' : ''}`}
           >
-            {method.label}
-            {method.hasStamp && <Stamp className="w-3 h-3 mr-0.5" />}
+            <span className="block w-full whitespace-nowrap leading-none" style={{ fontSize: 'clamp(8px, 16cqw, 13px)' }}>
+              {method.label}
+            </span>
           </Button>
         ))}
       </div>
       {value === 'cash' && (
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 rounded-lg p-2 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-300">
-          <Stamp className="w-3.5 h-3.5 shrink-0" />
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 rounded-lg p-2 text-xs text-amber-800 dark:text-amber-300 text-center">
           <span className="font-semibold">تنبيه: سيتم احتساب سعر الطابع الجبائي (Timbre) على هذه الطلبية.</span>
         </div>
       )}
