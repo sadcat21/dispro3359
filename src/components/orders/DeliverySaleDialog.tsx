@@ -408,14 +408,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   }, []);
 
   const handleRemoveItem = (productId: string) => {
-    setSaleItems(prev => {
-      const item = prev.find(i => i.productId === productId);
-      if (item?.originalItemId) {
-        // Mark as 0 quantity instead of removing
-        return prev.map(i => i.productId === productId ? { ...i, quantity: 0, totalPrice: 0 } : i);
-      }
-      return prev.filter(i => i.productId !== productId);
-    });
+    // Fully remove from the working list. If it had a DB row, save() will
+    // detect its absence and delete the order_items row.
+    setSaleItems(prev => prev.filter(i => i.productId !== productId));
   };
 
   const handleEditItem = (item: SaleItem) => {
