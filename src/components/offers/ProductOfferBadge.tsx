@@ -16,7 +16,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import { supabase } from '@/integrations/supabase/client';
-import { filterCurrentlyActiveOffers } from '@/utils/productOffers';
+import { filterCurrentlyActiveOffers, getProductOfferLookupKey } from '@/utils/productOffers';
 import { format, differenceInDays } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -27,18 +27,93 @@ interface ProductOfferBadgeProps {
   piecesPerBox?: number;
   customerTypes?: string[] | null;
   onGiftCalculated?: (giftPieces: number, offerId?: string) => void;
+  onOffersLoadingChange?: (isLoading: boolean) => void;
+  prefetchedOffers?: ProductOfferWithDetails[];
+  onPrefetchOffers?: (productId: string, customerTypes?: string[] | null) => Promise<ProductOfferWithDetails[]>;
 }
+
+const productOfferMemoryCache = new Map<string, ProductOfferWithDetails[]>();
+const productOfferPendingRequests = new Map<string, Promise<ProductOfferWithDetails[]>>();
+
+const normalizeProductOffers = (data: any[] | null, customerTypes?: string[] | null): ProductOfferWithDetails[] => {
+  const offersWithSortedTiers = (data || []).map((offer: any) => ({
+    ...offer,
+    tiers: offer.tiers?.sort((a: any, b: any) => a.tier_order - b.tier_order) || [],
+  }));
+
+  const normalizedTypes = (customerTypes || []).filter(Boolean);
+  const audienceFiltered = offersWithSortedTiers.filter((offer: any) => {
+    const allowList: string[] = offer.tiers
+      ?.flatMap((t: any) => (t.conditions?.excluded_customer_types as string[] | undefined) || [])
+      .filter(Boolean) || [];
+    if (allowList.length === 0) return true;
+    return normalizedTypes.some((ct) => allowList.includes(ct));
+  });
+
+  return filterCurrentlyActiveOffers(audienceFiltered);
+};
+
+const fetchProductOffersForBadge = async (productId: string, customerTypes?: string[] | null): Promise<ProductOfferWithDetails[]> => {
+  const cacheKey = getProductOfferLookupKey(productId, customerTypes);
+  const cachedOffers = productOfferMemoryCache.get(cacheKey);
+  if (cachedOffers) return cachedOffers;
+
+  const pendingRequest = productOfferPendingRequests.get(cacheKey);
+  if (pendingRequest) return pendingRequest;
+
+  const request = Promise.resolve(
+    supabase
+      .from('product_offers')
+      .select(`
+        *,
+        product:products!product_offers_product_id_fkey(id, name, app_name),
+        gift_product:products!product_offers_gift_product_id_fkey(id, name, app_name),
+        tiers:product_offer_tiers(
+          id, offer_id, min_quantity, max_quantity, min_quantity_unit,
+          gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
+          discount_percentage, worker_reward_type, worker_reward_amount, tier_order, conditions,
+          gift_product:products(id, name, app_name)
+        )
+      `)
+      .eq('product_id', productId)
+      .eq('is_active', true)
+      .order('priority', { ascending: false })
+  )
+    .then(({ data, error }) => {
+      if (error) throw error;
+      const activeOffers = normalizeProductOffers(data, customerTypes);
+      productOfferMemoryCache.set(cacheKey, activeOffers);
+      return activeOffers;
+    })
+    .finally(() => {
+      productOfferPendingRequests.delete(cacheKey);
+    });
+
+  productOfferPendingRequests.set(cacheKey, request);
+  return request;
+};
+
+export const preloadProductOffersForBadge = (productId: string, customerTypes?: string[] | null) => {
+  return fetchProductOffersForBadge(productId, customerTypes).catch((error) => {
+    console.error('Error preloading product offers:', error);
+    return [];
+  });
+};
 
 const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({ 
   productId, 
   quantity, 
   piecesPerBox = 1,
   customerTypes,
-  onGiftCalculated 
+  onGiftCalculated,
+  onOffersLoadingChange,
+  prefetchedOffers,
+  onPrefetchOffers,
 }) => {
   const { t, language, dir } = useLanguage();
-  const [offers, setOffers] = useState<ProductOfferWithDetails[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const initialCachedOffers = productOfferMemoryCache.get(getProductOfferLookupKey(productId, customerTypes));
+  const [offers, setOffers] = useState<ProductOfferWithDetails[]>(prefetchedOffers || initialCachedOffers || []);
+  const [isLoading, setIsLoading] = useState(!prefetchedOffers && !initialCachedOffers);
   const [selectedOffer, setSelectedOffer] = useState<ProductOfferWithDetails | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -46,52 +121,32 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
 
   useEffect(() => {
+    const cacheKey = getProductOfferLookupKey(productId, customerTypes);
+    const nextPrefetchedOffers = prefetchedOffers || productOfferMemoryCache.get(cacheKey);
+
+    if (nextPrefetchedOffers) {
+      setOffers(nextPrefetchedOffers);
+      setIsLoading(false);
+      onOffersLoadingChange?.(false);
+      return;
+    }
+
     fetchProductOffers();
-  }, [productId, JSON.stringify(customerTypes || [])]);
+  }, [productId, JSON.stringify(customerTypes || []), prefetchedOffers]);
 
   const fetchProductOffers = async () => {
+    setIsLoading(true);
+    onOffersLoadingChange?.(true);
     try {
-      const { data, error } = await supabase
-        .from('product_offers')
-        .select(`
-          *,
-          product:products!product_offers_product_id_fkey(id, name, app_name),
-          gift_product:products!product_offers_gift_product_id_fkey(id, name, app_name),
-          tiers:product_offer_tiers(
-            id, offer_id, min_quantity, max_quantity, min_quantity_unit,
-            gift_quantity, gift_quantity_unit, gift_type, gift_product_id,
-            discount_percentage, worker_reward_type, worker_reward_amount, tier_order, conditions,
-            gift_product:products(id, name, app_name)
-          )
-        `)
-        .eq('product_id', productId)
-        .eq('is_active', true)
-        .order('priority', { ascending: false });
-
-      if (error) throw error;
-      // Sort tiers by tier_order
-      const offersWithSortedTiers = (data || []).map((offer: any) => ({
-        ...offer,
-        tiers: offer.tiers?.sort((a: any, b: any) => a.tier_order - b.tier_order) || [],
-      }));
-
-      // Filter offers by audience: if any tier has a non-empty
-      // `excluded_customer_types` allow-list, the customer must have at least
-      // one matching type (otherwise the offer does not apply).
-      const normalizedTypes = (customerTypes || []).filter(Boolean);
-      const audienceFiltered = offersWithSortedTiers.filter((offer: any) => {
-        const allowList: string[] = offer.tiers
-          ?.flatMap((t: any) => (t.conditions?.excluded_customer_types as string[] | undefined) || [])
-          .filter(Boolean) || [];
-        if (allowList.length === 0) return true; // no restriction
-        return normalizedTypes.some((ct) => allowList.includes(ct));
-      });
-
-      setOffers(filterCurrentlyActiveOffers(audienceFiltered));
+      const activeOffers = onPrefetchOffers
+        ? await onPrefetchOffers(productId, customerTypes)
+        : await fetchProductOffersForBadge(productId, customerTypes);
+      setOffers(activeOffers);
     } catch (error) {
       console.error('Error fetching product offers:', error);
     } finally {
       setIsLoading(false);
+      onOffersLoadingChange?.(false);
     }
   };
 
@@ -208,7 +263,15 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     setIsDialogOpen(true);
   };
 
-  if (isLoading || offers.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="mt-3 rounded-lg border border-border bg-muted/50 px-3 py-2 text-center text-[11px] font-bold text-muted-foreground">
+        {t('common.loading') || 'جاري التحقق من العرض...'}
+      </div>
+    );
+  }
+
+  if (offers.length === 0) {
     return null;
   }
 

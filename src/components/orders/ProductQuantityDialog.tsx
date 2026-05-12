@@ -17,9 +17,11 @@ import { InvoicePaymentMethod } from '@/types/stamp';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHasPermission } from '@/hooks/usePermissions';
 import { getProductDisplayName } from '@/utils/productDisplayName';
-import ProductOfferBadge from '@/components/offers/ProductOfferBadge';
+import ProductOfferBadge, { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
 import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
 import { parseBP } from '@/utils/boxPieceInput';
+import { ProductOfferWithDetails } from '@/types/productOffer';
+import { getProductOfferLookupKey } from '@/utils/productOffers';
 
 export interface GiftInfo {
   giftQuantity: number;
@@ -132,6 +134,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const [itemInvoicePaymentMethod, setItemInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(defaultInvoicePaymentMethod);
   const [customPriceOpen, setCustomPriceOpen] = useState(false);
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
+  const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
+  const [offersLoading, setOffersLoading] = useState(false);
   const safeT = useCallback((key: string, fallback: string) => {
     const value = t(key);
     return value && value !== key ? value : fallback;
@@ -365,6 +369,28 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
   };
 
+  const customerTypesKey = JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
+  const currentOfferLookupKey = product ? getProductOfferLookupKey(product.id, customerTypes) : '';
+  const currentPrefetchedOffers = currentOfferLookupKey ? prefetchedOffersByKey[currentOfferLookupKey] : undefined;
+  const offerCheckPending = Boolean(open && product && !isUnitSale && !currentPrefetchedOffers) || offersLoading;
+
+  const prefetchOffers = useCallback(async (productId: string, nextCustomerTypes?: string[] | null) => {
+    const lookupKey = getProductOfferLookupKey(productId, nextCustomerTypes);
+    setOffersLoading(true);
+    try {
+      const activeOffers = await preloadProductOffersForBadge(productId, nextCustomerTypes);
+      setPrefetchedOffersByKey((prev) => ({ ...prev, [lookupKey]: activeOffers }));
+      return activeOffers;
+    } finally {
+      setOffersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open || !product || isUnitSale) return;
+    prefetchOffers(product.id, customerTypes);
+  }, [open, product, isUnitSale, customerTypesKey, prefetchOffers]);
+
   if (!product) return null;
 
   const giftBoxes = product.pieces_per_box > 0 ? Math.floor(giftPieces / product.pieces_per_box) : 0;
@@ -437,7 +463,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           </DialogHeader>
           {!isUnitSale && (
             <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
-              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} />
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
             </div>
           )}
           {!isUnitSale && !offerApplied && giftPieces > 0 && (
@@ -774,9 +800,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         </Dialog>
 
         <div className="sticky bottom-0 border-t border-border bg-background px-6 py-3 flex flex-row gap-2">
-          <Button className="flex-1" onClick={handleConfirm} disabled={hasUnappliedOffer}>
+          <Button className="flex-1" onClick={handleConfirm} disabled={offerCheckPending || hasUnappliedOffer}>
             <Plus className="w-4 h-4 ms-2" />
-            {hasUnappliedOffer
+            {offerCheckPending
+              ? (safeT('common.loading', 'جاري التحقق من العرض...'))
+              : hasUnappliedOffer
               ? (t('offers.must_apply_offer') || 'يجب تفعيل العرض أولاً')
               : (mode === 'edit' ? (t('orders.update_item') || 'تحديث المنتج') : t('orders.add_to_order'))}
           </Button>

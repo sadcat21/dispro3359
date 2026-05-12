@@ -26,3 +26,11 @@ export const isOfferCurrentlyActive = (offer: OfferWindow, now = new Date()): bo
 export const filterCurrentlyActiveOffers = <T extends OfferWindow>(offers: T[], now = new Date()): T[] => {
   return offers.filter((offer) => isOfferCurrentlyActive(offer, now));
 };
+
+export const getProductOfferAudienceKey = (customerTypes?: string[] | null): string => {
+  return JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
+};
+
+export const getProductOfferLookupKey = (productId: string, customerTypes?: string[] | null): string => {
+  return `${productId}|${getProductOfferAudienceKey(customerTypes)}`;
+};
