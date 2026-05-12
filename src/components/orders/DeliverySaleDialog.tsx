@@ -408,14 +408,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   }, []);
 
   const handleRemoveItem = (productId: string) => {
-    setSaleItems(prev => {
-      const item = prev.find(i => i.productId === productId);
-      if (item?.originalItemId) {
-        // Mark as 0 quantity instead of removing
-        return prev.map(i => i.productId === productId ? { ...i, quantity: 0, totalPrice: 0 } : i);
-      }
-      return prev.filter(i => i.productId !== productId);
-    });
+    // Fully remove from the working list. If it had a DB row, save() will
+    // detect its absence and delete the order_items row.
+    setSaleItems(prev => prev.filter(i => i.productId !== productId));
   };
 
   const handleEditItem = (item: SaleItem) => {
@@ -733,6 +728,17 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     try {
       const activeItems = saleItems.filter(i => i.quantity > 0 && !shortageProductIds.has(i.productId));
       const changes: Record<string, any>[] = [];
+
+      // Delete original DB items that have been removed from the working list
+      const remainingOriginalIds = new Set(
+        saleItems.map(i => i.originalItemId).filter(Boolean) as string[]
+      );
+      for (const oi of (orderItems || [])) {
+        if (!remainingOriginalIds.has(oi.id)) {
+          await supabase.from('order_items').delete().eq('id', oi.id);
+          changes.push({ منتج: (oi as any).product?.name || oi.product_id, من: oi.quantity, إلى: 0, عملية: 'حذف' });
+        }
+      }
 
       // Update order items in DB
       for (const item of saleItems) {
