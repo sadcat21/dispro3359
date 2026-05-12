@@ -3000,7 +3000,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 { key: 'orders' as const, label: 'طلبات', color: 'bg-blue-100 text-blue-700 border-blue-300', active: 'bg-blue-600 text-white border-blue-600' },
                 { key: 'debts' as const, label: 'ديون جديدة', color: 'bg-red-100 text-red-700 border-red-300', active: 'bg-red-600 text-white border-red-600' },
                 { key: 'collections' as const, label: 'تحصيل', color: 'bg-green-100 text-green-700 border-green-300', active: 'bg-green-600 text-white border-green-600' },
-                { key: 'sales' as const, label: 'بيع مباشر', color: 'bg-amber-100 text-amber-700 border-amber-300', active: 'bg-amber-600 text-white border-amber-600' },
+                { key: 'sales' as const, label: directSaleLabel, color: 'bg-amber-100 text-amber-700 border-amber-300', active: 'bg-amber-600 text-white border-amber-600' },
               ]).map(btn => (
                 <button
                   key={btn.key}
