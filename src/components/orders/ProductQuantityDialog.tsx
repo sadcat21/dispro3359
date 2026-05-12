@@ -316,9 +316,10 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   };
 
   const handleGiftCalculated = useCallback((pieces: number, offerId?: string) => {
+    if (manualGiftMode) return;
     setGiftPieces(pieces);
     setGiftOfferId(offerId);
-  }, []);
+  }, [manualGiftMode]);
 
   const handleOfferActivated = useCallback((info: { offerId: string; autoFill: boolean; suggestedGiftPieces: number } | null) => {
     if (!info) {
