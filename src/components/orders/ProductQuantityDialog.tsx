@@ -320,6 +320,34 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     setGiftOfferId(offerId);
   }, []);
 
+  const handleOfferActivated = useCallback((info: { offerId: string; autoFill: boolean; suggestedGiftPieces: number } | null) => {
+    if (!info) {
+      setOfferApplied(false);
+      setManualGiftMode(false);
+      setGiftPieces(0);
+      setGiftOfferId(undefined);
+      setGiftFields({ boxes: '', pieces: '' });
+      return;
+    }
+    setOfferApplied(true);
+    setGiftOfferId(info.offerId);
+    setManualGiftMode(!info.autoFill);
+    if (info.autoFill) {
+      setGiftPieces(info.suggestedGiftPieces);
+      setGiftFields(quantityToFields(info.suggestedGiftPieces / piecesPerBox, piecesPerBox, info.suggestedGiftPieces === 0));
+    } else {
+      setGiftPieces(0);
+      setGiftFields({ boxes: '', pieces: '' });
+    }
+  }, [piecesPerBox]);
+
+  const handleGiftFieldChange = (field: keyof QuantityFields, value: string) => {
+    const next = { ...giftFields, [field]: sanitizeDigits(value, 6) };
+    setGiftFields(next);
+    const parsed = fieldsToParsedQuantity(next, piecesPerBox);
+    setGiftPieces(parsed.totalPieces);
+  };
+
   const handleApplyOffer = () => {
     if (!product || giftPieces <= 0) return;
     setOfferApplied(true);
