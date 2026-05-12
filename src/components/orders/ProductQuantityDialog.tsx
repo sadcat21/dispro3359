@@ -456,7 +456,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           </DialogHeader>
           {!isUnitSale && (
             <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
-              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage="order_creation" onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage={offerStage} onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
             </div>
           )}
           {!isUnitSale && !offerApplied && giftPieces > 0 && (
