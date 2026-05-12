@@ -636,9 +636,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     placeholder="0"
                   />
                 ) : (
-                  <div className="grid grid-cols-2 gap-2 w-[12.5rem]">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-center block text-muted-foreground">الصندوق</Label>
+                  <div className="grid grid-cols-2 gap-2 w-[13.5rem]">
+                    <div className="relative">
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -646,12 +645,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onChange={(e) => handleQuantityFieldChange('boxes', e.target.value)}
                         onBlur={normalizeQuantityFields}
                         onFocus={(e) => e.target.select()}
-                        className="h-11 text-center text-xl font-bold"
+                        className="h-11 text-center text-xl font-bold ps-10"
                         placeholder="0"
                       />
+                      <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground tracking-wide pointer-events-none">BOX</span>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-center block text-muted-foreground">القطعة</Label>
+                    <div className="relative">
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -659,9 +658,10 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onChange={(e) => handleQuantityFieldChange('pieces', e.target.value)}
                         onBlur={normalizeQuantityFields}
                         onFocus={(e) => e.target.select()}
-                        className="h-11 text-center text-xl font-bold"
+                        className="h-11 text-center text-xl font-bold ps-10"
                         placeholder={String(0).padStart(pieceDigits, '0')}
                       />
+                      <span className="absolute start-1 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-foreground text-background tracking-wide pointer-events-none">PCS</span>
                     </div>
                   </div>
                 )}
