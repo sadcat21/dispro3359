@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart } from 'lucide-react';
+import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart, Phone } from 'lucide-react';
 import AddPromoDialog from '@/components/promo/AddPromoDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -419,6 +419,12 @@ const MyPromosContent: React.FC = () => {
                             <User className="w-4 h-4 shrink-0" />
                             <span className="truncate">{promo.customer?.name}</span>
                           </div>
+                          {promo.customer?.phone && (
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Phone className="w-3.5 h-3.5 shrink-0" />
+                              <span dir="ltr" className="truncate">{promo.customer.phone}</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Calendar className="w-3.5 h-3.5 shrink-0" />
                             <span>{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
