@@ -2053,7 +2053,12 @@ const LoadStock: React.FC = () => {
                         ) : (
                           <Button
                             className="w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
-                            onClick={() => setConfirmFinalReview(session.id)}
+                            onClick={() => {
+                              const matchCount = viewSessionItems.length - viewReviewDiscrepancies.length;
+                              const deficitCount = viewReviewDiscrepancies.filter((d: any) => d.discrepancy_type === 'deficit').length;
+                              const surplusCount = viewReviewDiscrepancies.filter((d: any) => d.discrepancy_type === 'surplus').length;
+                              setConfirmFinalReview({ sessionId: session.id, stats: { match: Math.max(0, matchCount), deficit: deficitCount, surplus: surplusCount } });
+                            }}
                           >
                             <CheckCircle className="w-4 h-4 me-2" />
                             تقديم كمراجعة نهائية
