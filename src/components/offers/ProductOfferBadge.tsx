@@ -298,7 +298,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     );
   }
 
-  if (offers.length === 0) {
+  if (stageOffers.length === 0) {
     return null;
   }
 
