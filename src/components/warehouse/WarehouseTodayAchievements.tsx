@@ -203,7 +203,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     }
   };
 
-  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading || reviewsQ.isLoading || exchangesQ.isLoading;
+  const isLoading = loadingQ.isLoading || ordersQ.isLoading || receiptsQ.isLoading || reviewsQ.isLoading || exchangesQ.isLoading || newDebtsQ.isLoading || debtCollectionsQ.isLoading;
 
   if (isLoading) {
     return (
@@ -218,7 +218,9 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const receipts = receiptsQ.data || [];
   const reviews = reviewsQ.data || [];
   const exchanges = exchangesQ.data || [];
-  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length;
+  const newDebts = newDebtsQ.data || [];
+  const debtCollections = debtCollectionsQ.data || [];
+  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length + newDebts.length + debtCollections.length;
 
   return (
     <div className="space-y-3" dir="rtl">
