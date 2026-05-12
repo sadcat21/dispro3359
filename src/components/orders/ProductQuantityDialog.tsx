@@ -638,7 +638,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 ) : (
                   <div dir="ltr" className="grid grid-cols-2 gap-2 w-[14rem]">
                     <div className="flex items-stretch h-11 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                      <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -649,9 +648,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         className="flex-1 h-full border-0 rounded-none text-center text-xl font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         placeholder="0"
                       />
+                      <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                     </div>
                     <div className="flex items-stretch h-11 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                      <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -662,6 +661,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         className="flex-1 h-full border-0 rounded-none text-center text-xl font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         placeholder={String(0).padStart(pieceDigits, '0')}
                       />
+                      <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                     </div>
                   </div>
                 )}
