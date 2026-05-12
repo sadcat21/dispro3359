@@ -223,7 +223,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const [editingInitialGiftOfferId, setEditingInitialGiftOfferId] = useState<string | undefined>(undefined);
   const [newProductId, setNewProductId] = useState('');
   const [showProductPicker, setShowProductPicker] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [initializedItemsKey, setInitializedItemsKey] = useState<string | null>(null);
   const [partialDeliveryAction, setPartialDeliveryAction] = useState<'none' | 'create_order' | 'deliver_only'>('none');
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
@@ -285,8 +285,29 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     return { giftBoxes, giftPieces };
   }, [activeOffers]);
 
+  const orderItemsSnapshotKey = useMemo(() => {
+    if (!open || !orderItems || orderItems.length === 0) return null;
+    return JSON.stringify({
+      orderId: order.id,
+      items: orderItems
+        .map((item: any) => ({
+          id: item.id,
+          product_id: item.product_id,
+          quantity: Number(item.quantity || 0),
+          gift_quantity: Number(item.gift_quantity || 0),
+          gift_pieces: Number(item.gift_pieces || 0),
+          unit_price: Number(item.unit_price || 0),
+          total_price: Number(item.total_price || 0),
+          pieces_per_box: item.pieces_per_box ?? item.product?.pieces_per_box ?? null,
+          pricing_unit: item.pricing_unit ?? item.product?.pricing_unit ?? null,
+          weight_per_box: item.weight_per_box ?? item.product?.weight_per_box ?? null,
+        }))
+        .sort((a, b) => String(a.id).localeCompare(String(b.id))),
+    });
+  }, [open, order.id, orderItems]);
+
   useEffect(() => {
-    if (open && orderItems && orderItems.length > 0 && !initialized) {
+    if (open && orderItems && orderItems.length > 0 && orderItemsSnapshotKey && initializedItemsKey !== orderItemsSnapshotKey) {
       setSaleItems(orderItems.map(item => {
         const storedGiftQty = Number((item as any).gift_quantity || 0);
         const ppb = (item as any).pieces_per_box ?? item.product?.pieces_per_box ?? 1;
@@ -322,16 +343,16 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         };
       }));
       setNotes(order.notes || '');
-      setInitialized(true);
+      setInitializedItemsKey(orderItemsSnapshotKey);
     }
-  }, [open, orderItems, initialized, order.notes, recalcGift]);
+  }, [open, orderItems, orderItemsSnapshotKey, initializedItemsKey, order.notes, recalcGift]);
 
   // Reset on close — but preserve receipt data so ReceiptDialog can show after main dialog closes
   useEffect(() => {
     if (!open) {
       setSaleItems([]);
       setNotes('');
-      setInitialized(false);
+      setInitializedItemsKey(null);
       setNewProductId('');
       setPartialDeliveryAction('none');
       setUseCreditBalance(false);
