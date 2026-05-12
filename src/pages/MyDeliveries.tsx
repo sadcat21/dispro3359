@@ -629,12 +629,12 @@ const MyDeliveries: React.FC = () => {
     : typeFilteredOrders?.filter(o => o.status === activeTab);
 
   // Tab definitions
-  const tabs: { value: TabStatus; label: string; icon: React.ElementType; color: string }[] = [
-    { value: 'all', label: t('deliveries.tab_all'), icon: ListFilter, color: 'text-foreground' },
-    { value: 'pending', label: t('orders.pending'), icon: Clock, color: 'text-yellow-600' },
-    { value: 'assigned', label: t('orders.assigned'), icon: UserCheck, color: 'text-blue-600' },
-    { value: 'delivered', label: t('orders.delivered'), icon: CheckCircle, color: 'text-green-600' },
-    { value: 'cancelled', label: t('orders.cancelled'), icon: XCircle, color: 'text-red-600' },
+  const tabs: { value: TabStatus; label: string; short: string; icon: React.ElementType; color: string }[] = [
+    { value: 'all', label: t('deliveries.tab_all'), short: 'الكل', icon: ListFilter, color: 'text-foreground' },
+    { value: 'pending', label: t('orders.pending'), short: 'انتظار', icon: Clock, color: 'text-yellow-600' },
+    { value: 'assigned', label: t('orders.assigned'), short: 'تعيين', icon: UserCheck, color: 'text-blue-600' },
+    { value: 'delivered', label: t('orders.delivered'), short: 'تم', icon: CheckCircle, color: 'text-green-600' },
+    { value: 'cancelled', label: t('orders.cancelled'), short: 'ملغي', icon: XCircle, color: 'text-red-600' },
   ];
 
   if (isLoading) {
