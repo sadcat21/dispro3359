@@ -2053,7 +2053,7 @@ const LoadStock: React.FC = () => {
                         ) : (
                           <Button
                             className="w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
-                            onClick={() => setConfirmFinalReviewId(session.id)}
+                            onClick={() => setConfirmFinalReview(session.id)}
                           >
                             <CheckCircle className="w-4 h-4 me-2" />
                             تقديم كمراجعة نهائية
@@ -2219,7 +2219,7 @@ const LoadStock: React.FC = () => {
       </Dialog>
 
       {/* Confirm Final Review submission */}
-      <Dialog open={!!confirmFinalReviewId} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReviewId(null); }}>
+      <Dialog open={!!confirmFinalReview} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReview(null); }}>
         <DialogContent className="max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
@@ -2233,24 +2233,24 @@ const LoadStock: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" disabled={submittingFinalReview} onClick={() => setConfirmFinalReviewId(null)}>
+            <Button variant="outline" disabled={submittingFinalReview} onClick={() => setConfirmFinalReview(null)}>
               إلغاء
             </Button>
             <Button
               className="bg-red-600 hover:bg-red-700 text-white"
               disabled={submittingFinalReview}
               onClick={async () => {
-                if (!confirmFinalReviewId) return;
+                if (!confirmFinalReview) return;
                 setSubmittingFinalReview(true);
                 try {
                   const { error } = await supabase
                     .from('loading_sessions')
                     .update({ is_final: true } as any)
-                    .eq('id', confirmFinalReviewId);
+                    .eq('id', confirmFinalReview);
                   if (error) throw error;
                   toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
                   queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
-                  setConfirmFinalReviewId(null);
+                  setConfirmFinalReview(null);
                   setViewSessionId(null);
                 } catch (e: any) {
                   toast.error(e.message || 'خطأ في تسجيل المراجعة النهائية');
@@ -2498,7 +2498,7 @@ const LoadStock: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] }),
             queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] }),
           ]);
-          if (sessionId) setConfirmFinalReviewId(sessionId);
+          if (sessionId) setConfirmFinalReview(sessionId);
         }}
       />
       {selectedWorker && branchId && (
