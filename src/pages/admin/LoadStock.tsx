@@ -2427,6 +2427,7 @@ const LoadStock: React.FC = () => {
         open={showWorkerPicker} onOpenChange={setShowWorkerPicker}
         workers={workers} selectedWorkerId={selectedWorker}
         onSelect={setSelectedWorker} stockAlerts={stockAlerts}
+        frozenWorkerIds={frozenWorkerIds}
       />
 
       {/* Post-confirmation dialog */}
