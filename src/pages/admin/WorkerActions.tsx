@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Worker } from '@/types/database';
 import { getLocalizedName } from '@/utils/sectorName';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
+import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
@@ -32,8 +33,11 @@ const WORKER_CARD_COLORS = [
   { bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-800', icon: 'bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400', accent: 'text-pink-600 dark:text-pink-400' },
 ];
 
-const formatTruckQty = (value: number) => {
+const formatTruckQty = (value: number, piecesPerBox?: number) => {
   const safeValue = Number.isFinite(value) ? value : 0;
+  if (piecesPerBox) {
+    return boxesToBPAlways(Math.max(0, safeValue), Math.max(1, Number(piecesPerBox) || 1));
+  }
   const rounded = Math.round(safeValue * 100) / 100;
   if (Number.isInteger(rounded)) {
     return String(Math.trunc(rounded));
@@ -42,8 +46,20 @@ const formatTruckQty = (value: number) => {
   return `${whole}.${fraction.padEnd(2, '0')}`;
 };
 
-const toGiftTruckQty = (boxes: number, pieces: number = 0) =>
-  Math.max(0, Number(boxes || 0) + Number(pieces || 0) / 100);
+const bpStoredToBoxes = (value: number, piecesPerBox: number) =>
+  dbBPToBoxes(Number(value || 0), Math.max(1, Number(piecesPerBox) || 1));
+
+const loadGiftToBoxes = (giftQuantity: number, giftUnit: string | null | undefined, piecesPerBox: number) => {
+  const ppb = Math.max(1, Number(piecesPerBox) || 1);
+  return giftUnit === 'piece'
+    ? Math.max(0, Number(giftQuantity || 0)) / ppb
+    : bpStoredToBoxes(Number(giftQuantity || 0), ppb);
+};
+
+const orderGiftToBoxes = (giftBoxes: number, giftPieces: number, piecesPerBox: number) => {
+  const ppb = Math.max(1, Number(piecesPerBox) || 1);
+  return bpStoredToBoxes(Number(giftBoxes || 0), ppb) + Math.max(0, Number(giftPieces || 0)) / ppb;
+};
 
 import CoinExchangeDialog from '@/components/treasury/CoinExchangeDialog';
 import WorkerHandoverPreviewDialog from '@/components/accounting/WorkerHandoverPreviewDialog';
