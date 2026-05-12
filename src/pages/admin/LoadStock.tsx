@@ -231,22 +231,42 @@ const LoadStock: React.FC = () => {
   const { data: stockAlerts = [] } = useStockAlerts();
   const { data: suggestions = [], isLoading: suggestionsLoading } = useWorkerLoadSuggestions(selectedWorker || null);
 
-  // Frozen workers list (refreshed only on demand — e.g. after final review save)
+  // Frozen workers list (single SQL — avoids per-worker RPC race)
   const { data: frozenWorkerIds = [] } = useQuery({
-    queryKey: ['frozen-workers-load-stock', (workers || []).map((w: any) => w.id).join(',')],
+    queryKey: ['frozen-workers-load-stock', (workers || []).map((w: any) => w.id).sort().join(',')],
     queryFn: async () => {
-      const ids: string[] = [];
-      await Promise.all(
-        (workers || []).map(async (w: any) => {
-          const { data } = await supabase.rpc('is_worker_frozen', { _worker_id: w.id });
-          if (data === true) ids.push(w.id);
-        })
-      );
-      return ids;
+      const ids = (workers || []).map((w: any) => w.id);
+      if (ids.length === 0) return [] as string[];
+      // Fetch final-review loading sessions for these workers
+      const { data: finals, error: e1 } = await supabase
+        .from('loading_sessions')
+        .select('worker_id, created_at')
+        .in('worker_id', ids)
+        .eq('status', 'review')
+        .eq('is_final', true);
+      if (e1 || !finals || finals.length === 0) return [] as string[];
+
+      // Fetch completed accounting sessions for these workers
+      const { data: accs } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, created_at, period_end, review_session_id')
+        .in('worker_id', ids)
+        .eq('status', 'completed');
+
+      const frozen: string[] = [];
+      for (const f of finals) {
+        const unfrozen = (accs || []).some((a: any) => {
+          if (a.worker_id !== f.worker_id) return false;
+          if (a.review_session_id) return true;
+          const ref = a.period_end || a.created_at;
+          return new Date(ref).getTime() >= new Date(f.created_at).getTime();
+        });
+        if (!unfrozen && !frozen.includes(f.worker_id)) frozen.push(f.worker_id);
+      }
+      return frozen;
     },
     enabled: (workers || []).length > 0,
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
+    staleTime: 30_000,
   });
   
   const {
