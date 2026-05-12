@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Worker } from '@/types/database';
 import { getLocalizedName } from '@/utils/sectorName';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
+import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 
 const JS_DAY_TO_NAME: Record<number, string> = {
   6: 'saturday', 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
@@ -32,8 +33,11 @@ const WORKER_CARD_COLORS = [
   { bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-800', icon: 'bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400', accent: 'text-pink-600 dark:text-pink-400' },
 ];
 
-const formatTruckQty = (value: number) => {
+const formatTruckQty = (value: number, piecesPerBox?: number) => {
   const safeValue = Number.isFinite(value) ? value : 0;
+  if (piecesPerBox) {
+    return boxesToBPAlways(Math.max(0, safeValue), Math.max(1, Number(piecesPerBox) || 1));
+  }
   const rounded = Math.round(safeValue * 100) / 100;
   if (Number.isInteger(rounded)) {
     return String(Math.trunc(rounded));
@@ -42,8 +46,20 @@ const formatTruckQty = (value: number) => {
   return `${whole}.${fraction.padEnd(2, '0')}`;
 };
 
-const toGiftTruckQty = (boxes: number, pieces: number = 0) =>
-  Math.max(0, Number(boxes || 0) + Number(pieces || 0) / 100);
+const bpStoredToBoxes = (value: number, piecesPerBox: number) =>
+  dbBPToBoxes(Number(value || 0), Math.max(1, Number(piecesPerBox) || 1));
+
+const loadGiftToBoxes = (giftQuantity: number, giftUnit: string | null | undefined, piecesPerBox: number) => {
+  const ppb = Math.max(1, Number(piecesPerBox) || 1);
+  return giftUnit === 'piece'
+    ? Math.max(0, Number(giftQuantity || 0)) / ppb
+    : bpStoredToBoxes(Number(giftQuantity || 0), ppb);
+};
+
+const orderGiftToBoxes = (giftBoxes: number, giftPieces: number, piecesPerBox: number) => {
+  const ppb = Math.max(1, Number(piecesPerBox) || 1);
+  return bpStoredToBoxes(Number(giftBoxes || 0), ppb) + Math.max(0, Number(giftPieces || 0)) / ppb;
+};
 
 import CoinExchangeDialog from '@/components/treasury/CoinExchangeDialog';
 import WorkerHandoverPreviewDialog from '@/components/accounting/WorkerHandoverPreviewDialog';
@@ -380,7 +396,7 @@ const WorkerActions: React.FC = () => {
       const sessionIds = sessions.map(s => s.id);
       const { data: items } = await supabase
         .from('loading_session_items')
-        .select('session_id, product_id, quantity, gift_quantity, previous_quantity')
+        .select('session_id, product_id, quantity, gift_quantity, gift_unit, previous_quantity')
         .in('session_id', sessionIds);
       return items || [];
     },
@@ -461,7 +477,7 @@ const WorkerActions: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box')
         .in('order_id', orderIds);
       if (!items || items.length === 0) return [];
       const { data: movements } = await supabase
@@ -505,6 +521,14 @@ const WorkerActions: React.FC = () => {
     enabled: !!selectedWorker?.id && truckStockOpen,
   });
 
+  const truckProductPpbMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const item of truckStock as any[]) {
+      map[item.product_id] = Math.max(1, Number(item.product?.pieces_per_box) || 1);
+    }
+    return map;
+  }, [truckStock]);
+
   const truckMovementStats = useMemo(() => {
     const stats: Record<
       string,
@@ -536,45 +560,53 @@ const WorkerActions: React.FC = () => {
       return stats[productId];
     };
 
+    const ppbOf = (productId: string, fallback?: number) =>
+      truckProductPpbMap[productId] || Math.max(1, Number(fallback) || 1);
+
     for (const item of (truckLoadedData || [])) {
+      const ppb = ppbOf(item.product_id);
       const stat = ensure(item.product_id);
-      const movedQty = Number(item.quantity || 0) + Number(item.gift_quantity || 0);
-      stat.loaded += movedQty;
-      if (movedQty > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
+      const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+      const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
+      stat.loaded += paidQty;
+      if ((paidQty + giftQty) > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
       if ((item.gift_quantity || 0) > 0) {
-        stat.giftQty += Number(item.gift_quantity || 0);
+        stat.giftQty += giftQty;
       }
     }
 
     for (const item of (truckUnloadedData || [])) {
+      const ppb = ppbOf(item.product_id);
       const stat = ensure(item.product_id);
-      const movedQty = Number(item.quantity || 0);
+      const movedQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
       stat.unloaded += movedQty;
       if (movedQty > 0 && item.session_id) stat.unloadSessionIds.add(String(item.session_id));
     }
 
     for (const item of (truckSoldData || [])) {
+      const ppb = ppbOf(item.product_id, item.pieces_per_box);
       const stat = ensure(item.product_id);
-      const paidQty = getDeliveredPaidQuantity(item);
+      const paidQty = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb);
       stat.sold += paidQty;
       if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
       const giftBoxes = Number(item.gift_quantity || 0);
       const giftPieces = Number(item.gift_pieces || 0);
-      const totalGift = giftBoxes + (giftPieces / 100);
+      const totalGift = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
       if (giftBoxes > 0 || giftPieces > 0) {
         stat.giftQty += totalGift;
       }
     }
 
     return stats;
-  }, [truckLoadedData, truckSoldData, truckUnloadedData]);
+  }, [truckLoadedData, truckSoldData, truckUnloadedData, truckProductPpbMap]);
 
   const selectedTruckProductHistory = useMemo(() => {
     if (!selectedTruckProduct) return null;
     const productId = selectedTruckProduct.product_id;
     const productName = selectedTruckProduct.product?.name || 'المنتج';
     const productImage = selectedTruckProduct.product?.image_url || null;
-    const currentQty = Number(selectedTruckProduct.quantity || 0);
+    const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
+    const currentQty = bpStoredToBoxes(Number(selectedTruckProduct.quantity || 0), ppb);
     const lastAccountingLabel = lastWorkerAccounting
       ? new Date(lastWorkerAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
@@ -620,18 +652,19 @@ const WorkerActions: React.FC = () => {
       .filter((item: any) => item.product_id === productId)
       .map((item: any) => {
         const session = loadSessionMap.get(item.session_id);
-        const giftQty = toGiftTruckQty(item.gift_quantity || 0);
-        const qty = Number(item.quantity || 0) + giftQty;
+        const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+        const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
+        const totalQty = paidQty + giftQty;
         return {
-          id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${qty}-${item.gift_quantity || 0}`,
+          id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${totalQty}-${item.gift_quantity || 0}`,
           type: 'load' as const,
           label: 'شحن',
-          quantity: qty,
+          quantity: paidQty,
           when: session?.created_at || '',
-          note: session?.notes || null,
+          note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
-          delta: qty,
+          delta: totalQty,
         };
       });
 
@@ -639,16 +672,17 @@ const WorkerActions: React.FC = () => {
       .filter((item: any) => item.product_id === productId)
       .map((item: any) => {
         const session = unloadSessionMap.get(item.session_id);
+        const qty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
         return {
-          id: `unload-${item.session_id || item.product_id}-${item.quantity}`,
+          id: `unload-${item.session_id || item.product_id}-${qty}`,
           type: 'unload' as const,
           label: 'تفريغ',
-          quantity: Number(item.quantity || 0),
+          quantity: qty,
           when: session?.created_at || '',
           note: session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
-          delta: -Number(item.quantity || 0),
+          delta: -qty,
         };
       });
 
@@ -657,8 +691,8 @@ const WorkerActions: React.FC = () => {
       .map((item: any) => {
         const giftBoxes = Math.max(0, Number(item.gift_quantity || 0));
         const giftPieces = Math.max(0, Number(item.gift_pieces || 0));
-        const giftQty = toGiftTruckQty(giftBoxes, giftPieces);
-        const saleQty = getDeliveredPaidQuantity(item);
+        const giftQty = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
+        const saleQty = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb);
         const when = item.order_updated_at || item.order_created_at || '';
         const paymentType = item.order_payment_type || null;
         const customerName = item.customer_name || null;
@@ -718,15 +752,10 @@ const WorkerActions: React.FC = () => {
     const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
     const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
-    // Use piece-based arithmetic to respect B.P (boxes.pieces) carry semantics.
-    const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
+    // Use piece-based arithmetic to avoid decimal B.P math drift.
     const bpToPieces = (v: number) => {
       const sign = v < 0 ? -1 : 1;
-      const abs = Math.abs(Number(v || 0));
-      const rounded = Math.round(abs * 100) / 100;
-      const boxes = Math.floor(rounded);
-      const pieces = Math.round((rounded - boxes) * 100);
-      return sign * (boxes * ppb + pieces);
+      return sign * Math.round(Math.abs(Number(v || 0)) * ppb);
     };
     const piecesToBP = (totalPieces: number) => {
       const sign = totalPieces < 0 ? -1 : 1;
@@ -761,6 +790,7 @@ const WorkerActions: React.FC = () => {
       totalUnloaded,
       totalSold,
       totalGift,
+      ppb,
       loadCount: loadedItems.filter((item) => item.delta > 0).length,
       unloadCount: unloadItems.length,
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
@@ -993,12 +1023,14 @@ const WorkerActions: React.FC = () => {
                       return ((a as any).product?.name || '').localeCompare((b as any).product?.name || '');
                     })
                     .map((item: any) => {
+                      const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 1);
                       const stats = truckMovementStats[item.product_id];
                       const loaded = stats?.loaded || 0;
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
-                      const totalAvailable = Number(item.quantity || 0) + unloaded + sold + giftQty;
+                      const currentQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+                      const totalAvailable = currentQty + unloaded + sold + giftQty;
                       const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
@@ -1032,7 +1064,7 @@ const WorkerActions: React.FC = () => {
                               <div className="flex items-start justify-between gap-2">
                                 <span className="font-medium text-sm truncate">{item.product?.name}</span>
                                 <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
-                                  {formatTruckQty(Number(item.quantity || 0))}
+                                  {formatTruckQty(currentQty, ppb)}
                                 </span>
                               </div>
                               <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -1043,31 +1075,31 @@ const WorkerActions: React.FC = () => {
                           <div className="mt-1 flex flex-wrap items-center gap-1.5 border-t pt-2 text-[10px]">
                             <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-semibold">
                               <Package className="w-3 h-3" />
-                              الباقي {formatTruckQty(Number(item.quantity || 0))}
+                              الباقي {formatTruckQty(currentQty, ppb)}
                             </span>
                             <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
                               <Package className="w-3 h-3" />
-                              المجموع {formatTruckQty(totalAvailable)}
+                              المجموع {formatTruckQty(totalAvailable, ppb)}
                             </span>
                             <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                               <TrendingUp className="w-3 h-3" />
-                              شحن {formatTruckQty(loaded)}
+                              شحن {formatTruckQty(loaded, ppb)}
                               {loadCount > 0 && <span className="font-bold">×{loadCount}</span>}
                             </span>
                             <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
                               <PackageOpen className="w-3 h-3" />
-                              تفريغ -{formatTruckQty(unloaded)}
+                              تفريغ -{formatTruckQty(unloaded, ppb)}
                               {unloadCount > 0 && <span className="font-bold">×{unloadCount}</span>}
                             </span>
                             <span className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">
                               <TrendingDown className="w-3 h-3" />
-                              مباع {formatTruckQty(sold)}
+                              مباع {formatTruckQty(sold, ppb)}
                               {saleCount > 0 && <span className="font-bold">×{saleCount}</span>}
                             </span>
                             {giftQty > 0 && (
                               <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full">
                                 <Gift className="w-3 h-3" />
-                                هدايا {formatTruckQty(giftQty)}
+                                هدايا {formatTruckQty(giftQty, ppb)}
                               </span>
                             )}
                           </div>
