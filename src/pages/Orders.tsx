@@ -789,16 +789,54 @@ const OrdersContent: React.FC = () => {
         </TabsList>
       </Tabs>
 
+      {/* Filtered orders + summary */}
+      {(() => null)()}
       {/* Orders List - Filtered by Tab */}
       <div className="space-y-3">
-        {orders.filter(order => {
-          // If customer filter is active, only show that customer's orders
-          if (customerIdFilter && order.customer_id !== customerIdFilter) return false;
+        {(() => {
+          const filtered = orders.filter(order => {
+            if (customerIdFilter && order.customer_id !== customerIdFilter) return false;
+            if (activeTab === 'all') return true;
+            if (activeTab === 'pending') return order.status === 'pending' || order.status === 'assigned';
+            return order.status === activeTab;
+          });
 
-          if (activeTab === 'all') return true;
-          if (activeTab === 'pending') return order.status === 'pending' || order.status === 'assigned';
-          return order.status === activeTab;
-        }).map((order) => {
+          const now = new Date();
+          const stats = filtered.reduce((acc, o) => {
+            const amt = Number(o.total_amount || 0);
+            acc.total += amt;
+            if (o.status === 'delivered') acc.delivered += amt;
+            else if (o.status !== 'cancelled') acc.openAmount += amt;
+            const isOverdue = o.delivery_date && new Date(o.delivery_date) < now && o.status !== 'delivered' && o.status !== 'cancelled';
+            if (isOverdue) acc.overdue += 1;
+            return acc;
+          }, { total: 0, delivered: 0, openAmount: 0, overdue: 0 });
+
+          return (
+            <>
+              {filtered.length > 0 && (
+                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 -mx-4 px-4 py-2 border-b">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="rounded-lg bg-muted/50 px-2.5 py-1.5">
+                      <p className="text-[10px] text-muted-foreground">{t('orders.title')}</p>
+                      <p className="font-bold">{filtered.length}</p>
+                    </div>
+                    <div className="rounded-lg bg-primary/10 px-2.5 py-1.5">
+                      <p className="text-[10px] text-muted-foreground">{t('accounting.total_sales')}</p>
+                      <p className="font-bold text-primary truncate">{stats.total.toLocaleString()} <span className="text-[10px]">دج</span></p>
+                    </div>
+                    <div className="rounded-lg bg-yellow-500/10 px-2.5 py-1.5">
+                      <p className="text-[10px] text-muted-foreground">قيد المعالجة</p>
+                      <p className="font-bold text-yellow-700 dark:text-yellow-400 truncate">{stats.openAmount.toLocaleString()} <span className="text-[10px]">دج</span></p>
+                    </div>
+                    <div className={`rounded-lg px-2.5 py-1.5 ${stats.overdue > 0 ? 'bg-destructive/10' : 'bg-muted/50'}`}>
+                      <p className="text-[10px] text-muted-foreground">متأخرة</p>
+                      <p className={`font-bold ${stats.overdue > 0 ? 'text-destructive' : ''}`}>{stats.overdue}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {filtered.map((order) => {
           const StatusIcon = STATUS_CONFIG[order.status]?.icon || Clock;
           return (
             <Card key={order.id}>
