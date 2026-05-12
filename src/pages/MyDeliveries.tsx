@@ -659,8 +659,11 @@ const MyDeliveries: React.FC = () => {
     return (
       <Card key={order.id} className={`overflow-hidden border-r-4 ${sideBorder}`} dir="rtl">
         <CardContent className="p-0">
-          {/* Compact grid: store icon | customer info + creator | status badge + assigned worker */}
-          <div className="px-3 py-2 grid grid-cols-[auto_1fr_auto] items-start gap-x-2 gap-y-0.5 border-b bg-muted/20">
+          {/* Compact grid: store icon | customer info | status badge + assigned worker */}
+          <div
+            className="px-3 py-2 grid grid-cols-[auto_1fr_auto] items-start gap-x-2 gap-y-0.5 border-b bg-muted/20 cursor-pointer hover:bg-muted/30 transition-colors"
+            onClick={() => { setSelectedOrderId(order.id); setShowDetailsDialog(true); }}
+          >
             <Store className="w-4 h-4 text-muted-foreground self-center" />
             <div className="min-w-0 text-right">
               {order.customer?.store_name && (
@@ -668,12 +671,6 @@ const MyDeliveries: React.FC = () => {
               )}
               {order.customer?.name && (
                 <p className="text-[11px] text-muted-foreground truncate leading-tight">{order.customer.name}</p>
-              )}
-              {order.created_by_worker?.full_name && (
-                <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-muted-foreground min-w-0">
-                  <User className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{order.created_by_worker.full_name}</span>
-                </span>
               )}
             </div>
             <div className="flex flex-col items-end gap-0.5 min-w-0">
@@ -687,6 +684,16 @@ const MyDeliveries: React.FC = () => {
                   <span className="truncate">{order.assigned_worker.full_name}</span>
                 </span>
               )}
+            </div>
+            <div className="col-span-3 mt-1 pt-1 border-t border-dashed border-muted-foreground/20 grid grid-cols-2 gap-x-2 text-[10px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 min-w-0">
+                <Calendar className="w-3 h-3 shrink-0" />
+                <span className="truncate">{t('orders.created_at') || 'تاريخ الإنشاء'}: {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: getDateLocale(language) })}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 min-w-0 justify-end">
+                <Truck className="w-3 h-3 shrink-0" />
+                <span className="truncate">{t('orders.delivery_date') || 'تاريخ التوصيل'}: {order.delivery_date ? format(new Date(order.delivery_date), 'dd/MM/yyyy', { locale: getDateLocale(language) }) : '—'}</span>
+              </span>
             </div>
           </div>
 
