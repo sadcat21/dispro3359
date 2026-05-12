@@ -253,11 +253,30 @@ const LoginForm: React.FC = () => {
   // Quick login: 'test' for test workers, 'real' for real workers
   const [quickLoginMode, setQuickLoginMode] = useState<'none' | 'test' | 'real'>('none');
   
-  // Tap counters for logo (real) and title (test)
-  const [logoTapCount, setLogoTapCount] = useState(0);
-  const logoTapTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [titleTapCount, setTitleTapCount] = useState(0);
-  const titleTapTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Password gate for quick login
+  const [quickPasswordOpen, setQuickPasswordOpen] = useState(false);
+  const [quickPasswordTarget, setQuickPasswordTarget] = useState<'test' | 'real'>('real');
+  const [quickPasswordValue, setQuickPasswordValue] = useState('');
+  const [quickPasswordError, setQuickPasswordError] = useState('');
+  const QUICK_LOGIN_PASSWORD = '09091408';
+
+  const openQuickPassword = (target: 'test' | 'real') => {
+    setQuickPasswordTarget(target);
+    setQuickPasswordValue('');
+    setQuickPasswordError('');
+    setQuickPasswordOpen(true);
+  };
+
+  const submitQuickPassword = () => {
+    if (quickPasswordValue === QUICK_LOGIN_PASSWORD) {
+      setQuickPasswordOpen(false);
+      setQuickPasswordValue('');
+      setQuickPasswordError('');
+      setQuickLoginMode(quickPasswordTarget);
+    } else {
+      setQuickPasswordError('كلمة المرور غير صحيحة');
+    }
+  };
   
   const [testWorkers, setTestWorkers] = useState<QuickWorker[]>([]);
   const [realWorkers, setRealWorkers] = useState<QuickWorker[]>([]);
@@ -442,31 +461,9 @@ const LoginForm: React.FC = () => {
     );
   };
 
-  // Logo tap â†’ real workers
-  const handleLogoTap = () => {
-    const newCount = logoTapCount + 1;
-    setLogoTapCount(newCount);
-    if (logoTapTimer.current) clearTimeout(logoTapTimer.current);
-    if (newCount >= 3) {
-      setQuickLoginMode(prev => prev === 'real' ? 'none' : 'real');
-      setLogoTapCount(0);
-      return;
-    }
-    logoTapTimer.current = setTimeout(() => setLogoTapCount(0), 800);
-  };
+  const handleLogoTap = () => openQuickPassword('real');
+  const handleTitleTap = () => openQuickPassword('test');
 
-  // Title tap â†’ test workers
-  const handleTitleTap = () => {
-    const newCount = titleTapCount + 1;
-    setTitleTapCount(newCount);
-    if (titleTapTimer.current) clearTimeout(titleTapTimer.current);
-    if (newCount >= 3) {
-      setQuickLoginMode(prev => prev === 'test' ? 'none' : 'test');
-      setTitleTapCount(0);
-      return;
-    }
-    titleTapTimer.current = setTimeout(() => setTitleTapCount(0), 800);
-  };
 
   const doLogin = async (user: string, pass: string, isQuickLogin = false) => {
     setIsLoading(true);
@@ -595,6 +592,35 @@ const LoginForm: React.FC = () => {
               )}
             </Button>
           </form>
+
+      <Dialog open={quickPasswordOpen} onOpenChange={setQuickPasswordOpen}>
+        <DialogContent className="max-w-xs" dir={dir}>
+          <DialogHeader>
+            <DialogTitle className="text-center">كلمة مرور الدخول السريع</DialogTitle>
+            <DialogDescription className="text-center text-xs">
+              أدخل كلمة المرور لعرض نافذة الدخول السريع
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="password"
+              autoFocus
+              value={quickPasswordValue}
+              onChange={(e) => { setQuickPasswordValue(e.target.value); setQuickPasswordError(''); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitQuickPassword(); } }}
+              placeholder="••••••••"
+              className="h-11 text-center tracking-widest"
+            />
+            {quickPasswordError && (
+              <p className="text-xs text-destructive text-center">{quickPasswordError}</p>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setQuickPasswordOpen(false)}>إلغاء</Button>
+              <Button className="flex-1" onClick={submitQuickPassword} disabled={!quickPasswordValue}>دخول</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isQuickLoginOpen} onOpenChange={(open) => setQuickLoginMode(open ? quickLoginMode : 'none')}>
         <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-0 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]" dir={dir}>
