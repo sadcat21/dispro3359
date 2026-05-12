@@ -135,7 +135,7 @@ const LoadStock: React.FC = () => {
   const [viewSessionItems, setViewSessionItems] = useState<any[]>([]);
   const [viewReviewDiscrepancies, setViewReviewDiscrepancies] = useState<any[]>([]);
   const [isLoadingViewItems, setIsLoadingViewItems] = useState(false);
-  const [confirmFinalReviewId, setConfirmFinalReviewId] = useState<string | null>(null);
+  const [confirmFinalReview, setConfirmFinalReview] = useState<{ sessionId: string; stats: { match: number; deficit: number; surplus: number } } | null>(null);
   const [submittingFinalReview, setSubmittingFinalReview] = useState(false);
   // Session history filters
   const [historyDateFilter, setHistoryDateFilter] = useState<Date | undefined>(undefined);
@@ -2053,7 +2053,12 @@ const LoadStock: React.FC = () => {
                         ) : (
                           <Button
                             className="w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
-                            onClick={() => setConfirmFinalReviewId(session.id)}
+                            onClick={() => {
+                              const matchCount = viewSessionItems.length - viewReviewDiscrepancies.length;
+                              const deficitCount = viewReviewDiscrepancies.filter((d: any) => d.discrepancy_type === 'deficit').length;
+                              const surplusCount = viewReviewDiscrepancies.filter((d: any) => d.discrepancy_type === 'surplus').length;
+                              setConfirmFinalReview({ sessionId: session.id, stats: { match: Math.max(0, matchCount), deficit: deficitCount, surplus: surplusCount } });
+                            }}
                           >
                             <CheckCircle className="w-4 h-4 me-2" />
                             تقديم كمراجعة نهائية
@@ -2219,38 +2224,52 @@ const LoadStock: React.FC = () => {
       </Dialog>
 
       {/* Confirm Final Review submission */}
-      <Dialog open={!!confirmFinalReviewId} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReviewId(null); }}>
+      <Dialog open={!!confirmFinalReview} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReview(null); }}>
         <DialogContent className="max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
               تأكيد المراجعة النهائية
             </DialogTitle>
-            <DialogDescription className="text-start pt-2">
-              عند التأكيد، ستُسجَّل هذه المراجعة كنهائية وسيتم <strong>تجميد جميع حركات العامل</strong> (تحميل، تفريغ، بيع) حتى يتم إغلاق جلسة المحاسبة.
-              <br /><br />
-              هل أنت متأكد؟
+            <DialogDescription className="text-start pt-2 space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 px-2 py-2 text-center">
+                  <div className="text-[11px] text-emerald-700 dark:text-emerald-400">مطابق</div>
+                  <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{confirmFinalReview?.stats.match ?? 0}</div>
+                </div>
+                <div className="rounded-lg bg-destructive/10 border border-destructive/30 px-2 py-2 text-center">
+                  <div className="text-[11px] text-destructive">عجز</div>
+                  <div className="text-lg font-bold text-destructive">{confirmFinalReview?.stats.deficit ?? 0}</div>
+                </div>
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-300 px-2 py-2 text-center">
+                  <div className="text-[11px] text-orange-700 dark:text-orange-400">فائض</div>
+                  <div className="text-lg font-bold text-orange-700 dark:text-orange-400">{confirmFinalReview?.stats.surplus ?? 0}</div>
+                </div>
+              </div>
+              <div className="text-sm">
+                عند التأكيد، ستُسجَّل هذه المراجعة كنهائية وسيتم <strong>تجميد جميع حركات العامل</strong> (تحميل، تفريغ، بيع) حتى إغلاق جلسة المحاسبة.
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" disabled={submittingFinalReview} onClick={() => setConfirmFinalReviewId(null)}>
+            <Button variant="outline" disabled={submittingFinalReview} onClick={() => setConfirmFinalReview(null)}>
               إلغاء
             </Button>
             <Button
               className="bg-red-600 hover:bg-red-700 text-white"
               disabled={submittingFinalReview}
               onClick={async () => {
-                if (!confirmFinalReviewId) return;
+                if (!confirmFinalReview) return;
                 setSubmittingFinalReview(true);
                 try {
                   const { error } = await supabase
                     .from('loading_sessions')
                     .update({ is_final: true } as any)
-                    .eq('id', confirmFinalReviewId);
+                    .eq('id', confirmFinalReview.sessionId);
                   if (error) throw error;
                   toast.success('✅ تم تسجيل المراجعة النهائية — العامل مُجمَّد');
                   queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
-                  setConfirmFinalReviewId(null);
+                  setConfirmFinalReview(null);
                   setViewSessionId(null);
                 } catch (e: any) {
                   toast.error(e.message || 'خطأ في تسجيل المراجعة النهائية');
@@ -2490,7 +2509,9 @@ const LoadStock: React.FC = () => {
         open={showVerificationDialog}
         onOpenChange={setShowVerificationDialog}
         workerId={selectedWorker}
-        onComplete={async (sessionId) => {
+        onComplete={async (payload) => {
+          // Show the final review confirmation FIRST so it isn't lost behind the refetch re-render
+          if (payload) setConfirmFinalReview(payload);
           await Promise.all([
             refresh(),
             refetchSessions(),
@@ -2498,7 +2519,6 @@ const LoadStock: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] }),
             queryClient.invalidateQueries({ queryKey: ['worker-load-suggestions'] }),
           ]);
-          if (sessionId) setConfirmFinalReviewId(sessionId);
         }}
       />
       {selectedWorker && branchId && (
