@@ -633,7 +633,6 @@ const MyDeliveries: React.FC = () => {
     { value: 'all', label: t('deliveries.tab_all'), icon: ListFilter, color: 'text-foreground' },
     { value: 'pending', label: t('orders.pending'), icon: Clock, color: 'text-yellow-600' },
     { value: 'assigned', label: t('orders.assigned'), icon: UserCheck, color: 'text-blue-600' },
-    { value: 'in_progress', label: t('orders.in_progress'), icon: Truck, color: 'text-purple-600' },
     { value: 'delivered', label: t('orders.delivered'), icon: CheckCircle, color: 'text-green-600' },
     { value: 'cancelled', label: t('orders.cancelled'), icon: XCircle, color: 'text-red-600' },
   ];
