@@ -790,6 +790,7 @@ const WorkerActions: React.FC = () => {
       totalUnloaded,
       totalSold,
       totalGift,
+      ppb,
       loadCount: loadedItems.filter((item) => item.delta > 0).length,
       unloadCount: unloadItems.length,
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
@@ -1022,12 +1023,14 @@ const WorkerActions: React.FC = () => {
                       return ((a as any).product?.name || '').localeCompare((b as any).product?.name || '');
                     })
                     .map((item: any) => {
+                      const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 1);
                       const stats = truckMovementStats[item.product_id];
                       const loaded = stats?.loaded || 0;
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
-                      const totalAvailable = Number(item.quantity || 0) + unloaded + sold + giftQty;
+                      const currentQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+                      const totalAvailable = currentQty + unloaded + sold + giftQty;
                       const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
@@ -1061,7 +1064,7 @@ const WorkerActions: React.FC = () => {
                               <div className="flex items-start justify-between gap-2">
                                 <span className="font-medium text-sm truncate">{item.product?.name}</span>
                                 <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
-                                  {formatTruckQty(Number(item.quantity || 0))}
+                                  {formatTruckQty(currentQty, ppb)}
                                 </span>
                               </div>
                               <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -1072,31 +1075,31 @@ const WorkerActions: React.FC = () => {
                           <div className="mt-1 flex flex-wrap items-center gap-1.5 border-t pt-2 text-[10px]">
                             <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-semibold">
                               <Package className="w-3 h-3" />
-                              الباقي {formatTruckQty(Number(item.quantity || 0))}
+                              الباقي {formatTruckQty(currentQty, ppb)}
                             </span>
                             <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
                               <Package className="w-3 h-3" />
-                              المجموع {formatTruckQty(totalAvailable)}
+                              المجموع {formatTruckQty(totalAvailable, ppb)}
                             </span>
                             <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                               <TrendingUp className="w-3 h-3" />
-                              شحن {formatTruckQty(loaded)}
+                              شحن {formatTruckQty(loaded, ppb)}
                               {loadCount > 0 && <span className="font-bold">×{loadCount}</span>}
                             </span>
                             <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
                               <PackageOpen className="w-3 h-3" />
-                              تفريغ -{formatTruckQty(unloaded)}
+                              تفريغ -{formatTruckQty(unloaded, ppb)}
                               {unloadCount > 0 && <span className="font-bold">×{unloadCount}</span>}
                             </span>
                             <span className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">
                               <TrendingDown className="w-3 h-3" />
-                              مباع {formatTruckQty(sold)}
+                              مباع {formatTruckQty(sold, ppb)}
                               {saleCount > 0 && <span className="font-bold">×{saleCount}</span>}
                             </span>
                             {giftQty > 0 && (
                               <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full">
                                 <Gift className="w-3 h-3" />
-                                هدايا {formatTruckQty(giftQty)}
+                                هدايا {formatTruckQty(giftQty, ppb)}
                               </span>
                             )}
                           </div>
