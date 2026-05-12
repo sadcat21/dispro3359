@@ -230,6 +230,24 @@ const LoadStock: React.FC = () => {
 
   const { data: stockAlerts = [] } = useStockAlerts();
   const { data: suggestions = [], isLoading: suggestionsLoading } = useWorkerLoadSuggestions(selectedWorker || null);
+
+  // Frozen workers (cannot start a new session until accounting is closed)
+  const { data: frozenWorkerIds = [] } = useQuery({
+    queryKey: ['frozen-workers-load-stock', (workers || []).map((w: any) => w.id).join(',')],
+    queryFn: async () => {
+      const ids: string[] = [];
+      await Promise.all(
+        (workers || []).map(async (w: any) => {
+          const { data } = await supabase.rpc('is_worker_frozen', { _worker_id: w.id });
+          if (data === true) ids.push(w.id);
+        })
+      );
+      return ids;
+    },
+    enabled: (workers || []).length > 0,
+    refetchInterval: 5000,
+  });
+  const isSelectedWorkerFrozen = !!selectedWorker && frozenWorkerIds.includes(selectedWorker);
   
   const {
     sessions, createSession, addSessionItem, completeSession, deleteSession,
@@ -764,6 +782,11 @@ const LoadStock: React.FC = () => {
   const handleStartSession = async () => {
     if (startSessionLockRef.current || isStartingSession) return;
     if (!selectedWorker) { toast.error(t('stock.select_worker')); return; }
+    if (frozenWorkerIds.includes(selectedWorker)) {
+      window.alert('العامل مُجمّد بعد المراجعة النهائية — يجب إغلاق جلسة المحاسبة قبل أي حركة جديدة (تحميل/تفريغ/بيع)');
+      toast.error('العامل مُجمّد');
+      return;
+    }
     if (!hasReviewToday) {
       toast.error(t('load_stock.review_first'));
       setShowVerificationDialog(true);
@@ -2409,6 +2432,7 @@ const LoadStock: React.FC = () => {
         open={showWorkerPicker} onOpenChange={setShowWorkerPicker}
         workers={workers} selectedWorkerId={selectedWorker}
         onSelect={setSelectedWorker} stockAlerts={stockAlerts}
+        frozenWorkerIds={frozenWorkerIds}
       />
 
       {/* Post-confirmation dialog */}
