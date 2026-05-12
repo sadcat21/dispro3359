@@ -70,6 +70,7 @@ interface ReceiptDialogProps {
     nextCollectionTime?: string | null;
     customerSurplusAmount?: number;
     receiptTitleOverride?: string;
+    isWarehouseSale?: boolean;
     hidePaymentDetails?: boolean;
     showDebtTotalSummary?: boolean;
     showDebtPaidSummary?: boolean;
