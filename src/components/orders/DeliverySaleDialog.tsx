@@ -1683,6 +1683,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         initialCustomUnitPrice={editingInitialCustomUnitPrice}
         offerStage="worker_loading"
         customerTypes={getCustomerTypesArray(order.customer)}
+        onDelete={handleRemoveItem}
       />
 
       {/* Payment Dialog - Cash/Without Invoice */}
