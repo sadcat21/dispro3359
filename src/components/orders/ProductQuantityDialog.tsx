@@ -600,8 +600,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                         onFocus={(e) => e.target.select()}
                         className="h-11 text-center text-xl font-bold"
                         placeholder={String(0).padStart(pieceDigits, '0')}
-                        disabled={!isUnitSale}
-                        title={!isUnitSale ? 'القطع تتحدث تلقائياً عند تفعيل العرض' : ''}
                       />
                     </div>
                   </div>
