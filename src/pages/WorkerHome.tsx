@@ -693,7 +693,13 @@ const WorkerHome: React.FC = () => {
         onOpenChange={setShowLoadWorkerPicker}
         workers={loadWorkersList}
         selectedWorkerId=""
+        frozenWorkerIds={frozenWorkerIds}
         onSelect={(wId) => {
+          if (frozenWorkerIds.includes(wId)) {
+            window.alert('هذا العامل مجمّد. يجب فك التجميد عبر حفظ جلسة المحاسبة قبل المتابعة.');
+            toast.error('العامل مجمّد');
+            return;
+          }
           const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
           setShowLoadWorkerPicker(false);
           setWarehouseActionFor({ id: wId, name: w?.full_name || '' });
@@ -706,6 +712,12 @@ const WorkerHome: React.FC = () => {
         workerName={warehouseActionFor?.name}
         onSelect={(action: WarehouseAction) => {
           if (!warehouseActionFor) return;
+          if (frozenWorkerIds.includes(warehouseActionFor.id)) {
+            window.alert('هذا العامل مجمّد. يجب فك التجميد عبر حفظ جلسة المحاسبة قبل المتابعة.');
+            toast.error('العامل مجمّد');
+            setWarehouseActionFor(null);
+            return;
+          }
           setContextWorker(warehouseActionFor.id);
           const id = warehouseActionFor.id;
           setWarehouseActionFor(null);
@@ -719,6 +731,7 @@ const WorkerHome: React.FC = () => {
         onOpenChange={setShowFinalReviewPicker}
         workers={loadWorkersList}
         selectedWorkerId=""
+        frozenWorkerIds={frozenWorkerIds}
         onSelect={(wId) => {
           const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
           setFinalReviewWorker({ id: wId, name: w?.full_name || '' });
