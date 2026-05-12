@@ -186,7 +186,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor;
   const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
-  const directSaleLabel = isWarehouseManager ? 'بيع من المخزن' : 'بيع مباشر';
+  const directSaleLabel = isWarehouseManager ? 'Vente Dépôt' : 'Vente Directe';
   const todayName = JS_DAY_TO_NAME[new Date().getDay()] || '';
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [selectedCustomDate, setSelectedCustomDate] = useState<Date | undefined>(undefined);
