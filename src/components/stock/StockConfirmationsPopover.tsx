@@ -768,7 +768,7 @@ const StockConfirmationsPopover: React.FC = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={handleDeleteAllLogs}
+                      onClick={() => setConfirmDeleteAllOpen(true)}
                       disabled={isDeletingAll}
                       className="h-7 text-[11px] gap-1"
                     >
