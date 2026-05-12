@@ -275,6 +275,8 @@ export const useDeleteSession = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
     },
   });
 };
