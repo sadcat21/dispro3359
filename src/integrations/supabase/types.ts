@@ -4117,6 +4117,7 @@ export type Database = {
       }
       product_offers: {
         Row: {
+          auto_fill_quantities: boolean
           branch_id: string | null
           condition_type: string
           created_at: string
@@ -4133,6 +4134,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_auto_apply: boolean
+          is_mandatory: boolean
           is_stackable: boolean
           max_quantity: number | null
           min_quantity: number
@@ -4140,12 +4142,14 @@ export type Database = {
           name: string
           priority: number
           product_id: string
+          scope_stages: string[]
           start_date: string | null
           updated_at: string
           worker_reward_amount: number | null
           worker_reward_type: string | null
         }
         Insert: {
+          auto_fill_quantities?: boolean
           branch_id?: string | null
           condition_type?: string
           created_at?: string
@@ -4162,6 +4166,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_auto_apply?: boolean
+          is_mandatory?: boolean
           is_stackable?: boolean
           max_quantity?: number | null
           min_quantity?: number
@@ -4169,12 +4174,14 @@ export type Database = {
           name: string
           priority?: number
           product_id: string
+          scope_stages?: string[]
           start_date?: string | null
           updated_at?: string
           worker_reward_amount?: number | null
           worker_reward_type?: string | null
         }
         Update: {
+          auto_fill_quantities?: boolean
           branch_id?: string | null
           condition_type?: string
           created_at?: string
@@ -4191,6 +4198,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_auto_apply?: boolean
+          is_mandatory?: boolean
           is_stackable?: boolean
           max_quantity?: number | null
           min_quantity?: number
@@ -4198,6 +4206,7 @@ export type Database = {
           name?: string
           priority?: number
           product_id?: string
+          scope_stages?: string[]
           start_date?: string | null
           updated_at?: string
           worker_reward_amount?: number | null

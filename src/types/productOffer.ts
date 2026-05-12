@@ -77,6 +77,11 @@ export interface ProductOffer {
   
   // Branch scope
   branch_id: string | null;
+
+  // Scope stages (where this offer can be interacted with)
+  scope_stages?: string[]; // 'worker_loading' | 'order_creation' | 'direct_sale' | 'warehouse_sale'
+  auto_fill_quantities?: boolean; // when true, clicking activate fills quantities automatically
+  is_mandatory?: boolean; // when true, action cannot complete without activating this offer
   
   // Audit
   created_by: string | null;
