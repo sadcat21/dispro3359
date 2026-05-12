@@ -461,8 +461,28 @@ const LoginForm: React.FC = () => {
     );
   };
 
-  const handleLogoTap = () => openQuickPassword('real');
-  const handleTitleTap = () => openQuickPassword('test');
+  const logoTapCountRef = useRef(0);
+  const logoTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const titleTapCountRef = useRef(0);
+  const titleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTripleTap = (
+    countRef: React.MutableRefObject<number>,
+    timerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+    target: 'test' | 'real',
+  ) => {
+    countRef.current += 1;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (countRef.current >= 3) {
+      countRef.current = 0;
+      openQuickPassword(target);
+      return;
+    }
+    timerRef.current = setTimeout(() => { countRef.current = 0; }, 800);
+  };
+
+  const handleLogoTap = () => handleTripleTap(logoTapCountRef, logoTapTimerRef, 'real');
+  const handleTitleTap = () => handleTripleTap(titleTapCountRef, titleTapTimerRef, 'test');
 
 
   const doLogin = async (user: string, pass: string, isQuickLogin = false) => {
