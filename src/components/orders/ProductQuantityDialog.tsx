@@ -390,52 +390,45 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase">
                     {product.name || getProductDisplayName(product)}
                   </h3>
-                  <div className="grid grid-cols-5 w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center">
-                    {/* Row 1: values */}
-                    <div className="@container px-1 py-1 bg-foreground text-background border-b border-r border-border/40 overflow-hidden">
+                  <div className="grid grid-cols-5 w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40">
+                    {/* Col 1: DA/PCS */}
+                    <div className="@container px-1 py-1 bg-foreground text-background overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {selectedPiecePrice > 0 ? <>{selectedPiecePrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></> : '—'}
                       </div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide opacity-70">PCS</div>
                     </div>
-                    <div className="@container px-1 py-1 bg-destructive/10 border-b border-r border-border/40 overflow-hidden">
+                    {/* Col 2: PCS/BOX */}
+                    <div className="@container px-1 py-1 bg-destructive/10 overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-destructive leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {product.pieces_per_box > 0 ? <>{product.pieces_per_box} <span className="opacity-80">PCS</span></> : '—'}
                       </div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-destructive/70">BOX</div>
                     </div>
-                    <div className="@container px-1.5 py-1 bg-foreground text-background border-b border-r border-border/40 overflow-hidden">
+                    {/* Col 3: DA/BOX */}
+                    <div className="@container px-1.5 py-1 bg-foreground text-background overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(8px, 22cqw, 15px)' }}>
                         {displayPrice > 0 ? <>{displayPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></> : '—'}
                       </div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide opacity-70">BOX</div>
                     </div>
-                    <div className="@container px-1 py-1 border-b border-r border-border/40 overflow-hidden">
+                    {/* Col 4: KG/BOX */}
+                    <div className="@container px-1 py-1 bg-card overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold text-foreground leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {pricingUnit !== 'box' && (product.weight_per_box || 0) > 0
                           ? <>{(product.weight_per_box || 0).toLocaleString()} <span className="opacity-70">{pricingUnitLabel}</span></>
                           : '—'}
                       </div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
                     </div>
-                    <div className="@container px-1 py-1 bg-foreground text-background border-b border-border/40 overflow-hidden">
+                    {/* Col 5: DA/KG */}
+                    <div className="@container px-1 py-1 bg-foreground text-background overflow-hidden flex flex-col items-center justify-center gap-0.5">
                       <div className="font-extrabold leading-tight whitespace-nowrap" style={{ fontSize: 'clamp(7px, 22cqw, 13px)' }}>
                         {pricingUnit !== 'box' && selectedPricingUnitPrice > 0
                           ? <>{selectedPricingUnitPrice.toLocaleString()} <span className="opacity-70">{t('common.currency')}</span></>
                           : '—'}
                       </div>
-                    </div>
-                    {/* Row 2: labels */}
-                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">PCS</div>
-                    </div>
-                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
-                    </div>
-                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
-                    </div>
-                    <div className="px-1 py-1 bg-muted/40 border-r border-border/40 flex items-center justify-center">
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">BOX</div>
-                    </div>
-                    <div className="px-1 py-1 bg-muted/40 flex items-center justify-center">
-                      <div className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{pricingUnitLabel}</div>
+                      <div className="text-[9px] font-bold uppercase tracking-wide opacity-70">{pricingUnitLabel}</div>
                     </div>
                   </div>
                 </div>
