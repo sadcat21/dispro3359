@@ -139,7 +139,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   const quantity = isUnitSale ? (parseInt(unitQuantityInput) || 0) : Math.floor(Math.max(0, paidQuantity));
   const customUnitPriceValue = Number(customUnitPriceInput || 0);
-  const hasCustomUnitPrice = Number.isFinite(customUnitPriceValue) && customUnitPriceValue > 0;
+  const hasCustomUnitPrice = customUnitPriceInput !== '' && Number.isFinite(customUnitPriceValue) && customUnitPriceValue >= 0;
   const pricingUnit = product?.pricing_unit || 'box';
   const safePiecesPerBox = product?.pieces_per_box || 1;
   const safeWeightPerBox = product?.weight_per_box || 1;
