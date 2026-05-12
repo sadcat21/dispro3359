@@ -1912,12 +1912,18 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                               <Badge className="bg-green-100 text-green-800 text-[10px]">{dialogText.newItem}</Badge>
                             )}
                           </div>
-                          {displayUnitPrice > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              {displayUnitPrice.toLocaleString()} DA x {paidQty} = {(displayUnitPrice * paidQty).toLocaleString()} DA
-                              {(item.gift_quantity || 0) > 0 ? ` (${paidQty} + ${item.gift_quantity} gift = ${item.new_quantity})` : ''}
-                            </p>
-                          )}
+                          {displayUnitPrice > 0 && (() => {
+                            const ppb = product?.pieces_per_box || 1;
+                            const paidDisplay = item.is_unit_sale ? String(paidQty) : boxesToBP(paidQty, ppb);
+                            const giftDisplay = item.is_unit_sale ? String(item.gift_quantity || 0) : boxesToBP(Number(item.gift_quantity || 0), ppb);
+                            const totalDisplay = item.is_unit_sale ? String(item.new_quantity) : boxesToBP(Number(item.new_quantity || 0), ppb);
+                            return (
+                              <p className="text-xs text-muted-foreground">
+                                {displayUnitPrice.toLocaleString()} DA x {paidDisplay} = {(displayUnitPrice * paidQty).toLocaleString()} DA
+                                {(item.gift_quantity || 0) > 0 ? ` (${paidDisplay} + ${giftDisplay} gift = ${totalDisplay})` : ''}
+                              </p>
+                            );
+                          })()}
                         </div>
                         <Button
                           type="button"
