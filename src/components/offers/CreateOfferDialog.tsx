@@ -108,6 +108,9 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         is_active: editOffer.is_active,
         priority: editOffer.priority,
         branch_id: editOffer.branch_id,
+        scope_stages: (editOffer as any).scope_stages || ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
+        auto_fill_quantities: (editOffer as any).auto_fill_quantities ?? true,
+        is_mandatory: (editOffer as any).is_mandatory ?? false,
       });
       
       // Load existing tiers or use legacy single tier
