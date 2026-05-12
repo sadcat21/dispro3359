@@ -636,7 +636,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     placeholder="0"
                   />
                 ) : (
-                  <div className="grid grid-cols-2 gap-2 w-[14rem]">
+                  <div dir="ltr" className="grid grid-cols-2 gap-2 w-[14rem]">
                     <div className="flex items-stretch h-11 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
                       <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                       <Input
