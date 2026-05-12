@@ -116,7 +116,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 }) => {
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
-  const invoiceSaleAllowed = (product as any)?.allow_invoice_sale !== false;
+  const invoiceSaleAllowed = product?.allow_invoice_sale !== false;
   const piecesPerBox = product?.pieces_per_box || 1;
   const pieceDigits = getPieceDigits(piecesPerBox);
   const [unitQuantityInput, setUnitQuantityInput] = useState(String(initialQuantity));
@@ -180,8 +180,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     switch (itemPriceSubType) {
       case 'super_gros':
         return Number(product.price_super_gros || product.price_no_invoice || 0);
-      case 'retail':
-        return Number(product.price_retail || 0);
       case 'retail':
         return Number(product.price_retail || product.price_no_invoice || 0);
       default:
