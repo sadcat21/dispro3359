@@ -621,11 +621,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              {!isUnitSale && (
-                <p className="text-center text-[10px] text-muted-foreground">
-                  {offerApplied ? totalQuantityDisplay : baseQuantityDisplay}
-                </p>
-              )}
             </div>
 
             {/* Offer badge moved to header */}
