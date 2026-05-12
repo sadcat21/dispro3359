@@ -379,6 +379,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       setSaleItems([]);
       setNotes('');
       setInitializedItemsKey(null);
+      setBaselineKey(null);
       setNewProductId('');
       setPartialDeliveryAction('none');
       setUseCreditBalance(false);
