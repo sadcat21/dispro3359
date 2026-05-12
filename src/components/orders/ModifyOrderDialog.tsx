@@ -849,6 +849,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
   const handleSaveClick = async () => {
     if (!hasChanges || !workerId) return;
+    const activeItems = items.filter((it: any) => Number(it.quantity || 0) > 0 || Number(it.pieces || 0) > 0);
+    if (activeItems.length === 0) {
+      window.alert(t('orders.add_products_error'));
+      toast.error(t('orders.add_products_error'));
+      return;
+    }
     if (isSold && Math.abs(orderTotal - originalTotal) > 0.009) {
       await loadCustomerFinancialContext();
       setConfirmMode('adjustment');
