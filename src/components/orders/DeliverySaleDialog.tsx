@@ -175,7 +175,31 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     enabled: open,
   });
 
-  const shortageProductIds = shortageProducts || new Set<string>();
+  const { data: branchAvailableProductIds } = useQuery({
+    queryKey: ['delivery-branch-available-products', effectiveBranchId],
+    queryFn: async () => {
+      if (!effectiveBranchId) return new Set<string>();
+      const { data, error } = await supabase
+        .from('warehouse_stock')
+        .select('product_id, quantity')
+        .eq('branch_id', effectiveBranchId)
+        .gt('quantity', 0);
+      if (error) throw error;
+      return new Set((data || []).map(row => row.product_id));
+    },
+    enabled: open && !!effectiveBranchId,
+  });
+
+  const shortageProductIds = useMemo(() => {
+    const ids = new Set(shortageProducts || []);
+    for (const stockItem of stockItems || []) {
+      if ((Number(stockItem.quantity) || 0) > 0) ids.delete(stockItem.product_id);
+    }
+    for (const productId of branchAvailableProductIds || []) {
+      ids.delete(productId);
+    }
+    return ids;
+  }, [shortageProducts, stockItems, branchAvailableProductIds]);
 
   // All active products for adding new ones
   const [allProducts, setAllProducts] = useState<Product[]>([]);
