@@ -355,7 +355,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const handleQuantityFieldChange = (field: keyof QuantityFields, value: string) => {
     const nextFields = {
       ...quantityFields,
-      [field]: sanitizeDigits(value, field === 'boxes' ? 5 : pieceDigits),
+      [field]: sanitizeDigits(value, 6),
     };
 
     setQuantityFields(nextFields);
