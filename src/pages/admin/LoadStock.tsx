@@ -782,6 +782,11 @@ const LoadStock: React.FC = () => {
   const handleStartSession = async () => {
     if (startSessionLockRef.current || isStartingSession) return;
     if (!selectedWorker) { toast.error(t('stock.select_worker')); return; }
+    if (frozenWorkerIds.includes(selectedWorker)) {
+      window.alert('العامل مُجمّد بعد المراجعة النهائية — يجب إغلاق جلسة المحاسبة قبل أي حركة جديدة (تحميل/تفريغ/بيع)');
+      toast.error('العامل مُجمّد');
+      return;
+    }
     if (!hasReviewToday) {
       toast.error(t('load_stock.review_first'));
       setShowVerificationDialog(true);
