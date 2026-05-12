@@ -435,7 +435,7 @@ const WorkerHome: React.FC = () => {
           if (isWarehouseManager) {
             quickActions.push({ key: 'stock-management', icon: <Warehouse className="w-6 h-6" />, label: t('worker_home.stock_management'), onClick: () => setShowStockManagement(true) });
             quickActions.push({ key: 'load-worker', icon: <ArrowDownToLine className="w-6 h-6" />, label: t('worker_home.load_worker'), onClick: () => setShowLoadWorkerPicker(true) });
-            quickActions.push({ key: 'final-review', icon: <ClipboardCheck className="w-6 h-6" />, label: 'المراجعة النهائية', onClick: () => setShowFinalReviewPicker(true) });
+            // إخفاء زر "المراجعة النهائية" من الواجهة الرئيسية لمسؤول المخزن بناءً على طلب المستخدم
             quickActions.push({ key: 'replace-damaged', icon: <Package className="w-6 h-6" />, label: 'استبدال التالف', onClick: () => setShowReplaceDamaged(true) });
             quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.order_tracking'), onClick: () => navigate('/order-tracking') });
           }

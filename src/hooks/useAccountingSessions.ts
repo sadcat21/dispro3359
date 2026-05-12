@@ -141,6 +141,9 @@ export const useCreateSession = () => {
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['session-items'] });
     },
   });
 };
@@ -162,6 +165,9 @@ export const useUpdateSessionStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
     },
   });
 };
@@ -224,6 +230,10 @@ export const useUpdateFullSession = () => {
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-treasury'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
     },
   });
 };
@@ -247,6 +257,8 @@ export const useCancelSession = () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
     },
   });
 };
@@ -263,6 +275,8 @@ export const useDeleteSession = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
     },
   });
 };
