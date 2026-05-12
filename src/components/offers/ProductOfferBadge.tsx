@@ -17,6 +17,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import { supabase } from '@/integrations/supabase/client';
 import { filterCurrentlyActiveOffers, getProductOfferLookupKey } from '@/utils/productOffers';
+import { isOfferActiveInStage, OfferScopeStage } from '@/constants/offerScope';
+import { Button } from '@/components/ui/button';
 import { format, differenceInDays } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -26,8 +28,10 @@ interface ProductOfferBadgeProps {
   quantity: number;
   piecesPerBox?: number;
   customerTypes?: string[] | null;
+  stage?: OfferScopeStage;
   onGiftCalculated?: (giftPieces: number, offerId?: string) => void;
   onOffersLoadingChange?: (isLoading: boolean) => void;
+  onMandatoryUnactivatedChange?: (hasBlocking: boolean) => void;
   prefetchedOffers?: ProductOfferWithDetails[];
   onPrefetchOffers?: (productId: string, customerTypes?: string[] | null) => Promise<ProductOfferWithDetails[]>;
 }
@@ -105,8 +109,10 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   quantity, 
   piecesPerBox = 1,
   customerTypes,
+  stage = 'order_creation',
   onGiftCalculated,
   onOffersLoadingChange,
+  onMandatoryUnactivatedChange,
   prefetchedOffers,
   onPrefetchOffers,
 }) => {
@@ -117,6 +123,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
   const [selectedOffer, setSelectedOffer] = useState<ProductOfferWithDetails | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activatedOfferIds, setActivatedOfferIds] = useState<Set<string>>(new Set());
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
 
@@ -232,24 +239,27 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     return timesApplied * giftPerThreshold;
   };
 
+  // Filter offers by current stage scope
+  const stageOffers = offers.filter(offer => isOfferActiveInStage(offer as any, stage));
+
   // Find applicable offers based on quantity (using tiers or offer-level)
-  const applicableOffers = offers.filter(offer => {
+  const applicableOffers = stageOffers.filter(offer => {
     const tiers = offer.tiers && offer.tiers.length > 0 ? offer.tiers : null;
     if (tiers) {
-      // For multiplier: applicable if qty >= lowest tier min_quantity
       const lowestMin = Math.min(...tiers.map(t => t.min_quantity));
       return quantity >= lowestMin;
     }
     return quantity >= offer.min_quantity && (offer.max_quantity === null || quantity <= offer.max_quantity);
   });
 
-  // Calculate total gift pieces from all applicable offers
+  // Total gift pieces — only counts offers the user has explicitly activated AND that auto-fill
   const totalGiftPieces = applicableOffers.reduce((total, offer) => {
+    if (!activatedOfferIds.has(offer.id)) return total;
+    if ((offer as any).auto_fill_quantities === false) return total;
     return total + calculateGiftPieces(offer, quantity);
   }, 0);
 
-  // Find the primary applicable offer ID
-  const primaryOfferId = applicableOffers.length > 0 ? applicableOffers[0].id : undefined;
+  const primaryOfferId = applicableOffers.find(o => activatedOfferIds.has(o.id))?.id;
 
   // Notify parent of gift calculation
   useEffect(() => {
@@ -257,6 +267,23 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
       onGiftCalculated(totalGiftPieces, primaryOfferId);
     }
   }, [totalGiftPieces, primaryOfferId, onGiftCalculated]);
+
+  // Notify parent when a mandatory offer is applicable but not activated (blocks save)
+  useEffect(() => {
+    const hasBlocking = applicableOffers.some(
+      o => (o as any).is_mandatory === true && !activatedOfferIds.has(o.id)
+    );
+    onMandatoryUnactivatedChange?.(hasBlocking);
+  }, [applicableOffers, activatedOfferIds, onMandatoryUnactivatedChange]);
+
+  const toggleActivation = (offerId: string) => {
+    setActivatedOfferIds(prev => {
+      const next = new Set(prev);
+      if (next.has(offerId)) next.delete(offerId);
+      else next.add(offerId);
+      return next;
+    });
+  };
 
   const handleOfferClick = (offer: ProductOfferWithDetails) => {
     setSelectedOffer(offer);
@@ -271,7 +298,7 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     );
   }
 
-  if (offers.length === 0) {
+  if (stageOffers.length === 0) {
     return null;
   }
 
@@ -344,6 +371,31 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
             </div>
           </div>
         </div>
+
+        {isApplicable && (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background border-t">
+            <div className="text-[10px] font-bold">
+              {(offer as any).is_mandatory && (
+                <span className="text-destructive">★ تفعيل إجباري</span>
+              )}
+              {(offer as any).auto_fill_quantities === false && (
+                <span className="text-muted-foreground"> · إدخال يدوي</span>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant={activatedOfferIds.has(offer.id) ? 'secondary' : 'default'}
+              className="h-6 px-2 text-[10px]"
+              onClick={(e) => { e.stopPropagation(); toggleActivation(offer.id); }}
+            >
+              {activatedOfferIds.has(offer.id) ? (
+                <><Check className="w-3 h-3 mr-1" /> مفعّل</>
+              ) : (
+                'تفعيل العرض'
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     );
   };
@@ -352,10 +404,10 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     <>
       <div className="space-y-2 mt-3">
         {/* Show first offer always */}
-        {offers.length > 0 && renderOfferCard(offers[0])}
+        {stageOffers.length > 0 && renderOfferCard(stageOffers[0])}
         
         {/* If more than one offer, show collapsible for the rest */}
-        {offers.length > 1 && (
+        {stageOffers.length > 1 && (
           <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
             <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
               {isExpanded ? (
@@ -366,12 +418,12 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
               ) : (
                 <>
                   <ChevronDown className="w-4 h-4" />
-                  {t('offers.show_other_tiers')} ({offers.length - 1})
+                  {t('offers.show_other_tiers')} ({stageOffers.length - 1})
                 </>
               )}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
-              {offers.slice(1).map(renderOfferCard)}
+              {stageOffers.slice(1).map(renderOfferCard)}
             </CollapsibleContent>
           </Collapsible>
         )}

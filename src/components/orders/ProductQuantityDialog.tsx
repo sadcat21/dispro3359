@@ -136,6 +136,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
   const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
   const [offersLoading, setOffersLoading] = useState(false);
+  const [mandatoryOfferUnactivated, setMandatoryOfferUnactivated] = useState(false);
   const safeT = useCallback((key: string, fallback: string) => {
     const value = t(key);
     return value && value !== key ? value : fallback;
@@ -453,7 +454,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           </DialogHeader>
           {!isUnitSale && (
             <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
-              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage="order_creation" onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
             </div>
           )}
           {!isUnitSale && !offerApplied && giftPieces > 0 && (
@@ -777,10 +778,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         </Dialog>
 
         <div className="sticky bottom-0 border-t border-border bg-background px-6 py-3 flex flex-row gap-2">
-          <Button className="flex-1" onClick={handleConfirm} disabled={offerCheckPending || hasUnappliedOffer}>
+          <Button className="flex-1" onClick={handleConfirm} disabled={offerCheckPending || hasUnappliedOffer || mandatoryOfferUnactivated}>
             <Plus className="w-4 h-4 ms-2" />
             {offerCheckPending
               ? (safeT('common.loading', 'جاري التحقق من العرض...'))
+              : mandatoryOfferUnactivated
+              ? 'يجب تفعيل العرض الإجباري'
               : hasUnappliedOffer
               ? (t('offers.must_apply_offer') || 'يجب تفعيل العرض أولاً')
               : (mode === 'edit' ? (t('orders.update_item') || 'تحديث المنتج') : t('orders.add_to_order'))}
