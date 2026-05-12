@@ -43,6 +43,29 @@ interface QuantityFields {
 
 const sanitizeDigits = (value: string, maxDigits: number) => value.replace(/\D/g, '').slice(0, maxDigits);
 
+/**
+ * Format a price as: <integer>.<small-decimal> DA
+ * The decimal portion renders thinner and smaller than the integer portion.
+ * Currency "DA" always appears to the right of the amount (LTR direction).
+ */
+const PriceDA: React.FC<{ value: number; maximumFractionDigits?: number }> = ({ value, maximumFractionDigits = 3 }) => {
+  if (!Number.isFinite(value)) return <>—</>;
+  const formatted = value.toLocaleString(undefined, { maximumFractionDigits });
+  const sepIndex = Math.max(formatted.lastIndexOf('.'), formatted.lastIndexOf(','));
+  const intPart = sepIndex >= 0 ? formatted.slice(0, sepIndex) : formatted;
+  const sep = sepIndex >= 0 ? formatted[sepIndex] : '';
+  const decPart = sepIndex >= 0 ? formatted.slice(sepIndex + 1) : '';
+  return (
+    <span dir="ltr" className="inline-flex items-baseline gap-0.5 whitespace-nowrap">
+      <span>{intPart}</span>
+      {decPart && (
+        <span className="font-light opacity-80" style={{ fontSize: '0.7em' }}>{sep}{decPart}</span>
+      )}
+      <span className="font-semibold opacity-70" style={{ fontSize: '0.75em' }}>&nbsp;DA</span>
+    </span>
+  );
+};
+
 const getPieceDigits = (piecesPerBox: number) => Math.max(2, String(Math.max(0, piecesPerBox - 1)).length);
 
 const quantityToFields = (quantity: number, piecesPerBox: number, allowEmpty = false): QuantityFields => {
