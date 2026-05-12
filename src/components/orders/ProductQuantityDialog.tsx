@@ -387,7 +387,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             <DialogTitle asChild>
               <div dir="ltr" className="flex items-stretch gap-3 text-start">
                 <div className="flex-1 min-w-0 space-y-2">
-                  <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase">
+                  <h3 className="font-extrabold text-base text-foreground tracking-tight leading-tight truncate uppercase text-center px-10">
                     {product.name || getProductDisplayName(product)}
                   </h3>
                   <div className="grid grid-cols-5 w-full rounded-lg overflow-hidden ring-1 ring-border bg-card shadow-sm text-center divide-x divide-border/40">
