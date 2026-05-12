@@ -135,7 +135,7 @@ const LoadStock: React.FC = () => {
   const [viewSessionItems, setViewSessionItems] = useState<any[]>([]);
   const [viewReviewDiscrepancies, setViewReviewDiscrepancies] = useState<any[]>([]);
   const [isLoadingViewItems, setIsLoadingViewItems] = useState(false);
-  const [confirmFinalReviewId, setConfirmFinalReviewId] = useState<string | null>(null);
+  const [confirmFinalReview, setConfirmFinalReview] = useState<{ sessionId: string; stats: { match: number; deficit: number; surplus: number } } | null>(null);
   const [submittingFinalReview, setSubmittingFinalReview] = useState(false);
   // Session history filters
   const [historyDateFilter, setHistoryDateFilter] = useState<Date | undefined>(undefined);
