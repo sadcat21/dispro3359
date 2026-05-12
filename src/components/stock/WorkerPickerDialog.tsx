@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { User, AlertTriangle, CheckCircle } from 'lucide-react';
+import { User, AlertTriangle, CheckCircle, Snowflake } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WorkerOption {
@@ -17,6 +17,7 @@ interface WorkerPickerDialogProps {
   selectedWorkerId: string;
   onSelect: (workerId: string) => void;
   stockAlerts?: { worker_id: string; deficit: number }[];
+  frozenWorkerIds?: string[];
 }
 
 const AVATAR_COLORS = [
@@ -49,6 +50,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
   selectedWorkerId,
   onSelect,
   stockAlerts = [],
+  frozenWorkerIds = [],
 }) => {
   const { t } = useLanguage();
 
@@ -73,32 +75,46 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
             {workers.map(w => {
               const deficit = getWorkerDeficit(w.id);
               const isSelected = w.id === selectedWorkerId;
+              const isFrozen = frozenWorkerIds.includes(w.id);
               const colorClass = AVATAR_COLORS[getColorIndex(w.id)];
               return (
                 <button
                   key={w.id}
+                  disabled={isFrozen}
                   className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5
-                    ${isSelected
+                    ${isFrozen
+                      ? 'bg-sky-50 dark:bg-sky-950/30 border-sky-300 opacity-80 cursor-not-allowed'
+                      : isSelected
                       ? 'bg-primary/10 border-primary ring-2 ring-primary/30 shadow-primary/20'
                       : 'border-border/60 hover:border-primary/40 bg-card'
                     }
                   `}
                   onClick={() => {
+                    if (isFrozen) return;
                     onSelect(w.id);
                     onOpenChange(false);
-                    
                   }}
                 >
-                  {isSelected && (
+                  {isSelected && !isFrozen && (
                     <div className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow">
                       <CheckCircle className="w-3.5 h-3.5 text-primary-foreground" />
                     </div>
                   )}
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:scale-105 transition-transform`}>
+                  {isFrozen && (
+                    <div className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center shadow">
+                      <Snowflake className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  )}
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:scale-105 transition-transform ${isFrozen ? 'grayscale' : ''}`}>
                     {getInitials(w.full_name)}
                   </div>
                   <div className="font-semibold text-xs leading-tight truncate w-full text-foreground">{w.full_name}</div>
-                  {deficit > 0 ? (
+                  {isFrozen ? (
+                    <Badge className="text-[10px] px-1.5 py-0 bg-sky-500 text-white border-sky-600">
+                      <Snowflake className="w-3 h-3 me-0.5" />
+                      مجمّد
+                    </Badge>
+                  ) : deficit > 0 ? (
                     <Badge variant="destructive" className="text-[10px] px-1.5 py-0 animate-pulse">
                       <AlertTriangle className="w-3 h-3 me-0.5" />
                       {deficit}

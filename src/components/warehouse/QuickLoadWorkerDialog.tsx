@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { Product } from '@/types/database';
 import { WarehouseStockItem } from '@/hooks/useWarehouseStock';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface QuantityFields {
   boxes: string;
@@ -84,6 +85,32 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
       });
   }, [open, products]);
 
+  // Fetch frozen worker IDs while dialog is open
+  const { data: frozenWorkerIds = [] } = useQuery({
+    queryKey: ['frozen-workers', open, workers.map(w => w.id).join(',')],
+    queryFn: async () => {
+      const ids: string[] = [];
+      await Promise.all(
+        workers.map(async (w) => {
+          const { data } = await supabase.rpc('is_worker_frozen', { _worker_id: w.id });
+          if (data === true) ids.push(w.id);
+        })
+      );
+      return ids;
+    },
+    enabled: open && workers.length > 0,
+    refetchInterval: open ? 5000 : false,
+  });
+
+  // If currently selected worker becomes frozen, clear and notify
+  useEffect(() => {
+    if (selectedWorker && frozenWorkerIds.includes(selectedWorker)) {
+      setSelectedWorker('');
+      setShowConfirm(false);
+      window.alert('تم تجميد العامل — تم إلغاء عملية الشحن. أكمل حفظ جلسة المحاسبة لفك التجميد.');
+    }
+  }, [frozenWorkerIds, selectedWorker]);
+
   const getPPB = (productId: string) => productsInfo[productId] || 1;
 
   const addItem = () => setItems(prev => [...prev, { product_id: '', quantity: 0, fields: { boxes: '', pieces: '' } }]);
@@ -128,6 +155,12 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
     if (saveLockRef.current || isSaving) return;
     if (!selectedWorker) {
       toast.error('اختر العامل أولاً');
+      return;
+    }
+    if (frozenWorkerIds.includes(selectedWorker)) {
+      window.alert('العامل مجمّد — لا يمكن الشحن حتى يتم فك التجميد عبر حفظ جلسة المحاسبة');
+      toast.error('العامل مجمّد');
+      setSelectedWorker('');
       return;
     }
     if (validItemsForConfirm.length === 0) {
@@ -299,6 +332,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
         workers={workers.map(w => ({ id: w.id, full_name: w.full_name, username: w.username }))}
         selectedWorkerId={selectedWorker}
         onSelect={setSelectedWorker}
+        frozenWorkerIds={frozenWorkerIds}
       />
 
       <SimpleProductPickerDialog
