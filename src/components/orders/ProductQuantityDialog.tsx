@@ -674,12 +674,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
             {/* Offer badge moved to header */}
 
-            {!isUnitSale && offerApplied && (appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
+            {!isUnitSale && offerApplied && (manualGiftMode || appliedGiftBoxes > 0 || appliedGiftPieces > 0) && (
               <div className="rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-900/20 p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-green-700 dark:text-green-300 text-xs font-bold">
                     <Gift className="w-4 h-4" />
-                    <span>برومو</span>
+                    <span>برومو {manualGiftMode ? '· إدخال يدوي' : ''}</span>
                   </div>
                   <Button
                     type="button"
@@ -689,6 +689,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     onClick={() => {
                       setOfferApplied(false);
                       setGiftPieces(0);
+                      setManualGiftMode(false);
+                      setGiftFields({ boxes: '', pieces: '' });
                     }}
                   >
                     إلغاء العرض
@@ -699,17 +701,25 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-destructive text-destructive-foreground tracking-wide">BOX</span>
                     <Input
                       type="text"
-                      readOnly
-                      value={String(appliedGiftBoxes)}
+                      inputMode="numeric"
+                      readOnly={!manualGiftMode}
+                      value={manualGiftMode ? giftFields.boxes : String(appliedGiftBoxes)}
+                      onChange={(e) => handleGiftFieldChange('boxes', e.target.value)}
+                      onFocus={(e) => e.target.select()}
                       className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                      placeholder="0"
                     />
                   </div>
                   <div className="flex items-stretch h-10 rounded-md border-2 border-foreground bg-background overflow-hidden">
                     <Input
                       type="text"
-                      readOnly
-                      value={String(giftRemainingPieces).padStart(pieceDigits, '0')}
+                      inputMode="numeric"
+                      readOnly={!manualGiftMode}
+                      value={manualGiftMode ? giftFields.pieces : String(giftRemainingPieces).padStart(pieceDigits, '0')}
+                      onChange={(e) => handleGiftFieldChange('pieces', e.target.value)}
+                      onFocus={(e) => e.target.select()}
                       className="flex-1 h-full border-0 rounded-none text-center text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                      placeholder={String(0).padStart(pieceDigits, '0')}
                     />
                     <span className="flex items-center justify-center px-2 text-[10px] font-bold bg-foreground text-background tracking-wide">PCS</span>
                   </div>
