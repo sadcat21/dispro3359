@@ -368,19 +368,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
   };
 
-  if (!product) return null;
-
-  const giftBoxes = product.pieces_per_box > 0 ? Math.floor(giftPieces / product.pieces_per_box) : 0;
-  const giftRemainingPieces = product.pieces_per_box > 0 ? giftPieces % product.pieces_per_box : 0;
-  const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
-  const appliedGiftPieces = offerApplied ? giftPieces : 0;
-  const totalBpQuantity = paidQuantity + (appliedGiftPieces / piecesPerBox);
-  const baseQuantityDisplay = formatBPQuantity(paidQuantity, piecesPerBox);
-  const totalQuantityDisplay = formatBPQuantity(totalBpQuantity, piecesPerBox);
-  const giftQuantityDisplay = formatBPQuantity(giftPieces / piecesPerBox, piecesPerBox);
-  const baseUnitPrice = isUnitSale ? selectedPiecePrice : selectedBoxPrice;
-  const displayPrice = hasCustomUnitPrice ? resolveSaleUnitPrice(customUnitPriceValue, isUnitSale) : baseUnitPrice;
-  const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * paidQuantity);
   const customerTypesKey = JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
   const currentOfferLookupKey = product ? getProductOfferLookupKey(product.id, customerTypes) : '';
   const currentPrefetchedOffers = currentOfferLookupKey ? prefetchedOffersByKey[currentOfferLookupKey] : undefined;
@@ -396,6 +383,20 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     if (!open || !product || isUnitSale) return;
     prefetchOffers(product.id, customerTypes);
   }, [open, product, isUnitSale, customerTypesKey, prefetchOffers]);
+
+  if (!product) return null;
+
+  const giftBoxes = product.pieces_per_box > 0 ? Math.floor(giftPieces / product.pieces_per_box) : 0;
+  const giftRemainingPieces = product.pieces_per_box > 0 ? giftPieces % product.pieces_per_box : 0;
+  const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
+  const appliedGiftPieces = offerApplied ? giftPieces : 0;
+  const totalBpQuantity = paidQuantity + (appliedGiftPieces / piecesPerBox);
+  const baseQuantityDisplay = formatBPQuantity(paidQuantity, piecesPerBox);
+  const totalQuantityDisplay = formatBPQuantity(totalBpQuantity, piecesPerBox);
+  const giftQuantityDisplay = formatBPQuantity(giftPieces / piecesPerBox, piecesPerBox);
+  const baseUnitPrice = isUnitSale ? selectedPiecePrice : selectedBoxPrice;
+  const displayPrice = hasCustomUnitPrice ? resolveSaleUnitPrice(customUnitPriceValue, isUnitSale) : baseUnitPrice;
+  const displayTotal = isUnitSale ? (displayPrice * quantity) : (displayPrice * paidQuantity);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
