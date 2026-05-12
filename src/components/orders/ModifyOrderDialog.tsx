@@ -286,7 +286,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     }
   }, [newProductId, products]);
 
-  const recalcGiftBoxes = useCallback((productId: string, paidQty: number, piecesPerBox: number) => {
+  const recalcGiftPieces = useCallback((productId: string, paidQty: number, piecesPerBox: number) => {
     const offersForProduct = activeOffers.filter((o: any) => o.product_id === productId);
     if (offersForProduct.length === 0) return 0;
 
@@ -328,18 +328,22 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       }
     }
 
-    return Math.floor(totalGiftPieces / safePiecesPerBox);
+    return totalGiftPieces;
   }, [activeOffers]);
 
   const recalcFromPaidQuantity = useCallback((productId: string, paidQty: number, piecesPerBox: number) => {
     const safePaidQty = Math.max(0, paidQty);
-    const giftQty = Math.max(0, recalcGiftBoxes(productId, safePaidQty, piecesPerBox));
+    const safePiecesPerBox = Math.max(1, Number(piecesPerBox || 1));
+    const totalGiftPieces = Math.max(0, recalcGiftPieces(productId, safePaidQty, safePiecesPerBox));
+    const giftBoxes = Math.floor(totalGiftPieces / safePiecesPerBox);
+    const giftPieces = totalGiftPieces % safePiecesPerBox;
 
     return {
-      gift_quantity: giftQty,
-      total_quantity: safePaidQty + giftQty,
+      gift_quantity: giftBoxes,
+      gift_pieces: giftPieces,
+      total_quantity: safePaidQty + giftBoxes,
     };
-  }, [recalcGiftBoxes]);
+  }, [recalcGiftPieces]);
 
   const getPaidQuantity = useCallback((item: ModifiedItem) => {
     // Paid quantity = total boxes minus full-box gifts only.
@@ -489,7 +493,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       ? unitPrice / Math.max(1, piecesPerBox)
       : unitPrice;
     const recalculated = isUnitSale
-      ? { gift_quantity: 0, total_quantity: initialPaidQuantity }
+      ? { gift_quantity: 0, gift_pieces: 0, total_quantity: initialPaidQuantity }
       : recalcFromPaidQuantity(product.id, initialPaidQuantity, piecesPerBox);
 
     setItems(prev => [...prev, {
@@ -500,7 +504,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       unit_price: effectiveUnitPrice,
       original_unit_price: effectiveUnitPrice,
       gift_quantity: recalculated.gift_quantity,
-      gift_pieces: 0,
+      gift_pieces: recalculated.gift_pieces,
       original_gift_quantity: 0,
       original_gift_pieces: 0,
       pieces_per_box: piecesPerBox,
@@ -1273,7 +1277,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
       // Sync sales_tracking ledger after post-delivery modification so worker
       // achievements / sales reports reflect the corrected items + totals.
-      if (isSold && productChanges.length > 0) {
+      if (isSold && changes.length > 0) {
         try {
           const { recordSaleTracking } = await import('@/utils/salesTracking');
           await supabase.from('sales_tracking' as any).delete().eq('order_id', order.id);
@@ -1284,10 +1288,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               .select('id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(name)')
               .eq('order_id', order.id);
 
-            const assignedWorkerId = order.assigned_worker_id || null;
-            let workerName: string | null = (order as any).assigned_worker?.full_name || null;
-            if (assignedWorkerId && !workerName) {
-              const { data: w } = await supabase.from('workers').select('full_name').eq('id', assignedWorkerId).maybeSingle();
+            const resolvedWorkerId = assignedWorkerId && assignedWorkerId !== 'none'
+              ? assignedWorkerId
+              : (order.assigned_worker_id || null);
+            let workerName: string | null = resolvedWorkerId === order.assigned_worker_id
+              ? ((order as any).assigned_worker?.full_name || null)
+              : null;
+            if (resolvedWorkerId && !workerName) {
+              const { data: w } = await supabase.from('workers').select('full_name').eq('id', resolvedWorkerId).maybeSingle();
               workerName = (w as any)?.full_name || null;
             }
 
@@ -1295,7 +1303,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               source: 'delivery_sale',
               orderId: order.id,
               branchId: order.branch_id || null,
-              workerId: assignedWorkerId,
+              workerId: resolvedWorkerId,
               workerName,
               customerId: order.customer_id || null,
               customerName: order.customer?.name || null,
