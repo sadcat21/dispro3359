@@ -650,8 +650,8 @@ const StockConfirmationsPopover: React.FC = () => {
   };
 
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [confirmDeleteAllOpen, setConfirmDeleteAllOpen] = useState(false);
   const handleDeleteAllLogs = async () => {
-    if (!confirm('هل أنت متأكد من حذف كل سجل التأكيدات؟ لا يمكن التراجع.')) return;
     setIsDeletingAll(true);
     try {
       let q = supabase.from('stock_confirmations').delete();
@@ -665,6 +665,7 @@ const StockConfirmationsPopover: React.FC = () => {
       toast.success('تم حذف سجل التأكيدات');
       managerHook.refetch();
       workerHook.refetch();
+      setConfirmDeleteAllOpen(false);
     } catch (e: any) {
       toast.error(e?.message || 'فشل الحذف');
     } finally {
@@ -767,7 +768,7 @@ const StockConfirmationsPopover: React.FC = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={handleDeleteAllLogs}
+                      onClick={() => setConfirmDeleteAllOpen(true)}
                       disabled={isDeletingAll}
                       className="h-7 text-[11px] gap-1"
                     >
@@ -783,6 +784,30 @@ const StockConfirmationsPopover: React.FC = () => {
               </TabsContent>
             </div>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm delete all logs */}
+      <Dialog open={confirmDeleteAllOpen} onOpenChange={(o) => { if (!isDeletingAll) setConfirmDeleteAllOpen(o); }}>
+        <DialogContent className="max-w-sm w-[92vw]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد حذف السجل
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">
+            هل أنت متأكد من حذف كل سجل التأكيدات؟ لا يمكن التراجع عن هذا الإجراء.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" disabled={isDeletingAll} onClick={() => setConfirmDeleteAllOpen(false)}>
+              إلغاء
+            </Button>
+            <Button variant="destructive" disabled={isDeletingAll} onClick={handleDeleteAllLogs}>
+              {isDeletingAll && <Loader2 className="w-4 h-4 animate-spin me-2" />}
+              حذف
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
