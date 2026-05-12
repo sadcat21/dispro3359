@@ -1002,25 +1002,25 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                                 <Plus className="w-10 h-10 text-primary/40" />
                               </div>
                             )}
-                            <div className="absolute bottom-2 start-2 end-2 flex items-center justify-between">
-                              {hasOffer ? (
-                                <span className="flex items-center gap-1 rounded-full bg-green-500 px-2 py-1 shadow-lg">
-                                  <Gift className="w-4 h-4 text-white" />
+                            <div className="absolute top-1 start-1 flex flex-col items-start gap-1 z-10">
+                              {hasOffer && (
+                                <span className="flex items-center gap-1 rounded-full bg-green-500 px-1.5 py-0.5 shadow-md">
+                                  <Gift className="w-3.5 h-3.5 text-white" />
                                   {hasAppliedGift && (
-                                    <span className="text-white text-xs font-bold">{totalGiftBoxes > 0 ? totalGiftBoxes : totalGiftPieces}</span>
+                                    <span className="text-white text-[10px] font-bold">{totalGiftBoxes > 0 ? totalGiftBoxes : totalGiftPieces}</span>
                                   )}
                                 </span>
-                              ) : <span />}
+                              )}
                               {(isShortage || isNotInStock) && (
-                                <span className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
-                                  <AlertTriangle className="w-4 h-4 text-white" />
+                                <span className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center shadow-md">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-white" />
                                 </span>
                               )}
-                              {inCart ? (
-                                <Badge variant="default" className="text-xs px-2 py-0.5 shadow-lg font-bold font-mono" dir="ltr">
+                              {inCart && (
+                                <Badge variant="default" className="text-[10px] px-1.5 py-0.5 shadow-md font-bold font-mono" dir="ltr">
                                   {boxesToBPAlways(totalCartQuantity + (totalGiftPieces / Math.max(1, product.pieces_per_box || 1)), product.pieces_per_box || 1)}
                                 </Badge>
-                              ) : <span />}
+                              )}
                             </div>
                           </div>
 
