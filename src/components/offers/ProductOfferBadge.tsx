@@ -253,9 +253,9 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
           )}>
             <div className="font-extrabold leading-tight whitespace-nowrap flex items-center gap-1" style={{ fontSize: 'clamp(8px, 22cqw, 13px)' }}>
               <Gift className="w-3 h-3" />
-              {isApplicable && giftPieces > 0
-                ? `+${giftPieces} ${t('offers.unit_piece')}`
-                : getGiftText(offer)}
+              {offer.gift_type === 'discount'
+                ? `${offer.discount_percentage}%`
+                : `+${offer.gift_quantity} ${getUnitLabel(offer.gift_quantity_unit || 'piece')}`}
             </div>
             <div className="text-[9px] font-bold uppercase tracking-wide opacity-70">
               {t('common.free') || 'هدية'}
