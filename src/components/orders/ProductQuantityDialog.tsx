@@ -433,8 +433,8 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm max-h-[90vh] flex flex-col overflow-hidden p-0" dir={dir}>
-        <div className="px-4 pt-4 pb-2 border-b bg-gradient-to-l from-primary/5 to-transparent">
+      <DialogContent className="w-[96vw] max-w-[560px] sm:max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden p-0" dir={dir}>
+        <div className="px-2 pt-4 pb-2 border-b bg-gradient-to-l from-primary/5 to-transparent">
           <DialogHeader>
             <DialogTitle asChild>
               <div dir="ltr" className="flex items-stretch gap-3 text-start">
