@@ -253,11 +253,30 @@ const LoginForm: React.FC = () => {
   // Quick login: 'test' for test workers, 'real' for real workers
   const [quickLoginMode, setQuickLoginMode] = useState<'none' | 'test' | 'real'>('none');
   
-  // Tap counters for logo (real) and title (test)
-  const [logoTapCount, setLogoTapCount] = useState(0);
-  const logoTapTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [titleTapCount, setTitleTapCount] = useState(0);
-  const titleTapTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Password gate for quick login
+  const [quickPasswordOpen, setQuickPasswordOpen] = useState(false);
+  const [quickPasswordTarget, setQuickPasswordTarget] = useState<'test' | 'real'>('real');
+  const [quickPasswordValue, setQuickPasswordValue] = useState('');
+  const [quickPasswordError, setQuickPasswordError] = useState('');
+  const QUICK_LOGIN_PASSWORD = '09091408';
+
+  const openQuickPassword = (target: 'test' | 'real') => {
+    setQuickPasswordTarget(target);
+    setQuickPasswordValue('');
+    setQuickPasswordError('');
+    setQuickPasswordOpen(true);
+  };
+
+  const submitQuickPassword = () => {
+    if (quickPasswordValue === QUICK_LOGIN_PASSWORD) {
+      setQuickPasswordOpen(false);
+      setQuickPasswordValue('');
+      setQuickPasswordError('');
+      setQuickLoginMode(quickPasswordTarget);
+    } else {
+      setQuickPasswordError('كلمة المرور غير صحيحة');
+    }
+  };
   
   const [testWorkers, setTestWorkers] = useState<QuickWorker[]>([]);
   const [realWorkers, setRealWorkers] = useState<QuickWorker[]>([]);
