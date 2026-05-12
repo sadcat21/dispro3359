@@ -155,39 +155,12 @@ const StockVerificationDialog: React.FC<StockVerificationDialogProps> = ({
         }
       }
 
-      // Always send a stock_confirmation to the worker for approval (same flow as load/unload)
-      const confirmationItems = verifiedItems.map(item => ({
-        product_id: item.product_id,
-        product_name: item.product_name,
-        product_app_name: null,
-        quantity: Number(item.actual_qty) || 0,
-        gift_quantity: 0,
-        gift_unit: 'piece',
-        pieces_per_box: 20,
-        image_url: null,
-        system_qty: item.system_qty,
-        difference: item.difference,
-        status: item.status,
-        stock_row_id: item.stock_row_id,
-      }));
-
-      const { error: confError } = await supabase
-        .from('stock_confirmations')
-        .insert({
-          operation_type: 'review',
-          worker_id: workerId,
-          branch_id: branchId || null,
-          manager_id: currentWorkerId!,
-          status: 'pending',
-          items: confirmationItems,
-          source_session_id: session.id,
-        } as any);
-
-      if (confError) throw confError;
+      // ملاحظة: المراجعة لا ترسل طلب موافقة للعامل.
+      // طلبات الموافقة تُرسل فقط لعمليات التفريغ والاستبدال.
 
       toast.success(discrepancies.length > 0 
-        ? `تم إرسال طلب تأكيد المراجعة للعامل - ${discrepancies.length} فارق`
-        : 'تم إرسال طلب تأكيد المراجعة للعامل - مطابق بالكامل');
+        ? `تم حفظ المراجعة - ${discrepancies.length} فارق`
+        : 'تم حفظ المراجعة - مطابق بالكامل');
 
       const matchCount = items.filter(i => i.status === 'match').length;
       const deficitCount = items.filter(i => i.status === 'deficit').length;
