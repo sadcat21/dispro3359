@@ -156,6 +156,13 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
                         <p className="text-[11px] text-muted-foreground">
                           {item.quantity} × {Number(item.unit_price).toLocaleString()} = <strong>{Number(item.total_price).toLocaleString()}</strong>
                         </p>
+                        {(Number(item.gift_quantity || 0) > 0 || Number(item.gift_pieces || 0) > 0) && (
+                          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                            🎁 هدية: {Number(item.gift_quantity || 0) > 0 ? `${item.gift_quantity} صندوق` : ''}
+                            {Number(item.gift_quantity || 0) > 0 && Number(item.gift_pieces || 0) > 0 ? ' + ' : ''}
+                            {Number(item.gift_pieces || 0) > 0 ? `${item.gift_pieces} قطعة` : ''}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
