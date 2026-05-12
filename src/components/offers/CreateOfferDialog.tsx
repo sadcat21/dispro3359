@@ -711,6 +711,60 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                     />
                   </div>
+                  <div className="flex items-center justify-between p-3">
+                    <div>
+                      <Label className="text-sm">إدخال تلقائي للكميات عند التفعيل</Label>
+                      <p className="text-xs text-muted-foreground">عند الإيقاف، يقوم المستخدم بإدخال الكميات يدوياً</p>
+                    </div>
+                    <Switch
+                      checked={formData.auto_fill_quantities}
+                      onCheckedChange={(checked) => setFormData({ ...formData, auto_fill_quantities: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-3">
+                    <div>
+                      <Label className="text-sm">تفعيل العرض إجباري</Label>
+                      <p className="text-xs text-muted-foreground">عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض</p>
+                    </div>
+                    <Switch
+                      checked={formData.is_mandatory}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_mandatory: checked })}
+                    />
+                  </div>
+                </div>
+
+                {/* Scope Stages */}
+                <div className="space-y-2 rounded-lg border p-3">
+                  <Label className="text-sm font-medium">مرحلة النطاق — أين يظهر العرض؟</Label>
+                  <p className="text-xs text-muted-foreground">حدد المراحل التي يمكن للعرض الظهور والتفاعل معها</p>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {[
+                      { key: 'worker_loading', label: 'تحميل العامل' },
+                      { key: 'order_creation', label: 'إنشاء الطلب' },
+                      { key: 'direct_sale', label: 'البيع المباشر' },
+                      { key: 'warehouse_sale', label: 'بيع من المستودع' },
+                    ].map((stage) => {
+                      const checked = formData.scope_stages.includes(stage.key);
+                      return (
+                        <label
+                          key={stage.key}
+                          className={`flex items-center gap-2 rounded-md border p-2 cursor-pointer text-sm ${checked ? 'bg-primary/10 border-primary' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...formData.scope_stages, stage.key]
+                                : formData.scope_stages.filter((s) => s !== stage.key);
+                              setFormData({ ...formData, scope_stages: next });
+                            }}
+                          />
+                          {stage.label}
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
