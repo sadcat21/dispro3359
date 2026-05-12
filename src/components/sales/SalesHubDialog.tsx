@@ -85,17 +85,22 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
       setSelectedDeliveryOrder(null);
       return;
     }
+    if (initialDeliveryOrder) {
+      setActiveTab('delivery');
+      setSelectedDeliveryOrder(initialDeliveryOrder);
+      return;
+    }
     if (isWarehouseManager) {
       setActiveTab('warehouse');
       return;
     }
     if (hideDirectTab) {
       setActiveTab('delivery');
-      setSelectedDeliveryOrder(initialDeliveryOrder || null);
+      setSelectedDeliveryOrder(null);
       return;
     }
-    setActiveTab(initialDeliveryOrder ? 'delivery' : initialTab);
-    setSelectedDeliveryOrder(initialDeliveryOrder || null);
+    setActiveTab(initialTab);
+    setSelectedDeliveryOrder(null);
   }, [open, initialTab, initialDeliveryOrder, hideDirectTab, isWarehouseManager]);
 
   useEffect(() => {
@@ -142,7 +147,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   const showWarehouseTab = isWarehouseManager;
   // Warehouse manager only sees warehouse tab
   const effectiveHideDirectTab = hideDirectTab || isWarehouseManager;
-  const hideDeliveryTab = isWarehouseManager;
+  const hideDeliveryTab = false;
   const tabCount = [!effectiveHideDirectTab, !hideDeliveryTab, showWarehouseTab].filter(Boolean).length;
 
   // If non-warehouse-manager lands on warehouse tab, switch to a valid one
