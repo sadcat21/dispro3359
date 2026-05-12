@@ -92,6 +92,7 @@ interface ProductQuantityDialogProps {
   initialOfferApplied?: boolean;
   hideInvoiceOption?: boolean;
   customerTypes?: string[] | null;
+  offerStage?: 'worker_loading' | 'order_creation' | 'direct_sale' | 'warehouse_sale';
 }
 
 const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
@@ -113,6 +114,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   initialOfferApplied = false,
   hideInvoiceOption = false,
   customerTypes,
+  offerStage = 'order_creation',
 }) => {
   const { t, dir } = useLanguage();
   const canCustomizePrices = useHasPermission('customize_prices');
@@ -454,7 +456,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           </DialogHeader>
           {!isUnitSale && (
             <div className={cn('mt-2', offerApplied ? 'hidden' : '')}>
-              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage="order_creation" onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
+              <ProductOfferBadge productId={product.id} quantity={quantity} piecesPerBox={product.pieces_per_box} customerTypes={customerTypes} stage={offerStage} onGiftCalculated={handleGiftCalculated} onOffersLoadingChange={setOffersLoading} onMandatoryUnactivatedChange={setMandatoryOfferUnactivated} prefetchedOffers={currentPrefetchedOffers} onPrefetchOffers={prefetchOffers} />
             </div>
           )}
           {!isUnitSale && !offerApplied && giftPieces > 0 && (

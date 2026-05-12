@@ -683,21 +683,26 @@ const LoadStock: React.FC = () => {
     if (productOffers[productId]) return productOffers[productId];
     const { data: offers } = await supabase
       .from('product_offers')
-      .select('id, name')
+      .select('id, name, scope_stages')
       .eq('product_id', productId)
       .eq('is_active', true)
-      .limit(1);
-    if (!offers || offers.length === 0) return null;
+      .limit(5);
+    const matching = (offers || []).find((o: any) => {
+      const stages = o.scope_stages;
+      return !stages || stages.length === 0 || stages.includes('worker_loading');
+    });
+    if (!matching) return null;
+    const offerRow = matching;
     const { data: tiers } = await supabase
       .from('product_offer_tiers')
       .select('min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, gift_type')
-      .eq('offer_id', offers[0].id)
+      .eq('offer_id', offerRow.id)
       .eq('gift_type', 'same_product')
       .order('tier_order', { ascending: true });
     if (!tiers || tiers.length === 0) return null;
     const firstTier = tiers[0];
     const offer = {
-      offerName: offers[0].name,
+      offerName: offerRow.name,
       giftQty: firstTier.gift_quantity,
       giftUnit: firstTier.gift_quantity_unit || 'piece',
       minQty: firstTier.min_quantity,
