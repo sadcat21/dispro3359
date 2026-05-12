@@ -258,7 +258,15 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     setIsDialogOpen(true);
   };
 
-  if (isLoading || offers.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="mt-3 rounded-lg border border-border bg-muted/50 px-3 py-2 text-center text-[11px] font-bold text-muted-foreground">
+        {t('common.loading') || 'جاري التحقق من العرض...'}
+      </div>
+    );
+  }
+
+  if (offers.length === 0) {
     return null;
   }
 
