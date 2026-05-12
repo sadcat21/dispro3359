@@ -441,7 +441,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
           {product.image_url && (
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 bg-center bg-no-repeat bg-contain opacity-15"
+              className="pointer-events-none absolute inset-0 bg-center bg-no-repeat bg-contain opacity-40"
               style={{ backgroundImage: `url(${product.image_url})` }}
             />
           )}
