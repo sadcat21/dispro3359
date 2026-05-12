@@ -21,6 +21,7 @@ import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Use
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
+import WarehouseActionPickerDialog, { WarehouseAction } from '@/components/warehouse/WarehouseActionPickerDialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -60,6 +61,7 @@ const WorkerHome: React.FC = () => {
   const [showFactoryDelivery, setShowFactoryDelivery] = useState(false);
   const [showStockManagement, setShowStockManagement] = useState(false);
   const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
+  const [warehouseActionFor, setWarehouseActionFor] = useState<{ id: string; name: string } | null>(null);
   // Open load-worker picker when navigated with ?openLoadWorker=1 (e.g. center nav button)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -658,9 +660,22 @@ const WorkerHome: React.FC = () => {
         workers={loadWorkersList}
         selectedWorkerId=""
         onSelect={(wId) => {
+          const w = loadWorkersList.find((x: { id: string; full_name?: string }) => x.id === wId);
           setShowLoadWorkerPicker(false);
-          setContextWorker(wId);
-          navigate('/load-stock');
+          setWarehouseActionFor({ id: wId, name: w?.full_name || '' });
+        }}
+      />
+
+      <WarehouseActionPickerDialog
+        open={!!warehouseActionFor}
+        onOpenChange={(o) => { if (!o) setWarehouseActionFor(null); }}
+        workerName={warehouseActionFor?.name}
+        onSelect={(action: WarehouseAction) => {
+          if (!warehouseActionFor) return;
+          setContextWorker(warehouseActionFor.id);
+          const id = warehouseActionFor.id;
+          setWarehouseActionFor(null);
+          navigate(`/load-stock?worker=${id}&action=${action}`);
         }}
       />
 
