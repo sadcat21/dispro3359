@@ -278,6 +278,21 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
     onMandatoryUnactivatedChange?.(hasBlocking);
   }, [applicableOffers, activatedOfferIds, onMandatoryUnactivatedChange]);
 
+  // Notify parent of the active activated offer (for manual gift entry / auto-fill behavior)
+  useEffect(() => {
+    if (!onOfferActivated) return;
+    const primary = applicableOffers.find(o => activatedOfferIds.has(o.id));
+    if (!primary) {
+      onOfferActivated(null);
+      return;
+    }
+    onOfferActivated({
+      offerId: primary.id,
+      autoFill: (primary as any).auto_fill_quantities !== false,
+      suggestedGiftPieces: calculateGiftPieces(primary, quantity),
+    });
+  }, [applicableOffers, activatedOfferIds, quantity, onOfferActivated]);
+
   const toggleActivation = (offerId: string) => {
     setActivatedOfferIds(prev => {
       const next = new Set(prev);
