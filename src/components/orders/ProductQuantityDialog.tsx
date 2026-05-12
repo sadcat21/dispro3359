@@ -253,9 +253,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   useEffect(() => {
     if (!open || isUnitSale) return;
-    const totalDisplayQuantity = paidQuantity + ((offerApplied ? giftPieces : 0) / piecesPerBox);
-    setQuantityFields(quantityToFields(totalDisplayQuantity, piecesPerBox));
-  }, [open, isUnitSale, offerApplied, giftPieces, paidQuantity, piecesPerBox]);
+    // Sales quantity field stays separate from the gift quantity (display-only block below)
+    setQuantityFields(quantityToFields(paidQuantity, piecesPerBox));
+  }, [open, isUnitSale, paidQuantity, piecesPerBox]);
 
   // Offer must be applied before confirming (mandatory)
   const hasUnappliedOffer = !isUnitSale && giftPieces > 0 && !offerApplied;
