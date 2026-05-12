@@ -413,7 +413,54 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
         </div>
       )}
 
-      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+      {/* ديون جديدة */}
+      {newDebts.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Landmark className="w-3 h-3" /> ديون جديدة ({newDebts.length})
+          </p>
+          {newDebts.map((d: any) => (
+            <Card key={d.id} className="border-destructive/30">
+              <CardContent className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{d.customer?.name || 'بدون زبون'}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span className="font-semibold text-destructive">{Number(d.total_amount || 0).toLocaleString()} د.ج</span>
+                    {Number(d.remaining_amount || 0) > 0 && <span>متبقي: {Number(d.remaining_amount).toLocaleString()}</span>}
+                    <span>{format(new Date(d.created_at), 'HH:mm', { locale: ar })}</span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{d.status}</Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* تحصيل ديون */}
+      {debtCollections.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <HandCoins className="w-3 h-3" /> تحصيل ديون ({debtCollections.length})
+          </p>
+          {debtCollections.map((p: any) => (
+            <Card key={p.id} className="border-emerald-300">
+              <CardContent className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate">{p.debt?.customer?.name || 'بدون زبون'}</div>
+                  <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
+                    <span className="font-semibold text-emerald-600">{Number(p.amount || 0).toLocaleString()} د.ج</span>
+                    {p.payment_method && <span>{p.payment_method}</span>}
+                    <span>{format(new Date(p.created_at), 'HH:mm', { locale: ar })}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
