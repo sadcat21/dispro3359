@@ -50,7 +50,7 @@ const BottomNav: React.FC<BottomNavProps> = ({
   onCenterClick,
   className,
 }) => {
-  const safe = items.slice(0, 4);
+  const safe = items.slice(0, 5);
   const [internal, setInternal] = React.useState(activeKey ?? safe[0]?.key);
   const active = activeKey ?? internal;
 
@@ -60,9 +60,9 @@ const BottomNav: React.FC<BottomNavProps> = ({
     cb?.();
   };
 
-  // Insert center action between item 2 and 3 as a regular slot for perfect symmetry.
+  // Split around center button: 2 left + center + up to 3 right.
   const left = safe.slice(0, 2);
-  const right = safe.slice(2, 4);
+  const right = safe.slice(2, 5);
 
   return (
     <div
