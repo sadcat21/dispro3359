@@ -374,6 +374,18 @@ export const useCancelOrder = () => {
         );
       }
 
+      // Clean up sales/offer ledgers so cancelled order disappears from
+      // achievements, promos and pending-offer confirmations.
+      mutations.push(
+        (supabase as any).from('sales_tracking').delete().eq('order_id', orderId)
+      );
+      mutations.push(
+        (supabase as any).from('promos').delete().eq('order_id', orderId)
+      );
+      mutations.push(
+        (supabase as any).from('pending_offer_confirmations').delete().eq('order_id', orderId).eq('status', 'pending')
+      );
+
       // Update order status
       mutations.push(
         supabase.from('orders').update({ status: 'cancelled' as OrderStatus }).eq('id', orderId).select().single()
@@ -386,7 +398,7 @@ export const useCancelOrder = () => {
     },
     onSuccess: () => {
       // Invalidate all related queries in parallel
-      const keys = ['orders', 'my-orders', 'assigned-orders', 'my-worker-stock', 'worker-truck-stock', 'customer-debts', 'order-debt-details', 'worker-liability', 'all-workers-liability', 'achievements-data'];
+      const keys = ['orders', 'my-orders', 'assigned-orders', 'my-worker-stock', 'worker-truck-stock', 'customer-debts', 'order-debt-details', 'worker-liability', 'all-workers-liability', 'achievements-data', 'sales-tracking', 'worker-achievements', 'promos', 'my-promos', 'my-achievements-page'];
       keys.forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));
     },
   });
