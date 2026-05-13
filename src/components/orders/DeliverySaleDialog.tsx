@@ -900,8 +900,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         });
       }
 
-      // Record gifts in promos table
-      const giftItems = activeItems.filter(i => i.giftQuantity > 0);
+      // Record gifts in promos table (skip deferred — they appear only after confirmation)
+      const giftItems = activeItems.filter(i => i.giftQuantity > 0
+        && !((i as any).giftOfferId && deferredOfferIdSet.has((i as any).giftOfferId)));
       for (const item of giftItems) {
         const matchedOffer = activeOffers.find((offer) => offer.id === item.giftOfferId);
         const offerUnit = matchedOffer?.min_quantity_unit || 'box';
