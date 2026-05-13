@@ -155,7 +155,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         if (editOffer) {
           loadEditOfferData();
         } else {
-          resetForm();
+          await resetForm();
           productSelectedRef.current = false;
           setProductPickerOpen(true);
         }
@@ -164,7 +164,30 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     }
   }, [open, editOffer]);
 
-  const resetForm = () => {
+  const resetForm = async () => {
+    // Pull global offer settings as defaults
+    let globals = {
+      scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
+      auto_fill_quantities: true,
+      is_mandatory: false,
+      is_deferred_confirmation: true,
+    };
+    try {
+      const { data } = await (supabase as any)
+        .from('product_offer_settings')
+        .select('*')
+        .eq('id', 'global')
+        .maybeSingle();
+      if (data) {
+        globals = {
+          scope_stages: data.scope_stages || globals.scope_stages,
+          auto_fill_quantities: !!data.auto_fill_quantities,
+          is_mandatory: !!data.is_mandatory,
+          is_deferred_confirmation: !!data.is_deferred_confirmation,
+        };
+      }
+    } catch {}
+
     setFormData({
       product_id: '',
       name: '',
@@ -177,10 +200,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       is_active: true,
       priority: 0,
       branch_id: null,
-      scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
-      auto_fill_quantities: true,
-      is_mandatory: false,
-      is_deferred_confirmation: true,
+      ...globals,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
     setAudience({});
@@ -722,128 +742,12 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   </div>
                 </div>
 
-                {/* Discount system selector */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Gift className="h-4 w-4 text-primary" />
-                    <Label className="text-sm font-semibold">نظام الخصم</Label>
-                  </div>
-                  <p className="text-xs text-muted-foreground">اختر النظام المناسب — كل نظام له إعداداته الخاصة</p>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {/* Deferred system (default) */}
-                    <button
-                      type="button"
-                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: true }))}
-                      className={cn(
-                        "text-right rounded-xl border-2 p-3 transition-all",
-                        formData.is_deferred_confirmation
-                          ? "border-amber-500 bg-amber-50 dark:bg-amber-950/30 shadow-sm"
-                          : "border-border bg-card hover:border-amber-300"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-amber-600" />
-                          <span className="text-sm font-semibold">خصم مؤجل</span>
-                        </div>
-                        {formData.is_deferred_confirmation && <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100">مفعّل</Badge>}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">تُسجَّل الهدية بانتظار التأكيد ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض</p>
-                    </button>
-
-                    {/* Automatic system */}
-                    <button
-                      type="button"
-                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: false }))}
-                      className={cn(
-                        "text-right rounded-xl border-2 p-3 transition-all",
-                        !formData.is_deferred_confirmation
-                          ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 shadow-sm"
-                          : "border-border bg-card hover:border-emerald-300"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-emerald-600" />
-                          <span className="text-sm font-semibold">خصم تلقائي</span>
-                        </div>
-                        {!formData.is_deferred_confirmation && <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">مفعّل</Badge>}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">تُخصم الهدية فوراً من رصيد العامل عند تطبيق العرض</p>
-                    </button>
-                  </div>
-
-                  {/* Per-system settings */}
-                  <div className={cn(
-                    "rounded-xl border-2 divide-y",
-                    formData.is_deferred_confirmation
-                      ? "border-amber-200 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/10"
-                      : "border-emerald-200 dark:border-emerald-900 bg-emerald-50/40 dark:bg-emerald-950/10"
-                  )}>
-                    <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
-                      إعدادات {formData.is_deferred_confirmation ? 'الخصم المؤجل' : 'الخصم التلقائي'}
-                    </div>
-                    <div className="flex items-center justify-between p-3 gap-3">
-                      <div className="min-w-0">
-                        <Label className="text-sm">إدخال تلقائي للكميات عند التفعيل</Label>
-                        <p className="text-xs text-muted-foreground">عند الإيقاف، يقوم المستخدم بإدخال الكميات يدوياً</p>
-                      </div>
-                      <Switch
-                        checked={formData.auto_fill_quantities}
-                        onCheckedChange={(c) => setFormData((p) => ({ ...p, auto_fill_quantities: c }))}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-3 gap-3">
-                      <div className="min-w-0">
-                        <Label className="text-sm">تفعيل العرض إجباري</Label>
-                        <p className="text-xs text-muted-foreground">
-                          عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض
-                        </p>
-                      </div>
-                      <Switch
-                        checked={formData.is_mandatory}
-                        onCheckedChange={(c) => setFormData((p) => ({ ...p, is_mandatory: c }))}
-                      />
-                    </div>
-                  </div>
+                <div className="rounded-lg border border-dashed p-3 bg-muted/20">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    إعدادات نظام الخصم (مؤجل/تلقائي)، الإدخال التلقائي، الإلزام، ومرحلة النطاق تُدار الآن من زر <span className="font-semibold">«إعدادات العروض»</span> في صفحة إدارة العروض وتُطبَّق على كل العروض.
+                  </p>
                 </div>
 
-                {/* Scope Stages */}
-                <div className="space-y-2 rounded-lg border p-3">
-                  <Label className="text-sm font-medium">مرحلة النطاق — أين يظهر العرض؟</Label>
-                  <p className="text-xs text-muted-foreground">حدد المراحل التي يمكن للعرض الظهور والتفاعل معها</p>
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    {[
-                      { key: 'worker_loading', label: 'تحميل العامل' },
-                      { key: 'order_creation', label: 'إنشاء الطلب' },
-                      { key: 'direct_sale', label: 'البيع المباشر' },
-                      { key: 'warehouse_sale', label: 'بيع من المستودع' },
-                    ].map((stage) => {
-                      const checked = formData.scope_stages.includes(stage.key);
-                      return (
-                        <label
-                          key={stage.key}
-                          className={`flex items-center gap-2 rounded-md border p-2 cursor-pointer text-sm ${checked ? 'bg-primary/10 border-primary' : ''}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e) => {
-                              setFormData((prev) => {
-                                const next = e.target.checked
-                                  ? [...prev.scope_stages, stage.key]
-                                  : prev.scope_stages.filter((s) => s !== stage.key);
-                                return { ...prev, scope_stages: next };
-                              });
-                            }}
-                          />
-                          {stage.label}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             )}
 

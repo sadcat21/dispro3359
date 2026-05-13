@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { 
   Gift, Plus, Search, Edit2, Trash2, Package, 
-  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle
+  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle, Settings2
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,7 @@ import { useProductOffers } from '@/hooks/useProductOffers';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import CreateOfferDialog from '@/components/offers/CreateOfferDialog';
 import ExtendOfferDialog from '@/components/offers/ExtendOfferDialog';
+import GlobalOfferSettingsDialog from '@/components/offers/GlobalOfferSettingsDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import {
@@ -40,6 +41,7 @@ const ProductOffers: React.FC = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [editOffer, setEditOffer] = useState<ProductOfferWithDetails | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [extendTarget, setExtendTarget] = useState<{
@@ -138,12 +140,20 @@ const ProductOffers: React.FC = () => {
               <p className="text-sm text-muted-foreground">{t('offers.management_desc')}</p>
             </div>
           </div>
-          {!isAddOfferHidden && (
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="w-4 h-4 me-2" />
-              {t('offers.new')}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {canManage && (
+              <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
+                <Settings2 className="w-4 h-4 me-2" />
+                إعدادات العروض
+              </Button>
+            )}
+            {!isAddOfferHidden && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="w-4 h-4 me-2" />
+                {t('offers.new')}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Search */}
@@ -362,6 +372,11 @@ const ProductOffers: React.FC = () => {
           setEditOffer(null);
         }}
         editOffer={editOffer}
+      />
+
+      <GlobalOfferSettingsDialog
+        open={showSettingsDialog}
+        onOpenChange={setShowSettingsDialog}
       />
 
       {/* Extend / Resume Dialog */}
