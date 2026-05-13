@@ -199,7 +199,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const paid = dbBPToBoxes(Number(paidBP || 0), ppb);
       s.sold += paid;
       if (paid > 0 && it.order_id) s.saleCount.add(String(it.order_id));
-      s.giftQty += giftFractional(it.gift_quantity, it.gift_pieces, ppb);
+      s.giftQty += confirmedGiftFractional(it, ppb);
     }
     return out;
   }, [loadedData, unloadedData, soldData, ppbMap]);
@@ -229,10 +229,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       movements.push({ id: `unload-${it.session_id}-${q}`, type: 'unload', label: 'تفريغ', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: -q });
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
-      const giftBoxesBP = Math.max(0, Number(it.gift_quantity || 0));
-      const giftPieces = Math.max(0, Number(it.gift_pieces || 0));
-      const giftBoxesFrac = dbBPToBoxes(giftBoxesBP, ppb);
-      const giftQty = giftBoxesFrac + giftPieces / ppb;
+      const giftQty = confirmedGiftFractional(it, ppb);
       const saleQty = dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb);
       const when = it.order_updated_at || it.order_created_at || '';
       if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
