@@ -7,13 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, User, Package, Layers, Trash2, Plus, Search, X } from 'lucide-react';
+import { Loader2, Gift, User, Package, Layers, Trash2, Plus, X } from 'lucide-react';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { parseBP as parseBPUtil, boxesToBP } from '@/utils/boxPieceInput';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import { cn } from '@/lib/utils';
 
 type UnitType = 'box' | 'piece';
 
