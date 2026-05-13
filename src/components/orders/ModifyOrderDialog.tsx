@@ -1535,6 +1535,22 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
       await supabase.from('stock_movements').delete().eq('order_id', order.id);
 
+      // Clean up sales/offer ledgers so cancelled order disappears from
+      // achievements, promos and pending-offer confirmations.
+      try {
+        await supabase.from('sales_tracking' as any).delete().eq('order_id', order.id);
+      } catch (e) { console.warn('[cancel] sales_tracking delete failed', e); }
+      try {
+        await (supabase as any).from('promos').delete().eq('order_id', order.id);
+      } catch (e) { console.warn('[cancel] promos delete failed', e); }
+      try {
+        await (supabase as any)
+          .from('pending_offer_confirmations')
+          .delete()
+          .eq('order_id', order.id)
+          .eq('status', 'pending');
+      } catch (e) { console.warn('[cancel] pending_offer_confirmations delete failed', e); }
+
       await supabase.from('orders')
         .update({ status: 'cancelled', total_amount: 0, payment_status: 'pending', partial_amount: null } as any)
         .eq('id', order.id);
@@ -1665,6 +1681,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       queryClient.invalidateQueries({ queryKey: ['receipts'] });
       queryClient.invalidateQueries({ queryKey: ['my-achievements-page'] });
       queryClient.invalidateQueries({ queryKey: ['worker-achievement-debt-aggregates'] });
+      queryClient.invalidateQueries({ queryKey: ['sales-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-achievements'] });
+      queryClient.invalidateQueries({ queryKey: ['promos'] });
+      queryClient.invalidateQueries({ queryKey: ['my-promos'] });
       toast.success('تم إلغاء المبيعة بنجاح');
       onOpenChange(false);
     } catch (error: any) {
