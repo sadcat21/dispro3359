@@ -128,9 +128,26 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
     if (!newZoneName.trim() || !sectorId) return;
     setSavingZone(true);
     try {
-      const { data, error } = await supabase.from('sector_zones').insert({ name: newZoneName.trim(), sector_id: sectorId }).select().single();
+      const trimmed = newZoneName.trim();
+      // Auto-translate zone name like customer/store names
+      let zoneNameAr = trimmed;
+      let zoneNameFr: string | null = null;
+      if (isArabic(trimmed)) {
+        zoneNameFr = await translateText(trimmed, 'ar', 'fr');
+      } else {
+        const arResult = await translateText(trimmed, 'fr', 'ar');
+        if (arResult) {
+          zoneNameAr = arResult;
+          zoneNameFr = trimmed;
+        }
+      }
+      const { data, error } = await supabase
+        .from('sector_zones')
+        .insert({ name: zoneNameAr, name_fr: zoneNameFr, sector_id: sectorId } as any)
+        .select()
+        .single();
       if (error) throw error;
-      toast.success(`تمت إضافة المنطقة: ${newZoneName.trim()}`);
+      toast.success(`تمت إضافة المنطقة: ${zoneNameAr}${zoneNameFr ? ` / ${zoneNameFr}` : ''}`);
       setNewZoneName('');
       setAddingZone(false);
       fetchZones(sectorId);
