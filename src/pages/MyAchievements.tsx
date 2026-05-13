@@ -1117,6 +1117,8 @@ const MyAchievements: React.FC = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
         <DialogContent dir="rtl" className="max-w-sm">
