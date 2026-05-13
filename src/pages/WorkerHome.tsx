@@ -345,8 +345,10 @@ const WorkerHome: React.FC = () => {
         const unfrozen = (accs || []).some((a: any) => {
           if (a.worker_id !== f.worker_id) return false;
           if (a.review_session_id) return true;
-          const ref = a.period_end || a.created_at;
-          return new Date(ref).getTime() >= new Date(f.created_at).getTime();
+          const reviewAt = new Date(f.created_at).getTime();
+          const createdAt = a.created_at ? new Date(a.created_at).getTime() : Number.NEGATIVE_INFINITY;
+          const periodEnd = a.period_end ? new Date(a.period_end).getTime() : Number.NEGATIVE_INFINITY;
+          return createdAt >= reviewAt || periodEnd >= reviewAt;
         });
         if (!unfrozen && !frozen.includes(f.worker_id)) frozen.push(f.worker_id);
       }
