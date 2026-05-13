@@ -859,7 +859,8 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                   const blocking = Array.from(multiSelected).some(id => {
                     const p = products.find(x => x.id === id);
                     if (!p) return false;
-                    if (!offersMap[p.id]) return false;
+                    const offer = offersMap[p.id];
+                    if (!offer?.isMandatory) return false;
                     if (offerActivated[p.id]) return false;
                     const ppb = p.pieces_per_box || 1;
                     const qf = uniformQty ? unifiedQtyFields : (individualQtyFields[p.id] || createDefaultMultiFields());
