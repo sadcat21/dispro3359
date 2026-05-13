@@ -1365,6 +1365,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order-debt-details'] });
       queryClient.invalidateQueries({ queryKey: ['customer-credits'] });
       queryClient.invalidateQueries({ queryKey: ['receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['my-achievements-page'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-achievement-debt-aggregates'] });
+      queryClient.invalidateQueries({ queryKey: ['sales-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-achievements'] });
 
       toast.success(allItemsRemoved ? t('orders.cancel_success') : t('orders.order_modified'));
       onOpenChange(false);
@@ -1545,6 +1549,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order-debt-details'] });
       queryClient.invalidateQueries({ queryKey: ['customer-credits'] });
       queryClient.invalidateQueries({ queryKey: ['receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['my-achievements-page'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-achievement-debt-aggregates'] });
       toast.success('تم إلغاء المبيعة بنجاح');
       onOpenChange(false);
     } catch (error: any) {
