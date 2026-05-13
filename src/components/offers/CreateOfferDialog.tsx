@@ -164,7 +164,30 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     }
   }, [open, editOffer]);
 
-  const resetForm = () => {
+  const resetForm = async () => {
+    // Pull global offer settings as defaults
+    let globals = {
+      scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
+      auto_fill_quantities: true,
+      is_mandatory: false,
+      is_deferred_confirmation: true,
+    };
+    try {
+      const { data } = await (supabase as any)
+        .from('product_offer_settings')
+        .select('*')
+        .eq('id', 'global')
+        .maybeSingle();
+      if (data) {
+        globals = {
+          scope_stages: data.scope_stages || globals.scope_stages,
+          auto_fill_quantities: !!data.auto_fill_quantities,
+          is_mandatory: !!data.is_mandatory,
+          is_deferred_confirmation: !!data.is_deferred_confirmation,
+        };
+      }
+    } catch {}
+
     setFormData({
       product_id: '',
       name: '',
@@ -177,10 +200,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       is_active: true,
       priority: 0,
       branch_id: null,
-      scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
-      auto_fill_quantities: true,
-      is_mandatory: false,
-      is_deferred_confirmation: true,
+      ...globals,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
     setAudience({});
