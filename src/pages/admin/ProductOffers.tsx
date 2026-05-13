@@ -15,6 +15,7 @@ import { useProductOffers } from '@/hooks/useProductOffers';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import CreateOfferDialog from '@/components/offers/CreateOfferDialog';
 import ExtendOfferDialog from '@/components/offers/ExtendOfferDialog';
+import GlobalOfferSettingsDialog from '@/components/offers/GlobalOfferSettingsDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import {
