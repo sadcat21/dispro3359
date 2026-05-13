@@ -144,6 +144,7 @@ export const useCreateSession = () => {
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['session-items'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
