@@ -984,6 +984,32 @@ const MyAchievements: React.FC = () => {
               </Button>
             </>
           )}
+          <Button
+            variant={selectedProductIds.size > 0 ? 'default' : 'outline'}
+            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
+            onClick={() => {
+              setTempSelectedProductIds(new Set(selectedProductIds));
+              setProductSearch('');
+              setProductFilterOpen(true);
+            }}
+          >
+            <Filter className="w-3 h-3 ml-0.5" />
+            فلترة حسب المنتج
+            {selectedProductIds.size > 0 && (
+              <Badge variant="secondary" className="ms-1 text-[9px] h-4 px-1">{selectedProductIds.size}</Badge>
+            )}
+          </Button>
+          {selectedProductIds.size > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-1 shrink-0"
+              onClick={() => setSelectedProductIds(new Set())}
+              title="مسح الفلتر"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
