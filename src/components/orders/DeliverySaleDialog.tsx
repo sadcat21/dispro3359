@@ -834,6 +834,17 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         });
       } catch (e) { console.warn('sales_tracking failed', e); }
 
+      // Resolve which applied offers are deferred (gift not deducted from stock yet)
+      const deferredOfferIdSet = new Set<string>();
+      const allOfferIds = Array.from(new Set(activeItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[]));
+      if (allOfferIds.length > 0) {
+        const { data: offRows } = await supabase
+          .from('product_offers')
+          .select('id, is_deferred_confirmation')
+          .in('id', allOfferIds);
+        for (const o of (offRows || []) as any[]) if (o.is_deferred_confirmation) deferredOfferIdSet.add(o.id);
+      }
+
       // Deduct from stock (warehouse_stock for warehouse manager, worker_stock for regular workers)
       for (const item of activeItems) {
         const ppb = Number(item.piecesPerBox || 1);
@@ -845,8 +856,12 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const storedTotalGiftPieces = storedGiftBoxes * ppb + storedGiftPieces;
         const recalcTotalGiftPieces = recalculated.giftBoxes * ppb + recalculated.giftPieces;
         const useRecalc = recalcTotalGiftPieces > storedTotalGiftPieces;
-        const effGiftBoxes = useRecalc ? recalculated.giftBoxes : storedGiftBoxes;
-        const effGiftPieces = useRecalc ? recalculated.giftPieces : storedGiftPieces;
+        let effGiftBoxes = useRecalc ? recalculated.giftBoxes : storedGiftBoxes;
+        let effGiftPieces = useRecalc ? recalculated.giftPieces : storedGiftPieces;
+
+        // Deferred-offer gifts: skip stock deduction (will deduct upon confirmation)
+        const isDeferred = !!((item as any).giftOfferId && deferredOfferIdSet.has((item as any).giftOfferId));
+        if (isDeferred) { effGiftBoxes = 0; effGiftPieces = 0; }
 
         // item.quantity (b.p) = paidBoxes + storedGiftBoxes (already included). Add extra gift boxes if recalculated higher.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
