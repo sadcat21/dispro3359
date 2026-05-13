@@ -85,7 +85,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
     auto_fill_quantities: true,
     is_mandatory: false,
-    is_deferred_confirmation: false,
+    is_deferred_confirmation: true,
   });
 
   // Target audience (offer-level conditions, applied to all tiers on save)
@@ -180,7 +180,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
       auto_fill_quantities: true,
       is_mandatory: false,
-      is_deferred_confirmation: false,
+      is_deferred_confirmation: true,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
     setAudience({});
@@ -685,66 +685,130 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   </div>
                 )}
 
-                <div className="space-y-1 pt-1 rounded-lg border divide-y">
-                  <div className="flex items-center justify-between p-3">
-                    <div>
-                      <Label className="text-sm">{t('offers.is_stackable')}</Label>
-                      <p className="text-xs text-muted-foreground">{t('offers.stackable_hint')}</p>
-                    </div>
-                    <Switch
-                      checked={formData.is_stackable}
-                      onCheckedChange={(checked) => setFormData({ ...formData, is_stackable: checked })}
-                    />
+                {/* General settings */}
+                <div className="rounded-xl border bg-card overflow-hidden">
+                  <div className="px-4 py-2.5 bg-muted/40 border-b flex items-center gap-2">
+                    <Settings2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold">إعدادات العرض</span>
                   </div>
-                  <div className="flex items-center justify-between p-3">
-                    <div>
-                      <Label className="text-sm">{t('offers.is_auto_apply')}</Label>
-                      <p className="text-xs text-muted-foreground">{t('offers.auto_apply_hint')}</p>
+                  <div className="divide-y">
+                    <div className="flex items-center justify-between p-3 gap-3">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <Layers className="h-4 w-4 mt-0.5 text-blue-600 shrink-0" />
+                        <div className="min-w-0">
+                          <Label className="text-sm">{t('offers.is_stackable')}</Label>
+                          <p className="text-xs text-muted-foreground">{t('offers.stackable_hint')}</p>
+                        </div>
+                      </div>
+                      <Switch checked={formData.is_stackable} onCheckedChange={(c) => setFormData({ ...formData, is_stackable: c })} />
                     </div>
-                    <Switch
-                      checked={formData.is_auto_apply}
-                      onCheckedChange={(checked) => setFormData({ ...formData, is_auto_apply: checked })}
-                    />
+                    <div className="flex items-center justify-between p-3 gap-3">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <Sparkles className="h-4 w-4 mt-0.5 text-violet-600 shrink-0" />
+                        <div className="min-w-0">
+                          <Label className="text-sm">{t('offers.is_auto_apply')}</Label>
+                          <p className="text-xs text-muted-foreground">{t('offers.auto_apply_hint')}</p>
+                        </div>
+                      </div>
+                      <Switch checked={formData.is_auto_apply} onCheckedChange={(c) => setFormData({ ...formData, is_auto_apply: c })} />
+                    </div>
+                    <div className="flex items-center justify-between p-3 gap-3">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <CheckCircle2 className={cn("h-4 w-4 mt-0.5 shrink-0", formData.is_active ? "text-emerald-600" : "text-muted-foreground")} />
+                        <Label className="text-sm">{t('offers.is_active')}</Label>
+                      </div>
+                      <Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between p-3">
-                    <div>
-                      <Label className="text-sm">{t('offers.is_active')}</Label>
-                    </div>
-                    <Switch
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                    />
+                </div>
+
+                {/* Discount system selector */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Gift className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-semibold">نظام الخصم</Label>
                   </div>
-                  <div className="flex items-center justify-between p-3">
-                    <div>
-                      <Label className="text-sm">إدخال تلقائي للكميات عند التفعيل</Label>
-                      <p className="text-xs text-muted-foreground">عند الإيقاف، يقوم المستخدم بإدخال الكميات يدوياً</p>
-                    </div>
-                    <Switch
-                      checked={formData.auto_fill_quantities}
-                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, auto_fill_quantities: checked }))}
-                    />
+                  <p className="text-xs text-muted-foreground">اختر النظام المناسب — كل نظام له إعداداته الخاصة</p>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {/* Deferred system (default) */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: true, is_mandatory: true }))}
+                      className={cn(
+                        "text-right rounded-xl border-2 p-3 transition-all",
+                        formData.is_deferred_confirmation
+                          ? "border-amber-500 bg-amber-50 dark:bg-amber-950/30 shadow-sm"
+                          : "border-border bg-card hover:border-amber-300"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-amber-600" />
+                          <span className="text-sm font-semibold">خصم مؤجل</span>
+                        </div>
+                        {formData.is_deferred_confirmation && <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100">مفعّل</Badge>}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">تُسجَّل الهدية بانتظار التأكيد ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض</p>
+                    </button>
+
+                    {/* Automatic system */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: false }))}
+                      className={cn(
+                        "text-right rounded-xl border-2 p-3 transition-all",
+                        !formData.is_deferred_confirmation
+                          ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 shadow-sm"
+                          : "border-border bg-card hover:border-emerald-300"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-emerald-600" />
+                          <span className="text-sm font-semibold">خصم تلقائي</span>
+                        </div>
+                        {!formData.is_deferred_confirmation && <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">مفعّل</Badge>}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">تُخصم الهدية فوراً من رصيد العامل عند تطبيق العرض</p>
+                    </button>
                   </div>
-                  <div className="flex items-center justify-between p-3">
-                    <div>
-                      <Label className="text-sm">تفعيل العرض إجباري</Label>
-                      <p className="text-xs text-muted-foreground">عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض</p>
+
+                  {/* Per-system settings */}
+                  <div className={cn(
+                    "rounded-xl border-2 divide-y",
+                    formData.is_deferred_confirmation
+                      ? "border-amber-200 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/10"
+                      : "border-emerald-200 dark:border-emerald-900 bg-emerald-50/40 dark:bg-emerald-950/10"
+                  )}>
+                    <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
+                      إعدادات {formData.is_deferred_confirmation ? 'الخصم المؤجل' : 'الخصم التلقائي'}
                     </div>
-                    <Switch
-                      checked={formData.is_mandatory || formData.is_deferred_confirmation}
-                      disabled={formData.is_deferred_confirmation}
-                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_mandatory: checked }))}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded">
-                    <div>
-                      <Label className="text-sm">عرض مؤجل التأكيد</Label>
-                      <p className="text-xs text-muted-foreground">عند التفعيل، تُسجَّل الهدية في "العروض بانتظار التأكيد" ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض (يصبح العرض إجبارياً تلقائياً)</p>
+                    <div className="flex items-center justify-between p-3 gap-3">
+                      <div className="min-w-0">
+                        <Label className="text-sm">إدخال تلقائي للكميات عند التفعيل</Label>
+                        <p className="text-xs text-muted-foreground">عند الإيقاف، يقوم المستخدم بإدخال الكميات يدوياً</p>
+                      </div>
+                      <Switch
+                        checked={formData.auto_fill_quantities}
+                        onCheckedChange={(c) => setFormData((p) => ({ ...p, auto_fill_quantities: c }))}
+                      />
                     </div>
-                    <Switch
-                      checked={formData.is_deferred_confirmation}
-                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_deferred_confirmation: checked, is_mandatory: checked ? true : prev.is_mandatory }))}
-                    />
+                    <div className="flex items-center justify-between p-3 gap-3">
+                      <div className="min-w-0">
+                        <Label className="text-sm">تفعيل العرض إجباري</Label>
+                        <p className="text-xs text-muted-foreground">
+                          {formData.is_deferred_confirmation
+                            ? 'الإلزام مفعّل تلقائياً في النظام المؤجل'
+                            : 'عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={formData.is_mandatory || formData.is_deferred_confirmation}
+                        disabled={formData.is_deferred_confirmation}
+                        onCheckedChange={(c) => setFormData((p) => ({ ...p, is_mandatory: c }))}
+                      />
+                    </div>
                   </div>
                 </div>
 
