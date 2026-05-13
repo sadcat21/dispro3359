@@ -30,6 +30,7 @@ export interface OfferInfo {
   giftUnit: string;
   minQty: number;
   minUnit: string;
+  isMandatory?: boolean;
   tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit?: string }[];
 }
 
