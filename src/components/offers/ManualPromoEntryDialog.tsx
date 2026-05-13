@@ -274,7 +274,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     setSelectedTierId('');
     setNotes('');
     setCustomerEntries([]);
-    setCustomerSearch('');
     setShowCustomerSearch(false);
 
     if (initialCustomerId) {
@@ -333,7 +332,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         timesApplied: 0,
       },
     ]);
-    setCustomerSearch('');
     setShowCustomerSearch(false);
   }, []);
 
