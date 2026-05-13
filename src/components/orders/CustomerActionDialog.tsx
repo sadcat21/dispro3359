@@ -228,33 +228,75 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
                         */}
                     </div>
 
+                    {/* Pending order alert */}
+                    {pendingOrders.length > 0 && (
+                        <div className="rounded-lg border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-3">
+                            <div className="flex items-start gap-2">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                <div className="text-sm">
+                                    <p className="font-bold text-amber-900 dark:text-amber-200">
+                                        لهذا الزبون {pendingOrders.length} طلبية مفتوحة اليوم
+                                    </p>
+                                    <p className="text-xs text-amber-800/80 dark:text-amber-200/80 mt-0.5">
+                                        أكمل التوصيل، أو سجّل بيعاً مباشراً جديداً (سيُلغى الطلب الحالي تلقائياً).
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2">
+                                {allowedActions.includes('delivery') && (
+                                    <Button
+                                        onClick={() => handleAction('delivery')}
+                                        disabled={cancelling}
+                                        className="h-12 gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                                    >
+                                        <Truck className="w-5 h-5" />
+                                        توصيل الطلبية الموجودة
+                                    </Button>
+                                )}
+                                {allowedActions.includes('sale') && (
+                                    <Button
+                                        onClick={() => handleAction('sale')}
+                                        disabled={cancelling}
+                                        variant="outline"
+                                        className="h-12 gap-2 border-amber-600 text-amber-900 hover:bg-amber-100 dark:text-amber-100"
+                                    >
+                                        <Banknote className="w-5 h-5" />
+                                        بيع مباشر جديد (إلغاء الطلب)
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Action buttons */}
-                    <div className="grid grid-cols-1 gap-3">
-                        {allowedActions.includes('order') && (
-                            <Button onClick={() => handleAction('order')} className="h-14 text-lg gap-3" variant="default">
-                                <ShoppingCart className="w-6 h-6" />
-                                {t('orders.new')}
-                            </Button>
-                        )}
-                        {allowedActions.includes('sale') && (
-                            <Button onClick={() => handleAction('sale')} className="h-14 text-lg gap-3 bg-green-600 hover:bg-green-700 text-white" variant="outline">
-                                <Banknote className="w-6 h-6" />
-                                {t('stock.direct_sale')}
-                            </Button>
-                        )}
-                        {allowedActions.includes('delivery') && (
-                            <Button onClick={() => handleAction('delivery')} className="h-14 text-lg gap-3 bg-blue-600 hover:bg-blue-700 text-white" variant="outline">
-                                <Truck className="w-6 h-6" />
-                                {t('deliveries.start_delivery')}
-                            </Button>
-                        )}
-                        {allowedActions.includes('visit') && (
-                            <Button onClick={() => handleAction('visit')} className="h-14 text-lg gap-3" variant="secondary">
-                                <Ban className="w-6 h-6" />
-                                {t('common.visit_only')}
-                            </Button>
-                        )}
-                    </div>
+                    {pendingOrders.length === 0 && (
+                        <div className="grid grid-cols-1 gap-3">
+                            {allowedActions.includes('order') && (
+                                <Button onClick={() => handleAction('order')} className="h-14 text-lg gap-3" variant="default">
+                                    <ShoppingCart className="w-6 h-6" />
+                                    {t('orders.new')}
+                                </Button>
+                            )}
+                            {allowedActions.includes('sale') && (
+                                <Button onClick={() => handleAction('sale')} className="h-14 text-lg gap-3 bg-green-600 hover:bg-green-700 text-white" variant="outline">
+                                    <Banknote className="w-6 h-6" />
+                                    {t('stock.direct_sale')}
+                                </Button>
+                            )}
+                            {allowedActions.includes('delivery') && (
+                                <Button onClick={() => handleAction('delivery')} className="h-14 text-lg gap-3 bg-blue-600 hover:bg-blue-700 text-white" variant="outline">
+                                    <Truck className="w-6 h-6" />
+                                    {t('deliveries.start_delivery')}
+                                </Button>
+                            )}
+                            {allowedActions.includes('visit') && (
+                                <Button onClick={() => handleAction('visit')} className="h-14 text-lg gap-3" variant="secondary">
+                                    <Ban className="w-6 h-6" />
+                                    {t('common.visit_only')}
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>
