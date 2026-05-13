@@ -169,6 +169,7 @@ export const useUpdateSessionStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
