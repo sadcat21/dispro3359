@@ -144,6 +144,7 @@ export const useCreateSession = () => {
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['session-items'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
@@ -168,6 +169,7 @@ export const useUpdateSessionStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
@@ -234,6 +236,7 @@ export const useUpdateFullSession = () => {
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['manager-treasury'] });
       queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
@@ -259,6 +262,7 @@ export const useCancelSession = () => {
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
@@ -277,6 +281,7 @@ export const useDeleteSession = () => {
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
