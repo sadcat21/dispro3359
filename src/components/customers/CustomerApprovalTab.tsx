@@ -89,9 +89,32 @@ const CustomerApprovalTab: React.FC = () => {
         if (!newZoneName.trim() || !editPayload.sector_id) return;
         setSavingZone(true);
         try {
-            const { data, error } = await supabase.from('sector_zones').insert({ name: newZoneName.trim(), sector_id: editPayload.sector_id }).select().single();
+            const trimmed = newZoneName.trim();
+            const isAr = /[\u0600-\u06FF]/.test(trimmed);
+            const doTranslate = async (text: string, source: string, target: string): Promise<string | null> => {
+                try {
+                    const { data, error } = await supabase.functions.invoke('translate-text', {
+                        body: { text, sourceLang: source, targetLangs: [target], mode: 'transliterate' },
+                    });
+                    if (!error && data?.translations?.[target]) return data.translations[target];
+                } catch { /* silent */ }
+                return null;
+            };
+            let zoneNameAr = trimmed;
+            let zoneNameFr: string | null = null;
+            if (isAr) {
+                zoneNameFr = await doTranslate(trimmed, 'ar', 'fr');
+            } else {
+                const arResult = await doTranslate(trimmed, 'fr', 'ar');
+                if (arResult) { zoneNameAr = arResult; zoneNameFr = trimmed; }
+            }
+            const { data, error } = await supabase
+                .from('sector_zones')
+                .insert({ name: zoneNameAr, name_fr: zoneNameFr, sector_id: editPayload.sector_id } as any)
+                .select()
+                .single();
             if (error) throw error;
-            toast.success(`تمت إضافة المنطقة: ${newZoneName.trim()}`);
+            toast.success(`تمت إضافة المنطقة: ${zoneNameAr}${zoneNameFr ? ` / ${zoneNameFr}` : ''}`);
             setNewZoneName('');
             setAddingZone(false);
             fetchZones(editPayload.sector_id);
