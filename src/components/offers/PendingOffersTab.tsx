@@ -14,6 +14,7 @@ interface Props {
   branchId?: string | null;
   dateFrom?: string | null;
   dateTo?: string | null;
+  onCustomerCountChange?: (count: number) => void;
 }
 
 const formatGift = (boxes: number, pieces: number, ppb: number): string => {
