@@ -517,6 +517,7 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
                 workerId={workerId}
                 dateFrom={dateFrom}
                 dateTo={dateTo}
+                onCustomerCountChange={setPendingOffersCustomerCount}
               />
             </TabsContent>
           </Tabs>
