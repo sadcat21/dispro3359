@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { 
   Gift, Plus, Search, Edit2, Trash2, Package, 
-  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle
+  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle, Settings2
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
