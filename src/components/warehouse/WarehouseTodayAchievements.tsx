@@ -582,7 +582,86 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
         order={selectedOrder}
         hideModifyAction
       />
+
+      {/* نافذة فلترة المنتجات */}
+      <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              فلترة حسب المنتجات
+              {tempSelectedIds.size > 0 && (
+                <Badge variant="secondary" className="text-[10px]">{tempSelectedIds.size} محدد</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              placeholder="ابحث عن منتج..."
+              className="pr-9"
+            />
+          </div>
+
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            {productsQ.isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-12">لا توجد منتجات</div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 py-2">
+                {filteredProducts.map((p: any) => {
+                  const selected = tempSelectedIds.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleTemp(p.id)}
+                      className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
+                        selected ? 'border-primary ring-2 ring-primary/30 bg-primary/5' : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="aspect-square w-full bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.app_name || p.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <Package className="w-8 h-8 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="text-[10px] font-medium text-center line-clamp-2 leading-tight">
+                        {p.app_name || p.name}
+                      </div>
+                      {selected && (
+                        <Badge className="absolute top-1 right-1 bg-primary text-primary-foreground text-[9px] h-4 px-1">✓</Badge>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            {tempSelectedIds.size > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setTempSelectedIds(new Set())}>
+                مسح التحديد
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => setFilterOpen(false)}>إلغاء</Button>
+            <Button size="sm" onClick={applyFilter} className="gap-1">
+              <Filter className="w-3.5 h-3.5" />
+              فلترة ({tempSelectedIds.size})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
