@@ -1965,10 +1965,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                                 {t('offers.unit_piece')}
                               </Badge>
                             )}
-                            {(item.gift_quantity || 0) > 0 && (
+                            {((item.gift_quantity || 0) > 0 || (item.gift_pieces || 0) > 0) && (
                               <Badge className="bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 text-[10px] px-1.5 py-0 gap-0.5">
                                 <Gift className="w-3 h-3" />
-                                {dialogText.gift} {item.gift_quantity}
+                                {dialogText.gift} {boxesToBP(Number(item.gift_quantity || 0), product?.pieces_per_box || 1, Number(item.gift_pieces || 0))}
                               </Badge>
                             )}
                               {item.id && changed && (
