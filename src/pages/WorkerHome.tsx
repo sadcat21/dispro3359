@@ -19,6 +19,7 @@ import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { ShoppingCart, Gift, Loader2, ShoppingBag, Truck, Package, Banknote, Users, Wallet, ClipboardList, MapPin, Trophy, MessageCircle, HardHat, CalendarCheck, ArrowDownToLine, Warehouse, ClipboardCheck } from 'lucide-react';
 import WorkerPickerDialog from '@/components/stock/WorkerPickerDialog';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
 import WarehouseActionPickerDialog, { WarehouseAction } from '@/components/warehouse/WarehouseActionPickerDialog';
@@ -352,8 +353,16 @@ const WorkerHome: React.FC = () => {
       return frozen;
     },
     enabled: (loadWorkersList || []).length > 0,
-    staleTime: 30_000,
+    staleTime: 0,
   });
+
+  // Realtime: when an accounting session is saved, immediately refresh frozen list
+  useRealtimeSubscription(
+    'worker-home-frozen',
+    [{ table: 'accounting_sessions' }, { table: 'loading_sessions' }],
+    [['frozen-workers-wh']],
+    (loadWorkersList || []).length > 0,
+  );
 
 
   // Loading skeleton for permissions
