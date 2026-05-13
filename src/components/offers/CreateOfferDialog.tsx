@@ -286,7 +286,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         branch_id: formData.branch_id,
         scope_stages: formData.scope_stages,
         auto_fill_quantities: formData.auto_fill_quantities,
-        is_mandatory: formData.is_mandatory || formData.is_deferred_confirmation,
+        is_mandatory: formData.is_mandatory,
         is_deferred_confirmation: formData.is_deferred_confirmation,
         // Legacy fields from first tier
         min_quantity: firstTier.min_quantity,
@@ -734,7 +734,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     {/* Deferred system (default) */}
                     <button
                       type="button"
-                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: true, is_mandatory: true }))}
+                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: true }))}
                       className={cn(
                         "text-right rounded-xl border-2 p-3 transition-all",
                         formData.is_deferred_confirmation
@@ -798,14 +798,11 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       <div className="min-w-0">
                         <Label className="text-sm">تفعيل العرض إجباري</Label>
                         <p className="text-xs text-muted-foreground">
-                          {formData.is_deferred_confirmation
-                            ? 'الإلزام مفعّل تلقائياً في النظام المؤجل'
-                            : 'عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض'}
+                          عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض
                         </p>
                       </div>
                       <Switch
-                        checked={formData.is_mandatory || formData.is_deferred_confirmation}
-                        disabled={formData.is_deferred_confirmation}
+                        checked={formData.is_mandatory}
                         onCheckedChange={(c) => setFormData((p) => ({ ...p, is_mandatory: c }))}
                       />
                     </div>
