@@ -412,14 +412,14 @@ export const useResumeOrder = () => {
     mutationFn: async (orderId: string) => {
       // Fetch order + items in parallel
       const [orderRes, itemsRes] = await Promise.all([
-        supabase.from('orders').select('id, assigned_worker_id, status, branch_id, customer_id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method').eq('id', orderId).single(),
-        supabase.from('order_items').select('product_id, quantity').eq('order_id', orderId),
+        supabase.from('orders').select('id, assigned_worker_id, status, branch_id, customer_id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, customer:customers(name), assigned_worker:workers!orders_assigned_worker_id_fkey(full_name), branch:branches(name)').eq('id', orderId).single(),
+        supabase.from('order_items').select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, unit_price, total_price, pieces_per_box, product:products(name)').eq('order_id', orderId),
       ]);
 
       if (orderRes.error) throw orderRes.error;
-      const order = orderRes.data;
+      const order = orderRes.data as any;
       if (order.status !== 'cancelled') throw new Error('الطلبية ليست ملغاة');
-      const orderItems = itemsRes.data;
+      const orderItems = itemsRes.data as any[] | null;
 
       const mutations: PromiseLike<any>[] = [];
 
