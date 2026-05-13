@@ -353,8 +353,16 @@ const WorkerHome: React.FC = () => {
       return frozen;
     },
     enabled: (loadWorkersList || []).length > 0,
-    staleTime: 30_000,
+    staleTime: 0,
   });
+
+  // Realtime: when an accounting session is saved, immediately refresh frozen list
+  useRealtimeSubscription(
+    'worker-home-frozen',
+    [{ table: 'accounting_sessions' }, { table: 'loading_sessions' }],
+    [['frozen-workers-wh']],
+    (loadWorkersList || []).length > 0,
+  );
 
 
   // Loading skeleton for permissions
