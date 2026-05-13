@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Home,
   Plus,
+  Trophy,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,8 @@ export interface BottomNavItem {
   icon: LucideIcon;
   badge?: number;
   onClick?: () => void;
+  /** Tailwind text color class for active state (default: text-red-500) */
+  activeColor?: string;
 }
 
 export interface BottomNavProps {
@@ -30,6 +33,7 @@ export interface BottomNavProps {
 const DEFAULT_ITEMS: BottomNavItem[] = [
   { key: 'more', label: 'More', icon: MoreHorizontal },
   { key: 'finance', label: 'Finance', icon: Wallet },
+  { key: 'achievements', label: "إنجازات اليوم", icon: Trophy, activeColor: 'text-blue-500' },
   { key: 'orders', label: 'Orders', icon: ClipboardList, badge: 11 },
   { key: 'home', label: 'Home', icon: Home },
 ];
@@ -46,7 +50,7 @@ const BottomNav: React.FC<BottomNavProps> = ({
   onCenterClick,
   className,
 }) => {
-  const safe = items.slice(0, 4);
+  const safe = items.slice(0, 5);
   const [internal, setInternal] = React.useState(activeKey ?? safe[0]?.key);
   const active = activeKey ?? internal;
 
@@ -56,9 +60,9 @@ const BottomNav: React.FC<BottomNavProps> = ({
     cb?.();
   };
 
-  // Insert center action between item 2 and 3 as a regular slot for perfect symmetry.
+  // Split around center button: 2 left + center + up to 3 right.
   const left = safe.slice(0, 2);
-  const right = safe.slice(2, 4);
+  const right = safe.slice(2, 5);
 
   return (
     <div
@@ -129,7 +133,7 @@ const NavButton: React.FC<{
         strokeWidth={isActive ? 2.2 : 1.8}
         className={cn(
           'transition-colors duration-200',
-          isActive ? 'text-red-500' : 'text-gray-400',
+          isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
       {item.badge ? (
