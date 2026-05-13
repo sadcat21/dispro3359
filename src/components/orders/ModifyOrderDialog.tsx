@@ -1286,6 +1286,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         try {
           const { recordSaleTracking } = await import('@/utils/salesTracking');
           await supabase.from('sales_tracking' as any).delete().eq('order_id', order.id);
+          // Drop only still-pending deferred-offer rows for this order so the
+          // re-recorded sale produces a fresh pending row matching the new
+          // gift quantities. Confirmed rows stay (they already deducted stock).
+          await (supabase as any)
+            .from('pending_offer_confirmations')
+            .delete()
+            .eq('order_id', order.id)
+            .eq('status', 'pending');
 
           if (!allItemsRemoved) {
             const { data: freshTrackItems } = await supabase
