@@ -599,8 +599,17 @@ const MyAchievements: React.FC = () => {
       });
     }
 
+    if (selectedProductIds.size > 0) {
+      const orderLinked = new Set(['order', 'direct_sale', 'delivery']);
+      result = result.filter((visit: any) => {
+        if (!orderLinked.has(visit.operation_type)) return false;
+        const ids: string[] = visit.orderProductIds || [];
+        return ids.some((id) => selectedProductIds.has(id));
+      });
+    }
+
     return result;
-  }, [visits, activeFilter, searchQuery, invoiceMode]);
+  }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
 
