@@ -689,7 +689,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           notes: (() => {
             const defaultNote = isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة');
             const offerNotes = orderItems.filter(i => i.offerNote).map(i => i.offerNote).join(' | ');
-            return [notes || defaultNote, offerNotes].filter(Boolean).join(' | ');
+            return [defaultNote, notes, offerNotes].filter(Boolean).join(' | ');
           })(),
         })
         .select()
