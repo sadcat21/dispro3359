@@ -265,19 +265,17 @@ const Customers: React.FC = () => {
   const filteredByBranch = useMemo(() => {
     let list = customers;
     if (effectiveBranchId) {
-      // Strict: only customers of this branch. Customers without a branch are
-      // shown only when their wilaya matches (or they have no wilaya at all).
+      // أي عميل ينتمي لنفس ولاية الفرع يُعتبر تابعاً لهذا الفرع،
+      // بالإضافة إلى العملاء المرتبطين مباشرة بالفرع، والعملاء غير المُعيّنين
+      // الذين لا تتعارض ولايتهم مع ولاية الفرع.
       list = list.filter(c => {
         if (c.branch_id === effectiveBranchId) return true;
-        if (c.branch_id) return false; // belongs to a different branch → hide
-        // Unassigned customer: include only if wilaya is compatible
+        if (branchWilaya && c.wilaya === branchWilaya) return true;
+        if (c.branch_id) return false; // فرع مختلف وولاية مختلفة → إخفاء
+        // غير معيّن: اعرضه إذا لم تكن له ولاية أو لا توجد ولاية للفرع
         if (!branchWilaya) return true;
-        return !c.wilaya || c.wilaya === branchWilaya;
+        return !c.wilaya;
       });
-    }
-    // Extra wilaya gate (defensive) for assigned customers when branch wilaya known
-    if (branchWilaya) {
-      list = list.filter(c => !c.wilaya || c.wilaya === branchWilaya);
     }
     return list;
   }, [customers, effectiveBranchId, branchWilaya]);
