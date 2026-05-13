@@ -34,6 +34,24 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState<{ type: string; id: string; label: string } | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [tempSelectedIds, setTempSelectedIds] = useState<Set<string>>(new Set());
+  const [productSearch, setProductSearch] = useState('');
+
+  // قائمة المنتجات لنافذة الفلترة
+  const productsQ = useQuery({
+    queryKey: ['warehouse-achievements-products', branchId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, app_name, image_url')
+        .eq('is_active', true)
+        .order('name');
+      return data || [];
+    },
+    enabled: filterOpen,
+  });
 
   // 1) جلسات الشحن اليوم
   const loadingQ = useQuery({
