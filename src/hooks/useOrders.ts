@@ -398,7 +398,7 @@ export const useCancelOrder = () => {
     },
     onSuccess: () => {
       // Invalidate all related queries in parallel
-      const keys = ['orders', 'my-orders', 'assigned-orders', 'my-worker-stock', 'worker-truck-stock', 'customer-debts', 'order-debt-details', 'worker-liability', 'all-workers-liability', 'achievements-data'];
+      const keys = ['orders', 'my-orders', 'assigned-orders', 'my-worker-stock', 'worker-truck-stock', 'customer-debts', 'order-debt-details', 'worker-liability', 'all-workers-liability', 'achievements-data', 'sales-tracking', 'worker-achievements', 'promos', 'my-promos', 'my-achievements-page'];
       keys.forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));
     },
   });
