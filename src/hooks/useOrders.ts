@@ -383,8 +383,15 @@ export const useCancelOrder = () => {
       mutations.push(
         (supabase as any).from('promos').delete().eq('order_id', orderId)
       );
+      // Soft-mark pending_offer_confirmations so we can restore the original
+      // state on resume (cancelled_pending vs cancelled_confirmed). The offers
+      // tab queries filter by status='pending'/'confirmed' so these are
+      // hidden until the order is resumed.
       mutations.push(
-        (supabase as any).from('pending_offer_confirmations').delete().eq('order_id', orderId).eq('status', 'pending')
+        (supabase as any).from('pending_offer_confirmations').update({ status: 'cancelled_pending' }).eq('order_id', orderId).eq('status', 'pending')
+      );
+      mutations.push(
+        (supabase as any).from('pending_offer_confirmations').update({ status: 'cancelled_confirmed' }).eq('order_id', orderId).eq('status', 'confirmed')
       );
 
       // Update order status
