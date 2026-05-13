@@ -861,7 +861,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .select('id, customer_id, created_at, notes')
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
-        .ilike('notes', '%بيع مباشر%');
+        .or('notes.ilike.%بيع مباشر%,notes.ilike.%بيع مخزن%,notes.ilike.%Vente Directe%,notes.ilike.%Vente Dépôt%,notes.ilike.%Vente Depot%');
       if (!isAdmin || hasSpecificWorker) {
         oQuery = oQuery.eq('created_by', effectiveWorkerId!);
       }
