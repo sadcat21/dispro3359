@@ -870,23 +870,26 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
       const isActiveSale = (orderId?: string | null) => !orderId || !cancelledOrderIds.has(orderId);
 
-      // Merge: prefer receipts data, then visit tracking for any missing customers
-      const seen = new Set<string>();
+      // Merge: include ALL direct sales (don't dedupe by customer) so every
+      // order_id is captured. A customer can have multiple direct sales in a
+      // day — losing the 2nd order_id makes that order leak into the regular
+      // orders tab.
       const merged: typeof vtResults = [];
-      (rData || []).forEach(r => {
+      const seenOrderIds = new Set<string>();
+      (rData || []).forEach((r: any) => {
         if (!r.customer_id) return;
-        const receiptOrderId = (r as any).order_id;
+        const receiptOrderId = r.order_id;
         if (!receiptOrderId || !isActiveSale(receiptOrderId)) return;
-        seen.add(r.customer_id);
-        merged.push(r as any);
+        if (seenOrderIds.has(receiptOrderId)) return;
+        seenOrderIds.add(receiptOrderId);
+        merged.push(r);
       });
       vtResults.forEach(v => {
         if (!v.customer_id) return;
         if (!isActiveSale(v.order_id)) return;
-        if (!seen.has(v.customer_id)) {
-          seen.add(v.customer_id);
-          merged.push(v);
-        }
+        if (v.order_id && seenOrderIds.has(v.order_id)) return;
+        if (v.order_id) seenOrderIds.add(v.order_id);
+        merged.push(v);
       });
       return merged;
     },
