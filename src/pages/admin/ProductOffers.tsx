@@ -213,31 +213,42 @@ const ProductOffers: React.FC = () => {
                       return acc;
                     }, {})
                   ).map(({ product, offers: productOffers }) => (
-                    <Card key={(product as any)?.id || productOffers[0].id} className="flex flex-col h-full">
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start gap-3">
+                    <Card
+                      key={(product as any)?.id || productOffers[0].id}
+                      className="group flex flex-col h-full overflow-hidden border-border/60 bg-gradient-to-b from-card to-card/50 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                    >
+                      <CardHeader className="pb-3 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 border-b border-border/50">
+                        <div className="flex items-center gap-3">
                           {(product as any)?.image_url ? (
-                            <img
-                              src={(product as any).image_url}
-                              alt={(product as any)?.name || ''}
-                              className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border shrink-0"
-                            />
+                            <div className="relative shrink-0">
+                              <img
+                                src={(product as any).image_url}
+                                alt={(product as any)?.name || ''}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-2 ring-background shadow-md"
+                              />
+                              <span className="absolute -bottom-1 -end-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center ring-2 ring-background">
+                                {productOffers.length}
+                              </span>
+                            </div>
                           ) : (
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                              <Package className="w-6 h-6 text-muted-foreground" />
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-muted flex items-center justify-center shrink-0 ring-2 ring-background shadow-md">
+                              <Package className="w-7 h-7 text-muted-foreground" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-sm sm:text-base truncate">
+                            <CardTitle className="text-sm sm:text-base font-bold leading-tight line-clamp-2">
                               {getProductDisplayName(product as any) || (product as any)?.name}
                             </CardTitle>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {productOffers.length} {productOffers.length === 1 ? 'مجموعة عرض' : 'مجموعات عروض'}
-                            </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Gift className="w-3 h-3 text-primary" />
+                              <p className="text-[11px] text-muted-foreground">
+                                {productOffers.length} {productOffers.length === 1 ? 'عرض نشط' : 'عروض نشطة'}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className="space-y-2.5 pt-3 flex-1">
                         {productOffers.map((offer, gIndex) => {
                           const tiers = (offer.tiers && offer.tiers.length > 0 ? offer.tiers : [{
                             id: null,
@@ -252,98 +263,103 @@ const ProductOffers: React.FC = () => {
                           }]) as any[];
                           return (
                             <div key={offer.id} className={cn(
-                              "rounded-lg border p-2.5 space-y-2",
-                              !offer.is_active && "opacity-60 bg-muted/30"
+                              "rounded-xl border border-border/60 bg-card overflow-hidden transition-all",
+                              offer.is_active ? "shadow-sm hover:shadow-md hover:border-primary/40" : "opacity-60 bg-muted/20"
                             )}>
                               {/* Group header */}
-                              <div className="flex items-start justify-between gap-2 flex-wrap">
-                                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                  <Badge className="bg-primary/10 text-primary border-primary/30" variant="outline">
-                                    مجموعة {gIndex + 1}
+                              <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted/40 border-b border-border/50">
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  <Badge className="bg-primary text-primary-foreground border-0 text-[10px] h-5 px-2 font-bold shrink-0">
+                                    #{gIndex + 1}
                                   </Badge>
-                                  <span className="text-xs font-medium truncate">{offer.name}</span>
+                                  <span className="text-xs font-semibold truncate">{offer.name}</span>
                                   {offer.is_stackable && (
-                                    <Badge variant="outline" className="text-[10px] gap-1">
-                                      <Layers className="w-3 h-3" />
-                                      {t('offers.stackable')}
+                                    <Badge variant="outline" className="text-[10px] h-5 gap-0.5 px-1.5 shrink-0">
+                                      <Layers className="w-2.5 h-2.5" />
                                     </Badge>
                                   )}
                                 </div>
                                 <Switch
                                   checked={offer.is_active}
                                   onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
+                                  className="scale-75"
                                 />
                               </div>
 
-                              {/* Dates */}
-                              {(offer.start_date || offer.end_date) && (
-                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                  <Calendar className="w-3 h-3" />
-                                  {offer.start_date && format(new Date(offer.start_date), 'dd MMM yyyy', { locale: dateLocale })}
-                                  {offer.start_date && offer.end_date && ' - '}
-                                  {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
-                                </div>
-                              )}
-
-                              {/* Tiers (slides) */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                {tiers.map((tier: any, index: number) => (
-                                  <div key={index} className="flex flex-wrap items-center gap-1 p-1.5 bg-muted/50 rounded text-xs">
-                                    <Badge variant="outline" className="text-[10px] px-1.5">
-                                      شريحة {index + 1}
-                                    </Badge>
-                                    <Badge variant="secondary" className="text-[10px] px-1.5">
-                                      اشتري {tier.min_quantity}{tier.max_quantity ? `-${tier.max_quantity}` : '+'}
-                                    </Badge>
-                                    <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
-                                      → {tier.gift_type === 'same_product'
-                                        ? `${tier.gift_quantity} ${t('offers.free_units')}`
-                                        : tier.gift_type === 'different_product' && tier.gift_product
-                                        ? `${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
-                                        : `${tier.discount_percentage}%`}
-                                    </Badge>
-                                    {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
-                                      <Badge variant="outline" className="text-[10px] px-1.5 gap-1">
-                                        <Users className="w-2.5 h-2.5" />
-                                        {tier.worker_reward_type === 'fixed'
-                                          ? `${tier.worker_reward_amount}${t('currency.dzd')}`
-                                          : `${tier.worker_reward_amount}%`}
-                                      </Badge>
-                                    )}
+                              <div className="p-2.5 space-y-2">
+                                {/* Dates */}
+                                {(offer.start_date || offer.end_date) && (
+                                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/30 rounded-md px-2 py-1">
+                                    <Calendar className="w-3 h-3 text-primary" />
+                                    <span className="font-medium">
+                                      {offer.start_date && format(new Date(offer.start_date), 'dd MMM', { locale: dateLocale })}
+                                      {offer.start_date && offer.end_date && ' ← '}
+                                      {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
+                                    </span>
                                   </div>
-                                ))}
-                              </div>
+                                )}
 
-                              {/* Actions */}
-                              <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t">
-                                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleEdit(offer)}>
-                                  <Edit2 className="w-3 h-3 me-1" />
-                                  {t('common.edit')}
-                                </Button>
-                                {canManage ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 text-xs"
-                                    onClick={() => setExtendTarget({
-                                      offerId: offer.id,
-                                      offerName: offer.name,
-                                      tierId: null,
-                                      tierLabel: null,
-                                      mode: isOfferRunning(offer) ? 'extend' : 'resume',
-                                    })}
-                                  >
-                                    {isOfferRunning(offer) ? <><Clock className="w-3 h-3 me-1" />تمديد</> : <><PlayCircle className="w-3 h-3 me-1" />استئناف</>}
+                                {/* Tiers (slides) */}
+                                <div className="space-y-1.5">
+                                  {tiers.map((tier: any, index: number) => (
+                                    <div key={index} className="flex flex-wrap items-center gap-1.5 p-2 bg-gradient-to-l from-primary/5 to-transparent border border-primary/10 rounded-lg text-xs">
+                                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-background shrink-0">
+                                        شريحة {index + 1}
+                                      </Badge>
+                                      <Badge variant="secondary" className="text-[10px] h-5 px-2 font-semibold">
+                                        اشتري {tier.min_quantity}{tier.max_quantity ? `-${tier.max_quantity}` : '+'}
+                                      </Badge>
+                                      <span className="text-muted-foreground">←</span>
+                                      <Badge className="bg-primary text-primary-foreground text-[10px] h-5 px-2 font-bold shadow-sm">
+                                        {tier.gift_type === 'same_product'
+                                          ? `+${tier.gift_quantity} ${t('offers.free_units')}`
+                                          : tier.gift_type === 'different_product' && tier.gift_product
+                                          ? `+${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
+                                          : `${tier.discount_percentage}% خصم`}
+                                      </Badge>
+                                      {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
+                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 ms-auto bg-accent/30">
+                                          <Users className="w-2.5 h-2.5" />
+                                          {tier.worker_reward_type === 'fixed'
+                                            ? `${tier.worker_reward_amount}${t('currency.dzd')}`
+                                            : `${tier.worker_reward_amount}%`}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-dashed">
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs hover:bg-primary/10 hover:text-primary" onClick={() => handleEdit(offer)}>
+                                    <Edit2 className="w-3.5 h-3.5 me-1" />
+                                    {t('common.edit')}
                                   </Button>
-                                ) : <span />}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 text-xs text-destructive hover:text-destructive"
-                                  onClick={() => setDeleteConfirm(offer.id)}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
+                                  {canManage ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 text-xs hover:bg-accent/30"
+                                      onClick={() => setExtendTarget({
+                                        offerId: offer.id,
+                                        offerName: offer.name,
+                                        tierId: null,
+                                        tierLabel: null,
+                                        mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                                      })}
+                                    >
+                                      {isOfferRunning(offer) ? <><Clock className="w-3.5 h-3.5 me-1" />تمديد</> : <><PlayCircle className="w-3.5 h-3.5 me-1" />استئناف</>}
+                                    </Button>
+                                  ) : <span />}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={() => setDeleteConfirm(offer.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           );
