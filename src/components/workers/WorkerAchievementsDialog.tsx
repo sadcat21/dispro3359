@@ -194,6 +194,7 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
   const [dateTo, setDateTo] = useState(today);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedVisit, setSelectedVisit] = useState<any | null>(null);
+  const [pendingOffersCustomerCount, setPendingOffersCustomerCount] = useState(0);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<OrderWithDetails | null>(null);
 
   // Reset dates when dialog opens
