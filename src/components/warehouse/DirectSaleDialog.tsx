@@ -757,19 +757,31 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         return;
       }
 
+      // Resolve which offers are deferred (gift not deducted from stock yet)
+      const deferredOfferIdSet2 = new Set<string>();
+      const allOfferIds2 = Array.from(new Set(orderItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[]));
+      if (allOfferIds2.length > 0) {
+        const { data: offRows2 } = await supabase
+          .from('product_offers')
+          .select('id, is_deferred_confirmation')
+          .in('id', allOfferIds2);
+        for (const o of (offRows2 || []) as any[]) if (o.is_deferred_confirmation) deferredOfferIdSet2.add(o.id);
+      }
+
       // Deduct from stock & log movements (including gift quantities)
       for (const item of orderItems) {
+        const isDeferredItem = !!((item as any).giftOfferId && deferredOfferIdSet2.has((item as any).giftOfferId));
         const ws = stockItems.find(s => s.product_id === item.productId);
         if (ws) {
           const product = allProducts.find(p => p.id === item.productId);
           const piecesPerBox = product?.pieces_per_box || 20;
-          const giftBoxesQty = Number(item.giftQuantity || 0);
-          const giftPiecesQty = Number(item.giftPieces || 0);
+          const giftBoxesQty = isDeferredItem ? 0 : Number(item.giftQuantity || 0);
+          const giftPiecesQty = isDeferredItem ? 0 : Number(item.giftPieces || 0);
 
           // Convert sold quantity (box.pieces format) to total pieces, including gift pieces
           const soldBoxes = Math.floor(Math.round(Number(item.quantity || 0) * 100) / 100);
           const soldDec = Math.round((Math.round(Number(item.quantity || 0) * 100) / 100 - soldBoxes) * 100);
-          const soldPieces = soldBoxes * piecesPerBox + soldDec + giftPiecesQty;
+          const soldPieces = soldBoxes * piecesPerBox + soldDec - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0) + giftPiecesQty;
 
           // Convert current stock to total pieces
           const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
