@@ -265,43 +265,70 @@ const BranchManagerHome: React.FC = () => {
         </div>
       </div>
 
-      {/* Sections */}
-      <div className="px-4 py-6 space-y-6">
-        {sections.map((section) => {
+      {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
+      <div className="px-3 sm:px-4 py-6 space-y-5" dir="rtl">
+        {sections.map((section, sIdx) => {
           const SecIcon = section.icon;
+          // لوحة ألوان دوّارة لكل قسم لإعطاء كل قسم لون خلفية مميز كما في الصورة
+          const sectionPalette = [
+            { wrap: 'bg-amber-50/60 border-amber-200', title: 'text-amber-700' },
+            { wrap: 'bg-emerald-50/60 border-emerald-200', title: 'text-emerald-700' },
+            { wrap: 'bg-sky-50/60 border-sky-200', title: 'text-sky-700' },
+            { wrap: 'bg-rose-50/60 border-rose-200', title: 'text-rose-700' },
+            { wrap: 'bg-violet-50/60 border-violet-200', title: 'text-violet-700' },
+            { wrap: 'bg-orange-50/60 border-orange-200', title: 'text-orange-700' },
+            { wrap: 'bg-teal-50/60 border-teal-200', title: 'text-teal-700' },
+          ][sIdx % 7];
+
+          // ألوان دوّارة للبطاقات داخل القسم (حدود + أيقونة)
+          const cardPalettes = [
+            { border: 'border-rose-300', icon: 'text-rose-500' },
+            { border: 'border-emerald-300', icon: 'text-emerald-500' },
+            { border: 'border-amber-300', icon: 'text-amber-500' },
+            { border: 'border-violet-300', icon: 'text-violet-500' },
+            { border: 'border-sky-300', icon: 'text-sky-500' },
+            { border: 'border-orange-300', icon: 'text-orange-500' },
+            { border: 'border-teal-300', icon: 'text-teal-500' },
+            { border: 'border-pink-300', icon: 'text-pink-500' },
+            { border: 'border-indigo-300', icon: 'text-indigo-500' },
+          ];
+
           return (
-            <div key={section.titleKey}>
-              <div className="flex items-center gap-2 mb-3 px-2">
-                <SecIcon className="w-5 h-5 text-blue-600" />
-                <h2 className="text-base font-semibold text-slate-800">{t(section.titleKey)}</h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-blue-300/60 to-transparent" />
+            <div
+              key={section.titleKey}
+              className={`relative rounded-2xl border ${sectionPalette.wrap} p-3 sm:p-4`}
+            >
+              {/* عنوان القسم — في الأعلى يمين كما في الصورة */}
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <SecIcon className={`w-5 h-5 ${sectionPalette.title}`} />
+                <h2 className={`text-sm sm:text-base font-bold ${sectionPalette.title}`}>
+                  {t(section.titleKey)}
+                </h2>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
-                {section.items.map((item) => {
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                {section.items.map((item, iIdx) => {
                   const Icon = item.icon;
                   const showBadge = typeof item.badge === 'number' && item.badge > 0;
+                  const cp = cardPalettes[iIdx % cardPalettes.length];
                   return (
                     <Card
                       key={item.key}
                       onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
-                      className={`group cursor-pointer bg-white hover:shadow-md transition-all relative ${
+                      className={`group cursor-pointer bg-white border-2 hover:shadow-md hover:-translate-y-0.5 transition-all relative rounded-xl ${
                         showBadge
-                          ? 'border-red-300 ring-2 ring-red-200/60 hover:border-red-400 hover:shadow-red-500/10'
-                          : 'border-slate-200 hover:border-blue-400 hover:shadow-blue-500/10'
+                          ? 'border-red-400 ring-2 ring-red-200/60'
+                          : cp.border
                       }`}
                     >
                       {showBadge && (
-                        <Badge className="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[18px] h-[18px] text-[10px] flex items-center justify-center px-1 animate-pulse">
+                        <Badge className="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[18px] h-[18px] text-[10px] flex items-center justify-center px-1 animate-pulse z-10">
                           {item.badge}
                         </Badge>
                       )}
-                      <CardContent className="p-2 sm:p-3 flex flex-col items-center text-center gap-1.5">
-                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-colors ${
-                          showBadge ? 'bg-red-50 group-hover:bg-red-100' : 'bg-blue-50 group-hover:bg-blue-100'
-                        }`}>
-                          <Icon className={`w-5 h-5 ${showBadge ? 'text-red-600' : 'text-blue-600 group-hover:text-blue-700'}`} />
-                        </div>
-                        <p className="text-[11px] sm:text-xs font-medium text-slate-800 leading-tight line-clamp-2">
+                      <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center text-center gap-2 min-h-[88px]">
+                        <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
+                        <p className="text-[11px] sm:text-xs font-semibold text-slate-700 leading-tight line-clamp-2">
                           {item.label}
                         </p>
                       </CardContent>
