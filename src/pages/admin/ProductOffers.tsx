@@ -140,12 +140,20 @@ const ProductOffers: React.FC = () => {
               <p className="text-sm text-muted-foreground">{t('offers.management_desc')}</p>
             </div>
           </div>
-          {!isAddOfferHidden && (
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="w-4 h-4 me-2" />
-              {t('offers.new')}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {canManage && (
+              <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
+                <Settings2 className="w-4 h-4 me-2" />
+                إعدادات العروض
+              </Button>
+            )}
+            {!isAddOfferHidden && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="w-4 h-4 me-2" />
+                {t('offers.new')}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Search */}
