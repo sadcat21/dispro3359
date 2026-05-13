@@ -26,6 +26,7 @@ import WorkerOrdersSummaryDialog from '@/components/accounting/WorkerOrdersSumma
 import type { OrderWithDetails } from '@/types/database';
 import { isAdminRole } from '@/lib/utils';
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
+import PendingOffersTab from '@/components/offers/PendingOffersTab';
 
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
   order: <ShoppingCart className="w-4 h-4 text-blue-600" />,
