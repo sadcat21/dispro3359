@@ -380,11 +380,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   useEffect(() => {
     if (!offerApplied || isUnitSale) return;
+    if (manualGiftMode) return; // user is editing, don't auto-revoke
     if (giftPieces <= 0) {
       setOfferApplied(false);
       setGiftOfferId(undefined);
     }
-  }, [offerApplied, giftPieces, isUnitSale]);
+  }, [offerApplied, giftPieces, isUnitSale, manualGiftMode]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
