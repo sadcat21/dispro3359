@@ -1840,11 +1840,12 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .lte('created_at', selectedDayBounds.end)
         .not('status', 'eq', 'cancelled')
         .order('created_at', { ascending: false });
-      if (data && data.length > 1) {
-        setOrderPickerDialog({ customer, orders: data, type: 'order' });
-      } else if (data && data.length === 1) {
-        const hydratedItems = await hydrateOrderItems(data[0]);
-        setOrderDetailsDialog({ ...data[0], items: hydratedItems, _isOrderRequest: true });
+      const realOrders = (data || []).filter((order: any) => !directSaleOrderIds.has(order.id) && !isDirectSaleOrderNote(order.notes));
+      if (realOrders.length > 1) {
+        setOrderPickerDialog({ customer, orders: realOrders, type: 'order' });
+      } else if (realOrders.length === 1) {
+        const hydratedItems = await hydrateOrderItems(realOrders[0]);
+        setOrderDetailsDialog({ ...realOrders[0], items: hydratedItems, _isOrderRequest: true });
       } else {
         toast.error('لم يتم العثور على تفاصيل الطلبية');
       }
