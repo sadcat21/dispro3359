@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import CustomerPickerDialog from './CustomerPickerDialog';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import {
-    ShoppingCart, Banknote, Truck, Ban
+    ShoppingCart, Banknote, Truck, Ban, AlertTriangle
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
