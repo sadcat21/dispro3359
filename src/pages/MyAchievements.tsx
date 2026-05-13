@@ -217,6 +217,7 @@ const MyAchievements: React.FC = () => {
   const [periodFrom, setPeriodFrom] = useState<string>(() => searchParams.get('from') || today);
   const [periodTo, setPeriodTo] = useState<string>(() => searchParams.get('to') || today);
   const [showPeriodDialog, setShowPeriodDialog] = useState(false);
+  const [pendingOffersCustomerCount, setPendingOffersCustomerCount] = useState(0);
 
   const normalizeRange = (from: string, to: string) => {
     const start = new Date(`${from || today}T00:00:00`);
