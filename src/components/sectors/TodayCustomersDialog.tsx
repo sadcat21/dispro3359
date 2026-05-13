@@ -86,6 +86,9 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+const DIRECT_SALE_NOTE_REGEX = /بيع\s*(?:مباشر|مخزن)|Vente\s*(?:Directe|Dépôt|Depot)/i;
+const isDirectSaleOrderNote = (notes?: string | null) => DIRECT_SALE_NOTE_REGEX.test(String(notes || ''));
+
 type DeliveryOrderLike = Pick<OrderWithDetails, 'delivery_date' | 'created_at' | 'status' | 'customer_id'> & { postpone_count?: number | null };
 const getOrderDateKey = (order: DeliveryOrderLike) => String(order.delivery_date || order.created_at?.split('T')[0] || '');
 const isPostponedOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
@@ -420,12 +423,12 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     queryFn: async () => {
       const { data } = await supabase
         .from('orders')
-        .select('id, customer_id, created_at')
+        .select('id, customer_id, created_at, notes')
         .eq('created_by', effectiveWorkerId!)
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
         .not('status', 'eq', 'cancelled');
-      return data || [];
+      return (data || []).filter((order: any) => !isDirectSaleOrderNote(order.notes));
     },
     enabled: !!effectiveWorkerId && open,
     refetchInterval: 10000,
@@ -850,7 +853,28 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       const { data: rData } = await rQuery;
 
-      // 3. Tertiary source: orders flagged as direct sale via notes
+      // 3. Sales ledger source: covers direct sales even when the user-entered
+      // order note does not include the default direct-sale marker.
+      let stQuery = supabase
+        .from('sales_tracking' as any)
+        .select('customer_id, order_id, sold_at, created_at')
+        .in('source', ['direct_sale', 'warehouse_sale'])
+        .gte('sold_at', todayStart)
+        .lte('sold_at', selectedDayBounds.end);
+      if (!isAdmin || hasSpecificWorker) {
+        stQuery = stQuery.eq('worker_id', effectiveWorkerId!);
+      }
+      const { data: stData } = await stQuery;
+      const stResults = (stData || []).map((s: any) => ({
+        customer_id: s.customer_id,
+        order_id: s.order_id,
+        created_at: s.sold_at || s.created_at,
+        items: null,
+        total_amount: null,
+        customer_name: null,
+      }));
+
+      // 4. Tertiary source: orders flagged as direct sale via notes
       // (e.g. "بيع مباشر من الشاحنة") that may not have a visit_tracking
       // or receipt row yet — they must NOT leak into the regular orders tab.
       let oQuery = supabase
@@ -858,7 +882,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .select('id, customer_id, created_at, notes')
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
-        .ilike('notes', '%بيع مباشر%');
+        .or('notes.ilike.%بيع مباشر%,notes.ilike.%بيع مخزن%,notes.ilike.%Vente Directe%,notes.ilike.%Vente Dépôt%,notes.ilike.%Vente Depot%');
       if (!isAdmin || hasSpecificWorker) {
         oQuery = oQuery.eq('created_by', effectiveWorkerId!);
       }
@@ -876,6 +900,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       const orderIds = [...new Set([
         ...(vtResults.map(v => v.order_id)),
         ...((rData || []).map((r: any) => r.order_id)),
+        ...(stResults.map((s: any) => s.order_id)),
         ...(oResults.map(o => o.order_id)),
       ].filter(Boolean))] as string[];
 
@@ -906,6 +931,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         if (seenOrderIds.has(receiptOrderId)) return;
         seenOrderIds.add(receiptOrderId);
         merged.push(r);
+      });
+      stResults.forEach((s: any) => {
+        if (!s.customer_id) return;
+        if (!isActiveSale(s.order_id)) return;
+        if (s.order_id && seenOrderIds.has(s.order_id)) return;
+        if (s.order_id) seenOrderIds.add(s.order_id);
+        merged.push(s);
       });
       vtResults.forEach(v => {
         if (!v.customer_id) return;
@@ -1238,6 +1270,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const visitedCustomerIds = useMemo(() => new Set(todayVisits.filter(v => v.operation_type === 'visit').map(v => v.customer_id).filter(Boolean)), [todayVisits]);
   const directSaleOrderIds = useMemo(() => new Set(todayDirectSales.map((s: any) => s.order_id).filter(Boolean)), [todayDirectSales]);
   const realTodayOrders = useMemo(() => todayOrders.filter((o: any) => !o.id || !directSaleOrderIds.has(o.id)), [todayOrders, directSaleOrderIds]);
+  const realTodayOrderIds = useMemo(() => new Set(realTodayOrders.map((o: any) => o.id).filter(Boolean)), [realTodayOrders]);
   const orderedCustomerIds = useMemo(() => new Set(realTodayOrders.map((o: any) => o.customer_id).filter(Boolean)), [realTodayOrders]);
   const salesNotVisited = useMemo(() => salesCustomers.filter(c => !visitedCustomerIds.has(c.id) && !orderedCustomerIds.has(c.id)), [salesCustomers, visitedCustomerIds, orderedCustomerIds]);
   const salesVisitedNoOrder = useMemo(() => salesCustomers.filter(c => visitedCustomerIds.has(c.id) && !orderedCustomerIds.has(c.id)), [salesCustomers, visitedCustomerIds, orderedCustomerIds]);
@@ -1260,9 +1293,8 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     const map = new Map<string, { deliveryDate: string; deliveryDay: string; itemCount: number }>();
     const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     // Use todayOrders customer_ids to filter assignedOrders for full data
-    const orderedIds = new Set(realTodayOrders.map((o: any) => o.customer_id));
     assignedOrders.forEach(o => {
-      if (!o.customer_id || !orderedIds.has(o.customer_id)) return;
+      if (!o.customer_id || !realTodayOrderIds.has(o.id)) return;
       const items = (o as any).items || [];
       const itemCount = items.length;
       const dd = (o as any).delivery_date || '';
@@ -1287,18 +1319,17 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
     });
     return map;
-  }, [realTodayOrders, assignedOrders]);
+  }, [realTodayOrderIds, assignedOrders]);
 
   // Map customer_id -> number of separate orders (today, by current worker scope)
   const orderCountMap = useMemo(() => {
     const map = new Map<string, number>();
-    const orderedIds = new Set(realTodayOrders.map((o: any) => o.customer_id));
     assignedOrders.forEach(o => {
-      if (!o.customer_id || !orderedIds.has(o.customer_id)) return;
+      if (!o.customer_id || !realTodayOrderIds.has(o.id)) return;
       map.set(o.customer_id, (map.get(o.customer_id) || 0) + 1);
     });
     return map;
-  }, [realTodayOrders, assignedOrders]);
+  }, [realTodayOrderIds, assignedOrders]);
 
   const deliveryOrderGroupMap = useMemo(() => {
     const map = new Map<string, { current: number; postponed: number }>();
@@ -1809,11 +1840,12 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         .lte('created_at', selectedDayBounds.end)
         .not('status', 'eq', 'cancelled')
         .order('created_at', { ascending: false });
-      if (data && data.length > 1) {
-        setOrderPickerDialog({ customer, orders: data, type: 'order' });
-      } else if (data && data.length === 1) {
-        const hydratedItems = await hydrateOrderItems(data[0]);
-        setOrderDetailsDialog({ ...data[0], items: hydratedItems, _isOrderRequest: true });
+      const realOrders = (data || []).filter((order: any) => !directSaleOrderIds.has(order.id) && !isDirectSaleOrderNote(order.notes));
+      if (realOrders.length > 1) {
+        setOrderPickerDialog({ customer, orders: realOrders, type: 'order' });
+      } else if (realOrders.length === 1) {
+        const hydratedItems = await hydrateOrderItems(realOrders[0]);
+        setOrderDetailsDialog({ ...realOrders[0], items: hydratedItems, _isOrderRequest: true });
       } else {
         toast.error('لم يتم العثور على تفاصيل الطلبية');
       }

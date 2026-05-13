@@ -49,6 +49,9 @@ const getDateLocale = (lang: string) => {
   }
 };
 
+const DIRECT_SALE_NOTE_REGEX = /بيع\s*(?:مباشر|مخزن)|Vente\s*(?:Directe|Dépôt|Depot)/i;
+const isDirectSaleOrder = (order: OrderWithDetails) => DIRECT_SALE_NOTE_REGEX.test(String(order.notes || ''));
+
 const OrdersContent: React.FC = () => {
   const location = useLocation();
   const { workerId, activeBranch, role } = useAuth();
@@ -162,8 +165,8 @@ const OrdersContent: React.FC = () => {
   const orders = useMemo(() => {
     const list = rawOrders || [];
 
-    // Exclude direct/store sales — they belong to the deliveries view, not orders
-    const nonDirectSales = list.filter(order => !(order as any).notes?.includes('بيع مباشر'));
+    // Exclude direct/store sales — they belong under Sold in direct sales, not orders
+    const nonDirectSales = list.filter(order => !isDirectSaleOrder(order));
 
     const workerScopedOrders = contextWorkerId
       ? nonDirectSales.filter(order => order.assigned_worker_id === contextWorkerId || order.created_by === contextWorkerId)

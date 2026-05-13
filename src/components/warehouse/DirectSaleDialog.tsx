@@ -689,7 +689,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           notes: (() => {
             const defaultNote = isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة');
             const offerNotes = orderItems.filter(i => i.offerNote).map(i => i.offerNote).join(' | ');
-            return [notes || defaultNote, offerNotes].filter(Boolean).join(' | ');
+            return [defaultNote, notes, offerNotes].filter(Boolean).join(' | ');
           })(),
         })
         .select()
@@ -749,6 +749,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       // إذا كان الطلب يتطلب سلسلة موافقات، نتوقف هنا (لا خصم مخزون، لا وصل، لا SMS)
       if (requiresApprovalChain) {
         queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['today-orders-dialog'] });
+        queryClient.invalidateQueries({ queryKey: ['today-direct-sales-dialog'] });
+        queryClient.invalidateQueries({ queryKey: ['today-cust-assigned-orders-full'] });
         queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
         toast.success('تم إرسال طلب الفاتورة لمدير الفرع للمراجعة');
         setShowPaymentDialog(false);
@@ -864,6 +867,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
 
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['today-orders-dialog'] });
+      queryClient.invalidateQueries({ queryKey: ['today-direct-sales-dialog'] });
+      queryClient.invalidateQueries({ queryKey: ['today-cust-assigned-orders-full'] });
       if (stockSource === 'warehouse') {
         queryClient.invalidateQueries({ queryKey: ['warehouse-stock'] });
         queryClient.invalidateQueries({ queryKey: ['warehouse-stock-for-sale'] });
