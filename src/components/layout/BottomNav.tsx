@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Home,
   Plus,
+  Trophy,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,8 @@ export interface BottomNavItem {
   icon: LucideIcon;
   badge?: number;
   onClick?: () => void;
+  /** Tailwind text color class for active state (default: text-red-500) */
+  activeColor?: string;
 }
 
 export interface BottomNavProps {
@@ -30,6 +33,7 @@ export interface BottomNavProps {
 const DEFAULT_ITEMS: BottomNavItem[] = [
   { key: 'more', label: 'More', icon: MoreHorizontal },
   { key: 'finance', label: 'Finance', icon: Wallet },
+  { key: 'achievements', label: "إنجازات اليوم", icon: Trophy, activeColor: 'text-blue-500' },
   { key: 'orders', label: 'Orders', icon: ClipboardList, badge: 11 },
   { key: 'home', label: 'Home', icon: Home },
 ];
