@@ -433,10 +433,24 @@ const MyAchievements: React.FC = () => {
         const debts = debtsResult.data;
 
         const orderSubtypeMap = new Map<string, string>();
+        const orderProductsMap = new Map<string, Set<string>>();
+        const orderPromoCountMap = new Map<string, number>();
         (orderItems || []).forEach((item: any) => {
-          if (!item?.order_id || !item?.price_subtype || orderSubtypeMap.has(item.order_id)) return;
-          orderSubtypeMap.set(item.order_id, item.price_subtype);
+          if (!item?.order_id) return;
+          if (item.price_subtype && !orderSubtypeMap.has(item.order_id)) {
+            orderSubtypeMap.set(item.order_id, item.price_subtype);
+          }
+          if (item.product_id) {
+            const set = orderProductsMap.get(item.order_id) || new Set<string>();
+            set.add(item.product_id);
+            orderProductsMap.set(item.order_id, set);
+          }
+          if (Number(item.gift_quantity || 0) > 0 || Number(item.gift_pieces || 0) > 0) {
+            orderPromoCountMap.set(item.order_id, (orderPromoCountMap.get(item.order_id) || 0) + 1);
+          }
         });
+        (window as any).__orderProductsMap = orderProductsMap;
+        (window as any).__orderPromoCountMap = orderPromoCountMap;
 
         (orders || []).forEach((o: any) => {
           if (!o.id) return;
