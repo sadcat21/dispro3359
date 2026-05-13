@@ -190,7 +190,7 @@ const ProductOffers: React.FC = () => {
               : tabKey === 'inactive' ? inactiveOffers
               : filteredOffers;
             return (
-              <TabsContent key={tabKey} value={tabKey} className="space-y-3">
+              <TabsContent key={tabKey} value={tabKey} className="mt-3">
                 {isLoading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     {t('common.loading')}
@@ -203,8 +203,9 @@ const ProductOffers: React.FC = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  list.map((offer) => (
-                    <Card key={offer.id} className={!offer.is_active ? 'opacity-60' : ''}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {list.map((offer) => (
+                    <Card key={offer.id} className={cn('flex flex-col h-full', !offer.is_active && 'opacity-60')}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3 flex-1 min-w-0">
