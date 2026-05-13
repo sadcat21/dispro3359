@@ -11,10 +11,6 @@ import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
   boxesToBPAlways(Math.max(0, Number.isFinite(fractionalBoxes) ? fractionalBoxes : 0), Math.max(1, ppb || 1));
 
-/** order_items: gift_quantity = full boxes, gift_pieces = leftover pieces. */
-const giftFractional = (boxes: number, pieces: number, ppb: number) =>
-  Math.max(0, Number(boxes || 0)) + Math.max(0, Number(pieces || 0)) / Math.max(1, ppb || 1);
-
 const confirmedGiftFractional = (item: any, ppb: number) => {
   const safePpb = Math.max(1, ppb || 1);
   const storedPieces = Math.max(0, Number(item.gift_quantity || 0)) * safePpb
