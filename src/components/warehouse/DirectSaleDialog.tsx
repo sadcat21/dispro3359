@@ -810,8 +810,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         });
       }
 
-      // Record gifts in promos table
-      const giftItems = orderItems.filter(i => (i.giftQuantity && i.giftQuantity > 0) || (i.giftPieces && i.giftPieces > 0));
+      // Record gifts in promos table (skip deferred — they appear only after confirmation)
+      const giftItems = orderItems.filter(i => ((i.giftQuantity && i.giftQuantity > 0) || (i.giftPieces && i.giftPieces > 0))
+        && !((i as any).giftOfferId && deferredOfferIdSet2.has((i as any).giftOfferId)));
       for (const item of giftItems) {
         const giftInPieces = getGiftTotalPieces({
           gift_quantity: item.giftQuantity,
