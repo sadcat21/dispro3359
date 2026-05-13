@@ -64,7 +64,7 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
                 query = query.or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
             }
             // Strict wilaya gate: customers must belong to the active branch's wilaya
-            const branchWilaya = activeBranch?.wilaya || activeRole?.branch?.wilaya || null;
+            const branchWilaya = activeBranch?.wilaya || null;
             if (branchWilaya) {
                 query = query.or(`wilaya.eq."${branchWilaya}",wilaya.is.null`);
             }
