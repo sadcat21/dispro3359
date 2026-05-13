@@ -234,29 +234,100 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     );
   }
 
-  const loadings = loadingQ.data || [];
-  const orders = ordersQ.data || [];
+  const allLoadings = loadingQ.data || [];
+  const allOrders = ordersQ.data || [];
   const receipts = receiptsQ.data || [];
   const reviews = reviewsQ.data || [];
-  const exchanges = exchangesQ.data || [];
+  const allExchanges = exchangesQ.data || [];
   const newDebts = newDebtsQ.data || [];
   const debtCollections = debtCollectionsQ.data || [];
-  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length + newDebts.length + debtCollections.length;
+
+  const hasFilter = selectedProductIds.size > 0;
+  const matchProduct = (pid?: string | null) => !!pid && selectedProductIds.has(pid);
+  const orders = hasFilter
+    ? allOrders.filter((o: any) => (o.order_items || []).some((it: any) => matchProduct(it.product_id)))
+    : allOrders;
+  const loadings = hasFilter
+    ? allLoadings.filter((s: any) => (s.loading_session_items || []).some((it: any) => matchProduct(it.products?.id ?? it.product_id)))
+    : allLoadings;
+  const exchanges = hasFilter
+    ? allExchanges.filter((ex: any) => matchProduct(ex.products?.id ?? ex.product_id))
+    : allExchanges;
+  // عند تفعيل فلتر المنتج: نُخفي الأقسام التي لا علاقة لها بالمنتجات
+  const visibleReceipts = hasFilter ? [] : receipts;
+  const visibleReviews = hasFilter ? [] : reviews;
+  const visibleNewDebts = hasFilter ? [] : newDebts;
+  const visibleDebtCollections = hasFilter ? [] : debtCollections;
+  const totalCount = loadings.length + orders.length + visibleReceipts.length + visibleReviews.length + exchanges.length + visibleNewDebts.length + visibleDebtCollections.length;
+
+  const products = (productsQ.data || []) as any[];
+  const filteredProducts = products.filter((p: any) => {
+    if (!productSearch.trim()) return true;
+    const q = productSearch.toLowerCase();
+    return (p.name || '').toLowerCase().includes(q) || (p.app_name || '').toLowerCase().includes(q);
+  });
+  const selectedProductsList = products.filter((p: any) => selectedProductIds.has(p.id));
+
+  const openFilter = () => {
+    setTempSelectedIds(new Set(selectedProductIds));
+    setProductSearch('');
+    setFilterOpen(true);
+  };
+  const applyFilter = () => {
+    setSelectedProductIds(new Set(tempSelectedIds));
+    setFilterOpen(false);
+  };
+  const clearFilter = () => {
+    setSelectedProductIds(new Set());
+    setTempSelectedIds(new Set());
+  };
+  const toggleTemp = (id: string) => {
+    setTempSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-3" dir="rtl">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h3 className="text-base font-bold flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
           إنجازات اليوم
           <Badge variant="secondary" className="text-[10px]">{totalCount}</Badge>
         </h3>
-        {accountingClosed && (
-          <Badge variant="destructive" className="text-[10px] gap-1">
-            <Lock className="w-3 h-3" /> جلسة المحاسبة مُغلقة
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant={hasFilter ? 'default' : 'outline'} className="h-8 gap-1" onClick={openFilter}>
+            <Filter className="w-3.5 h-3.5" />
+            <span className="text-xs">فلترة حسب المنتج</span>
+            {hasFilter && <Badge variant="secondary" className="ms-1 text-[10px]">{selectedProductIds.size}</Badge>}
+          </Button>
+          {hasFilter && (
+            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={clearFilter} title="مسح الفلتر">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {accountingClosed && (
+            <Badge variant="destructive" className="text-[10px] gap-1">
+              <Lock className="w-3 h-3" /> جلسة المحاسبة مُغلقة
+            </Badge>
+          )}
+        </div>
       </div>
+
+      {hasFilter && selectedProductsList.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selectedProductsList.map((p: any) => (
+            <Badge key={p.id} variant="secondary" className="text-[10px] gap-1">
+              {p.app_name || p.name}
+              <button onClick={() => { const n = new Set(selectedProductIds); n.delete(p.id); setSelectedProductIds(n); }}>
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {totalCount === 0 && (
         <Card><CardContent className="py-6 text-center text-sm text-muted-foreground">لا توجد إنجازات اليوم بعد</CardContent></Card>
