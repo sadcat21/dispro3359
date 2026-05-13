@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy } from 'lucide-react';
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -811,7 +811,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
       {/* Bottom Navigation — شريط SaaS مستقيم بدون أي انحناء أو زر عائم */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom border-t border-sidebar-border bg-sidebar text-sidebar-foreground md:hidden">
-        <div className="grid h-16 grid-cols-5 items-center px-2 shadow-2xl">
+        <div className="grid h-16 grid-cols-6 items-center px-2 shadow-2xl">
             {/* العناصر اليسرى (أول عنصرين) */}
             {mainNavItems.slice(0, 2).map((item) => {
               const isActive = location.pathname === item.path;
@@ -902,6 +902,21 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 )}
               </Link>
             ) : <div />}
+
+            {/* زر إنجازات اليوم — أزرق */}
+            <Link
+              to="/my-achievements"
+              className={cn(
+                'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                location.pathname === '/my-achievements'
+                  ? 'bg-blue-500/15 text-blue-500'
+                  : 'text-blue-500/80 hover:bg-blue-500/10 hover:text-blue-500'
+              )}
+              title={t('worker_home.today_achievements') || 'إنجازات اليوم'}
+              aria-label={t('worker_home.today_achievements') || 'إنجازات اليوم'}
+            >
+              <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
+            </Link>
 
             {moreNavItems.length > 0 ? (
               <button
