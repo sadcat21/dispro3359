@@ -231,44 +231,23 @@ const LoadStock: React.FC = () => {
   const { data: stockAlerts = [] } = useStockAlerts();
   const { data: suggestions = [], isLoading: suggestionsLoading } = useWorkerLoadSuggestions(selectedWorker || null);
 
-  // Frozen workers list (single SQL — avoids per-worker RPC race)
+  // Frozen workers list: use the SECURITY DEFINER DB function as the single source of truth.
+  // Building this locally from loading/accounting rows can be wrong under RLS because
+  // warehouse managers may not see every accounting session needed to unfreeze a worker.
   const { data: frozenWorkerIds = [] } = useQuery({
     queryKey: ['frozen-workers-load-stock', (workers || []).map((w: any) => w.id).sort().join(',')],
     queryFn: async () => {
       const ids = (workers || []).map((w: any) => w.id);
       if (ids.length === 0) return [] as string[];
-      // Fetch final-review loading sessions for these workers
-      const { data: finals, error: e1 } = await supabase
-        .from('loading_sessions')
-        .select('worker_id, created_at')
-        .in('worker_id', ids)
-        .eq('status', 'review')
-        .eq('is_final', true);
-      if (e1 || !finals || finals.length === 0) return [] as string[];
-
-      // Fetch completed accounting sessions for these workers
-      const { data: accs } = await supabase
-        .from('accounting_sessions')
-        .select('worker_id, created_at, period_end, review_session_id')
-        .in('worker_id', ids)
-        .eq('status', 'completed');
-
       const frozen: string[] = [];
-      for (const f of finals) {
-        const unfrozen = (accs || []).some((a: any) => {
-          if (a.worker_id !== f.worker_id) return false;
-          if (a.review_session_id) return true;
-          const reviewAt = new Date(f.created_at).getTime();
-          const createdAt = a.created_at ? new Date(a.created_at).getTime() : Number.NEGATIVE_INFINITY;
-          const periodEnd = a.period_end ? new Date(a.period_end).getTime() : Number.NEGATIVE_INFINITY;
-          return createdAt >= reviewAt || periodEnd >= reviewAt;
-        });
-        if (!unfrozen && !frozen.includes(f.worker_id)) frozen.push(f.worker_id);
-      }
+      await Promise.all(ids.map(async (id: string) => {
+        const { data, error } = await supabase.rpc('is_worker_frozen', { _worker_id: id });
+        if (!error && data === true) frozen.push(id);
+      }));
       return frozen;
     },
     enabled: (workers || []).length > 0,
-    staleTime: 30_000,
+    staleTime: 0,
   });
   
   const {
