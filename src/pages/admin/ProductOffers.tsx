@@ -353,7 +353,8 @@ const ProductOffers: React.FC = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  ))
+                  ))}
+                  </div>
                 )}
               </TabsContent>
             );
