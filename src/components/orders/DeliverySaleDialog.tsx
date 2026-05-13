@@ -829,6 +829,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             piecesPerBox: Number(item.piecesPerBox || 20),
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
+            offerId: (item as any).giftOfferId || null,
           })),
         });
       } catch (e) { console.warn('sales_tracking failed', e); }
