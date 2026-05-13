@@ -133,7 +133,7 @@ const NavButton: React.FC<{
         strokeWidth={isActive ? 2.2 : 1.8}
         className={cn(
           'transition-colors duration-200',
-          isActive ? 'text-red-500' : 'text-gray-400',
+          isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
       {item.badge ? (
