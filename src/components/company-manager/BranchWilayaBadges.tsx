@@ -1,32 +1,31 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield } from 'lucide-react';
+import { Shield, Star } from 'lucide-react';
 import { getWilayaCode, getWilayaColor } from '@/lib/algeriaWilayas';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Branch } from '@/types/database';
 
-interface BranchRow {
-  id: string;
-  name: string;
-  wilaya: string | null;
-}
+const LONG_PRESS_MS = 450;
 
 const BranchWilayaBadges: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { activeBranch, selectBranch } = useAuth();
 
   const { data: branches } = useQuery({
     queryKey: ['cm-branches-wilayas'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('branches')
-        .select('id, name, wilaya')
+        .select('*')
         .eq('is_active', true)
         .order('name');
       if (error) throw error;
-      return (data || []) as BranchRow[];
+      return (data || []) as Branch[];
     },
     staleTime: 60_000,
   });
@@ -55,7 +54,35 @@ const BranchWilayaBadges: React.FC = () => {
     refetchInterval: 15_000,
   });
 
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressed = useRef(false);
+
+  const startPress = (branchId: string) => {
+    longPressed.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressed.current = true;
+      navigate(`/assistant-approvals?branch=${branchId}`);
+    }, LONG_PRESS_MS);
+  };
+
+  const cancelPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleClick = (branch: Branch) => {
+    if (longPressed.current) {
+      longPressed.current = false;
+      return;
+    }
+    selectBranch(branch);
+  };
+
   if (!branches || branches.length === 0) return null;
+
+  const isAllSelected = !activeBranch;
 
   return (
     <div className="flex items-center gap-1.5 shrink-0">
@@ -63,23 +90,40 @@ const BranchWilayaBadges: React.FC = () => {
         const code = getWilayaCode(b.wilaya);
         const color = getWilayaColor(code);
         const pending = counts?.get(b.id) || 0;
+        const isSelected = activeBranch?.id === b.id;
+        const fillHex = isSelected ? '#dc2626' : color.hex;
         return (
           <Tooltip key={b.id}>
             <TooltipTrigger asChild>
               <button
-                onClick={() => navigate(`/assistant-approvals?branch=${b.id}`)}
-                className="relative shrink-0 w-9 h-9 focus:outline-none hover:scale-110 transition-transform"
-                aria-label={t('company_manager.open_branch_approvals')}
+                onClick={() => handleClick(b)}
+                onMouseDown={() => startPress(b.id)}
+                onMouseUp={cancelPress}
+                onMouseLeave={cancelPress}
+                onTouchStart={() => startPress(b.id)}
+                onTouchEnd={cancelPress}
+                onTouchCancel={cancelPress}
+                onContextMenu={(e) => e.preventDefault()}
+                className={`relative shrink-0 w-9 h-9 focus:outline-none hover:scale-110 transition-transform ${isSelected ? 'scale-110' : ''}`}
+                aria-label={b.name}
+                aria-pressed={isSelected}
               >
                 <Shield
                   className="w-9 h-9 drop-shadow"
-                  fill={color.hex}
-                  color={color.hex}
+                  fill={fillHex}
+                  color={fillHex}
                   strokeWidth={1.5}
                 />
                 <span className="absolute inset-0 flex items-center justify-center pt-1 text-white text-[11px] font-extrabold leading-none pointer-events-none">
                   {code ?? '?'}
                 </span>
+                {isSelected && (
+                  <Star
+                    className="absolute -top-1 -start-1 w-3.5 h-3.5 text-yellow-400 drop-shadow pointer-events-none"
+                    fill="currentColor"
+                    strokeWidth={1.5}
+                  />
+                )}
                 {pending > 0 && (
                   <span className="absolute -top-1 -end-1 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center shadow ring-1 ring-white">
                     {pending > 99 ? '99+' : pending}
@@ -97,6 +141,40 @@ const BranchWilayaBadges: React.FC = () => {
           </Tooltip>
         );
       })}
+
+      {/* All branches badge */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => selectBranch(null)}
+            className={`relative shrink-0 w-9 h-9 focus:outline-none hover:scale-110 transition-transform ${isAllSelected ? 'scale-110' : ''}`}
+            aria-label={t('branch_selection.all_branches')}
+            aria-pressed={isAllSelected}
+          >
+            <Shield
+              className="w-9 h-9 drop-shadow"
+              fill={isAllSelected ? '#dc2626' : '#6b7280'}
+              color={isAllSelected ? '#dc2626' : '#6b7280'}
+              strokeWidth={1.5}
+            />
+            <Star
+              className="absolute inset-0 m-auto w-4 h-4 text-yellow-300 pointer-events-none"
+              fill="currentColor"
+              strokeWidth={1.5}
+            />
+            {isAllSelected && (
+              <Star
+                className="absolute -top-1 -start-1 w-3.5 h-3.5 text-yellow-400 drop-shadow pointer-events-none"
+                fill="currentColor"
+                strokeWidth={1.5}
+              />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">{t('branch_selection.all_branches')}</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };
