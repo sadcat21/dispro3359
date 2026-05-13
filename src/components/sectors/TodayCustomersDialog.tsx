@@ -1405,6 +1405,16 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayDirectSales]);
 
+  // Map customer_id -> number of direct sales today
+  const directSaleCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    todayDirectSales.forEach(s => {
+      if (!s.customer_id) return;
+      map.set(s.customer_id, (map.get(s.customer_id) || 0) + 1);
+    });
+    return map;
+  }, [todayDirectSales]);
+
   const debtCollectionTimeMap = useMemo(() => {
     const map = new Map<string, string>();
     todayCollections.forEach(c => {
