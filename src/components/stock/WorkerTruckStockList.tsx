@@ -165,6 +165,21 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     enabled: !!workerId,
   });
 
+  const { data: modificationData = [] } = useQuery({
+    queryKey: ['wtsl-modifications', workerId, lastAccounting],
+    queryFn: async () => {
+      let q = supabase
+        .from('stock_movements')
+        .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, customer:customers(name, store_name))')
+        .eq('worker_id', workerId)
+        .eq('movement_type', 'modification');
+      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      const { data } = await q;
+      return (data || []) as any[];
+    },
+    enabled: !!workerId,
+  });
+
   // Map productId -> pieces_per_box from current truck stock (default 20).
   const ppbMap = useMemo(() => {
     const m: Record<string, number> = {};
@@ -218,7 +233,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
 
-    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; delta: number; before?: number; after?: number };
+    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; delta: number; before?: number; after?: number };
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
@@ -240,6 +255,25 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
       if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: 'من نفس عملية البيع', delta: -giftQty });
     }
+    for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
+      const signed = Number(m.signed_quantity ?? 0);
+      const deltaBP = signed; // positive => stock returned, negative => more delivered
+      const deltaBoxes = dbBPToBoxes(Math.abs(deltaBP), ppb) * (deltaBP >= 0 ? 1 : -1);
+      const qtyBoxes = Math.abs(deltaBoxes);
+      const cust: any = m.order?.customer;
+      movements.push({
+        id: `mod-${m.id}`,
+        type: 'modification',
+        label: 'تعديل',
+        quantity: qtyBoxes,
+        when: m.created_at,
+        note: m.notes || null,
+        paymentType: m.order?.payment_type || null,
+        customerStoreName: cust?.store_name || null,
+        customerName: cust?.name || null,
+        delta: deltaBoxes,
+      });
+    }
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
     const chronological = [...movements].reverse();
@@ -252,7 +286,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const totalGift = movements.filter(m => m.type === 'gift').reduce((s, m) => s + m.quantity, 0);
 
     return { entries, currentQty, totalLoaded, totalUnloaded, totalSold, totalGift, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
-  }, [selected, loadedData, unloadedData, soldData, lastAccounting, ppbMap]);
+  }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
   const sorted = [...truckStock].sort((a: any, b: any) => {
     if (a.quantity === 0 && b.quantity > 0) return 1;
@@ -436,9 +470,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                       const typeBadge = entry.type === 'load' ? 'bg-blue-100 text-blue-700 border-blue-200'
                         : entry.type === 'unload' ? 'bg-red-100 text-red-700 border-red-200'
                         : entry.type === 'gift' ? 'bg-orange-100 text-orange-700 border-orange-200'
+                        : entry.type === 'modification' ? 'bg-purple-100 text-purple-700 border-purple-200'
                         : 'bg-green-100 text-green-700 border-green-200';
-                      const cardBg = entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200';
-                      const deltaColor = entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'gift' ? 'text-orange-700' : 'text-blue-700';
+                      const cardBg = entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'modification' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200';
+                      const deltaColor = entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'gift' ? 'text-orange-700' : entry.type === 'modification' ? 'text-purple-700' : 'text-blue-700';
                       return (
                         <div key={entry.id} className="space-y-1">
                           {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}

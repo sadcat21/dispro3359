@@ -1118,6 +1118,29 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               branch_id: order.branch_id,
             });
           }
+
+          // Log the modification in the truck stock movement history
+          const qtyChangeDiff = Number(item.new_quantity || 0) - Number(item.original_quantity || 0);
+          const giftDescParts: string[] = [];
+          if (qtyChangeDiff !== 0) {
+            giftDescParts.push(`بيع: ${qtyChangeDiff > 0 ? '+' : ''}${qtyChangeDiff}`);
+          }
+          if (giftPiecesDiff !== 0) {
+            const giftPiecesChange = Number(item.gift_pieces || 0) - Number(item.original_gift_pieces || 0);
+            giftDescParts.push(`هدية: ${giftPiecesChange > 0 ? '+' : ''}${giftPiecesChange} قطعة`);
+          }
+          await supabase.from('stock_movements').insert({
+            product_id: item.product_id,
+            branch_id: order.branch_id || null,
+            quantity: Math.abs(qtyDiff),
+            signed_quantity: -qtyDiff,
+            movement_type: 'modification',
+            status: 'approved',
+            created_by: workerId,
+            worker_id: order.assigned_worker_id,
+            order_id: order.id,
+            notes: `تعديل المبيعة — ${giftDescParts.join(' • ')}`,
+          } as any);
         }
       }
 
