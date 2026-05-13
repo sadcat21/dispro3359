@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AdaptiveScrollContainer from '@/components/ui/adaptive-scroll-container';
 import { Input } from '@/components/ui/input';
-import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, Filter, Gift, X, Search } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
@@ -247,6 +247,22 @@ const MyAchievements: React.FC = () => {
     : (searchName || user?.full_name);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [productFilterOpen, setProductFilterOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [tempSelectedProductIds, setTempSelectedProductIds] = useState<Set<string>>(new Set());
+  const [productSearch, setProductSearch] = useState('');
+
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['achievements-products-filter', activeBranch?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, image_url')
+        .eq('is_active', true)
+        .order('name');
+      return data || [];
+    },
+  });
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<AchievementOrderDetails | null>(null);
   const [selectedIsAccounted, setSelectedIsAccounted] = useState(false);
   const [selectedDebtCollection, setSelectedDebtCollection] = useState<TodayDebtCollectionOperation | null>(null);
@@ -382,9 +398,9 @@ const MyAchievements: React.FC = () => {
         orderIds.length
           ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status').in('id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
-        // 3. Order items (only price_subtype)
+        // 3. Order items (price_subtype + product/gift info for filtering & promo badge)
         orderIds.length
-          ? supabase.from('order_items').select('order_id, price_subtype').in('order_id', orderIds)
+          ? supabase.from('order_items').select('order_id, price_subtype, product_id, gift_quantity, gift_pieces').in('order_id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
         // 4. Customer debts
         orderIds.length
@@ -427,6 +443,8 @@ const MyAchievements: React.FC = () => {
       }>();
       const debtCollectionStoreMap = new Map<string, string>();
       const debtCollectionAmountMap = new Map<string, number>();
+      const orderProductsMap = new Map<string, Set<string>>();
+      const orderPromoCountMap = new Map<string, number>();
       if (orderIds.length) {
         const orders = ordersResult.data;
         const orderItems = orderItemsResult.data;
@@ -434,8 +452,18 @@ const MyAchievements: React.FC = () => {
 
         const orderSubtypeMap = new Map<string, string>();
         (orderItems || []).forEach((item: any) => {
-          if (!item?.order_id || !item?.price_subtype || orderSubtypeMap.has(item.order_id)) return;
-          orderSubtypeMap.set(item.order_id, item.price_subtype);
+          if (!item?.order_id) return;
+          if (item.price_subtype && !orderSubtypeMap.has(item.order_id)) {
+            orderSubtypeMap.set(item.order_id, item.price_subtype);
+          }
+          if (item.product_id) {
+            const set = orderProductsMap.get(item.order_id) || new Set<string>();
+            set.add(item.product_id);
+            orderProductsMap.set(item.order_id, set);
+          }
+          if (Number(item.gift_quantity || 0) > 0 || Number(item.gift_pieces || 0) > 0) {
+            orderPromoCountMap.set(item.order_id, (orderPromoCountMap.get(item.order_id) || 0) + 1);
+          }
         });
 
         (orders || []).forEach((o: any) => {
@@ -517,6 +545,8 @@ const MyAchievements: React.FC = () => {
           debtCollectionStoreName: visit.operation_type === 'debt_collection'
             ? debtCollectionStoreMap.get(visit.operation_id || (visit as any).entity_id || (visit as any).reference_id || '') || ''
             : '',
+          orderProductIds: visit.operation_id ? Array.from(orderProductsMap.get(visit.operation_id) || []) : [],
+          promoCount: visit.operation_id ? (orderPromoCountMap.get(visit.operation_id) || 0) : 0,
         };
       });
 
@@ -569,8 +599,17 @@ const MyAchievements: React.FC = () => {
       });
     }
 
+    if (selectedProductIds.size > 0) {
+      const orderLinked = new Set(['order', 'direct_sale', 'delivery']);
+      result = result.filter((visit: any) => {
+        if (!orderLinked.has(visit.operation_type)) return false;
+        const ids: string[] = visit.orderProductIds || [];
+        return ids.some((id) => selectedProductIds.has(id));
+      });
+    }
+
     return result;
-  }, [visits, activeFilter, searchQuery, invoiceMode]);
+  }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
 
@@ -945,6 +984,32 @@ const MyAchievements: React.FC = () => {
               </Button>
             </>
           )}
+          <Button
+            variant={selectedProductIds.size > 0 ? 'default' : 'outline'}
+            className="h-8 rounded-full px-2 text-[10px] whitespace-nowrap shrink-0"
+            onClick={() => {
+              setTempSelectedProductIds(new Set(selectedProductIds));
+              setProductSearch('');
+              setProductFilterOpen(true);
+            }}
+          >
+            <Filter className="w-3 h-3 ml-0.5" />
+            فلترة حسب المنتج
+            {selectedProductIds.size > 0 && (
+              <Badge variant="secondary" className="ms-1 text-[9px] h-4 px-1">{selectedProductIds.size}</Badge>
+            )}
+          </Button>
+          {selectedProductIds.size > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-1 shrink-0"
+              onClick={() => setSelectedProductIds(new Set())}
+              title="مسح الفلتر"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -1094,6 +1159,12 @@ const MyAchievements: React.FC = () => {
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
                           </span>
                         )}
+                        {Number(visit.promoCount || 0) > 0 && (
+                          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-300">
+                            <Gift className="w-3 h-3" />
+                            {visit.promoCount}
+                          </span>
+                        )}
                       </div>
 
                       {!isWarehouseManager && hasAmount && (
@@ -1189,6 +1260,87 @@ const MyAchievements: React.FC = () => {
       <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
       <WorkerOrdersSummaryDialog open={showOrdersSummary} onOpenChange={setShowOrdersSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} />
       <DebtAggregatesDialog open={showDebtAggregates} onOpenChange={setShowDebtAggregates} workerId={targetWorkerId || undefined} dateFrom={dateFrom} dateTo={dateTo} />
+
+      <Dialog open={productFilterOpen} onOpenChange={setProductFilterOpen}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Filter className="w-4 h-4" />
+              فلترة حسب المنتجات
+              {tempSelectedProductIds.size > 0 && (
+                <Badge variant="secondary" className="text-[10px]">{tempSelectedProductIds.size} محدد</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-4 pb-2">
+            <div className="relative">
+              <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder="ابحث عن منتج..."
+                className="h-9 ps-3 pe-8 text-sm"
+              />
+            </div>
+          </div>
+          <ScrollArea className="flex-1 px-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 pb-2">
+              {productsList
+                .filter((p: any) => !productSearch.trim() || String(p.name || '').toLowerCase().includes(productSearch.toLowerCase()))
+                .map((p: any) => {
+                  const selected = tempSelectedProductIds.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        const n = new Set(tempSelectedProductIds);
+                        if (selected) n.delete(p.id); else n.add(p.id);
+                        setTempSelectedProductIds(n);
+                      }}
+                      className={`relative rounded-lg border-2 overflow-hidden text-right transition-all ${selected ? 'border-primary ring-2 ring-primary/30 bg-primary/5' : 'border-border hover:border-primary/40'}`}
+                    >
+                      <div className="aspect-square bg-muted/40 flex items-center justify-center">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
+                        ) : (
+                          <Package className="w-6 h-6 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="p-1.5">
+                        <p className="text-[11px] font-medium leading-tight line-clamp-2">{p.name}</p>
+                      </div>
+                      {selected && (
+                        <span className="absolute top-1 left-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold">✓</span>
+                      )}
+                    </button>
+                  );
+                })}
+            </div>
+          </ScrollArea>
+          <div className="flex items-center gap-2 p-3 border-t bg-muted/30">
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => setTempSelectedProductIds(new Set())}
+              disabled={tempSelectedProductIds.size === 0}
+            >
+              مسح التحديد
+            </Button>
+            <Button variant="outline" onClick={() => setProductFilterOpen(false)}>إلغاء</Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                setSelectedProductIds(new Set(tempSelectedProductIds));
+                setProductFilterOpen(false);
+              }}
+            >
+              <Filter className="w-4 h-4 ml-1" />
+              تطبيق الفلتر
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
