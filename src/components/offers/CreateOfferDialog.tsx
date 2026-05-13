@@ -180,7 +180,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
       auto_fill_quantities: true,
       is_mandatory: false,
-      is_deferred_confirmation: false,
+      is_deferred_confirmation: true,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
     setAudience({});
