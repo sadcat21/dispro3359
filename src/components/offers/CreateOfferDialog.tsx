@@ -735,6 +735,16 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_mandatory: checked }))}
                     />
                   </div>
+                  <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded">
+                    <div>
+                      <Label className="text-sm">عرض مؤجل التأكيد</Label>
+                      <p className="text-xs text-muted-foreground">عند التفعيل، تُسجَّل الهدية في "العروض بانتظار التأكيد" ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض</p>
+                    </div>
+                    <Switch
+                      checked={formData.is_deferred_confirmation}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_deferred_confirmation: checked }))}
+                    />
+                  </div>
                 </div>
 
                 {/* Scope Stages */}
