@@ -14,6 +14,7 @@ interface Props {
   branchId?: string | null;
   dateFrom?: string | null;
   dateTo?: string | null;
+  onCustomerCountChange?: (count: number) => void;
 }
 
 const formatGift = (boxes: number, pieces: number, ppb: number): string => {
@@ -24,7 +25,7 @@ const formatGift = (boxes: number, pieces: number, ppb: number): string => {
   return `${b}.${piecesPart} ص.ق`;
 };
 
-const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateTo }) => {
+const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateTo, onCustomerCountChange }) => {
   const { items, isLoading } = usePendingOfferConfirmations({
     workerId,
     branchId,
@@ -83,6 +84,10 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     }
     return Array.from(map.values()).sort((a, b) => b.rows.length - a.rows.length);
   }, [visibleItems]);
+
+  useEffect(() => {
+    onCustomerCountChange?.(grouped.length);
+  }, [grouped.length, onCustomerCountChange]);
 
   const customerRows = openCustomer
     ? visibleItems.filter((r) => (r.customer_id || '__no_customer__') === openCustomer.id)
