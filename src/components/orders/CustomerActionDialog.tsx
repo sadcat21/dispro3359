@@ -42,6 +42,9 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
     const [sectors, setSectors] = useState<Sector[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+    const [pendingOrders, setPendingOrders] = useState<Array<{ id: string; total_amount: number | null; status: string }>>([]);
+    const [checkingOrders, setCheckingOrders] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -49,6 +52,7 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
             fetchSectors();
         } else {
             setSelectedCustomer(null);
+            setPendingOrders([]);
         }
     }, [open, effectiveBranchId]);
 
