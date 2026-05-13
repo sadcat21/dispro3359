@@ -146,7 +146,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
 
   // Step 2: Multiple customer entries
   const [customerEntries, setCustomerEntries] = useState<CustomerEntry[]>([]);
-  const [customerSearch, setCustomerSearch] = useState('');
+  
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
