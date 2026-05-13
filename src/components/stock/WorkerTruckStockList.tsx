@@ -11,9 +11,14 @@ import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
   boxesToBPAlways(Math.max(0, Number.isFinite(fractionalBoxes) ? fractionalBoxes : 0), Math.max(1, ppb || 1));
 
-/** order_items: gift_quantity = full boxes, gift_pieces = leftover pieces. */
-const giftFractional = (boxes: number, pieces: number, ppb: number) =>
-  Math.max(0, Number(boxes || 0)) + Math.max(0, Number(pieces || 0)) / Math.max(1, ppb || 1);
+const confirmedGiftFractional = (item: any, ppb: number) => {
+  const safePpb = Math.max(1, ppb || 1);
+  const storedPieces = Math.max(0, Number(item.gift_quantity || 0)) * safePpb
+    + Math.max(0, Number(item.gift_pieces || 0));
+  const pendingPieces = Math.max(0, Number(item.pending_gift_boxes || 0)) * safePpb
+    + Math.max(0, Number(item.pending_gift_pieces || 0));
+  return Math.max(0, storedPieces - pendingPieces) / safePpb;
+};
 
 interface Props {
   workerId: string;
@@ -105,7 +110,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       if (!orders?.length) return [];
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
         .in('order_id', orders.map(o => o.id));
       const { data: movements } = await supabase
         .from('stock_movements')
@@ -118,11 +123,27 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         const key = `${movement.order_id}|${movement.product_id}`;
         deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + Number(movement.quantity || 0));
       }
+      const { data: pendingOffers } = await supabase
+        .from('pending_offer_confirmations' as any)
+        .select('order_id, product_id, offer_id, gift_boxes, gift_pieces')
+        .eq('status', 'pending')
+        .in('order_id', orders.map(o => o.id));
+      const pendingGiftByOrderProductOffer = new Map<string, { boxes: number; pieces: number }>();
+      for (const pending of (pendingOffers || []) as any[]) {
+        const key = `${pending.order_id}|${pending.product_id}|${pending.offer_id || ''}`;
+        const current = pendingGiftByOrderProductOffer.get(key) || { boxes: 0, pieces: 0 };
+        current.boxes += Number(pending.gift_boxes || 0);
+        current.pieces += Number(pending.gift_pieces || 0);
+        pendingGiftByOrderProductOffer.set(key, current);
+      }
       const map = new Map(orders.map((o: any) => [o.id, o]));
       return (items || []).map((i: any) => {
         const o: any = map.get(i.order_id);
+        const pendingGift = pendingGiftByOrderProductOffer.get(`${i.order_id}|${i.product_id}|${i.gift_offer_id || ''}`) || { boxes: 0, pieces: 0 };
         return {
           ...i,
+          pending_gift_boxes: pendingGift.boxes,
+          pending_gift_pieces: pendingGift.pieces,
           delivered_quantity: deliveredByOrderProduct.get(`${i.order_id}|${i.product_id}`),
           order_updated_at: o?.updated_at || null,
           order_created_at: o?.created_at || null,
@@ -174,7 +195,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const paid = dbBPToBoxes(Number(paidBP || 0), ppb);
       s.sold += paid;
       if (paid > 0 && it.order_id) s.saleCount.add(String(it.order_id));
-      s.giftQty += giftFractional(it.gift_quantity, it.gift_pieces, ppb);
+      s.giftQty += confirmedGiftFractional(it, ppb);
     }
     return out;
   }, [loadedData, unloadedData, soldData, ppbMap]);
@@ -204,10 +225,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       movements.push({ id: `unload-${it.session_id}-${q}`, type: 'unload', label: 'تفريغ', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: -q });
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
-      const giftBoxesBP = Math.max(0, Number(it.gift_quantity || 0));
-      const giftPieces = Math.max(0, Number(it.gift_pieces || 0));
-      const giftBoxesFrac = dbBPToBoxes(giftBoxesBP, ppb);
-      const giftQty = giftBoxesFrac + giftPieces / ppb;
+      const giftQty = confirmedGiftFractional(it, ppb);
       const saleQty = dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb);
       const when = it.order_updated_at || it.order_created_at || '';
       if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
