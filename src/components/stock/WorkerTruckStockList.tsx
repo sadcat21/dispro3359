@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays } from 'lucide-react';
+import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 
@@ -27,6 +28,14 @@ interface Props {
 
 export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = 'لا يوجد مخزون في الشاحنة' }) => {
   const [selected, setSelected] = useState<any | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    if (typeof window === 'undefined') return 'list';
+    return (localStorage.getItem('wtsl-view-mode') as 'list' | 'grid') || 'list';
+  });
+  const setMode = (m: 'list' | 'grid') => {
+    setViewMode(m);
+    try { localStorage.setItem('wtsl-view-mode', m); } catch {}
+  };
 
   const { data: truckStock = [] } = useQuery({
     queryKey: ['wtsl-stock', workerId],
@@ -268,6 +277,54 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           <span className="truncate">آخر محاسبة: {new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}</span>
         </div>
       )}
+      <div className="flex items-center justify-end gap-1 mb-2">
+        <Button
+          type="button"
+          size="sm"
+          variant={viewMode === 'list' ? 'default' : 'outline'}
+          className="h-7 px-2 gap-1 text-[11px]"
+          onClick={() => setMode('list')}
+        >
+          <List className="w-3.5 h-3.5" /> قائمة
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={viewMode === 'grid' ? 'default' : 'outline'}
+          className="h-7 px-2 gap-1 text-[11px]"
+          onClick={() => setMode('grid')}
+        >
+          <LayoutGrid className="w-3.5 h-3.5" /> شبكة
+        </Button>
+      </div>
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {sorted.map((item: any) => {
+            const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
+            const isZero = item.quantity === 0;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`p-2 rounded-xl border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
+                onClick={() => setSelected(item)}
+              >
+                <p className="text-[11px] font-medium truncate mb-1.5">...{(item.product?.name || '').slice(-16)}</p>
+                <div className="aspect-square w-full rounded-lg border bg-muted/40 overflow-hidden flex items-center justify-center mb-1.5">
+                  {item.product?.image_url ? (
+                    <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-contain" loading="lazy" />
+                  ) : (
+                    <Package className="w-6 h-6 text-muted-foreground" />
+                  )}
+                </div>
+                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
+                  <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
       <div className="grid gap-2">
         {sorted.map((item: any) => {
           const s = stats[item.product_id] || {};
@@ -326,6 +383,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           );
         })}
       </div>
+      )}
 
       {history && (
         <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
