@@ -148,6 +148,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
   const [customerEntries, setCustomerEntries] = useState<CustomerEntry[]>([]);
   
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  const [showProductPicker, setShowProductPicker] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
