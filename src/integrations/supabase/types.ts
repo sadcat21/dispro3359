@@ -9491,6 +9491,10 @@ export type Database = {
         }
         Returns: string
       }
+      can_access_branch_data: {
+        Args: { p_branch_id: string }
+        Returns: boolean
+      }
       can_create_stock_confirmation_for_session: {
         Args: {
           _branch_id: string
@@ -9535,6 +9539,7 @@ export type Database = {
         Returns: Json
       }
       confirm_pending_offer: { Args: { p_id: string }; Returns: undefined }
+      current_worker_branch_ids: { Args: never; Returns: string[] }
       current_worker_manages_branch: {
         Args: { p_branch_id: string }
         Returns: boolean
