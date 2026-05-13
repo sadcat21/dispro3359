@@ -88,8 +88,54 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
         }
     };
 
-    const handleAction = (action: 'order' | 'sale' | 'delivery' | 'visit') => {
+    const todayBounds = () => {
+        const start = new Date(); start.setHours(0, 0, 0, 0);
+        const end = new Date(); end.setHours(23, 59, 59, 999);
+        return { start: start.toISOString(), end: end.toISOString() };
+    };
+
+    const fetchPendingOrdersForCustomer = async (customerId: string) => {
+        const { start, end } = todayBounds();
+        const { data, error } = await supabase
+            .from('orders')
+            .select('id, total_amount, status')
+            .eq('customer_id', customerId)
+            .not('status', 'in', '("delivered","cancelled")')
+            .gte('created_at', start)
+            .lte('created_at', end)
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.warn('pending orders check failed', error);
+            return [];
+        }
+        return (data || []) as Array<{ id: string; total_amount: number | null; status: string }>;
+    };
+
+    const cancelPendingOrders = async () => {
+        if (!pendingOrders.length) return;
+        setCancelling(true);
+        try {
+            const ids = pendingOrders.map((o) => o.id);
+            const { error } = await supabase
+                .from('orders')
+                .update({ status: 'cancelled' as any })
+                .in('id', ids);
+            if (error) throw error;
+        } catch (e) {
+            console.error(e);
+            toast.error('تعذر إلغاء الطلبية الموجودة');
+            throw e;
+        } finally {
+            setCancelling(false);
+        }
+    };
+
+    const handleAction = async (action: 'order' | 'sale' | 'delivery' | 'visit') => {
         if (!selectedCustomer) return;
+        if (action === 'sale' && pendingOrders.length > 0) {
+            try { await cancelPendingOrders(); } catch { return; }
+            toast.success('تم إلغاء الطلبية الموجودة، سيتم تسجيل بيع مباشر جديد');
+        }
         switch (action) {
             case 'order': onOrder?.(selectedCustomer); break;
             case 'sale': onSale?.(selectedCustomer); break;
@@ -99,9 +145,16 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
         onOpenChange(false);
     };
 
-    const handleCustomerSelect = (customer: Customer) => {
-        if (directAction) {
-            // Directly trigger the action without showing action buttons
+    const handleCustomerSelect = async (customer: Customer) => {
+        setCheckingOrders(true);
+        const orders = await fetchPendingOrdersForCustomer(customer.id);
+        setCheckingOrders(false);
+        setPendingOrders(orders);
+
+        const hasPending = orders.length > 0;
+        const interceptDirect = directAction && hasPending && (directAction === 'sale' || directAction === 'delivery');
+
+        if (directAction && !interceptDirect) {
             switch (directAction) {
                 case 'order': onOrder?.(customer); break;
                 case 'sale': onSale?.(customer); break;
@@ -109,12 +162,11 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
                 case 'visit': onVisitOnly?.(customer); break;
             }
             onOpenChange(false);
-        } else {
-            setSelectedCustomer(customer);
+            return;
         }
+        setSelectedCustomer(customer);
     };
 
-    // If no customer selected yet (or directAction mode), show the picker directly
     if (open && !selectedCustomer) {
         return (
             <CustomerPickerDialog
@@ -122,7 +174,7 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
                 onOpenChange={onOpenChange}
                 customers={customers}
                 sectors={sectors}
-                isLoading={isLoading}
+                isLoading={isLoading || checkingOrders}
                 onSelect={handleCustomerSelect}
             />
         );
