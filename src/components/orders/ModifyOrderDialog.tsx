@@ -849,9 +849,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
   const handleSaveClick = async () => {
     if (!hasChanges || !workerId) return;
-    const activeItems = items.filter((it: any) => Number(it.quantity || 0) > 0 || Number(it.pieces || 0) > 0);
+    const activeItems = items.filter((it) => Number(it.new_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0);
     if (activeItems.length === 0) {
-      window.alert(t('orders.add_products_error'));
       toast.error(t('orders.add_products_error'));
       return;
     }
