@@ -863,12 +863,14 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const isDeferred = !!((item as any).giftOfferId && deferredOfferIdSet.has((item as any).giftOfferId));
         if (isDeferred) { effGiftBoxes = 0; effGiftPieces = 0; }
 
-        // item.quantity (b.p) = paidBoxes + storedGiftBoxes (already included). Add extra gift boxes if recalculated higher.
+        // item.quantity (b.p) = paidBoxes + storedGiftBoxes. For deferred
+        // offers, full gift boxes must stay out of stock deduction until confirmation.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
-        // Convert sold qty (b.p) to total pieces
         const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
-        const soldBoxes = Math.floor(qtyRounded);
-        const soldDec = Math.round((qtyRounded - soldBoxes) * 100);
+        const stockDeductQty = isDeferred ? Math.max(0, qtyRounded - storedGiftBoxes) : qtyRounded;
+        // Convert sold qty (b.p) to total pieces
+        const soldBoxes = Math.floor(stockDeductQty);
+        const soldDec = Math.round((stockDeductQty - soldBoxes) * 100);
         const soldPieces = soldBoxes * ppb + soldDec;
         const totalDeductPieces = soldPieces + extraGiftBoxes * ppb + effGiftPieces;
 
@@ -886,7 +888,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
         }
         // Record stock movement (in b.p form, including gift portion)
-        const movementQty = qtyRounded + extraGiftBoxes + (effGiftPieces / 100);
+        const movementQty = stockDeductQty + extraGiftBoxes + (effGiftPieces / 100);
         await supabase.from('stock_movements').insert({
           product_id: item.productId,
           branch_id: order.branch_id || activeBranch?.id || null,
