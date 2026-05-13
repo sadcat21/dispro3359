@@ -514,7 +514,42 @@ export const useResumeOrder = () => {
         }
       }
 
-      // Restore sales_tracking + pending offer confirmations from items
+      // Restore pending_offer_confirmations from prior cancel state.
+      // - cancelled_confirmed → confirmed (no re-approval needed).
+      // - cancelled_pending   → pending + note that this came from a recovered
+      //   cancelled sale and was never confirmed before cancellation.
+      const RESUMED_PENDING_NOTE = 'هذا العرض من بيع مستعاد، لم يكتمل تأكيده قبل الإلغاء';
+      const { data: priorPending } = await (supabase as any)
+        .from('pending_offer_confirmations')
+        .select('id, order_item_id, offer_id, product_id, status')
+        .eq('order_id', orderId)
+        .in('status', ['cancelled_pending', 'cancelled_confirmed']);
+
+      const restoredKeys = new Set<string>();
+      const keyOf = (oi: string | null, off: string | null, pid: string) => `${oi || ''}|${off || ''}|${pid}`;
+      for (const row of (priorPending || []) as any[]) {
+        restoredKeys.add(keyOf(row.order_item_id, row.offer_id, row.product_id));
+        if (row.status === 'cancelled_confirmed') {
+          mutations.push(
+            (supabase as any).from('pending_offer_confirmations')
+              .update({ status: 'confirmed' })
+              .eq('id', row.id)
+          );
+        } else {
+          mutations.push(
+            (supabase as any).from('pending_offer_confirmations')
+              .update({ status: 'pending', notes: RESUMED_PENDING_NOTE })
+              .eq('id', row.id)
+          );
+        }
+      }
+
+      // Restore sales_tracking from items. For deferred offers whose pending
+      // record we just restored, skip recordPendingOfferConfirmation by clearing
+      // offerId so recordSaleTracking treats them as immediate (sales_tracking
+      // already excludes the gift portion via giftBoxes=0). For deferred items
+      // without a prior pending record, fall back to the normal flow which
+      // creates a fresh pending entry.
       if (orderItems?.length) {
         try {
           await recordSaleTracking({
@@ -527,18 +562,23 @@ export const useResumeOrder = () => {
             customerId: order.customer_id || null,
             customerName: order.customer?.name || null,
             notes: 'استئناف طلبية ملغاة',
-            items: orderItems.map((it: any) => ({
-              productId: it.product_id,
-              productName: it.product?.name || null,
-              orderItemId: it.id || null,
-              quantity: Number(it.quantity || 0),
-              giftBoxes: Number(it.gift_quantity || 0),
-              giftPieces: Number(it.gift_pieces || 0),
-              piecesPerBox: Number(it.pieces_per_box || 20),
-              unitPrice: Number(it.unit_price || 0),
-              totalPrice: Number(it.total_price || 0),
-              offerId: it.gift_offer_id || null,
-            })),
+            items: orderItems.map((it: any) => {
+              const hasRestored = restoredKeys.has(keyOf(it.id, it.gift_offer_id, it.product_id));
+              return {
+                productId: it.product_id,
+                productName: it.product?.name || null,
+                orderItemId: it.id || null,
+                quantity: Number(it.quantity || 0),
+                // If the prior pending row was restored, zero out gift here so
+                // recordSaleTracking does not insert a duplicate pending row.
+                giftBoxes: hasRestored ? 0 : Number(it.gift_quantity || 0),
+                giftPieces: hasRestored ? 0 : Number(it.gift_pieces || 0),
+                piecesPerBox: Number(it.pieces_per_box || 20),
+                unitPrice: Number(it.unit_price || 0),
+                totalPrice: Number(it.total_price || 0),
+                offerId: hasRestored ? null : (it.gift_offer_id || null),
+              };
+            }),
           });
         } catch (e) { console.warn('[useResumeOrder] recordSaleTracking failed', e); }
       }
