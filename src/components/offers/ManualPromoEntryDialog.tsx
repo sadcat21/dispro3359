@@ -35,7 +35,7 @@ type OfferOption = {
   branch_id?: string | null;
   start_date?: string | null;
   end_date?: string | null;
-  product?: { id: string; name: string; pieces_per_box?: number | null } | null;
+  product?: { id: string; name: string; image_url?: string | null; pieces_per_box?: number | null } | null;
   tiers?: OfferTierOption[];
   min_quantity: number;
   max_quantity: number | null;
