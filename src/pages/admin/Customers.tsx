@@ -270,11 +270,9 @@ const Customers: React.FC = () => {
       // الذين لا تتعارض ولايتهم مع ولاية الفرع.
       list = list.filter(c => {
         if (c.branch_id === effectiveBranchId) return true;
-        if (branchWilaya && c.wilaya === branchWilaya) return true;
-        if (c.branch_id) return false; // فرع مختلف وولاية مختلفة → إخفاء
-        // غير معيّن: اعرضه إذا لم تكن له ولاية أو لا توجد ولاية للفرع
-        if (!branchWilaya) return true;
-        return !c.wilaya;
+        // عملاء نفس الولاية: فقط إذا كانوا منتمين لقطاع (لتجنب التكرار)
+        if (branchWilaya && c.wilaya === branchWilaya && c.sector_id) return true;
+        return false;
       });
     }
     return list;
