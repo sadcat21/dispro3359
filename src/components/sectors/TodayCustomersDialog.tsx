@@ -914,6 +914,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         if (v.order_id) seenOrderIds.add(v.order_id);
         merged.push(v);
       });
+      oResults.forEach(o => {
+        if (!o.customer_id) return;
+        if (!isActiveSale(o.order_id)) return;
+        if (o.order_id && seenOrderIds.has(o.order_id)) return;
+        if (o.order_id) seenOrderIds.add(o.order_id);
+        merged.push(o);
+      });
       return merged;
     },
     enabled: !!effectiveWorkerId && open,
