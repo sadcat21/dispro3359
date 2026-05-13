@@ -853,7 +853,28 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       const { data: rData } = await rQuery;
 
-      // 3. Tertiary source: orders flagged as direct sale via notes
+      // 3. Sales ledger source: covers direct sales even when the user-entered
+      // order note does not include the default direct-sale marker.
+      let stQuery = supabase
+        .from('sales_tracking' as any)
+        .select('customer_id, order_id, sold_at, created_at')
+        .in('source', ['direct_sale', 'warehouse_sale'])
+        .gte('sold_at', todayStart)
+        .lte('sold_at', selectedDayBounds.end);
+      if (!isAdmin || hasSpecificWorker) {
+        stQuery = stQuery.eq('worker_id', effectiveWorkerId!);
+      }
+      const { data: stData } = await stQuery;
+      const stResults = (stData || []).map((s: any) => ({
+        customer_id: s.customer_id,
+        order_id: s.order_id,
+        created_at: s.sold_at || s.created_at,
+        items: null,
+        total_amount: null,
+        customer_name: null,
+      }));
+
+      // 4. Tertiary source: orders flagged as direct sale via notes
       // (e.g. "بيع مباشر من الشاحنة") that may not have a visit_tracking
       // or receipt row yet — they must NOT leak into the regular orders tab.
       let oQuery = supabase
@@ -879,6 +900,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       const orderIds = [...new Set([
         ...(vtResults.map(v => v.order_id)),
         ...((rData || []).map((r: any) => r.order_id)),
+        ...(stResults.map((s: any) => s.order_id)),
         ...(oResults.map(o => o.order_id)),
       ].filter(Boolean))] as string[];
 
@@ -909,6 +931,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         if (seenOrderIds.has(receiptOrderId)) return;
         seenOrderIds.add(receiptOrderId);
         merged.push(r);
+      });
+      stResults.forEach((s: any) => {
+        if (!s.customer_id) return;
+        if (!isActiveSale(s.order_id)) return;
+        if (s.order_id && seenOrderIds.has(s.order_id)) return;
+        if (s.order_id) seenOrderIds.add(s.order_id);
+        merged.push(s);
       });
       vtResults.forEach(v => {
         if (!v.customer_id) return;
