@@ -247,6 +247,22 @@ const MyAchievements: React.FC = () => {
     : (searchName || user?.full_name);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [productFilterOpen, setProductFilterOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [tempSelectedProductIds, setTempSelectedProductIds] = useState<Set<string>>(new Set());
+  const [productSearch, setProductSearch] = useState('');
+
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['achievements-products-filter', activeBranch?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, image_url')
+        .eq('is_active', true)
+        .order('name');
+      return data || [];
+    },
+  });
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<AchievementOrderDetails | null>(null);
   const [selectedIsAccounted, setSelectedIsAccounted] = useState(false);
   const [selectedDebtCollection, setSelectedDebtCollection] = useState<TodayDebtCollectionOperation | null>(null);
