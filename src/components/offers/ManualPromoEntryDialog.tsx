@@ -161,7 +161,12 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         seen.add(offer.product.id);
         return true;
       })
-      .map((offer) => ({ id: offer.product!.id, name: offer.product!.name, pieces_per_box: offer.product!.pieces_per_box || 1 }))
+      .map((offer) => ({
+        id: offer.product!.id,
+        name: offer.product!.name,
+        image_url: offer.product!.image_url || null,
+        pieces_per_box: offer.product!.pieces_per_box || 1,
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [offers]);
 
