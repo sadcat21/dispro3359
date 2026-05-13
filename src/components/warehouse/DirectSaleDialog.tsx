@@ -740,6 +740,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               piecesPerBox: item.piecesPerBox ?? prod?.pieces_per_box ?? 20,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
+              offerId: (item as any).giftOfferId || null,
             };
           }),
         });
