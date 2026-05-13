@@ -41,6 +41,7 @@ const ProductOffers: React.FC = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [editOffer, setEditOffer] = useState<ProductOfferWithDetails | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [extendTarget, setExtendTarget] = useState<{
