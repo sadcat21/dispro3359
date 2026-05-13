@@ -1405,6 +1405,16 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     return map;
   }, [todayDirectSales]);
 
+  // Map customer_id -> number of direct sales today
+  const directSaleCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    todayDirectSales.forEach(s => {
+      if (!s.customer_id) return;
+      map.set(s.customer_id, (map.get(s.customer_id) || 0) + 1);
+    });
+    return map;
+  }, [todayDirectSales]);
+
   const debtCollectionTimeMap = useMemo(() => {
     const map = new Map<string, string>();
     todayCollections.forEach(c => {
@@ -2766,7 +2776,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                       </Button>
                     </div>
                   )}
-                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={directSaleSold} emptyMessage="لا توجد مبيعات بعد" onCustomerClick={handleShowDirectSaleDetails} showPrintButton onPrint={handlePrintDirectSale} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={directSaleTimeMap} distanceMap={customerDistanceMap} />
+                  <CustomerList liabilityCustomerIds={liabilityCustomerIds} noOrderStreakMap={noOrderStreakMap} customers={directSaleSold} emptyMessage="لا توجد مبيعات بعد" onCustomerClick={handleShowDirectSaleDetails} showPrintButton onPrint={handlePrintDirectSale} checkingLocationFor={checkingLocationFor} searchQuery={searchQuery} sectors={sectors} allZones={allZones} workerPosition={workerPosition} sortByDistance={sortByDistance} timeMap={directSaleTimeMap} distanceMap={customerDistanceMap} orderCountMap={directSaleCountMap} />
                 </TabsContent>
                 <TabsContent value="no-sale" className="m-0 flex-1 min-h-0">
                   <Tabs defaultValue="visit-only" className="flex flex-col h-full min-h-0">
