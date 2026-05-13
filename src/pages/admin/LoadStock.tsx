@@ -372,7 +372,7 @@ const LoadStock: React.FC = () => {
 
 
   // Product offers cache (with all tiers for dynamic calc)
-  const [productOffers, setProductOffers] = useState<Record<string, { offerName: string; giftQty: number; giftUnit: string; minQty: number; minUnit: string; tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit: string }[] }>>({});
+  const [productOffers, setProductOffers] = useState<Record<string, { offerName: string; giftQty: number; giftUnit: string; minQty: number; minUnit: string; isMandatory?: boolean; tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit: string }[] }>>({});
 
   // Product group map
   const [productGroupMap, setProductGroupMap] = useState<Record<string, string>>({});
@@ -702,7 +702,7 @@ const LoadStock: React.FC = () => {
     if (productOffers[productId]) return productOffers[productId];
     const { data: offers } = await supabase
       .from('product_offers')
-      .select('id, name, scope_stages')
+      .select('id, name, scope_stages, is_mandatory')
       .eq('product_id', productId)
       .eq('is_active', true)
       .limit(5);
@@ -726,6 +726,7 @@ const LoadStock: React.FC = () => {
       giftUnit: firstTier.gift_quantity_unit || 'piece',
       minQty: firstTier.min_quantity,
       minUnit: firstTier.min_quantity_unit || 'piece',
+      isMandatory: !!(offerRow as any).is_mandatory,
       tiers: tiers.map(t => ({
         minQty: t.min_quantity,
         maxQty: t.max_quantity,

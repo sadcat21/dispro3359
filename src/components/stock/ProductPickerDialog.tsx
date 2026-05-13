@@ -30,6 +30,7 @@ export interface OfferInfo {
   giftUnit: string;
   minQty: number;
   minUnit: string;
+  isMandatory?: boolean;
   tiers: { minQty: number; maxQty: number | null; giftQty: number; giftUnit: string; minUnit?: string }[];
 }
 
@@ -932,7 +933,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 {(() => {
                   const hasQty = parsed.totalBoxes > 0 || parsed.pieces > 0 || parsed.boxes > 0;
                   const offerAvailable = !!singleOffer && suggestedGift.totalPieces > 0;
-                  const promoMissing = hasQty && offerAvailable && !isOfferActivated;
+                  const promoMissing = hasQty && offerAvailable && !isOfferActivated && !!(singleOffer as any)?.isMandatory;
                   return (
                 <>
                 {/* Regular qty */}
@@ -1047,7 +1048,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 {totalPiecesCombined > 0 && (() => {
                   const hasQty = parsed.totalBoxes > 0 || parsed.pieces > 0 || parsed.boxes > 0;
                   const offerAvailable = !!singleOffer && suggestedGift.totalPieces > 0;
-                  const promoMissing = hasQty && offerAvailable && !isOfferActivated;
+                  const promoMissing = hasQty && offerAvailable && !isOfferActivated && !!(singleOffer as any)?.isMandatory;
                   return (
                   <div className={`rounded-lg border px-2 py-1.5 flex items-center justify-between ${promoMissing ? 'border-destructive/40 bg-destructive/5' : 'border-primary/30 bg-primary/5'}`}>
                     <span className="text-[11px] text-muted-foreground">المجموع (عادي + هدية)</span>
@@ -1078,7 +1079,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 {(() => {
                   const hasQty = parsed.totalBoxes > 0 || parsed.pieces > 0 || parsed.boxes > 0;
                   const offerAvailable = !!singleOffer && suggestedGift.totalPieces > 0;
-                  const promoMissing = hasQty && offerAvailable && !isOfferActivated;
+                  const promoMissing = hasQty && offerAvailable && !isOfferActivated && !!(singleOffer as any)?.isMandatory;
                   return (
                 <Button
                   onClick={handleConfirmSingle}
