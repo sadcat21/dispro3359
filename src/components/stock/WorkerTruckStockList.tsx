@@ -470,9 +470,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                       const typeBadge = entry.type === 'load' ? 'bg-blue-100 text-blue-700 border-blue-200'
                         : entry.type === 'unload' ? 'bg-red-100 text-red-700 border-red-200'
                         : entry.type === 'gift' ? 'bg-orange-100 text-orange-700 border-orange-200'
+                        : entry.type === 'modification' ? 'bg-purple-100 text-purple-700 border-purple-200'
                         : 'bg-green-100 text-green-700 border-green-200';
-                      const cardBg = entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200';
-                      const deltaColor = entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'gift' ? 'text-orange-700' : 'text-blue-700';
+                      const cardBg = entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'modification' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200';
+                      const deltaColor = entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'gift' ? 'text-orange-700' : entry.type === 'modification' ? 'text-purple-700' : 'text-blue-700';
                       return (
                         <div key={entry.id} className="space-y-1">
                           {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}
