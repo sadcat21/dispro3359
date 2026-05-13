@@ -1159,6 +1159,12 @@ const MyAchievements: React.FC = () => {
                             {isPartialDebt ? 'دين جزئي' : 'دين كلي'}
                           </span>
                         )}
+                        {Number(visit.promoCount || 0) > 0 && (
+                          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-300">
+                            <Gift className="w-3 h-3" />
+                            {visit.promoCount}
+                          </span>
+                        )}
                       </div>
 
                       {!isWarehouseManager && hasAmount && (
