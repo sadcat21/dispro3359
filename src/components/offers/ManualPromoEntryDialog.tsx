@@ -558,43 +558,16 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
                 </Button>
               </div>
 
-              {/* Customer search overlay */}
-              {showCustomerSearch && (
-                <div className="border rounded-lg bg-card mb-2 overflow-hidden">
-                  <div className="flex items-center gap-2 px-2 py-1.5 border-b">
-                    <Search className="w-3.5 h-3.5 text-muted-foreground" />
-                    <Input
-                      autoFocus
-                      value={customerSearch}
-                      onChange={(e) => setCustomerSearch(e.target.value)}
-                      placeholder="ابحث عن عميل..."
-                      className="border-0 h-7 text-sm focus-visible:ring-0 px-0"
-                    />
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomerSearch(false); setCustomerSearch(''); }}>
-                      <X className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <ScrollArea className="max-h-40">
-                    {filteredCustomers.length === 0 ? (
-                      <div className="text-center text-muted-foreground text-xs py-4">لا يوجد عملاء</div>
-                    ) : (
-                      filteredCustomers.map((customer) => (
-                        <button
-                          key={customer.id}
-                          className="w-full text-right px-3 py-2 text-sm hover:bg-accent/50 transition-colors flex items-center gap-2 border-b last:border-b-0"
-                          onClick={() => addCustomer(customer)}
-                        >
-                          <User className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                          <span className="truncate">{customer.name}</span>
-                          {customer.store_name && (
-                            <span className="text-xs text-muted-foreground truncate">({customer.store_name})</span>
-                          )}
-                        </button>
-                      ))
-                    )}
-                  </ScrollArea>
-                </div>
-              )}
+              {/* Customer picker dialog (same as order creation) */}
+              <CustomerPickerDialog
+                open={showCustomerSearch}
+                onOpenChange={setShowCustomerSearch}
+                customers={customers.filter((c) => !customerEntries.some((e) => e.customerId === c.id))}
+                onSelect={(customer) => {
+                  addCustomer(customer);
+                  setShowCustomerSearch(false);
+                }}
+              />
 
               {/* Customer entries list */}
               <ScrollArea className="flex-1 -mx-4 px-4">
