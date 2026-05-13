@@ -25,7 +25,7 @@ const formatGift = (boxes: number, pieces: number, ppb: number): string => {
   return `${b}.${piecesPart} ص.ق`;
 };
 
-const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateTo }) => {
+const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateTo, onCustomerCountChange }) => {
   const { items, isLoading } = usePendingOfferConfirmations({
     workerId,
     branchId,
