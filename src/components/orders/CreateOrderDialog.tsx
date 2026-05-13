@@ -188,6 +188,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
       if (activeBranch) {
         customersQuery = customersQuery.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+        if (activeBranch.wilaya) {
+          customersQuery = customersQuery.or(`wilaya.eq."${activeBranch.wilaya}",wilaya.is.null`);
+        }
       }
 
       let sectorsQuery = supabase.from('sectors').select('*').order('name');
