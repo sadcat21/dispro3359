@@ -734,7 +734,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     {/* Deferred system (default) */}
                     <button
                       type="button"
-                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: true, is_mandatory: true }))}
+                      onClick={() => setFormData((p) => ({ ...p, is_deferred_confirmation: true }))}
                       className={cn(
                         "text-right rounded-xl border-2 p-3 transition-all",
                         formData.is_deferred_confirmation
