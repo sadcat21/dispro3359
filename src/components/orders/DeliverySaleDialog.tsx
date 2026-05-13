@@ -297,6 +297,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           quantity: Number(item.quantity || 0),
           gift_quantity: Number(item.gift_quantity || 0),
           gift_pieces: Number(item.gift_pieces || 0),
+          gift_offer_id: (item as any).gift_offer_id || null,
           unit_price: Number(item.unit_price || 0),
           total_price: Number(item.total_price || 0),
           pieces_per_box: item.pieces_per_box ?? item.product?.pieces_per_box ?? null,
@@ -358,6 +359,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         q: i.quantity,
         g: i.giftQuantity,
         gp: i.giftPieces,
+        go: i.giftOfferId || null,
         up: i.unitPrice,
         tp: i.totalPrice,
       }))
@@ -751,7 +753,8 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           } else if (
             item.quantity !== item.originalQuantity ||
             Number(item.giftQuantity || 0) !== Number((orderItems || []).find((oi: any) => oi.id === item.originalItemId)?.gift_quantity || 0) ||
-            Number(item.giftPieces || 0) !== Number((orderItems || []).find((oi: any) => oi.id === item.originalItemId)?.gift_pieces || 0)
+            Number(item.giftPieces || 0) !== Number((orderItems || []).find((oi: any) => oi.id === item.originalItemId)?.gift_pieces || 0) ||
+            (item.giftOfferId || null) !== (((orderItems || []).find((oi: any) => oi.id === item.originalItemId) as any)?.gift_offer_id || null)
           ) {
             // Update changed quantity
             await supabase.from('order_items').update({
