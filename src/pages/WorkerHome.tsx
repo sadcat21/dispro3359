@@ -191,7 +191,7 @@ const WorkerHome: React.FC = () => {
   });
 
   const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['customers-for-order-picker', effectiveBranchId],
+    queryKey: ['customers-for-order-picker', effectiveBranchId, activeBranch?.wilaya],
     queryFn: async () => {
       let query = supabase
         .from('customers')
@@ -199,6 +199,9 @@ const WorkerHome: React.FC = () => {
         .order('name');
       if (effectiveBranchId) {
         query = query.or(`branch_id.eq.${effectiveBranchId},branch_id.is.null`);
+      }
+      if (activeBranch?.wilaya) {
+        query = query.or(`wilaya.eq."${activeBranch.wilaya}",wilaya.is.null`);
       }
       const { data, error } = await query;
       if (error) throw error;
