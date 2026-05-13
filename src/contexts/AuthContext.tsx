@@ -385,8 +385,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchBranch = () => {
-    // branch_admin cannot switch branches
-    if (isAdminRole(authState.role) && authState.role !== 'branch_admin') {
+    // branch_admin is locked to their branch; everyone else with admin/company_manager access can switch
+    if (authState.role === 'branch_admin') return;
+    if (isAdminRole(authState.role) || activeRole?.custom_role_code === 'company_manager') {
       setShowBranchSelection(true);
     }
   };
