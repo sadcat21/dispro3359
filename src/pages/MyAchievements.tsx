@@ -1016,10 +1016,17 @@ const MyAchievements: React.FC = () => {
       <Tabs defaultValue="operations" className="flex flex-1 flex-col min-h-0">
         <TabsList className="grid grid-cols-2 shrink-0 mb-1.5">
           <TabsTrigger value="operations">العمليات</TabsTrigger>
-          <TabsTrigger value="pending_offers">عروض بانتظار التأكيد</TabsTrigger>
+          <TabsTrigger value="pending_offers" className="gap-1.5">
+            عروض بانتظار التأكيد
+            {pendingOffersCustomerCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                {pendingOffersCustomerCount}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="pending_offers" className="flex-1 overflow-y-auto mt-0">
-          <PendingOffersTab workerId={targetWorkerId} dateFrom={dateFrom} dateTo={dateTo} />
+          <PendingOffersTab workerId={targetWorkerId} dateFrom={dateFrom} dateTo={dateTo} onCustomerCountChange={setPendingOffersCustomerCount} />
         </TabsContent>
         <TabsContent value="operations" className="flex-1 min-h-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col">
       <Card className={`rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
