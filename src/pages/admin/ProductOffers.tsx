@@ -169,17 +169,17 @@ const ProductOffers: React.FC = () => {
 
         {/* Status Tabs */}
         <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive' | 'expired' | 'all')}>
-          <TabsList>
-            <TabsTrigger value="active">
+          <TabsList className="w-full sm:w-auto overflow-x-auto flex h-auto flex-nowrap justify-start">
+            <TabsTrigger value="active" className="text-xs sm:text-sm whitespace-nowrap">
               {t('common.active') || 'النشطة'} ({activeOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="inactive">
+            <TabsTrigger value="inactive" className="text-xs sm:text-sm whitespace-nowrap">
               {t('common.inactive') || 'غير النشطة'} ({inactiveOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="expired">
+            <TabsTrigger value="expired" className="text-xs sm:text-sm whitespace-nowrap">
               منتهية ({expiredOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="all">
+            <TabsTrigger value="all" className="text-xs sm:text-sm whitespace-nowrap">
               الكل ({filteredOffers.length})
             </TabsTrigger>
           </TabsList>
