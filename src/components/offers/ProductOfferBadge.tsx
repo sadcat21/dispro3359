@@ -290,7 +290,8 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
       offerId: primary.id,
       autoFill: (primary as any).auto_fill_quantities !== false,
       suggestedGiftPieces: calculateGiftPieces(primary, quantity),
-    });
+      isDeferred: (primary as any).is_deferred_confirmation === true,
+    } as any);
   }, [applicableOffers, activatedOfferIds, quantity, onOfferActivated]);
 
   const toggleActivation = (offerId: string) => {

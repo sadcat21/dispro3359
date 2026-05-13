@@ -347,7 +347,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     setGiftOfferId(offerId);
   }, [manualGiftMode]);
 
-  const handleOfferActivated = useCallback((info: { offerId: string; autoFill: boolean; suggestedGiftPieces: number } | null) => {
+  const handleOfferActivated = useCallback((info: { offerId: string; autoFill: boolean; suggestedGiftPieces: number; isDeferred?: boolean } | null) => {
     if (!info) {
       setOfferApplied(false);
       setManualGiftMode(false);
@@ -358,14 +358,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     }
     setOfferApplied(true);
     setGiftOfferId(info.offerId);
-    setManualGiftMode(!info.autoFill);
-    if (info.autoFill) {
-      setGiftPieces(info.suggestedGiftPieces);
-      setGiftFields(quantityToFields(info.suggestedGiftPieces / piecesPerBox, piecesPerBox, info.suggestedGiftPieces === 0));
-    } else {
-      setGiftPieces(0);
-      setGiftFields({ boxes: '', pieces: '' });
-    }
+    // Deferred offers: always editable, but pre-filled with suggested values
+    const editable = !info.autoFill || info.isDeferred === true;
+    setManualGiftMode(editable);
+    const seedPieces = info.autoFill ? info.suggestedGiftPieces : 0;
+    setGiftPieces(seedPieces);
+    setGiftFields(quantityToFields(seedPieces / piecesPerBox, piecesPerBox, seedPieces === 0));
   }, [piecesPerBox]);
 
   const handleGiftFieldChange = (field: keyof QuantityFields, value: string) => {
@@ -382,11 +380,12 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   useEffect(() => {
     if (!offerApplied || isUnitSale) return;
+    if (manualGiftMode) return; // user is editing, don't auto-revoke
     if (giftPieces <= 0) {
       setOfferApplied(false);
       setGiftOfferId(undefined);
     }
-  }, [offerApplied, giftPieces, isUnitSale]);
+  }, [offerApplied, giftPieces, isUnitSale, manualGiftMode]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
