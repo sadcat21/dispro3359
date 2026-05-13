@@ -4126,6 +4126,36 @@ export type Database = {
           },
         ]
       }
+      product_offer_settings: {
+        Row: {
+          auto_fill_quantities: boolean
+          id: string
+          is_deferred_confirmation: boolean
+          is_mandatory: boolean
+          scope_stages: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          auto_fill_quantities?: boolean
+          id?: string
+          is_deferred_confirmation?: boolean
+          is_mandatory?: boolean
+          scope_stages?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          auto_fill_quantities?: boolean
+          id?: string
+          is_deferred_confirmation?: boolean
+          is_mandatory?: boolean
+          scope_stages?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       product_offer_tiers: {
         Row: {
           conditions: Json | null
