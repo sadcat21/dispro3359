@@ -1681,6 +1681,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       queryClient.invalidateQueries({ queryKey: ['receipts'] });
       queryClient.invalidateQueries({ queryKey: ['my-achievements-page'] });
       queryClient.invalidateQueries({ queryKey: ['worker-achievement-debt-aggregates'] });
+      queryClient.invalidateQueries({ queryKey: ['sales-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-achievements'] });
+      queryClient.invalidateQueries({ queryKey: ['promos'] });
+      queryClient.invalidateQueries({ queryKey: ['my-promos'] });
       toast.success('تم إلغاء المبيعة بنجاح');
       onOpenChange(false);
     } catch (error: any) {
