@@ -306,7 +306,7 @@ const BranchManagerHome: React.FC = () => {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-2">
                 {section.items.map((item, iIdx) => {
                   const Icon = item.icon;
                   const showBadge = typeof item.badge === 'number' && item.badge > 0;
@@ -315,20 +315,20 @@ const BranchManagerHome: React.FC = () => {
                     <Card
                       key={item.key}
                       onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
-                      className={`group cursor-pointer bg-white border-2 hover:shadow-md hover:-translate-y-0.5 transition-all relative rounded-xl ${
+                      className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${
                         showBadge
-                          ? 'border-red-400 ring-2 ring-red-200/60'
+                          ? 'border-red-400 ring-1 ring-red-200/60'
                           : cp.border
                       }`}
                     >
                       {showBadge && (
-                        <Badge className="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[18px] h-[18px] text-[10px] flex items-center justify-center px-1 animate-pulse z-10">
+                        <Badge className="absolute -top-1 -right-1 bg-red-600 hover:bg-red-700 text-white border border-white shadow min-w-[16px] h-[16px] text-[9px] flex items-center justify-center px-1 animate-pulse z-10">
                           {item.badge}
                         </Badge>
                       )}
-                      <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center text-center gap-2 min-h-[88px]">
-                        <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
-                        <p className="text-[11px] sm:text-xs font-semibold text-slate-700 leading-tight line-clamp-2">
+                      <CardContent className="p-1.5 sm:p-2 flex flex-col items-center justify-center text-center gap-1 min-h-[60px]">
+                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
+                        <p className="text-[10px] sm:text-[11px] font-semibold text-slate-700 leading-tight line-clamp-2">
                           {item.label}
                         </p>
                       </CardContent>
