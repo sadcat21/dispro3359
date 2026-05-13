@@ -13,6 +13,8 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import type { OrderWithDetails } from '@/types/database';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PendingOffersTab from '@/components/offers/PendingOffersTab';
 
 interface WorkerAchievementsDialogProps {
   open: boolean;
@@ -384,115 +386,132 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
             </Button>
           </div>
 
-          {isLoading ? (
-            <div className="py-8 flex justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : totalOps === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" />
-              <p>لا توجد عمليات مسجلة</p>
-            </div>
-          ) : (
-            <div className="flex flex-col min-h-0 flex-1">
-              {/* Filter buttons */}
-              <div className="flex flex-wrap gap-1.5 shrink-0 px-4 pb-2">
-                <button
-                  onClick={() => setActiveFilter(null)}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors border ${
-                    !activeFilter
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted/60 hover:bg-muted text-foreground border-border'
-                  }`}
-                >
-                  الكل
-                  <span className="font-bold">{totalOps}</span>
-                </button>
-                {Object.entries(counts).map(([type, count]) => (
-                  <button
-                    key={type}
-                    onClick={() => setActiveFilter(activeFilter === type ? null : type)}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-colors border ${
-                      activeFilter === type
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : OPERATION_COLORS[type] || 'border-border'
-                    }`}
-                  >
-                    {OPERATION_ICONS[type]}
-                    <span>{getOperationLabel(type as OperationType)}</span>
-                    <span className="font-bold">{count}</span>
-                  </button>
-                ))}
-              </div>
+          <Tabs defaultValue="operations" className="flex flex-col min-h-0 flex-1">
+            <TabsList className="mx-4 grid grid-cols-2 shrink-0">
+              <TabsTrigger value="operations">العمليات</TabsTrigger>
+              <TabsTrigger value="pending_offers">عروض بانتظار التأكيد</TabsTrigger>
+            </TabsList>
 
-              {/* Scrollable list */}
-              <div className="flex-1 overflow-y-auto px-4 pb-4">
-                <div className="space-y-2">
-                  {filteredVisits.map((v: any) => {
-                    const isOrderLike = ['order', 'direct_sale', 'delivery'].includes(v.operation_type);
-                    const paymentBadge = isOrderLike && v.order_payment_type
-                      ? (v.order_payment_type === 'with_invoice' ? 'F1' : 'F2')
-                      : null;
-                    const subtypeBadge = isOrderLike && v.order_payment_type === 'without_invoice' && v.order_price_subtype
-                      ? (v.order_price_subtype === 'super_gros' ? 'SG' : v.order_price_subtype === 'retail' ? 'D' : 'G')
-                      : null;
-                    return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => handleOpenAchievement(v)}
-                      className={`w-full text-start flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${OPERATION_COLORS[v.operation_type] || 'border-border'}`}
-                    >
-                      <div className="mt-0.5">
-                        {OPERATION_ICONS[v.operation_type] || <MapPin className="w-4 h-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{getOperationLabel(v.operation_type as OperationType)}</span>
-                          <span className="text-[10px] text-muted-foreground" dir="ltr">
-                            {format(new Date(v.created_at), dateFrom === dateTo ? 'HH:mm' : 'dd/MM HH:mm')}
-                          </span>
-                        </div>
-                        {v.store_name && (
-                          <p className="text-sm font-bold truncate">{v.store_name}</p>
-                        )}
-                        {v.customer_real_name && v.customer_real_name !== v.store_name && (
-                          <p className="text-xs text-muted-foreground truncate">{v.customer_real_name}</p>
-                        )}
-                        {!v.store_name && v.customer_name && (
-                          <p className="text-xs font-bold truncate">{v.customer_name}</p>
-                        )}
-                        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                          {isOrderLike && v.order_total_amount > 0 && (
-                            <span className="text-xs font-semibold text-foreground">{v.order_total_amount.toLocaleString()} DA</span>
-                          )}
-                          {v.isCancelledOrder && (
-                            <Badge variant="destructive" className="text-[9px] px-1.5 py-0.5 shrink-0">
-                              ملغاة
-                            </Badge>
-                          )}
-                          {paymentBadge && (
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${paymentBadge === 'F1' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                              {paymentBadge}
-                            </span>
-                          )}
-                          {subtypeBadge && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-accent text-accent-foreground">
-                              {subtypeBadge}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                    );
-                  })}
-                  {filteredVisits.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-4">لا توجد عمليات من هذا النوع</p>
-                  )}
+            <TabsContent value="operations" className="flex flex-col min-h-0 flex-1 mt-2">
+              {isLoading ? (
+                <div className="py-8 flex justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
-              </div>
-            </div>
-          )}
+              ) : totalOps === 0 ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  <MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                  <p>لا توجد عمليات مسجلة</p>
+                </div>
+              ) : (
+                <div className="flex flex-col min-h-0 flex-1">
+                  {/* Filter buttons */}
+                  <div className="flex flex-wrap gap-1.5 shrink-0 px-4 pb-2">
+                    <button
+                      onClick={() => setActiveFilter(null)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors border ${
+                        !activeFilter
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/60 hover:bg-muted text-foreground border-border'
+                      }`}
+                    >
+                      الكل
+                      <span className="font-bold">{totalOps}</span>
+                    </button>
+                    {Object.entries(counts).map(([type, count]) => (
+                      <button
+                        key={type}
+                        onClick={() => setActiveFilter(activeFilter === type ? null : type)}
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                          activeFilter === type
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : OPERATION_COLORS[type] || 'border-border'
+                        }`}
+                      >
+                        {OPERATION_ICONS[type]}
+                        <span>{getOperationLabel(type as OperationType)}</span>
+                        <span className="font-bold">{count}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Scrollable list */}
+                  <div className="flex-1 overflow-y-auto px-4 pb-4">
+                    <div className="space-y-2">
+                      {filteredVisits.map((v: any) => {
+                        const isOrderLike = ['order', 'direct_sale', 'delivery'].includes(v.operation_type);
+                        const paymentBadge = isOrderLike && v.order_payment_type
+                          ? (v.order_payment_type === 'with_invoice' ? 'F1' : 'F2')
+                          : null;
+                        const subtypeBadge = isOrderLike && v.order_payment_type === 'without_invoice' && v.order_price_subtype
+                          ? (v.order_price_subtype === 'super_gros' ? 'SG' : v.order_price_subtype === 'retail' ? 'D' : 'G')
+                          : null;
+                        return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => handleOpenAchievement(v)}
+                          className={`w-full text-start flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${OPERATION_COLORS[v.operation_type] || 'border-border'}`}
+                        >
+                          <div className="mt-0.5">
+                            {OPERATION_ICONS[v.operation_type] || <MapPin className="w-4 h-4" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{getOperationLabel(v.operation_type as OperationType)}</span>
+                              <span className="text-[10px] text-muted-foreground" dir="ltr">
+                                {format(new Date(v.created_at), dateFrom === dateTo ? 'HH:mm' : 'dd/MM HH:mm')}
+                              </span>
+                            </div>
+                            {v.store_name && (
+                              <p className="text-sm font-bold truncate">{v.store_name}</p>
+                            )}
+                            {v.customer_real_name && v.customer_real_name !== v.store_name && (
+                              <p className="text-xs text-muted-foreground truncate">{v.customer_real_name}</p>
+                            )}
+                            {!v.store_name && v.customer_name && (
+                              <p className="text-xs font-bold truncate">{v.customer_name}</p>
+                            )}
+                            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                              {isOrderLike && v.order_total_amount > 0 && (
+                                <span className="text-xs font-semibold text-foreground">{v.order_total_amount.toLocaleString()} DA</span>
+                              )}
+                              {v.isCancelledOrder && (
+                                <Badge variant="destructive" className="text-[9px] px-1.5 py-0.5 shrink-0">
+                                  ملغاة
+                                </Badge>
+                              )}
+                              {paymentBadge && (
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${paymentBadge === 'F1' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                  {paymentBadge}
+                                </span>
+                              )}
+                              {subtypeBadge && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-accent text-accent-foreground">
+                                  {subtypeBadge}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                        );
+                      })}
+                      {filteredVisits.length === 0 && (
+                        <p className="text-center text-sm text-muted-foreground py-4">لا توجد عمليات من هذا النوع</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="pending_offers" className="flex-1 overflow-y-auto px-4 pb-4 mt-2">
+              <PendingOffersTab
+                workerId={workerId}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+              />
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

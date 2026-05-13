@@ -85,6 +85,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
     auto_fill_quantities: true,
     is_mandatory: false,
+    is_deferred_confirmation: false,
   });
 
   // Target audience (offer-level conditions, applied to all tiers on save)
@@ -111,6 +112,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         scope_stages: (editOffer as any).scope_stages || ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
         auto_fill_quantities: (editOffer as any).auto_fill_quantities ?? true,
         is_mandatory: (editOffer as any).is_mandatory ?? false,
+        is_deferred_confirmation: (editOffer as any).is_deferred_confirmation ?? false,
       });
       
       // Load existing tiers or use legacy single tier
@@ -178,6 +180,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
       scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
       auto_fill_quantities: true,
       is_mandatory: false,
+      is_deferred_confirmation: false,
     });
     setTiers([{ ...defaultTier, tier_order: 0 }]);
     setAudience({});
@@ -284,6 +287,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         scope_stages: formData.scope_stages,
         auto_fill_quantities: formData.auto_fill_quantities,
         is_mandatory: formData.is_mandatory,
+        is_deferred_confirmation: formData.is_deferred_confirmation,
         // Legacy fields from first tier
         min_quantity: firstTier.min_quantity,
         max_quantity: firstTier.max_quantity,
@@ -729,6 +733,16 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                     <Switch
                       checked={formData.is_mandatory}
                       onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_mandatory: checked }))}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded">
+                    <div>
+                      <Label className="text-sm">عرض مؤجل التأكيد</Label>
+                      <p className="text-xs text-muted-foreground">عند التفعيل، تُسجَّل الهدية في "العروض بانتظار التأكيد" ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض</p>
+                    </div>
+                    <Switch
+                      checked={formData.is_deferred_confirmation}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_deferred_confirmation: checked }))}
                     />
                   </div>
                 </div>

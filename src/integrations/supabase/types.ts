@@ -3900,6 +3900,95 @@ export type Database = {
           },
         ]
       }
+      pending_offer_confirmations: {
+        Row: {
+          branch_id: string | null
+          branch_name: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          customer_id: string | null
+          customer_name: string | null
+          gift_boxes: number
+          gift_pieces: number
+          gift_product_id: string | null
+          gift_product_name: string | null
+          id: string
+          notes: string | null
+          offer_id: string | null
+          order_id: string | null
+          order_item_id: string | null
+          pieces_per_box: number
+          product_id: string
+          product_name: string | null
+          source: string
+          status: string
+          updated_at: string
+          worker_id: string | null
+          worker_name: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          branch_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          gift_boxes?: number
+          gift_pieces?: number
+          gift_product_id?: string | null
+          gift_product_name?: string | null
+          id?: string
+          notes?: string | null
+          offer_id?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          pieces_per_box?: number
+          product_id: string
+          product_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          worker_id?: string | null
+          worker_name?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          branch_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          gift_boxes?: number
+          gift_pieces?: number
+          gift_product_id?: string | null
+          gift_product_name?: string | null
+          id?: string
+          notes?: string | null
+          offer_id?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          pieces_per_box?: number
+          product_id?: string
+          product_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          worker_id?: string | null
+          worker_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_offer_confirmations_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           category: string
@@ -4134,6 +4223,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_auto_apply: boolean
+          is_deferred_confirmation: boolean
           is_mandatory: boolean
           is_stackable: boolean
           max_quantity: number | null
@@ -4166,6 +4256,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_auto_apply?: boolean
+          is_deferred_confirmation?: boolean
           is_mandatory?: boolean
           is_stackable?: boolean
           max_quantity?: number | null
@@ -4198,6 +4289,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_auto_apply?: boolean
+          is_deferred_confirmation?: boolean
           is_mandatory?: boolean
           is_stackable?: boolean
           max_quantity?: number | null
@@ -9409,6 +9501,7 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: Json
       }
+      confirm_pending_offer: { Args: { p_id: string }; Returns: undefined }
       current_worker_manages_branch: {
         Args: { p_branch_id: string }
         Returns: boolean
@@ -9526,6 +9619,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_admin_of_branch: { Args: { p_branch_id: string }; Returns: boolean }
+      is_admin_user: { Args: never; Returns: boolean }
       is_approved_customer: { Args: never; Returns: boolean }
       is_branch_admin: { Args: never; Returns: boolean }
       is_conversation_participant: {
@@ -9707,6 +9801,10 @@ export type Database = {
       reject_factory_order: {
         Args: { p_order_id: string; p_reason: string }
         Returns: Json
+      }
+      reject_pending_offer: {
+        Args: { p_id: string; p_notes?: string }
+        Returns: undefined
       }
       repair_offer_ledger: { Args: never; Returns: Json }
       search_orders_by_prefix: {

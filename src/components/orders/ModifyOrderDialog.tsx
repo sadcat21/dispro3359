@@ -1290,7 +1290,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           if (!allItemsRemoved) {
             const { data: freshTrackItems } = await supabase
               .from('order_items')
-              .select('id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, pieces_per_box, product:products(name)')
+              .select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, unit_price, total_price, pieces_per_box, product:products(name)')
               .eq('order_id', order.id);
 
             const resolvedWorkerId = assignedWorkerId && assignedWorkerId !== 'none'
@@ -1323,6 +1323,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                 unitPrice: Number(fi.unit_price || 0),
                 totalPrice: Number(fi.total_price || 0),
                 orderItemId: fi.id,
+                offerId: fi.gift_offer_id || null,
               })),
             });
           }
