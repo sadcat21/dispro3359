@@ -243,7 +243,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           .select(`
             id, name, condition_type, product_id, branch_id, start_date, end_date,
             min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit,
-            product:products!product_offers_product_id_fkey(id, name, pieces_per_box),
+            product:products!product_offers_product_id_fkey(id, name, image_url, pieces_per_box),
             tiers:product_offer_tiers(id, min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, tier_order)
           `)
           .eq('is_active', true)
