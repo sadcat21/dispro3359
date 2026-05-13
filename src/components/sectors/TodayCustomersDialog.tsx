@@ -850,10 +850,33 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       const { data: rData } = await rQuery;
 
+      // 3. Tertiary source: orders flagged as direct sale via notes
+      // (e.g. "بيع مباشر من الشاحنة") that may not have a visit_tracking
+      // or receipt row yet — they must NOT leak into the regular orders tab.
+      let oQuery = supabase
+        .from('orders')
+        .select('id, customer_id, created_at, notes')
+        .gte('created_at', todayStart)
+        .lte('created_at', selectedDayBounds.end)
+        .ilike('notes', '%بيع مباشر%');
+      if (!isAdmin || hasSpecificWorker) {
+        oQuery = oQuery.eq('created_by', effectiveWorkerId!);
+      }
+      const { data: oData } = await oQuery;
+      const oResults = (oData || []).map((o: any) => ({
+        customer_id: o.customer_id,
+        order_id: o.id,
+        created_at: o.created_at,
+        items: null,
+        total_amount: null,
+        customer_name: null,
+      }));
+
       // Exclude cancelled direct sales so a cancelled sale returns to direct-sale customers
       const orderIds = [...new Set([
         ...(vtResults.map(v => v.order_id)),
         ...((rData || []).map((r: any) => r.order_id)),
+        ...(oResults.map(o => o.order_id)),
       ].filter(Boolean))] as string[];
 
       const cancelledOrderIds = new Set<string>();
@@ -890,6 +913,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         if (v.order_id && seenOrderIds.has(v.order_id)) return;
         if (v.order_id) seenOrderIds.add(v.order_id);
         merged.push(v);
+      });
+      oResults.forEach(o => {
+        if (!o.customer_id) return;
+        if (!isActiveSale(o.order_id)) return;
+        if (o.order_id && seenOrderIds.has(o.order_id)) return;
+        if (o.order_id) seenOrderIds.add(o.order_id);
+        merged.push(o);
       });
       return merged;
     },
