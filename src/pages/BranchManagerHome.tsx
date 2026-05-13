@@ -276,7 +276,7 @@ const BranchManagerHome: React.FC = () => {
                 <h2 className="text-base font-semibold text-slate-800">{t(section.titleKey)}</h2>
                 <div className="flex-1 h-px bg-gradient-to-r from-blue-300/60 to-transparent" />
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const showBadge = typeof item.badge === 'number' && item.badge > 0;
@@ -291,17 +291,17 @@ const BranchManagerHome: React.FC = () => {
                       }`}
                     >
                       {showBadge && (
-                        <Badge className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[24px] h-6 flex items-center justify-center px-1.5 animate-pulse">
+                        <Badge className="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-md min-w-[18px] h-[18px] text-[10px] flex items-center justify-center px-1 animate-pulse">
                           {item.badge}
                         </Badge>
                       )}
-                      <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                      <CardContent className="p-2 sm:p-3 flex flex-col items-center text-center gap-1.5">
+                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-colors ${
                           showBadge ? 'bg-red-50 group-hover:bg-red-100' : 'bg-blue-50 group-hover:bg-blue-100'
                         }`}>
-                          <Icon className={`w-6 h-6 ${showBadge ? 'text-red-600' : 'text-blue-600 group-hover:text-blue-700'}`} />
+                          <Icon className={`w-5 h-5 ${showBadge ? 'text-red-600' : 'text-blue-600 group-hover:text-blue-700'}`} />
                         </div>
-                        <p className="text-sm font-medium text-slate-800 leading-tight">
+                        <p className="text-[11px] sm:text-xs font-medium text-slate-800 leading-tight line-clamp-2">
                           {item.label}
                         </p>
                       </CardContent>
