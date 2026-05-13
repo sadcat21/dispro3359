@@ -28,6 +28,14 @@ interface Props {
 
 export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = 'لا يوجد مخزون في الشاحنة' }) => {
   const [selected, setSelected] = useState<any | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    if (typeof window === 'undefined') return 'list';
+    return (localStorage.getItem('wtsl-view-mode') as 'list' | 'grid') || 'list';
+  });
+  const setMode = (m: 'list' | 'grid') => {
+    setViewMode(m);
+    try { localStorage.setItem('wtsl-view-mode', m); } catch {}
+  };
 
   const { data: truckStock = [] } = useQuery({
     queryKey: ['wtsl-stock', workerId],
