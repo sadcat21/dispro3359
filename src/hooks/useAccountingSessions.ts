@@ -262,6 +262,7 @@ export const useCancelSession = () => {
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
 };
