@@ -155,7 +155,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         if (editOffer) {
           loadEditOfferData();
         } else {
-          resetForm();
+          await resetForm();
           productSelectedRef.current = false;
           setProductPickerOpen(true);
         }
