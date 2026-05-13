@@ -383,11 +383,21 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
             const paid = Number(o.paid_amount ?? o.amount_paid ?? 0);
             const remaining = Math.max(0, total - paid);
             const itemsCount = (o.order_items || []).length;
+            const promoCount = (o.order_items || []).filter((it: any) =>
+              Number(it.gift_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0
+            ).length;
             return (
               <Card key={o.id} className={isPending ? 'border-amber-300' : 'border-primary/30'}>
                 <CardContent className="p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{o.customer?.name || 'بدون زبون'}</div>
+                    <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                      <span className="truncate">{o.customer?.name || 'بدون زبون'}</span>
+                      {promoCount > 0 && (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] gap-0.5 px-1.5 py-0 h-4">
+                          <Gift className="w-2.5 h-2.5" /> عرض ×{promoCount}
+                        </Badge>
+                      )}
+                    </div>
                     <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap mt-0.5">
                       <span className="font-semibold text-foreground">{total.toLocaleString()} د.ج</span>
                       {paid > 0 && <span className="text-emerald-600">مدفوع: {paid.toLocaleString()}</span>}
