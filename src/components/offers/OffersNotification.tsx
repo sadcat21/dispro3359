@@ -170,8 +170,8 @@ const OffersNotification: React.FC = () => {
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative w-8 h-8 bg-red-500/10 hover:bg-red-500/20">
-            <Gift className="w-4 h-4 text-red-500" />
+          <Button variant="ghost" size="icon" className="relative w-8 h-8 bg-emerald-500/10 hover:bg-emerald-500/20">
+            <Gift className="w-4 h-4 text-emerald-500" />
             {offers.length > 0 && (
               <Badge className="absolute -top-1 -end-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
                 {offers.length}
