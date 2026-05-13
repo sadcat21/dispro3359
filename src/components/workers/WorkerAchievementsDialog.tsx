@@ -390,7 +390,14 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
           <Tabs defaultValue="operations" className="flex flex-col min-h-0 flex-1">
             <TabsList className="mx-4 grid grid-cols-2 shrink-0">
               <TabsTrigger value="operations">العمليات</TabsTrigger>
-              <TabsTrigger value="pending_offers">عروض بانتظار التأكيد</TabsTrigger>
+              <TabsTrigger value="pending_offers" className="gap-1.5">
+                عروض بانتظار التأكيد
+                {pendingOffersCustomerCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                    {pendingOffersCustomerCount}
+                  </span>
+                )}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="operations" className="flex flex-col min-h-0 flex-1 mt-2">
