@@ -261,12 +261,18 @@ const Customers: React.FC = () => {
   // Fallback to the logged-in worker's branch_id when activeBranch is not set
   // (e.g. branch managers who never went through the branch picker).
   const effectiveBranchId = activeBranch?.id || (user as any)?.branch_id || null;
+  const branchWilaya = activeBranch?.wilaya || null;
   const filteredByBranch = useMemo(() => {
+    let list = customers;
     if (effectiveBranchId) {
-      return customers.filter(c => c.branch_id === effectiveBranchId || c.branch_id === null);
+      list = list.filter(c => c.branch_id === effectiveBranchId || c.branch_id === null);
     }
-    return customers;
-  }, [customers, effectiveBranchId]);
+    // Gate by wilaya: customer must match branch's wilaya (or have no wilaya set)
+    if (branchWilaya) {
+      list = list.filter(c => !c.wilaya || c.wilaya === branchWilaya);
+    }
+    return list;
+  }, [customers, effectiveBranchId, branchWilaya]);
 
   const getCustomerCompletion = (customer: Customer) => {
     const fieldStatus = {
