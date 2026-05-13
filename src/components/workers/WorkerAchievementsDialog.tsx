@@ -13,6 +13,8 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import type { OrderWithDetails } from '@/types/database';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PendingOffersTab from '@/components/offers/PendingOffersTab';
 
 interface WorkerAchievementsDialogProps {
   open: boolean;
