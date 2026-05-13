@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeSubscription } from './useRealtimeSubscription';
 import { isAdminRole } from '@/lib/utils';
 import { CANCELLED_ORDER_DEBT_NOTE, RESUMED_ORDER_DEBT_NOTE } from '@/constants/debts';
+import { recordSaleTracking } from '@/utils/salesTracking';
 
 export const useOrders = () => {
   const { workerId, role, activeBranch } = useAuth();
@@ -411,14 +412,14 @@ export const useResumeOrder = () => {
     mutationFn: async (orderId: string) => {
       // Fetch order + items in parallel
       const [orderRes, itemsRes] = await Promise.all([
-        supabase.from('orders').select('id, assigned_worker_id, status, branch_id, customer_id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method').eq('id', orderId).single(),
-        supabase.from('order_items').select('product_id, quantity').eq('order_id', orderId),
+        supabase.from('orders').select('id, assigned_worker_id, status, branch_id, customer_id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, customer:customers(name), assigned_worker:workers!orders_assigned_worker_id_fkey(full_name), branch:branches(name)').eq('id', orderId).single(),
+        supabase.from('order_items').select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, unit_price, total_price, pieces_per_box, product:products(name)').eq('order_id', orderId),
       ]);
 
       if (orderRes.error) throw orderRes.error;
-      const order = orderRes.data;
+      const order = orderRes.data as any;
       if (order.status !== 'cancelled') throw new Error('الطلبية ليست ملغاة');
-      const orderItems = itemsRes.data;
+      const orderItems = itemsRes.data as any[] | null;
 
       const mutations: PromiseLike<any>[] = [];
 
@@ -506,6 +507,35 @@ export const useResumeOrder = () => {
         }
       }
 
+      // Restore sales_tracking + pending offer confirmations from items
+      if (orderItems?.length) {
+        try {
+          await recordSaleTracking({
+            source: 'delivery_sale',
+            orderId: order.id,
+            branchId: order.branch_id || null,
+            branchName: order.branch?.name || null,
+            workerId: order.assigned_worker_id || null,
+            workerName: order.assigned_worker?.full_name || null,
+            customerId: order.customer_id || null,
+            customerName: order.customer?.name || null,
+            notes: 'استئناف طلبية ملغاة',
+            items: orderItems.map((it: any) => ({
+              productId: it.product_id,
+              productName: it.product?.name || null,
+              orderItemId: it.id || null,
+              quantity: Number(it.quantity || 0),
+              giftBoxes: Number(it.gift_quantity || 0),
+              giftPieces: Number(it.gift_pieces || 0),
+              piecesPerBox: Number(it.pieces_per_box || 20),
+              unitPrice: Number(it.unit_price || 0),
+              totalPrice: Number(it.total_price || 0),
+              offerId: it.gift_offer_id || null,
+            })),
+          });
+        } catch (e) { console.warn('[useResumeOrder] recordSaleTracking failed', e); }
+      }
+
       // Update order status
       mutations.push(
         supabase.from('orders').update({ status: 'delivered' as OrderStatus }).eq('id', orderId).select().single()
@@ -517,7 +547,7 @@ export const useResumeOrder = () => {
       return orderResult.data;
     },
     onSuccess: () => {
-      const keys = ['orders', 'my-orders', 'assigned-orders', 'my-worker-stock', 'worker-truck-stock', 'customer-debts', 'order-debt-details', 'worker-liability', 'all-workers-liability', 'achievements-data'];
+      const keys = ['orders', 'my-orders', 'assigned-orders', 'my-worker-stock', 'worker-truck-stock', 'customer-debts', 'order-debt-details', 'worker-liability', 'all-workers-liability', 'achievements-data', 'sales-tracking', 'worker-achievements', 'promos', 'my-promos', 'my-achievements-page', 'pending-offer-confirmations'];
       keys.forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));
     },
   });
