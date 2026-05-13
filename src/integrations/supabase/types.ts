@@ -9829,6 +9829,10 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: Json
       }
+      sync_order_confirmed_offer_quantities: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       total_pieces_to_bp: {
         Args: { p_product_id: string; p_total_pieces: number }
         Returns: number
