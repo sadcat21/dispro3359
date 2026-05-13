@@ -447,19 +447,49 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         ) : (
           <div className="flex flex-col flex-1 overflow-hidden">
             <div className="px-4 space-y-3 pb-3">
-              {/* Product */}
+              {/* Product image grid */}
               <div className="space-y-1">
                 <Label className="flex items-center gap-1.5 text-xs"><Package className="w-3.5 h-3.5" /> المنتج *</Label>
-                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="اختر المنتج" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productOptions.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>{getProductDisplayName(product)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {productOptions.length === 0 ? (
+                  <div className="text-center text-xs text-muted-foreground py-4 border rounded-md">
+                    لا توجد منتجات بعروض نشطة
+                  </div>
+                ) : (
+                  <ScrollArea className="max-h-48 border rounded-md">
+                    <div className="grid grid-cols-3 gap-2 p-2">
+                      {productOptions.map((product) => {
+                        const active = product.id === selectedProductId;
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => setSelectedProductId(product.id)}
+                            className={cn(
+                              'flex flex-col items-center gap-1 p-1.5 rounded-lg border-2 bg-card transition-all text-center',
+                              active ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/40',
+                            )}
+                          >
+                            {product.image_url ? (
+                              <img
+                                src={product.image_url}
+                                alt=""
+                                className="w-full aspect-square object-cover rounded"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full aspect-square rounded bg-muted flex items-center justify-center">
+                                <Package className="w-6 h-6 text-muted-foreground/50" />
+                              </div>
+                            )}
+                            <span className="text-[10px] font-medium leading-tight line-clamp-2">
+                              {getProductDisplayName(product)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
 
               {/* Offer */}
