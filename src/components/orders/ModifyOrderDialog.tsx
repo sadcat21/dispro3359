@@ -1407,6 +1407,52 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             if (promoRows.length > 0) {
               await (supabase as any).from('promos').insert(promoRows);
             }
+
+            // Re-create promo rows for already-confirmed deferred-offer gifts
+            // tied to this order so /my-promos keeps them visible after edit.
+            const { data: confirmedPocs } = await (supabase as any)
+              .from('pending_offer_confirmations')
+              .select('order_id, worker_id, customer_id, product_id, offer_id, gift_boxes, gift_pieces, pieces_per_box')
+              .eq('order_id', order.id)
+              .eq('status', 'confirmed');
+            const confirmedOfferIds = Array.from(new Set((confirmedPocs || []).map((r: any) => r.offer_id).filter(Boolean))) as string[];
+            const confirmedOfferMap = new Map<string, any>();
+            if (confirmedOfferIds.length > 0) {
+              const { data: offerRows2 } = await supabase
+                .from('product_offers')
+                .select('id, min_quantity, min_quantity_unit, gift_quantity_unit')
+                .in('id', confirmedOfferIds);
+              for (const o of (offerRows2 || []) as any[]) confirmedOfferMap.set(o.id, o);
+            }
+            const confirmedPromoRows: any[] = [];
+            for (const poc of (confirmedPocs || []) as any[]) {
+              const ppb = Math.max(1, Number(poc.pieces_per_box || 1));
+              const giftPiecesTotal = Math.max(0, Number(poc.gift_boxes || 0)) * ppb + Math.max(0, Number(poc.gift_pieces || 0));
+              if (giftPiecesTotal <= 0) continue;
+              const offer = poc.offer_id ? confirmedOfferMap.get(poc.offer_id) : null;
+              // Use current order_item paid quantity for vente
+              const currentItem = (freshItemsForPromos || []).find((i: any) => i.product_id === poc.product_id);
+              const paidQty = currentItem
+                ? Math.max(0, Number(currentItem.quantity || 0) - Number(currentItem.gift_quantity || 0))
+                : Number(offer?.min_quantity || 0);
+              confirmedPromoRows.push({
+                worker_id: poc.worker_id,
+                customer_id: poc.customer_id,
+                product_id: poc.product_id,
+                order_id: order.id,
+                vente_quantity: paidQty,
+                sale_quantity_unit: offer?.min_quantity_unit || 'box',
+                gratuite_quantity: giftPiecesTotal,
+                gift_quantity_unit: offer?.gift_quantity_unit || 'piece',
+                offer_id: poc.offer_id || null,
+                has_bonus: false,
+                bonus_amount: 0,
+                notes: 'هدية عرض مؤكدة',
+              });
+            }
+            if (confirmedPromoRows.length > 0) {
+              await (supabase as any).from('promos').insert(confirmedPromoRows);
+            }
           }
           queryClient.invalidateQueries({ queryKey: ['promos'] });
           queryClient.invalidateQueries({ queryKey: ['my-promos'] });
