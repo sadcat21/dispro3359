@@ -26,6 +26,7 @@ import WorkerOrdersSummaryDialog from '@/components/accounting/WorkerOrdersSumma
 import type { OrderWithDetails } from '@/types/database';
 import { isAdminRole } from '@/lib/utils';
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
+import PendingOffersTab from '@/components/offers/PendingOffersTab';
 
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
   order: <ShoppingCart className="w-4 h-4 text-blue-600" />,
@@ -947,6 +948,15 @@ const MyAchievements: React.FC = () => {
         </div>
       </div>
 
+      <Tabs defaultValue="operations" className="flex flex-1 flex-col min-h-0">
+        <TabsList className="grid grid-cols-2 shrink-0 mb-1.5">
+          <TabsTrigger value="operations">العمليات</TabsTrigger>
+          <TabsTrigger value="pending_offers">عروض بانتظار التأكيد</TabsTrigger>
+        </TabsList>
+        <TabsContent value="pending_offers" className="flex-1 overflow-y-auto mt-0">
+          <PendingOffersTab workerId={targetWorkerId} dateFrom={dateFrom} dateTo={dateTo} />
+        </TabsContent>
+        <TabsContent value="operations" className="flex-1 min-h-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col">
       <Card className={`rounded-2xl flex flex-1 flex-col min-h-0 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
         <CardHeader className="px-3 pb-2 pt-2.5">
           <div className="flex flex-wrap gap-1">
@@ -1107,6 +1117,8 @@ const MyAchievements: React.FC = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
         <DialogContent dir="rtl" className="max-w-sm">
