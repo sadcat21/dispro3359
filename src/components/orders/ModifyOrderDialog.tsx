@@ -1323,6 +1323,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                 unitPrice: Number(fi.unit_price || 0),
                 totalPrice: Number(fi.total_price || 0),
                 orderItemId: fi.id,
+                offerId: fi.gift_offer_id || null,
               })),
             });
           }
