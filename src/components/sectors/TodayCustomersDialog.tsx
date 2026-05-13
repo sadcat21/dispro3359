@@ -86,6 +86,9 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+const DIRECT_SALE_NOTE_REGEX = /بيع\s*(?:مباشر|مخزن)|Vente\s*(?:Directe|Dépôt|Depot)/i;
+const isDirectSaleOrderNote = (notes?: string | null) => DIRECT_SALE_NOTE_REGEX.test(String(notes || ''));
+
 type DeliveryOrderLike = Pick<OrderWithDetails, 'delivery_date' | 'created_at' | 'status' | 'customer_id'> & { postpone_count?: number | null };
 const getOrderDateKey = (order: DeliveryOrderLike) => String(order.delivery_date || order.created_at?.split('T')[0] || '');
 const isPostponedOrderForDate = (order: DeliveryOrderLike, dateKey: string) => {
@@ -420,12 +423,12 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
     queryFn: async () => {
       const { data } = await supabase
         .from('orders')
-        .select('id, customer_id, created_at')
+        .select('id, customer_id, created_at, notes')
         .eq('created_by', effectiveWorkerId!)
         .gte('created_at', todayStart)
         .lte('created_at', selectedDayBounds.end)
         .not('status', 'eq', 'cancelled');
-      return data || [];
+      return (data || []).filter((order: any) => !isDirectSaleOrderNote(order.notes));
     },
     enabled: !!effectiveWorkerId && open,
     refetchInterval: 10000,
