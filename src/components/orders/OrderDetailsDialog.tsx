@@ -14,7 +14,7 @@ import { useOrderItems } from '@/hooks/useOrders';
 import { OrderItem, OrderWithDetails, Product } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAmountWithMaxFraction } from '@/utils/amountFormatting';
-import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
+import { dbBPDisplayAlways, boxesToBPAlways } from '@/utils/boxPieceInput';
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -370,7 +370,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         </span>
                         {(n.giftQuantity > 0 || n.giftPieces > 0) && (() => {
                           const giftBoxes = n.giftQuantity + (n.giftPieces / Math.max(1, n.piecesPerBox));
-                          const giftLabel = dbBPDisplayAlways(giftBoxes, n.piecesPerBox);
+                          const giftLabel = boxesToBPAlways(giftBoxes, n.piecesPerBox);
                           return (
                             <span className="flex h-6 shrink-0 items-center justify-center gap-0.5 rounded-full bg-emerald-600 text-white px-2 text-[10px] font-bold" dir="ltr">
                               🎁 {giftLabel}
