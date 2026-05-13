@@ -768,9 +768,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         for (const o of (offRows2 || []) as any[]) if (o.is_deferred_confirmation) deferredOfferIdSet2.add(o.id);
       }
 
-      // Deduct from stock & log movements (including gift quantities)
+      // Deduct from stock & log movements. Deferred gifts stay out until confirmation.
       for (const item of orderItems) {
         const isDeferredItem = !!((item as any).giftOfferId && deferredOfferIdSet2.has((item as any).giftOfferId));
+        const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
+        const stockMovementQty = isDeferredItem ? Math.max(0, qtyRounded - Number(item.giftQuantity || 0)) : qtyRounded;
         const ws = stockItems.find(s => s.product_id === item.productId);
         if (ws) {
           const product = allProducts.find(p => p.id === item.productId);
@@ -799,7 +801,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         await supabase.from('stock_movements').insert({
           product_id: item.productId,
           branch_id: activeBranch?.id || null,
-          quantity: item.quantity,
+          quantity: stockMovementQty,
           movement_type: 'delivery',
           status: 'approved',
           created_by: workerId!,
