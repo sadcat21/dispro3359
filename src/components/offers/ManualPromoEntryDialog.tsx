@@ -148,6 +148,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
   const [customerEntries, setCustomerEntries] = useState<CustomerEntry[]>([]);
   
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  const [showProductPicker, setShowProductPicker] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -433,47 +434,72 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
               {/* Product image grid */}
               <div className="space-y-1">
                 <Label className="flex items-center gap-1.5 text-xs"><Package className="w-3.5 h-3.5" /> المنتج *</Label>
-                {productOptions.length === 0 ? (
-                  <div className="text-center text-xs text-muted-foreground py-4 border rounded-md">
-                    لا توجد منتجات بعروض نشطة
-                  </div>
-                ) : (
-                  <ScrollArea className="max-h-48 border rounded-md">
-                    <div className="grid grid-cols-3 gap-2 p-2">
-                      {productOptions.map((product) => {
-                        const active = product.id === selectedProductId;
-                        return (
-                          <button
-                            key={product.id}
-                            type="button"
-                            onClick={() => setSelectedProductId(product.id)}
-                            className={cn(
-                              'flex flex-col items-center gap-1 p-1.5 rounded-lg border-2 bg-card transition-all text-center',
-                              active ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/40',
-                            )}
-                          >
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt=""
-                                className="w-full aspect-square object-cover rounded"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full aspect-square rounded bg-muted flex items-center justify-center">
-                                <Package className="w-6 h-6 text-muted-foreground/50" />
-                              </div>
-                            )}
-                            <span className="text-[10px] font-medium leading-tight line-clamp-2">
-                              {getProductDisplayName(product)}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 justify-start gap-2"
+                  onClick={() => setShowProductPicker(true)}
+                >
+                  {selectedProduct ? (
+                    <>
+                      {selectedProduct.image_url ? (
+                        <img src={selectedProduct.image_url} alt="" className="w-7 h-7 rounded object-cover" />
+                      ) : (
+                        <Package className="w-5 h-5 text-muted-foreground" />
+                      )}
+                      <span className="truncate text-sm">{getProductDisplayName(selectedProduct)}</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">اختر المنتج</span>
+                  )}
+                </Button>
               </div>
+
+              {/* Product picker dialog */}
+              <Dialog open={showProductPicker} onOpenChange={setShowProductPicker}>
+                <DialogContent className="max-w-md p-0" dir="rtl">
+                  <DialogHeader className="px-4 pt-4 pb-2">
+                    <DialogTitle className="flex items-center gap-2 text-base">
+                      <Package className="w-4 h-4" /> اختر المنتج
+                    </DialogTitle>
+                  </DialogHeader>
+                  {productOptions.length === 0 ? (
+                    <div className="text-center text-xs text-muted-foreground py-8">
+                      لا توجد منتجات بعروض نشطة
+                    </div>
+                  ) : (
+                    <ScrollArea className="max-h-[70vh]">
+                      <div className="grid grid-cols-3 gap-2 p-3">
+                        {productOptions.map((product) => {
+                          const active = product.id === selectedProductId;
+                          return (
+                            <button
+                              key={product.id}
+                              type="button"
+                              onClick={() => { setSelectedProductId(product.id); setShowProductPicker(false); }}
+                              className={cn(
+                                'flex flex-col items-center gap-1 p-1.5 rounded-lg border-2 bg-card transition-all text-center',
+                                active ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/40',
+                              )}
+                            >
+                              {product.image_url ? (
+                                <img src={product.image_url} alt="" className="w-full aspect-square object-cover rounded" loading="lazy" />
+                              ) : (
+                                <div className="w-full aspect-square rounded bg-muted flex items-center justify-center">
+                                  <Package className="w-6 h-6 text-muted-foreground/50" />
+                                </div>
+                              )}
+                              <span className="text-[10px] font-medium leading-tight line-clamp-2">
+                                {getProductDisplayName(product)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </DialogContent>
+              </Dialog>
 
               {/* Offer */}
               <div className="space-y-1">
