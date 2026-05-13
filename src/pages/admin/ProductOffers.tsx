@@ -374,6 +374,11 @@ const ProductOffers: React.FC = () => {
         editOffer={editOffer}
       />
 
+      <GlobalOfferSettingsDialog
+        open={showSettingsDialog}
+        onOpenChange={setShowSettingsDialog}
+      />
+
       {/* Extend / Resume Dialog */}
       {extendTarget && (
         <ExtendOfferDialog
