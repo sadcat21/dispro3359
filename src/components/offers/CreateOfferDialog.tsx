@@ -731,18 +731,19 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       <p className="text-xs text-muted-foreground">عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض</p>
                     </div>
                     <Switch
-                      checked={formData.is_mandatory}
+                      checked={formData.is_mandatory || formData.is_deferred_confirmation}
+                      disabled={formData.is_deferred_confirmation}
                       onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_mandatory: checked }))}
                     />
                   </div>
                   <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded">
                     <div>
                       <Label className="text-sm">عرض مؤجل التأكيد</Label>
-                      <p className="text-xs text-muted-foreground">عند التفعيل، تُسجَّل الهدية في "العروض بانتظار التأكيد" ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض</p>
+                      <p className="text-xs text-muted-foreground">عند التفعيل، تُسجَّل الهدية في "العروض بانتظار التأكيد" ولا تُخصم من رصيد العامل حتى يُؤكَّد العرض (يصبح العرض إجبارياً تلقائياً)</p>
                     </div>
                     <Switch
                       checked={formData.is_deferred_confirmation}
-                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_deferred_confirmation: checked }))}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_deferred_confirmation: checked, is_mandatory: checked ? true : prev.is_mandatory }))}
                     />
                   </div>
                 </div>
