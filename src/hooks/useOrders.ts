@@ -507,6 +507,35 @@ export const useResumeOrder = () => {
         }
       }
 
+      // Restore sales_tracking + pending offer confirmations from items
+      if (orderItems?.length) {
+        try {
+          await recordSaleTracking({
+            source: 'delivery_sale',
+            orderId: order.id,
+            branchId: order.branch_id || null,
+            branchName: order.branch?.name || null,
+            workerId: order.assigned_worker_id || null,
+            workerName: order.assigned_worker?.full_name || null,
+            customerId: order.customer_id || null,
+            customerName: order.customer?.name || null,
+            notes: 'استئناف طلبية ملغاة',
+            items: orderItems.map((it: any) => ({
+              productId: it.product_id,
+              productName: it.product?.name || null,
+              orderItemId: it.id || null,
+              quantity: Number(it.quantity || 0),
+              giftBoxes: Number(it.gift_quantity || 0),
+              giftPieces: Number(it.gift_pieces || 0),
+              piecesPerBox: Number(it.pieces_per_box || 20),
+              unitPrice: Number(it.unit_price || 0),
+              totalPrice: Number(it.total_price || 0),
+              offerId: it.gift_offer_id || null,
+            })),
+          });
+        } catch (e) { console.warn('[useResumeOrder] recordSaleTracking failed', e); }
+      }
+
       // Update order status
       mutations.push(
         supabase.from('orders').update({ status: 'delivered' as OrderStatus }).eq('id', orderId).select().single()
