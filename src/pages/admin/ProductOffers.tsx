@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -125,30 +126,30 @@ const ProductOffers: React.FC = () => {
 
   return (
     <>
-      <div className="p-4 space-y-4" dir={dir}>
+      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 max-w-7xl mx-auto" dir={dir}>
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Gift className="w-6 h-6 text-primary" />
-                {t('offers.management')}
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+                <span className="truncate">{t('offers.management')}</span>
               </h1>
-              <p className="text-sm text-muted-foreground">{t('offers.management_desc')}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('offers.management_desc')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2">
             {canManage && (
-              <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
+              <Button variant="outline" size="sm" onClick={() => setShowSettingsDialog(true)} className="sm:size-default">
                 <Settings2 className="w-4 h-4 me-2" />
-                إعدادات العروض
+                <span className="truncate">إعدادات العروض</span>
               </Button>
             )}
             {!isAddOfferHidden && (
-              <Button onClick={() => setShowCreateDialog(true)}>
+              <Button size="sm" onClick={() => setShowCreateDialog(true)} className="sm:size-default">
                 <Plus className="w-4 h-4 me-2" />
                 {t('offers.new')}
               </Button>
@@ -169,17 +170,17 @@ const ProductOffers: React.FC = () => {
 
         {/* Status Tabs */}
         <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as 'active' | 'inactive' | 'expired' | 'all')}>
-          <TabsList>
-            <TabsTrigger value="active">
+          <TabsList className="w-full sm:w-auto overflow-x-auto flex h-auto flex-nowrap justify-start">
+            <TabsTrigger value="active" className="text-xs sm:text-sm whitespace-nowrap">
               {t('common.active') || 'النشطة'} ({activeOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="inactive">
+            <TabsTrigger value="inactive" className="text-xs sm:text-sm whitespace-nowrap">
               {t('common.inactive') || 'غير النشطة'} ({inactiveOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="expired">
+            <TabsTrigger value="expired" className="text-xs sm:text-sm whitespace-nowrap">
               منتهية ({expiredOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="all">
+            <TabsTrigger value="all" className="text-xs sm:text-sm whitespace-nowrap">
               الكل ({filteredOffers.length})
             </TabsTrigger>
           </TabsList>
@@ -190,7 +191,7 @@ const ProductOffers: React.FC = () => {
               : tabKey === 'inactive' ? inactiveOffers
               : filteredOffers;
             return (
-              <TabsContent key={tabKey} value={tabKey} className="space-y-3">
+              <TabsContent key={tabKey} value={tabKey} className="mt-3">
                 {isLoading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     {t('common.loading')}
@@ -203,8 +204,9 @@ const ProductOffers: React.FC = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  list.map((offer) => (
-                    <Card key={offer.id} className={!offer.is_active ? 'opacity-60' : ''}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {list.map((offer) => (
+                    <Card key={offer.id} className={cn('flex flex-col h-full', !offer.is_active && 'opacity-60')}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -352,7 +354,8 @@ const ProductOffers: React.FC = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  ))
+                  ))}
+                  </div>
                 )}
               </TabsContent>
             );
