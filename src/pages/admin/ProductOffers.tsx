@@ -205,48 +205,42 @@ const ProductOffers: React.FC = () => {
                   </Card>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {list.map((offer) => (
-                    <Card key={offer.id} className={cn('flex flex-col h-full', !offer.is_active && 'opacity-60')}>
+                  {Object.values(
+                    list.reduce((acc: Record<string, { product: any; offers: typeof list }>, off) => {
+                      const pid = off.product_id || off.id;
+                      if (!acc[pid]) acc[pid] = { product: off.product, offers: [] as any };
+                      acc[pid].offers.push(off);
+                      return acc;
+                    }, {})
+                  ).map(({ product, offers: productOffers }) => (
+                    <Card key={(product as any)?.id || productOffers[0].id} className="flex flex-col h-full">
                       <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            {(offer.product as any)?.image_url ? (
-                              <img
-                                src={(offer.product as any).image_url}
-                                alt={offer.product?.name || ''}
-                                className="w-14 h-14 rounded-lg object-cover border shrink-0"
-                              />
-                            ) : (
-                              <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                                <Package className="w-6 h-6 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-                                {offer.name}
-                                {offer.is_stackable && (
-                                  <Badge variant="outline" className="text-xs">
-                                    <Layers className="w-3 h-3 me-1" />
-                                    {t('offers.stackable')}
-                                  </Badge>
-                                )}
-                              </CardTitle>
-                              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                <Package className="w-3 h-3" />
-                                {offer.product?.name}
-                              </p>
+                        <div className="flex items-start gap-3">
+                          {(product as any)?.image_url ? (
+                            <img
+                              src={(product as any).image_url}
+                              alt={(product as any)?.name || ''}
+                              className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                              <Package className="w-6 h-6 text-muted-foreground" />
                             </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-sm sm:text-base truncate">
+                              {getProductDisplayName(product as any) || (product as any)?.name}
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {productOffers.length} {productOffers.length === 1 ? 'مجموعة عرض' : 'مجموعات عروض'}
+                            </p>
                           </div>
-                          <Switch
-                            checked={offer.is_active}
-                            onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
-                          />
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {/* Tiers */}
-                        <div className="space-y-2">
-                          {(offer.tiers && offer.tiers.length > 0 ? offer.tiers : [{
+                        {productOffers.map((offer, gIndex) => {
+                          const tiers = (offer.tiers && offer.tiers.length > 0 ? offer.tiers : [{
+                            id: null,
                             min_quantity: offer.min_quantity,
                             max_quantity: offer.max_quantity,
                             gift_type: offer.gift_type,
@@ -255,103 +249,105 @@ const ProductOffers: React.FC = () => {
                             discount_percentage: offer.discount_percentage,
                             worker_reward_type: offer.worker_reward_type,
                             worker_reward_amount: offer.worker_reward_amount,
-                          }]).map((tier: any, index: number) => (
-                            <div key={index} className="flex flex-wrap items-center gap-2 p-2 bg-muted/50 rounded">
-                              <Badge variant="outline" className="text-xs">
-                                {t('offers.tier')} {index + 1}
-                              </Badge>
-                              <Badge variant="secondary">
-                                {t('offers.buy')} {tier.min_quantity}
-                                {tier.max_quantity ? `-${tier.max_quantity}` : '+'}
-                              </Badge>
-                              <Badge className="bg-accent text-accent-foreground">
-                                → {tier.gift_type === 'same_product'
-                                  ? `${tier.gift_quantity} ${t('offers.free_units')}`
-                                  : tier.gift_type === 'different_product' && tier.gift_product
-                                  ? `${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
-                                  : `${tier.discount_percentage}% ${t('offers.discount')}`}
-                              </Badge>
-                              {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Users className="w-3 h-3 me-1" />
-                                  {tier.worker_reward_type === 'fixed'
-                                    ? `${tier.worker_reward_amount} ${t('currency.dzd')}`
-                                    : `${tier.worker_reward_amount}%`}
-                                </Badge>
-                              )}
-                              {tier.id && canManage && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs ms-auto"
-                                  onClick={() => setExtendTarget({
-                                    offerId: offer.id,
-                                    offerName: offer.name,
-                                    tierId: tier.id,
-                                    tierLabel: `${t('offers.tier')} ${index + 1}`,
-                                    mode: isOfferRunning(offer) ? 'extend' : 'resume',
-                                  })}
-                                >
-                                  {isOfferRunning(offer) ? (
-                                    <><Clock className="w-3 h-3 me-1" />تمديد</>
-                                  ) : (
-                                    <><PlayCircle className="w-3 h-3 me-1" />استئناف</>
+                          }]) as any[];
+                          return (
+                            <div key={offer.id} className={cn(
+                              "rounded-lg border p-2.5 space-y-2",
+                              !offer.is_active && "opacity-60 bg-muted/30"
+                            )}>
+                              {/* Group header */}
+                              <div className="flex items-start justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                  <Badge className="bg-primary/10 text-primary border-primary/30" variant="outline">
+                                    مجموعة {gIndex + 1}
+                                  </Badge>
+                                  <span className="text-xs font-medium truncate">{offer.name}</span>
+                                  {offer.is_stackable && (
+                                    <Badge variant="outline" className="text-[10px] gap-1">
+                                      <Layers className="w-3 h-3" />
+                                      {t('offers.stackable')}
+                                    </Badge>
                                   )}
+                                </div>
+                                <Switch
+                                  checked={offer.is_active}
+                                  onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
+                                />
+                              </div>
+
+                              {/* Dates */}
+                              {(offer.start_date || offer.end_date) && (
+                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                  <Calendar className="w-3 h-3" />
+                                  {offer.start_date && format(new Date(offer.start_date), 'dd MMM yyyy', { locale: dateLocale })}
+                                  {offer.start_date && offer.end_date && ' - '}
+                                  {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
+                                </div>
+                              )}
+
+                              {/* Tiers (slides) */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                {tiers.map((tier: any, index: number) => (
+                                  <div key={index} className="flex flex-wrap items-center gap-1 p-1.5 bg-muted/50 rounded text-xs">
+                                    <Badge variant="outline" className="text-[10px] px-1.5">
+                                      شريحة {index + 1}
+                                    </Badge>
+                                    <Badge variant="secondary" className="text-[10px] px-1.5">
+                                      اشتري {tier.min_quantity}{tier.max_quantity ? `-${tier.max_quantity}` : '+'}
+                                    </Badge>
+                                    <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
+                                      → {tier.gift_type === 'same_product'
+                                        ? `${tier.gift_quantity} ${t('offers.free_units')}`
+                                        : tier.gift_type === 'different_product' && tier.gift_product
+                                        ? `${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
+                                        : `${tier.discount_percentage}%`}
+                                    </Badge>
+                                    {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
+                                      <Badge variant="outline" className="text-[10px] px-1.5 gap-1">
+                                        <Users className="w-2.5 h-2.5" />
+                                        {tier.worker_reward_type === 'fixed'
+                                          ? `${tier.worker_reward_amount}${t('currency.dzd')}`
+                                          : `${tier.worker_reward_amount}%`}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Actions */}
+                              <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t">
+                                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleEdit(offer)}>
+                                  <Edit2 className="w-3 h-3 me-1" />
+                                  {t('common.edit')}
                                 </Button>
-                              )}
+                                {canManage ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={() => setExtendTarget({
+                                      offerId: offer.id,
+                                      offerName: offer.name,
+                                      tierId: null,
+                                      tierLabel: null,
+                                      mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                                    })}
+                                  >
+                                    {isOfferRunning(offer) ? <><Clock className="w-3 h-3 me-1" />تمديد</> : <><PlayCircle className="w-3 h-3 me-1" />استئناف</>}
+                                  </Button>
+                                ) : <span />}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs text-destructive hover:text-destructive"
+                                  onClick={() => setDeleteConfirm(offer.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
-                          ))}
-                        </div>
-
-                        {/* Dates */}
-                        {(offer.start_date || offer.end_date) && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            {offer.start_date && format(new Date(offer.start_date), 'dd MMM yyyy', { locale: dateLocale })}
-                            {offer.start_date && offer.end_date && ' - '}
-                            {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 pt-2 border-t">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => handleEdit(offer)}
-                          >
-                            <Edit2 className="w-4 h-4 me-2" />
-                            {t('common.edit')}
-                          </Button>
-                          {canManage && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setExtendTarget({
-                                offerId: offer.id,
-                                offerName: offer.name,
-                                tierId: null,
-                                tierLabel: null,
-                                mode: isOfferRunning(offer) ? 'extend' : 'resume',
-                              })}
-                            >
-                              {isOfferRunning(offer) ? (
-                                <><Clock className="w-4 h-4 me-2" />تمديد العرض</>
-                              ) : (
-                                <><PlayCircle className="w-4 h-4 me-2" />استئناف العرض</>
-                              )}
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteConfirm(offer.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                          );
+                        })}
                       </CardContent>
                     </Card>
                   ))}
