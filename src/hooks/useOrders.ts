@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeSubscription } from './useRealtimeSubscription';
 import { isAdminRole } from '@/lib/utils';
 import { CANCELLED_ORDER_DEBT_NOTE, RESUMED_ORDER_DEBT_NOTE } from '@/constants/debts';
+import { recordSaleTracking } from '@/utils/salesTracking';
 
 export const useOrders = () => {
   const { workerId, role, activeBranch } = useAuth();
