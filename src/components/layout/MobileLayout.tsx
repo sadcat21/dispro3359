@@ -903,6 +903,21 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </Link>
             ) : <div />}
 
+            {/* زر إنجازات اليوم — أزرق */}
+            <Link
+              to="/my-achievements"
+              className={cn(
+                'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                location.pathname === '/my-achievements'
+                  ? 'bg-blue-500/15 text-blue-500'
+                  : 'text-blue-500/80 hover:bg-blue-500/10 hover:text-blue-500'
+              )}
+              title={t('worker_home.today_achievements') || 'إنجازات اليوم'}
+              aria-label={t('worker_home.today_achievements') || 'إنجازات اليوم'}
+            >
+              <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
+            </Link>
+
             {moreNavItems.length > 0 ? (
               <button
                 onClick={() => setMoreOpen(true)}
