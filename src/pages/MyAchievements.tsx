@@ -529,6 +529,8 @@ const MyAchievements: React.FC = () => {
           debtCollectionStoreName: visit.operation_type === 'debt_collection'
             ? debtCollectionStoreMap.get(visit.operation_id || (visit as any).entity_id || (visit as any).reference_id || '') || ''
             : '',
+          orderProductIds: visit.operation_id ? Array.from(orderProductsMap.get(visit.operation_id) || []) : [],
+          promoCount: visit.operation_id ? (orderPromoCountMap.get(visit.operation_id) || 0) : 0,
         };
       });
 
