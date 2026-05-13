@@ -798,14 +798,11 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                       <div className="min-w-0">
                         <Label className="text-sm">تفعيل العرض إجباري</Label>
                         <p className="text-xs text-muted-foreground">
-                          {formData.is_deferred_confirmation
-                            ? 'الإلزام مفعّل تلقائياً في النظام المؤجل'
-                            : 'عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض'}
+                          عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض
                         </p>
                       </div>
                       <Switch
-                        checked={formData.is_mandatory || formData.is_deferred_confirmation}
-                        disabled={formData.is_deferred_confirmation}
+                        checked={formData.is_mandatory}
                         onCheckedChange={(c) => setFormData((p) => ({ ...p, is_mandatory: c }))}
                       />
                     </div>
