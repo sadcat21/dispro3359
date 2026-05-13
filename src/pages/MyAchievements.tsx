@@ -1260,6 +1260,87 @@ const MyAchievements: React.FC = () => {
       <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
       <WorkerOrdersSummaryDialog open={showOrdersSummary} onOpenChange={setShowOrdersSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} />
       <DebtAggregatesDialog open={showDebtAggregates} onOpenChange={setShowDebtAggregates} workerId={targetWorkerId || undefined} dateFrom={dateFrom} dateTo={dateTo} />
+
+      <Dialog open={productFilterOpen} onOpenChange={setProductFilterOpen}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Filter className="w-4 h-4" />
+              فلترة حسب المنتجات
+              {tempSelectedProductIds.size > 0 && (
+                <Badge variant="secondary" className="text-[10px]">{tempSelectedProductIds.size} محدد</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-4 pb-2">
+            <div className="relative">
+              <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder="ابحث عن منتج..."
+                className="h-9 ps-3 pe-8 text-sm"
+              />
+            </div>
+          </div>
+          <ScrollArea className="flex-1 px-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 pb-2">
+              {productsList
+                .filter((p: any) => !productSearch.trim() || String(p.name || '').toLowerCase().includes(productSearch.toLowerCase()))
+                .map((p: any) => {
+                  const selected = tempSelectedProductIds.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        const n = new Set(tempSelectedProductIds);
+                        if (selected) n.delete(p.id); else n.add(p.id);
+                        setTempSelectedProductIds(n);
+                      }}
+                      className={`relative rounded-lg border-2 overflow-hidden text-right transition-all ${selected ? 'border-primary ring-2 ring-primary/30 bg-primary/5' : 'border-border hover:border-primary/40'}`}
+                    >
+                      <div className="aspect-square bg-muted/40 flex items-center justify-center">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
+                        ) : (
+                          <Package className="w-6 h-6 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="p-1.5">
+                        <p className="text-[11px] font-medium leading-tight line-clamp-2">{p.name}</p>
+                      </div>
+                      {selected && (
+                        <span className="absolute top-1 left-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold">✓</span>
+                      )}
+                    </button>
+                  );
+                })}
+            </div>
+          </ScrollArea>
+          <div className="flex items-center gap-2 p-3 border-t bg-muted/30">
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => setTempSelectedProductIds(new Set())}
+              disabled={tempSelectedProductIds.size === 0}
+            >
+              مسح التحديد
+            </Button>
+            <Button variant="outline" onClick={() => setProductFilterOpen(false)}>إلغاء</Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                setSelectedProductIds(new Set(tempSelectedProductIds));
+                setProductFilterOpen(false);
+              }}
+            >
+              <Filter className="w-4 h-4 ml-1" />
+              تطبيق الفلتر
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
