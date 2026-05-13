@@ -383,6 +383,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           );
         })}
       </div>
+      )}
 
       {history && (
         <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
