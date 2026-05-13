@@ -358,10 +358,10 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     }
     setOfferApplied(true);
     setGiftOfferId(info.offerId);
-    // Deferred offers: always editable, but pre-filled with suggested values
+    // Deferred offers: editable but always pre-filled with suggested values
     const editable = !info.autoFill || info.isDeferred === true;
     setManualGiftMode(editable);
-    const seedPieces = info.autoFill ? info.suggestedGiftPieces : 0;
+    const seedPieces = (info.autoFill || info.isDeferred === true) ? info.suggestedGiftPieces : 0;
     setGiftPieces(seedPieces);
     setGiftFields(quantityToFields(seedPieces / piecesPerBox, piecesPerBox, seedPieces === 0));
   }, [piecesPerBox]);
