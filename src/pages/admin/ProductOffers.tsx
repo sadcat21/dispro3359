@@ -125,30 +125,30 @@ const ProductOffers: React.FC = () => {
 
   return (
     <>
-      <div className="p-4 space-y-4" dir={dir}>
+      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 max-w-7xl mx-auto" dir={dir}>
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Gift className="w-6 h-6 text-primary" />
-                {t('offers.management')}
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+                <span className="truncate">{t('offers.management')}</span>
               </h1>
-              <p className="text-sm text-muted-foreground">{t('offers.management_desc')}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('offers.management_desc')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2">
             {canManage && (
-              <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
+              <Button variant="outline" size="sm" onClick={() => setShowSettingsDialog(true)} className="sm:size-default">
                 <Settings2 className="w-4 h-4 me-2" />
-                إعدادات العروض
+                <span className="truncate">إعدادات العروض</span>
               </Button>
             )}
             {!isAddOfferHidden && (
-              <Button onClick={() => setShowCreateDialog(true)}>
+              <Button size="sm" onClick={() => setShowCreateDialog(true)} className="sm:size-default">
                 <Plus className="w-4 h-4 me-2" />
                 {t('offers.new')}
               </Button>
