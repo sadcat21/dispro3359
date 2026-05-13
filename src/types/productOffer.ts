@@ -82,6 +82,7 @@ export interface ProductOffer {
   scope_stages?: string[]; // 'worker_loading' | 'order_creation' | 'direct_sale' | 'warehouse_sale'
   auto_fill_quantities?: boolean; // when true, clicking activate fills quantities automatically
   is_mandatory?: boolean; // when true, action cannot complete without activating this offer
+  is_deferred_confirmation?: boolean; // when true, gift is recorded as pending and only deducted from worker stock after manual confirmation
   
   // Audit
   created_by: string | null;
