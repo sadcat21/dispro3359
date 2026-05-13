@@ -7,13 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, User, Package, Layers, Trash2, Plus, Search, X } from 'lucide-react';
+import { Loader2, Gift, User, Package, Layers, Trash2, Plus, X } from 'lucide-react';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { parseBP as parseBPUtil, boxesToBP } from '@/utils/boxPieceInput';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import { cn } from '@/lib/utils';
 
 type UnitType = 'box' | 'piece';
 
@@ -35,7 +37,7 @@ type OfferOption = {
   branch_id?: string | null;
   start_date?: string | null;
   end_date?: string | null;
-  product?: { id: string; name: string; pieces_per_box?: number | null } | null;
+  product?: { id: string; name: string; image_url?: string | null; pieces_per_box?: number | null } | null;
   tiers?: OfferTierOption[];
   min_quantity: number;
   max_quantity: number | null;
@@ -144,7 +146,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
 
   // Step 2: Multiple customer entries
   const [customerEntries, setCustomerEntries] = useState<CustomerEntry[]>([]);
-  const [customerSearch, setCustomerSearch] = useState('');
+  
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
@@ -159,7 +161,12 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         seen.add(offer.product.id);
         return true;
       })
-      .map((offer) => ({ id: offer.product!.id, name: offer.product!.name, pieces_per_box: offer.product!.pieces_per_box || 1 }))
+      .map((offer) => ({
+        id: offer.product!.id,
+        name: offer.product!.name,
+        image_url: offer.product!.image_url || null,
+        pieces_per_box: offer.product!.pieces_per_box || 1,
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [offers]);
 
@@ -199,21 +206,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     [availableTiers, selectedTierId],
   );
 
-  // Filter customers for search
-  const filteredCustomers = useMemo(() => {
-    const usedIds = new Set(customerEntries.map((e) => e.customerId));
-    let filtered = customers.filter((c) => !usedIds.has(c.id));
-    if (customerSearch.trim()) {
-      const q = customerSearch.trim().toLowerCase();
-      filtered = filtered.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.phone?.toLowerCase().includes(q) ||
-          c.store_name?.toLowerCase().includes(q),
-      );
-    }
-    return filtered.slice(0, 50);
-  }, [customers, customerEntries, customerSearch]);
 
   // Fetch data
   useEffect(() => {
@@ -236,7 +228,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           .select(`
             id, name, condition_type, product_id, branch_id, start_date, end_date,
             min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit,
-            product:products!product_offers_product_id_fkey(id, name, pieces_per_box),
+            product:products!product_offers_product_id_fkey(id, name, image_url, pieces_per_box),
             tiers:product_offer_tiers(id, min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, tier_order)
           `)
           .eq('is_active', true)
@@ -282,7 +274,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     setSelectedTierId('');
     setNotes('');
     setCustomerEntries([]);
-    setCustomerSearch('');
     setShowCustomerSearch(false);
 
     if (initialCustomerId) {
@@ -341,7 +332,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         timesApplied: 0,
       },
     ]);
-    setCustomerSearch('');
     setShowCustomerSearch(false);
   }, []);
 
@@ -440,19 +430,49 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         ) : (
           <div className="flex flex-col flex-1 overflow-hidden">
             <div className="px-4 space-y-3 pb-3">
-              {/* Product */}
+              {/* Product image grid */}
               <div className="space-y-1">
                 <Label className="flex items-center gap-1.5 text-xs"><Package className="w-3.5 h-3.5" /> المنتج *</Label>
-                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="اختر المنتج" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productOptions.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>{getProductDisplayName(product)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {productOptions.length === 0 ? (
+                  <div className="text-center text-xs text-muted-foreground py-4 border rounded-md">
+                    لا توجد منتجات بعروض نشطة
+                  </div>
+                ) : (
+                  <ScrollArea className="max-h-48 border rounded-md">
+                    <div className="grid grid-cols-3 gap-2 p-2">
+                      {productOptions.map((product) => {
+                        const active = product.id === selectedProductId;
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => setSelectedProductId(product.id)}
+                            className={cn(
+                              'flex flex-col items-center gap-1 p-1.5 rounded-lg border-2 bg-card transition-all text-center',
+                              active ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/40',
+                            )}
+                          >
+                            {product.image_url ? (
+                              <img
+                                src={product.image_url}
+                                alt=""
+                                className="w-full aspect-square object-cover rounded"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full aspect-square rounded bg-muted flex items-center justify-center">
+                                <Package className="w-6 h-6 text-muted-foreground/50" />
+                              </div>
+                            )}
+                            <span className="text-[10px] font-medium leading-tight line-clamp-2">
+                              {getProductDisplayName(product)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
 
               {/* Offer */}
@@ -521,43 +541,16 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
                 </Button>
               </div>
 
-              {/* Customer search overlay */}
-              {showCustomerSearch && (
-                <div className="border rounded-lg bg-card mb-2 overflow-hidden">
-                  <div className="flex items-center gap-2 px-2 py-1.5 border-b">
-                    <Search className="w-3.5 h-3.5 text-muted-foreground" />
-                    <Input
-                      autoFocus
-                      value={customerSearch}
-                      onChange={(e) => setCustomerSearch(e.target.value)}
-                      placeholder="ابحث عن عميل..."
-                      className="border-0 h-7 text-sm focus-visible:ring-0 px-0"
-                    />
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomerSearch(false); setCustomerSearch(''); }}>
-                      <X className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <ScrollArea className="max-h-40">
-                    {filteredCustomers.length === 0 ? (
-                      <div className="text-center text-muted-foreground text-xs py-4">لا يوجد عملاء</div>
-                    ) : (
-                      filteredCustomers.map((customer) => (
-                        <button
-                          key={customer.id}
-                          className="w-full text-right px-3 py-2 text-sm hover:bg-accent/50 transition-colors flex items-center gap-2 border-b last:border-b-0"
-                          onClick={() => addCustomer(customer)}
-                        >
-                          <User className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                          <span className="truncate">{customer.name}</span>
-                          {customer.store_name && (
-                            <span className="text-xs text-muted-foreground truncate">({customer.store_name})</span>
-                          )}
-                        </button>
-                      ))
-                    )}
-                  </ScrollArea>
-                </div>
-              )}
+              {/* Customer picker dialog (same as order creation) */}
+              <CustomerPickerDialog
+                open={showCustomerSearch}
+                onOpenChange={setShowCustomerSearch}
+                customers={customers.filter((c) => !customerEntries.some((e) => e.customerId === c.id))}
+                onSelect={(customer) => {
+                  addCustomer(customer);
+                  setShowCustomerSearch(false);
+                }}
+              />
 
               {/* Customer entries list */}
               <ScrollArea className="flex-1 -mx-4 px-4">
