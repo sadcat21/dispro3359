@@ -406,9 +406,9 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
               onClick={(e) => { e.stopPropagation(); toggleActivation(offer.id); }}
             >
               {activatedOfferIds.has(offer.id) ? (
-                <><Check className="w-3 h-3 mr-1" /> مفعّل</>
+                <><Check className="w-3 h-3 mr-1" /> {(offer as any).is_deferred_confirmation ? 'مُسجَّل' : 'مفعّل'}</>
               ) : (
-                'تفعيل العرض'
+                (offer as any).is_deferred_confirmation ? 'تسجيل العرض' : 'تفعيل العرض'
               )}
             </Button>
           </div>
