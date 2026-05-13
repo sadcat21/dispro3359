@@ -544,7 +544,51 @@ export const useResumeOrder = () => {
         }
       }
 
-      // Restore sales_tracking from items. For deferred offers whose pending
+      // Re-insert promos for items with gifts (cancel had wiped them).
+      // Skip items whose pending_offer_confirmation was restored as 'pending'
+      // — they will be added to promos only after the user confirms them.
+      if (orderItems?.length && order.assigned_worker_id) {
+        const pendingKeys = new Set<string>();
+        for (const row of (priorPending || []) as any[]) {
+          if (row.status === 'cancelled_pending') {
+            pendingKeys.add(keyOf(row.order_item_id, row.offer_id, row.product_id));
+          }
+        }
+        const insertable = orderItems.filter((it: any) =>
+          Number(it.gift_quantity || 0) > 0 &&
+          !pendingKeys.has(keyOf(it.id, it.gift_offer_id, it.product_id))
+        );
+        if (insertable.length) {
+          const offerIds = Array.from(new Set(insertable.map((it: any) => it.gift_offer_id).filter(Boolean))) as string[];
+          let offerMap = new Map<string, any>();
+          if (offerIds.length) {
+            const { data: offerRows } = await (supabase as any)
+              .from('product_offers')
+              .select('id, min_quantity_unit, gift_quantity_unit')
+              .in('id', offerIds);
+            offerMap = new Map(((offerRows || []) as any[]).map((o) => [o.id, o]));
+          }
+          const promoRows = insertable.map((it: any) => {
+            const off = it.gift_offer_id ? offerMap.get(it.gift_offer_id) : null;
+            return {
+              worker_id: order.assigned_worker_id,
+              customer_id: order.customer_id,
+              product_id: it.product_id,
+              order_id: order.id,
+              vente_quantity: Number(it.quantity || 0) - Number(it.gift_quantity || 0),
+              sale_quantity_unit: off?.min_quantity_unit || 'box',
+              gratuite_quantity: Number(it.gift_quantity || 0),
+              gift_quantity_unit: off?.gift_quantity_unit || 'piece',
+              offer_id: it.gift_offer_id || null,
+              has_bonus: false,
+              bonus_amount: 0,
+              notes: `هدية عرض - استئناف طلبية ${order.id.slice(0, 8)}`,
+            };
+          });
+          mutations.push((supabase as any).from('promos').insert(promoRows));
+        }
+      }
+
       // record we just restored, skip recordPendingOfferConfirmation by clearing
       // offerId so recordSaleTracking treats them as immediate (sales_tracking
       // already excludes the gift portion via giftBoxes=0). For deferred items
