@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye, Repeat, Landmark, HandCoins } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2, Truck, ShoppingCart, PackagePlus, ClipboardCheck, Trash2, Lock, Calendar, Eye, Repeat, Landmark, HandCoins, Filter, Gift, Package, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -31,6 +34,24 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState<{ type: string; id: string; label: string } | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [tempSelectedIds, setTempSelectedIds] = useState<Set<string>>(new Set());
+  const [productSearch, setProductSearch] = useState('');
+
+  // قائمة المنتجات لنافذة الفلترة
+  const productsQ = useQuery({
+    queryKey: ['warehouse-achievements-products', branchId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, app_name, image_url')
+        .eq('is_active', true)
+        .order('name');
+      return data || [];
+    },
+    enabled: filterOpen,
+  });
 
   // 1) جلسات الشحن اليوم
   const loadingQ = useQuery({
@@ -213,29 +234,100 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
     );
   }
 
-  const loadings = loadingQ.data || [];
-  const orders = ordersQ.data || [];
+  const allLoadings = loadingQ.data || [];
+  const allOrders = ordersQ.data || [];
   const receipts = receiptsQ.data || [];
   const reviews = reviewsQ.data || [];
-  const exchanges = exchangesQ.data || [];
+  const allExchanges = exchangesQ.data || [];
   const newDebts = newDebtsQ.data || [];
   const debtCollections = debtCollectionsQ.data || [];
-  const totalCount = loadings.length + orders.length + receipts.length + reviews.length + exchanges.length + newDebts.length + debtCollections.length;
+
+  const hasFilter = selectedProductIds.size > 0;
+  const matchProduct = (pid?: string | null) => !!pid && selectedProductIds.has(pid);
+  const orders = hasFilter
+    ? allOrders.filter((o: any) => (o.order_items || []).some((it: any) => matchProduct(it.product_id)))
+    : allOrders;
+  const loadings = hasFilter
+    ? allLoadings.filter((s: any) => (s.loading_session_items || []).some((it: any) => matchProduct(it.products?.id ?? it.product_id)))
+    : allLoadings;
+  const exchanges = hasFilter
+    ? allExchanges.filter((ex: any) => matchProduct(ex.products?.id ?? ex.product_id))
+    : allExchanges;
+  // عند تفعيل فلتر المنتج: نُخفي الأقسام التي لا علاقة لها بالمنتجات
+  const visibleReceipts = hasFilter ? [] : receipts;
+  const visibleReviews = hasFilter ? [] : reviews;
+  const visibleNewDebts = hasFilter ? [] : newDebts;
+  const visibleDebtCollections = hasFilter ? [] : debtCollections;
+  const totalCount = loadings.length + orders.length + visibleReceipts.length + visibleReviews.length + exchanges.length + visibleNewDebts.length + visibleDebtCollections.length;
+
+  const products = (productsQ.data || []) as any[];
+  const filteredProducts = products.filter((p: any) => {
+    if (!productSearch.trim()) return true;
+    const q = productSearch.toLowerCase();
+    return (p.name || '').toLowerCase().includes(q) || (p.app_name || '').toLowerCase().includes(q);
+  });
+  const selectedProductsList = products.filter((p: any) => selectedProductIds.has(p.id));
+
+  const openFilter = () => {
+    setTempSelectedIds(new Set(selectedProductIds));
+    setProductSearch('');
+    setFilterOpen(true);
+  };
+  const applyFilter = () => {
+    setSelectedProductIds(new Set(tempSelectedIds));
+    setFilterOpen(false);
+  };
+  const clearFilter = () => {
+    setSelectedProductIds(new Set());
+    setTempSelectedIds(new Set());
+  };
+  const toggleTemp = (id: string) => {
+    setTempSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-3" dir="rtl">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h3 className="text-base font-bold flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
           إنجازات اليوم
           <Badge variant="secondary" className="text-[10px]">{totalCount}</Badge>
         </h3>
-        {accountingClosed && (
-          <Badge variant="destructive" className="text-[10px] gap-1">
-            <Lock className="w-3 h-3" /> جلسة المحاسبة مُغلقة
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant={hasFilter ? 'default' : 'outline'} className="h-8 gap-1" onClick={openFilter}>
+            <Filter className="w-3.5 h-3.5" />
+            <span className="text-xs">فلترة حسب المنتج</span>
+            {hasFilter && <Badge variant="secondary" className="ms-1 text-[10px]">{selectedProductIds.size}</Badge>}
+          </Button>
+          {hasFilter && (
+            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={clearFilter} title="مسح الفلتر">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {accountingClosed && (
+            <Badge variant="destructive" className="text-[10px] gap-1">
+              <Lock className="w-3 h-3" /> جلسة المحاسبة مُغلقة
+            </Badge>
+          )}
+        </div>
       </div>
+
+      {hasFilter && selectedProductsList.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selectedProductsList.map((p: any) => (
+            <Badge key={p.id} variant="secondary" className="text-[10px] gap-1">
+              {p.app_name || p.name}
+              <button onClick={() => { const n = new Set(selectedProductIds); n.delete(p.id); setSelectedProductIds(n); }}>
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {totalCount === 0 && (
         <Card><CardContent className="py-6 text-center text-sm text-muted-foreground">لا توجد إنجازات اليوم بعد</CardContent></Card>
@@ -291,11 +383,21 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
             const paid = Number(o.paid_amount ?? o.amount_paid ?? 0);
             const remaining = Math.max(0, total - paid);
             const itemsCount = (o.order_items || []).length;
+            const promoCount = (o.order_items || []).filter((it: any) =>
+              Number(it.gift_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0
+            ).length;
             return (
               <Card key={o.id} className={isPending ? 'border-amber-300' : 'border-primary/30'}>
                 <CardContent className="p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{o.customer?.name || 'بدون زبون'}</div>
+                    <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                      <span className="truncate">{o.customer?.name || 'بدون زبون'}</span>
+                      {promoCount > 0 && (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] gap-0.5 px-1.5 py-0 h-4">
+                          <Gift className="w-2.5 h-2.5" /> عرض ×{promoCount}
+                        </Badge>
+                      )}
+                    </div>
                     <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap mt-0.5">
                       <span className="font-semibold text-foreground">{total.toLocaleString()} د.ج</span>
                       {paid > 0 && <span className="text-emerald-600">مدفوع: {paid.toLocaleString()}</span>}
@@ -328,12 +430,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* الاستلامات */}
-      {receipts.length > 0 && (
+      {visibleReceipts.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <PackagePlus className="w-3 h-3" /> استلامات من المصنع ({receipts.length})
+            <PackagePlus className="w-3 h-3" /> استلامات من المصنع ({visibleReceipts.length})
           </p>
-          {receipts.map((r: any) => {
+          {visibleReceipts.map((r: any) => {
             const totalQty = (r.total_quantity || []).reduce((s: number, it: any) => s + Number(it.quantity || 0), 0);
             const isPending = r.status === 'pending' || r.status === 'pending_branch' || r.status === 'pending_assistant';
             return (
@@ -361,12 +463,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* المراجعة النهائية */}
-      {reviews.length > 0 && (
+      {visibleReviews.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <ClipboardCheck className="w-3 h-3" /> المراجعة النهائية ({reviews.length})
+            <ClipboardCheck className="w-3 h-3" /> المراجعة النهائية ({visibleReviews.length})
           </p>
-          {reviews.map((rv: any) => {
+          {visibleReviews.map((rv: any) => {
             const isCompleted = rv.status === 'completed';
             return (
               <Card key={rv.id} className={isCompleted ? 'border-primary/30' : 'border-amber-300'}>
@@ -414,12 +516,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* ديون جديدة */}
-      {newDebts.length > 0 && (
+      {visibleNewDebts.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <Landmark className="w-3 h-3" /> ديون جديدة ({newDebts.length})
+            <Landmark className="w-3 h-3" /> ديون جديدة ({visibleNewDebts.length})
           </p>
-          {newDebts.map((d: any) => (
+          {visibleNewDebts.map((d: any) => (
             <Card key={d.id} className="border-destructive/30">
               <CardContent className="p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
@@ -438,12 +540,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* تحصيل ديون */}
-      {debtCollections.length > 0 && (
+      {visibleDebtCollections.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <HandCoins className="w-3 h-3" /> تحصيل ديون ({debtCollections.length})
+            <HandCoins className="w-3 h-3" /> تحصيل ديون ({visibleDebtCollections.length})
           </p>
-          {debtCollections.map((p: any) => (
+          {visibleDebtCollections.map((p: any) => (
             <Card key={p.id} className="border-emerald-300">
               <CardContent className="p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
@@ -480,7 +582,86 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
         order={selectedOrder}
         hideModifyAction
       />
+
+      {/* نافذة فلترة المنتجات */}
+      <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              فلترة حسب المنتجات
+              {tempSelectedIds.size > 0 && (
+                <Badge variant="secondary" className="text-[10px]">{tempSelectedIds.size} محدد</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              placeholder="ابحث عن منتج..."
+              className="pr-9"
+            />
+          </div>
+
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            {productsQ.isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-12">لا توجد منتجات</div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 py-2">
+                {filteredProducts.map((p: any) => {
+                  const selected = tempSelectedIds.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleTemp(p.id)}
+                      className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
+                        selected ? 'border-primary ring-2 ring-primary/30 bg-primary/5' : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="aspect-square w-full bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.app_name || p.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <Package className="w-8 h-8 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="text-[10px] font-medium text-center line-clamp-2 leading-tight">
+                        {p.app_name || p.name}
+                      </div>
+                      {selected && (
+                        <Badge className="absolute top-1 right-1 bg-primary text-primary-foreground text-[9px] h-4 px-1">✓</Badge>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            {tempSelectedIds.size > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setTempSelectedIds(new Set())}>
+                مسح التحديد
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => setFilterOpen(false)}>إلغاء</Button>
+            <Button size="sm" onClick={applyFilter} className="gap-1">
+              <Filter className="w-3.5 h-3.5" />
+              فلترة ({tempSelectedIds.size})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
