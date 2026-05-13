@@ -1334,6 +1334,79 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         }
       }
 
+      // Sync promos table (used by /my-promos and admin promo views) so gift
+      // edits propagate everywhere. Strategy: delete all promo rows linked to
+      // this order, then re-insert from the fresh order_items (skipping items
+      // tied to deferred-confirmation offers).
+      if (changes.length > 0) {
+        try {
+          await (supabase as any).from('promos').delete().eq('order_id', order.id);
+
+          if (!allItemsRemoved) {
+            const { data: freshItemsForPromos } = await supabase
+              .from('order_items')
+              .select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box')
+              .eq('order_id', order.id);
+
+            const giftItems = (freshItemsForPromos || []).filter(
+              (i: any) => Number(i.gift_quantity || 0) > 0 || Number(i.gift_pieces || 0) > 0
+            );
+
+            const offerIds = Array.from(
+              new Set(giftItems.map((i: any) => i.gift_offer_id).filter(Boolean))
+            ) as string[];
+            const offerMap = new Map<string, any>();
+            if (offerIds.length > 0) {
+              const { data: offerRows } = await supabase
+                .from('product_offers')
+                .select('id, min_quantity_unit, gift_quantity_unit, is_deferred_confirmation')
+                .in('id', offerIds);
+              for (const o of (offerRows || []) as any[]) offerMap.set(o.id, o);
+            }
+
+            const resolvedWorkerId = assignedWorkerId && assignedWorkerId !== 'none'
+              ? assignedWorkerId
+              : (order.assigned_worker_id || workerId || null);
+
+            const promoRows: any[] = [];
+            for (const it of giftItems as any[]) {
+              const offer = it.gift_offer_id ? offerMap.get(it.gift_offer_id) : null;
+              if (offer?.is_deferred_confirmation) continue;
+              const ppb = Math.max(1, Number(it.pieces_per_box || 1));
+              const giftBoxes = Number(it.gift_quantity || 0);
+              const giftPieces = Number(it.gift_pieces || 0);
+              const giftUnit = offer?.gift_quantity_unit || 'piece';
+              const gratuite = giftUnit === 'box'
+                ? giftBoxes + giftPieces / ppb
+                : giftBoxes * ppb + giftPieces;
+              const paidQty = Math.max(0, Number(it.quantity || 0) - giftBoxes);
+              promoRows.push({
+                worker_id: resolvedWorkerId,
+                customer_id: order.customer_id,
+                product_id: it.product_id,
+                order_id: order.id,
+                vente_quantity: paidQty,
+                sale_quantity_unit: offer?.min_quantity_unit || 'box',
+                gratuite_quantity: gratuite,
+                gift_quantity_unit: giftUnit,
+                offer_id: it.gift_offer_id || null,
+                has_bonus: false,
+                bonus_amount: 0,
+                notes: `هدية عرض - طلبية ${order.id.slice(0, 8)} (تعديل)`,
+              });
+            }
+
+            if (promoRows.length > 0) {
+              await (supabase as any).from('promos').insert(promoRows);
+            }
+          }
+          queryClient.invalidateQueries({ queryKey: ['promos'] });
+          queryClient.invalidateQueries({ queryKey: ['my-promos'] });
+        } catch (e) {
+          console.warn('[ModifyOrderDialog] promos sync failed', e);
+        }
+      }
+
       await logActivity.mutateAsync({
         actionType: 'update',
         entityType: 'order',

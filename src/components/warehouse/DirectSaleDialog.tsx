@@ -828,6 +828,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           worker_id: workerId!,
           customer_id: selectedCustomerId,
           product_id: item.productId,
+          order_id: order.id,
           vente_quantity: getStoredPaidQuantity({
             quantity: item.quantity,
             gift_quantity: item.giftQuantity,
@@ -843,7 +844,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           has_bonus: false,
           bonus_amount: 0,
           notes: `هدية عرض - بيع مباشر ${order.id.slice(0, 8)}`,
-        });
+        } as any);
       }
 
       // Create debt if partial payment

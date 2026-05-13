@@ -4791,6 +4791,7 @@ export type Database = {
           offer_detail: string | null
           offer_id: string | null
           offer_tier_id: string | null
+          order_id: string | null
           product_id: string
           promo_date: string
           sale_quantity_unit: string | null
@@ -4809,6 +4810,7 @@ export type Database = {
           offer_detail?: string | null
           offer_id?: string | null
           offer_tier_id?: string | null
+          order_id?: string | null
           product_id: string
           promo_date?: string
           sale_quantity_unit?: string | null
@@ -4827,6 +4829,7 @@ export type Database = {
           offer_detail?: string | null
           offer_id?: string | null
           offer_tier_id?: string | null
+          order_id?: string | null
           product_id?: string
           promo_date?: string
           sale_quantity_unit?: string | null

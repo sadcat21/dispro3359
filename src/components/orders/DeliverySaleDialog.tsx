@@ -918,6 +918,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           worker_id: workerId!,
           customer_id: order.customer_id,
           product_id: item.productId,
+          order_id: order.id,
           vente_quantity: item.quantity - item.giftQuantity,
           sale_quantity_unit: offerUnit,
           gratuite_quantity: item.giftQuantity,
@@ -926,7 +927,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           has_bonus: false,
           bonus_amount: 0,
           notes: `هدية عرض - طلبية ${order.id.slice(0, 8)}`,
-        });
+        } as any);
       }
 
       // Create debt if partial payment
