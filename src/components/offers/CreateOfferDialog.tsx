@@ -728,41 +728,6 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
                   </p>
                 </div>
 
-                {/* Scope Stages */}
-                <div className="space-y-2 rounded-lg border p-3">
-                  <Label className="text-sm font-medium">مرحلة النطاق — أين يظهر العرض؟</Label>
-                  <p className="text-xs text-muted-foreground">حدد المراحل التي يمكن للعرض الظهور والتفاعل معها</p>
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    {[
-                      { key: 'worker_loading', label: 'تحميل العامل' },
-                      { key: 'order_creation', label: 'إنشاء الطلب' },
-                      { key: 'direct_sale', label: 'البيع المباشر' },
-                      { key: 'warehouse_sale', label: 'بيع من المستودع' },
-                    ].map((stage) => {
-                      const checked = formData.scope_stages.includes(stage.key);
-                      return (
-                        <label
-                          key={stage.key}
-                          className={`flex items-center gap-2 rounded-md border p-2 cursor-pointer text-sm ${checked ? 'bg-primary/10 border-primary' : ''}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e) => {
-                              setFormData((prev) => {
-                                const next = e.target.checked
-                                  ? [...prev.scope_stages, stage.key]
-                                  : prev.scope_stages.filter((s) => s !== stage.key);
-                                return { ...prev, scope_stages: next };
-                              });
-                            }}
-                          />
-                          {stage.label}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             )}
 
