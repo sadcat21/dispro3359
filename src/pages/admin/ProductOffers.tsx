@@ -213,31 +213,42 @@ const ProductOffers: React.FC = () => {
                       return acc;
                     }, {})
                   ).map(({ product, offers: productOffers }) => (
-                    <Card key={(product as any)?.id || productOffers[0].id} className="flex flex-col h-full">
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start gap-3">
+                    <Card
+                      key={(product as any)?.id || productOffers[0].id}
+                      className="group flex flex-col h-full overflow-hidden border-border/60 bg-gradient-to-b from-card to-card/50 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                    >
+                      <CardHeader className="pb-3 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 border-b border-border/50">
+                        <div className="flex items-center gap-3">
                           {(product as any)?.image_url ? (
-                            <img
-                              src={(product as any).image_url}
-                              alt={(product as any)?.name || ''}
-                              className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border shrink-0"
-                            />
+                            <div className="relative shrink-0">
+                              <img
+                                src={(product as any).image_url}
+                                alt={(product as any)?.name || ''}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover ring-2 ring-background shadow-md"
+                              />
+                              <span className="absolute -bottom-1 -end-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center ring-2 ring-background">
+                                {productOffers.length}
+                              </span>
+                            </div>
                           ) : (
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                              <Package className="w-6 h-6 text-muted-foreground" />
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-muted flex items-center justify-center shrink-0 ring-2 ring-background shadow-md">
+                              <Package className="w-7 h-7 text-muted-foreground" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-sm sm:text-base truncate">
+                            <CardTitle className="text-sm sm:text-base font-bold leading-tight line-clamp-2">
                               {getProductDisplayName(product as any) || (product as any)?.name}
                             </CardTitle>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {productOffers.length} {productOffers.length === 1 ? 'مجموعة عرض' : 'مجموعات عروض'}
-                            </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <Gift className="w-3 h-3 text-primary" />
+                              <p className="text-[11px] text-muted-foreground">
+                                {productOffers.length} {productOffers.length === 1 ? 'عرض نشط' : 'عروض نشطة'}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className="space-y-2.5 pt-3 flex-1">
                         {productOffers.map((offer, gIndex) => {
                           const tiers = (offer.tiers && offer.tiers.length > 0 ? offer.tiers : [{
                             id: null,
