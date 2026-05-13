@@ -85,6 +85,10 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     return Array.from(map.values()).sort((a, b) => b.rows.length - a.rows.length);
   }, [visibleItems]);
 
+  useEffect(() => {
+    onCustomerCountChange?.(grouped.length);
+  }, [grouped.length, onCustomerCountChange]);
+
   const customerRows = openCustomer
     ? visibleItems.filter((r) => (r.customer_id || '__no_customer__') === openCustomer.id)
     : [];
