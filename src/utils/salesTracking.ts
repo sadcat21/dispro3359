@@ -70,13 +70,17 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
     for (const it of params.items) {
       const ppb = Math.max(1, Number(it.piecesPerBox || 20));
       const qty = Math.round(Number(it.quantity || 0) * 100) / 100;
-      const soldBoxes = Math.floor(qty);
-      const soldPieces = Math.round((qty - soldBoxes) * 100);
       const giftBoxes = Number(it.giftBoxes || 0);
       const giftPieces = Number(it.giftPieces || 0);
 
       const isDeferred = !!(it.offerId && deferredOfferIds.has(it.offerId));
       const hasGift = giftBoxes > 0 || giftPieces > 0;
+      // Stored line quantity includes full-box gifts. For deferred offers,
+      // remove those gifts from the immediate sale ledger so stock/achievement
+      // summaries do not count them before manager confirmation.
+      const trackedSoldQty = isDeferred ? Math.max(0, qty - giftBoxes) : qty;
+      const soldBoxes = Math.floor(trackedSoldQty);
+      const soldPieces = Math.round((trackedSoldQty - soldBoxes) * 100);
 
       // Divert gift to pending confirmations
       if (isDeferred && hasGift) {
