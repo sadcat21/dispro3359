@@ -263,98 +263,103 @@ const ProductOffers: React.FC = () => {
                           }]) as any[];
                           return (
                             <div key={offer.id} className={cn(
-                              "rounded-lg border p-2.5 space-y-2",
-                              !offer.is_active && "opacity-60 bg-muted/30"
+                              "rounded-xl border border-border/60 bg-card overflow-hidden transition-all",
+                              offer.is_active ? "shadow-sm hover:shadow-md hover:border-primary/40" : "opacity-60 bg-muted/20"
                             )}>
                               {/* Group header */}
-                              <div className="flex items-start justify-between gap-2 flex-wrap">
-                                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                  <Badge className="bg-primary/10 text-primary border-primary/30" variant="outline">
-                                    مجموعة {gIndex + 1}
+                              <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted/40 border-b border-border/50">
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  <Badge className="bg-primary text-primary-foreground border-0 text-[10px] h-5 px-2 font-bold shrink-0">
+                                    #{gIndex + 1}
                                   </Badge>
-                                  <span className="text-xs font-medium truncate">{offer.name}</span>
+                                  <span className="text-xs font-semibold truncate">{offer.name}</span>
                                   {offer.is_stackable && (
-                                    <Badge variant="outline" className="text-[10px] gap-1">
-                                      <Layers className="w-3 h-3" />
-                                      {t('offers.stackable')}
+                                    <Badge variant="outline" className="text-[10px] h-5 gap-0.5 px-1.5 shrink-0">
+                                      <Layers className="w-2.5 h-2.5" />
                                     </Badge>
                                   )}
                                 </div>
                                 <Switch
                                   checked={offer.is_active}
                                   onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
+                                  className="scale-75"
                                 />
                               </div>
 
-                              {/* Dates */}
-                              {(offer.start_date || offer.end_date) && (
-                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                  <Calendar className="w-3 h-3" />
-                                  {offer.start_date && format(new Date(offer.start_date), 'dd MMM yyyy', { locale: dateLocale })}
-                                  {offer.start_date && offer.end_date && ' - '}
-                                  {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
-                                </div>
-                              )}
-
-                              {/* Tiers (slides) */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                {tiers.map((tier: any, index: number) => (
-                                  <div key={index} className="flex flex-wrap items-center gap-1 p-1.5 bg-muted/50 rounded text-xs">
-                                    <Badge variant="outline" className="text-[10px] px-1.5">
-                                      شريحة {index + 1}
-                                    </Badge>
-                                    <Badge variant="secondary" className="text-[10px] px-1.5">
-                                      اشتري {tier.min_quantity}{tier.max_quantity ? `-${tier.max_quantity}` : '+'}
-                                    </Badge>
-                                    <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
-                                      → {tier.gift_type === 'same_product'
-                                        ? `${tier.gift_quantity} ${t('offers.free_units')}`
-                                        : tier.gift_type === 'different_product' && tier.gift_product
-                                        ? `${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
-                                        : `${tier.discount_percentage}%`}
-                                    </Badge>
-                                    {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
-                                      <Badge variant="outline" className="text-[10px] px-1.5 gap-1">
-                                        <Users className="w-2.5 h-2.5" />
-                                        {tier.worker_reward_type === 'fixed'
-                                          ? `${tier.worker_reward_amount}${t('currency.dzd')}`
-                                          : `${tier.worker_reward_amount}%`}
-                                      </Badge>
-                                    )}
+                              <div className="p-2.5 space-y-2">
+                                {/* Dates */}
+                                {(offer.start_date || offer.end_date) && (
+                                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/30 rounded-md px-2 py-1">
+                                    <Calendar className="w-3 h-3 text-primary" />
+                                    <span className="font-medium">
+                                      {offer.start_date && format(new Date(offer.start_date), 'dd MMM', { locale: dateLocale })}
+                                      {offer.start_date && offer.end_date && ' ← '}
+                                      {offer.end_date && format(new Date(offer.end_date), 'dd MMM yyyy', { locale: dateLocale })}
+                                    </span>
                                   </div>
-                                ))}
-                              </div>
+                                )}
 
-                              {/* Actions */}
-                              <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t">
-                                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleEdit(offer)}>
-                                  <Edit2 className="w-3 h-3 me-1" />
-                                  {t('common.edit')}
-                                </Button>
-                                {canManage ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 text-xs"
-                                    onClick={() => setExtendTarget({
-                                      offerId: offer.id,
-                                      offerName: offer.name,
-                                      tierId: null,
-                                      tierLabel: null,
-                                      mode: isOfferRunning(offer) ? 'extend' : 'resume',
-                                    })}
-                                  >
-                                    {isOfferRunning(offer) ? <><Clock className="w-3 h-3 me-1" />تمديد</> : <><PlayCircle className="w-3 h-3 me-1" />استئناف</>}
+                                {/* Tiers (slides) */}
+                                <div className="space-y-1.5">
+                                  {tiers.map((tier: any, index: number) => (
+                                    <div key={index} className="flex flex-wrap items-center gap-1.5 p-2 bg-gradient-to-l from-primary/5 to-transparent border border-primary/10 rounded-lg text-xs">
+                                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-background shrink-0">
+                                        شريحة {index + 1}
+                                      </Badge>
+                                      <Badge variant="secondary" className="text-[10px] h-5 px-2 font-semibold">
+                                        اشتري {tier.min_quantity}{tier.max_quantity ? `-${tier.max_quantity}` : '+'}
+                                      </Badge>
+                                      <span className="text-muted-foreground">←</span>
+                                      <Badge className="bg-primary text-primary-foreground text-[10px] h-5 px-2 font-bold shadow-sm">
+                                        {tier.gift_type === 'same_product'
+                                          ? `+${tier.gift_quantity} ${t('offers.free_units')}`
+                                          : tier.gift_type === 'different_product' && tier.gift_product
+                                          ? `+${tier.gift_quantity} ${getProductDisplayName(tier.gift_product)}`
+                                          : `${tier.discount_percentage}% خصم`}
+                                      </Badge>
+                                      {tier.worker_reward_type !== 'none' && tier.worker_reward_amount > 0 && (
+                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 ms-auto bg-accent/30">
+                                          <Users className="w-2.5 h-2.5" />
+                                          {tier.worker_reward_type === 'fixed'
+                                            ? `${tier.worker_reward_amount}${t('currency.dzd')}`
+                                            : `${tier.worker_reward_amount}%`}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-dashed">
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs hover:bg-primary/10 hover:text-primary" onClick={() => handleEdit(offer)}>
+                                    <Edit2 className="w-3.5 h-3.5 me-1" />
+                                    {t('common.edit')}
                                   </Button>
-                                ) : <span />}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 text-xs text-destructive hover:text-destructive"
-                                  onClick={() => setDeleteConfirm(offer.id)}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
+                                  {canManage ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 text-xs hover:bg-accent/30"
+                                      onClick={() => setExtendTarget({
+                                        offerId: offer.id,
+                                        offerName: offer.name,
+                                        tierId: null,
+                                        tierLabel: null,
+                                        mode: isOfferRunning(offer) ? 'extend' : 'resume',
+                                      })}
+                                    >
+                                      {isOfferRunning(offer) ? <><Clock className="w-3.5 h-3.5 me-1" />تمديد</> : <><PlayCircle className="w-3.5 h-3.5 me-1" />استئناف</>}
+                                    </Button>
+                                  ) : <span />}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={() => setDeleteConfirm(offer.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           );
