@@ -206,21 +206,6 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     [availableTiers, selectedTierId],
   );
 
-  // Filter customers for search
-  const filteredCustomers = useMemo(() => {
-    const usedIds = new Set(customerEntries.map((e) => e.customerId));
-    let filtered = customers.filter((c) => !usedIds.has(c.id));
-    if (customerSearch.trim()) {
-      const q = customerSearch.trim().toLowerCase();
-      filtered = filtered.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.phone?.toLowerCase().includes(q) ||
-          c.store_name?.toLowerCase().includes(q),
-      );
-    }
-    return filtered.slice(0, 50);
-  }, [customers, customerEntries, customerSearch]);
 
   // Fetch data
   useEffect(() => {
