@@ -420,12 +420,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* الاستلامات */}
-      {receipts.length > 0 && (
+      {visibleReceipts.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <PackagePlus className="w-3 h-3" /> استلامات من المصنع ({receipts.length})
+            <PackagePlus className="w-3 h-3" /> استلامات من المصنع ({visibleReceipts.length})
           </p>
-          {receipts.map((r: any) => {
+          {visibleReceipts.map((r: any) => {
             const totalQty = (r.total_quantity || []).reduce((s: number, it: any) => s + Number(it.quantity || 0), 0);
             const isPending = r.status === 'pending' || r.status === 'pending_branch' || r.status === 'pending_assistant';
             return (
@@ -453,12 +453,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* المراجعة النهائية */}
-      {reviews.length > 0 && (
+      {visibleReviews.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <ClipboardCheck className="w-3 h-3" /> المراجعة النهائية ({reviews.length})
+            <ClipboardCheck className="w-3 h-3" /> المراجعة النهائية ({visibleReviews.length})
           </p>
-          {reviews.map((rv: any) => {
+          {visibleReviews.map((rv: any) => {
             const isCompleted = rv.status === 'completed';
             return (
               <Card key={rv.id} className={isCompleted ? 'border-primary/30' : 'border-amber-300'}>
@@ -506,12 +506,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* ديون جديدة */}
-      {newDebts.length > 0 && (
+      {visibleNewDebts.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <Landmark className="w-3 h-3" /> ديون جديدة ({newDebts.length})
+            <Landmark className="w-3 h-3" /> ديون جديدة ({visibleNewDebts.length})
           </p>
-          {newDebts.map((d: any) => (
+          {visibleNewDebts.map((d: any) => (
             <Card key={d.id} className="border-destructive/30">
               <CardContent className="p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
@@ -530,12 +530,12 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
       )}
 
       {/* تحصيل ديون */}
-      {debtCollections.length > 0 && (
+      {visibleDebtCollections.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-            <HandCoins className="w-3 h-3" /> تحصيل ديون ({debtCollections.length})
+            <HandCoins className="w-3 h-3" /> تحصيل ديون ({visibleDebtCollections.length})
           </p>
-          {debtCollections.map((p: any) => (
+          {visibleDebtCollections.map((p: any) => (
             <Card key={p.id} className="border-emerald-300">
               <CardContent className="p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
