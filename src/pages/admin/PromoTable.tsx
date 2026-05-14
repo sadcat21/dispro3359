@@ -37,13 +37,16 @@ const PromoTable: React.FC = () => {
     }
   };
 
-  // Format pieces as box.pieces (b.p) — e.g. 25 pieces with ppb=20 → "1.05"
-  const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
+  // Format quantity respecting the unit it was recorded in (box vs piece)
+  const formatBP = (qty: number, piecesPerBox: number | null | undefined, unit?: string | null): string => {
+    const q = Number(qty || 0);
     const ppb = Number(piecesPerBox || 0);
-    const p = Number(pieces || 0);
-    if (!ppb || ppb <= 1) return `${p} ق`;
-    const boxes = Math.floor(p / ppb);
-    const rem = p % ppb;
+    // If recorded as boxes, show as boxes directly
+    if (unit === 'box') return `${q} ص`;
+    // Recorded as pieces — convert to box.pieces if possible
+    if (!ppb || ppb <= 1) return `${q} ق`;
+    const boxes = Math.floor(q / ppb);
+    const rem = q % ppb;
     if (boxes === 0) return `${rem} ق`;
     if (rem === 0) return `${boxes} ص`;
     return `${boxes} ص ${rem} ق`;
@@ -258,8 +261,8 @@ const PromoTable: React.FC = () => {
       promo.customer?.wilaya || '',
       promo.customer?.phone || '',
       promo.product?.name || '',
-      formatBP(promo.vente_quantity, promo.product?.pieces_per_box),
-      formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box),
+      formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit),
+      formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit),
       promo.worker?.full_name || '',
       format(new Date(promo.promo_date), 'dd/MM/yyyy')
     ]);
@@ -513,10 +516,10 @@ const PromoTable: React.FC = () => {
               </div>
               <div className="flex gap-1.5 shrink-0">
                 <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold" title={t('promos.sales')}>
-                  {t('promos.sales')}: {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
+                  {t('promos.sales')}: {formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit)}
                 </span>
                 <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded text-xs font-bold" title={t('promos.free')}>
-                  {t('promos.free')}: {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
+                  {t('promos.free')}: {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit)}
                 </span>
               </div>
             </div>
@@ -560,12 +563,12 @@ const PromoTable: React.FC = () => {
                     <TableCell className="font-medium">{promo.product?.name || '-'}</TableCell>
                     <TableCell className="text-center">
                       <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                        {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
+                        {formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit)}
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
                       <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold" title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                        {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
+                        {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit)}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{promo.worker?.full_name || '-'}</TableCell>
