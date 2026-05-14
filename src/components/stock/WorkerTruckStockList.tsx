@@ -525,7 +525,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                             </div>
 
                             {/* Highlighted grid: store / delivered / remaining */}
-                            <div className="mt-2 grid grid-cols-3 gap-1.5">
+                            <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-1.5">
                               <div className="rounded-lg bg-white/70 dark:bg-background/40 border px-2 py-1.5 text-center">
                                 <div className="text-[9px] text-muted-foreground">المحل</div>
                                 <div className="text-[11px] font-bold truncate">{entry.customerStoreName || entry.customerName || '—'}</div>
