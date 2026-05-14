@@ -25,13 +25,13 @@ const formatGift = (boxes: number, pieces: number, ppb: number): string => {
   return `${b}.${piecesPart} ص.ق`;
 };
 
-const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateTo, onCustomerCountChange }) => {
+const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _dateFrom, dateTo: _dateTo, onCustomerCountChange }) => {
+  // Pending offers are intentionally NOT filtered by date — they remain visible
+  // until confirmed/rejected, regardless of when the sale happened.
   const { items, isLoading } = usePendingOfferConfirmations({
     workerId,
     branchId,
     status: 'pending',
-    dateFrom,
-    dateTo,
   });
 
   const [openCustomer, setOpenCustomer] = useState<{ id: string; name: string } | null>(null);
