@@ -224,10 +224,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
       const paidBP = getDeliveredPaidQuantity(it);
-      const paid = dbBPToBoxes(Number(paidBP || 0), ppb);
+      const gift = confirmedGiftFractional(it, ppb);
+      const paid = Math.max(0, dbBPToBoxes(Number(paidBP || 0), ppb) - gift);
       s.sold += paid;
-      if (paid > 0 && it.order_id) s.saleCount.add(String(it.order_id));
-      s.giftQty += confirmedGiftFractional(it, ppb);
+      if ((paid > 0 || gift > 0) && it.order_id) s.saleCount.add(String(it.order_id));
+      s.giftQty += gift;
     }
     return out;
   }, [loadedData, unloadedData, soldData, ppbMap]);
@@ -258,7 +259,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
       const giftQty = confirmedGiftFractional(it, ppb);
-      const saleQty = dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb);
+      const saleQty = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb) - giftQty);
       const when = it.order_updated_at || it.order_created_at || '';
       const totalDelta = saleQty + giftQty;
       if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta });
