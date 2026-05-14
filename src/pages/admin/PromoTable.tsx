@@ -41,10 +41,12 @@ const PromoTable: React.FC = () => {
   const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
     const ppb = Number(piecesPerBox || 0);
     const p = Number(pieces || 0);
-    if (!ppb || ppb <= 1) return String(p);
+    if (!ppb || ppb <= 1) return `${p} ق`;
     const boxes = Math.floor(p / ppb);
     const rem = p % ppb;
-    return `${boxes}.${String(rem).padStart(2, '0')}`;
+    if (boxes === 0) return `${rem} ق`;
+    if (rem === 0) return `${boxes} ص`;
+    return `${boxes} ص ${rem} ق`;
   };
   const [promos, setPromos] = useState<PromoWithDetails[]>([]);
   const [workers, setWorkers] = useState<Worker[]>([]);
