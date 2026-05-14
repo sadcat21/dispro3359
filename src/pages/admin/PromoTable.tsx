@@ -485,8 +485,48 @@ const PromoTable: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="no-print">
+      {/* Mobile cards view */}
+      <div className="md:hidden space-y-2 no-print">
+        {paginatedPromos.map((promo, index) => (
+          <Card key={promo.id} className="p-3">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">#{(currentPage - 1) * pageSize + index + 1}</span>
+                  <span className="font-bold truncate">{promo.customer?.name || '-'}</span>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">{promo.customer?.wilaya || ''} {promo.customer?.address ? `• ${promo.customer.address}` : ''}</p>
+                {promo.customer?.phone && (
+                  <p className="text-xs text-muted-foreground" dir="ltr">{promo.customer.phone}</p>
+                )}
+              </div>
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                {format(new Date(promo.promo_date), 'dd/MM/yyyy', { locale: getDateLocale(language) })}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2 pt-2 border-t">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{promo.product?.name || '-'}</p>
+                <p className="text-xs text-muted-foreground truncate">{promo.worker?.full_name || '-'}</p>
+              </div>
+              <div className="flex gap-1.5 shrink-0">
+                <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold" title={t('promos.sales')}>
+                  {t('promos.sales')}: {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
+                </span>
+                <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded text-xs font-bold" title={t('promos.free')}>
+                  {t('promos.free')}: {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
+                </span>
+              </div>
+            </div>
+          </Card>
+        ))}
+        {filteredPromos.length === 0 && (
+          <Card className="p-8 text-center text-muted-foreground">{t('common.no_data')}</Card>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <Card className="no-print hidden md:block">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">{t('promos.table')}</CardTitle>
         </CardHeader>
