@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +48,12 @@ const BranchInvoiceApprovals: React.FC = () => {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
+
+  useEffect(() => {
+    const r1 = requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0 }));
+    const r2 = setTimeout(() => window.scrollTo({ top: 0, left: 0 }), 100);
+    return () => { cancelAnimationFrame(r1); clearTimeout(r2); };
+  }, []);
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
