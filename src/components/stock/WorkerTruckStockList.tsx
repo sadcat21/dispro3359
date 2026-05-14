@@ -339,11 +339,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           {sorted.map((item: any) => {
             const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
             const isZero = item.quantity === 0;
+            const s = stats[item.product_id] || {};
+            const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
             return (
               <button
                 key={item.id}
                 type="button"
-                className={`p-1 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
+                className={`p-1 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : hasSales ? 'bg-card border-green-500 border-2' : 'bg-card border-border'}`}
                 onClick={() => setSelected(item)}
               >
                 <p className="text-[10px] font-medium truncate mb-0.5">{item.product?.name}</p>
@@ -366,11 +368,12 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         {sorted.map((item: any) => {
           const s = stats[item.product_id] || {};
           const isZero = item.quantity === 0;
+          const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
           return (
             <button
               key={item.id}
               type="button"
-              className={`w-full min-w-0 p-3 rounded-xl border text-start transition-all active:scale-[0.99] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
+              className={`w-full min-w-0 p-3 rounded-xl border text-start transition-all active:scale-[0.99] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : hasSales ? 'bg-card border-green-500 border-2' : 'bg-card border-border'}`}
               onClick={() => setSelected(item)}
             >
               <div className="flex items-start gap-3 mb-2">

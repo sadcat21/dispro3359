@@ -10,6 +10,10 @@ import { toast } from 'sonner';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
@@ -19,9 +23,11 @@ const MyStock: React.FC = () => {
   const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
 
-  const handleRecalibrate = async () => {
+  const [confirmRecalibrate, setConfirmRecalibrate] = useState(false);
+
+  const runRecalibrate = async () => {
     if (!workerId) return;
-    if (!confirm('سيتم إعادة احتساب الرصيد لجميع المنتجات وفق: آخر شحنة − المبيعات والهدايا غير الملغاة. متابعة؟')) return;
+    setConfirmRecalibrate(false);
     setRecalibrating(true);
     try {
       const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
@@ -69,7 +75,7 @@ const MyStock: React.FC = () => {
           {t('stock.my_stock')}
         </h2>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleRecalibrate} disabled={recalibrating}>
+          <Button size="sm" variant="outline" onClick={() => setConfirmRecalibrate(true)} disabled={recalibrating}>
             {recalibrating ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
             تصحيح الرصيد
           </Button>
@@ -105,6 +111,25 @@ const MyStock: React.FC = () => {
           product: (s as any).product,
         }))}
       />
+
+      <AlertDialog open={confirmRecalibrate} onOpenChange={setConfirmRecalibrate}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تصحيح رصيد جميع المنتجات</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم إعادة احتساب الرصيد لجميع منتجات الشاحنة وفق المعادلة:
+              <br />
+              <strong>آخر شحنة − (المبيعات والهدايا غير الملغاة)</strong>
+              <br />
+              هل تريد المتابعة؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={runRecalibrate}>متابعة</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
