@@ -525,25 +525,17 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               </div>
                             </div>
 
-                            {/* Info grid: time + customer + paid amount */}
-                            <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
-                              <div className="text-muted-foreground">الوقت</div>
-                              <div className="text-end font-medium">{timeLabel || '—'}</div>
+                            {/* Details list */}
+                            <ul className="mt-2 text-[11px] text-end space-y-0.5 list-disc list-inside marker:text-muted-foreground">
+                              {timeLabel && <li className="font-medium">{timeLabel}</li>}
                               {(entry.customerStoreName || entry.customerName) && (
-                                <>
-                                  <div className="text-muted-foreground">الزبون</div>
-                                  <div className="text-end font-medium truncate">{entry.customerStoreName || entry.customerName}</div>
-                                </>
+                                <li className="font-medium truncate">{entry.customerStoreName || entry.customerName}</li>
                               )}
                               {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
-                                <>
-                                  <div className="text-muted-foreground">المبلغ</div>
-                                  <div className="text-end font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</div>
-                                </>
+                                <li className="font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</li>
                               )}
-                              <div className="text-muted-foreground">الباقي</div>
-                              <div className="text-end font-semibold">{fmtBP(entry.after, history.ppb)}</div>
-                            </div>
+                              <li className="font-semibold">{fmtBP(entry.after, history.ppb)}</li>
+                            </ul>
                             {entry.note && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
                             )}
