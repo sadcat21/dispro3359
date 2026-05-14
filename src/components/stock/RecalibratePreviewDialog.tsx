@@ -69,12 +69,12 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-1rem)] max-w-[420px] sm:max-w-[420px] h-[90vh] max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden rounded-2xl" dir="rtl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+        <DialogHeader className="p-4 pb-2 border-b shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <AlertTriangle className="w-5 h-5 text-amber-500" />
             مراجعة تصحيح الرصيد
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             مراجعة المنتجات التي يوجد بها فرق بين الرصيد الحالي والرصيد المحسوب من الحركات المسجَّلة.
           </DialogDescription>
         </DialogHeader>
