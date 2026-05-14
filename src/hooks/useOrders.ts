@@ -457,6 +457,46 @@ export const useCancelOrder = () => {
       const results = await Promise.all(mutations);
       const orderResult = results[results.length - 1];
       if (orderResult.error) throw orderResult.error;
+
+      // ── Post-verification: ensure worker_stock for gift products was fully
+      // restored (pre + expected_added). Logs a clear error and surfaces a
+      // toast warning if any product is short, so issues don't pass silently.
+      if (giftItems.length && order.assigned_worker_id) {
+        const { data: postStock } = await supabase
+          .from('worker_stock')
+          .select('product_id, quantity')
+          .eq('worker_id', order.assigned_worker_id)
+          .in('product_id', Array.from(giftProductPpb.keys()));
+        const postMap = new Map<string, number>();
+        for (const row of (postStock || []) as any[]) {
+          const ppb = giftProductPpb.get(row.product_id) || 1;
+          postMap.set(row.product_id, bpToPieces(row.quantity, ppb));
+        }
+        const discrepancies: Array<{ productId: string; missing: number }> = [];
+        for (const [pid, expectedAdd] of giftExpectedAdd.entries()) {
+          const pre = preStockPieces.get(pid) || 0;
+          const post = postMap.get(pid) || 0;
+          // Allow over-restoration (post > expected) but flag any shortfall.
+          if (post < pre + expectedAdd) {
+            discrepancies.push({ productId: pid, missing: pre + expectedAdd - post });
+          }
+        }
+        if (discrepancies.length) {
+          // eslint-disable-next-line no-console
+          console.error('[cancelOrder] worker_stock not fully restored', {
+            orderId,
+            workerId: order.assigned_worker_id,
+            discrepancies,
+          });
+          try {
+            const { toast } = await import('sonner');
+            toast.warning(
+              `لم تُستعَد كمية الهدية بالكامل لـ ${discrepancies.length} منتج. تم تسجيل التفاصيل في سجل الأخطاء.`,
+            );
+          } catch { /* toast optional */ }
+        }
+      }
+
       return orderResult.data;
     },
     onSuccess: () => {
