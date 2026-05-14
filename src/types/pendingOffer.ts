@@ -15,6 +15,8 @@ export interface PendingOfferConfirmation {
   gift_product_name: string | null;
   gift_boxes: number;
   gift_pieces: number;
+  purchased_boxes: number;
+  purchased_pieces: number;
   customer_id: string | null;
   customer_name: string | null;
   worker_id: string | null;

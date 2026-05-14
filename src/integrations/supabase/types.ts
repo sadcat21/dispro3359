@@ -3921,6 +3921,8 @@ export type Database = {
           pieces_per_box: number
           product_id: string
           product_name: string | null
+          purchased_boxes: number
+          purchased_pieces: number
           source: string
           status: string
           updated_at: string
@@ -3947,6 +3949,8 @@ export type Database = {
           pieces_per_box?: number
           product_id: string
           product_name?: string | null
+          purchased_boxes?: number
+          purchased_pieces?: number
           source?: string
           status?: string
           updated_at?: string
@@ -3973,6 +3977,8 @@ export type Database = {
           pieces_per_box?: number
           product_id?: string
           product_name?: string | null
+          purchased_boxes?: number
+          purchased_pieces?: number
           source?: string
           status?: string
           updated_at?: string
