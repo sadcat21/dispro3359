@@ -1,0 +1,1 @@
+ALTER TABLE public.product_offer_settings ADD COLUMN IF NOT EXISTS showcase_enabled boolean NOT NULL DEFAULT true;

@@ -29,6 +29,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     is_deferred_confirmation: true,
     auto_fill_quantities: true,
     is_mandatory: false,
+    showcase_enabled: true,
     scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
   });
 
