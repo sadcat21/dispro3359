@@ -182,6 +182,7 @@ const BranchManagerHome: React.FC = () => {
       icon: BookOpenCheck,
       items: [
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
+        { key: 'manager_accounting_review', label: t('admin_home.item.manager_accounting_review'), icon: BookOpenCheck, path: '/manager-accounting-review' },
       ],
     },
   ];
