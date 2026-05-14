@@ -525,17 +525,27 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               </div>
                             </div>
 
-                            {/* Details list */}
-                            <ul className="mt-2 text-[11px] text-end space-y-0.5 list-disc list-inside marker:text-muted-foreground">
-                              {timeLabel && <li className="font-medium">{timeLabel}</li>}
-                              {(entry.customerStoreName || entry.customerName) && (
-                                <li className="font-medium truncate">{entry.customerStoreName || entry.customerName}</li>
-                              )}
+                            {/* Highlighted grid: store / delivered / remaining */}
+                            <div className="mt-2 grid grid-cols-3 gap-1.5">
+                              <div className="rounded-lg bg-white/70 dark:bg-background/40 border px-2 py-1.5 text-center">
+                                <div className="text-[9px] text-muted-foreground">المحل</div>
+                                <div className="text-[11px] font-bold truncate">{entry.customerStoreName || entry.customerName || '—'}</div>
+                              </div>
+                              <div className="rounded-lg bg-emerald-100/70 border border-emerald-200 px-2 py-1.5 text-center">
+                                <div className="text-[9px] text-emerald-800">المُسلَّم</div>
+                                <div className="text-[12px] font-extrabold text-emerald-700">{fmtBP(entry.quantity, history.ppb)}</div>
+                              </div>
+                              <div className="rounded-lg bg-amber-100/70 border border-amber-200 px-2 py-1.5 text-center">
+                                <div className="text-[9px] text-amber-800">الباقي</div>
+                                <div className="text-[12px] font-extrabold text-amber-700">{fmtBP(entry.after, history.ppb)}</div>
+                              </div>
+                            </div>
+                            <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                              <span>{timeLabel}</span>
                               {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
-                                <li className="font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</li>
+                                <span className="font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</span>
                               )}
-                              <li className="font-semibold">{fmtBP(entry.after, history.ppb)}</li>
-                            </ul>
+                            </div>
                             {entry.note && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
                             )}
