@@ -182,6 +182,13 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </div>
                 <Switch checked={form.is_mandatory} onCheckedChange={(c) => setForm((p) => ({ ...p, is_mandatory: c }))} />
               </div>
+              <div className="flex items-center justify-between p-3 gap-3">
+                <div>
+                  <Label className="text-sm">عرض معرض العروض في الصفحة الرئيسية</Label>
+                  <p className="text-xs text-muted-foreground">إظهار شريط العرض المتحرك للعروض النشطة في صفحة العامل</p>
+                </div>
+                <Switch checked={form.showcase_enabled} onCheckedChange={(c) => setForm((p) => ({ ...p, showcase_enabled: c }))} />
+              </div>
             </div>
 
             {/* Scope stages */}
