@@ -347,8 +347,17 @@ export const useCancelOrder = () => {
       const orderItems = itemsRes.data as any[] | null;
       const debt = debtRes.data;
 
-      // Build all parallel mutations
-      const mutations: PromiseLike<any>[] = [];
+      // IMPORTANT: serialize stock-restoration steps to avoid race conditions
+      // on worker_stock rows. The promos.delete() fires a DB trigger
+      // (delete_promo_ledger_entries) that restores worker_stock with row
+      // locks. If it runs in parallel with restoreStockFromMovements (JS
+      // read-modify-write on the same rows), one of the updates is lost and
+      // the gift quantity is never returned to the truck.
+      // Order: 1) delete promos (trigger restores gift/sale) → 2) restore
+      // movements & delete them → 3) run remaining mutations in parallel.
+      const { error: promoDelErr } = await (supabase as any)
+        .from('promos').delete().eq('order_id', orderId);
+      if (promoDelErr) throw promoDelErr;
 
       if (orderItems?.length) {
         const itemPiecesPerBox = new Map(
@@ -360,12 +369,14 @@ export const useCancelOrder = () => {
         const stockMovements = (movementsRes.data || []) as StockMovementForReversal[];
         if (stockMovements.length > 0) {
           await restoreStockFromMovements(stockMovements, order.assigned_worker_id, order.branch_id, itemPiecesPerBox);
+          const { error: smDelErr } = await supabase
+            .from('stock_movements').delete().eq('order_id', orderId);
+          if (smDelErr) throw smDelErr;
         }
-
-        mutations.push(
-          supabase.from('stock_movements').delete().eq('order_id', orderId)
-        );
       }
+
+      // Build remaining parallel mutations
+      const mutations: PromiseLike<any>[] = [];
 
       if (debt && debt.status !== 'paid') {
         mutations.push(
