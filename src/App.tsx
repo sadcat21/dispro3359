@@ -433,6 +433,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/accounting-sessions" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
+          <AccountingSessions />
+        </ProtectedRoute>
+      } />
+
       <Route path="/worker-debts" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <WorkerDebts />
