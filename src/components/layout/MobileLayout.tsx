@@ -776,7 +776,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
         <main
           className={cn(
             'flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y',
-            isLoadStockPage ? 'pb-0' : 'pb-20 md:pb-0'
+            isLoadStockPage ? 'pb-0' : 'pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0'
           )}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
