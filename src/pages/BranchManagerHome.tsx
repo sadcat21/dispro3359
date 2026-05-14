@@ -175,12 +175,6 @@ const BranchManagerHome: React.FC = () => {
         { key: 'manager_treasury', label: t('nav.manager_treasury'), icon: Wallet, path: '/manager-treasury' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
-      ],
-    },
-    {
-      titleKey: 'branch_manager.section_accounting',
-      icon: BookOpenCheck,
-      items: [
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'manager_accounting_review', label: t('admin_home.item.manager_accounting_review'), icon: BookOpenCheck, path: '/manager-accounting-review' },
       ],
