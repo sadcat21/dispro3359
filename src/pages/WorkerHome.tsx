@@ -151,6 +151,16 @@ const WorkerHome: React.FC = () => {
     return parts.join(' — ');
   }, [todayDayLabel, todaySectorNames]);
 
+  // Today's pending offer confirmations count → badge on achievements button
+  const todayDateStr = new Date().toISOString().slice(0, 10);
+  const { items: todayPendingOffers } = usePendingOfferConfirmations({
+    workerId: workerId || null,
+    status: 'pending',
+    dateFrom: todayDateStr,
+    dateTo: todayDateStr,
+  });
+  const achievementsBadge = todayPendingOffers.length;
+
   const { data: stockItems } = useQuery({
     queryKey: ['my-worker-stock', workerId],
     queryFn: async () => {
