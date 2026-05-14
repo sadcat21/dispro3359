@@ -514,6 +514,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                     : entry.paymentType}
                                 </Badge>
                               )}
+                              {entry.type === 'sale' && entry.giftQty > 0 && (
+                                <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200">
+                                  هدية {fmtBP(entry.giftQty, history.ppb)}
+                                </Badge>
+                              )}
                               {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
                                 <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
                               )}
