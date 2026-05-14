@@ -111,6 +111,25 @@ const MyStock: React.FC = () => {
           product: (s as any).product,
         }))}
       />
+
+      <AlertDialog open={confirmRecalibrate} onOpenChange={setConfirmRecalibrate}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تصحيح رصيد جميع المنتجات</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم إعادة احتساب الرصيد لجميع منتجات الشاحنة وفق المعادلة:
+              <br />
+              <strong>آخر شحنة − (المبيعات والهدايا غير الملغاة)</strong>
+              <br />
+              هل تريد المتابعة؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={runRecalibrate}>متابعة</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
