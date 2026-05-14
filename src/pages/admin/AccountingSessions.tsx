@@ -428,6 +428,9 @@ const AccountingSessions: React.FC = () => {
             })}
           </div>
         )}
+        </>
+          );
+        })()}
       </div>
 
       {openSessions.map(session => (
