@@ -490,56 +490,59 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                         <div key={entry.id} className="space-y-1">
                           {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}
                           <div className={`rounded-xl border px-3 py-2.5 ${cardBg}`}>
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <Badge className={`text-[10px] ${typeBadge}`}>{entry.label}</Badge>
-                                  {entry.type === 'sale' && (
-                                    <Badge className="text-[10px] bg-cyan-100 text-cyan-700 border-cyan-200">
-                                      {entry.saleChannel === 'direct_sale' ? 'بيع مباشر (فان)' : 'توصيل'}
-                                    </Badge>
-                                  )}
-                                  {entry.type === 'sale' && entry.priceSubtype && (
-                                    <Badge className="text-[10px] bg-indigo-100 text-indigo-700 border-indigo-200">
-                                      {entry.priceSubtype === 'detail' ? 'D' : entry.priceSubtype === 'semi_gros' ? 'SG' : entry.priceSubtype === 'gros' ? 'G' : entry.priceSubtype}
-                                    </Badge>
-                                  )}
-                                  {entry.type === 'sale' && entry.paymentType && (
-                                    <Badge className="text-[10px] bg-muted text-foreground border-border">
-                                      {entry.paymentType === 'without_invoice' ? 'فاتورة 2'
-                                        : entry.paymentType === 'with_invoice' ? 'بفاتورة'
-                                        : entry.paymentType === 'cash' ? 'نقدًا'
-                                        : entry.paymentType === 'credit' ? 'آجل'
-                                        : entry.paymentType}
-                                    </Badge>
-                                  )}
-                                  {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
-                                    <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-emerald-200">
-                                      {Number(entry.totalPaid).toLocaleString('ar-DZ')} دج
-                                    </Badge>
-                                  )}
-                                  {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
-                                    <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
-                                  )}
-                                  {entry.type !== 'sale' && entry.sourceLabel && (
-                                    <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
-                                  )}
-                                </div>
-                                <div className="mt-1 text-xs text-muted-foreground">
-                                  {timeLabel || '—'}
-                                  {entry.customerStoreName ? ` • ${entry.customerStoreName}` : ''}
-                                  {entry.customerName && entry.customerName !== entry.customerStoreName ? ` • ${entry.customerName}` : ''}
-                                </div>
+                            {/* Top row: delta + qty change */}
+                            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Badge className={`text-[10px] ${typeBadge}`}>{entry.label}</Badge>
+                                {entry.type === 'sale' && (
+                                  <Badge className="text-[10px] bg-cyan-100 text-cyan-700 border-cyan-200">
+                                    {entry.saleChannel === 'direct_sale' ? 'فان' : 'توصيل'}
+                                  </Badge>
+                                )}
+                                {entry.type === 'sale' && entry.priceSubtype && (
+                                  <Badge className="text-[10px] font-bold bg-indigo-100 text-indigo-700 border-indigo-200">
+                                    {entry.priceSubtype === 'super_gros' ? 'SG' : entry.priceSubtype === 'gros' ? 'G' : 'D'}
+                                  </Badge>
+                                )}
+                                {entry.type === 'sale' && entry.paymentType && (
+                                  <Badge className="text-[10px] bg-muted text-foreground border-border">
+                                    {entry.paymentType === 'without_invoice' ? 'فاتورة 2'
+                                      : entry.paymentType === 'with_invoice' ? 'بفاتورة'
+                                      : entry.paymentType === 'cash' ? 'نقدًا'
+                                      : entry.paymentType === 'credit' ? 'آجل'
+                                      : entry.paymentType}
+                                  </Badge>
+                                )}
+                                {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
+                                  <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
+                                )}
+                                {entry.type !== 'sale' && entry.sourceLabel && (
+                                  <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
+                                )}
                               </div>
                               <div className={`text-sm font-bold ${deltaColor}`}>
                                 {entry.delta < 0 ? `-${fmtBP(Math.abs(entry.quantity), history.ppb)}` : `+${fmtBP(entry.quantity, history.ppb)}`}
                               </div>
                             </div>
-                            <div className="mt-2 text-[11px]">
-                              <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
-                                <div className="text-muted-foreground">الباقي</div>
-                                <div className="font-semibold">{fmtBP(entry.after, history.ppb)}</div>
-                              </div>
+
+                            {/* Info grid: time + customer + paid amount */}
+                            <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                              <div className="text-muted-foreground">الوقت</div>
+                              <div className="text-end font-medium">{timeLabel || '—'}</div>
+                              {(entry.customerStoreName || entry.customerName) && (
+                                <>
+                                  <div className="text-muted-foreground">الزبون</div>
+                                  <div className="text-end font-medium truncate">{entry.customerStoreName || entry.customerName}</div>
+                                </>
+                              )}
+                              {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
+                                <>
+                                  <div className="text-muted-foreground">المبلغ</div>
+                                  <div className="text-end font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</div>
+                                </>
+                              )}
+                              <div className="text-muted-foreground">الباقي</div>
+                              <div className="text-end font-semibold">{fmtBP(entry.after, history.ppb)}</div>
                             </div>
                             {entry.note && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
