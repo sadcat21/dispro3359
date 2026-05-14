@@ -135,12 +135,14 @@ const ProductShowcaseHero: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-l from-primary/85 via-primary/65 to-primary/90" />
 
       <div key={`txt-${index}`} className="relative z-10 p-5 text-primary-foreground h-full flex flex-col justify-center animate-[textSlideUp_0.6s_ease-out]">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-4 h-4" />
-          <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
-            {slides.length > 0 ? 'عرض حصري' : 'إدارة الطلبيات'}
-          </span>
-        </div>
+        {(current as any)?.tierLabel && (
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-xs font-semibold tracking-wider opacity-90">
+              {(current as any).tierLabel}
+            </span>
+          </div>
+        )}
         <h2 className="text-lg font-bold mb-1 line-clamp-1 drop-shadow">
           {current?.title || 'إدارة الطلبيات'}
         </h2>
