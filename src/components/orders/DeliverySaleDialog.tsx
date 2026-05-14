@@ -241,13 +241,16 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   // Initialize sale items from order items
   // Helper: recalculate gift for a product based on paid quantity and active offers
   // Returns { giftBoxes, giftPieces } where giftPieces is the remainder that doesn't fill a full box
-  const recalcGift = useCallback((productId: string, paidQty: number, piecesPerBox: number): { giftBoxes: number; giftPieces: number } => {
+  const recalcGift = useCallback((productId: string, paidQty: number, piecesPerBox: number): { giftBoxes: number; giftPieces: number; offerId: string | null } => {
     const offersForProduct = activeOffers.filter(o => o.product_id === productId);
-    if (offersForProduct.length === 0) return { giftBoxes: 0, giftPieces: 0 };
+    if (offersForProduct.length === 0) return { giftBoxes: 0, giftPieces: 0, offerId: null };
 
     let totalGiftPieces = 0;
+    let matchedOfferId: string | null = null;
+    const markOffer = (id: string) => { if (!matchedOfferId) matchedOfferId = id; };
     for (const offer of offersForProduct) {
       const tiers = offer.tiers && offer.tiers.length > 0 ? offer.tiers : null;
+      let addedThisOffer = 0;
       if (tiers) {
         if (offer.condition_type === 'multiplier') {
           const sortedTiers = [...tiers].sort((a, b) => b.min_quantity - a.min_quantity);
@@ -258,13 +261,13 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             remaining = remaining % tier.min_quantity;
             const giftUnit = tier.gift_quantity_unit || 'piece';
             const giftAmount = timesApplied * tier.gift_quantity;
-            totalGiftPieces += giftUnit === 'box' ? giftAmount * piecesPerBox : giftAmount;
+            addedThisOffer += giftUnit === 'box' ? giftAmount * piecesPerBox : giftAmount;
           }
         } else {
           for (const tier of [...tiers].sort((a, b) => b.min_quantity - a.min_quantity)) {
             if (paidQty >= tier.min_quantity && (tier.max_quantity === null || paidQty <= tier.max_quantity)) {
               const giftUnit = tier.gift_quantity_unit || 'piece';
-              totalGiftPieces += giftUnit === 'box' ? tier.gift_quantity * piecesPerBox : tier.gift_quantity;
+              addedThisOffer += giftUnit === 'box' ? tier.gift_quantity * piecesPerBox : tier.gift_quantity;
               break;
             }
           }
@@ -274,16 +277,20 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const timesApplied = offer.condition_type === 'multiplier' ? Math.floor(paidQty / offer.min_quantity) : 1;
         const giftPerThreshold = offer.gift_quantity;
         if (offer.gift_quantity_unit === 'box') {
-          totalGiftPieces += timesApplied * giftPerThreshold * piecesPerBox;
+          addedThisOffer += timesApplied * giftPerThreshold * piecesPerBox;
         } else {
-          totalGiftPieces += timesApplied * giftPerThreshold;
+          addedThisOffer += timesApplied * giftPerThreshold;
         }
+      }
+      if (addedThisOffer > 0) {
+        totalGiftPieces += addedThisOffer;
+        markOffer(offer.id);
       }
     }
     // Split into full boxes and remaining pieces
     const giftBoxes = piecesPerBox > 0 ? Math.floor(totalGiftPieces / piecesPerBox) : 0;
     const giftPieces = piecesPerBox > 0 ? totalGiftPieces % piecesPerBox : totalGiftPieces;
-    return { giftBoxes, giftPieces };
+    return { giftBoxes, giftPieces, offerId: matchedOfferId };
   }, [activeOffers]);
 
   const orderItemsSnapshotKey = useMemo(() => {
@@ -327,6 +334,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const effectiveGiftQty = useRecalc ? recalculated.giftBoxes : storedGiftQty;
         const effectiveGiftPcs = useRecalc ? recalculated.giftPieces : storedGiftPcs;
         const effectiveQuantity = paidQty + effectiveGiftQty;
+        const effectiveOfferId = useRecalc
+          ? (recalculated.offerId || (item as any).gift_offer_id || null)
+          : ((item as any).gift_offer_id || recalculated.offerId || null);
 
         return {
           productId: item.product_id,
@@ -338,7 +348,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           originalQuantity: item.quantity,
           giftQuantity: effectiveGiftQty,
           giftPieces: effectiveGiftPcs,
-          giftOfferId: (item as any).gift_offer_id || null,
+          giftOfferId: effectiveOfferId,
           piecesPerBox: ppb,
           pricingUnit: (item as any).pricing_unit || item.product?.pricing_unit || 'box',
           weightPerBox: (item as any).weight_per_box ?? item.product?.weight_per_box ?? null,
@@ -825,23 +835,35 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           workerName: user?.full_name || null,
           customerId: order.customer_id,
           customerName: order.customer?.name || null,
-          items: activeItems.map((item) => ({
-            productId: item.productId,
-            productName: item.productName || null,
-            quantity: item.quantity,
-            giftBoxes: Number(item.giftQuantity || 0),
-            giftPieces: Number((item as any).giftPieces || 0),
-            piecesPerBox: Number(item.piecesPerBox || 20),
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-            offerId: (item as any).giftOfferId || null,
-          })),
+          items: activeItems.map((item) => {
+            const ppb = Number(item.piecesPerBox || 20);
+            const paidQty = Math.max(0, Number(item.quantity || 0) - Number(item.giftQuantity || 0));
+            const recalcOfferId = recalcGift(item.productId, Math.floor(paidQty), ppb).offerId;
+            return {
+              productId: item.productId,
+              productName: item.productName || null,
+              quantity: item.quantity,
+              giftBoxes: Number(item.giftQuantity || 0),
+              giftPieces: Number((item as any).giftPieces || 0),
+              piecesPerBox: ppb,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+              offerId: (item as any).giftOfferId || recalcOfferId || null,
+            };
+          }),
         });
       } catch (e) { console.warn('sales_tracking failed', e); }
 
-      // Resolve which applied offers are deferred (gift not deducted from stock yet)
+      // Resolve which applied offers are deferred (gift not deducted from stock yet).
+      // Include offerIds discovered by recalc so deferred-confirmation also kicks in
+      // when the order has no explicit gift_offer_id but an offer matches at delivery.
+      const allOfferIds = Array.from(new Set([
+        ...activeItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[],
+        ...activeItems
+          .map((i: any) => recalcGift(i.productId, Math.floor(Math.max(0, Number(i.quantity || 0) - Number(i.giftQuantity || 0))), Number(i.piecesPerBox || 1)).offerId)
+          .filter(Boolean) as string[],
+      ]));
       const deferredOfferIdSet = new Set<string>();
-      const allOfferIds = Array.from(new Set(activeItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[]));
       if (allOfferIds.length > 0) {
         const { data: offRows } = await supabase
           .from('product_offers')
@@ -864,8 +886,12 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         let effGiftBoxes = useRecalc ? recalculated.giftBoxes : storedGiftBoxes;
         let effGiftPieces = useRecalc ? recalculated.giftPieces : storedGiftPieces;
 
+        // Effective offer id: prefer the explicit one on the line, fall back to the
+        // matched recalc offer so deferred-confirmation activates even when the order
+        // had no gift_offer_id originally.
+        const effOfferId: string | null = (item as any).giftOfferId || recalculated.offerId || null;
         // Deferred-offer gifts: skip stock deduction (will deduct upon confirmation)
-        const isDeferred = !!((item as any).giftOfferId && deferredOfferIdSet.has((item as any).giftOfferId));
+        const isDeferred = !!(effOfferId && deferredOfferIdSet.has(effOfferId));
         if (isDeferred) { effGiftBoxes = 0; effGiftPieces = 0; }
 
         // item.quantity (b.p) = paidBoxes + storedGiftBoxes (+ gift pieces in decimal).
