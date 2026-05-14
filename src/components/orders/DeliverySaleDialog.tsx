@@ -250,6 +250,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     const markOffer = (id: string) => { if (!matchedOfferId) matchedOfferId = id; };
     for (const offer of offersForProduct) {
       const tiers = offer.tiers && offer.tiers.length > 0 ? offer.tiers : null;
+      let addedThisOffer = 0;
       if (tiers) {
         if (offer.condition_type === 'multiplier') {
           const sortedTiers = [...tiers].sort((a, b) => b.min_quantity - a.min_quantity);
@@ -260,13 +261,13 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             remaining = remaining % tier.min_quantity;
             const giftUnit = tier.gift_quantity_unit || 'piece';
             const giftAmount = timesApplied * tier.gift_quantity;
-            totalGiftPieces += giftUnit === 'box' ? giftAmount * piecesPerBox : giftAmount;
+            addedThisOffer += giftUnit === 'box' ? giftAmount * piecesPerBox : giftAmount;
           }
         } else {
           for (const tier of [...tiers].sort((a, b) => b.min_quantity - a.min_quantity)) {
             if (paidQty >= tier.min_quantity && (tier.max_quantity === null || paidQty <= tier.max_quantity)) {
               const giftUnit = tier.gift_quantity_unit || 'piece';
-              totalGiftPieces += giftUnit === 'box' ? tier.gift_quantity * piecesPerBox : tier.gift_quantity;
+              addedThisOffer += giftUnit === 'box' ? tier.gift_quantity * piecesPerBox : tier.gift_quantity;
               break;
             }
           }
@@ -276,16 +277,20 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const timesApplied = offer.condition_type === 'multiplier' ? Math.floor(paidQty / offer.min_quantity) : 1;
         const giftPerThreshold = offer.gift_quantity;
         if (offer.gift_quantity_unit === 'box') {
-          totalGiftPieces += timesApplied * giftPerThreshold * piecesPerBox;
+          addedThisOffer += timesApplied * giftPerThreshold * piecesPerBox;
         } else {
-          totalGiftPieces += timesApplied * giftPerThreshold;
+          addedThisOffer += timesApplied * giftPerThreshold;
         }
+      }
+      if (addedThisOffer > 0) {
+        totalGiftPieces += addedThisOffer;
+        markOffer(offer.id);
       }
     }
     // Split into full boxes and remaining pieces
     const giftBoxes = piecesPerBox > 0 ? Math.floor(totalGiftPieces / piecesPerBox) : 0;
     const giftPieces = piecesPerBox > 0 ? totalGiftPieces % piecesPerBox : totalGiftPieces;
-    return { giftBoxes, giftPieces };
+    return { giftBoxes, giftPieces, offerId: matchedOfferId };
   }, [activeOffers]);
 
   const orderItemsSnapshotKey = useMemo(() => {
