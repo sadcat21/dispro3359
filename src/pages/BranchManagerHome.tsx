@@ -150,7 +150,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'worker_tracking', label: t('navigation.worker_tracking'), icon: MapPin, path: '/worker-tracking' },
         { key: 'attendance', label: t('nav.attendance'), icon: CalendarCheck, path: '/attendance' },
         { key: 'truck_balance', label: 'رصيد الشاحنة', icon: Truck, onClick: () => setTruckPickerOpen(true) },
-        { key: 'sector_coverage', label: 'تعويض السيكتورات', icon: RefreshCw, onClick: () => setSectorCoverageOpen(true) },
+        
       ],
     },
     {
