@@ -933,20 +933,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
             </Link>
 
-            {moreNavItems.length > 0 ? (
-              <button
-                onClick={() => setMoreOpen(true)}
-                className={cn(
-                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
-                  isMoreActive
-                    ? 'bg-sidebar-primary/15 text-sidebar-primary'
-                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                )}
-                title={t('nav.more')}
-              >
-                <MoreHorizontal className="h-[23px] w-[23px]" strokeWidth={isMoreActive ? 2.45 : 1.85} />
-              </button>
-            ) : mainNavItems[3] ? (
+            {mainNavItems[3] ? (
               <Link
                 to={mainNavItems[3].path}
                 className={cn(
