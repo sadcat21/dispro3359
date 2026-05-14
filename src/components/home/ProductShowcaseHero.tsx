@@ -117,6 +117,8 @@ const ProductShowcaseHero: React.FC = () => {
 
   const current = cycle[index];
 
+  if (enabled === false) return null;
+
   return (
     <div className="relative h-44 overflow-hidden bg-gradient-to-l from-primary to-primary/80 [.theme-soft_&]:bg-none [.theme-soft_&]:bg-background">
       <style>{`
