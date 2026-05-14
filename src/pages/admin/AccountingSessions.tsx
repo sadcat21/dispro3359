@@ -37,6 +37,9 @@ const AccountingSessions: React.FC = () => {
   const pastOnly = location.pathname === '/accounting-sessions';
   const { activeBranch, role } = useAuth();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [workerFilter, setWorkerFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedSession, setSelectedSession] = useState<AccountingSession | null>(null);
