@@ -346,7 +346,7 @@ const PromoTable: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 no-print">
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 no-print [&>*]:min-w-0">
         {/* Date Filter Type */}
         <Select value={dateFilterType} onValueChange={(value) => {
           setDateFilterType(value);
