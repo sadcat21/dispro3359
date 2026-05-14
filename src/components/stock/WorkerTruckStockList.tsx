@@ -178,7 +178,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     queryFn: async () => {
       let q = supabase
         .from('stock_movements')
-        .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, customer:customers(name, store_name))')
+        .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, status, customer:customers(name, store_name))')
         .eq('worker_id', workerId)
         .eq('movement_type', 'modification');
       if (lastAccounting) q = q.gte('created_at', lastAccounting);
