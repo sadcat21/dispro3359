@@ -555,8 +555,13 @@ const WorkerHome: React.FC = () => {
                       <button
                         key={action.key}
                         onClick={action.onClick}
-                        className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md [.theme-soft_&]:rounded-2xl [.theme-soft_&]:border-0 [.theme-soft_&]:bg-card [.theme-soft_&]:!text-foreground [.theme-soft_&]:p-2 [.theme-soft_&]:gap-1 [.theme-soft_&]:shadow-[4px_4px_10px_hsl(30_20%_80%/0.5),-4px_-4px_10px_hsl(0_0%_100%/0.85)]`}
+                        className={`relative flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md [.theme-soft_&]:rounded-2xl [.theme-soft_&]:border-0 [.theme-soft_&]:bg-card [.theme-soft_&]:!text-foreground [.theme-soft_&]:p-2 [.theme-soft_&]:gap-1 [.theme-soft_&]:shadow-[4px_4px_10px_hsl(30_20%_80%/0.5),-4px_-4px_10px_hsl(0_0%_100%/0.85)]`}
                       >
+                        {(action as any).badge > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow ring-2 ring-white">
+                            {(action as any).badge > 99 ? '99+' : (action as any).badge}
+                          </span>
+                        )}
                         {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon} [.theme-soft_&]:w-5 [.theme-soft_&]:h-5 [.theme-soft_&]:!text-foreground` })}
                         <span className="text-[10px] font-medium text-center leading-tight text-foreground [.theme-soft_&]:text-[10px]">{action.label}</span>
                       </button>
