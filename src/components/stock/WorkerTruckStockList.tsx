@@ -241,7 +241,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
 
-    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; delta: number; before?: number; after?: number };
+    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; giftQty?: number; delta: number; before?: number; after?: number };
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
@@ -250,7 +250,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
       const paid = dbBPToBoxes(Number(it.quantity || 0), ppb);
       const total = paid + giftQty;
-      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: paid, when: it._session?.created_at || '', note: giftQty > 0 ? `+${fmtBP(giftQty, ppb)} هدية` : (it._session?.notes || null), sourceLabel: it._session?.manager?.full_name || null, delta: total });
+      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: total, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: total });
     }
     for (const it of unloadedData.filter((x: any) => x.product_id === pid)) {
       const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
@@ -260,8 +260,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const giftQty = confirmedGiftFractional(it, ppb);
       const saleQty = dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb);
       const when = it.order_updated_at || it.order_created_at || '';
-      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
-      if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', note: 'من نفس عملية البيع', delta: -giftQty });
+      const totalDelta = saleQty + giftQty;
+      if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta });
     }
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
       const signed = Number(m.signed_quantity ?? 0);
@@ -512,6 +512,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                     : entry.paymentType === 'cash' ? 'نقدًا'
                                     : entry.paymentType === 'credit' ? 'آجل'
                                     : entry.paymentType}
+                                </Badge>
+                              )}
+                              {entry.type === 'sale' && entry.giftQty > 0 && (
+                                <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200">
+                                  هدية {fmtBP(entry.giftQty, history.ppb)}
                                 </Badge>
                               )}
                               {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
