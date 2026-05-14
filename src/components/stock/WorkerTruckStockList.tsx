@@ -284,9 +284,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
         orderStatus: m.order?.status || null,
-        // أثر التعديل مضمّن أصلاً في delivered_quantity لصف البيع (عبر stock_movements)،
-        // لذا لا يجب أن يؤثر على الرصيد الجاري مرّة ثانية. يبقى للعرض الإعلامي فقط.
-        delta: 0,
+        // المُعدِّل أصبح مستقلاً عن صف البيع: يطرح/يضيف فعلياً من المخزون.
+        delta: deltaBoxes,
       });
     }
 
