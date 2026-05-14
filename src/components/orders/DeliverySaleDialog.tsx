@@ -835,17 +835,22 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           workerName: user?.full_name || null,
           customerId: order.customer_id,
           customerName: order.customer?.name || null,
-          items: activeItems.map((item) => ({
-            productId: item.productId,
-            productName: item.productName || null,
-            quantity: item.quantity,
-            giftBoxes: Number(item.giftQuantity || 0),
-            giftPieces: Number((item as any).giftPieces || 0),
-            piecesPerBox: Number(item.piecesPerBox || 20),
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-            offerId: (item as any).giftOfferId || null,
-          })),
+          items: activeItems.map((item) => {
+            const ppb = Number(item.piecesPerBox || 20);
+            const paidQty = Math.max(0, Number(item.quantity || 0) - Number(item.giftQuantity || 0));
+            const recalcOfferId = recalcGift(item.productId, Math.floor(paidQty), ppb).offerId;
+            return {
+              productId: item.productId,
+              productName: item.productName || null,
+              quantity: item.quantity,
+              giftBoxes: Number(item.giftQuantity || 0),
+              giftPieces: Number((item as any).giftPieces || 0),
+              piecesPerBox: ppb,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+              offerId: (item as any).giftOfferId || recalcOfferId || null,
+            };
+          }),
         });
       } catch (e) { console.warn('sales_tracking failed', e); }
 
