@@ -272,13 +272,14 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       movements.push({
         id: `mod-${m.id}`,
         type: 'modification',
-        label: 'تعديل',
+        label: m.order?.status === 'cancelled' ? 'إلغاء' : 'تعديل',
         quantity: qtyBoxes,
         when: m.created_at,
         note: m.notes || null,
         paymentType: m.order?.payment_type || null,
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
+        orderStatus: m.order?.status || null,
         delta: deltaBoxes,
       });
     }
