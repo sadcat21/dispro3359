@@ -75,7 +75,7 @@ const MyStock: React.FC = () => {
           {t('stock.my_stock')}
         </h2>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleRecalibrate} disabled={recalibrating}>
+          <Button size="sm" variant="outline" onClick={() => setConfirmRecalibrate(true)} disabled={recalibrating}>
             {recalibrating ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
             تصحيح الرصيد
           </Button>
