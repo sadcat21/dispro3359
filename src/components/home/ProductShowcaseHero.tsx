@@ -8,6 +8,26 @@ const ProductShowcaseHero: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState(0);
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('product_offer_settings')
+        .select('showcase_enabled')
+        .eq('id', 'global')
+        .maybeSingle();
+      if (!alive) return;
+      setEnabled(data?.showcase_enabled ?? true);
+    })();
+    const channel = (supabase as any)
+      .channel('offer-settings-showcase')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'product_offer_settings', filter: 'id=eq.global' },
+        (payload: any) => setEnabled(payload?.new?.showcase_enabled ?? true))
+      .subscribe();
+    return () => { alive = false; (supabase as any).removeChannel(channel); };
+  }, []);
 
   // Build slides from active offers
   const slides = useMemo(() => {
