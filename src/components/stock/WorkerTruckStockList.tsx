@@ -343,19 +343,19 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               <button
                 key={item.id}
                 type="button"
-                className={`p-1.5 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
+                className={`p-1 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
                 onClick={() => setSelected(item)}
               >
-                <p className="text-[10px] font-medium truncate mb-1">...{(item.product?.name || '').slice(-14)}</p>
-                <div className="aspect-square w-full rounded-md border bg-muted/40 overflow-hidden flex items-center justify-center mb-1">
+                <p className="text-[10px] font-medium truncate mb-0.5">{item.product?.name}</p>
+                <div className="h-14 w-full rounded-md border bg-muted/40 overflow-hidden flex items-center justify-center mb-1">
                   {item.product?.image_url ? (
                     <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-contain" loading="lazy" />
                   ) : (
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}
                 </div>
-                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
-                  <Package className="w-2.5 h-2.5" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
+                <span className={`inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
+                  <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
                 </span>
               </button>
             );
