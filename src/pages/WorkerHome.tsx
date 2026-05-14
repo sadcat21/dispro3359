@@ -36,6 +36,7 @@ import AttendanceButton from '@/components/attendance/AttendanceButton';
 import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import WorkerSalesSummaryCard from '@/components/workers/WorkerSalesSummaryCard';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
+import { usePendingOfferConfirmations } from '@/hooks/usePendingOfferConfirmations';
 
 const WorkerHome: React.FC = () => {
   const { user, workerId, role, activeRole, activeBranch, availableRoles } = useAuth();
@@ -149,6 +150,16 @@ const WorkerHome: React.FC = () => {
     if (todaySectorNames.length > 0) parts.push(todaySectorNames.join(' / '));
     return parts.join(' — ');
   }, [todayDayLabel, todaySectorNames]);
+
+  // Today's pending offer confirmations count → badge on achievements button
+  const todayDateStr = new Date().toISOString().slice(0, 10);
+  const { items: todayPendingOffers } = usePendingOfferConfirmations({
+    workerId: workerId || null,
+    status: 'pending',
+    dateFrom: todayDateStr,
+    dateTo: todayDateStr,
+  });
+  const achievementsBadge = todayPendingOffers.length;
 
   const { data: stockItems } = useQuery({
     queryKey: ['my-worker-stock', workerId],
@@ -497,7 +508,7 @@ const WorkerHome: React.FC = () => {
           if (!isTodayCustomersHidden) {
             quickActions.push({ key: 'today-customers', icon: <MapPin className="w-6 h-6" />, label: todayCustomersLabel, onClick: () => setShowTodayCustomers(true) });
           }
-          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements') });
+          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements'), badge: achievementsBadge } as any);
           // Rewards button removed from worker home page
           // Worker Actions for supervisor, admin assistant, or warehouse_manager
           if ((isSupervisor || isAdminAssistant) && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
@@ -544,8 +555,13 @@ const WorkerHome: React.FC = () => {
                       <button
                         key={action.key}
                         onClick={action.onClick}
-                        className={`flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md [.theme-soft_&]:rounded-2xl [.theme-soft_&]:border-0 [.theme-soft_&]:bg-card [.theme-soft_&]:!text-foreground [.theme-soft_&]:p-2 [.theme-soft_&]:gap-1 [.theme-soft_&]:shadow-[4px_4px_10px_hsl(30_20%_80%/0.5),-4px_-4px_10px_hsl(0_0%_100%/0.85)]`}
+                        className={`relative flex flex-col items-center justify-center p-2.5 gap-1.5 rounded-xl border cursor-pointer active:scale-95 transition-all bg-white/80 ${ic.border} hover:shadow-md [.theme-soft_&]:rounded-2xl [.theme-soft_&]:border-0 [.theme-soft_&]:bg-card [.theme-soft_&]:!text-foreground [.theme-soft_&]:p-2 [.theme-soft_&]:gap-1 [.theme-soft_&]:shadow-[4px_4px_10px_hsl(30_20%_80%/0.5),-4px_-4px_10px_hsl(0_0%_100%/0.85)]`}
                       >
+                        {(action as any).badge > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow ring-2 ring-white">
+                            {(action as any).badge > 99 ? '99+' : (action as any).badge}
+                          </span>
+                        )}
                         {React.cloneElement(action.icon as React.ReactElement, { className: `w-5 h-5 ${ic.icon} [.theme-soft_&]:w-5 [.theme-soft_&]:h-5 [.theme-soft_&]:!text-foreground` })}
                         <span className="text-[10px] font-medium text-center leading-tight text-foreground [.theme-soft_&]:text-[10px]">{action.label}</span>
                       </button>
