@@ -37,6 +37,7 @@ import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import WorkerSalesSummaryCard from '@/components/workers/WorkerSalesSummaryCard';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 import { usePendingOfferConfirmations } from '@/hooks/usePendingOfferConfirmations';
+import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 
 const WorkerHome: React.FC = () => {
   const { user, workerId, role, activeRole, activeBranch, availableRoles } = useAuth();
