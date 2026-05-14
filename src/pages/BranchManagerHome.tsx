@@ -236,17 +236,17 @@ const BranchManagerHome: React.FC = () => {
           return (
             <div
               key={section.titleKey}
-              className={`relative rounded-2xl border ${sectionPalette.wrap} p-3 sm:p-4`}
+              className={`relative rounded-2xl border ${sectionPalette.wrap} p-2`}
             >
               {/* عنوان القسم — في الأعلى يمين كما في الصورة */}
-              <div className="flex items-center gap-2 mb-3 px-1">
-                <SecIcon className={`w-5 h-5 ${sectionPalette.title}`} />
-                <h2 className={`text-sm sm:text-base font-bold ${sectionPalette.title}`}>
+              <div className="flex items-center gap-2 mb-1.5 px-1">
+                <SecIcon className={`w-4 h-4 ${sectionPalette.title}`} />
+                <h2 className={`text-xs sm:text-sm font-bold ${sectionPalette.title}`}>
                   {t(section.titleKey)}
                 </h2>
               </div>
 
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {section.items.map((item, iIdx) => {
                   const Icon = item.icon;
                   const showBadge = typeof item.badge === 'number' && item.badge > 0;
