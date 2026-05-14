@@ -872,18 +872,33 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
             {/* العناصر اليمنى: زر فاتورة + المزيد، أو بقية mainNav */}
             {showInvoiceButton ? (
-              <button
-                onClick={() => setInvoiceRequestOpen(true)}
-                className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-foreground/65 transition-all hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95"
-                title={t("tooltip.invoice_request")}
-              >
-                <Receipt className="h-[23px] w-[23px]" strokeWidth={1.85} />
-                {(pendingInvoiceCount || 0) > 0 && (
-                  <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-[9px] font-bold text-sidebar-primary-foreground">
-                    {pendingInvoiceCount}
-                  </span>
-                )}
-              </button>
+              isBranchAdmin ? (
+                <Link
+                  to="/branch-invoice-approvals"
+                  className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-foreground/65 transition-all hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95"
+                  title={t("tooltip.invoice_request")}
+                >
+                  <Receipt className="h-[23px] w-[23px]" strokeWidth={1.85} />
+                  {(pendingInvoiceCount || 0) > 0 && (
+                    <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-[9px] font-bold text-sidebar-primary-foreground">
+                      {pendingInvoiceCount}
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => setInvoiceRequestOpen(true)}
+                  className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-foreground/65 transition-all hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95"
+                  title={t("tooltip.invoice_request")}
+                >
+                  <Receipt className="h-[23px] w-[23px]" strokeWidth={1.85} />
+                  {(pendingInvoiceCount || 0) > 0 && (
+                    <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-[9px] font-bold text-sidebar-primary-foreground">
+                      {pendingInvoiceCount}
+                    </span>
+                  )}
+                </button>
+              )
             ) : mainNavItems[2] ? (
               <Link
                 to={mainNavItems[2].path}
@@ -918,20 +933,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
             </Link>
 
-            {moreNavItems.length > 0 ? (
-              <button
-                onClick={() => setMoreOpen(true)}
-                className={cn(
-                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
-                  isMoreActive
-                    ? 'bg-sidebar-primary/15 text-sidebar-primary'
-                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                )}
-                title={t('nav.more')}
-              >
-                <MoreHorizontal className="h-[23px] w-[23px]" strokeWidth={isMoreActive ? 2.45 : 1.85} />
-              </button>
-            ) : mainNavItems[3] ? (
+            {mainNavItems[3] ? (
               <Link
                 to={mainNavItems[3].path}
                 className={cn(
