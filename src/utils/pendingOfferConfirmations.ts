@@ -42,6 +42,8 @@ export async function recordPendingOfferConfirmation(input: RecordPendingOfferIn
       gift_product_name: input.giftProductName || null,
       gift_boxes: giftBoxes,
       gift_pieces: giftPieces,
+      purchased_boxes: Math.max(0, Math.floor(Number(input.purchasedBoxes || 0))),
+      purchased_pieces: Math.max(0, Math.floor(Number(input.purchasedPieces || 0))),
       customer_id: input.customerId || null,
       customer_name: input.customerName || null,
       worker_id: input.workerId || null,
