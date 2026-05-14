@@ -269,6 +269,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta });
     }
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
+      const isCancelled = m.order?.status === 'cancelled';
       const signed = Number(m.signed_quantity ?? 0);
       const deltaBP = signed; // positive => stock returned, negative => more delivered
       const deltaBoxes = dbBPToBoxes(Math.abs(deltaBP), ppb) * (deltaBP >= 0 ? 1 : -1);
@@ -277,7 +278,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       movements.push({
         id: `mod-${m.id}`,
         type: 'modification',
-        label: m.order?.status === 'cancelled' ? 'إلغاء' : 'تعديل',
+        label: isCancelled ? 'إلغاء' : 'تعديل',
         quantity: qtyBoxes,
         when: m.created_at,
         note: m.notes || null,
@@ -285,7 +286,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
         orderStatus: m.order?.status || null,
-        delta: deltaBoxes,
+        // Cancelled orders must NOT affect the running balance — stock is restored.
+        delta: isCancelled ? 0 : deltaBoxes,
       });
     }
 
