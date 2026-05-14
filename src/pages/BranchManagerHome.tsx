@@ -243,7 +243,7 @@ const BranchManagerHome: React.FC = () => {
               className={`relative rounded-2xl border ${sectionPalette.wrap} p-2`}
             >
               {/* عنوان القسم — في الأعلى يمين كما في الصورة */}
-              <div className="flex items-center gap-2 mb-1.5 px-1">
+              <div className="flex items-center justify-center gap-2 mb-1.5 px-1">
                 <SecIcon className={`w-4 h-4 ${sectionPalette.title}`} />
                 <h2 className={`text-xs sm:text-sm font-bold ${sectionPalette.title}`}>
                   {t(section.titleKey)}
