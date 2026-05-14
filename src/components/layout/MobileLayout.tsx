@@ -455,8 +455,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           ) && <StockConfirmationsPopover />}
           
           
-          {!isWorkerRequestsHidden && <WorkerRequestsPopover />}
           {!isTasksHidden && <TasksPopover />}
+          {!isOffersHidden && <OffersNotification />}
           
 
           {/* Chat */}
