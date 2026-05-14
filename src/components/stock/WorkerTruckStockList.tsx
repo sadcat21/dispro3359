@@ -520,9 +520,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                   <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
                                 )}
                               </div>
-                              <div className={`text-sm font-bold ${deltaColor}`}>
-                                {entry.delta < 0 ? `-${fmtBP(Math.abs(entry.quantity), history.ppb)}` : `+${fmtBP(entry.quantity, history.ppb)}`}
-                              </div>
+                              <div />
+
                             </div>
 
                             {/* Highlighted grid: store / delivered / remaining */}
