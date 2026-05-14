@@ -84,19 +84,10 @@ const BranchManagerApprovals: React.FC = () => {
       badge: counts?.stockReceipts,
       color: 'from-emerald-500 to-teal-600',
     },
-    {
-      key: 'factory_approvals',
-      title: 'موافقات استلام/تسليم المصنع',
-      description: 'مراجعة طلبات الاستلام والتسليم من وإلى المصنع',
-      icon: Truck,
-      onClick: () => setFactoryOpen(true),
-      badge: counts?.factory,
-      color: 'from-rose-500 to-red-600',
-    },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-slate-50 pb-24 overflow-y-auto max-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="px-4 py-4 flex items-center gap-3">
