@@ -11,38 +11,43 @@ const ProductShowcaseHero: React.FC = () => {
 
   // Build slides from active offers
   const slides = useMemo(() => {
-    const list = (activeOffers || [])
+    const list: { title: string; subtitle: string; image: string | null; tierLabel?: string }[] = [];
+    (activeOffers || [])
       .filter((o: any) => o?.product?.name)
-      .map((o: any) => {
-        const t = (o.tiers && o.tiers[0]) || o;
+      .forEach((o: any) => {
         const productName = o.product?.name || '';
-        const giftName = (t?.gift_product?.name) || (o.gift_product?.name) || null;
-        const giftQty = Number(t?.gift_quantity || o.gift_quantity || 0);
-        const giftUnit = t?.gift_quantity_unit || o.gift_quantity_unit || '';
-        const minQty = Number(t?.min_quantity || o.min_quantity || 0);
-        const minUnit = t?.min_quantity_unit || o.min_quantity_unit || '';
-        const discount = Number(t?.discount_percentage || o.discount_percentage || 0);
-        const discountAmt = Number(t?.discount_amount || o.discount_amount || 0);
+        const image = o.product?.image_url || null;
+        const tiers = (o.tiers && o.tiers.length > 0) ? o.tiers : [o];
 
-        let detail = '';
-        if (giftName && giftQty > 0) {
-          detail = `🎁 اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على ${giftQty} ${unitLabel(giftUnit)} ${giftName} مجاناً`;
-        } else if (giftQty > 0) {
-          detail = `🎁 ${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} هدية`;
-        } else if (discount > 0) {
-          detail = `🔥 خصم ${discount}% عند شراء ${minQty} ${unitLabel(minUnit)}`;
-        } else if (discountAmt > 0) {
-          detail = `🔥 خصم ${discountAmt} دج عند شراء ${minQty} ${unitLabel(minUnit)}`;
-        } else {
-          detail = o.description || 'عرض حصري';
-        }
+        tiers.forEach((t: any, idx: number) => {
+          const giftName = t?.gift_product?.name || o.gift_product?.name || null;
+          const giftQty = Number(t?.gift_quantity || 0);
+          const giftUnit = t?.gift_quantity_unit || '';
+          const minQty = Number(t?.min_quantity || 0);
+          const minUnit = t?.min_quantity_unit || '';
+          const discount = Number(t?.discount_percentage || 0);
+          const discountAmt = Number(t?.discount_amount || 0);
 
-        return {
-          title: o.name || productName,
-          subtitle: detail,
-          product: productName,
-          image: o.product?.image_url || null,
-        };
+          let detail = '';
+          if (giftName && giftQty > 0) {
+            detail = `🎁 اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على ${giftQty} ${unitLabel(giftUnit)} ${giftName} مجاناً`;
+          } else if (giftQty > 0) {
+            detail = `🎁 ${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} هدية`;
+          } else if (discount > 0) {
+            detail = `🔥 خصم ${discount}% عند شراء ${minQty} ${unitLabel(minUnit)}`;
+          } else if (discountAmt > 0) {
+            detail = `🔥 خصم ${discountAmt} دج عند شراء ${minQty} ${unitLabel(minUnit)}`;
+          } else {
+            detail = o.description || productName;
+          }
+
+          list.push({
+            title: o.name || productName,
+            subtitle: detail,
+            image,
+            tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1} من ${tiers.length}` : undefined,
+          });
+        });
       });
     return list;
   }, [activeOffers]);
@@ -130,12 +135,14 @@ const ProductShowcaseHero: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-l from-primary/85 via-primary/65 to-primary/90" />
 
       <div key={`txt-${index}`} className="relative z-10 p-5 text-primary-foreground h-full flex flex-col justify-center animate-[textSlideUp_0.6s_ease-out]">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-4 h-4" />
-          <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
-            {slides.length > 0 ? 'عرض حصري' : 'إدارة الطلبيات'}
-          </span>
-        </div>
+        {(current as any)?.tierLabel && (
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-xs font-semibold tracking-wider opacity-90">
+              {(current as any).tierLabel}
+            </span>
+          </div>
+        )}
         <h2 className="text-lg font-bold mb-1 line-clamp-1 drop-shadow">
           {current?.title || 'إدارة الطلبيات'}
         </h2>
