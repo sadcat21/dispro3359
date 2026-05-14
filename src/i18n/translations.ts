@@ -2312,6 +2312,7 @@ export const translations: Translations = {
   'branch_manager.section_customers': { ar: 'العملاء ومسارهم', fr: 'Clients et parcours', en: 'Customers & Journey' },
   'branch_manager.section_finance': { ar: 'المبيعات والديون', fr: 'Ventes et dettes', en: 'Sales & Debts' },
   'branch_manager.section_treasury': { ar: 'الخزينة والمصاريف', fr: 'Trésorerie et dépenses', en: 'Treasury & Expenses' },
+  'branch_manager.section_treasury_extra': { ar: 'الديون والمخزون والجلسات', fr: 'Dettes, stock et sessions', en: 'Debts, Stock & Sessions' },
   'branch_manager.section_accounting': { ar: 'جلسات المحاسبة والمراجعة', fr: 'Sessions comptables et révision', en: 'Accounting Sessions & Review' },
   'branch_manager.worker_rounds': { ar: 'جولات العمال', fr: 'Tournées des employés', en: 'Worker Rounds' },
   'branch_manager.debts_management': { ar: 'إدارة الديون', fr: 'Gestion des dettes', en: 'Debts Management' },
