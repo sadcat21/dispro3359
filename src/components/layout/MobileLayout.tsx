@@ -474,17 +474,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             </Link>
           )}
 
-          {/* UI theme variant toggle (Classic / Soft) */}
-          <button
-            onClick={toggleUITheme}
-            title={uiTheme === 'soft' ? 'تصميم كلاسيكي' : 'تصميم ناعم'}
-            className={cn(
-              'flex items-center justify-center w-8 h-8 shrink-0 rounded-lg transition-colors',
-              uiTheme === 'soft' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
-            )}
-          >
-            <Palette className="w-4 h-4" />
-          </button>
 
           {/* Settings dropdown */}
           <DropdownMenu>
