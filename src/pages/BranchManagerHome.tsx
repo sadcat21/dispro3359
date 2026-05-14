@@ -3,6 +3,7 @@ import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
+import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
