@@ -5,6 +5,7 @@ import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, Mess
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePendingOfferConfirmations } from '@/hooks/usePendingOfferConfirmations';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { cn, isAdminRole } from '@/lib/utils';
 import icon from '@/assets/icon.png';
