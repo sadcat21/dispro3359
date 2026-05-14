@@ -494,8 +494,16 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <Badge className={`text-[10px] ${typeBadge}`}>{entry.label}</Badge>
+                                  {entry.type === 'sale' && (
+                                    <Badge className="text-[10px] bg-cyan-100 text-cyan-700 border-cyan-200">
+                                      {entry.saleChannel === 'direct_sale' ? 'بيع مباشر (فان)' : 'توصيل'}
+                                    </Badge>
+                                  )}
                                   {entry.type === 'sale' && entry.paymentType && (
                                     <Badge className="text-[10px] bg-muted text-foreground border-border">{entry.paymentType}</Badge>
+                                  )}
+                                  {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
+                                    <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
                                   )}
                                   {entry.type !== 'sale' && entry.sourceLabel && (
                                     <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
