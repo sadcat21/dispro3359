@@ -438,13 +438,15 @@ export const useCancelOrder = () => {
       // promos already deleted above (before parallel mutations) so the DB
       // trigger could safely restore worker_stock without racing with our
       // movement reversals.
-      // Soft-mark pending_offer_confirmations so we can restore the original
-      // state on resume (cancelled_pending vs cancelled_confirmed). The offers
-      // tab queries filter by status='pending'/'confirmed' so these are
-      // hidden until the order is resumed.
+      // Pending (not-yet-confirmed) offers must be DELETED on cancel — the
+      // worker never approved the gift, so the confirmation card must
+      // disappear with the cancelled sale to prevent confirming it later
+      // and wrongly deducting gift stock.
       mutations.push(
-        (supabase as any).from('pending_offer_confirmations').update({ status: 'cancelled_pending' }).eq('order_id', orderId).eq('status', 'pending')
+        (supabase as any).from('pending_offer_confirmations').delete().eq('order_id', orderId).eq('status', 'pending')
       );
+      // Confirmed offers (gift already deducted) are soft-marked so we can
+      // restore them as 'confirmed' if the order is resumed.
       mutations.push(
         (supabase as any).from('pending_offer_confirmations').update({ status: 'cancelled_confirmed' }).eq('order_id', orderId).eq('status', 'confirmed')
       );
