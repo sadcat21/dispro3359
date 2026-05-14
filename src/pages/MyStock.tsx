@@ -23,9 +23,11 @@ const MyStock: React.FC = () => {
   const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
 
-  const handleRecalibrate = async () => {
+  const [confirmRecalibrate, setConfirmRecalibrate] = useState(false);
+
+  const runRecalibrate = async () => {
     if (!workerId) return;
-    if (!confirm('سيتم إعادة احتساب الرصيد لجميع المنتجات وفق: آخر شحنة − المبيعات والهدايا غير الملغاة. متابعة؟')) return;
+    setConfirmRecalibrate(false);
     setRecalibrating(true);
     try {
       const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
