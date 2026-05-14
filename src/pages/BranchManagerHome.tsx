@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
+import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -41,10 +42,12 @@ const BranchManagerHome: React.FC = () => {
   const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
   const [finalReviewPickerOpen, setFinalReviewPickerOpen] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
+  const [truckPickerOpen, setTruckPickerOpen] = useState(false);
+  const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
-    enabled: !!branchId && finalReviewPickerOpen,
+    enabled: !!branchId && (finalReviewPickerOpen || truckPickerOpen),
     queryFn: async () => {
       const { data } = await supabase
         .from('workers')
@@ -144,6 +147,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customer_journey', label: t('nav.customer_journey'), icon: RouteIcon, path: '/customer-journey' },
         { key: 'sales_summary', label: t('worker_actions.sales_summary'), icon: TrendingUp, path: '/manager-sales-summary' },
         { key: 'promo_table', label: t('nav.table'), icon: ClipboardList, path: '/promo-table' },
+        { key: 'truck_balance', label: 'رصيد الشاحنة', icon: Truck, onClick: () => setTruckPickerOpen(true) },
       ],
     },
     {
@@ -155,7 +159,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
         { key: 'expenses_management', label: t('branch_manager.expenses_management'), icon: Receipt, path: '/expenses-management' },
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
-        { key: 'worker_debts', label: t('nav.worker_debts'), icon: Banknote, path: '/worker-debts' },
+        { key: 'branch_inventory', label: 'مخزون الفرع', icon: PackageSearch, path: '/warehouse' },
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'manager_accounting_review', label: t('admin_home.item.manager_accounting_review'), icon: BookOpenCheck, path: '/manager-accounting-review' },
       ],
@@ -338,6 +342,50 @@ const BranchManagerHome: React.FC = () => {
           branchId={branchId || null}
         />
       )}
+
+      {/* اختيار العامل لرصيد الشاحنة */}
+      <Dialog open={truckPickerOpen} onOpenChange={setTruckPickerOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-600" />
+              اختر العامل لعرض رصيد الشاحنة
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+            {deliveryWorkers.length === 0 ? (
+              <p className="col-span-2 text-center text-sm text-muted-foreground py-6">لا يوجد عمال نشطون</p>
+            ) : deliveryWorkers.map(w => (
+              <button
+                key={w.id}
+                onClick={() => {
+                  setTruckBalanceWorker({ id: w.id, name: w.full_name });
+                  setTruckPickerOpen(false);
+                }}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-blue-200 bg-blue-50 hover:border-blue-400 active:scale-95 transition-all"
+              >
+                <HardHat className="w-6 h-6 text-blue-600" />
+                <span className="text-xs font-bold text-center">{w.full_name}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* عرض رصيد الشاحنة */}
+      <Dialog open={!!truckBalanceWorker} onOpenChange={(o) => { if (!o) setTruckBalanceWorker(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-600" />
+              <span>مجموع الشاحنة {truckBalanceWorker?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+          {truckBalanceWorker && (
+            <WorkerTruckStockList workerId={truckBalanceWorker.id} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
