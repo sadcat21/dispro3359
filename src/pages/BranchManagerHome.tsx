@@ -152,13 +152,13 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customers', label: t('nav.customers'), icon: Users, path: '/customers' },
         { key: 'customer_journey', label: t('nav.customer_journey'), icon: RouteIcon, path: '/customer-journey' },
         { key: 'sales_summary', label: t('worker_actions.sales_summary'), icon: TrendingUp, path: '/manager-sales-summary' },
+        { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
       ],
     },
     {
       titleKey: 'branch_manager.section_finance',
       icon: Wallet,
       items: [
-        { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
       ],
     },
     {
