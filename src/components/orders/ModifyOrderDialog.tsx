@@ -1368,6 +1368,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                   giftProductName: offer.gift_product?.name || g.product?.name || null,
                   giftBoxes: Number(g.gift_quantity || 0),
                   giftPieces: Number(g.gift_pieces || 0),
+                  purchasedBoxes: Math.floor(Number(g.quantity || 0)),
+                  purchasedPieces: Math.round((Number(g.quantity || 0) - Math.floor(Number(g.quantity || 0))) * 100),
                   customerId: order.customer_id || null,
                   customerName: order.customer?.name || null,
                   workerId: resolvedWorkerId,

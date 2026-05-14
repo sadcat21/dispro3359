@@ -17,11 +17,10 @@ interface Props {
   onCustomerCountChange?: (count: number) => void;
 }
 
-const formatGift = (boxes: number, pieces: number, ppb: number): string => {
+const formatQty = (boxes: number, pieces: number): string => {
   const b = Math.max(0, Number(boxes || 0));
   const p = Math.max(0, Number(pieces || 0));
-  const ppbSafe = Math.max(1, Number(ppb || 1));
-  const piecesPart = p > 0 ? (p / 100).toFixed(2).split('.')[1] : '00';
+  const piecesPart = p > 0 ? p.toString().padStart(2, '0') : '00';
   return `${b}.${piecesPart} ص.ق`;
 };
 
@@ -211,18 +210,25 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
-                      {r.gift_product_name && r.gift_product_id !== r.product_id && (
-                        <p className="text-xs text-muted-foreground truncate">هدية: {r.gift_product_name}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant="outline" className="text-[11px] bg-emerald-50 dark:bg-emerald-950/20">
-                          <Gift className="w-3 h-3 ml-1" />
-                          {formatGift(r.gift_boxes, r.gift_pieces, r.pieces_per_box)}
-                        </Badge>
-                        {r.worker_name && (
-                          <span className="text-[11px] text-muted-foreground">العامل: {r.worker_name}</span>
-                        )}
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs font-semibold">
+                        <span className="px-2 py-0.5 rounded bg-muted text-foreground">
+                          {formatQty(r.purchased_boxes, r.purchased_pieces)}
+                        </span>
+                        <span className="text-muted-foreground">+</span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
+                          <Gift className="w-3 h-3" />
+                          {formatQty(r.gift_boxes, r.gift_pieces)}
+                          <span className="opacity-70">(هدية)</span>
+                        </span>
                       </div>
+                      {r.gift_product_name && r.gift_product_id !== r.product_id && (
+                        <p className="text-[11px] text-muted-foreground truncate mt-1">
+                          المنتج المُهدى: {r.gift_product_name}
+                        </p>
+                      )}
+                      {r.worker_name && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">العامل: {r.worker_name}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">

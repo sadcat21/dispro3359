@@ -95,6 +95,8 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
           giftProductName: it.giftProductName || it.productName || null,
           giftBoxes,
           giftPieces,
+          purchasedBoxes: Math.floor(qty),
+          purchasedPieces: Math.round((qty - Math.floor(qty)) * 100),
           customerId: params.customerId || null,
           customerName: params.customerName || null,
           workerId: params.workerId || null,
