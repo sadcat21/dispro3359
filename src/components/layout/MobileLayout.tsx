@@ -166,12 +166,9 @@ const SIDEBAR_GROUP_META: Record<string, { i18n: string; icon: React.ComponentTy
 
 const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { role, user, workerId, logout, activeBranch, switchBranch, showBranchSelection, selectBranch, activeRole, availableRoles, switchRole, showRoleSelection, selectRole } = useAuth();
-  const todayDateStrForBadge = new Date().toISOString().slice(0, 10);
   const { items: todayPendingOffersForBadge } = usePendingOfferConfirmations({
     workerId: workerId || null,
     status: 'pending',
-    dateFrom: todayDateStrForBadge,
-    dateTo: todayDateStrForBadge,
   });
   const achievementsBadgeCount = todayPendingOffersForBadge.length;
   const { cycleMode, badgeNumber, badgeColorClass, modeLabel } = useInvoiceFilter();
