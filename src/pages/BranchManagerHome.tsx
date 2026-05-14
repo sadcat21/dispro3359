@@ -342,6 +342,50 @@ const BranchManagerHome: React.FC = () => {
           branchId={branchId || null}
         />
       )}
+
+      {/* اختيار العامل لرصيد الشاحنة */}
+      <Dialog open={truckPickerOpen} onOpenChange={setTruckPickerOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-600" />
+              اختر العامل لعرض رصيد الشاحنة
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+            {deliveryWorkers.length === 0 ? (
+              <p className="col-span-2 text-center text-sm text-muted-foreground py-6">لا يوجد عمال نشطون</p>
+            ) : deliveryWorkers.map(w => (
+              <button
+                key={w.id}
+                onClick={() => {
+                  setTruckBalanceWorker({ id: w.id, name: w.full_name });
+                  setTruckPickerOpen(false);
+                }}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-blue-200 bg-blue-50 hover:border-blue-400 active:scale-95 transition-all"
+              >
+                <HardHat className="w-6 h-6 text-blue-600" />
+                <span className="text-xs font-bold text-center">{w.full_name}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* عرض رصيد الشاحنة */}
+      <Dialog open={!!truckBalanceWorker} onOpenChange={(o) => { if (!o) setTruckBalanceWorker(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-600" />
+              <span>مجموع الشاحنة {truckBalanceWorker?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+          {truckBalanceWorker && (
+            <WorkerTruckStockList workerId={truckBalanceWorker.id} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
