@@ -489,39 +489,41 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                       return (
                         <div key={entry.id} className="space-y-1">
                           {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}
-                          <div className={`rounded-xl border px-3 py-2.5 ${cardBg}`}>
-                            {/* Top row: delta + qty change */}
-                            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className={`rounded-xl border-2 shadow-sm px-3 py-2.5 ${cardBg}`}>
+                            {/* Top row: badges + time + amount */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {entry.type !== 'sale' && (
                                 <Badge className={`text-[10px] ${typeBadge}`}>{entry.label}</Badge>
-                                {entry.type === 'sale' && (
-                                  <Badge className="text-[10px] bg-cyan-100 text-cyan-700 border-cyan-200">
-                                    {entry.saleChannel === 'direct_sale' ? 'فان' : 'توصيل'}
-                                  </Badge>
-                                )}
-                                {entry.type === 'sale' && entry.priceSubtype && (
-                                  <Badge className="text-[10px] font-bold bg-indigo-100 text-indigo-700 border-indigo-200">
-                                    {entry.priceSubtype === 'super_gros' ? 'SG' : entry.priceSubtype === 'gros' ? 'G' : 'D'}
-                                  </Badge>
-                                )}
-                                {entry.type === 'sale' && entry.paymentType && (
-                                  <Badge className="text-[10px] bg-muted text-foreground border-border">
-                                    {entry.paymentType === 'without_invoice' ? 'فاتورة 2'
-                                      : entry.paymentType === 'with_invoice' ? 'بفاتورة'
-                                      : entry.paymentType === 'cash' ? 'نقدًا'
-                                      : entry.paymentType === 'credit' ? 'آجل'
-                                      : entry.paymentType}
-                                  </Badge>
-                                )}
-                                {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
-                                  <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
-                                )}
-                                {entry.type !== 'sale' && entry.sourceLabel && (
-                                  <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
-                                )}
-                              </div>
-                              <div />
-
+                              )}
+                              {entry.type === 'sale' && (
+                                <Badge className="text-[10px] bg-cyan-100 text-cyan-700 border-cyan-200">
+                                  {entry.saleChannel === 'direct_sale' ? 'فان' : 'توصيل'}
+                                </Badge>
+                              )}
+                              {entry.type === 'sale' && entry.priceSubtype && (
+                                <Badge className="text-[10px] font-bold bg-indigo-100 text-indigo-700 border-indigo-200">
+                                  {entry.priceSubtype === 'super_gros' ? 'SG' : entry.priceSubtype === 'gros' ? 'G' : 'D'}
+                                </Badge>
+                              )}
+                              {entry.type === 'sale' && entry.paymentType && (
+                                <Badge className="text-[10px] bg-muted text-foreground border-border">
+                                  {entry.paymentType === 'without_invoice' ? 'فاتورة 2'
+                                    : entry.paymentType === 'with_invoice' ? 'بفاتورة'
+                                    : entry.paymentType === 'cash' ? 'نقدًا'
+                                    : entry.paymentType === 'credit' ? 'آجل'
+                                    : entry.paymentType}
+                                </Badge>
+                              )}
+                              {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
+                                <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
+                              )}
+                              {entry.type !== 'sale' && entry.sourceLabel && (
+                                <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
+                              )}
+                              <span className="text-[10px] text-muted-foreground ms-auto">{timeLabel}</span>
+                              {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
+                                <span className="text-[11px] font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</span>
+                              )}
                             </div>
 
                             {/* Highlighted grid: store / delivered / remaining */}
@@ -538,12 +540,6 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                 <div className="text-[9px] text-amber-800">الباقي</div>
                                 <div className="text-[12px] font-extrabold text-amber-700">{fmtBP(entry.after, history.ppb)}</div>
                               </div>
-                            </div>
-                            <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
-                              <span>{timeLabel}</span>
-                              {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
-                                <span className="font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</span>
-                              )}
                             </div>
                             {entry.note && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
