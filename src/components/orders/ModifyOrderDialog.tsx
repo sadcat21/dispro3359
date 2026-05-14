@@ -29,6 +29,7 @@ import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDia
 import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
 import { boxesToBP, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
+import { restoreStockFromMovements, type StockMovementForReversal } from '@/utils/stockMovementReversal';
 
 interface ModifyOrderDialogProps {
   open: boolean;
@@ -1505,33 +1506,27 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     try {
       const { data: currentItems, error: itemsError } = await supabase
         .from('order_items')
-        .select('product_id, quantity, unit_price, total_price, gift_quantity, gift_pieces')
+        .select('product_id, quantity, unit_price, total_price, gift_quantity, gift_pieces, pieces_per_box, product:products(pieces_per_box)')
         .eq('order_id', order.id);
 
       if (itemsError) throw itemsError;
 
-      for (const item of (currentItems || [])) {
-        const stockReturnQty = Number(item.quantity || 0) + (Number((item as any).gift_pieces || 0) / 100);
-        const { data: ws } = await supabase
-          .from('worker_stock')
-          .select('id, quantity')
-          .eq('worker_id', effectiveWorkerId)
-          .eq('product_id', item.product_id)
-          .maybeSingle();
+      const { data: stockMovements, error: movementsError } = await supabase
+        .from('stock_movements')
+        .select('product_id, branch_id, worker_id, movement_type, quantity, signed_quantity, from_location_type, from_location_id, product:products(pieces_per_box)')
+        .eq('order_id', order.id);
+      if (movementsError) throw movementsError;
 
-        if (ws) {
-          await supabase.from('worker_stock')
-            .update({ quantity: Number(ws.quantity || 0) + stockReturnQty })
-            .eq('id', ws.id);
-        } else {
-          await supabase.from('worker_stock').insert({
-            worker_id: effectiveWorkerId,
-            product_id: item.product_id,
-            quantity: stockReturnQty,
-            branch_id: order.branch_id,
-          });
-        }
-      }
+      const itemPiecesPerBox = new Map((currentItems || []).map((item: any) => [
+        item.product_id,
+        Math.max(1, Number(item.product?.pieces_per_box || item.pieces_per_box || 1)),
+      ]));
+      await restoreStockFromMovements(
+        (stockMovements || []) as StockMovementForReversal[],
+        effectiveWorkerId,
+        order.branch_id,
+        itemPiecesPerBox,
+      );
 
       await supabase.from('stock_movements').delete().eq('order_id', order.id);
 
