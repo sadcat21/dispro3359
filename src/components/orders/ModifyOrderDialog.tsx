@@ -1318,7 +1318,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             .eq('order_id', order.id)
             .eq('status', 'pending');
 
-          if (!allItemsRemoved) {
+          // For sold/delivered orders, recordSaleTracking (called below) will
+          // recreate fresh pending rows. Only handle the not-yet-sold case here
+          // to avoid duplicate inserts.
+          if (!allItemsRemoved && !isSold) {
             const { recordPendingOfferConfirmation } = await import('@/utils/pendingOfferConfirmations');
             const { data: freshGiftItems } = await supabase
               .from('order_items')
