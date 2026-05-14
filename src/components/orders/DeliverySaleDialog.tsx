@@ -241,11 +241,13 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   // Initialize sale items from order items
   // Helper: recalculate gift for a product based on paid quantity and active offers
   // Returns { giftBoxes, giftPieces } where giftPieces is the remainder that doesn't fill a full box
-  const recalcGift = useCallback((productId: string, paidQty: number, piecesPerBox: number): { giftBoxes: number; giftPieces: number } => {
+  const recalcGift = useCallback((productId: string, paidQty: number, piecesPerBox: number): { giftBoxes: number; giftPieces: number; offerId: string | null } => {
     const offersForProduct = activeOffers.filter(o => o.product_id === productId);
-    if (offersForProduct.length === 0) return { giftBoxes: 0, giftPieces: 0 };
+    if (offersForProduct.length === 0) return { giftBoxes: 0, giftPieces: 0, offerId: null };
 
     let totalGiftPieces = 0;
+    let matchedOfferId: string | null = null;
+    const markOffer = (id: string) => { if (!matchedOfferId) matchedOfferId = id; };
     for (const offer of offersForProduct) {
       const tiers = offer.tiers && offer.tiers.length > 0 ? offer.tiers : null;
       if (tiers) {
