@@ -47,7 +47,7 @@ const BranchManagerHome: React.FC = () => {
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
-    enabled: !!branchId && finalReviewPickerOpen,
+    enabled: !!branchId && (finalReviewPickerOpen || truckPickerOpen),
     queryFn: async () => {
       const { data } = await supabase
         .from('workers')
