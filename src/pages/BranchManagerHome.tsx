@@ -266,8 +266,21 @@ const BranchManagerHome: React.FC = () => {
       </div>
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
-      <div className="px-3 sm:px-4 py-6" dir="rtl">
-        {(() => {
+      <div className="px-3 sm:px-4 py-6 space-y-5" dir="rtl">
+        {sections.map((section, sIdx) => {
+          const SecIcon = section.icon;
+          // لوحة ألوان دوّارة لكل قسم لإعطاء كل قسم لون خلفية مميز كما في الصورة
+          const sectionPalette = [
+            { wrap: 'bg-amber-50/60 border-amber-200', title: 'text-amber-700' },
+            { wrap: 'bg-emerald-50/60 border-emerald-200', title: 'text-emerald-700' },
+            { wrap: 'bg-sky-50/60 border-sky-200', title: 'text-sky-700' },
+            { wrap: 'bg-rose-50/60 border-rose-200', title: 'text-rose-700' },
+            { wrap: 'bg-violet-50/60 border-violet-200', title: 'text-violet-700' },
+            { wrap: 'bg-orange-50/60 border-orange-200', title: 'text-orange-700' },
+            { wrap: 'bg-teal-50/60 border-teal-200', title: 'text-teal-700' },
+          ][sIdx % 7];
+
+          // ألوان دوّارة للبطاقات داخل القسم (حدود + أيقونة)
           const cardPalettes = [
             { border: 'border-rose-300', icon: 'text-rose-500' },
             { border: 'border-emerald-300', icon: 'text-emerald-500' },
@@ -279,38 +292,53 @@ const BranchManagerHome: React.FC = () => {
             { border: 'border-pink-300', icon: 'text-pink-500' },
             { border: 'border-indigo-300', icon: 'text-indigo-500' },
           ];
-          const allItems = sections.flatMap(s => s.items);
+
           return (
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-              {allItems.map((item, iIdx) => {
-                const Icon = item.icon;
-                const showBadge = typeof item.badge === 'number' && item.badge > 0;
-                const cp = cardPalettes[iIdx % cardPalettes.length];
-                return (
-                  <Card
-                    key={item.key}
-                    onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
-                    className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${
-                      showBadge ? 'border-red-400 ring-1 ring-red-200/60' : cp.border
-                    }`}
-                  >
-                    {showBadge && (
-                      <Badge className="absolute -top-1 -right-1 bg-red-600 hover:bg-red-700 text-white border border-white shadow min-w-[16px] h-[16px] text-[9px] flex items-center justify-center px-1 animate-pulse z-10">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    <CardContent className="p-1.5 sm:p-2 flex flex-col items-center justify-center text-center gap-1 min-h-[60px]">
-                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
-                      <p className="text-[10px] sm:text-[11px] font-semibold text-slate-700 leading-tight line-clamp-2">
-                        {item.label}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            <div
+              key={section.titleKey}
+              className={`relative rounded-2xl border ${sectionPalette.wrap} p-3 sm:p-4`}
+            >
+              {/* عنوان القسم — في الأعلى يمين كما في الصورة */}
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <SecIcon className={`w-5 h-5 ${sectionPalette.title}`} />
+                <h2 className={`text-sm sm:text-base font-bold ${sectionPalette.title}`}>
+                  {t(section.titleKey)}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                {section.items.map((item, iIdx) => {
+                  const Icon = item.icon;
+                  const showBadge = typeof item.badge === 'number' && item.badge > 0;
+                  const cp = cardPalettes[iIdx % cardPalettes.length];
+                  return (
+                    <Card
+                      key={item.key}
+                      onClick={() => item.onClick ? item.onClick() : item.path && navigate(item.path)}
+                      className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${
+                        showBadge
+                          ? 'border-red-400 ring-1 ring-red-200/60'
+                          : cp.border
+                      }`}
+                    >
+                      {showBadge && (
+                        <Badge className="absolute -top-1 -right-1 bg-red-600 hover:bg-red-700 text-white border border-white shadow min-w-[16px] h-[16px] text-[9px] flex items-center justify-center px-1 animate-pulse z-10">
+                          {item.badge}
+                        </Badge>
+                      )}
+                      <CardContent className="p-1.5 sm:p-2 flex flex-col items-center justify-center text-center gap-1 min-h-[60px]">
+                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
+                        <p className="text-[10px] sm:text-[11px] font-semibold text-slate-700 leading-tight line-clamp-2">
+                          {item.label}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
           );
-        })()}
+        })}
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
 
