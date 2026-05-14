@@ -2907,6 +2907,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 }
               }
               await supabase.from('customer_debts').delete().eq('order_id', orderId);
+              await (supabase as any).from('pending_offer_confirmations').delete().eq('order_id', orderId).eq('status', 'pending');
               const { error } = await supabase
                 .from('orders')
                 .update({ status: 'cancelled' })
@@ -2939,6 +2940,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 }
               }
               await supabase.from('customer_debts').delete().eq('order_id', orderId);
+              await (supabase as any).from('pending_offer_confirmations').delete().eq('order_id', orderId).eq('status', 'pending');
               const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
               if (error) throw error;
 
