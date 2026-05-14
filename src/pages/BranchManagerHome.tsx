@@ -137,28 +137,13 @@ const BranchManagerHome: React.FC = () => {
       ],
     },
     {
-      titleKey: 'branch_manager.section_offers',
-      icon: Gift,
-      items: [
-        { key: 'promo_table', label: t('nav.table'), icon: ClipboardList, path: '/promo-table' },
-        { key: 'product_offers', label: t('nav.product_offers'), icon: Eye, path: '/product-offers' },
-        { key: 'promo_tracking', label: t('admin.promo_tracking'), icon: Gift, path: '/promo-tracking' },
-      ],
-    },
-    {
       titleKey: 'branch_manager.section_customers',
       icon: UserCheck,
       items: [
         { key: 'customers', label: t('nav.customers'), icon: Users, path: '/customers' },
         { key: 'customer_journey', label: t('nav.customer_journey'), icon: RouteIcon, path: '/customer-journey' },
         { key: 'sales_summary', label: t('worker_actions.sales_summary'), icon: TrendingUp, path: '/manager-sales-summary' },
-        { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
-      ],
-    },
-    {
-      titleKey: 'branch_manager.section_finance',
-      icon: Wallet,
-      items: [
+        { key: 'promo_table', label: t('nav.table'), icon: ClipboardList, path: '/promo-table' },
       ],
     },
     {
@@ -169,6 +154,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'branch_expenses', label: t('branch_manager.branch_expenses'), icon: Receipt, path: '/expenses' },
         { key: 'expenses_management', label: t('branch_manager.expenses_management'), icon: Receipt, path: '/expenses-management' },
+        { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'worker_debts', label: t('nav.worker_debts'), icon: Banknote, path: '/worker-debts' },
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'manager_accounting_review', label: t('admin_home.item.manager_accounting_review'), icon: BookOpenCheck, path: '/manager-accounting-review' },
