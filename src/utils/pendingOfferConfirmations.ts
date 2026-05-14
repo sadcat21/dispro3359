@@ -11,6 +11,8 @@ export interface RecordPendingOfferInput {
   giftProductName?: string | null;
   giftBoxes?: number;
   giftPieces?: number;
+  purchasedBoxes?: number;
+  purchasedPieces?: number;
   customerId?: string | null;
   customerName?: string | null;
   workerId?: string | null;
