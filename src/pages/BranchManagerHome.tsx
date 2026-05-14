@@ -266,9 +266,9 @@ const BranchManagerHome: React.FC = () => {
                           {item.badge}
                         </Badge>
                       )}
-                      <CardContent className="p-1.5 sm:p-2 flex flex-col items-center justify-center text-center gap-1 min-h-[60px]">
-                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
-                        <p className="text-[10px] sm:text-[11px] font-semibold text-slate-700 leading-tight line-clamp-2">
+                      <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
+                        <Icon className={`w-4 h-4 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
+                        <p className="text-[10px] font-semibold text-slate-700 leading-tight line-clamp-2">
                           {item.label}
                         </p>
                       </CardContent>
