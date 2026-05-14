@@ -49,11 +49,20 @@ const BranchManagerHome: React.FC = () => {
     queryKey: ['bm-delivery-workers', branchId],
     enabled: !!branchId && (finalReviewPickerOpen || truckPickerOpen),
     queryFn: async () => {
+      const DELIVERY_ROLE_ID = '095850c1-043e-4b8b-9770-552ee8c18b0a';
+      const { data: roleRows } = await supabase
+        .from('worker_roles')
+        .select('worker_id')
+        .eq('custom_role_id', DELIVERY_ROLE_ID)
+        .eq('is_active', true);
+      const ids = Array.from(new Set((roleRows || []).map((r: any) => r.worker_id)));
+      if (ids.length === 0) return [] as { id: string; full_name: string }[];
       const { data } = await supabase
         .from('workers')
         .select('id, full_name')
         .eq('is_active', true)
         .eq('branch_id', branchId!)
+        .in('id', ids)
         .order('full_name');
       return (data || []) as { id: string; full_name: string }[];
     },
