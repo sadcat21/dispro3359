@@ -274,11 +274,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     queryFn: async () => {
       const { supabase } = await import('@/integrations/supabase/client');
       const branchId = activeBranch?.id;
-      const [invoices, warehouseReviews] = await Promise.all([
+      const [invoices, warehouseReviews, stockReceipts, factory] = await Promise.all([
         (() => { let q = supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_branch'); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
         supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        (() => { let q = supabase.from('stock_receipts').select('id', { count: 'exact', head: true }).in('status', ['pending_approval', 'pending_branch']); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
+        (() => { let q = supabase.from('factory_orders').select('id', { count: 'exact', head: true }).eq('order_type', 'sending').eq('status', 'pending_approval'); if (branchId) q = q.eq('branch_id', branchId); return q; })(),
       ]);
-      return (invoices.count || 0) + (warehouseReviews.count || 0);
+      return (invoices.count || 0) + (warehouseReviews.count || 0) + (stockReceipts.count || 0) + (factory.count || 0);
     },
     enabled: !!activeBranch?.id,
     refetchInterval: 30000,

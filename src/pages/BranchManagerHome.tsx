@@ -199,11 +199,6 @@ const BranchManagerHome: React.FC = () => {
                 <div className="text-xs text-white/85">عرض عملاء اليوم لكل عامل</div>
               </div>
             </div>
-            {((kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0)) > 0 && (
-              <Badge className="bg-white text-red-600 hover:bg-white text-base font-bold px-3 py-1">
-                {(kpis?.pendingInvoices || 0) + (kpis?.pendingStock || 0)}
-              </Badge>
-            )}
           </button>
         </div>
       </div>
