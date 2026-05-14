@@ -50,7 +50,9 @@ const BranchInvoiceApprovals: React.FC = () => {
   const branchId = activeBranch?.id;
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 });
+    const r1 = requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0 }));
+    const r2 = setTimeout(() => window.scrollTo({ top: 0, left: 0 }), 100);
+    return () => { cancelAnimationFrame(r1); clearTimeout(r2); };
   }, []);
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
