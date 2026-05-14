@@ -1,18 +1,53 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useProductOffers } from '@/hooks/useProductOffers';
+import { Sparkles, Gift, Tag } from 'lucide-react';
 
-interface Props {
-  fullName?: string | null;
-  subtitle?: string;
-}
-
-const ProductShowcaseHero: React.FC<Props> = ({ fullName, subtitle }) => {
-  const { t } = useLanguage();
+const ProductShowcaseHero: React.FC = () => {
+  const { activeOffers, isLoading } = useProductOffers();
   const [images, setImages] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState(0); // toggles transition variant
+  const [phase, setPhase] = useState(0);
 
+  // Build slides from active offers
+  const slides = useMemo(() => {
+    const list = (activeOffers || [])
+      .filter((o: any) => o?.product?.name)
+      .map((o: any) => {
+        const t = (o.tiers && o.tiers[0]) || o;
+        const productName = o.product?.name || '';
+        const giftName = (t?.gift_product?.name) || (o.gift_product?.name) || null;
+        const giftQty = Number(t?.gift_quantity || o.gift_quantity || 0);
+        const giftUnit = t?.gift_quantity_unit || o.gift_quantity_unit || '';
+        const minQty = Number(t?.min_quantity || o.min_quantity || 0);
+        const minUnit = t?.min_quantity_unit || o.min_quantity_unit || '';
+        const discount = Number(t?.discount_percentage || o.discount_percentage || 0);
+        const discountAmt = Number(t?.discount_amount || o.discount_amount || 0);
+
+        let detail = '';
+        if (giftName && giftQty > 0) {
+          detail = `🎁 اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على ${giftQty} ${unitLabel(giftUnit)} ${giftName} مجاناً`;
+        } else if (giftQty > 0) {
+          detail = `🎁 ${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} هدية`;
+        } else if (discount > 0) {
+          detail = `🔥 خصم ${discount}% عند شراء ${minQty} ${unitLabel(minUnit)}`;
+        } else if (discountAmt > 0) {
+          detail = `🔥 خصم ${discountAmt} دج عند شراء ${minQty} ${unitLabel(minUnit)}`;
+        } else {
+          detail = o.description || 'عرض حصري';
+        }
+
+        return {
+          title: o.name || productName,
+          subtitle: detail,
+          product: productName,
+          image: o.product?.image_url || null,
+        };
+      });
+    return list;
+  }, [activeOffers]);
+
+  // Fetch fallback product images for the background
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -25,33 +60,37 @@ const ProductShowcaseHero: React.FC<Props> = ({ fullName, subtitle }) => {
       const urls = (data || [])
         .map((r: any) => r.image_url as string)
         .filter(Boolean);
-      // shuffle
       for (let i = urls.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [urls[i], urls[j]] = [urls[j], urls[i]];
       }
       setImages(urls);
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, []);
 
+  // Build the cycling list (offers preferred, fallback to product images)
+  const cycle = slides.length > 0
+    ? slides
+    : images.map((img) => ({ title: 'إدارة الطلبيات', subtitle: 'عروض حصرية قادمة', product: '', image: img }));
+
   useEffect(() => {
-    if (images.length < 2) return;
+    if (cycle.length < 2) return;
     const id = setInterval(() => {
-      setIndex((i) => (i + 1) % images.length);
+      setIndex((i) => (i + 1) % cycle.length);
       setPhase((p) => (p + 1) % 4);
-    }, 3500);
+    }, 4000);
     return () => clearInterval(id);
-  }, [images.length]);
+  }, [cycle.length]);
 
   const animClass = [
-    'animate-[showcaseZoom_3.6s_ease-out]',
-    'animate-[showcasePan_3.6s_ease-out]',
-    'animate-[showcaseTilt_3.6s_ease-out]',
-    'animate-[showcaseZoomOut_3.6s_ease-out]',
+    'animate-[showcaseZoom_4.1s_ease-out]',
+    'animate-[showcasePan_4.1s_ease-out]',
+    'animate-[showcaseTilt_4.1s_ease-out]',
+    'animate-[showcaseZoomOut_4.1s_ease-out]',
   ][phase];
+
+  const current = cycle[index];
 
   return (
     <div className="relative h-44 overflow-hidden bg-gradient-to-l from-primary to-primary/80 [.theme-soft_&]:bg-none [.theme-soft_&]:bg-background">
@@ -59,7 +98,7 @@ const ProductShowcaseHero: React.FC<Props> = ({ fullName, subtitle }) => {
         @keyframes showcaseZoom {
           0% { transform: scale(1.4) rotate(-2deg); opacity: 0; filter: blur(12px); }
           25% { opacity: 1; filter: blur(0); }
-          100% { transform: scale(1) rotate(0); opacity: 1; filter: blur(0); }
+          100% { transform: scale(1) rotate(0); opacity: 1; }
         }
         @keyframes showcasePan {
           0% { transform: translateX(15%) scale(1.2); opacity: 0; }
@@ -76,34 +115,54 @@ const ProductShowcaseHero: React.FC<Props> = ({ fullName, subtitle }) => {
           30% { opacity: 1; filter: blur(0); }
           100% { transform: scale(1.05); opacity: 1; }
         }
+        @keyframes textSlideUp {
+          0% { transform: translateY(20px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
       `}</style>
 
-      {/* Image stack */}
-      {images.length > 0 && (
-        <div key={index} className={`absolute inset-0 ${animClass}`}>
-          <img
-            src={images[index]}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-          />
+      {current?.image && (
+        <div key={`bg-${index}`} className={`absolute inset-0 ${animClass}`}>
+          <img src={current.image} alt="" className="w-full h-full object-cover" loading="eager" />
         </div>
       )}
 
-      {/* Dark overlay for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-l from-primary/80 via-primary/60 to-primary/90" />
+      <div className="absolute inset-0 bg-gradient-to-l from-primary/85 via-primary/65 to-primary/90" />
 
-      {/* Text */}
-      <div className="relative z-10 p-6 text-primary-foreground h-full flex flex-col justify-center">
-        <h2 className="text-xl font-bold mb-1 drop-shadow">
-          {t('common.welcome')} {fullName} 👋
+      <div key={`txt-${index}`} className="relative z-10 p-5 text-primary-foreground h-full flex flex-col justify-center animate-[textSlideUp_0.6s_ease-out]">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="w-4 h-4" />
+          <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
+            {slides.length > 0 ? 'عرض حصري' : 'إدارة الطلبيات'}
+          </span>
+        </div>
+        <h2 className="text-lg font-bold mb-1 line-clamp-1 drop-shadow">
+          {current?.title || 'إدارة الطلبيات'}
         </h2>
-        {subtitle && (
-          <p className="text-primary-foreground/90 text-sm drop-shadow">{subtitle}</p>
+        <p className="text-primary-foreground/95 text-sm line-clamp-2 drop-shadow">
+          {isLoading && !current ? 'جاري تحميل العروض...' : (current?.subtitle || '')}
+        </p>
+        {cycle.length > 1 && (
+          <div className="flex gap-1 mt-2">
+            {cycle.slice(0, 6).map((_, i) => (
+              <span
+                key={i}
+                className={`h-1 rounded-full transition-all duration-500 ${
+                  i === index % 6 ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
+};
+
+const unitLabel = (u?: string) => {
+  if (u === 'box') return 'صندوق';
+  if (u === 'piece') return 'قطعة';
+  return u || '';
 };
 
 export default ProductShowcaseHero;

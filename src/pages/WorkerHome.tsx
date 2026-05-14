@@ -391,8 +391,8 @@ const WorkerHome: React.FC = () => {
 
   return (
     <div className="pb-24 touch-pan-y">
-      {/* Welcome Showcase */}
-      <ProductShowcaseHero fullName={user?.full_name} subtitle={getWelcomeMessage()} />
+      {/* Offers Showcase */}
+      <ProductShowcaseHero />
 
       {/* Worker Sales Summary */}
       <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
