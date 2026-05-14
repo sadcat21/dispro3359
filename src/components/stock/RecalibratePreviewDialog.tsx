@@ -157,15 +157,22 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                           ) : (
                             <div className="space-y-1">
                               {r.movements.map((m, i) => (
-                                <div key={i} className="flex items-center gap-2 p-1.5 rounded bg-background border">
-                                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                                    {format(new Date(m.created_at), 'MM-dd HH:mm')}
-                                  </span>
-                                  <Badge variant="outline" className="text-[10px]">
-                                    {MOVEMENT_LABELS[m.movement_type] || m.movement_type}
-                                  </Badge>
-                                  <span className="font-medium tabular-nums">{Number(m.quantity)}</span>
-                                  {m.notes && <span className="text-muted-foreground text-[10px] truncate flex-1">{m.notes}</span>}
+                                <div key={i} className="flex flex-col gap-1 p-1.5 rounded bg-background border">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                                      {format(new Date(m.created_at), 'MM-dd HH:mm')}
+                                    </span>
+                                    <Badge variant="outline" className="text-[10px]">
+                                      {MOVEMENT_LABELS[m.movement_type] || m.movement_type}
+                                    </Badge>
+                                    <span className="font-medium tabular-nums">{Number(m.quantity)}</span>
+                                    {m.customer_name && (
+                                      <span className="text-[10px] text-foreground truncate">
+                                        🏪 {m.customer_name}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {m.notes && <span className="text-muted-foreground text-[10px] truncate">{m.notes}</span>}
                                 </div>
                               ))}
                             </div>
