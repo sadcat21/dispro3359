@@ -366,6 +366,41 @@ export const useCancelOrder = () => {
       // the gift quantity is never returned to the truck.
       // Order: 1) delete promos (trigger restores gift/sale) → 2) restore
       // movements & delete them → 3) run remaining mutations in parallel.
+      // ── Pre-snapshot: capture worker_stock for products that have a gift,
+      // so we can verify the cancellation actually restored those pieces.
+      const giftItems = (orderItems || []).filter(
+        (it: any) => Number(it.gift_pieces || 0) > 0 || Number(it.gift_quantity || 0) > 0,
+      );
+      const giftProductPpb = new Map<string, number>(
+        giftItems.map((it: any) => [
+          it.product_id,
+          Math.max(1, Number(it.product?.pieces_per_box || it.pieces_per_box || 1)),
+        ]),
+      );
+      const giftExpectedAdd = new Map<string, number>(); // pieces expected to be restored
+      for (const it of giftItems) {
+        const ppb = giftProductPpb.get(it.product_id) || 1;
+        const giftPieces = Number(it.gift_pieces || 0);
+        const giftBoxes = Number(it.gift_quantity || 0); // assumed in boxes
+        const add = (giftBoxes * ppb) + giftPieces;
+        giftExpectedAdd.set(it.product_id, (giftExpectedAdd.get(it.product_id) || 0) + add);
+      }
+      const preStockPieces = new Map<string, number>();
+      if (giftItems.length && order.assigned_worker_id) {
+        const { data: preStock } = await supabase
+          .from('worker_stock')
+          .select('product_id, quantity')
+          .eq('worker_id', order.assigned_worker_id)
+          .in('product_id', Array.from(giftProductPpb.keys()));
+        for (const row of (preStock || []) as any[]) {
+          const ppb = giftProductPpb.get(row.product_id) || 1;
+          preStockPieces.set(row.product_id, bpToPieces(row.quantity, ppb));
+        }
+        for (const pid of giftProductPpb.keys()) {
+          if (!preStockPieces.has(pid)) preStockPieces.set(pid, 0);
+        }
+      }
+
       const { error: promoDelErr } = await (supabase as any)
         .from('promos').delete().eq('order_id', orderId);
       if (promoDelErr) throw promoDelErr;
