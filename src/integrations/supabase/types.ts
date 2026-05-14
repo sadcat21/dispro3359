@@ -9695,6 +9695,16 @@ export type Database = {
         Args: { _reference_date?: string; _worker_id: string }
         Returns: number
       }
+      recalibrate_worker_stock: {
+        Args: { p_worker_id: string }
+        Returns: {
+          new_qty: number
+          old_qty: number
+          ppb: number
+          product_id: string
+          product_name: string
+        }[]
+      }
       record_cash_collection_atomic: {
         Args: {
           p_account_id: string
