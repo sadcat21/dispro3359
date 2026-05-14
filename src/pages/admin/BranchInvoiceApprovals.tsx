@@ -49,6 +49,10 @@ const BranchInvoiceApprovals: React.FC = () => {
   const navigate = useNavigate();
   const branchId = activeBranch?.id;
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
+
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
