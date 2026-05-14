@@ -9887,6 +9887,10 @@ export type Database = {
         Args: { p_notes?: string; p_worker_id: string }
         Returns: Json
       }
+      stock_qty_bp_to_pieces: {
+        Args: { p_ppb: number; p_qty: number }
+        Returns: number
+      }
       submit_factory_order_for_approval: {
         Args: { p_order_id: string }
         Returns: Json
