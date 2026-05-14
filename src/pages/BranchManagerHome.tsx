@@ -206,7 +206,7 @@ const BranchManagerHome: React.FC = () => {
 
           {/* زر الموافقات البارز */}
           <button
-            onClick={() => navigate('/branch-approvals')}
+            onClick={() => navigate('/branch-invoice-approvals')}
             className="mt-4 w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-5 py-4 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-3">
