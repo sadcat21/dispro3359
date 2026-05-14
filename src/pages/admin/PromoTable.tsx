@@ -37,13 +37,16 @@ const PromoTable: React.FC = () => {
     }
   };
 
-  // Format pieces as box.pieces (b.p) — e.g. 25 pieces with ppb=20 → "1.05"
-  const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
+  // Format quantity respecting the unit it was recorded in (box vs piece)
+  const formatBP = (qty: number, piecesPerBox: number | null | undefined, unit?: string | null): string => {
+    const q = Number(qty || 0);
     const ppb = Number(piecesPerBox || 0);
-    const p = Number(pieces || 0);
-    if (!ppb || ppb <= 1) return `${p} ق`;
-    const boxes = Math.floor(p / ppb);
-    const rem = p % ppb;
+    // If recorded as boxes, show as boxes directly
+    if (unit === 'box') return `${q} ص`;
+    // Recorded as pieces — convert to box.pieces if possible
+    if (!ppb || ppb <= 1) return `${q} ق`;
+    const boxes = Math.floor(q / ppb);
+    const rem = q % ppb;
     if (boxes === 0) return `${rem} ق`;
     if (rem === 0) return `${boxes} ص`;
     return `${boxes} ص ${rem} ق`;
