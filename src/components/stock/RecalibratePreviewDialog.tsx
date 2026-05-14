@@ -79,7 +79,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-2 px-2">
+        <ScrollArea className="flex-1 px-3 py-3">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
