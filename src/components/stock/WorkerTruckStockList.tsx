@@ -125,15 +125,19 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         .from('stock_movements')
         .select('order_id, product_id, quantity, signed_quantity, movement_type')
         .eq('worker_id', workerId)
-        .in('movement_type', ['delivery', 'modification'])
+        .in('movement_type', ['delivery', 'modification', 'direct_sale'])
         .in('order_id', orders.map(o => o.id));
       const deliveredByOrderProduct = new Map<string, number>();
+      const channelByOrderProduct = new Map<string, string>();
       for (const movement of movements || []) {
         const key = `${movement.order_id}|${movement.product_id}`;
         const delta = movement.movement_type === 'modification'
           ? -Number(movement.signed_quantity || 0)
           : Number(movement.quantity || 0);
         deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + delta);
+        if (movement.movement_type === 'delivery' || movement.movement_type === 'direct_sale') {
+          channelByOrderProduct.set(key, movement.movement_type);
+        }
       }
       const { data: pendingOffers } = await supabase
         .from('pending_offer_confirmations' as any)
