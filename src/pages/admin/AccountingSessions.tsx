@@ -37,6 +37,9 @@ const AccountingSessions: React.FC = () => {
   const pastOnly = location.pathname === '/accounting-sessions';
   const { activeBranch, role } = useAuth();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [workerFilter, setWorkerFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedSession, setSelectedSession] = useState<AccountingSession | null>(null);
@@ -254,14 +257,14 @@ const AccountingSessions: React.FC = () => {
 
       {/* Previous Sessions Section */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <div className="h-px w-4 bg-border" />
             <span className="text-sm font-bold">{t('accounting.previous_sessions')}</span>
             <div className="h-px flex-1 bg-border" />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-36 h-8 text-xs rounded-lg">
+            <SelectTrigger className="w-32 h-8 text-xs rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -273,8 +276,56 @@ const AccountingSessions: React.FC = () => {
           </Select>
         </div>
 
+        {/* Worker + Date filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={workerFilter} onValueChange={setWorkerFilter}>
+            <SelectTrigger className="w-44 h-8 text-xs rounded-lg">
+              <SelectValue placeholder={t('accounting.select_worker')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('common.all')}</SelectItem>
+              {workers.map(w => (
+                <SelectItem key={w.id} value={w.id}>{w.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-8 text-xs rounded-lg border border-input bg-background px-2"
+          />
+          <span className="text-xs text-muted-foreground">→</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-8 text-xs rounded-lg border border-input bg-background px-2"
+          />
+          {(workerFilter !== 'all' || dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => { setWorkerFilter('all'); setDateFrom(''); setDateTo(''); }}
+            >
+              {t('common.clear') || 'مسح'}
+            </Button>
+          )}
+        </div>
+
+        {(() => {
+          const filteredSessions = (sessions || []).filter(s => {
+            if (workerFilter !== 'all' && s.worker_id !== workerFilter) return false;
+            const d = s.session_date?.slice(0, 10);
+            if (dateFrom && d < dateFrom) return false;
+            if (dateTo && d > dateTo) return false;
+            return true;
+          });
+          return (
+        <>
         {/* Sessions List */}
-        {!sessions || sessions.length === 0 ? (
+        {filteredSessions.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-10 text-center text-muted-foreground">
               <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -283,7 +334,7 @@ const AccountingSessions: React.FC = () => {
           </Card>
         ) : (
           <div className="space-y-2.5">
-            {sessions.map(session => {
+            {filteredSessions.map(session => {
               const totalSales = getItemAmount(session.items, 'total_sales');
               const physicalCashExpected = getItemAmount(session.items, 'physical_cash', 'expected_amount');
               const physicalCashActual = getItemAmount(session.items, 'physical_cash', 'actual_amount');
@@ -377,6 +428,9 @@ const AccountingSessions: React.FC = () => {
             })}
           </div>
         )}
+        </>
+          );
+        })()}
       </div>
 
       {openSessions.map(session => (
