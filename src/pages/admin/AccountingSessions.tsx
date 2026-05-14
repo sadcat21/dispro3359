@@ -33,6 +33,8 @@ const getItemAmount = (items: AccountingSessionItem[] | undefined, type: string,
 const AccountingSessions: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+  const pastOnly = location.pathname === '/accounting-sessions';
   const { activeBranch, role } = useAuth();
   const [statusFilter, setStatusFilter] = useState('all');
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
