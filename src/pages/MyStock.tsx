@@ -20,11 +20,28 @@ const MyStock: React.FC = () => {
   const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
 
-  const [confirmRecalibrate, setConfirmRecalibrate] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
+
+  const openPreview = async () => {
+    if (!workerId) return;
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('preview_recalibrate_worker_stock' as any, { p_worker_id: workerId });
+      if (error) throw error;
+      setPreviewRows((data as any[]) as PreviewRow[]);
+    } catch (e: any) {
+      toast.error(e?.message || 'فشل تحميل المعاينة');
+      setPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const runRecalibrate = async () => {
     if (!workerId) return;
-    setConfirmRecalibrate(false);
     setRecalibrating(true);
     try {
       const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
@@ -32,6 +49,7 @@ const MyStock: React.FC = () => {
       const changed = (data || []).filter((r: any) => Number(r.old_qty) !== Number(r.new_qty));
       toast.success(`تم تصحيح ${changed.length} منتج من أصل ${(data || []).length}`);
       await queryClient.invalidateQueries();
+      setPreviewOpen(false);
     } catch (e: any) {
       toast.error(e?.message || 'فشل التصحيح');
     } finally {
