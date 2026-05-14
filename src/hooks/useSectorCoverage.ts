@@ -180,7 +180,8 @@ export const useSectorCoverage = () => {
   };
 
   const approveCoverage = async (coverage: SectorCoverage) => {
-    const nextStatus = role === 'project_manager' || role === 'admin' ? 'approved' : 'pending_system';
+    const canAutoApprove = role === 'project_manager' || role === 'admin' || role === 'branch_admin';
+    const nextStatus = canAutoApprove ? 'approved' : 'pending_system';
     const updatePayload: any = nextStatus === 'approved'
       ? { approval_status: 'approved', system_approved_by: workerId, system_approved_at: new Date().toISOString() }
       : { approval_status: 'pending_system', manager_approved_by: workerId, manager_approved_at: new Date().toISOString() };
