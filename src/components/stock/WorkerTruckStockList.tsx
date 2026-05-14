@@ -286,8 +286,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
         orderStatus: m.order?.status || null,
-        // Cancelled orders must NOT affect the running balance — stock is restored.
-        delta: isCancelled ? 0 : deltaBoxes,
+        // أثر التعديل مضمّن أصلاً في delivered_quantity لصف البيع (عبر stock_movements)،
+        // لذا لا يجب أن يؤثر على الرصيد الجاري مرّة ثانية. يبقى للعرض الإعلامي فقط.
+        delta: 0,
       });
     }
 
