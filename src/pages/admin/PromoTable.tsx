@@ -306,28 +306,30 @@ const PromoTable: React.FC = () => {
         isVisible={isPrintVisible}
       />
 
-      <div className="flex items-center justify-between no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 no-print">
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="w-6 h-6 text-primary" />
-          <h2 className="text-xl font-bold">{t('promos.table')}</h2>
+          <h2 className="text-lg sm:text-xl font-bold">{t('promos.table')}</h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
             variant="secondary"
             onClick={handleExportCSV}
             disabled={filteredPromos.length === 0}
-            className="gap-2 font-semibold shadow-md"
+            size="sm"
+            className="gap-2 font-semibold shadow-md flex-1 sm:flex-none"
           >
-            <Download className="w-5 h-5" />
-            {t('common.export_csv')}
+            <Download className="w-4 h-4" />
+            <span className="hidden xs:inline sm:inline">{t('common.export_csv')}</span>
           </Button>
           <Button
             onClick={handlePrint}
             disabled={filteredPromos.length === 0}
-            className="gap-2 font-semibold shadow-md"
+            size="sm"
+            className="gap-2 font-semibold shadow-md flex-1 sm:flex-none"
           >
-            <Printer className="w-5 h-5" />
-            {t('common.print')}
+            <Printer className="w-4 h-4" />
+            <span className="hidden xs:inline sm:inline">{t('common.print')}</span>
           </Button>
         </div>
       </div>
