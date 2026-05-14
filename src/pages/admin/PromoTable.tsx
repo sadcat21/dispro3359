@@ -261,8 +261,8 @@ const PromoTable: React.FC = () => {
       promo.customer?.wilaya || '',
       promo.customer?.phone || '',
       promo.product?.name || '',
-      formatBP(promo.vente_quantity, promo.product?.pieces_per_box),
-      formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box),
+      formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit),
+      formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit),
       promo.worker?.full_name || '',
       format(new Date(promo.promo_date), 'dd/MM/yyyy')
     ]);
@@ -516,10 +516,10 @@ const PromoTable: React.FC = () => {
               </div>
               <div className="flex gap-1.5 shrink-0">
                 <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold" title={t('promos.sales')}>
-                  {t('promos.sales')}: {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
+                  {t('promos.sales')}: {formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit)}
                 </span>
                 <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded text-xs font-bold" title={t('promos.free')}>
-                  {t('promos.free')}: {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
+                  {t('promos.free')}: {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit)}
                 </span>
               </div>
             </div>
@@ -563,12 +563,12 @@ const PromoTable: React.FC = () => {
                     <TableCell className="font-medium">{promo.product?.name || '-'}</TableCell>
                     <TableCell className="text-center">
                       <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                        {formatBP(promo.vente_quantity, promo.product?.pieces_per_box)}
+                        {formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit)}
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
                       <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold" title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
-                        {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box)}
+                        {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit)}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{promo.worker?.full_name || '-'}</TableCell>
