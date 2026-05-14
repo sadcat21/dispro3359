@@ -10,10 +10,7 @@ import { toast } from 'sonner';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/RecalibratePreviewDialog';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
