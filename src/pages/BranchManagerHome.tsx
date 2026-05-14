@@ -182,39 +182,6 @@ const BranchManagerHome: React.FC = () => {
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
         <div className="relative px-6 py-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center shadow-lg shadow-blue-500/30 ring-2 ring-blue-300/40">
-              <Building2 className="w-9 h-9 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
-                {t('branch_manager.welcome')}
-              </h1>
-              <p className="text-sm text-slate-600 mt-1">{t('branch_manager.subtitle')}</p>
-              {user?.full_name && (
-                <Badge variant="outline" className="mt-2 border-blue-400/60 text-blue-700 bg-blue-50">
-                  {user.full_name}
-                  {activeBranch?.name && ` — ${activeBranch.name}`}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
-            <KpiCard label={t('branch_manager.kpi_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="blue" />
-            <KpiCard label={t('branch_manager.kpi_customers')} value={kpis?.customers ?? '—'} icon={UserCheck} accent="slate" />
-            <KpiCard label={t('branch_manager.kpi_open_sessions')} value={kpis?.openSessions ?? '—'} icon={BookOpenCheck} accent="blue" />
-            <KpiCard label={t('branch_manager.kpi_active_debts')} value={kpis?.activeDebts ?? '—'} icon={Banknote} accent="slate" />
-            <KpiCard
-              label={t('branch_manager.kpi_pending_invoices')}
-              value={kpis?.pendingInvoices ?? '—'}
-              icon={ShieldCheck}
-              accent={kpis?.pendingInvoices ? 'alert' : 'blue'}
-              onClick={() => navigate('/branch-invoice-approvals')}
-            />
-          </div>
-
           {/* زر الموافقات البارز */}
           <button
             onClick={() => setDailyTasksOpen(true)}
