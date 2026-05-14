@@ -165,7 +165,11 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                                     <Badge variant="outline" className="text-[10px]">
                                       {MOVEMENT_LABELS[m.movement_type] || m.movement_type}
                                     </Badge>
-                                    <span className="font-medium tabular-nums">{Number(m.quantity)}</span>
+                                    <span className="font-medium tabular-nums">
+                                      {m.movement_type === 'load'
+                                        ? `${fmtBP(Number(m.quantity))} ب.ق`
+                                        : `${piecesToBP(Number(m.quantity), r.ppb)} ب.ق`}
+                                    </span>
                                     {m.customer_name && (
                                       <span className="text-[10px] text-foreground truncate">
                                         🏪 {m.customer_name}
