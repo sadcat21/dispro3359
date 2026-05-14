@@ -259,7 +259,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
       const giftQty = confirmedGiftFractional(it, ppb);
-      const saleQty = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb) - giftQty);
+      const deliveredBP = it.delivered_quantity != null
+        ? Number(it.delivered_quantity || 0)
+        : Number(getDeliveredPaidQuantity(it) || 0);
+      const totalBoxes = dbBPToBoxes(deliveredBP, ppb);
+      const saleQty = Math.max(0, totalBoxes - giftQty);
       const when = it.order_updated_at || it.order_created_at || '';
       const totalDelta = saleQty + giftQty;
       if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta });
