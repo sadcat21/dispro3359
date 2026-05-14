@@ -125,15 +125,19 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         .from('stock_movements')
         .select('order_id, product_id, quantity, signed_quantity, movement_type')
         .eq('worker_id', workerId)
-        .in('movement_type', ['delivery', 'modification'])
+        .in('movement_type', ['delivery', 'modification', 'direct_sale'])
         .in('order_id', orders.map(o => o.id));
       const deliveredByOrderProduct = new Map<string, number>();
+      const channelByOrderProduct = new Map<string, string>();
       for (const movement of movements || []) {
         const key = `${movement.order_id}|${movement.product_id}`;
         const delta = movement.movement_type === 'modification'
           ? -Number(movement.signed_quantity || 0)
           : Number(movement.quantity || 0);
         deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + delta);
+        if (movement.movement_type === 'delivery' || movement.movement_type === 'direct_sale') {
+          channelByOrderProduct.set(key, movement.movement_type);
+        }
       }
       const { data: pendingOffers } = await supabase
         .from('pending_offer_confirmations' as any)
@@ -157,6 +161,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           pending_gift_boxes: pendingGift.boxes,
           pending_gift_pieces: pendingGift.pieces,
           delivered_quantity: deliveredByOrderProduct.get(`${i.order_id}|${i.product_id}`),
+          sale_channel: channelByOrderProduct.get(`${i.order_id}|${i.product_id}`) || 'delivery',
           order_updated_at: o?.updated_at || null,
           order_created_at: o?.created_at || null,
           order_payment_type: o?.payment_type || null,
@@ -173,7 +178,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     queryFn: async () => {
       let q = supabase
         .from('stock_movements')
-        .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, customer:customers(name, store_name))')
+        .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, status, customer:customers(name, store_name))')
         .eq('worker_id', workerId)
         .eq('movement_type', 'modification');
       if (lastAccounting) q = q.gte('created_at', lastAccounting);
@@ -236,7 +241,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
 
-    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; delta: number; before?: number; after?: number };
+    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; delta: number; before?: number; after?: number };
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
@@ -255,8 +260,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const giftQty = confirmedGiftFractional(it, ppb);
       const saleQty = dbBPToBoxes(Number(getDeliveredPaidQuantity(it) || 0), ppb);
       const when = it.order_updated_at || it.order_created_at || '';
-      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
-      if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, note: 'من نفس عملية البيع', delta: -giftQty });
+      if (saleQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', note: giftQty > 0 ? `هدايا ${fmtBP(giftQty, ppb)}` : null, delta: -saleQty });
+      if (giftQty > 0) movements.push({ id: `gift-${it.order_id}-${when}`, type: 'gift', label: 'هدية', quantity: giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', note: 'من نفس عملية البيع', delta: -giftQty });
     }
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
       const signed = Number(m.signed_quantity ?? 0);
@@ -267,13 +272,14 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       movements.push({
         id: `mod-${m.id}`,
         type: 'modification',
-        label: 'تعديل',
+        label: m.order?.status === 'cancelled' ? 'إلغاء' : 'تعديل',
         quantity: qtyBoxes,
         when: m.created_at,
         note: m.notes || null,
         paymentType: m.order?.payment_type || null,
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
+        orderStatus: m.order?.status || null,
         delta: deltaBoxes,
       });
     }
@@ -488,8 +494,16 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <Badge className={`text-[10px] ${typeBadge}`}>{entry.label}</Badge>
+                                  {entry.type === 'sale' && (
+                                    <Badge className="text-[10px] bg-cyan-100 text-cyan-700 border-cyan-200">
+                                      {entry.saleChannel === 'direct_sale' ? 'بيع مباشر (فان)' : 'توصيل'}
+                                    </Badge>
+                                  )}
                                   {entry.type === 'sale' && entry.paymentType && (
                                     <Badge className="text-[10px] bg-muted text-foreground border-border">{entry.paymentType}</Badge>
+                                  )}
+                                  {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
+                                    <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
                                   )}
                                   {entry.type !== 'sale' && entry.sourceLabel && (
                                     <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
