@@ -368,11 +368,12 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         {sorted.map((item: any) => {
           const s = stats[item.product_id] || {};
           const isZero = item.quantity === 0;
+          const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
           return (
             <button
               key={item.id}
               type="button"
-              className={`w-full min-w-0 p-3 rounded-xl border text-start transition-all active:scale-[0.99] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
+              className={`w-full min-w-0 p-3 rounded-xl border text-start transition-all active:scale-[0.99] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : hasSales ? 'bg-card border-green-500 border-2' : 'bg-card border-border'}`}
               onClick={() => setSelected(item)}
             >
               <div className="flex items-start gap-3 mb-2">
