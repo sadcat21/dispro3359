@@ -68,12 +68,18 @@ const MyStock: React.FC = () => {
           <Package className="w-5 h-5 text-primary" />
           {t('stock.my_stock')}
         </h2>
-        {hasStock && !isDirectSaleHidden && (
-          <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
-            <ShoppingBag className="w-4 h-4 ml-1" />
-            {t('stock.direct_sale')}
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={handleRecalibrate} disabled={recalibrating}>
+            {recalibrating ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
+            تصحيح الرصيد
           </Button>
-        )}
+          {hasStock && !isDirectSaleHidden && (
+            <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
+              <ShoppingBag className="w-4 h-4 ml-1" />
+              {t('stock.direct_sale')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {!hasStock ? (
