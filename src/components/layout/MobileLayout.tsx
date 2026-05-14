@@ -937,13 +937,18 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               <Link
                 to={mainNavItems[3].path}
                 className={cn(
-                  'mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
                   location.pathname === mainNavItems[3].path
                     ? 'bg-sidebar-primary/15 text-sidebar-primary'
                     : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                 )}
               >
                 {React.createElement(mainNavItems[3].icon, { className: 'h-[23px] w-[23px]', strokeWidth: location.pathname === mainNavItems[3].path ? 2.45 : 1.85 })}
+                {mainNavItems[3].path === '/branch-approvals' && (branchApprovalsPendingCount || 0) > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {(branchApprovalsPendingCount || 0) > 99 ? '99+' : branchApprovalsPendingCount}
+                  </span>
+                )}
               </Link>
             ) : <div />}
         </div>
