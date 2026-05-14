@@ -335,7 +335,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         </Button>
       </div>
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {sorted.map((item: any) => {
             const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
             const isZero = item.quantity === 0;
@@ -343,19 +343,19 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               <button
                 key={item.id}
                 type="button"
-                className={`p-2 rounded-xl border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
+                className={`p-1.5 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : 'bg-card border-border'}`}
                 onClick={() => setSelected(item)}
               >
-                <p className="text-[11px] font-medium truncate mb-1.5">...{(item.product?.name || '').slice(-16)}</p>
-                <div className="aspect-square w-full rounded-lg border bg-muted/40 overflow-hidden flex items-center justify-center mb-1.5">
+                <p className="text-[10px] font-medium truncate mb-1">...{(item.product?.name || '').slice(-14)}</p>
+                <div className="aspect-square w-full rounded-md border bg-muted/40 overflow-hidden flex items-center justify-center mb-1">
                   {item.product?.image_url ? (
                     <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-contain" loading="lazy" />
                   ) : (
-                    <Package className="w-6 h-6 text-muted-foreground" />
+                    <Package className="w-5 h-5 text-muted-foreground" />
                   )}
                 </div>
-                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
-                  <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
+                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
+                  <Package className="w-2.5 h-2.5" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
                 </span>
               </button>
             );
