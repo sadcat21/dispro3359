@@ -161,6 +161,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           pending_gift_boxes: pendingGift.boxes,
           pending_gift_pieces: pendingGift.pieces,
           delivered_quantity: deliveredByOrderProduct.get(`${i.order_id}|${i.product_id}`),
+          sale_channel: channelByOrderProduct.get(`${i.order_id}|${i.product_id}`) || 'delivery',
           order_updated_at: o?.updated_at || null,
           order_created_at: o?.created_at || null,
           order_payment_type: o?.payment_type || null,
