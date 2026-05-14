@@ -285,6 +285,7 @@ const BranchManagerHome: React.FC = () => {
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+      <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
 
       <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
         <DialogContent className="max-w-md" dir="rtl">
