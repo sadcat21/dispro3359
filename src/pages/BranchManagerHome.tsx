@@ -133,7 +133,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'worker_actions', label: t('nav.worker_actions'), icon: Activity, path: '/worker-actions' },
         { key: 'worker_tracking', label: t('navigation.worker_tracking'), icon: MapPin, path: '/worker-tracking' },
         { key: 'attendance', label: t('nav.attendance'), icon: CalendarCheck, path: '/attendance' },
-        { key: 'worker_rounds', label: t('branch_manager.worker_rounds'), icon: RouteIcon, path: '/worker-rounds' },
+        
       ],
     },
     {
