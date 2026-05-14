@@ -174,79 +174,83 @@ const AccountingSessions: React.FC = () => {
 
   return (
     <div className="p-4 space-y-5">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Calculator className="w-5 h-5 text-primary" />
+      {!pastOnly && (
+        <>
+          {/* Page Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Calculator className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold leading-tight">{t('accounting.title')}</h2>
+                <p className="text-xs text-muted-foreground">{t('accounting.select_worker')}</p>
+              </div>
+            </div>
+            {isAdminOrBranchAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                onClick={() => navigate('/manager-accounting-review')}
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                {t('accounting.my_review')}
+              </Button>
+            )}
           </div>
-          <div>
-            <h2 className="text-xl font-bold leading-tight">{t('accounting.title')}</h2>
-            <p className="text-xs text-muted-foreground">{t('accounting.select_worker')}</p>
-          </div>
-        </div>
-        {isAdminOrBranchAdmin && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-            onClick={() => navigate('/manager-accounting-review')}
-          >
-            <ClipboardList className="w-3.5 h-3.5" />
-            {t('accounting.my_review')}
-          </Button>
-        )}
-      </div>
 
-      {/* Worker Buttons Grid */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('accounting.select_worker')}</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-        {loadingWorkers ? (
-          <div className="flex justify-center py-4">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          {/* Worker Buttons Grid */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('accounting.select_worker')}</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            {loadingWorkers ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2.5">
+                {[...workers].sort((a, b) => {
+                  const aRank = reviewedWorkerIds.has(a.id) ? 0 : ((allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0) > 0 ? 1 : 2);
+                  const bRank = reviewedWorkerIds.has(b.id) ? 0 : ((allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0) > 0 ? 1 : 2);
+                  return aRank - bRank;
+                }).map(worker => {
+                  const liability = allLiabilities?.find(l => l.workerId === worker.id);
+                  const hasLiability = liability && liability.totalLiability > 0;
+                  const isReviewed = reviewedWorkerIds.has(worker.id);
+                  const colorClass = isReviewed
+                    ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 text-white'
+                    : hasLiability
+                      ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
+                      : 'hover:border-primary/40 hover:bg-primary/5';
+                  const isColored = isReviewed || hasLiability;
+                  return (
+                    <Button
+                      key={worker.id}
+                      variant="outline"
+                      className={`h-auto py-3.5 px-4 flex items-center gap-3 justify-start rounded-xl border-2 transition-all ${colorClass}`}
+                      onClick={() => handleWorkerClick(worker.id)}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isColored ? 'bg-white/20' : 'bg-primary/10'}`}>
+                        <User className={`w-4 h-4 ${isColored ? 'text-white' : 'text-primary'}`} />
+                      </div>
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-sm font-semibold text-wrap text-start">{worker.full_name}</span>
+                        {hasLiability && (
+                          <span className="text-[11px] font-bold text-white/90">{fmt(liability.totalLiability)} {t('accounting.currency_dzd')}</span>
+                        )}
+                      </div>
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2.5">
-            {[...workers].sort((a, b) => {
-              const aRank = reviewedWorkerIds.has(a.id) ? 0 : ((allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0) > 0 ? 1 : 2);
-              const bRank = reviewedWorkerIds.has(b.id) ? 0 : ((allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0) > 0 ? 1 : 2);
-              return aRank - bRank;
-            }).map(worker => {
-              const liability = allLiabilities?.find(l => l.workerId === worker.id);
-              const hasLiability = liability && liability.totalLiability > 0;
-              const isReviewed = reviewedWorkerIds.has(worker.id);
-              const colorClass = isReviewed
-                ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 text-white'
-                : hasLiability
-                  ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
-                  : 'hover:border-primary/40 hover:bg-primary/5';
-              const isColored = isReviewed || hasLiability;
-              return (
-                <Button
-                  key={worker.id}
-                  variant="outline"
-                  className={`h-auto py-3.5 px-4 flex items-center gap-3 justify-start rounded-xl border-2 transition-all ${colorClass}`}
-                  onClick={() => handleWorkerClick(worker.id)}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isColored ? 'bg-white/20' : 'bg-primary/10'}`}>
-                    <User className={`w-4 h-4 ${isColored ? 'text-white' : 'text-primary'}`} />
-                  </div>
-                  <div className="flex flex-col items-start gap-0.5">
-                    <span className="text-sm font-semibold text-wrap text-start">{worker.full_name}</span>
-                    {hasLiability && (
-                      <span className="text-[11px] font-bold text-white/90">{fmt(liability.totalLiability)} {t('accounting.currency_dzd')}</span>
-                    )}
-                  </div>
-                </Button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
       {/* Previous Sessions Section */}
       <div className="space-y-3">
