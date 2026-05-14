@@ -389,9 +389,9 @@ export const useCancelOrder = () => {
       mutations.push(
         (supabase as any).from('sales_tracking').delete().eq('order_id', orderId)
       );
-      mutations.push(
-        (supabase as any).from('promos').delete().eq('order_id', orderId)
-      );
+      // promos already deleted above (before parallel mutations) so the DB
+      // trigger could safely restore worker_stock without racing with our
+      // movement reversals.
       // Soft-mark pending_offer_confirmations so we can restore the original
       // state on resume (cancelled_pending vs cancelled_confirmed). The offers
       // tab queries filter by status='pending'/'confirmed' so these are
