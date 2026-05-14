@@ -187,16 +187,16 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
           )}
         </ScrollArea>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={applying}>
-            إلغاء
-          </Button>
+        <DialogFooter className="p-3 border-t shrink-0 flex-col-reverse sm:flex-col-reverse gap-2 sm:gap-2 sm:space-x-0">
           {hasErrors && (
-            <Button onClick={onConfirm} disabled={applying || loading}>
+            <Button onClick={onConfirm} disabled={applying || loading} className="w-full">
               {applying && <Loader2 className="w-4 h-4 ml-1 animate-spin" />}
               تأكيد التصحيح ({rows.length})
             </Button>
           )}
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={applying} className="w-full">
+            إلغاء
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
