@@ -68,7 +68,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" dir="rtl">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-[420px] sm:max-w-[420px] h-[90vh] max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden rounded-2xl" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-500" />
