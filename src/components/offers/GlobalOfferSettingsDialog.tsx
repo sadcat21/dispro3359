@@ -73,6 +73,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           is_deferred_confirmation: form.is_deferred_confirmation,
           auto_fill_quantities: form.auto_fill_quantities,
           is_mandatory: form.is_mandatory,
+          showcase_enabled: form.showcase_enabled,
           scope_stages: form.scope_stages,
           updated_at: new Date().toISOString(),
         })
