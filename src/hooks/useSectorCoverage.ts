@@ -143,9 +143,9 @@ export const useSectorCoverage = () => {
     created_by?: string;
     branch_id?: string;
   }) => {
-    // admin/project_manager → موافقة فورية. أي شخص آخر (بما فيه branch_admin) → pending لمساعد المدير العام
-    const isSuperAdmin = role === 'admin' || role === 'project_manager';
-    const approvalStatus = isSuperAdmin ? 'approved' : 'pending';
+    // admin/project_manager/branch_admin → موافقة فورية بدون الحاجة لموافقة الإدارة العليا أو مساعد المدير
+    const canAutoApprove = role === 'admin' || role === 'project_manager' || role === 'branch_admin';
+    const approvalStatus = canAutoApprove ? 'approved' : 'pending';
     const { error } = await supabase.from('sector_coverage').insert({
       sector_id: data.sector_id,
       absent_worker_id: data.absent_worker_id,
