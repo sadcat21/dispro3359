@@ -206,7 +206,7 @@ const BranchManagerHome: React.FC = () => {
       </div>
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
-      <div className="px-3 sm:px-4 py-6 space-y-5" dir="rtl">
+      <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">
         {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
           const SecIcon = section.icon;
           // لوحة ألوان دوّارة لكل قسم لإعطاء كل قسم لون خلفية مميز كما في الصورة
