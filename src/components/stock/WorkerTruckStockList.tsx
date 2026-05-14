@@ -536,9 +536,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                 <div className="text-[9px] text-emerald-800">المُسلَّم</div>
                                 <div className="text-[12px] font-extrabold text-emerald-700">{fmtBP(entry.quantity, history.ppb)}</div>
                               </div>
-                              <div className="rounded-lg bg-amber-100/70 border border-amber-200 px-1.5 py-1.5 text-center min-w-[52px]">
-                                <div className="text-[9px] text-amber-800">الباقي</div>
-                                <div className="text-[12px] font-extrabold text-amber-700">{fmtBP(entry.after, history.ppb)}</div>
+                              <div className="rounded-lg bg-red-600 border border-red-700 px-1.5 py-1.5 text-center min-w-[52px]">
+                                <div className="text-[9px] text-white/90">الباقي</div>
+                                <div className="text-[12px] font-extrabold text-white">{fmtBP(entry.after, history.ppb)}</div>
                               </div>
                             </div>
                             {entry.note && (
