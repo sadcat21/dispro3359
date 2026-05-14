@@ -17,11 +17,10 @@ interface Props {
   onCustomerCountChange?: (count: number) => void;
 }
 
-const formatGift = (boxes: number, pieces: number, ppb: number): string => {
+const formatQty = (boxes: number, pieces: number): string => {
   const b = Math.max(0, Number(boxes || 0));
   const p = Math.max(0, Number(pieces || 0));
-  const ppbSafe = Math.max(1, Number(ppb || 1));
-  const piecesPart = p > 0 ? (p / 100).toFixed(2).split('.')[1] : '00';
+  const piecesPart = p > 0 ? p.toString().padStart(2, '0') : '00';
   return `${b}.${piecesPart} ص.ق`;
 };
 
