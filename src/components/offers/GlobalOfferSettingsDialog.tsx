@@ -47,6 +47,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           is_deferred_confirmation: data.is_deferred_confirmation,
           auto_fill_quantities: data.auto_fill_quantities,
           is_mandatory: data.is_mandatory,
+          showcase_enabled: data.showcase_enabled ?? true,
           scope_stages: data.scope_stages || [],
         });
       }
