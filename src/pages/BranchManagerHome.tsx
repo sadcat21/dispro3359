@@ -3,6 +3,7 @@ import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
+import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
-  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat,
+  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw,
 } from 'lucide-react';
 
 interface BMItem {
@@ -46,6 +47,7 @@ const BranchManagerHome: React.FC = () => {
   const [truckPickerOpen, setTruckPickerOpen] = useState(false);
   const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
@@ -148,6 +150,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'worker_tracking', label: t('navigation.worker_tracking'), icon: MapPin, path: '/worker-tracking' },
         { key: 'attendance', label: t('nav.attendance'), icon: CalendarCheck, path: '/attendance' },
         { key: 'truck_balance', label: 'رصيد الشاحنة', icon: Truck, onClick: () => setTruckPickerOpen(true) },
+        { key: 'sector_coverage', label: 'تعويض السيكتورات', icon: RefreshCw, onClick: () => setSectorCoverageOpen(true) },
       ],
     },
     {
@@ -282,6 +285,7 @@ const BranchManagerHome: React.FC = () => {
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+      <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
 
       <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
         <DialogContent className="max-w-md" dir="rtl">
