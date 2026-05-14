@@ -480,13 +480,16 @@ export const useCancelOrder = () => {
   return useMutation({
     mutationFn: async (orderId: string) => {
       // Fetch order + items + debt in parallel
-      const [orderRes, itemsRes, debtRes] = await Promise.all([
+      const [orderRes, itemsRes, debtRes, movementsRes] = await Promise.all([
         supabase.from('orders').select('id, assigned_worker_id, status, branch_id').eq('id', orderId).single(),
-        supabase.from('order_items').select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box').eq('order_id', orderId),
+        supabase.from('order_items').select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(pieces_per_box)').eq('order_id', orderId),
         supabase.from('customer_debts').select('id, remaining_amount, status').eq('order_id', orderId).maybeSingle(),
+        supabase.from('stock_movements').select('product_id, branch_id, worker_id, movement_type, quantity, signed_quantity, from_location_type, from_location_id, product:products(pieces_per_box)').eq('order_id', orderId),
       ]);
 
       if (orderRes.error) throw orderRes.error;
+      if (itemsRes.error) throw itemsRes.error;
+      if (movementsRes.error) throw movementsRes.error;
       const order = orderRes.data;
       const orderItems = itemsRes.data as any[] | null;
       const debt = debtRes.data;
@@ -494,61 +497,21 @@ export const useCancelOrder = () => {
       // Build all parallel mutations
       const mutations: PromiseLike<any>[] = [];
 
-      if (order.status === 'delivered' && order.assigned_worker_id && orderItems?.length) {
-        // Resolve which gift offers were deferred (not deducted from stock at delivery)
-        const offerIds = Array.from(new Set(orderItems.map(i => i.gift_offer_id).filter(Boolean))) as string[];
-        const deferredSet = new Set<string>();
-        if (offerIds.length) {
-          const { data: offRows } = await supabase
-            .from('product_offers')
-            .select('id, is_deferred_confirmation')
-            .in('id', offerIds);
-          for (const o of (offRows || []) as any[]) if (o.is_deferred_confirmation) deferredSet.add(o.id);
+      if (orderItems?.length) {
+        const itemPiecesPerBox = new Map(
+          orderItems.map((item: any) => [
+            item.product_id,
+            Math.max(1, Number(item.product?.pieces_per_box || item.pieces_per_box || 1)),
+          ]),
+        );
+        const stockMovements = (movementsRes.data || []) as StockMovementForReversal[];
+        if (stockMovements.length > 0) {
+          await restoreStockFromMovements(stockMovements, order.assigned_worker_id, order.branch_id, itemPiecesPerBox);
         }
 
-        // Get all worker stock in one query
-        const { data: workerStocks } = await supabase
-          .from('worker_stock')
-          .select('id, product_id, quantity')
-          .eq('worker_id', order.assigned_worker_id)
-          .in('product_id', orderItems.map(i => i.product_id));
-
-        const stockMap = new Map((workerStocks || []).map(ws => [ws.product_id, ws]));
-
-        for (const item of orderItems) {
-          const ws = stockMap.get(item.product_id);
-          if (ws) {
-            const ppb = Math.max(1, Number(item.pieces_per_box || 1));
-            const qty = Number(item.quantity || 0);
-            const giftBoxes = Number(item.gift_quantity || 0);
-            const giftPieces = Number(item.gift_pieces || 0);
-            const isDeferred = !!(item.gift_offer_id && deferredSet.has(item.gift_offer_id));
-
-            // Mirror delivery deduction: non-deferred deducted qty*ppb + gift_pieces,
-            // deferred deducted only (qty - giftBoxes)*ppb.
-            const qtyBoxes = Math.floor(qty);
-            const qtyPiecesDec = Math.round((qty - qtyBoxes) * 100);
-            const deductedPieces = isDeferred
-              ? Math.max(0, (qtyBoxes - giftBoxes) * ppb + qtyPiecesDec)
-              : qtyBoxes * ppb + qtyPiecesDec + giftPieces;
-
-            const stockRounded = Math.round(Number(ws.quantity || 0) * 100) / 100;
-            const stockBoxes = Math.floor(stockRounded);
-            const stockDec = Math.round((stockRounded - stockBoxes) * 100);
-            const stockPieces = stockBoxes * ppb + stockDec;
-            const restoredPieces = stockPieces + deductedPieces;
-            const newBoxes = Math.floor(restoredPieces / ppb);
-            const newRem = Math.round(restoredPieces % ppb);
-            const newQty = newBoxes + newRem / 100;
-
-            mutations.push(
-              supabase.from('worker_stock').update({ quantity: newQty }).eq('id', ws.id)
-            );
-          }
-          mutations.push(
-            supabase.from('stock_movements').delete().eq('order_id', orderId).eq('product_id', item.product_id).eq('movement_type', 'delivery')
-          );
-        }
+        mutations.push(
+          supabase.from('stock_movements').delete().eq('order_id', orderId)
+        );
       }
 
       if (debt && debt.status !== 'paid') {
