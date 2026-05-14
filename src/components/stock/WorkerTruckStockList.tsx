@@ -515,11 +515,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                     : entry.paymentType}
                                 </Badge>
                               )}
-                              {entry.type === 'sale' && entry.giftQty > 0 && (
-                                <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200">
-                                  هدية {fmtBP(entry.giftQty, history.ppb)}
-                                </Badge>
-                              )}
+                              {/* gift moved to grid row below */}
                               {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
                                 <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
                               )}
@@ -532,12 +528,18 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               )}
                             </div>
 
-                            {/* Highlighted grid: store / delivered / remaining */}
-                            <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-1.5">
+                            {/* Highlighted grid: store / gift / delivered / remaining */}
+                            <div className={`mt-2 grid gap-1.5 ${entry.type === 'sale' && entry.giftQty > 0 ? 'grid-cols-[1fr_auto_auto_auto]' : 'grid-cols-[1fr_auto_auto]'}`}>
                               <div className="rounded-lg bg-white/70 dark:bg-background/40 border px-2 py-1.5 text-center">
                                 <div className="text-[9px] text-muted-foreground">المحل</div>
                                 <div className="text-[11px] font-bold truncate">{entry.customerStoreName || entry.customerName || '—'}</div>
                               </div>
+                              {entry.type === 'sale' && entry.giftQty > 0 && (
+                                <div className="rounded-lg bg-orange-100/70 border border-orange-200 px-1.5 py-1.5 text-center min-w-[52px]">
+                                  <div className="text-[9px] text-orange-800">هدية</div>
+                                  <div className="text-[12px] font-extrabold text-orange-700">{fmtBP(entry.giftQty, history.ppb)}</div>
+                                </div>
+                              )}
                               <div className="rounded-lg bg-emerald-100/70 border border-emerald-200 px-1.5 py-1.5 text-center min-w-[52px]">
                                 <div className="text-[9px] text-emerald-800">المُسلَّم</div>
                                 <div className="text-[12px] font-extrabold text-emerald-700">{fmtBP(entry.quantity, history.ppb)}</div>
