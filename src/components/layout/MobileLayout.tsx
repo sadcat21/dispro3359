@@ -915,6 +915,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               aria-label={t('worker_home.today_achievements') || 'إنجازات اليوم'}
             >
               <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
+              {achievementsBadgeCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {achievementsBadgeCount > 99 ? '99+' : achievementsBadgeCount}
+                </span>
+              )}
             </Link>
 
             {mainNavItems[3] ? (
