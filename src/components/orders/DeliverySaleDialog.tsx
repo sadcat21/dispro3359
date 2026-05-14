@@ -849,9 +849,16 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         });
       } catch (e) { console.warn('sales_tracking failed', e); }
 
-      // Resolve which applied offers are deferred (gift not deducted from stock yet)
+      // Resolve which applied offers are deferred (gift not deducted from stock yet).
+      // Include offerIds discovered by recalc so deferred-confirmation also kicks in
+      // when the order has no explicit gift_offer_id but an offer matches at delivery.
+      const allOfferIds = Array.from(new Set([
+        ...activeItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[],
+        ...activeItems
+          .map((i: any) => recalcGift(i.productId, Math.floor(Math.max(0, Number(i.quantity || 0) - Number(i.giftQuantity || 0))), Number(i.piecesPerBox || 1)).offerId)
+          .filter(Boolean) as string[],
+      ]));
       const deferredOfferIdSet = new Set<string>();
-      const allOfferIds = Array.from(new Set(activeItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[]));
       if (allOfferIds.length > 0) {
         const { data: offRows } = await supabase
           .from('product_offers')
@@ -874,8 +881,12 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         let effGiftBoxes = useRecalc ? recalculated.giftBoxes : storedGiftBoxes;
         let effGiftPieces = useRecalc ? recalculated.giftPieces : storedGiftPieces;
 
+        // Effective offer id: prefer the explicit one on the line, fall back to the
+        // matched recalc offer so deferred-confirmation activates even when the order
+        // had no gift_offer_id originally.
+        const effOfferId: string | null = (item as any).giftOfferId || recalculated.offerId || null;
         // Deferred-offer gifts: skip stock deduction (will deduct upon confirmation)
-        const isDeferred = !!((item as any).giftOfferId && deferredOfferIdSet.has((item as any).giftOfferId));
+        const isDeferred = !!(effOfferId && deferredOfferIdSet.has(effOfferId));
         if (isDeferred) { effGiftBoxes = 0; effGiftPieces = 0; }
 
         // item.quantity (b.p) = paidBoxes + storedGiftBoxes (+ gift pieces in decimal).
