@@ -242,9 +242,9 @@ const MyAchievements: React.FC = () => {
     enabled: canInspectSelectedWorker,
   });
 
-  const targetWorkerId = canInspectSelectedWorker ? selectedWorkerId : (workerId || '');
+  const targetWorkerId = canInspectSelectedWorker ? (selectedWorkerId || workerId || '') : (workerId || '');
   const targetWorkerName = canInspectSelectedWorker
-    ? (workersList.find((w: any) => w.id === selectedWorkerId)?.full_name || searchName || user?.full_name)
+    ? (workersList.find((w: any) => w.id === targetWorkerId)?.full_name || searchName || user?.full_name)
     : (searchName || user?.full_name);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
