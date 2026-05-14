@@ -326,6 +326,17 @@ export const useDeleteOrder = () => {
   });
 };
 
+// Convert worker_stock B.P quantity (e.g. 5.03 = 5 boxes + 3 pieces) to total pieces
+const bpToPieces = (value: unknown, piecesPerBox: number): number => {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n) || n === 0) return 0;
+  const sign = n < 0 ? -1 : 1;
+  const abs = Math.abs(Math.round(n * 100) / 100);
+  const boxes = Math.floor(abs);
+  const pieces = Math.round((abs - boxes) * 100);
+  return sign * (boxes * Math.max(1, piecesPerBox) + pieces);
+};
+
 export const useCancelOrder = () => {
   const queryClient = useQueryClient();
   const { workerId } = useAuth();
