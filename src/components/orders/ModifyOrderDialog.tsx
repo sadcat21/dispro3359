@@ -1304,20 +1304,28 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         }
       }
 
+      // Always drop still-pending deferred-offer rows for this order when items
+      // changed, so a stale confirmation card (built from old quantities) cannot
+      // be confirmed later and deduct the wrong gift amount. A fresh pending
+      // row will be created when the sale is recorded with the new quantities.
+      if (changes.length > 0) {
+        try {
+          await (supabase as any)
+            .from('pending_offer_confirmations')
+            .delete()
+            .eq('order_id', order.id)
+            .eq('status', 'pending');
+        } catch (e) {
+          console.warn('[ModifyOrderDialog] pending_offer_confirmations cleanup failed', e);
+        }
+      }
+
       // Sync sales_tracking ledger after post-delivery modification so worker
       // achievements / sales reports reflect the corrected items + totals.
       if (isSold && changes.length > 0) {
         try {
           const { recordSaleTracking } = await import('@/utils/salesTracking');
           await supabase.from('sales_tracking' as any).delete().eq('order_id', order.id);
-          // Drop only still-pending deferred-offer rows for this order so the
-          // re-recorded sale produces a fresh pending row matching the new
-          // gift quantities. Confirmed rows stay (they already deducted stock).
-          await (supabase as any)
-            .from('pending_offer_confirmations')
-            .delete()
-            .eq('order_id', order.id)
-            .eq('status', 'pending');
 
           if (!allItemsRemoved) {
             const { data: freshTrackItems } = await supabase
