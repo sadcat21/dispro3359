@@ -147,6 +147,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'customer_journey', label: t('nav.customer_journey'), icon: RouteIcon, path: '/customer-journey' },
         { key: 'sales_summary', label: t('worker_actions.sales_summary'), icon: TrendingUp, path: '/manager-sales-summary' },
         { key: 'promo_table', label: t('nav.table'), icon: ClipboardList, path: '/promo-table' },
+        { key: 'truck_balance', label: 'رصيد الشاحنة', icon: Truck, onClick: () => setTruckPickerOpen(true) },
       ],
     },
     {
