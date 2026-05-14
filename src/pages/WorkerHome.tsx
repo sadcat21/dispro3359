@@ -37,6 +37,7 @@ import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import WorkerSalesSummaryCard from '@/components/workers/WorkerSalesSummaryCard';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 import { usePendingOfferConfirmations } from '@/hooks/usePendingOfferConfirmations';
+import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 
 const WorkerHome: React.FC = () => {
   const { user, workerId, role, activeRole, activeBranch, availableRoles } = useAuth();
@@ -390,17 +391,8 @@ const WorkerHome: React.FC = () => {
 
   return (
     <div className="pb-24 touch-pan-y">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground p-6 [.theme-soft_&]:bg-none [.theme-soft_&]:bg-background [.theme-soft_&]:text-foreground">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-bold mb-1">{t('common.welcome')} {user?.full_name} 👋</h2>
-            <p className="text-primary-foreground/80 text-sm">
-              {getWelcomeMessage()}
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Welcome Showcase */}
+      <ProductShowcaseHero fullName={user?.full_name} subtitle={getWelcomeMessage()} />
 
       {/* Worker Sales Summary */}
       <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
