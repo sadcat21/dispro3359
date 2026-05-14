@@ -4133,6 +4133,7 @@ export type Database = {
           is_deferred_confirmation: boolean
           is_mandatory: boolean
           scope_stages: string[]
+          showcase_enabled: boolean
           updated_at: string
           updated_by: string | null
         }
@@ -4142,6 +4143,7 @@ export type Database = {
           is_deferred_confirmation?: boolean
           is_mandatory?: boolean
           scope_stages?: string[]
+          showcase_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
         }
@@ -4151,6 +4153,7 @@ export type Database = {
           is_deferred_confirmation?: boolean
           is_mandatory?: boolean
           scope_stages?: string[]
+          showcase_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
         }

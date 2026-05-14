@@ -29,6 +29,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     is_deferred_confirmation: true,
     auto_fill_quantities: true,
     is_mandatory: false,
+    showcase_enabled: true,
     scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
   });
 
@@ -46,6 +47,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           is_deferred_confirmation: data.is_deferred_confirmation,
           auto_fill_quantities: data.auto_fill_quantities,
           is_mandatory: data.is_mandatory,
+          showcase_enabled: data.showcase_enabled ?? true,
           scope_stages: data.scope_stages || [],
         });
       }
@@ -71,6 +73,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           is_deferred_confirmation: form.is_deferred_confirmation,
           auto_fill_quantities: form.auto_fill_quantities,
           is_mandatory: form.is_mandatory,
+          showcase_enabled: form.showcase_enabled,
           scope_stages: form.scope_stages,
           updated_at: new Date().toISOString(),
         })
@@ -178,6 +181,13 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                   <p className="text-xs text-muted-foreground">عند التفعيل، لا يمكن إتمام العملية دون تفعيل العرض</p>
                 </div>
                 <Switch checked={form.is_mandatory} onCheckedChange={(c) => setForm((p) => ({ ...p, is_mandatory: c }))} />
+              </div>
+              <div className="flex items-center justify-between p-3 gap-3">
+                <div>
+                  <Label className="text-sm">عرض معرض العروض في الصفحة الرئيسية</Label>
+                  <p className="text-xs text-muted-foreground">إظهار شريط العرض المتحرك للعروض النشطة في صفحة العامل</p>
+                </div>
+                <Switch checked={form.showcase_enabled} onCheckedChange={(c) => setForm((p) => ({ ...p, showcase_enabled: c }))} />
               </div>
             </div>
 
