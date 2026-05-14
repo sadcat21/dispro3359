@@ -14,8 +14,27 @@ import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
   const { workerId } = useAuth();
+  const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
+  const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
+
+  const handleRecalibrate = async () => {
+    if (!workerId) return;
+    if (!confirm('سيتم إعادة احتساب الرصيد لجميع المنتجات وفق: آخر شحنة − المبيعات والهدايا غير الملغاة. متابعة؟')) return;
+    setRecalibrating(true);
+    try {
+      const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
+      if (error) throw error;
+      const changed = (data || []).filter((r: any) => Number(r.old_qty) !== Number(r.new_qty));
+      toast.success(`تم تصحيح ${changed.length} منتج من أصل ${(data || []).length}`);
+      await queryClient.invalidateQueries();
+    } catch (e: any) {
+      toast.error(e?.message || 'فشل التصحيح');
+    } finally {
+      setRecalibrating(false);
+    }
+  };
 
   const { data: stockItems, isLoading } = useQuery({
     queryKey: ['my-worker-stock', workerId],
