@@ -177,15 +177,15 @@ const BranchManagerHome: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
       {/* Hero Header — أزرق احترافي مع لمسة سماوية */}
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
-        <div className="relative px-6 py-8">
+        <div className="relative px-3 py-2">
           {/* زر الموافقات البارز */}
           <button
             onClick={() => setDailyTasksOpen(true)}
-            className="mt-4 w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-5 py-4 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.01] transition-all"
+            className="w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2.5 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center ring-2 ring-white/30">
@@ -206,7 +206,7 @@ const BranchManagerHome: React.FC = () => {
       </div>
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
-      <div className="px-3 sm:px-4 py-6 space-y-5" dir="rtl">
+      <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">
         {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
           const SecIcon = section.icon;
           // لوحة ألوان دوّارة لكل قسم لإعطاء كل قسم لون خلفية مميز كما في الصورة
@@ -236,17 +236,17 @@ const BranchManagerHome: React.FC = () => {
           return (
             <div
               key={section.titleKey}
-              className={`relative rounded-2xl border ${sectionPalette.wrap} p-3 sm:p-4`}
+              className={`relative rounded-2xl border ${sectionPalette.wrap} p-2`}
             >
               {/* عنوان القسم — في الأعلى يمين كما في الصورة */}
-              <div className="flex items-center gap-2 mb-3 px-1">
-                <SecIcon className={`w-5 h-5 ${sectionPalette.title}`} />
-                <h2 className={`text-sm sm:text-base font-bold ${sectionPalette.title}`}>
+              <div className="flex items-center gap-2 mb-1.5 px-1">
+                <SecIcon className={`w-4 h-4 ${sectionPalette.title}`} />
+                <h2 className={`text-xs sm:text-sm font-bold ${sectionPalette.title}`}>
                   {t(section.titleKey)}
                 </h2>
               </div>
 
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {section.items.map((item, iIdx) => {
                   const Icon = item.icon;
                   const showBadge = typeof item.badge === 'number' && item.badge > 0;
@@ -266,9 +266,9 @@ const BranchManagerHome: React.FC = () => {
                           {item.badge}
                         </Badge>
                       )}
-                      <CardContent className="p-1.5 sm:p-2 flex flex-col items-center justify-center text-center gap-1 min-h-[60px]">
-                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
-                        <p className="text-[10px] sm:text-[11px] font-semibold text-slate-700 leading-tight line-clamp-2">
+                      <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
+                        <Icon className={`w-4 h-4 ${showBadge ? 'text-red-600' : cp.icon}`} strokeWidth={2} />
+                        <p className="text-[10px] font-semibold text-slate-700 leading-tight line-clamp-2">
                           {item.label}
                         </p>
                       </CardContent>
