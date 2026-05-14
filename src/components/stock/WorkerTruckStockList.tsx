@@ -506,7 +506,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                   )}
                                   {entry.type === 'sale' && entry.paymentType && (
                                     <Badge className="text-[10px] bg-muted text-foreground border-border">
-                                      {entry.paymentType === 'without_invoice' ? 'بدون فاتورة'
+                                      {entry.paymentType === 'without_invoice' ? 'فاتورة 2'
                                         : entry.paymentType === 'with_invoice' ? 'بفاتورة'
                                         : entry.paymentType === 'cash' ? 'نقدًا'
                                         : entry.paymentType === 'credit' ? 'آجل'
