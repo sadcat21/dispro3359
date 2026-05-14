@@ -39,10 +39,12 @@ export function usePendingOfferConfirmations(filters: Filters = {}) {
     }
   }, [filters.workerId, filters.branchId, filters.status, filters.dateFrom, filters.dateTo]);
 
+  const instanceIdRef = useRef<string>(Math.random().toString(36).slice(2));
+
   useEffect(() => {
     fetchData();
     const channel = supabase
-      .channel(`pending-offers-${filters.workerId || 'all'}-${filters.branchId || 'all'}`)
+      .channel(`pending-offers-${instanceIdRef.current}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_offer_confirmations' }, () => {
         fetchData();
       })
