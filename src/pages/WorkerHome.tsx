@@ -508,7 +508,7 @@ const WorkerHome: React.FC = () => {
           if (!isTodayCustomersHidden) {
             quickActions.push({ key: 'today-customers', icon: <MapPin className="w-6 h-6" />, label: todayCustomersLabel, onClick: () => setShowTodayCustomers(true) });
           }
-          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements') });
+          quickActions.push({ key: 'my-achievements', icon: <CalendarCheck className="w-6 h-6" />, label: t('worker_home.today_achievements'), onClick: () => navigate('/my-achievements'), badge: achievementsBadge } as any);
           // Rewards button removed from worker home page
           // Worker Actions for supervisor, admin assistant, or warehouse_manager
           if ((isSupervisor || isAdminAssistant) && !isWorkerActionsHidden && !isWorkerActionsButtonHidden) {
