@@ -24,6 +24,7 @@ export interface PreviewRow {
     signed_quantity: number;
     notes: string | null;
     reason: string | null;
+    customer_name?: string | null;
   }>;
 }
 
@@ -67,18 +68,18 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" dir="rtl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-[420px] sm:max-w-[420px] h-[90vh] max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden rounded-2xl" dir="rtl">
+        <DialogHeader className="p-4 pb-2 border-b shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <AlertTriangle className="w-5 h-5 text-amber-500" />
             مراجعة تصحيح الرصيد
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             مراجعة المنتجات التي يوجد بها فرق بين الرصيد الحالي والرصيد المحسوب من الحركات المسجَّلة.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-2 px-2">
+        <ScrollArea className="flex-1 px-3 py-3">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -156,15 +157,22 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                           ) : (
                             <div className="space-y-1">
                               {r.movements.map((m, i) => (
-                                <div key={i} className="flex items-center gap-2 p-1.5 rounded bg-background border">
-                                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                                    {format(new Date(m.created_at), 'MM-dd HH:mm')}
-                                  </span>
-                                  <Badge variant="outline" className="text-[10px]">
-                                    {MOVEMENT_LABELS[m.movement_type] || m.movement_type}
-                                  </Badge>
-                                  <span className="font-medium tabular-nums">{Number(m.quantity)}</span>
-                                  {m.notes && <span className="text-muted-foreground text-[10px] truncate flex-1">{m.notes}</span>}
+                                <div key={i} className="flex flex-col gap-1 p-1.5 rounded bg-background border">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                                      {format(new Date(m.created_at), 'MM-dd HH:mm')}
+                                    </span>
+                                    <Badge variant="outline" className="text-[10px]">
+                                      {MOVEMENT_LABELS[m.movement_type] || m.movement_type}
+                                    </Badge>
+                                    <span className="font-medium tabular-nums">{Number(m.quantity)}</span>
+                                    {m.customer_name && (
+                                      <span className="text-[10px] text-foreground truncate">
+                                        🏪 {m.customer_name}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {m.notes && <span className="text-muted-foreground text-[10px] truncate">{m.notes}</span>}
                                 </div>
                               ))}
                             </div>
@@ -179,16 +187,16 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
           )}
         </ScrollArea>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={applying}>
-            إلغاء
-          </Button>
+        <DialogFooter className="p-3 border-t shrink-0 flex-col-reverse sm:flex-col-reverse gap-2 sm:gap-2 sm:space-x-0">
           {hasErrors && (
-            <Button onClick={onConfirm} disabled={applying || loading}>
+            <Button onClick={onConfirm} disabled={applying || loading} className="w-full">
               {applying && <Loader2 className="w-4 h-4 ml-1 animate-spin" />}
               تأكيد التصحيح ({rows.length})
             </Button>
           )}
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={applying} className="w-full">
+            إلغاء
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
