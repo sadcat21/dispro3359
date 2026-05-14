@@ -24,6 +24,7 @@ export interface PreviewRow {
     signed_quantity: number;
     notes: string | null;
     reason: string | null;
+    customer_name?: string | null;
   }>;
 }
 
