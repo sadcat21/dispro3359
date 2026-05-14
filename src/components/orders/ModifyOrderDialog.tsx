@@ -1306,8 +1306,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
       // Always drop still-pending deferred-offer rows for this order when items
       // changed, so a stale confirmation card (built from old quantities) cannot
-      // be confirmed later and deduct the wrong gift amount. A fresh pending
-      // row will be created when the sale is recorded with the new quantities.
+      // be confirmed later and deduct the wrong gift amount. Then immediately
+      // recreate fresh pending rows from the current order_items so the
+      // confirmation card auto-reflects the new quantities (works even when the
+      // order is not yet marked sold/delivered).
       if (changes.length > 0) {
         try {
           await (supabase as any)
@@ -1315,8 +1317,69 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             .delete()
             .eq('order_id', order.id)
             .eq('status', 'pending');
+
+          // For sold/delivered orders, recordSaleTracking (called below) will
+          // recreate fresh pending rows. Only handle the not-yet-sold case here
+          // to avoid duplicate inserts.
+          if (!allItemsRemoved && !isSold) {
+            const { recordPendingOfferConfirmation } = await import('@/utils/pendingOfferConfirmations');
+            const { data: freshGiftItems } = await supabase
+              .from('order_items')
+              .select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(name)')
+              .eq('order_id', order.id);
+
+            const giftRows = (freshGiftItems || []).filter(
+              (i: any) => i.gift_offer_id && (Number(i.gift_quantity || 0) > 0 || Number(i.gift_pieces || 0) > 0)
+            );
+
+            if (giftRows.length > 0) {
+              const offerIds = Array.from(new Set(giftRows.map((g: any) => g.gift_offer_id))) as string[];
+              const { data: offers } = await supabase
+                .from('product_offers')
+                .select('id, is_deferred_confirmation, gift_product_id, gift_product:products!product_offers_gift_product_id_fkey(name)')
+                .in('id', offerIds);
+              const deferredMap = new Map<string, any>();
+              for (const o of (offers || []) as any[]) {
+                if (o.is_deferred_confirmation) deferredMap.set(o.id, o);
+              }
+
+              const resolvedWorkerId = assignedWorkerId && assignedWorkerId !== 'none'
+                ? assignedWorkerId
+                : (order.assigned_worker_id || null);
+              let workerName: string | null = resolvedWorkerId === order.assigned_worker_id
+                ? ((order as any).assigned_worker?.full_name || null)
+                : null;
+              if (resolvedWorkerId && !workerName) {
+                const { data: w } = await supabase.from('workers').select('full_name').eq('id', resolvedWorkerId).maybeSingle();
+                workerName = (w as any)?.full_name || null;
+              }
+
+              for (const g of giftRows) {
+                const offer = deferredMap.get(g.gift_offer_id);
+                if (!offer) continue;
+                await recordPendingOfferConfirmation({
+                  orderId: order.id,
+                  orderItemId: g.id,
+                  offerId: g.gift_offer_id,
+                  productId: g.product_id,
+                  productName: g.product?.name || null,
+                  piecesPerBox: g.pieces_per_box || 1,
+                  giftProductId: offer.gift_product_id || g.product_id,
+                  giftProductName: offer.gift_product?.name || g.product?.name || null,
+                  giftBoxes: Number(g.gift_quantity || 0),
+                  giftPieces: Number(g.gift_pieces || 0),
+                  customerId: order.customer_id || null,
+                  customerName: order.customer?.name || null,
+                  workerId: resolvedWorkerId,
+                  workerName,
+                  branchId: order.branch_id || null,
+                  source: isSold ? 'delivery_sale' : 'order',
+                });
+              }
+            }
+          }
         } catch (e) {
-          console.warn('[ModifyOrderDialog] pending_offer_confirmations cleanup failed', e);
+          console.warn('[ModifyOrderDialog] pending_offer_confirmations refresh failed', e);
         }
       }
 
