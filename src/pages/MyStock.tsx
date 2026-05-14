@@ -10,10 +10,7 @@ import { toast } from 'sonner';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/RecalibratePreviewDialog';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
@@ -23,11 +20,28 @@ const MyStock: React.FC = () => {
   const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
 
-  const [confirmRecalibrate, setConfirmRecalibrate] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
+
+  const openPreview = async () => {
+    if (!workerId) return;
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('preview_recalibrate_worker_stock' as any, { p_worker_id: workerId });
+      if (error) throw error;
+      setPreviewRows((data as any[]) as PreviewRow[]);
+    } catch (e: any) {
+      toast.error(e?.message || 'فشل تحميل المعاينة');
+      setPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const runRecalibrate = async () => {
     if (!workerId) return;
-    setConfirmRecalibrate(false);
     setRecalibrating(true);
     try {
       const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
@@ -35,6 +49,7 @@ const MyStock: React.FC = () => {
       const changed = (data || []).filter((r: any) => Number(r.old_qty) !== Number(r.new_qty));
       toast.success(`تم تصحيح ${changed.length} منتج من أصل ${(data || []).length}`);
       await queryClient.invalidateQueries();
+      setPreviewOpen(false);
     } catch (e: any) {
       toast.error(e?.message || 'فشل التصحيح');
     } finally {
@@ -75,8 +90,8 @@ const MyStock: React.FC = () => {
           {t('stock.my_stock')}
         </h2>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setConfirmRecalibrate(true)} disabled={recalibrating}>
-            {recalibrating ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
+          <Button size="sm" variant="outline" onClick={openPreview} disabled={recalibrating || previewLoading}>
+            {(recalibrating || previewLoading) ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
             تصحيح الرصيد
           </Button>
           {hasStock && !isDirectSaleHidden && (
@@ -112,24 +127,14 @@ const MyStock: React.FC = () => {
         }))}
       />
 
-      <AlertDialog open={confirmRecalibrate} onOpenChange={setConfirmRecalibrate}>
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>تصحيح رصيد جميع المنتجات</AlertDialogTitle>
-            <AlertDialogDescription>
-              سيتم إعادة احتساب الرصيد لجميع منتجات الشاحنة وفق المعادلة:
-              <br />
-              <strong>آخر شحنة − (المبيعات والهدايا غير الملغاة)</strong>
-              <br />
-              هل تريد المتابعة؟
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={runRecalibrate}>متابعة</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <RecalibratePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        rows={previewRows}
+        loading={previewLoading}
+        applying={recalibrating}
+        onConfirm={runRecalibrate}
+      />
     </div>
   );
 };

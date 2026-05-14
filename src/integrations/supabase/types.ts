@@ -9677,6 +9677,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      preview_recalibrate_worker_stock: {
+        Args: { p_worker_id: string }
+        Returns: {
+          current_qty: number
+          last_load_at: string
+          loaded_pieces: number
+          movements: Json
+          new_qty: number
+          ppb: number
+          product_id: string
+          product_name: string
+          sold_pieces: number
+        }[]
+      }
       purge_cash_movements: { Args: never; Returns: Json }
       purge_cash_movements_all: { Args: never; Returns: Json }
       purge_cash_movements_archive: { Args: never; Returns: Json }
