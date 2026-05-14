@@ -525,16 +525,16 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                             </div>
 
                             {/* Highlighted grid: store / delivered / remaining */}
-                            <div className="mt-2 grid grid-cols-3 gap-1.5">
+                            <div className="mt-2 grid grid-cols-[1fr_auto_auto] gap-1.5">
                               <div className="rounded-lg bg-white/70 dark:bg-background/40 border px-2 py-1.5 text-center">
                                 <div className="text-[9px] text-muted-foreground">المحل</div>
                                 <div className="text-[11px] font-bold truncate">{entry.customerStoreName || entry.customerName || '—'}</div>
                               </div>
-                              <div className="rounded-lg bg-emerald-100/70 border border-emerald-200 px-2 py-1.5 text-center">
+                              <div className="rounded-lg bg-emerald-100/70 border border-emerald-200 px-1.5 py-1.5 text-center min-w-[52px]">
                                 <div className="text-[9px] text-emerald-800">المُسلَّم</div>
                                 <div className="text-[12px] font-extrabold text-emerald-700">{fmtBP(entry.quantity, history.ppb)}</div>
                               </div>
-                              <div className="rounded-lg bg-amber-100/70 border border-amber-200 px-2 py-1.5 text-center">
+                              <div className="rounded-lg bg-amber-100/70 border border-amber-200 px-1.5 py-1.5 text-center min-w-[52px]">
                                 <div className="text-[9px] text-amber-800">الباقي</div>
                                 <div className="text-[12px] font-extrabold text-amber-700">{fmtBP(entry.after, history.ppb)}</div>
                               </div>
