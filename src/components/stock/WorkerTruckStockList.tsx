@@ -119,7 +119,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       if (!orders?.length) return [];
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, unit_price, total_price, price_subtype')
         .in('order_id', orders.map(o => o.id));
       const { data: movements } = await supabase
         .from('stock_movements')
