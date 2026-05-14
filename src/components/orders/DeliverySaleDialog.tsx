@@ -868,15 +868,22 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const isDeferred = !!((item as any).giftOfferId && deferredOfferIdSet.has((item as any).giftOfferId));
         if (isDeferred) { effGiftBoxes = 0; effGiftPieces = 0; }
 
-        // item.quantity (b.p) = paidBoxes + storedGiftBoxes. For deferred
-        // offers, full gift boxes must stay out of stock deduction until confirmation.
+        // item.quantity (b.p) = paidBoxes + storedGiftBoxes (+ gift pieces in decimal).
+        // For deferred offers, full gift boxes AND gift pieces must stay out of
+        // stock deduction until confirmation.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
         const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
-        const stockDeductQty = isDeferred ? Math.max(0, qtyRounded - storedGiftBoxes) : qtyRounded;
-        // Convert sold qty (b.p) to total pieces
-        const soldBoxes = Math.floor(stockDeductQty);
-        const soldDec = Math.round((stockDeductQty - soldBoxes) * 100);
-        const soldPieces = soldBoxes * ppb + soldDec;
+        const qtyBoxesPart = Math.floor(qtyRounded);
+        const qtyPiecesPart = Math.round((qtyRounded - qtyBoxesPart) * 100);
+        const qtyTotalPieces = qtyBoxesPart * ppb + qtyPiecesPart;
+        // For deferred: subtract both gift boxes and gift pieces from deduction.
+        const deductTotalPieces = isDeferred
+          ? Math.max(0, qtyTotalPieces - storedGiftBoxes * ppb - storedGiftPieces)
+          : qtyTotalPieces;
+        const soldPieces = deductTotalPieces;
+        const stockDeductQty = isDeferred
+          ? Math.floor(deductTotalPieces / ppb) + (deductTotalPieces % ppb) / 100
+          : qtyRounded;
         const totalDeductPieces = soldPieces + extraGiftBoxes * ppb + effGiftPieces;
 
         const ws = stockItems?.find(s => s.product_id === item.productId);
