@@ -3,9 +3,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Loader2, ShoppingBag } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Package, Loader2, ShoppingBag, RefreshCw } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
@@ -13,8 +14,27 @@ import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
   const { workerId } = useAuth();
+  const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
+  const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
+
+  const handleRecalibrate = async () => {
+    if (!workerId) return;
+    if (!confirm('سيتم إعادة احتساب الرصيد لجميع المنتجات وفق: آخر شحنة − المبيعات والهدايا غير الملغاة. متابعة؟')) return;
+    setRecalibrating(true);
+    try {
+      const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
+      if (error) throw error;
+      const changed = (data || []).filter((r: any) => Number(r.old_qty) !== Number(r.new_qty));
+      toast.success(`تم تصحيح ${changed.length} منتج من أصل ${(data || []).length}`);
+      await queryClient.invalidateQueries();
+    } catch (e: any) {
+      toast.error(e?.message || 'فشل التصحيح');
+    } finally {
+      setRecalibrating(false);
+    }
+  };
 
   const { data: stockItems, isLoading } = useQuery({
     queryKey: ['my-worker-stock', workerId],
@@ -48,12 +68,18 @@ const MyStock: React.FC = () => {
           <Package className="w-5 h-5 text-primary" />
           {t('stock.my_stock')}
         </h2>
-        {hasStock && !isDirectSaleHidden && (
-          <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
-            <ShoppingBag className="w-4 h-4 ml-1" />
-            {t('stock.direct_sale')}
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={handleRecalibrate} disabled={recalibrating}>
+            {recalibrating ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
+            تصحيح الرصيد
           </Button>
-        )}
+          {hasStock && !isDirectSaleHidden && (
+            <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
+              <ShoppingBag className="w-4 h-4 ml-1" />
+              {t('stock.direct_sale')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {!hasStock ? (
