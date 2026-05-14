@@ -499,8 +499,24 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                       {entry.saleChannel === 'direct_sale' ? 'بيع مباشر (فان)' : 'توصيل'}
                                     </Badge>
                                   )}
+                                  {entry.type === 'sale' && entry.priceSubtype && (
+                                    <Badge className="text-[10px] bg-indigo-100 text-indigo-700 border-indigo-200">
+                                      {entry.priceSubtype === 'detail' ? 'D' : entry.priceSubtype === 'semi_gros' ? 'SG' : entry.priceSubtype === 'gros' ? 'G' : entry.priceSubtype}
+                                    </Badge>
+                                  )}
                                   {entry.type === 'sale' && entry.paymentType && (
-                                    <Badge className="text-[10px] bg-muted text-foreground border-border">{entry.paymentType}</Badge>
+                                    <Badge className="text-[10px] bg-muted text-foreground border-border">
+                                      {entry.paymentType === 'without_invoice' ? 'بدون فاتورة'
+                                        : entry.paymentType === 'with_invoice' ? 'بفاتورة'
+                                        : entry.paymentType === 'cash' ? 'نقدًا'
+                                        : entry.paymentType === 'credit' ? 'آجل'
+                                        : entry.paymentType}
+                                    </Badge>
+                                  )}
+                                  {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
+                                    <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-emerald-200">
+                                      {Number(entry.totalPaid).toLocaleString('ar-DZ')} دج
+                                    </Badge>
                                   )}
                                   {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
                                     <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
