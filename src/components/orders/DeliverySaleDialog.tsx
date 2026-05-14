@@ -334,6 +334,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const effectiveGiftQty = useRecalc ? recalculated.giftBoxes : storedGiftQty;
         const effectiveGiftPcs = useRecalc ? recalculated.giftPieces : storedGiftPcs;
         const effectiveQuantity = paidQty + effectiveGiftQty;
+        const effectiveOfferId = useRecalc
+          ? (recalculated.offerId || (item as any).gift_offer_id || null)
+          : ((item as any).gift_offer_id || recalculated.offerId || null);
 
         return {
           productId: item.product_id,
@@ -345,7 +348,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           originalQuantity: item.quantity,
           giftQuantity: effectiveGiftQty,
           giftPieces: effectiveGiftPcs,
-          giftOfferId: (item as any).gift_offer_id || null,
+          giftOfferId: effectiveOfferId,
           piecesPerBox: ppb,
           pricingUnit: (item as any).pricing_unit || item.product?.pricing_unit || 'box',
           weightPerBox: (item as any).weight_per_box ?? item.product?.weight_per_box ?? null,
