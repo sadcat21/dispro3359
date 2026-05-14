@@ -418,7 +418,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Branding icon only */}
           <button
             onClick={cycleMode}
-            className="relative w-8 h-8 shrink-0 rounded-lg bg-white/10 p-1 hover:bg-white/20 transition-colors active:scale-95"
+            className="relative w-14 h-8 shrink-0 rounded-lg bg-white/10 p-1 hover:bg-white/20 transition-colors active:scale-95"
             title={modeLabel}
           >
             <img src={icon} alt="Laser Food" className="w-full h-full object-contain" />
@@ -430,20 +430,18 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             </span>
           </button>
 
-          {/* Global back button */}
-          {!isHomePage && (
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label={t("tooltip.back")}
-            >
-              {dir === 'rtl' ? (
-                <ArrowRight className="w-4 h-4 text-white" />
-              ) : (
-                <ArrowLeft className="w-4 h-4 text-white" />
-              )}
-            </button>
-          )}
+          {/* Global back button - always visible */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+            aria-label={t("tooltip.back")}
+          >
+            {dir === 'rtl' ? (
+              <ArrowRight className="w-4 h-4 text-white" />
+            ) : (
+              <ArrowLeft className="w-4 h-4 text-white" />
+            )}
+          </button>
 
           {/* Action icons */}
           <RefreshButton />
