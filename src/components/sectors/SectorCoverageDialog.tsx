@@ -361,7 +361,7 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
                             )}
                           </div>
                           <div className="flex items-center gap-1">
-                            {((role === 'admin' || role === 'project_manager') && (c.approval_status || 'approved') !== 'approved') && (
+                            {((role === 'admin' || role === 'project_manager' || role === 'branch_admin') && (c.approval_status || 'approved') !== 'approved') && (
                               <Button variant="outline" size="sm" onClick={() => approveCoverage(c)}>
                                 موافقة
                               </Button>
