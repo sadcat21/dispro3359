@@ -47,12 +47,22 @@ const ProductOffers: React.FC = () => {
   const [editOffer, setEditOffer] = useState<ProductOfferWithDetails | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [extendTarget, setExtendTarget] = useState<{
-    offerId: string;
-    offerName: string;
+    offerId?: string;
+    offerName?: string;
     tierId: string | null;
     tierLabel: string | null;
     mode: 'extend' | 'resume';
+    targets?: { offerId: string; offerName: string; tierId: null; tierLabel: null }[];
   } | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
 
