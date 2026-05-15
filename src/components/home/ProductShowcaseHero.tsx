@@ -126,7 +126,7 @@ const ProductShowcaseHero: React.FC = () => {
   const logo = companyInfo?.company_logo || companyInfo?.company_icon || '';
 
   return (
-    <div className="relative h-52 sm:h-60 overflow-hidden" dir="rtl">
+    <div className="relative h-36 sm:h-44 overflow-hidden" dir="rtl">
       <style>{`
         @keyframes heroProductCycle {
           0%   { transform: translateX(-120%) scale(0.6); opacity: 0; filter: blur(6px); }
