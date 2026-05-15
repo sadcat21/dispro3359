@@ -406,7 +406,7 @@ const WorkerHome: React.FC = () => {
           </div>
           <Button
             variant="outline"
-            className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
+            className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 shadow-md"
             onClick={() => setShowHandoverPreview(true)}
           >
             <ClipboardList className="w-3.5 h-3.5 text-primary" />
