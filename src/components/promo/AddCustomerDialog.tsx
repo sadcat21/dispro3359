@@ -24,6 +24,7 @@ import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes
 import { useCustomerFieldSettings } from '@/hooks/useCustomerFieldSettings';
 import { CUSTOMER_FIELD_LABELS, type CustomerFieldKey } from '@/types/customerFieldSettings';
 import { isAdminRole } from '@/lib/utils';
+import { useBranchesQuery } from '@/hooks/useQueryData';
 
 interface AddCustomerDialogProps {
   open: boolean;
