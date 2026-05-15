@@ -51,7 +51,8 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
-  const { workerId, activeBranch, role } = useAuth();
+  const { workerId, activeBranch, role, user } = useAuth();
+  const { data: branches = [] } = useBranchesQuery(true);
   const { t, language } = useLanguage();
   const { sectors, fetchSectors } = useSectors();
   const createDebt = useCreateDebt();
