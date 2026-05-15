@@ -897,7 +897,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       {t('debt_collect.no_movements')}
                     </div>
                   ) : (
-                    <div className="rounded-2xl border bg-white overflow-hidden">
+                    <div className="rounded-2xl border bg-white overflow-y-auto max-h-[50vh]">
                       {timelineSections.flatMap((section, sIdx) =>
                         section.items.map((item, iIdx) => {
                           const isDebt = item.kind === 'debt';
