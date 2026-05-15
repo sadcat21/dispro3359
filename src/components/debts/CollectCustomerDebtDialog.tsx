@@ -932,6 +932,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   {paymentMethodLabel(item.paymentMethod, t)}
                                 </Badge>
                               )}
+                              {isVisit && (
+                                <Badge className="rounded-full text-[10px] font-semibold gap-1 bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-100">
+                                  <MapPin className="h-3 w-3" />
+                                  زيارة بدون تحصيل
+                                </Badge>
+                              )}
                               {isAccounted && (
                                 <span
                                   className="inline-flex items-center gap-1 rounded-md border-2 border-emerald-600 bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 -rotate-6 shadow-sm"
@@ -941,7 +947,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   محاسَب
                                 </span>
                               )}
-                              <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
+                              <span className="ml-auto text-xs font-semibold text-indigo-600 tabular-nums" dir="ltr">
                                 {item.displayDate}
                               </span>
                             </button>
