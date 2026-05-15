@@ -621,11 +621,10 @@ const Customers: React.FC = () => {
               const longPressTriggered = { current: false };
               const startLongPress = () => {
                 longPressTriggered.current = false;
-                longPressTimer.current = window.setTimeout(() => {
-                  longPressTriggered.current = true;
-                  setProfileCustomer(customer);
-                  setIsProfileOpen(true);
-                }, 500);
+                 longPressTimer.current = window.setTimeout(() => {
+                   longPressTriggered.current = true;
+                   openEditDialog(customer);
+                 }, 500);
               };
               const cancelLongPress = () => {
                 if (longPressTimer.current !== null) {
