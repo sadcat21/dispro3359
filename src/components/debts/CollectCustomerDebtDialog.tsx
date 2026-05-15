@@ -322,6 +322,45 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   );
   const { data: payments = [], isLoading: paymentsLoading } = useDebtPaymentsGroup(debtIds);
 
+  // Worker permissions are tied to accounting sessions: once a worker has a completed
+  // accounting session covering a payment's collected_at, that payment becomes frozen
+  // for the worker. Admin / branch manager / assistant manager can still bypass.
+  const canBypassAccountingLock = isAdmin || role === 'admin_assistant';
+  const paymentWorkerIds = useMemo(
+    () => Array.from(new Set(payments.map((p) => p.worker_id).filter(Boolean) as string[])),
+    [payments],
+  );
+  const { data: completedSessions = [] } = useQuery({
+    queryKey: ['debt-payments-locking-sessions', paymentWorkerIds],
+    queryFn: async () => {
+      if (!paymentWorkerIds.length) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, period_start, period_end, completed_at, status')
+        .in('worker_id', paymentWorkerIds)
+        .not('completed_at', 'is', null);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && paymentWorkerIds.length > 0 && !canBypassAccountingLock,
+  });
+  const lockedPaymentIds = useMemo(() => {
+    const set = new Set<string>();
+    if (canBypassAccountingLock) return set;
+    payments.forEach((p) => {
+      const ts = new Date(p.collected_at || p.created_at || 0).getTime();
+      if (!ts) return;
+      const locked = completedSessions.some((s: any) => {
+        if (s.worker_id !== p.worker_id) return false;
+        const start = s.period_start ? new Date(s.period_start).getTime() : -Infinity;
+        const end = s.period_end ? new Date(s.period_end).getTime() : Infinity;
+        return ts >= start && ts <= end;
+      });
+      if (locked) set.add(p.id);
+    });
+    return set;
+  }, [payments, completedSessions, canBypassAccountingLock]);
+
   const { data: debtOrders = [] } = useQuery({
     queryKey: ['collect-customer-debt-origin-orders', orderIds],
     queryFn: async () => {
