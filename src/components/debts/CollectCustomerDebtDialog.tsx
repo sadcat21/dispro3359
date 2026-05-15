@@ -945,14 +945,16 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               <span className={`font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)] ${tone.text}`} dir="ltr">
                                 {formatMoney(item.amount)}
                               </span>
-                              <div className="relative inline-flex">
+                              <div className="relative inline-flex items-center">
                                 {isAccounted && (
                                   <span
-                                    className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full inline-flex items-center gap-1 rounded-md border-2 border-red-600/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-red-600/40 -rotate-6 pointer-events-none whitespace-nowrap"
+                                    className="absolute inset-0 flex items-center justify-center -rotate-12 pointer-events-none z-10"
                                     title="تمت محاسبة هذا التحصيل مع المسؤول"
                                   >
-                                    <Lock className="h-3 w-3 opacity-40" />
-                                    محاسَب
+                                    <span className="inline-flex items-center gap-1 rounded-md border-2 border-red-600/40 bg-red-500/10 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-red-600/60 whitespace-nowrap">
+                                      <Lock className="h-3 w-3 opacity-50" />
+                                      محاسَب
+                                    </span>
                                   </span>
                                 )}
                                 <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
