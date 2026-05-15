@@ -1022,6 +1022,13 @@ export const translations: Translations = {
   'offers.multiplier_hint': { ar: 'كل X = عرض', fr: 'Chaque X = promo', en: 'Every X = gift' },
   'offers.every': { ar: 'كل', fr: 'Chaque', en: 'Every' },
   'offers.quantity': { ar: 'الكمية', fr: 'Quantité', en: 'Quantity' },
+  'offers.invoice_1': { ar: 'فاتورة 1', fr: 'Facture 1', en: 'Invoice 1' },
+  'offers.invoice_2': { ar: 'فاتورة 2', fr: 'Facture 2', en: 'Invoice 2' },
+  'offers.retail': { ar: 'التجزئة', fr: 'Détail', en: 'Retail' },
+  'offers.gros': { ar: 'الجملة (غرو)', fr: 'Gros', en: 'Wholesale' },
+  'offers.super_gros': { ar: 'سبر غرو', fr: 'Super gros', en: 'Super Wholesale' },
+  'offers.cash': { ar: 'كاش', fr: 'Espèces', en: 'Cash' },
+  'offers.check': { ar: 'شيك', fr: 'Chèque', en: 'Check' },
 
   // ==================== Translation System ====================
   'translation.translate': { ar: 'ترجمة تلقائية', fr: 'Traduction automatique', en: 'Auto Translate' },
