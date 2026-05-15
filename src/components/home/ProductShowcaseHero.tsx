@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Gift } from 'lucide-react';
+import heroBg from '@/assets/hero-offers-bg.jpg';
 
 type Slide = {
   title: string;
