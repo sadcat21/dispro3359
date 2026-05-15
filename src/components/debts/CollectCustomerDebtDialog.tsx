@@ -187,6 +187,7 @@ const buildTimeline = (
   payments: Array<{
     id: string;
     debt_id: string;
+    worker_id?: string | null;
     amount: number;
     payment_method?: string | null;
     notes?: string | null;
