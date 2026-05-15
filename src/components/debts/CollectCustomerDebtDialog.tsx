@@ -59,6 +59,17 @@ interface CollectCustomerDebtDialogProps {
 
 type TimelineKind = 'debt' | 'partial' | 'full' | 'visit' | 'cancelled_debt';
 
+type TimelinePayment = {
+  id: string;
+  debt_id: string;
+  amount: number;
+  payment_method?: string | null;
+  notes?: string | null;
+  collected_at?: string | null;
+  created_at?: string | null;
+  worker?: { full_name?: string | null } | null;
+};
+
 interface TimelineEvent {
   id: string;
   debtId?: string;
@@ -77,6 +88,14 @@ interface TimelineEvent {
 const toNumber = (value: unknown) => {
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? n : 0;
+};
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: unknown }).message || '');
+  }
+  return '';
 };
 
 const formatMoney = (value: number) => `${value.toLocaleString()} DA`;
@@ -137,16 +156,18 @@ const sectionTitle = (tab: DialogTab, t: (k: string) => string) => {
 const resolveOriginPaymentMethod = (order?: {
   payment_type?: string | null;
   invoice_payment_method?: string | null;
-  document_verification?: any;
+  document_verification?: unknown;
 } | null) => {
   if (!order) return 'cash';
 
   const paymentType = String(order.payment_type || '').toLowerCase();
   const invoiceMethod = String(order.invoice_payment_method || '').toLowerCase();
+  const documentVerification = order.document_verification;
   const paidByCash = Boolean(
-    order.document_verification &&
-    typeof order.document_verification === 'object' &&
-    order.document_verification.paid_by_cash === true,
+    documentVerification &&
+    typeof documentVerification === 'object' &&
+    'paid_by_cash' in documentVerification &&
+    documentVerification.paid_by_cash === true,
   );
 
   if (paymentType !== 'with_invoice') {
@@ -380,7 +401,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     if (!linkedOrderId && item.debtId) {
       const { data, error } = await supabase
         .from('customer_debts')
-        .select('order_id')
+        .select('id, order_id, customer_id, worker_id, branch_id, total_amount, paid_amount, remaining_amount, created_at')
         .eq('id', item.debtId)
         .maybeSingle();
 
@@ -390,6 +411,50 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       }
 
       linkedOrderId = data?.order_id || null;
+
+      if (!linkedOrderId && data?.customer_id) {
+        const debtCreatedAt = new Date(data.created_at || item.date);
+        const startDate = new Date(debtCreatedAt.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString();
+        const endDate = new Date(debtCreatedAt.getTime() + 1000 * 60 * 60 * 24).toISOString();
+        const { data: candidateOrders, error: orderSearchError } = await supabase
+          .from('orders')
+          .select('id, total_amount, partial_amount, payment_status, created_at, updated_at, customer_id, created_by, assigned_worker_id, branch_id')
+          .eq('customer_id', data.customer_id)
+          .gte('created_at', startDate)
+          .lte('created_at', endDate)
+          .order('created_at', { ascending: false })
+          .limit(25);
+
+        if (orderSearchError) {
+          toast.error(orderSearchError.message || t('debt_collect.no_order_linked'));
+          return;
+        }
+
+        const debtAmount = toNumber(data.total_amount);
+        const debtTime = debtCreatedAt.getTime();
+        const scoredOrders = (candidateOrders || [])
+          .map((order) => {
+            const totalAmount = toNumber(order.total_amount);
+            const partialAmount = toNumber(order.partial_amount);
+            const remainingFromOrder = Math.max(0, totalAmount - partialAmount);
+            const orderTime = new Date(order.created_at || order.updated_at || item.date).getTime();
+            const hoursDiff = Number.isFinite(orderTime) ? Math.abs(debtTime - orderTime) / (1000 * 60 * 60) : 999;
+            let score = 0;
+
+            if (Math.abs(remainingFromOrder - debtAmount) <= 1) score += 12;
+            if (Math.abs(totalAmount - debtAmount) <= 1) score += 8;
+            if (order.assigned_worker_id === data.worker_id || order.created_by === data.worker_id) score += 5;
+            if (data.branch_id && order.branch_id === data.branch_id) score += 3;
+            if (hoursDiff <= 2) score += 5;
+            else if (hoursDiff <= 24) score += 3;
+            else if (hoursDiff <= 72) score += 1;
+
+            return { orderId: order.id, score };
+          })
+          .sort((a, b) => b.score - a.score);
+
+        linkedOrderId = scoredOrders[0]?.score >= 8 ? scoredOrders[0].orderId : null;
+      }
     }
 
     if (!linkedOrderId) {
@@ -431,7 +496,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   );
   const printablePaidTotal = Math.max(0, printableDebtTotal - printableRemainingTotal);
 
-  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any, t), [debtOrderStatusById, debts, payments, t]);
+  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as TimelinePayment[], t), [debtOrderStatusById, debts, payments, t]);
   const filteredTimeline = useMemo(
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
@@ -469,8 +534,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       });
       toast.success(t('debt_collect.collected_success'));
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error?.message || t('debt_collect.collect_failed'));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || t('debt_collect.collect_failed'));
     }
   };
 
@@ -490,8 +555,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       });
       toast.success(t('debt_collect.visit_recorded'));
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error?.message || t('debt_collect.visit_failed'));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || t('debt_collect.visit_failed'));
     }
   };
 
@@ -504,8 +569,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         collectionDays,
       });
       toast.success(t('debt_collect.schedule_updated'));
-    } catch (error: any) {
-      toast.error(error?.message || t('debt_collect.schedule_failed'));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || t('debt_collect.schedule_failed'));
     }
   };
 
@@ -1082,8 +1147,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   }
                   toast.success(t('debt_collect.edited_success'));
                   setEditTarget(null);
-                } catch (err: any) {
-                  toast.error(err?.message || t('debt_collect.edit_failed'));
+                } catch (err: unknown) {
+                  toast.error(getErrorMessage(err) || t('debt_collect.edit_failed'));
                 }
               }}
             >
@@ -1132,8 +1197,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   }
                   toast.success(t('debt_collect.cancelled_success'));
                   setDeleteTarget(null);
-                } catch (err: any) {
-                  toast.error(err?.message || t('debt_collect.cancel_failed'));
+                } catch (err: unknown) {
+                  toast.error(getErrorMessage(err) || t('debt_collect.cancel_failed'));
                 }
               }}
             >
