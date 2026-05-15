@@ -292,7 +292,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   const [collectionAmount, setCollectionAmount] = useState('');
   const [collectionDays, setCollectionDays] = useState<string[]>([]);
   const [showVisitsInTimeline, setShowVisitsInTimeline] = useState(false);
-  const [historyViewMode, setHistoryViewMode] = useState<'cards' | 'list'>('cards');
+  
   const [showHistoryReceipt, setShowHistoryReceipt] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
