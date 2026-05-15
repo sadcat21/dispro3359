@@ -240,7 +240,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
 
-    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; giftQty?: number; delta: number; before?: number; after?: number };
+    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; giftQty?: number; delta: number; before?: number; after?: number; orderId?: string | null; mods?: Array<{ id: string; label: string; note?: string | null; when: string; delta: number; orderStatus?: string | null }> };
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
@@ -264,7 +264,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const saleQty = Math.max(0, totalBoxes - giftQty);
       const when = it.order_updated_at || it.order_created_at || '';
       const totalDelta = saleQty + giftQty;
-      if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta });
+      if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta, orderId: it.order_id || null });
     }
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
       const isCancelled = m.order?.status === 'cancelled';
@@ -286,13 +286,32 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         orderStatus: m.order?.status || null,
         // المُعدِّل أصبح مستقلاً عن صف البيع: يطرح/يضيف فعلياً من المخزون.
         delta: deltaBoxes,
+        orderId: m.order_id || null,
       });
     }
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
     const chronological = [...movements].reverse();
     let bal = currentQty;
-    const entries = chronological.map(m => { const after = bal; const before = bal - m.delta; bal = before; return { ...m, before, after }; });
+    const allEntries = chronological.map(m => { const after = bal; const before = bal - m.delta; bal = before; return { ...m, before, after }; });
+
+    // Group modifications/cancellations into their parent sale card (when same order_id).
+    const saleByOrderId = new Map<string, any>();
+    for (const e of allEntries) {
+      if (e.type === 'sale' && e.orderId) saleByOrderId.set(e.orderId, e);
+    }
+    const entries: any[] = [];
+    for (const e of allEntries) {
+      if (e.type === 'modification' && e.orderId && saleByOrderId.has(e.orderId)) {
+        const parent = saleByOrderId.get(e.orderId);
+        parent.mods = parent.mods || [];
+        parent.mods.push({ id: e.id, label: e.label, note: e.note, when: e.when, delta: e.delta, orderStatus: e.orderStatus });
+        // Reflect the latest cancellation status on the parent sale for badging.
+        if (e.orderStatus === 'cancelled') parent.orderStatus = 'cancelled';
+        continue;
+      }
+      entries.push(e);
+    }
 
     const totalLoaded = movements.filter(m => m.type === 'load').reduce((s, m) => s + m.quantity, 0);
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
@@ -523,6 +542,18 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
                                 <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
                               )}
+                              {entry.type === 'sale' && entry.orderStatus === 'cancelled' && (
+                                <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">ملغى</Badge>
+                              )}
+                              {entry.type === 'sale' && entry.mods && entry.mods.length > 0 && entry.mods.map((mm: any) => (
+                                <Badge
+                                  key={mm.id}
+                                  className={`text-[10px] ${mm.orderStatus === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-purple-100 text-purple-700 border-purple-200'}`}
+                                  title={mm.note || ''}
+                                >
+                                  {mm.label}
+                                </Badge>
+                              ))}
                               {entry.type !== 'sale' && entry.sourceLabel && (
                                 <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
                               )}
@@ -555,6 +586,21 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                             </div>
                             {entry.note && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
+                            )}
+                            {entry.type === 'sale' && entry.mods && entry.mods.length > 0 && (
+                              <div className="mt-2 border-t pt-2 space-y-1">
+                                {entry.mods.map((mm: any) => (
+                                  <div key={`note-${mm.id}`} className="flex items-center gap-1.5 text-[11px]">
+                                    <Badge className={`text-[9px] ${mm.orderStatus === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-purple-100 text-purple-700 border-purple-200'}`}>
+                                      {mm.label}
+                                    </Badge>
+                                    <span className="text-muted-foreground truncate">{mm.note || '—'}</span>
+                                    <span className="ms-auto text-[10px] text-muted-foreground shrink-0">
+                                      {mm.when ? new Date(mm.when).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
