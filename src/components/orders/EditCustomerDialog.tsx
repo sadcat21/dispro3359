@@ -24,6 +24,7 @@ import { CUSTOMER_FIELD_LABELS, type CustomerFieldKey } from '@/types/customerFi
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getLocalizedName } from '@/utils/sectorName';
 import { isAdminRole } from '@/lib/utils';
+import { useBranchesQuery } from '@/hooks/useQueryData';
 
 interface EditCustomerDialogProps {
   open: boolean;
@@ -55,7 +56,9 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const { data: debtSummary } = useCustomerDebtSummary(customer?.id || null);
   const createDebt = useCreateDebt();
   const updateDebtPayment = useUpdateDebtPayment();
-  const { workerId, role } = useAuth();
+  const { workerId, role, user, activeBranch } = useAuth();
+  const { data: branches = [] } = useBranchesQuery(true);
+  const isManager = isAdminRole(role);
   const { customerTypes } = useCustomerTypes();
   const { settings: customerFieldSettings } = useCustomerFieldSettings();
   const { language } = useLanguage();
@@ -73,6 +76,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [address, setAddress] = useState('');
   const [addressLoading, setAddressLoading] = useState(false);
   const [wilaya, setWilaya] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -245,6 +249,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setSalesReps(reps);
       setAddress(customer.address || '');
       setWilaya(customer.wilaya || '');
+      setSelectedBranchId(customer.branch_id || activeBranch?.id || (user as any)?.branch_id || '');
       setLatitude(customer.latitude);
       setLongitude(customer.longitude);
       setLocationType((customer as any).location_type || 'store');
@@ -346,7 +351,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
-    const isManager = isAdminRole(role);
+    // isManager already defined at component scope
     if (!name.trim()) { toast.error('الرجاء إدخال اسم العميل'); return; }
 
     const firstMissingRequired = customerFieldSettings.requiredOnEdit.find((field) => !isFieldFilled(field));
@@ -369,7 +374,8 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         internal_name: internalName.trim() || null,
         phone: phoneStr || null,
         address: address.trim() || null,
-        wilaya: wilaya || null,
+        wilaya: (branches.find(b => b.id === selectedBranchId)?.wilaya) || wilaya || null,
+        branch_id: isManager ? (selectedBranchId || null) : (customer.branch_id || null),
         latitude, longitude,
         location_type: locationType,
         sector_id: sectorId,
@@ -776,15 +782,21 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="edit-wilaya">الولاية</Label>
-              <Select value={wilaya} onValueChange={setWilaya}>
-                <SelectTrigger><SelectValue placeholder="اختر الولاية" /></SelectTrigger>
-                <SelectContent position="popper" className="z-[10050] bg-popover max-h-60">
-                  {ALGERIAN_WILAYAS.map((w) => (
-                    <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>الفرع</Label>
+              {isManager ? (
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
+                  <SelectContent position="popper" className="z-[10050] bg-popover max-h-60">
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-3 bg-background/60 rounded-lg border">
+                  <p className="font-medium">{branches.find(b => b.id === selectedBranchId)?.name || '—'}</p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

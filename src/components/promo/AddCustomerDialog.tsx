@@ -24,6 +24,7 @@ import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes
 import { useCustomerFieldSettings } from '@/hooks/useCustomerFieldSettings';
 import { CUSTOMER_FIELD_LABELS, type CustomerFieldKey } from '@/types/customerFieldSettings';
 import { isAdminRole } from '@/lib/utils';
+import { useBranchesQuery } from '@/hooks/useQueryData';
 
 interface AddCustomerDialogProps {
   open: boolean;
@@ -50,7 +51,8 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
-  const { workerId, activeBranch, role } = useAuth();
+  const { workerId, activeBranch, role, user } = useAuth();
+  const { data: branches = [] } = useBranchesQuery(true);
   const { t, language } = useLanguage();
   const { sectors, fetchSectors } = useSectors();
   const createDebt = useCreateDebt();
@@ -88,7 +90,13 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
   const [defaultPaymentType, setDefaultPaymentType] = useState<string>('without_invoice'); // default: فاتورة 2
   const [defaultPriceSubtype, setDefaultPriceSubtype] = useState<string>('retail'); // default: تجزئة
   const [defaultDeliveryWorkerId, setDefaultDeliveryWorkerId] = useState('');
-  const effectiveBranchId = activeBranch ? activeBranch.id : null;
+  const defaultBranchId = activeBranch?.id || (user as any)?.branch_id || '';
+  const [selectedBranchId, setSelectedBranchId] = useState<string>(defaultBranchId);
+  useEffect(() => {
+    if (!selectedBranchId && defaultBranchId) setSelectedBranchId(defaultBranchId);
+  }, [defaultBranchId]);
+  const effectiveBranchId = selectedBranchId || null;
+  const selectedBranch = branches.find(b => b.id === selectedBranchId);
 
   // Fetch zones when sector changes
   const [zonesLoading, setZonesLoading] = useState(false);
@@ -396,7 +404,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
         store_name_fr: storeNameFr.trim() || null,
         phone: phoneStr || null,
         address: address.trim() || null,
-        wilaya,
+        wilaya: selectedBranch?.wilaya || wilaya || null,
         branch_id: effectiveBranchId,
         created_by: workerId,
         latitude, longitude,
@@ -774,25 +782,24 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
             )}
 
             <div className="space-y-2">
-              <Label>{t('customers.wilaya')}</Label>
-              <Select value={wilaya} onValueChange={setWilaya}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('customers.select_wilaya')} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="bg-popover z-[10050] max-h-60">
-                  {ALGERIAN_WILAYAS.map((w) => (
-                    <SelectItem key={w.code} value={w.name}>{w.code} - {w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>الفرع</Label>
+              {isAdminRole(role) ? (
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الفرع" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="bg-popover z-[10050] max-h-60">
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-3 bg-background/60 rounded-lg border">
+                  <p className="font-medium">{selectedBranch?.name || activeBranch?.name || '—'}</p>
+                </div>
+              )}
             </div>
-
-            {isAdminRole(role) && activeBranch && (
-              <div className="p-3 bg-background/60 rounded-lg border">
-                <p className="text-sm text-muted-foreground">{t('nav.branches')}</p>
-                <p className="font-medium">{activeBranch.name}</p>
-              </div>
-            )}
 
             <div className="space-y-2">
               <Label>نوع الموقع</Label>
