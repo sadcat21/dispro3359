@@ -718,57 +718,68 @@ const CustomerJourney = () => {
               />
             </div>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">{t('customers.journey.visit_timeline')}</CardTitle>
                 <CardDescription>{visits.length} {t('common.events')}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="p-0">
                 {isVisitTabLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   </div>
                 ) : visits.length === 0 ? (
-                  <EmptyState label={t('customers.journey.no_visits')} />
+                  <div className="p-6"><EmptyState label={t('customers.journey.no_visits')} /></div>
                 ) : (
-                  visits.map((visit) => (
-                    <div key={visit.id} className="rounded-2xl border bg-background p-3 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="border-primary/20 text-primary">
-                              {getVisitOperationLabel(visit.operation_type)}
-                            </Badge>
-                            {visit.order && (
-                              <Badge className="bg-emerald-100 text-emerald-700 border-0">
-                                {t('customers.journey.order_linked')}
-                              </Badge>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                            <span>{formatDateTime(visit.created_at)}</span>
-                            <span>{t('customers.journey.assigned_worker')}: {visit.worker?.full_name || visit.worker?.username || '—'}</span>
-                            {visit.address && <span className="line-clamp-1">{visit.address}</span>}
-                            {visit.notes && <span className="line-clamp-2">{visit.notes}</span>}
-                          </div>
-                        </div>
-
-                        {visit.order && (
-                          <button
-                            type="button"
-                            className="shrink-0 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-end transition hover:border-primary/40 hover:bg-primary/10"
-                            onClick={() => setSelectedOrder(visit.order || null)}
-                          >
-                            <div className="text-[11px] text-muted-foreground">{visit.order.status}</div>
-                            <div className="text-sm font-black text-primary" dir="ltr">
-                              {formatAmount(visit.order.total_amount)} {t('common.currency')}
-                            </div>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
+                  <div className="border-t bg-white overflow-y-auto max-h-[60vh]">
+                    {visits.map((visit, idx) => {
+                      const hasOrder = !!visit.order;
+                      const tone = hasOrder
+                        ? { bar: 'bg-emerald-500', text: 'text-emerald-700' }
+                        : { bar: 'bg-amber-400', text: 'text-amber-700' };
+                      const dateStr = formatDateTime(visit.created_at);
+                      const [datePart, ...timeRest] = dateStr.split(' ');
+                      const timePart = timeRest.join(' ');
+                      const workerName = visit.worker?.full_name || visit.worker?.username || '—';
+                      const clickable = hasOrder;
+                      return (
+                        <button
+                          key={visit.id}
+                          type="button"
+                          dir={dir}
+                          disabled={!clickable}
+                          onClick={() => visit.order && setSelectedOrder(visit.order)}
+                          className={cn(
+                            'relative flex items-center gap-3 px-4 py-3 text-sm w-full border-b last:border-b-0',
+                            idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60',
+                            clickable ? 'hover:bg-slate-100 cursor-pointer' : 'cursor-default'
+                          )}
+                        >
+                          <span className={cn('absolute inset-y-0 w-1', dir === 'rtl' ? 'right-0' : 'left-0', tone.bar)} />
+                          {hasOrder ? (
+                            <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
+                              {formatAmount(visit.order!.total_amount)} {t('common.currency')}
+                            </span>
+                          ) : (
+                            <span className={cn('font-black whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)] inline-flex items-center gap-1', tone.text)}>
+                              <MapPin className="h-3.5 w-3.5" />
+                              {t('customers.journey.without_order')}
+                            </span>
+                          )}
+                          <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                            {workerName}
+                          </Badge>
+                          <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                            {getVisitOperationLabel(visit.operation_type)}
+                          </Badge>
+                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                            <span className="text-black">{datePart}</span>
+                            {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
