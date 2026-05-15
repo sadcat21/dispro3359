@@ -58,6 +58,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const updateDebtPayment = useUpdateDebtPayment();
   const { workerId, role, user, activeBranch } = useAuth();
   const { data: branches = [] } = useBranchesQuery(true);
+  const isManager = isAdminRole(role);
   const { customerTypes } = useCustomerTypes();
   const { settings: customerFieldSettings } = useCustomerFieldSettings();
   const { language } = useLanguage();
