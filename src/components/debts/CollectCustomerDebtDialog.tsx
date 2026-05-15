@@ -73,6 +73,7 @@ interface TimelineEvent {
   date: string;
   displayDate: string;
   workerName: string;
+  workerId?: string | null;
   paymentMethod: string | null;
   amount: number;
   beforeAmount: number;
