@@ -210,7 +210,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
       <Dialog open={!!openCustomer} onOpenChange={(o) => { if (!o) setOpenCustomer(null); }}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="flex items-start justify-between gap-2">
+            <DialogTitle className="flex items-start justify-between gap-2 ps-8">
               <span className="flex items-start gap-2 min-w-0">
                 <Gift className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
                 <span className="flex flex-col min-w-0 text-right">
