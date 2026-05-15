@@ -195,7 +195,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
               <span>عرض خاص</span>
               {current.endDate && (
                 <span className="border-r border-white/40 ps-1.5 pe-0.5 font-semibold whitespace-nowrap">
-                  حتى {formatDate(current.endDate)}
+                  {formatDate(current.endDate)}
                 </span>
               )}
             </div>
