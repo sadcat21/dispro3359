@@ -391,23 +391,24 @@ const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({
         </div>
 
         {isApplicable && (
-          <div className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background border-t">
-            <div className="text-[10px] font-bold">
-              {(offer as any).is_mandatory && (
-                <span className="text-destructive">★ تفعيل إجباري</span>
-              )}
-              {(offer as any).auto_fill_quantities === false && (
-                <span className="text-muted-foreground"> · إدخال يدوي</span>
-              )}
-            </div>
+          <div className="flex items-stretch gap-2 px-2 py-1.5 bg-background border-t">
+            {((offer as any).is_mandatory || (offer as any).auto_fill_quantities === false) && (
+              <div className="flex items-center text-[10px] font-bold whitespace-nowrap">
+                {(offer as any).is_mandatory && (
+                  <span className="text-destructive">★ تفعيل إجباري</span>
+                )}
+                {(offer as any).auto_fill_quantities === false && (
+                  <span className="text-muted-foreground"> · إدخال يدوي</span>
+                )}
+              </div>
+            )}
             <Button
-              size="sm"
               variant={activatedOfferIds.has(offer.id) ? 'secondary' : 'default'}
-              className="h-6 px-2 text-[10px]"
+              className="flex-1 h-9 px-3 text-xs font-extrabold"
               onClick={(e) => { e.stopPropagation(); toggleActivation(offer.id); }}
             >
               {activatedOfferIds.has(offer.id) ? (
-                <><Check className="w-3 h-3 mr-1" /> {(offer as any).is_deferred_confirmation ? 'مُسجَّل' : 'مفعّل'}</>
+                <><Check className="w-3.5 h-3.5 mr-1" /> {(offer as any).is_deferred_confirmation ? 'مُسجَّل' : 'مفعّل'}</>
               ) : (
                 (offer as any).is_deferred_confirmation ? 'تسجيل العرض' : 'تفعيل العرض'
               )}
