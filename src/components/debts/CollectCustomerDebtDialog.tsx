@@ -402,6 +402,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       return data as unknown as OrderWithDetails | null;
     },
     enabled: !!selectedOrderId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   useEffect(() => {
