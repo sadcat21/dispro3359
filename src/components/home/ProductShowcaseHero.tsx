@@ -190,11 +190,11 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
         {/* Right (RTL): offer text */}
         <div className="relative z-20 flex-1 min-w-0">
           <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
-            <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded mb-1">
+            <div className="inline-flex items-center gap-1.5 bg-gradient-to-l from-red-700 to-red-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow-md ring-1 ring-white/40 mb-1.5">
               <Gift className="w-3 h-3" />
               <span>عرض خاص</span>
               {current.endDate && (
-                <span className="border-r border-white/40 ps-1.5 pe-0.5 font-semibold whitespace-nowrap">
+                <span className="border-r border-white/40 ps-2 pe-0.5 font-semibold whitespace-nowrap">
                   {formatDate(current.endDate)}
                 </span>
               )}
@@ -246,24 +246,24 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
         </div>
       </div>
 
-      {/* Manual nav arrows */}
+      {/* Manual nav arrows — always visible, brand-themed */}
       {slides.length > 1 && (
         <>
           <button
             type="button"
             aria-label="السابق"
             onClick={() => { setPaused(true); goPrev(); }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-7 w-7 rounded-full bg-white/70 hover:bg-white text-foreground flex items-center justify-center shadow"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 z-40 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button
             type="button"
             aria-label="التالي"
             onClick={() => { setPaused(true); goNext(); }}
-            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-7 w-7 rounded-full bg-white/70 hover:bg-white text-foreground flex items-center justify-center shadow"
+            className="absolute left-1.5 top-1/2 -translate-y-1/2 z-40 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </>
       )}
