@@ -72,23 +72,41 @@ const ProductShowcaseHero: React.FC = () => {
           const discount = Number(t?.discount_percentage || 0);
           const discountAmt = Number(t?.discount_amount || 0);
 
-          let subtitle = '';
+          let subtitleParts: SubtitlePart[] = [];
           if (giftQty > 0) {
-            const giftLabel = giftName ? `${giftQty} ${unitLabel(giftUnit)} ${giftName}` : `${giftQty} ${unitLabel(giftUnit)}`;
-            subtitle = `اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على ${giftLabel} هدية`;
+            const giftQtyText = `${giftQty} ${unitLabel(giftUnit)}`;
+            const minQtyText = `${minQty} ${unitLabel(minUnit)}`;
+            subtitleParts = [
+              { text: 'اشترِ ' },
+              { text: minQtyText, highlight: true },
+              { text: ' واحصل على ' },
+              { text: giftQtyText, highlight: true },
+              { text: giftName ? ` ${giftName} هدية` : ' هدية' },
+            ];
           } else if (discount > 0) {
-            subtitle = `اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على خصم ${discount}%`;
+            subtitleParts = [
+              { text: 'اشترِ ' },
+              { text: `${minQty} ${unitLabel(minUnit)}`, highlight: true },
+              { text: ' واحصل على خصم ' },
+              { text: `${discount}%`, highlight: true },
+            ];
           } else if (discountAmt > 0) {
-            subtitle = `اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على خصم ${discountAmt} دج`;
-          } else {
-            subtitle = o.description || '';
+            subtitleParts = [
+              { text: 'اشترِ ' },
+              { text: `${minQty} ${unitLabel(minUnit)}`, highlight: true },
+              { text: ' واحصل على خصم ' },
+              { text: `${discountAmt} دج`, highlight: true },
+            ];
+          } else if (o.description) {
+            subtitleParts = [{ text: o.description }];
           }
 
           list.push({
             title: `PROM: ${productName}`,
-            subtitle,
+            subtitleParts,
             image,
             tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
+            endDate: o.end_date || null,
           });
         });
       });
