@@ -5,14 +5,9 @@ import {
   ArrowUpCircle,
   Banknote,
   CalendarClock,
-  Eye,
   Loader2,
   MapPin,
-  LayoutGrid,
-  List as ListIcon,
-  Pencil,
   Printer,
-  Trash2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
