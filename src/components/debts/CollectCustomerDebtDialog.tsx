@@ -1033,11 +1033,19 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
         <DialogContent dir="rtl" className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>
-              {editTarget?.kind === 'debt' ? t('debt_collect.edit_debt_amount') : t('debt_collect.edit_collection_amount')}
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              <span>{editTarget?.kind === 'debt' ? t('debt_collect.edit_debt_amount') : t('debt_collect.edit_collection_amount')}</span>
+              {customerName ? <span className="text-sm font-semibold text-slate-500">— {customerName}</span> : null}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <Label>{t('debt_collect.current_amount')}</Label>
+            <Input
+              type="number"
+              value={Number(editTarget?.currentAmount || 0)}
+              readOnly
+              disabled
+            />
             <Label>{t('debt_collect.new_amount')}</Label>
             <Input
               type="number"
@@ -1049,9 +1057,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
               {t('debt_collect.balance_auto_update')}
             </p>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEditTarget(null)}>{t('debt_collect.cancel')}</Button>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
             <Button
+              className="flex-1"
               disabled={editDebtMutation.isPending || editPaymentMutation.isPending}
               onClick={async () => {
                 if (!editTarget) return;
@@ -1081,9 +1089,25 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
             >
               {(editDebtMutation.isPending || editPaymentMutation.isPending) ? t('debt_collect.saving') : t('debt_collect.save')}
             </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={() => {
+                if (!editTarget) return;
+                setDeleteTarget({
+                  kind: editTarget.kind,
+                  id: editTarget.id,
+                  label: customerName || '',
+                });
+                setEditTarget(null);
+              }}
+            >
+              {t('debt_collect.delete')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

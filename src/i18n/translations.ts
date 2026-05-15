@@ -2149,6 +2149,9 @@ export const translations: Translations = {
   'debt_collect.cancelled_success': { ar: 'تم الإلغاء وتحديث الرصيد', fr: 'Annulé et solde mis à jour', en: 'Cancelled and balance updated' },
   'debt_collect.cancel_failed': { ar: 'تعذر الإلغاء', fr: "Impossible d'annuler", en: 'Cancel failed' },
   'debt_collect.confirm_cancel': { ar: 'تأكيد الإلغاء', fr: 'Confirmer l\'annulation', en: 'Confirm cancellation' },
+  'debt_collect.current_amount': { ar: 'المبلغ الحالي', fr: 'Montant actuel', en: 'Current amount' },
+  'debt_collect.delete': { ar: 'حذف', fr: 'Supprimer', en: 'Delete' },
+  'debt_collect.confirm_delete_q': { ar: 'هل تريد حقاً حذف هذا السجل؟ سيتم تحديث رصيد دين العميل تلقائياً.', fr: 'Voulez-vous vraiment supprimer cet enregistrement ?', en: 'Do you really want to delete this record?' },
 
   // ==================== Delivery Payment Dialog ====================
   'delivery_pay.invalid_amount': { ar: 'أدخل مبلغاً صحيحاً', fr: 'Saisissez un montant valide', en: 'Enter a valid amount' },
