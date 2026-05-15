@@ -497,73 +497,16 @@ const CustomerDebts: React.FC = () => {
                         <Card
                           key={group.id}
                           className="cursor-pointer overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition-all hover:border-red-200 hover:shadow-md active:scale-[0.99]"
-                          onClick={() => setQuickCustomerAction({ id: group.id, name: primaryDebt?.customer?.store_name || group.name, debts: group.debts, initialTab: 'collect' })}
+                          onClick={() => setQuickCustomerAction({ id: group.id, name: primaryDebt?.customer?.store_name || group.name, debts: group.debts, initialTab: 'history' })}
                         >
                           <CardContent className="p-4">
-                            <div className="flex flex-col gap-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0 flex-1 text-right">
-                                  <CustomerSummary
-                                    customer={{
-                                      name: primaryDebt?.customer?.name,
-                                      store_name: primaryDebt?.customer?.store_name,
-                                      customer_type: primaryDebt?.customer?.customer_type,
-                                      sector_name: sector ? getLocalizedName(sector, language) : undefined,
-                                      zone_name: zone ? getLocalizedName(zone, language) : undefined,
-                                    }}
-                                    className="items-end"
-                                    showAvatar={false}
-                                    showMeta={false}
-                                  />
-                                  {group.trustScore ? (
-                                    <div className="mt-1 flex justify-end">
-                                      <ClientTrustBadge trust={group.trustScore} />
-                                    </div>
-                                  ) : null}
-                                </div>
-                                <div className="shrink-0 rounded-full border border-red-100 bg-red-50 px-4 py-2 text-center">
-                                  <p className="text-lg font-black text-destructive" dir="ltr">{group.totalRemaining.toLocaleString()} DA</p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-end gap-2 pt-1">
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="default"
-                                  className="h-9 rounded-full px-3"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setQuickCustomerAction({ id: group.id, name: primaryDebt?.customer?.store_name || group.name, debts: group.debts, initialTab: 'collect' });
-                                  }}
-                                >
-                                  <Banknote className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-9 rounded-full px-3"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setQuickCustomerAction({ id: group.id, name: primaryDebt?.customer?.store_name || group.name, debts: group.debts, initialTab: 'visit' });
-                                  }}
-                                >
-                                  <MapPin className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-9 rounded-full px-3"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setQuickCustomerAction({ id: group.id, name: primaryDebt?.customer?.store_name || group.name, debts: group.debts, initialTab: 'history' });
-                                  }}
-                                >
-                                  <Clock3 className="w-4 h-4" />
-                                </Button>
-                              </div>
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-lg font-black text-destructive shrink-0" dir="ltr">
+                                {group.totalRemaining.toLocaleString()} DA
+                              </p>
+                              <p className="min-w-0 flex-1 truncate text-right text-base font-bold text-slate-800">
+                                {primaryDebt?.customer?.store_name || group.name}
+                              </p>
                             </div>
                           </CardContent>
                         </Card>
