@@ -286,13 +286,32 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         orderStatus: m.order?.status || null,
         // المُعدِّل أصبح مستقلاً عن صف البيع: يطرح/يضيف فعلياً من المخزون.
         delta: deltaBoxes,
+        orderId: m.order_id || null,
       });
     }
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
     const chronological = [...movements].reverse();
     let bal = currentQty;
-    const entries = chronological.map(m => { const after = bal; const before = bal - m.delta; bal = before; return { ...m, before, after }; });
+    const allEntries = chronological.map(m => { const after = bal; const before = bal - m.delta; bal = before; return { ...m, before, after }; });
+
+    // Group modifications/cancellations into their parent sale card (when same order_id).
+    const saleByOrderId = new Map<string, any>();
+    for (const e of allEntries) {
+      if (e.type === 'sale' && e.orderId) saleByOrderId.set(e.orderId, e);
+    }
+    const entries: any[] = [];
+    for (const e of allEntries) {
+      if (e.type === 'modification' && e.orderId && saleByOrderId.has(e.orderId)) {
+        const parent = saleByOrderId.get(e.orderId);
+        parent.mods = parent.mods || [];
+        parent.mods.push({ id: e.id, label: e.label, note: e.note, when: e.when, delta: e.delta, orderStatus: e.orderStatus });
+        // Reflect the latest cancellation status on the parent sale for badging.
+        if (e.orderStatus === 'cancelled') parent.orderStatus = 'cancelled';
+        continue;
+      }
+      entries.push(e);
+    }
 
     const totalLoaded = movements.filter(m => m.type === 'load').reduce((s, m) => s + m.quantity, 0);
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
