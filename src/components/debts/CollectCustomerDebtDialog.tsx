@@ -342,24 +342,29 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       if (error) throw error;
       return data || [];
     },
-    enabled: open && paymentWorkerIds.length > 0 && !canBypassAccountingLock,
+    enabled: open && paymentWorkerIds.length > 0,
   });
-  const lockedPaymentIds = useMemo(() => {
+  // Payments accounted for in a completed session — shown as a stamp to everyone.
+  const accountedPaymentIds = useMemo(() => {
     const set = new Set<string>();
-    if (canBypassAccountingLock) return set;
     payments.forEach((p) => {
       const ts = new Date(p.collected_at || p.created_at || 0).getTime();
       if (!ts) return;
-      const locked = completedSessions.some((s: any) => {
+      const found = completedSessions.some((s: any) => {
         if (s.worker_id !== p.worker_id) return false;
         const start = s.period_start ? new Date(s.period_start).getTime() : -Infinity;
         const end = s.period_end ? new Date(s.period_end).getTime() : Infinity;
         return ts >= start && ts <= end;
       });
-      if (locked) set.add(p.id);
+      if (found) set.add(p.id);
     });
     return set;
-  }, [payments, completedSessions, canBypassAccountingLock]);
+  }, [payments, completedSessions]);
+  // Locked = accounted AND user cannot bypass — blocks edit/delete.
+  const lockedPaymentIds = useMemo(
+    () => (canBypassAccountingLock ? new Set<string>() : accountedPaymentIds),
+    [canBypassAccountingLock, accountedPaymentIds],
+  );
 
   const { data: debtOrders = [] } = useQuery({
     queryKey: ['collect-customer-debt-origin-orders', orderIds],
