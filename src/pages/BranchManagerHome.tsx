@@ -192,7 +192,7 @@ const BranchManagerHome: React.FC = () => {
       {/* Offers Showcase — blue identity for branch manager */}
       <ProductShowcaseHero
         bgImage={managerHeroBg}
-        overlayClassName="bg-gradient-to-l from-blue-900/40 via-blue-800/30 to-blue-700/10"
+        overlayClassName="bg-gradient-to-l from-blue-900/20 via-white/30 to-white/10"
       />
 
       {/* Daily worker tasks button — below hero */}
