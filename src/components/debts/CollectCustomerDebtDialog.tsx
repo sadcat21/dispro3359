@@ -342,24 +342,29 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       if (error) throw error;
       return data || [];
     },
-    enabled: open && paymentWorkerIds.length > 0 && !canBypassAccountingLock,
+    enabled: open && paymentWorkerIds.length > 0,
   });
-  const lockedPaymentIds = useMemo(() => {
+  // Payments accounted for in a completed session — shown as a stamp to everyone.
+  const accountedPaymentIds = useMemo(() => {
     const set = new Set<string>();
-    if (canBypassAccountingLock) return set;
     payments.forEach((p) => {
       const ts = new Date(p.collected_at || p.created_at || 0).getTime();
       if (!ts) return;
-      const locked = completedSessions.some((s: any) => {
+      const found = completedSessions.some((s: any) => {
         if (s.worker_id !== p.worker_id) return false;
         const start = s.period_start ? new Date(s.period_start).getTime() : -Infinity;
         const end = s.period_end ? new Date(s.period_end).getTime() : Infinity;
         return ts >= start && ts <= end;
       });
-      if (locked) set.add(p.id);
+      if (found) set.add(p.id);
     });
     return set;
-  }, [payments, completedSessions, canBypassAccountingLock]);
+  }, [payments, completedSessions]);
+  // Locked = accounted AND user cannot bypass — blocks edit/delete.
+  const lockedPaymentIds = useMemo(
+    () => (canBypassAccountingLock ? new Set<string>() : accountedPaymentIds),
+    [canBypassAccountingLock, accountedPaymentIds],
+  );
 
   const { data: debtOrders = [] } = useQuery({
     queryKey: ['collect-customer-debt-origin-orders', orderIds],
@@ -884,6 +889,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             : item.id.startsWith('payment-')
                               ? item.id.slice(8)
                               : null;
+                          const isAccounted = isPayment && underlyingId ? accountedPaymentIds.has(underlyingId) : false;
                           const isLocked = isPayment && underlyingId ? lockedPaymentIds.has(underlyingId) : false;
                           const handleClick = () => {
                             if (isPayment && underlyingId) {
@@ -920,11 +926,14 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   {paymentMethodLabel(item.paymentMethod, t)}
                                 </Badge>
                               )}
-                              {isLocked && (
-                                <Badge variant="outline" className="rounded-full text-[10px] font-semibold gap-1 border-slate-300 text-slate-500">
+                              {isAccounted && (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-md border-2 border-emerald-600 bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 -rotate-6 shadow-sm"
+                                  title="تمت محاسبة هذا التحصيل مع المسؤول"
+                                >
                                   <Lock className="h-3 w-3" />
-                                  مغلق
-                                </Badge>
+                                  محاسَب
+                                </span>
                               )}
                               <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
                                 {item.displayDate}
