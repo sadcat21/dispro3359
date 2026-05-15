@@ -777,23 +777,38 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       {t('debt_collect.no_movements')}
                     </div>
                   ) : historyViewMode === 'list' ? (
-                    <div className="rounded-2xl border bg-white divide-y">
-                      {timelineSections.flatMap((section) =>
-                        section.items.map((item) => {
+                    <div className="rounded-2xl border bg-white overflow-hidden">
+                      {timelineSections.flatMap((section, sIdx) =>
+                        section.items.map((item, iIdx) => {
                           const isDebt = item.kind === 'debt';
                           const isCancelledDebt = item.kind === 'cancelled_debt';
                           const isVisit = item.kind === 'visit';
-                          const color = isVisit
-                            ? 'text-slate-700'
+                          const tone = isVisit
+                            ? { bar: 'bg-slate-300', text: 'text-slate-700', Icon: MapPin }
                             : isCancelledDebt
-                              ? 'text-slate-400 line-through'
+                              ? { bar: 'bg-slate-300', text: 'text-slate-400 line-through', Icon: ArrowDownCircle }
                               : isDebt
-                                ? 'text-destructive'
-                                : 'text-emerald-700';
+                                ? { bar: 'bg-destructive', text: 'text-destructive', Icon: ArrowDownCircle }
+                                : { bar: 'bg-emerald-500', text: 'text-emerald-700', Icon: ArrowUpCircle };
+                          const Icon = tone.Icon;
                           return (
-                            <div key={item.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                              <span className={`font-black ${color}`} dir="ltr">{formatMoney(item.amount)}</span>
-                              <span className="text-xs text-slate-500" dir="ltr">{item.displayDate}</span>
+                            <div
+                              key={item.id}
+                              className={`relative flex items-center gap-3 px-4 py-3 text-sm ${
+                                (sIdx + iIdx) % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
+                              } border-b last:border-b-0`}
+                            >
+                              <span className={`absolute inset-y-0 right-0 w-1 ${tone.bar}`} />
+                              <Icon className={`h-4 w-4 shrink-0 ${tone.text}`} />
+                              <span className={`font-black tabular-nums ${tone.text}`} dir="ltr">
+                                {formatMoney(item.amount)}
+                              </span>
+                              <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                                {item.workerName}
+                              </Badge>
+                              <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
+                                {item.displayDate}
+                              </span>
                             </div>
                           );
                         })
