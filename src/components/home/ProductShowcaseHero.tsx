@@ -130,22 +130,16 @@ const ProductShowcaseHero: React.FC = () => {
   return (
     <div className="relative h-52 sm:h-60 overflow-hidden" dir="rtl">
       <style>{`
-        @keyframes heroDepthLoop {
-          0%   { transform: translateZ(-500px) scale(0.25) rotateY(-10deg); opacity: 0; filter: blur(16px); }
-          25%  { opacity: 1; filter: blur(0); }
-          55%  { transform: translateZ(0) scale(1) rotateY(0); opacity: 1; filter: blur(0); }
-          85%  { transform: translateZ(80px) scale(1.08) rotateY(6deg); opacity: 1; filter: blur(0); }
-          100% { transform: translateZ(200px) scale(1.25) rotateY(10deg); opacity: 0; filter: blur(8px); }
-        }
-        @keyframes heroSideFloat {
-          0%, 100% { transform: translateY(-50%) scale(0.85); opacity: 0.35; }
-          50%      { transform: translateY(-55%) scale(0.9);  opacity: 0.55; }
+        @keyframes heroProductCycle {
+          0%   { transform: translateX(-120%) scale(0.6); opacity: 0; filter: blur(6px); }
+          18%  { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+          70%  { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+          100% { transform: translateX(120%) scale(0.55); opacity: 0; filter: blur(8px); }
         }
         @keyframes heroTextRise {
           0%   { transform: translateY(18px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
-        .hero-stage { perspective: 1000px; transform-style: preserve-3d; }
       `}</style>
 
       {/* Brand-identity background */}
@@ -165,24 +159,28 @@ const ProductShowcaseHero: React.FC = () => {
       <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3">
         {/* Right (RTL): offer text */}
         <div className="relative z-20 flex-1 min-w-0">
-          {logo && (
-            <img
-              src={logo}
-              alt={companyInfo?.company_name || ''}
-              className="h-8 sm:h-10 w-auto max-w-[55%] object-contain mb-2 drop-shadow-sm"
-            />
-          )}
           <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
             <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded mb-1">
               <Gift className="w-3 h-3" />
               عرض خاص
             </div>
-            <h2 className="text-sm sm:text-lg font-extrabold leading-tight text-foreground line-clamp-1 drop-shadow-sm">
-              {current.title}
-            </h2>
-            {current.subtitle && (
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <h2 className="text-sm sm:text-lg font-extrabold leading-tight text-foreground line-clamp-1 drop-shadow-sm">
+                {current.title}
+              </h2>
+              {current.endDate && (
+                <span className="text-[10px] sm:text-xs font-semibold text-red-700 whitespace-nowrap">
+                  حتى {formatDate(current.endDate)}
+                </span>
+              )}
+            </div>
+            {current.subtitleParts.length > 0 && (
               <p className="mt-1 text-xs sm:text-sm font-semibold text-foreground/85 line-clamp-2">
-                {current.subtitle}
+                {current.subtitleParts.map((p, i) => (
+                  <span key={i} className={p.highlight ? 'text-red-600 font-extrabold' : ''}>
+                    {p.text}
+                  </span>
+                ))}
               </p>
             )}
             {current.tierLabel && (
@@ -190,11 +188,11 @@ const ProductShowcaseHero: React.FC = () => {
             )}
             {slides.length > 1 && (
               <div className="flex gap-1 mt-2">
-                {slides.slice(0, 6).map((_, i) => (
+                {slides.map((_, i) => (
                   <span
                     key={i}
                     className={`h-1 rounded-full transition-all duration-500 ${
-                      i === index % 6 ? 'w-6 bg-red-600' : 'w-1.5 bg-foreground/20'
+                      i === index ? 'w-6 bg-red-600' : 'w-1.5 bg-foreground/20'
                     }`}
                   />
                 ))}
@@ -203,39 +201,14 @@ const ProductShowcaseHero: React.FC = () => {
           </div>
         </div>
 
-        {/* Left (RTL): 3D depth product stage with continuous loop */}
-        <div className="hero-stage relative shrink-0 w-[160px] sm:w-[280px] h-full flex items-center justify-center">
-          {prev?.image && (
-            <div
-              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 overflow-hidden"
-              style={{
-                animation: 'heroSideFloat 3.5s ease-in-out infinite',
-                transform: 'translateY(-50%) scale(0.85)',
-                filter: 'blur(2px)',
-              }}
-            >
-              <img src={prev.image} alt="" className="w-full h-full object-contain p-1.5" />
-            </div>
-          )}
-          {next?.image && (
-            <div
-              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 overflow-hidden"
-              style={{
-                animation: 'heroSideFloat 3.5s ease-in-out infinite',
-                animationDelay: '1.5s',
-                transform: 'translateY(-50%) scale(0.85)',
-                filter: 'blur(2px)',
-              }}
-            >
-              <img src={next.image} alt="" className="w-full h-full object-contain p-1.5" />
-            </div>
-          )}
+        {/* Left (RTL): product image — exits to the right, next enters from the left */}
+        <div className="relative shrink-0 w-[200px] sm:w-[340px] h-full flex items-center justify-center overflow-visible">
           <div
-            key={`center-${index}`}
-            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 overflow-visible"
-            style={{ animation: `heroDepthLoop ${SLIDE_MS}ms cubic-bezier(0.22,1,0.36,1) infinite` }}
+            key={`product-${index}`}
+            className="relative z-10 w-44 sm:w-60 h-44 sm:h-60"
+            style={{ animation: `heroProductCycle ${SLIDE_MS}ms cubic-bezier(0.22,1,0.36,1) both` }}
           >
-            <img src={current.image!} alt={current.title} className="w-full h-full object-contain p-2" loading="eager" />
+            <img src={current.image!} alt={current.title} className="w-full h-full object-contain drop-shadow-xl" loading="eager" />
           </div>
         </div>
       </div>
