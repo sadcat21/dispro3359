@@ -726,18 +726,18 @@ const CustomerJourney = () => {
             <Card className="shadow-sm overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">{t('customers.journey.visit_timeline')}</CardTitle>
-                <CardDescription>{visits.length} {t('common.events')}</CardDescription>
+                <CardDescription>{displayVisits.length} {t('common.events')}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 {isVisitTabLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   </div>
-                ) : visits.length === 0 ? (
+                ) : displayVisits.length === 0 ? (
                   <div className="p-6"><EmptyState label={t('customers.journey.no_visits')} /></div>
                 ) : (
                   <div className="border-t bg-white overflow-y-auto max-h-[60vh]">
-                    {visits.map((visit, idx) => {
+                    {displayVisits.map((visit, idx) => {
                       const hasOrder = !!visit.order;
                       const isPlainVisit = ['visit', 'delivery_visit'].includes(visit.operation_type);
                       const operationLabel = getVisitOperationLabel(visit.operation_type);
