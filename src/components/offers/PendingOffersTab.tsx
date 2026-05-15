@@ -192,7 +192,14 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
               <User className="w-4 h-4 text-amber-700 dark:text-amber-300" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{g.customerName}</p>
+              {customerStores[g.customerId] ? (
+                <>
+                  <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
+                </>
+              ) : (
+                <p className="text-sm font-bold truncate">{g.customerName}</p>
+              )}
               <p className="text-xs text-muted-foreground">{g.rows.length} عرض بانتظار التأكيد</p>
             </div>
             <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
