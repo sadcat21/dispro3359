@@ -853,11 +853,16 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       type="button"
                       variant={showVisitsInTimeline ? 'default' : 'outline'}
                       size="sm"
-                      className="rounded-full h-9 px-3 text-xs gap-1 shrink-0"
+                      className="relative rounded-full h-9 px-3 text-xs gap-1 shrink-0"
                       onClick={() => setShowVisitsInTimeline((v) => !v)}
                     >
                       <MapPin className="h-3.5 w-3.5" />
                       {t('debt_collect.show_visits')}
+                      {visitsCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-white text-[10px] font-bold inline-flex items-center justify-center shadow">
+                          {visitsCount}
+                        </span>
+                      )}
                     </Button>
                   </div>
 
