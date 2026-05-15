@@ -898,8 +898,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         onOpenChange={(nextOpen) => {
           if (!nextOpen) setSelectedOrderId(null);
         }}
-        order={orderLoading ? null : selectedOrder || null}
-      />
+         order={orderLoading ? null : selectedOrder || null}
+         hideModifyAction
+       />
 
       {/* Edit amount dialog */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
