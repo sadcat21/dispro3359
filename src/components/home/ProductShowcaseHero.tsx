@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Gift } from 'lucide-react';
+import heroBg from '@/assets/hero-offers-bg.jpg';
 
 type Slide = {
   title: string;
@@ -88,38 +89,15 @@ const ProductShowcaseHero: React.FC = () => {
         .hero-stage { perspective: 900px; transform-style: preserve-3d; }
       `}</style>
 
-      {/* Premium consistent background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,#fff7f5_0%,#ffffff_45%,#f4f6fb_100%)]" />
-
-      {/* Soft color blobs */}
-      <div
-        className="absolute -top-20 -right-16 w-72 h-72 rounded-full opacity-40 blur-3xl"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)' }}
+      {/* AI-generated premium background */}
+      <img
+        src={heroBg}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover"
       />
-      <div
-        className="absolute -bottom-24 -left-10 w-80 h-80 rounded-full opacity-30 blur-3xl"
-        style={{ background: 'radial-gradient(circle, #fca5a5, transparent 70%)' }}
-      />
-
-      {/* Fine dot grid */}
-      <div
-        className="absolute inset-0 opacity-[0.18]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, rgba(15,23,42,0.25) 1px, transparent 1px)',
-          backgroundSize: '18px 18px',
-          maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-        }}
-      />
-
-      {/* Diagonal sheen */}
-      <div
-        className="absolute inset-0 opacity-30 mix-blend-overlay pointer-events-none"
-        style={{
-          backgroundImage:
-            'linear-gradient(115deg, transparent 0%, transparent 38%, rgba(255,255,255,0.6) 50%, transparent 62%, transparent 100%)',
-        }}
-      />
+      {/* Soft white wash for product/text legibility */}
+      <div className="absolute inset-0 bg-gradient-to-l from-white/40 via-white/55 to-white/75" />
 
       {/* Bottom accent line */}
       <div className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
