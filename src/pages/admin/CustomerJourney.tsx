@@ -560,83 +560,60 @@ const CustomerJourney = () => {
               />
             </div>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">{t('customers.journey.debt_movement')}</CardTitle>
                 <CardDescription>{debtTimeline.length} {t('common.events')}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="p-0">
                 {isDebtTabLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   </div>
                 ) : debtTimeline.length === 0 ? (
-                  <EmptyState label={t('customers.journey.no_debt_events')} />
+                  <div className="p-6"><EmptyState label={t('customers.journey.no_debt_events')} /></div>
                 ) : (
-                  debtTimeline.map((item) => (
-                    <div key={item.id} className="rounded-2xl border bg-background p-3 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="border-primary/20 text-primary">
-                              {item.title}
-                            </Badge>
-                            {item.status && (
-                              <Badge
-                                className={cn(
-                                  'border-0',
-                                  item.status === 'approved' && 'bg-emerald-100 text-emerald-700',
-                                  item.status === 'pending' && 'bg-amber-100 text-amber-700',
-                                  item.status === 'rejected' && 'bg-rose-100 text-rose-700',
-                                  !['approved', 'pending', 'rejected'].includes(item.status) && 'bg-secondary text-secondary-foreground'
-                                )}
-                              >
-                                {getCollectionStatusLabel(item.status)}
-                              </Badge>
-                            )}
-                            {item.paymentMethod && (
-                              <Badge variant="secondary">{getPaymentMethodLabel(item.paymentMethod)}</Badge>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                            <span>{formatDateTime(item.createdAt)}</span>
-                            <span>{item.kind === 'debt' ? t('customers.journey.created_by') : t('customers.journey.collected_by')}: {item.workerName}</span>
-                            {item.nextDueDate && (
-                              <span>{t('customers.journey.next_due')}: {formatDateTime(item.nextDueDate)}</span>
-                            )}
-                            {item.notes && <span className="line-clamp-2">{item.notes}</span>}
-                          </div>
+                  <div className="border-t bg-white overflow-y-auto max-h-[60vh]">
+                    {debtTimeline.map((item, idx) => {
+                      const isDebt = item.kind === 'debt';
+                      const isCollection = item.kind === 'collection';
+                      const tone = isCollection
+                        ? { bar: 'bg-emerald-500', text: 'text-emerald-700' }
+                        : isDebt
+                          ? { bar: 'bg-destructive', text: 'text-destructive' }
+                          : { bar: 'bg-slate-300', text: 'text-slate-700' };
+                      const dateStr = formatDateTime(item.createdAt);
+                      const [datePart, ...timeRest] = dateStr.split(' ');
+                      const timePart = timeRest.join(' ');
+                      return (
+                        <div
+                          key={item.id}
+                          dir={dir}
+                          className={cn(
+                            'relative flex items-center gap-3 px-4 py-3 text-sm w-full border-b last:border-b-0',
+                            idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
+                          )}
+                        >
+                          <span className={cn('absolute inset-y-0 w-1', dir === 'rtl' ? 'right-0' : 'left-0', tone.bar)} />
+                          <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
+                            {formatAmount(item.amount)} {t('common.currency')}
+                          </span>
+                          <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                            {item.workerName}
+                          </Badge>
+                          <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                            {isDebt
+                              ? (language === 'fr' ? 'Dette' : language === 'en' ? 'Debt' : 'دين')
+                              : getPaymentMethodLabel(item.paymentMethod)}
+                          </Badge>
+                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                            <span className="text-black">{datePart}</span>
+                            {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
+                          </span>
                         </div>
-
-                        <div className="shrink-0 text-end">
-                          <div className={cn(
-                            'text-base font-black',
-                            item.delta > 0 && 'text-rose-600',
-                            item.delta < 0 && 'text-emerald-600',
-                            item.delta === 0 && 'text-amber-600'
-                          )} dir="ltr">
-                            {item.delta > 0 ? '+' : item.delta < 0 ? '-' : '±'} {formatAmount(Math.abs(item.amount))} {t('common.currency')}
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator className="my-3" />
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <MiniInfoCard
-                          label={t('customers.journey.running_balance')}
-                          value={`${formatAmount(item.balanceAfter)} ${t('common.currency')}`}
-                          tone="slate"
-                        />
-                        <MiniInfoCard
-                          label={t('customers.journey.debt_remaining')}
-                          value={`${formatAmount(item.debtRemainingAfter)} ${t('common.currency')}`}
-                          tone="rose"
-                        />
-                      </div>
-                    </div>
-                  ))
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
