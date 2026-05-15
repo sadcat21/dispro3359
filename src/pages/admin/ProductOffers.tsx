@@ -159,6 +159,16 @@ const ProductOffers: React.FC = () => {
                 <span className="truncate">إعدادات العروض</span>
               </Button>
             )}
+            {canManage && (
+              <Button
+                variant={selectMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+              >
+                <CheckSquare className="w-4 h-4 me-2" />
+                {selectMode ? 'إلغاء التحديد' : 'تحديد متعدد'}
+              </Button>
+            )}
             {!isAddOfferHidden && (
               <Button size="sm" onClick={() => setShowCreateDialog(true)} className="sm:size-default">
                 <Plus className="w-4 h-4 me-2" />
@@ -167,6 +177,35 @@ const ProductOffers: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* شريط الإجراءات الجماعية */}
+        {selectMode && selectedIds.size > 0 && (
+          <div className="sticky top-2 z-20 flex items-center justify-between gap-2 p-2 rounded-lg border bg-primary/5 backdrop-blur">
+            <span className="text-sm font-semibold">تم تحديد {selectedIds.size} عرض</span>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  const selected = filteredOffers.filter(o => selectedIds.has(o.id));
+                  if (selected.length === 0) return;
+                  const anyRunning = selected.some(isOfferRunning);
+                  setExtendTarget({
+                    tierId: null,
+                    tierLabel: null,
+                    mode: anyRunning ? 'extend' : 'resume',
+                    targets: selected.map(o => ({ offerId: o.id, offerName: o.name, tierId: null, tierLabel: null })),
+                  });
+                }}
+              >
+                <PlayCircle className="w-4 h-4 me-1" />
+                تمديد / استئناف الكل
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative">
