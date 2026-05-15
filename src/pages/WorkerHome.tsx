@@ -390,7 +390,10 @@ const WorkerHome: React.FC = () => {
   }
 
   return (
-    <div className="pb-24 touch-pan-y">
+    <div
+      className="pb-24 touch-pan-y min-h-screen bg-fixed bg-no-repeat bg-cover"
+      style={{ backgroundImage: `linear-gradient(to bottom, hsl(var(--background) / 0.85), hsl(var(--background) / 0.95)), url(${heroBg})` }}
+    >
       {/* Offers Showcase */}
       <ProductShowcaseHero />
 
