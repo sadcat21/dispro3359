@@ -342,7 +342,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
           *,
           customer:customers(*),
           created_by_worker:workers!orders_created_by_fkey(id, full_name, username),
-          assigned_worker:workers!orders_assigned_to_fkey(id, full_name, username)
+          assigned_worker:workers!orders_assigned_worker_id_fkey(id, full_name, username)
         `)
         .eq('id', selectedOrderId)
         .maybeSingle();
