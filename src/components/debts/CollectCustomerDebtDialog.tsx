@@ -937,7 +937,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               {isVisit && (
                                 <Badge className="rounded-full text-[10px] font-semibold gap-1 bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-100">
                                   <MapPin className="h-3 w-3" />
-                                  زيارة بدون تحصيل
+                                  زيارة
                                 </Badge>
                               )}
                               {isAccounted && (
