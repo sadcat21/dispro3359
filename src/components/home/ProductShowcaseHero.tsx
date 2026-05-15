@@ -108,7 +108,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
           }
 
           list.push({
-            title: `PROM: ${productName}`,
+            title: productName,
             subtitleParts,
             image,
             tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
@@ -192,17 +192,17 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
           <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
             <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded mb-1">
               <Gift className="w-3 h-3" />
-              عرض خاص
+              <span>عرض خاص</span>
+              {current.endDate && (
+                <span className="border-r border-white/40 ps-1.5 pe-0.5 font-semibold whitespace-nowrap">
+                  حتى {formatDate(current.endDate)}
+                </span>
+              )}
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
               <h2 className="text-sm sm:text-lg font-extrabold leading-tight text-foreground line-clamp-1 drop-shadow-sm">
                 {current.title}
               </h2>
-              {current.endDate && (
-                <span className="text-[10px] sm:text-xs font-semibold text-red-700 whitespace-nowrap">
-                  حتى {formatDate(current.endDate)}
-                </span>
-              )}
             </div>
             {current.subtitleParts.length > 0 && (
               <p className="mt-1 text-xs sm:text-sm font-semibold text-foreground/85 line-clamp-2">
