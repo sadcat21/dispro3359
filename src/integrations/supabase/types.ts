@@ -9683,6 +9683,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      merge_customers: {
+        Args: { drop_ids: string[]; keep_id: string }
+        Returns: Json
+      }
       preview_recalibrate_worker_stock: {
         Args: { p_worker_id: string }
         Returns: {
