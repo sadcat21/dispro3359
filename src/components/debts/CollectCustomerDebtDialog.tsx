@@ -1019,13 +1019,16 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       />
 
       <OrderDetailsDialog
-        open={!!selectedOrderId}
+        open={!!selectedOrderId || isResolvingOrder}
         onOpenChange={(nextOpen) => {
-          if (!nextOpen) setSelectedOrderId(null);
+          if (!nextOpen) {
+            setSelectedOrderId(null);
+            setIsResolvingOrder(false);
+          }
         }}
-         order={orderLoading ? null : selectedOrder || null}
-         hideModifyAction
-       />
+        order={orderLoading || isResolvingOrder ? null : selectedOrder || null}
+        hideModifyAction
+      />
 
       {/* Edit amount dialog */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
