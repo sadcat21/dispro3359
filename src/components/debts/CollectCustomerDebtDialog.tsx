@@ -889,6 +889,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             : item.id.startsWith('payment-')
                               ? item.id.slice(8)
                               : null;
+                          const isAccounted = isPayment && underlyingId ? accountedPaymentIds.has(underlyingId) : false;
                           const isLocked = isPayment && underlyingId ? lockedPaymentIds.has(underlyingId) : false;
                           const handleClick = () => {
                             if (isPayment && underlyingId) {
