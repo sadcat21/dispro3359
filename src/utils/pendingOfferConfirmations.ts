@@ -54,6 +54,36 @@ export async function recordPendingOfferConfirmation(input: RecordPendingOfferIn
       notes: input.notes || null,
     };
 
+    // De-duplicate: when the same order line / offer already has a pending
+    // confirmation card, refresh it in place instead of stacking a new card.
+    // This prevents "modifying a sale from 1 box to 2 boxes" from creating a
+    // second confirmation card next to the original.
+    try {
+      let delQuery = (supabase as any)
+        .from('pending_offer_confirmations')
+        .delete()
+        .eq('product_id', input.productId)
+        .eq('status', 'pending');
+      if (input.orderId) {
+        delQuery = delQuery.eq('order_id', input.orderId);
+      } else {
+        delQuery = delQuery.is('order_id', null);
+      }
+      if (input.orderItemId) {
+        delQuery = delQuery.eq('order_item_id', input.orderItemId);
+      } else {
+        delQuery = delQuery.is('order_item_id', null);
+      }
+      if (input.offerId) {
+        delQuery = delQuery.eq('offer_id', input.offerId);
+      } else {
+        delQuery = delQuery.is('offer_id', null);
+      }
+      await delQuery;
+    } catch (e) {
+      console.warn('[pendingOfferConfirmations] dedup delete failed', e);
+    }
+
     const { error } = await supabase.from('pending_offer_confirmations' as any).insert(row);
     if (error) console.warn('[pendingOfferConfirmations] insert failed', error);
   } catch (e) {
