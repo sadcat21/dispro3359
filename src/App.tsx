@@ -248,6 +248,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/duplicate-customers" element={
+        <ProtectedRoute adminOnly>
+          <DuplicateCustomers />
+        </ProtectedRoute>
+      } />
+
       <Route path="/stats" element={
         <ProtectedRoute adminOnly>
           <Stats />
