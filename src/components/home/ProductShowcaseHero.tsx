@@ -130,7 +130,7 @@ const ProductShowcaseHero: React.FC = () => {
           src={logo}
           alt=""
           aria-hidden="true"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[170%] w-auto max-w-none object-contain opacity-[0.07] pointer-events-none select-none"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[170%] w-auto max-w-none object-contain opacity-25 pointer-events-none select-none"
         />
       )}
 
@@ -179,7 +179,7 @@ const ProductShowcaseHero: React.FC = () => {
         <div className="hero-stage relative shrink-0 w-[160px] sm:w-[280px] h-full flex items-center justify-center">
           {prev?.image && (
             <div
-              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5"
+              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 overflow-hidden"
               style={{
                 animation: 'heroSideFloat 3.5s ease-in-out infinite',
                 transform: 'translateY(-50%) scale(0.85)',
@@ -191,7 +191,7 @@ const ProductShowcaseHero: React.FC = () => {
           )}
           {next?.image && (
             <div
-              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5"
+              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 overflow-hidden"
               style={{
                 animation: 'heroSideFloat 3.5s ease-in-out infinite',
                 animationDelay: '1.5s',
@@ -204,7 +204,7 @@ const ProductShowcaseHero: React.FC = () => {
           )}
           <div
             key={`center-${index}`}
-            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden"
+            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 overflow-visible"
             style={{ animation: `heroDepthLoop ${SLIDE_MS}ms cubic-bezier(0.22,1,0.36,1) infinite` }}
           >
             <img src={current.image!} alt={current.title} className="w-full h-full object-contain p-2" loading="eager" />
