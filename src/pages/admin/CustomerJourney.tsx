@@ -5,9 +5,7 @@ import { format } from 'date-fns';
 import { ar, enUS, fr } from 'date-fns/locale';
 import {
   Activity,
-  ArrowDownCircle,
   ArrowLeft,
-  ArrowUpCircle,
   CreditCard,
   Loader2,
   MapPin,
