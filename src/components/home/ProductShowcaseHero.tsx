@@ -7,9 +7,18 @@ import heroBg from '@/assets/hero-offers-bg.jpg';
 
 type Slide = {
   title: string;
+  subtitle: string;
   image: string | null;
   tierLabel?: string;
 };
+
+const unitLabel = (u?: string) => {
+  if (u === 'box') return 'صندوق';
+  if (u === 'piece') return 'قطعة';
+  return u || '';
+};
+
+const SLIDE_MS = 4000;
 
 const ProductShowcaseHero: React.FC = () => {
   const { activeOffers } = useProductOffers();
@@ -36,7 +45,6 @@ const ProductShowcaseHero: React.FC = () => {
     return () => { alive = false; (supabase as any).removeChannel(channel); };
   }, []);
 
-  // Only products that actually have an active offer + an image
   const slides = useMemo<Slide[]>(() => {
     const list: Slide[] = [];
     (activeOffers || [])
@@ -45,9 +53,30 @@ const ProductShowcaseHero: React.FC = () => {
         const productName = o.product.name as string;
         const image = o.product.image_url as string;
         const tiers = (o.tiers && o.tiers.length > 0) ? o.tiers : [o];
-        tiers.forEach((_t: any, idx: number) => {
+        tiers.forEach((t: any, idx: number) => {
+          const giftName = t?.gift_product?.name || o.gift_product?.name || null;
+          const giftQty = Number(t?.gift_quantity || 0);
+          const giftUnit = t?.gift_quantity_unit || '';
+          const minQty = Number(t?.min_quantity || 0);
+          const minUnit = t?.min_quantity_unit || '';
+          const discount = Number(t?.discount_percentage || 0);
+          const discountAmt = Number(t?.discount_amount || 0);
+
+          let subtitle = '';
+          if (giftQty > 0) {
+            const giftLabel = giftName ? `${giftQty} ${unitLabel(giftUnit)} ${giftName}` : `${giftQty} ${unitLabel(giftUnit)}`;
+            subtitle = `اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على ${giftLabel} هدية`;
+          } else if (discount > 0) {
+            subtitle = `اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على خصم ${discount}%`;
+          } else if (discountAmt > 0) {
+            subtitle = `اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على خصم ${discountAmt} دج`;
+          } else {
+            subtitle = o.description || '';
+          }
+
           list.push({
             title: `PROM: ${productName}`,
+            subtitle,
             image,
             tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
           });
@@ -58,7 +87,7 @@ const ProductShowcaseHero: React.FC = () => {
 
   useEffect(() => {
     if (slides.length < 2) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 3500);
+    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), SLIDE_MS);
     return () => clearInterval(id);
   }, [slides.length]);
 
@@ -71,61 +100,65 @@ const ProductShowcaseHero: React.FC = () => {
   const logo = companyInfo?.company_logo || companyInfo?.company_icon || '';
 
   return (
-    <div className="relative h-48 sm:h-56 overflow-hidden bg-white" dir="rtl">
+    <div className="relative h-52 sm:h-60 overflow-hidden" dir="rtl">
       <style>{`
-        @keyframes heroDepthIn {
-          0%   { transform: translateZ(-400px) scale(0.3) rotateY(-8deg); opacity: 0; filter: blur(14px); }
-          40%  { opacity: 1; filter: blur(0); }
-          100% { transform: translateZ(0) scale(1) rotateY(0); opacity: 1; filter: blur(0); }
+        @keyframes heroDepthLoop {
+          0%   { transform: translateZ(-500px) scale(0.25) rotateY(-10deg); opacity: 0; filter: blur(16px); }
+          25%  { opacity: 1; filter: blur(0); }
+          55%  { transform: translateZ(0) scale(1) rotateY(0); opacity: 1; filter: blur(0); }
+          85%  { transform: translateZ(80px) scale(1.08) rotateY(6deg); opacity: 1; filter: blur(0); }
+          100% { transform: translateZ(200px) scale(1.25) rotateY(10deg); opacity: 0; filter: blur(8px); }
         }
-        @keyframes heroSideFade {
-          0%   { opacity: 0; transform: translateY(-50%) scale(0.7); }
-          100% { opacity: 0.45; transform: translateY(-50%) scale(1); }
+        @keyframes heroSideFloat {
+          0%, 100% { transform: translateY(-50%) scale(0.85); opacity: 0.35; }
+          50%      { transform: translateY(-55%) scale(0.9);  opacity: 0.55; }
         }
         @keyframes heroTextRise {
           0%   { transform: translateY(18px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
-        .hero-stage { perspective: 900px; transform-style: preserve-3d; }
+        .hero-stage { perspective: 1000px; transform-style: preserve-3d; }
       `}</style>
 
-      {/* AI-generated premium background */}
-      <img
-        src={heroBg}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      {/* Soft white wash for product/text legibility */}
-      <div className="absolute inset-0 bg-gradient-to-l from-white/40 via-white/55 to-white/75" />
+      {/* Brand-identity background */}
+      <img src={heroBg} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-l from-white/30 via-white/40 to-white/10" />
 
-      {/* Bottom accent line */}
-      <div className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+      {/* Logo integrated as large faded brand watermark */}
+      {logo && (
+        <img
+          src={logo}
+          alt=""
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[170%] w-auto max-w-none object-contain opacity-[0.07] pointer-events-none select-none"
+        />
+      )}
 
       <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3">
-        {/* Right: company logo + offer label (RTL) */}
-        <div className="relative z-20 flex-1 min-w-0 flex flex-col items-start gap-2">
-          {logo ? (
+        {/* Right (RTL): offer text */}
+        <div className="relative z-20 flex-1 min-w-0">
+          {logo && (
             <img
               src={logo}
               alt={companyInfo?.company_name || ''}
-              className="h-10 sm:h-14 w-auto max-w-[60%] object-contain drop-shadow-sm"
+              className="h-8 sm:h-10 w-auto max-w-[55%] object-contain mb-2 drop-shadow-sm"
             />
-          ) : (
-            <span className="text-base sm:text-xl font-extrabold text-foreground tracking-tight">
-              {companyInfo?.company_name || ''}
-            </span>
           )}
-          <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out] min-w-0 w-full">
-            <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded">
+          <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
+            <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded mb-1">
               <Gift className="w-3 h-3" />
               عرض خاص
             </div>
-            <h2 className="mt-1 text-sm sm:text-lg font-extrabold leading-tight text-foreground line-clamp-2">
+            <h2 className="text-sm sm:text-lg font-extrabold leading-tight text-foreground line-clamp-1 drop-shadow-sm">
               {current.title}
             </h2>
+            {current.subtitle && (
+              <p className="mt-1 text-xs sm:text-sm font-semibold text-foreground/85 line-clamp-2">
+                {current.subtitle}
+              </p>
+            )}
             {current.tierLabel && (
-              <span className="text-[10px] text-muted-foreground">{current.tierLabel}</span>
+              <span className="block text-[10px] text-muted-foreground mt-0.5">{current.tierLabel}</span>
             )}
             {slides.length > 1 && (
               <div className="flex gap-1 mt-2">
@@ -133,7 +166,7 @@ const ProductShowcaseHero: React.FC = () => {
                   <span
                     key={i}
                     className={`h-1 rounded-full transition-all duration-500 ${
-                      i === index % 6 ? 'w-6 bg-primary' : 'w-1.5 bg-muted-foreground/30'
+                      i === index % 6 ? 'w-6 bg-red-600' : 'w-1.5 bg-foreground/20'
                     }`}
                   />
                 ))}
@@ -142,29 +175,37 @@ const ProductShowcaseHero: React.FC = () => {
           </div>
         </div>
 
-        {/* Left: 3D depth product stage (RTL) */}
+        {/* Left (RTL): 3D depth product stage with continuous loop */}
         <div className="hero-stage relative shrink-0 w-[160px] sm:w-[280px] h-full flex items-center justify-center">
           {prev?.image && (
             <div
-              key={`prev-${index}`}
-              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5 animate-[heroSideFade_0.7s_ease-out_forwards]"
-              style={{ transform: 'translateY(-50%) translateX(-20%) scale(0.85)', filter: 'blur(2px)' }}
+              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5"
+              style={{
+                animation: 'heroSideFloat 3.5s ease-in-out infinite',
+                transform: 'translateY(-50%) scale(0.85)',
+                filter: 'blur(2px)',
+              }}
             >
               <img src={prev.image} alt="" className="w-full h-full object-contain p-1.5" />
             </div>
           )}
           {next?.image && (
             <div
-              key={`next-${index}`}
-              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5 animate-[heroSideFade_0.7s_ease-out_forwards]"
-              style={{ transform: 'translateY(-50%) translateX(20%) scale(0.85)', filter: 'blur(2px)' }}
+              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5"
+              style={{
+                animation: 'heroSideFloat 3.5s ease-in-out infinite',
+                animationDelay: '1.5s',
+                transform: 'translateY(-50%) scale(0.85)',
+                filter: 'blur(2px)',
+              }}
             >
               <img src={next.image} alt="" className="w-full h-full object-contain p-1.5" />
             </div>
           )}
           <div
             key={`center-${index}`}
-            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden animate-[heroDepthIn_0.9s_cubic-bezier(0.22,1,0.36,1)]"
+            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden"
+            style={{ animation: `heroDepthLoop ${SLIDE_MS}ms cubic-bezier(0.22,1,0.36,1) infinite` }}
           >
             <img src={current.image!} alt={current.title} className="w-full h-full object-contain p-2" loading="eager" />
           </div>
