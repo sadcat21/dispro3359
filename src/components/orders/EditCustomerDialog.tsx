@@ -781,15 +781,21 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="edit-wilaya">الولاية</Label>
-              <Select value={wilaya} onValueChange={setWilaya}>
-                <SelectTrigger><SelectValue placeholder="اختر الولاية" /></SelectTrigger>
-                <SelectContent position="popper" className="z-[10050] bg-popover max-h-60">
-                  {ALGERIAN_WILAYAS.map((w) => (
-                    <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>الفرع</Label>
+              {isManager ? (
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
+                  <SelectContent position="popper" className="z-[10050] bg-popover max-h-60">
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-3 bg-background/60 rounded-lg border">
+                  <p className="font-medium">{branches.find(b => b.id === selectedBranchId)?.name || '—'}</p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
