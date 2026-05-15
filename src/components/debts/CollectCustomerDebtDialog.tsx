@@ -793,8 +793,6 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                 ? { bar: 'bg-destructive', text: 'text-destructive', Icon: ArrowDownCircle }
                                 : { bar: 'bg-emerald-500', text: 'text-emerald-700', Icon: ArrowUpCircle };
                           const Icon = tone.Icon;
-                          const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
-                          const canOpenOrder = (isDebt || isCancelledDebt) && !!(item.orderId || linkedDebt?.order_id);
                           const isPayment = item.kind === 'partial' || item.kind === 'full';
                           const underlyingId = item.id.startsWith('debt-')
                             ? item.id.slice(5)
@@ -805,16 +803,15 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             if (isPayment && underlyingId) {
                               setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
                               setEditAmountInput(String(item.amount));
-                            } else if (canOpenOrder) {
+                            } else if (isDebt || isCancelledDebt) {
                               openDebtOrderDetails(item);
                             }
                           };
-                          const clickable = isPayment || canOpenOrder;
+                          const clickable = isPayment || isDebt || isCancelledDebt;
                           return (
                             <button
                               type="button"
                               key={item.id}
-                              disabled={!clickable}
                               onClick={handleClick}
                               className={`relative flex items-center gap-3 px-4 py-3 text-sm w-full text-right ${
                                 (sIdx + iIdx) % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
