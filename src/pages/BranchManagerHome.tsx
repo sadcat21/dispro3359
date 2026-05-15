@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
+import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
@@ -188,7 +189,13 @@ const BranchManagerHome: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-      {/* Daily worker tasks button — above hero */}
+      {/* Offers Showcase — blue identity for branch manager */}
+      <ProductShowcaseHero
+        bgImage={managerHeroBg}
+        overlayClassName="bg-gradient-to-l from-blue-900/40 via-blue-800/30 to-blue-700/10"
+      />
+
+      {/* Daily worker tasks button — below hero */}
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
         <div className="relative px-3 py-1.5">
@@ -201,9 +208,6 @@ const BranchManagerHome: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Offers Showcase — same as worker home */}
-      <ProductShowcaseHero />
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
       <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">

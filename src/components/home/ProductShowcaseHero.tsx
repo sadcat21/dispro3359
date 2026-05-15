@@ -32,9 +32,11 @@ const SLIDE_MS = 4000;
 
 interface ProductShowcaseHeroProps {
   children?: React.ReactNode;
+  bgImage?: string;
+  overlayClassName?: string;
 }
 
-const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) => {
+const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgImage, overlayClassName }) => {
   const { activeOffers } = useProductOffers();
   const { companyInfo } = useCompanyInfo();
   const [index, setIndex] = useState(0);
@@ -173,8 +175,8 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
       `}</style>
 
       {/* Brand-identity background */}
-      <img src={heroBg} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-l from-white/30 via-white/40 to-white/10" />
+      <img src={bgImage || heroBg} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
+      <div className={`absolute inset-0 ${overlayClassName || 'bg-gradient-to-l from-white/30 via-white/40 to-white/10'}`} />
 
       {/* Logo integrated as large faded brand watermark */}
       {logo && (
@@ -253,17 +255,17 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) =
             type="button"
             aria-label="السابق"
             onClick={() => { setPaused(true); goPrev(); }}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 z-40 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
+            className="hidden lg:flex absolute right-1.5 top-1/2 -translate-y-1/2 z-40 h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronRight className="w-5 h-5" />
           </button>
           <button
             type="button"
             aria-label="التالي"
             onClick={() => { setPaused(true); goNext(); }}
-            className="absolute left-1.5 top-1/2 -translate-y-1/2 z-40 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
+            className="hidden lg:flex absolute left-1.5 top-1/2 -translate-y-1/2 z-40 h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
         </>
       )}
