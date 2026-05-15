@@ -373,9 +373,24 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     setPaymentMethod(preferredMethod);
   }, [open, debtOrders, debts]);
 
-  const openDebtOrderDetails = (item: TimelineEvent) => {
+  const openDebtOrderDetails = async (item: TimelineEvent) => {
     const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
-    const linkedOrderId = item.orderId || linkedDebt?.order_id || null;
+    let linkedOrderId = item.orderId || linkedDebt?.order_id || null;
+
+    if (!linkedOrderId && item.debtId) {
+      const { data, error } = await supabase
+        .from('customer_debts')
+        .select('order_id')
+        .eq('id', item.debtId)
+        .maybeSingle();
+
+      if (error) {
+        toast.error(error.message || t('debt_collect.no_order_linked'));
+        return;
+      }
+
+      linkedOrderId = data?.order_id || null;
+    }
 
     if (!linkedOrderId) {
       toast.error(t('debt_collect.no_order_linked'));
