@@ -126,6 +126,11 @@ const CustomerActionDialog: React.FC<CustomerActionDialogProps> = ({
                 .update({ status: 'cancelled' as any })
                 .in('id', ids);
             if (error) throw error;
+            await (supabase as any)
+                .from('pending_offer_confirmations')
+                .delete()
+                .in('order_id', ids)
+                .eq('status', 'pending');
         } catch (e) {
             console.error(e);
             toast.error('تعذر إلغاء الطلبية الموجودة');
