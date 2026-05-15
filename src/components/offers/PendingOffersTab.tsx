@@ -37,6 +37,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
   const [busyId, setBusyId] = useState<string | null>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [productImages, setProductImages] = useState<Record<string, string>>({});
+  const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
 
   // Visible items (exclude optimistically removed)
   const visibleItems = useMemo(
