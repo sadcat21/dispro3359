@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
-import { Gift } from 'lucide-react';
+import { Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import heroBg from '@/assets/hero-offers-bg.jpg';
 
 type SubtitlePart = { text: string; highlight?: boolean };
@@ -30,11 +30,17 @@ const unitLabel = (u?: string) => {
 
 const SLIDE_MS = 4000;
 
-const ProductShowcaseHero: React.FC = () => {
+interface ProductShowcaseHeroProps {
+  children?: React.ReactNode;
+}
+
+const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children }) => {
   const { activeOffers } = useProductOffers();
   const { companyInfo } = useCompanyInfo();
   const [index, setIndex] = useState(0);
   const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [paused, setPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -114,19 +120,45 @@ const ProductShowcaseHero: React.FC = () => {
   }, [activeOffers]);
 
   useEffect(() => {
-    if (slides.length < 2) return;
+    if (slides.length < 2 || paused) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), SLIDE_MS);
     return () => clearInterval(id);
-  }, [slides.length]);
+  }, [slides.length, paused]);
 
-  if (enabled === false) return null;
-  if (slides.length === 0) return null;
+  const goNext = () => setIndex((i) => (i + 1) % Math.max(slides.length, 1));
+  const goPrev = () => setIndex((i) => (i - 1 + Math.max(slides.length, 1)) % Math.max(slides.length, 1));
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    setPaused(true);
+    // RTL: swipe right -> previous (visually next in RTL); keep intuitive: right => prev, left => next
+    if (dx > 0) goPrev(); else goNext();
+  };
+
+  if (enabled === false) {
+    // Still render the buttons slot if provided
+    return children ? <div className="px-4 mt-2">{children}</div> : null;
+  }
+  if (slides.length === 0) {
+    return children ? <div className="px-4 mt-2">{children}</div> : null;
+  }
 
   const current = slides[index];
   const logo = companyInfo?.company_logo || companyInfo?.company_icon || '';
 
   return (
-    <div className="relative h-36 sm:h-44 overflow-hidden" dir="rtl">
+    <div
+      className="relative h-44 sm:h-52 overflow-hidden select-none"
+      dir="rtl"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <style>{`
         @keyframes heroProductCycle {
           0%   { transform: translateX(-120%) scale(0.6); opacity: 0; filter: blur(6px); }
@@ -154,7 +186,7 @@ const ProductShowcaseHero: React.FC = () => {
         />
       )}
 
-      <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3">
+      <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3 pb-12">
         {/* Right (RTL): offer text */}
         <div className="relative z-20 flex-1 min-w-0">
           <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
@@ -187,8 +219,11 @@ const ProductShowcaseHero: React.FC = () => {
             {slides.length > 1 && (
               <div className="flex gap-1 mt-2">
                 {slides.map((_, i) => (
-                  <span
+                  <button
                     key={i}
+                    type="button"
+                    aria-label={`الشريحة ${i + 1}`}
+                    onClick={() => { setPaused(true); setIndex(i); }}
                     className={`h-1 rounded-full transition-all duration-500 ${
                       i === index ? 'w-6 bg-red-600' : 'w-1.5 bg-foreground/20'
                     }`}
@@ -199,7 +234,7 @@ const ProductShowcaseHero: React.FC = () => {
           </div>
         </div>
 
-        {/* Left (RTL): product image — exits to the right, next enters from the left */}
+        {/* Left (RTL): product image */}
         <div className="relative shrink-0 w-[140px] sm:w-[220px] h-full flex items-center justify-center overflow-visible">
           <div
             key={`product-${index}`}
@@ -210,6 +245,35 @@ const ProductShowcaseHero: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Manual nav arrows */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            aria-label="السابق"
+            onClick={() => { setPaused(true); goPrev(); }}
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-30 h-7 w-7 rounded-full bg-white/70 hover:bg-white text-foreground flex items-center justify-center shadow"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="التالي"
+            onClick={() => { setPaused(true); goNext(); }}
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-30 h-7 w-7 rounded-full bg-white/70 hover:bg-white text-foreground flex items-center justify-center shadow"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </>
+      )}
+
+      {/* Buttons slot — overlaid at bottom of hero */}
+      {children && (
+        <div className="absolute bottom-1.5 left-2 right-2 z-30">
+          {children}
+        </div>
+      )}
     </div>
   );
 };
