@@ -302,6 +302,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   
   const [showHistoryReceipt, setShowHistoryReceipt] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isResolvingOrder, setIsResolvingOrder] = useState(false);
 
   // Edit/cancel state for timeline items
   const [editTarget, setEditTarget] = useState<{
