@@ -922,8 +922,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               } border-b last:border-b-0 ${clickable ? 'hover:bg-slate-100 cursor-pointer' : 'cursor-default'}`}
                             >
                               <span className={`absolute inset-y-0 right-0 w-1 ${tone.bar}`} />
-                              <Icon className={`h-4 w-4 shrink-0 ${tone.text}`} />
-                              <span className={`font-black tabular-nums ${tone.text}`} dir="ltr">
+                              <span className={`font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)] ${tone.text}`} dir="ltr">
                                 {formatMoney(item.amount)}
                               </span>
                               <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
