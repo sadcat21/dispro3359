@@ -833,7 +833,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
               {activeTab === 'history' && (
                 <>
-                  <div className="flex items-center justify-between gap-2 rounded-2xl border bg-white px-3 py-2">
+                  <div className="flex flex-row-reverse items-center justify-between gap-2 rounded-2xl border bg-white px-3 py-2">
                     <Button
                       type="button"
                       variant="outline"
