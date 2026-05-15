@@ -764,11 +764,6 @@ const Customers: React.FC = () => {
                   <Settings2 className="w-3.5 h-3.5" />
                 </Button>
               )}
-              {isManager && (
-                <Button size="icon" variant="outline" className="h-7 w-7 text-amber-600 hover:text-amber-700" onClick={() => navigate('/duplicate-customers')} title="دمج العملاء المكررين">
-                  <Users className="w-3.5 h-3.5" />
-                </Button>
-              )}
               {!isAddCustomerHidden && (
                 <Button size="icon" className="h-7 w-7" onClick={() => setShowAddDialog(true)}>
                   <UserPlus className="w-3.5 h-3.5" />
