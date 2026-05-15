@@ -163,6 +163,23 @@ const CustomerJourney = () => {
     return method;
   };
 
+  const getPaymentTypeLabel = (type: string | null | undefined) => {
+    if (!type) return '—';
+    const map: Record<string, { ar: string; fr: string; en: string }> = {
+      cash: { ar: 'كاش', fr: 'Espèces', en: 'Cash' },
+      credit: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
+      debt: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
+      check: { ar: 'شيك', fr: 'Chèque', en: 'Check' },
+      transfer: { ar: 'تحويل', fr: 'Virement', en: 'Transfer' },
+      with_invoice: { ar: 'بفاتورة', fr: 'Avec facture', en: 'With Invoice' },
+      without_invoice: { ar: 'بدون فاتورة', fr: 'Sans facture', en: 'Without Invoice' },
+      invoice: { ar: 'فاتورة', fr: 'Facture', en: 'Invoice' },
+      receipt: { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+    };
+    const entry = map[String(type).toLowerCase()];
+    return entry ? entry[language] : type;
+  };
+
   const getCollectionStatusLabel = (status: string | null | undefined) => {
     if (status === 'pending') return t('customers.journey.status_pending');
     if (status === 'approved') return t('customers.journey.status_approved');
@@ -672,26 +689,30 @@ const CustomerJourney = () => {
                           dir={dir}
                           onClick={() => setSelectedOrder(order)}
                           className={cn(
-                            'relative flex items-center gap-3 px-4 py-3 text-sm w-full border-b last:border-b-0 hover:bg-slate-100 cursor-pointer',
+                            'relative flex items-stretch gap-3 px-4 py-3 text-sm w-full border-b last:border-b-0 hover:bg-slate-100 cursor-pointer',
                             idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
                           )}
                         >
                           <span className={cn('absolute inset-y-0 w-1', dir === 'rtl' ? 'right-0' : 'left-0', tone.bar)} />
-                          <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
-                            {formatAmount(order.total_amount)} {t('common.currency')}
-                          </span>
-                          <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
-                            {workerName}
-                          </Badge>
-                          {order.payment_type && (
-                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
-                              {order.payment_type}
+                          <div className="flex flex-col items-start gap-1">
+                            <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
+                              {formatAmount(order.total_amount)} {t('common.currency')}
+                            </span>
+                            {order.payment_type && (
+                              <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                                {getPaymentTypeLabel(order.payment_type)}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="ms-auto flex flex-col items-start gap-1 shrink-0 min-w-[110px]">
+                            <span className="text-xs font-semibold tabular-nums whitespace-nowrap text-left" dir="ltr">
+                              <span className="text-black">{datePart}</span>
+                              {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
+                            </span>
+                            <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                              {workerName}
                             </Badge>
-                          )}
-                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap text-left shrink-0 min-w-[110px]" dir="ltr">
-                            <span className="text-black">{datePart}</span>
-                            {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
-                          </span>
+                          </div>
                         </button>
                       );
                     })}
