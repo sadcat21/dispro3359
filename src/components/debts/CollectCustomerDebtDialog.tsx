@@ -868,7 +868,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2" dir="ltr">
                     <Button
                       type="button"
                       className="rounded-xl h-11 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
