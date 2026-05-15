@@ -496,7 +496,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   );
   const printablePaidTotal = Math.max(0, printableDebtTotal - printableRemainingTotal);
 
-  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as any, t), [debtOrderStatusById, debts, payments, t]);
+  const timeline = useMemo(() => buildTimeline(debts, debtOrderStatusById, payments as TimelinePayment[], t), [debtOrderStatusById, debts, payments, t]);
   const filteredTimeline = useMemo(
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
@@ -534,8 +534,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       });
       toast.success(t('debt_collect.collected_success'));
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error?.message || t('debt_collect.collect_failed'));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || t('debt_collect.collect_failed'));
     }
   };
 
@@ -555,8 +555,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       });
       toast.success(t('debt_collect.visit_recorded'));
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error?.message || t('debt_collect.visit_failed'));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || t('debt_collect.visit_failed'));
     }
   };
 
@@ -569,8 +569,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
         collectionDays,
       });
       toast.success(t('debt_collect.schedule_updated'));
-    } catch (error: any) {
-      toast.error(error?.message || t('debt_collect.schedule_failed'));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || t('debt_collect.schedule_failed'));
     }
   };
 
