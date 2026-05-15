@@ -948,8 +948,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   محاسَب
                                 </span>
                               )}
-                              <span className="ml-auto text-xs font-semibold text-indigo-600 tabular-nums" dir="ltr">
-                                {item.displayDate}
+                              <span className="ml-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                                <span className="text-black">{item.displayDate.split(' ')[0]}</span>
+                                {item.displayDate.includes(' ') && (
+                                  <span className="text-red-600 ml-1">{item.displayDate.split(' ').slice(1).join(' ')}</span>
+                                )}
                               </span>
                             </button>
                           );
