@@ -110,7 +110,7 @@ const CustomerDebts: React.FC = () => {
     queryFn: async () => {
       let query = supabase
         .from('customers')
-        .select('id, name, store_name, phone, customer_type, wilaya, address, branch_id, latitude, longitude, sector_id, zone_id, status')
+        .select('id, name, name_fr, store_name, store_name_fr, phone, customer_type, wilaya, address, branch_id, latitude, longitude, sector_id, zone_id, status')
         .order('name');
 
       if (activeBranch?.id) query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
