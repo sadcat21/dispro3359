@@ -2120,6 +2120,8 @@ export const translations: Translations = {
   'debt_collect.movement': { ar: 'حركة الدين', fr: 'Mouvement de dette', en: 'Debt movement' },
   'debt_collect.date_only': { ar: 'تاريخ الحركة فقط', fr: 'Date du mouvement uniquement', en: 'Movement date only' },
   'debt_collect.show_visits': { ar: 'إظهار الزيارات', fr: 'Afficher les visites', en: 'Show visits' },
+  'debt_collect.view_cards': { ar: 'تفاصيل', fr: 'Détails', en: 'Details' },
+  'debt_collect.view_list': { ar: 'قائمة', fr: 'Liste', en: 'List' },
   'debt_collect.no_movements': { ar: 'لا توجد حركات دين لهذا العميل', fr: 'Aucun mouvement de dette pour ce client', en: 'No debt movements for this customer' },
   'debt_collect.visit_no_collect': { ar: 'زيارة بدون تحصيل', fr: 'Visite sans collecte', en: 'Visit without collection' },
   'debt_collect.new_debt': { ar: 'دين جديد', fr: 'Nouvelle dette', en: 'New debt' },
