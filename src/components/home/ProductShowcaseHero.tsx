@@ -126,7 +126,7 @@ const ProductShowcaseHero: React.FC = () => {
   const logo = companyInfo?.company_logo || companyInfo?.company_icon || '';
 
   return (
-    <div className="relative h-52 sm:h-60 overflow-hidden" dir="rtl">
+    <div className="relative h-36 sm:h-44 overflow-hidden" dir="rtl">
       <style>{`
         @keyframes heroProductCycle {
           0%   { transform: translateX(-120%) scale(0.6); opacity: 0; filter: blur(6px); }
@@ -200,10 +200,10 @@ const ProductShowcaseHero: React.FC = () => {
         </div>
 
         {/* Left (RTL): product image — exits to the right, next enters from the left */}
-        <div className="relative shrink-0 w-[200px] sm:w-[340px] h-full flex items-center justify-center overflow-visible">
+        <div className="relative shrink-0 w-[140px] sm:w-[220px] h-full flex items-center justify-center overflow-visible">
           <div
             key={`product-${index}`}
-            className="relative z-10 w-44 sm:w-60 h-44 sm:h-60"
+            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40"
             style={{ animation: `heroProductCycle ${SLIDE_MS}ms cubic-bezier(0.22,1,0.36,1) both` }}
           >
             <img src={current.image!} alt={current.title} className="w-full h-full object-contain drop-shadow-xl" loading="eager" />

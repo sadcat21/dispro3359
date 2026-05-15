@@ -395,22 +395,22 @@ const WorkerHome: React.FC = () => {
       <ProductShowcaseHero />
 
       {/* Sales Summary + Greeting + Delivery Summary — single integrated row */}
-      <div className="px-4 mt-3">
-        <div className="flex items-stretch gap-2 rounded-xl border border-primary/20 bg-gradient-to-br from-background to-muted/30 p-2">
+      <div className="px-4 mt-2">
+        <div className="flex items-stretch gap-1.5 rounded-lg border border-primary/20 bg-gradient-to-br from-background to-muted/30 p-1.5">
           <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
-          <div className="flex flex-col items-center justify-center px-2 min-w-0 flex-shrink">
-            <span className="text-[10px] text-muted-foreground leading-tight">{t('common.welcome')}</span>
-            <span className="text-xs font-bold text-foreground leading-tight truncate max-w-[120px]">
+          <div className="flex flex-col items-center justify-center px-1.5 min-w-0 flex-shrink">
+            <span className="text-[9px] text-muted-foreground leading-tight">{t('common.welcome')}</span>
+            <span className="text-[11px] font-bold text-foreground leading-tight truncate max-w-[110px]">
               {user?.full_name} 👋
             </span>
           </div>
           <Button
             variant="outline"
-            className="flex-1 h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
+            className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
             onClick={() => setShowHandoverPreview(true)}
           >
-            <ClipboardList className="w-4 h-4 text-primary" />
-            <span>ملخص التسليم</span>
+            <ClipboardList className="w-3.5 h-3.5 text-primary" />
+            <span>ملخص</span>
           </Button>
         </div>
       </div>
