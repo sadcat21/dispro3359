@@ -73,6 +73,24 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
     })();
   }, [visibleItems, productImages]);
 
+  // Fetch store names for customers
+  useEffect(() => {
+    const ids = Array.from(new Set(
+      visibleItems.map((r) => r.customer_id).filter(Boolean) as string[]
+    )).filter((id) => !(id in customerStores));
+    if (ids.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from('customers').select('id, store_name').in('id', ids);
+      if (data) {
+        setCustomerStores((prev) => {
+          const next = { ...prev };
+          for (const c of data as any[]) next[c.id] = c.store_name || '';
+          return next;
+        });
+      }
+    })();
+  }, [visibleItems, customerStores]);
+
   // Group by customer
   const grouped = useMemo(() => {
     const map = new Map<string, { customerId: string; customerName: string; rows: PendingOfferConfirmation[] }>();
