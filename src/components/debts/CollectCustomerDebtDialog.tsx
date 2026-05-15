@@ -208,6 +208,7 @@ const buildTimeline = (
       kind: isCancelled ? 'cancelled_debt' : 'debt',
       date: debt.created_at,
       workerName: debt.worker?.full_name || debt.worker?.username || '-',
+      workerId: debt.worker_id || null,
       paymentMethod: 'debt',
       amount: toNumber(debt.total_amount),
       note: debt.notes || null,
