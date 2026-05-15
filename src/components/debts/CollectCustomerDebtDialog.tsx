@@ -274,6 +274,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
   const [collectionAmount, setCollectionAmount] = useState('');
   const [collectionDays, setCollectionDays] = useState<string[]>([]);
   const [showVisitsInTimeline, setShowVisitsInTimeline] = useState(false);
+  const [historyViewMode, setHistoryViewMode] = useState<'cards' | 'list'>('cards');
   const [showHistoryReceipt, setShowHistoryReceipt] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -739,13 +740,31 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="show-visits" className="text-sm">{t('debt_collect.show_visits')}</Label>
-                      <Switch
-                        id="show-visits"
-                        checked={showVisitsInTimeline}
-                        onCheckedChange={setShowVisitsInTimeline}
-                      />
+                    <div className="flex items-center gap-3">
+                      <div className="inline-flex rounded-full border bg-slate-50 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setHistoryViewMode('cards')}
+                          className={`px-3 py-1 text-xs font-bold rounded-full transition ${historyViewMode === 'cards' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
+                        >
+                          {t('debt_collect.view_cards') || 'تفاصيل'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHistoryViewMode('list')}
+                          className={`px-3 py-1 text-xs font-bold rounded-full transition ${historyViewMode === 'list' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
+                        >
+                          {t('debt_collect.view_list') || 'قائمة'}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="show-visits" className="text-sm">{t('debt_collect.show_visits')}</Label>
+                        <Switch
+                          id="show-visits"
+                          checked={showVisitsInTimeline}
+                          onCheckedChange={setShowVisitsInTimeline}
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -756,6 +775,29 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   ) : timelineSections.length === 0 ? (
                     <div className="rounded-2xl border bg-white p-8 text-center text-sm text-slate-500">
                       {t('debt_collect.no_movements')}
+                    </div>
+                  ) : historyViewMode === 'list' ? (
+                    <div className="rounded-2xl border bg-white divide-y">
+                      {timelineSections.flatMap((section) =>
+                        section.items.map((item) => {
+                          const isDebt = item.kind === 'debt';
+                          const isCancelledDebt = item.kind === 'cancelled_debt';
+                          const isVisit = item.kind === 'visit';
+                          const color = isVisit
+                            ? 'text-slate-700'
+                            : isCancelledDebt
+                              ? 'text-slate-400 line-through'
+                              : isDebt
+                                ? 'text-destructive'
+                                : 'text-emerald-700';
+                          return (
+                            <div key={item.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                              <span className={`font-black ${color}`} dir="ltr">{formatMoney(item.amount)}</span>
+                              <span className="text-xs text-slate-500" dir="ltr">{item.displayDate}</span>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-4">
