@@ -961,10 +961,10 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               )}
                               {isAccounted && (
                                 <span
-                                  className="inline-flex items-center gap-1 rounded-md border-2 border-red-600/60 bg-red-500/30 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-red-700 -rotate-6 shadow-sm"
+                                  className="inline-flex items-center gap-1 rounded-md border-2 border-red-600/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-red-600/40 -rotate-6"
                                   title="تمت محاسبة هذا التحصيل مع المسؤول"
                                 >
-                                  <Lock className="h-3 w-3" />
+                                  <Lock className="h-3 w-3 opacity-40" />
                                   محاسَب
                                 </span>
                               )}
