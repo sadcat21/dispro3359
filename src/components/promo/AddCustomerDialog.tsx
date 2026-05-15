@@ -782,25 +782,24 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
             )}
 
             <div className="space-y-2">
-              <Label>{t('customers.wilaya')}</Label>
-              <Select value={wilaya} onValueChange={setWilaya}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('customers.select_wilaya')} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="bg-popover z-[10050] max-h-60">
-                  {ALGERIAN_WILAYAS.map((w) => (
-                    <SelectItem key={w.code} value={w.name}>{w.code} - {w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>الفرع</Label>
+              {isAdminRole(role) ? (
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الفرع" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="bg-popover z-[10050] max-h-60">
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-3 bg-background/60 rounded-lg border">
+                  <p className="font-medium">{selectedBranch?.name || activeBranch?.name || '—'}</p>
+                </div>
+              )}
             </div>
-
-            {isAdminRole(role) && activeBranch && (
-              <div className="p-3 bg-background/60 rounded-lg border">
-                <p className="text-sm text-muted-foreground">{t('nav.branches')}</p>
-                <p className="font-medium">{activeBranch.name}</p>
-              </div>
-            )}
 
             <div className="space-y-2">
               <Label>نوع الموقع</Label>
