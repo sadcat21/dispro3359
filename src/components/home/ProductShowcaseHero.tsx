@@ -1,13 +1,25 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProductOffers } from '@/hooks/useProductOffers';
-import { Sparkles, Gift, Tag } from 'lucide-react';
+import { Gift } from 'lucide-react';
+
+type Slide = {
+  title: string;
+  subtitle: string;
+  image: string | null;
+  tierLabel?: string;
+};
+
+const unitLabel = (u?: string) => {
+  if (u === 'box') return 'صندوق';
+  if (u === 'piece') return 'قطعة';
+  return u || '';
+};
 
 const ProductShowcaseHero: React.FC = () => {
   const { activeOffers, isLoading } = useProductOffers();
-  const [images, setImages] = useState<string[]>([]);
+  const [fallbackImages, setFallbackImages] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState(0);
   const [enabled, setEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -29,16 +41,14 @@ const ProductShowcaseHero: React.FC = () => {
     return () => { alive = false; (supabase as any).removeChannel(channel); };
   }, []);
 
-  // Build slides from active offers
-  const slides = useMemo(() => {
-    const list: { title: string; subtitle: string; image: string | null; tierLabel?: string }[] = [];
+  const slides = useMemo<Slide[]>(() => {
+    const list: Slide[] = [];
     (activeOffers || [])
       .filter((o: any) => o?.product?.name)
       .forEach((o: any) => {
         const productName = o.product?.name || '';
         const image = o.product?.image_url || null;
         const tiers = (o.tiers && o.tiers.length > 0) ? o.tiers : [o];
-
         tiers.forEach((t: any, idx: number) => {
           const giftName = t?.gift_product?.name || o.gift_product?.name || null;
           const giftQty = Number(t?.gift_quantity || 0);
@@ -50,29 +60,28 @@ const ProductShowcaseHero: React.FC = () => {
 
           let detail = '';
           if (giftName && giftQty > 0) {
-            detail = `🎁 اشترِ ${minQty} ${unitLabel(minUnit)} واحصل على ${giftQty} ${unitLabel(giftUnit)} ${giftName} مجاناً`;
+            detail = `${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} ${giftName} هدية`;
           } else if (giftQty > 0) {
-            detail = `🎁 ${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} هدية`;
+            detail = `${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} هدية`;
           } else if (discount > 0) {
-            detail = `🔥 خصم ${discount}% عند شراء ${minQty} ${unitLabel(minUnit)}`;
+            detail = `خصم ${discount}% عند شراء ${minQty} ${unitLabel(minUnit)}`;
           } else if (discountAmt > 0) {
-            detail = `🔥 خصم ${discountAmt} دج عند شراء ${minQty} ${unitLabel(minUnit)}`;
+            detail = `خصم ${discountAmt} دج عند شراء ${minQty} ${unitLabel(minUnit)}`;
           } else {
             detail = o.description || productName;
           }
 
           list.push({
-            title: o.name || productName,
+            title: `PROM: ${productName}`,
             subtitle: detail,
             image,
-            tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1} من ${tiers.length}` : undefined,
+            tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
           });
         });
       });
     return list;
   }, [activeOffers]);
 
-  // Fetch fallback product images for the background
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -80,118 +89,127 @@ const ProductShowcaseHero: React.FC = () => {
         .from('products')
         .select('image_url')
         .not('image_url', 'is', null)
-        .limit(40);
+        .limit(20);
       if (!alive) return;
-      const urls = (data || [])
-        .map((r: any) => r.image_url as string)
-        .filter(Boolean);
-      for (let i = urls.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [urls[i], urls[j]] = [urls[j], urls[i]];
-      }
-      setImages(urls);
+      setFallbackImages((data || []).map((r: any) => r.image_url).filter(Boolean));
     })();
     return () => { alive = false; };
   }, []);
 
-  // Build the cycling list (offers preferred, fallback to product images)
-  const cycle = slides.length > 0
+  const cycle: Slide[] = slides.length > 0
     ? slides
-    : images.map((img) => ({ title: 'إدارة الطلبيات', subtitle: 'عروض حصرية قادمة', product: '', image: img }));
+    : fallbackImages.map((img) => ({ title: 'عروض حصرية قادمة', subtitle: '', image: img }));
 
   useEffect(() => {
     if (cycle.length < 2) return;
-    const id = setInterval(() => {
-      setIndex((i) => (i + 1) % cycle.length);
-      setPhase((p) => (p + 1) % 4);
-    }, 4000);
+    const id = setInterval(() => setIndex((i) => (i + 1) % cycle.length), 3500);
     return () => clearInterval(id);
   }, [cycle.length]);
 
-  const animClass = [
-    'animate-[showcaseZoom_4.1s_ease-out]',
-    'animate-[showcasePan_4.1s_ease-out]',
-    'animate-[showcaseTilt_4.1s_ease-out]',
-    'animate-[showcaseZoomOut_4.1s_ease-out]',
-  ][phase];
-
-  const current = cycle[index];
-
   if (enabled === false) return null;
 
+  const current = cycle[index];
+  const prev = cycle[(index - 1 + cycle.length) % cycle.length];
+  const next = cycle[(index + 1) % cycle.length];
+
   return (
-    <div className="relative h-44 overflow-hidden bg-gradient-to-l from-primary to-primary/80 [.theme-soft_&]:bg-none [.theme-soft_&]:bg-background">
+    <div
+      className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-red-700 [.theme-soft_&]:from-primary [.theme-soft_&]:via-primary [.theme-soft_&]:to-primary"
+      dir="rtl"
+    >
       <style>{`
-        @keyframes showcaseZoom {
-          0% { transform: scale(1.4) rotate(-2deg); opacity: 0; filter: blur(12px); }
-          25% { opacity: 1; filter: blur(0); }
-          100% { transform: scale(1) rotate(0); opacity: 1; }
+        @keyframes heroDepthIn {
+          0%   { transform: translateZ(-400px) scale(0.3) rotateY(-8deg); opacity: 0; filter: blur(14px); }
+          40%  { opacity: 1; filter: blur(0); }
+          100% { transform: translateZ(0) scale(1) rotateY(0); opacity: 1; filter: blur(0); }
         }
-        @keyframes showcasePan {
-          0% { transform: translateX(15%) scale(1.2); opacity: 0; }
-          25% { opacity: 1; }
-          100% { transform: translateX(0) scale(1.05); opacity: 1; }
+        @keyframes heroSideFade {
+          0%   { opacity: 0; transform: scale(0.7); }
+          100% { opacity: 0.35; transform: scale(1); }
         }
-        @keyframes showcaseTilt {
-          0% { transform: scale(1.3) rotate(4deg); opacity: 0; filter: brightness(1.5); }
-          30% { opacity: 1; filter: brightness(1); }
-          100% { transform: scale(1.05) rotate(0); opacity: 1; }
-        }
-        @keyframes showcaseZoomOut {
-          0% { transform: scale(0.7); opacity: 0; filter: blur(8px); }
-          30% { opacity: 1; filter: blur(0); }
-          100% { transform: scale(1.05); opacity: 1; }
-        }
-        @keyframes textSlideUp {
-          0% { transform: translateY(20px); opacity: 0; }
+        @keyframes heroTextRise {
+          0%   { transform: translateY(18px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
+        .hero-stage { perspective: 900px; transform-style: preserve-3d; }
       `}</style>
 
-      {current?.image && (
-        <div key={`bg-${index}`} className={`absolute inset-0 ${animClass}`}>
-          <img src={current.image} alt="" className="w-full h-full object-cover" loading="eager" />
-        </div>
-      )}
+      {/* soft radial glow background */}
+      <div className="absolute inset-0 opacity-40 mix-blend-overlay"
+        style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, rgba(255,255,255,0.6), transparent 55%)' }} />
 
-      <div className="absolute inset-0 bg-gradient-to-l from-primary/85 via-primary/65 to-primary/90" />
-
-      <div key={`txt-${index}`} className="relative z-10 p-5 text-primary-foreground h-full flex flex-col justify-center animate-[textSlideUp_0.6s_ease-out]">
-        {(current as any)?.tierLabel && (
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-xs font-semibold tracking-wider opacity-90">
-              {(current as any).tierLabel}
+      <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center">
+        {/* Text — right side in RTL */}
+        <div key={`txt-${index}`} className="relative z-20 flex-1 min-w-0 text-white animate-[heroTextRise_0.6s_ease-out]">
+          {current?.tierLabel && (
+            <span className="inline-block text-[10px] font-semibold tracking-wider bg-white/15 backdrop-blur px-2 py-0.5 rounded mb-1">
+              {current.tierLabel}
             </span>
-          </div>
-        )}
-        <h2 className="text-lg font-bold mb-1 line-clamp-1 drop-shadow">
-          {current?.title || 'إدارة الطلبيات'}
-        </h2>
-        <p className="text-primary-foreground/95 text-sm line-clamp-2 drop-shadow">
-          {isLoading && !current ? 'جاري تحميل العروض...' : (current?.subtitle || '')}
-        </p>
-        {cycle.length > 1 && (
-          <div className="flex gap-1 mt-2">
-            {cycle.slice(0, 6).map((_, i) => (
-              <span
-                key={i}
-                className={`h-1 rounded-full transition-all duration-500 ${
-                  i === index % 6 ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+          )}
+          <h2 className="text-base sm:text-2xl font-extrabold leading-tight drop-shadow-md line-clamp-2">
+            {current?.title || 'عروض حصرية'}
+          </h2>
+          {current?.subtitle && (
+            <p className="mt-1.5 text-xs sm:text-sm font-medium text-white/95 line-clamp-2 flex items-center gap-1.5">
+              <Gift className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{isLoading && !current ? 'جاري تحميل العروض...' : current.subtitle}</span>
+            </p>
+          )}
+          {cycle.length > 1 && (
+            <div className="flex gap-1 mt-2.5">
+              {cycle.slice(0, 6).map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1 rounded-full transition-all duration-500 ${
+                    i === index % 6 ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 3D depth stage — left side */}
+        <div className="hero-stage relative shrink-0 w-[150px] sm:w-[260px] h-full flex items-center justify-center">
+          {/* Side previous (back-left) */}
+          {prev?.image && (
+            <div
+              key={`prev-${index}`}
+              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 -translate-y-1/2 rounded-xl overflow-hidden bg-white/90 shadow-lg ring-1 ring-white/30 animate-[heroSideFade_0.7s_ease-out_forwards]"
+              style={{ transform: 'translateY(-50%) translateX(-30%) scale(0.8)', filter: 'blur(2px)' }}
+            >
+              <img src={prev.image} alt="" className="w-full h-full object-contain p-1.5" />
+            </div>
+          )}
+
+          {/* Side next (back-right) */}
+          {next?.image && (
+            <div
+              key={`next-${index}`}
+              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 -translate-y-1/2 rounded-xl overflow-hidden bg-white/90 shadow-lg ring-1 ring-white/30 animate-[heroSideFade_0.7s_ease-out_forwards]"
+              style={{ transform: 'translateY(-50%) translateX(30%) scale(0.8)', filter: 'blur(2px)' }}
+            >
+              <img src={next.image} alt="" className="w-full h-full object-contain p-1.5" />
+            </div>
+          )}
+
+          {/* Featured center — comes from depth */}
+          {current?.image ? (
+            <div
+              key={`center-${index}`}
+              className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white shadow-2xl ring-2 ring-white/60 overflow-hidden animate-[heroDepthIn_0.9s_cubic-bezier(0.22,1,0.36,1)]"
+            >
+              <img src={current.image} alt={current.title} className="w-full h-full object-contain p-2" loading="eager" />
+            </div>
+          ) : (
+            <div className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+              <Gift className="w-10 h-10 text-white/80" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
-};
-
-const unitLabel = (u?: string) => {
-  if (u === 'box') return 'صندوق';
-  if (u === 'piece') return 'قطعة';
-  return u || '';
 };
 
 export default ProductShowcaseHero;
