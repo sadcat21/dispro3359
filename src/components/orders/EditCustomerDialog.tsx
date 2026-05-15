@@ -24,6 +24,7 @@ import { CUSTOMER_FIELD_LABELS, type CustomerFieldKey } from '@/types/customerFi
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getLocalizedName } from '@/utils/sectorName';
 import { isAdminRole } from '@/lib/utils';
+import { useBranchesQuery } from '@/hooks/useQueryData';
 
 interface EditCustomerDialogProps {
   open: boolean;
