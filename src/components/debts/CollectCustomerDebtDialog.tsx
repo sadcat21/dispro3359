@@ -162,10 +162,12 @@ const resolveOriginPaymentMethod = (order?: {
 
   const paymentType = String(order.payment_type || '').toLowerCase();
   const invoiceMethod = String(order.invoice_payment_method || '').toLowerCase();
+  const documentVerification = order.document_verification;
   const paidByCash = Boolean(
-    order.document_verification &&
-    typeof order.document_verification === 'object' &&
-    order.document_verification.paid_by_cash === true,
+    documentVerification &&
+    typeof documentVerification === 'object' &&
+    'paid_by_cash' in documentVerification &&
+    documentVerification.paid_by_cash === true,
   );
 
   if (paymentType !== 'with_invoice') {
