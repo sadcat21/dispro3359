@@ -819,7 +819,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
                               setEditAmountInput(String(item.amount));
                             } else if (isDebt || isCancelledDebt) {
-                              openDebtOrderDetails(item);
+                              void openDebtOrderDetails(item);
                             }
                           };
                           const clickable = isPayment || isDebt || isCancelledDebt;
@@ -865,8 +865,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             const isDebt = item.kind === 'debt';
                             const isCancelledDebt = item.kind === 'cancelled_debt';
                             const isVisit = item.kind === 'visit';
-                            const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
-                            const canOpenOrder = (isDebt || isCancelledDebt) && !!(item.orderId || linkedDebt?.order_id);
+                            const canOpenOrder = isDebt || isCancelledDebt;
 
                             const itemKind: 'debt' | 'payment' | null =
                               isDebt ? 'debt' : (item.kind === 'partial' || item.kind === 'full') ? 'payment' : null;
@@ -882,7 +881,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                 <button
                                   type="button"
                                   disabled={!canOpenOrder}
-                                  onClick={() => canOpenOrder && openDebtOrderDetails(item)}
+                                  onClick={() => canOpenOrder && void openDebtOrderDetails(item)}
                                   className={`w-full rounded-2xl border p-4 text-right transition ${
                                     isVisit
                                       ? 'border-slate-200 bg-white'
