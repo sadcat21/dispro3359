@@ -8,8 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { 
   Gift, Plus, Search, Edit2, Trash2, Package, 
-  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle, Settings2
+  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle, Settings2, CheckSquare, X
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProductOffers } from '@/hooks/useProductOffers';
