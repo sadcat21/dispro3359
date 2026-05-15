@@ -793,12 +793,32 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                 ? { bar: 'bg-destructive', text: 'text-destructive', Icon: ArrowDownCircle }
                                 : { bar: 'bg-emerald-500', text: 'text-emerald-700', Icon: ArrowUpCircle };
                           const Icon = tone.Icon;
+                          const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
+                          const canOpenOrder = (isDebt || isCancelledDebt) && !!(item.orderId || linkedDebt?.order_id);
+                          const isPayment = item.kind === 'partial' || item.kind === 'full';
+                          const underlyingId = item.id.startsWith('debt-')
+                            ? item.id.slice(5)
+                            : item.id.startsWith('payment-')
+                              ? item.id.slice(8)
+                              : null;
+                          const handleClick = () => {
+                            if (isPayment && underlyingId) {
+                              setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
+                              setEditAmountInput(String(item.amount));
+                            } else if (canOpenOrder) {
+                              openDebtOrderDetails(item);
+                            }
+                          };
+                          const clickable = isPayment || canOpenOrder;
                           return (
-                            <div
+                            <button
+                              type="button"
                               key={item.id}
-                              className={`relative flex items-center gap-3 px-4 py-3 text-sm ${
+                              disabled={!clickable}
+                              onClick={handleClick}
+                              className={`relative flex items-center gap-3 px-4 py-3 text-sm w-full text-right ${
                                 (sIdx + iIdx) % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
-                              } border-b last:border-b-0`}
+                              } border-b last:border-b-0 ${clickable ? 'hover:bg-slate-100 cursor-pointer' : 'cursor-default'}`}
                             >
                               <span className={`absolute inset-y-0 right-0 w-1 ${tone.bar}`} />
                               <Icon className={`h-4 w-4 shrink-0 ${tone.text}`} />
@@ -816,7 +836,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
                                 {item.displayDate}
                               </span>
-                            </div>
+                            </button>
                           );
                         })
                       )}
