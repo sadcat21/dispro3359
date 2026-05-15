@@ -587,6 +587,21 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                             {entry.note && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
                             )}
+                            {entry.type === 'sale' && entry.mods && entry.mods.length > 0 && (
+                              <div className="mt-2 border-t pt-2 space-y-1">
+                                {entry.mods.map((mm: any) => (
+                                  <div key={`note-${mm.id}`} className="flex items-center gap-1.5 text-[11px]">
+                                    <Badge className={`text-[9px] ${mm.orderStatus === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-purple-100 text-purple-700 border-purple-200'}`}>
+                                      {mm.label}
+                                    </Badge>
+                                    <span className="text-muted-foreground truncate">{mm.note || '—'}</span>
+                                    <span className="ms-auto text-[10px] text-muted-foreground shrink-0">
+                                      {mm.when ? new Date(mm.when).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
