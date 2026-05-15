@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, User, Loader2, Trash2, Phone, MapPin, Search, Pencil, Building2, ChevronDown, ChevronUp, Navigation, Shield, Tag, UserCircle, Store, CreditCard, Warehouse, Eye, PlusCircle, Banknote, Truck, AlertTriangle, ShoppingBag, Calendar, Package, MapPinPlus, FileEdit, Settings2, BadgeCheck, Activity } from 'lucide-react';
+import { UserPlus, User, Loader2, Trash2, Phone, MapPin, Search, Pencil, Building2, ChevronDown, ChevronUp, Navigation, Shield, Tag, UserCircle, Store, CreditCard, Warehouse, Eye, PlusCircle, Banknote, Truck, AlertTriangle, ShoppingBag, Calendar, Package, MapPinPlus, FileEdit, Settings2, BadgeCheck, Activity, Users } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { ALGERIAN_WILAYAS, DEFAULT_WILAYA } from '@/data/algerianWilayas';
@@ -762,6 +762,11 @@ const Customers: React.FC = () => {
               {isManager && (
                 <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => setShowFieldSettingsDialog(true)} title={t('customers.field_settings')}>
                   <Settings2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              {isManager && (
+                <Button size="icon" variant="outline" className="h-7 w-7 text-amber-600 hover:text-amber-700" onClick={() => navigate('/duplicate-customers')} title="دمج العملاء المكررين">
+                  <Users className="w-3.5 h-3.5" />
                 </Button>
               )}
               {!isAddCustomerHidden && (
