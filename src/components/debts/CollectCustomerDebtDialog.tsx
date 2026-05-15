@@ -740,13 +740,31 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="show-visits" className="text-sm">{t('debt_collect.show_visits')}</Label>
-                      <Switch
-                        id="show-visits"
-                        checked={showVisitsInTimeline}
-                        onCheckedChange={setShowVisitsInTimeline}
-                      />
+                    <div className="flex items-center gap-3">
+                      <div className="inline-flex rounded-full border bg-slate-50 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setHistoryViewMode('cards')}
+                          className={`px-3 py-1 text-xs font-bold rounded-full transition ${historyViewMode === 'cards' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
+                        >
+                          {t('debt_collect.view_cards') || 'تفاصيل'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHistoryViewMode('list')}
+                          className={`px-3 py-1 text-xs font-bold rounded-full transition ${historyViewMode === 'list' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
+                        >
+                          {t('debt_collect.view_list') || 'قائمة'}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="show-visits" className="text-sm">{t('debt_collect.show_visits')}</Label>
+                        <Switch
+                          id="show-visits"
+                          checked={showVisitsInTimeline}
+                          onCheckedChange={setShowVisitsInTimeline}
+                        />
+                      </div>
                     </div>
                   </div>
 
