@@ -81,30 +81,26 @@ const WorkerSalesSummaryCard: React.FC<WorkerSalesSummaryCardProps> = ({ onOpenS
 
   if (isLoading) {
     return (
-      <div className="px-4 mt-3">
-        <Button variant="outline" disabled className="w-full h-12">
-          <Loader2 className="w-5 h-5 animate-spin text-primary" />
-        </Button>
-      </div>
+      <Button variant="outline" disabled className="flex-1 h-12">
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+      </Button>
     );
   }
 
   if (!data || data.orderCount === 0) return null;
 
   return (
-    <div className="px-4 mt-3">
-      <Button
-        onClick={onOpenSalesSummary}
-        className="w-full h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 text-foreground hover:shadow-md"
-        variant="outline"
-      >
-        <TrendingUp className="w-4 h-4 text-primary" />
-        <span>ملخص المبيعات</span>
-        <Badge variant="secondary" className="text-[10px] ms-1">
-          {data.orderCount}
-        </Badge>
-      </Button>
-    </div>
+    <Button
+      onClick={onOpenSalesSummary}
+      className="flex-1 h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 text-foreground hover:shadow-md"
+      variant="outline"
+    >
+      <TrendingUp className="w-4 h-4 text-primary" />
+      <span>ملخص المبيعات</span>
+      <Badge variant="secondary" className="text-[10px] ms-1">
+        {data.orderCount}
+      </Badge>
+    </Button>
   );
 };
 
