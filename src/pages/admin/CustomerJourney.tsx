@@ -734,9 +734,13 @@ const CustomerJourney = () => {
                   <div className="border-t bg-white overflow-y-auto max-h-[60vh]">
                     {visits.map((visit, idx) => {
                       const hasOrder = !!visit.order;
+                      const isPlainVisit = ['visit', 'delivery_visit'].includes(visit.operation_type);
+                      const operationLabel = getVisitOperationLabel(visit.operation_type);
                       const tone = hasOrder
                         ? { bar: 'bg-emerald-500', text: 'text-emerald-700' }
-                        : { bar: 'bg-amber-400', text: 'text-amber-700' };
+                        : isPlainVisit
+                          ? { bar: 'bg-amber-400', text: 'text-amber-700' }
+                          : { bar: 'bg-sky-400', text: 'text-sky-700' };
                       const dateStr = formatDateTime(visit.created_at);
                       const [datePart, ...timeRest] = dateStr.split(' ');
                       const timePart = timeRest.join(' ');
@@ -763,15 +767,17 @@ const CustomerJourney = () => {
                           ) : (
                             <span className={cn('font-black whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)] inline-flex items-center gap-1', tone.text)}>
                               <MapPin className="h-3.5 w-3.5" />
-                              {t('customers.journey.without_order')}
+                              {isPlainVisit ? t('customers.journey.without_order') : operationLabel}
                             </span>
                           )}
                           <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
                             {workerName}
                           </Badge>
-                          <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
-                            {getVisitOperationLabel(visit.operation_type)}
-                          </Badge>
+                          {(hasOrder || isPlainVisit) && (
+                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                              {operationLabel}
+                            </Badge>
+                          )}
                           <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap text-left shrink-0 min-w-[110px]" dir="ltr">
                             <span className="text-black">{datePart}</span>
                             {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
