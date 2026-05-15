@@ -90,7 +90,13 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
   const [defaultPaymentType, setDefaultPaymentType] = useState<string>('without_invoice'); // default: فاتورة 2
   const [defaultPriceSubtype, setDefaultPriceSubtype] = useState<string>('retail'); // default: تجزئة
   const [defaultDeliveryWorkerId, setDefaultDeliveryWorkerId] = useState('');
-  const effectiveBranchId = activeBranch ? activeBranch.id : null;
+  const defaultBranchId = activeBranch?.id || (user as any)?.branch_id || '';
+  const [selectedBranchId, setSelectedBranchId] = useState<string>(defaultBranchId);
+  useEffect(() => {
+    if (!selectedBranchId && defaultBranchId) setSelectedBranchId(defaultBranchId);
+  }, [defaultBranchId]);
+  const effectiveBranchId = selectedBranchId || null;
+  const selectedBranch = branches.find(b => b.id === selectedBranchId);
 
   // Fetch zones when sector changes
   const [zonesLoading, setZonesLoading] = useState(false);
