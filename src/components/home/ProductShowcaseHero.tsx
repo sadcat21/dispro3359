@@ -88,23 +88,41 @@ const ProductShowcaseHero: React.FC = () => {
         .hero-stage { perspective: 900px; transform-style: preserve-3d; }
       `}</style>
 
-      {/* Consistent decorative background — soft neutral pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+      {/* Premium consistent background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,#fff7f5_0%,#ffffff_45%,#f4f6fb_100%)]" />
+
+      {/* Soft color blobs */}
       <div
-        className="absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 25% 30%, hsl(var(--primary)) 0, transparent 35%), radial-gradient(circle at 80% 70%, hsl(var(--primary)) 0, transparent 40%)',
-        }}
+        className="absolute -top-20 -right-16 w-72 h-72 rounded-full opacity-40 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)' }}
       />
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute -bottom-24 -left-10 w-80 h-80 rounded-full opacity-30 blur-3xl"
+        style={{ background: 'radial-gradient(circle, #fca5a5, transparent 70%)' }}
+      />
+
+      {/* Fine dot grid */}
+      <div
+        className="absolute inset-0 opacity-[0.18]"
         style={{
-          backgroundImage:
-            'repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 14px)',
-          color: 'hsl(var(--primary))',
+          backgroundImage: 'radial-gradient(circle, rgba(15,23,42,0.25) 1px, transparent 1px)',
+          backgroundSize: '18px 18px',
+          maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
         }}
       />
+
+      {/* Diagonal sheen */}
+      <div
+        className="absolute inset-0 opacity-30 mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(115deg, transparent 0%, transparent 38%, rgba(255,255,255,0.6) 50%, transparent 62%, transparent 100%)',
+        }}
+      />
+
+      {/* Bottom accent line */}
+      <div className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3">
         {/* Right: company logo + offer label (RTL) */}
