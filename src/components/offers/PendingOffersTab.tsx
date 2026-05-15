@@ -196,12 +196,21 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
       <Dialog open={!!openCustomer} onOpenChange={(o) => { if (!o) setOpenCustomer(null); }}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-amber-600" />
-                عروض {openCustomer?.name}
+            <DialogTitle className="flex items-start justify-between gap-2">
+              <span className="flex items-start gap-2 min-w-0">
+                <Gift className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                <span className="flex flex-col min-w-0 text-right">
+                  <span className="text-base font-bold truncate">
+                    {(openCustomer && customerStores[openCustomer.id]) || openCustomer?.name || 'بدون زبون'}
+                  </span>
+                  {openCustomer && customerStores[openCustomer.id] && (
+                    <span className="text-xs font-normal text-muted-foreground truncate">
+                      {openCustomer.name}
+                    </span>
+                  )}
+                </span>
               </span>
-              <Badge variant="secondary" className="text-xs font-bold">
+              <Badge variant="secondary" className="text-xs font-bold shrink-0">
                 متبقّي: {customerRows.length}
               </Badge>
             </DialogTitle>
