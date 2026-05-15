@@ -390,14 +390,16 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
           {/* Fixed bottom buttons */}
           <div className="shrink-0 border-t bg-background px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-4">
             <div className="flex items-center gap-2">
-              <Button
-                className="h-11 w-11 shrink-0 px-0"
-                size="icon"
-                onClick={() => setShowModifyDialog(true)}
-                disabled={hideModifyAction || orderItemsLoading || isDetailsLoading}
-              >
-                <Pencil className="h-5 w-5" />
-              </Button>
+              {!hideModifyAction && (
+                <Button
+                  className="h-11 w-11 shrink-0 px-0"
+                  size="icon"
+                  onClick={() => setShowModifyDialog(true)}
+                  disabled={orderItemsLoading || isDetailsLoading}
+                >
+                  <Pencil className="h-5 w-5" />
+                </Button>
+              )}
               {onCancelOrder && !isOrderCancelled && order?.id && (
                 <Button
                   className="h-11 flex-1 gap-2"
