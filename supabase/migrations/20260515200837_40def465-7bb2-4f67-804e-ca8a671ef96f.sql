@@ -1,0 +1,1 @@
+DELETE FROM public.customers WHERE created_at::date = '2026-04-13';
