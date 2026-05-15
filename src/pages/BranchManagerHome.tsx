@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
@@ -187,6 +188,8 @@ const BranchManagerHome: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
+      {/* Offers Showcase — same as worker home */}
+      <ProductShowcaseHero />
       {/* Hero Header — أزرق احترافي مع لمسة سماوية */}
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
