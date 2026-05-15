@@ -59,6 +59,17 @@ interface CollectCustomerDebtDialogProps {
 
 type TimelineKind = 'debt' | 'partial' | 'full' | 'visit' | 'cancelled_debt';
 
+type TimelinePayment = {
+  id: string;
+  debt_id: string;
+  amount: number;
+  payment_method?: string | null;
+  notes?: string | null;
+  collected_at?: string | null;
+  created_at?: string | null;
+  worker?: { full_name?: string | null } | null;
+};
+
 interface TimelineEvent {
   id: string;
   debtId?: string;
@@ -77,6 +88,14 @@ interface TimelineEvent {
 const toNumber = (value: unknown) => {
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? n : 0;
+};
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: unknown }).message || '');
+  }
+  return '';
 };
 
 const formatMoney = (value: number) => `${value.toLocaleString()} DA`;
@@ -137,7 +156,7 @@ const sectionTitle = (tab: DialogTab, t: (k: string) => string) => {
 const resolveOriginPaymentMethod = (order?: {
   payment_type?: string | null;
   invoice_payment_method?: string | null;
-  document_verification?: any;
+  document_verification?: unknown;
 } | null) => {
   if (!order) return 'cash';
 
