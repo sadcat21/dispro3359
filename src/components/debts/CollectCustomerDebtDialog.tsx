@@ -884,8 +884,13 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             : item.id.startsWith('payment-')
                               ? item.id.slice(8)
                               : null;
+                          const isLocked = isPayment && underlyingId ? lockedPaymentIds.has(underlyingId) : false;
                           const handleClick = () => {
                             if (isPayment && underlyingId) {
+                              if (isLocked) {
+                                toast.error('تم إغلاق هذا التحصيل بعد المحاسبة مع المسؤول');
+                                return;
+                              }
                               setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
                               setEditAmountInput(String(item.amount));
                             } else if (isDebt || isCancelledDebt) {
