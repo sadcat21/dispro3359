@@ -163,6 +163,23 @@ const CustomerJourney = () => {
     return method;
   };
 
+  const getPaymentTypeLabel = (type: string | null | undefined) => {
+    if (!type) return '—';
+    const map: Record<string, { ar: string; fr: string; en: string }> = {
+      cash: { ar: 'كاش', fr: 'Espèces', en: 'Cash' },
+      credit: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
+      debt: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
+      check: { ar: 'شيك', fr: 'Chèque', en: 'Check' },
+      transfer: { ar: 'تحويل', fr: 'Virement', en: 'Transfer' },
+      with_invoice: { ar: 'بفاتورة', fr: 'Avec facture', en: 'With Invoice' },
+      without_invoice: { ar: 'بدون فاتورة', fr: 'Sans facture', en: 'Without Invoice' },
+      invoice: { ar: 'فاتورة', fr: 'Facture', en: 'Invoice' },
+      receipt: { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+    };
+    const entry = map[String(type).toLowerCase()];
+    return entry ? entry[language] : type;
+  };
+
   const getCollectionStatusLabel = (status: string | null | undefined) => {
     if (status === 'pending') return t('customers.journey.status_pending');
     if (status === 'approved') return t('customers.journey.status_approved');
