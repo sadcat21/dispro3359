@@ -70,6 +70,34 @@ const supportsUnitSale = (product?: Product | null): boolean => {
   return !!product.allow_unit_sale && Number(product.pieces_per_box || 0) > 1;
 };
 
+const bpQuantityToPieces = (value: unknown, piecesPerBox: number): number => {
+  const numeric = Number(value || 0);
+  if (!Number.isFinite(numeric) || numeric === 0) return 0;
+  const sign = numeric < 0 ? -1 : 1;
+  const abs = Math.abs(Math.round(numeric * 100) / 100);
+  const boxes = Math.floor(abs);
+  const pieces = Math.round((abs - boxes) * 100);
+  return sign * ((boxes * Math.max(1, piecesPerBox)) + pieces);
+};
+
+const piecesToBpQuantity = (pieces: number, piecesPerBox: number): number => {
+  const safePieces = Math.max(0, Math.round(pieces));
+  const safePpb = Math.max(1, Math.round(piecesPerBox || 1));
+  const boxes = Math.floor(safePieces / safePpb);
+  const remainder = safePieces % safePpb;
+  return boxes + remainder / 100;
+};
+
+const getMovementSignedBpQuantity = (movement: { movement_type?: string | null; quantity?: number | null; signed_quantity?: number | null }): number => {
+  const signed = Number(movement.signed_quantity);
+  if (Number.isFinite(signed) && movement.signed_quantity !== null && movement.signed_quantity !== undefined) return signed;
+  const quantity = Number(movement.quantity || 0);
+  if (!Number.isFinite(quantity)) return 0;
+  return ['delivery', 'direct_sale', 'modification', 'promo_gift', 'promo_sale'].includes(String(movement.movement_type || ''))
+    ? -quantity
+    : quantity;
+};
+
 const normalizePaymentType = (raw: string | null | undefined): string => {
   if (raw === 'with_invoice' || raw === 'without_invoice') return raw;
   // Legacy/other values map to without_invoice
@@ -1094,10 +1122,30 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       }
 
       if (isSold && order.assigned_worker_id) {
+        const itemPpb = new Map(items.map((item) => [item.product_id, Math.max(1, Number(item.pieces_per_box || 1))]));
+        const productIds = Array.from(new Set(items.map((item) => item.product_id).filter(Boolean)));
+        const { data: existingMovements, error: existingMovementsError } = productIds.length > 0
+          ? await supabase
+            .from('stock_movements')
+            .select('product_id, quantity, signed_quantity, movement_type')
+            .eq('order_id', order.id)
+            .in('product_id', productIds)
+          : { data: [], error: null } as any;
+        if (existingMovementsError) throw existingMovementsError;
+
+        const signedPiecesByProduct = new Map<string, number>();
+        for (const movement of (existingMovements || []) as any[]) {
+          const ppb = itemPpb.get(movement.product_id) || 1;
+          const signedPieces = bpQuantityToPieces(getMovementSignedBpQuantity(movement), ppb);
+          signedPiecesByProduct.set(movement.product_id, (signedPiecesByProduct.get(movement.product_id) || 0) + signedPieces);
+        }
+
         for (const item of items) {
-          const giftPiecesDiff = (Number(item.gift_pieces || 0) - Number(item.original_gift_pieces || 0)) / 100;
-          const qtyDiff = (Number(item.new_quantity || 0) - Number(item.original_quantity || 0)) + giftPiecesDiff;
-          if (qtyDiff === 0) continue;
+          const ppb = Math.max(1, Number(item.pieces_per_box || 1));
+          const desiredDeductPieces = bpQuantityToPieces(item.new_quantity || 0, ppb) + Math.max(0, Math.round(Number(item.gift_pieces || 0)));
+          const currentSignedPieces = signedPiecesByProduct.get(item.product_id) || 0;
+          const adjustmentSignedPieces = -desiredDeductPieces - currentSignedPieces;
+          if (adjustmentSignedPieces === 0) continue;
 
           const { data: ws } = await supabase
             .from('worker_stock')
@@ -1107,40 +1155,43 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             .maybeSingle();
 
           if (ws) {
-            const newStockQty = Math.max(0, ws.quantity - qtyDiff);
+            const currentStockPieces = bpQuantityToPieces(ws.quantity, ppb);
+            const newStockQty = piecesToBpQuantity(currentStockPieces + adjustmentSignedPieces, ppb);
             await supabase.from('worker_stock')
               .update({ quantity: newStockQty })
               .eq('id', ws.id);
-          } else if (qtyDiff < 0) {
+          } else if (adjustmentSignedPieces > 0) {
             await supabase.from('worker_stock').insert({
               worker_id: order.assigned_worker_id,
               product_id: item.product_id,
-              quantity: Math.abs(qtyDiff),
+              quantity: piecesToBpQuantity(adjustmentSignedPieces, ppb),
               branch_id: order.branch_id,
             });
           }
 
           // Log the modification in the truck stock movement history
+          const movementQty = piecesToBpQuantity(Math.abs(adjustmentSignedPieces), ppb);
+          const signedMovementQty = adjustmentSignedPieces < 0 ? -movementQty : movementQty;
           const qtyChangeDiff = Number(item.new_quantity || 0) - Number(item.original_quantity || 0);
           const giftDescParts: string[] = [];
           if (qtyChangeDiff !== 0) {
             giftDescParts.push(`بيع: ${qtyChangeDiff > 0 ? '+' : ''}${qtyChangeDiff}`);
           }
-          if (giftPiecesDiff !== 0) {
+          if ((Number(item.gift_pieces || 0) - Number(item.original_gift_pieces || 0)) !== 0) {
             const giftPiecesChange = Number(item.gift_pieces || 0) - Number(item.original_gift_pieces || 0);
             giftDescParts.push(`هدية: ${giftPiecesChange > 0 ? '+' : ''}${giftPiecesChange} قطعة`);
           }
           await supabase.from('stock_movements').insert({
             product_id: item.product_id,
             branch_id: order.branch_id || null,
-            quantity: Math.abs(qtyDiff),
-            signed_quantity: -qtyDiff,
+            quantity: movementQty,
+            signed_quantity: signedMovementQty,
             movement_type: 'modification',
             status: 'approved',
             created_by: workerId,
             worker_id: order.assigned_worker_id,
             order_id: order.id,
-            notes: `تعديل المبيعة — ${giftDescParts.join(' • ')}`,
+            notes: `تعديل المبيعة — ${giftDescParts.join(' • ') || (adjustmentSignedPieces > 0 ? 'إرجاع للمخزون' : 'خصم من المخزون')}`,
           } as any);
         }
       }
