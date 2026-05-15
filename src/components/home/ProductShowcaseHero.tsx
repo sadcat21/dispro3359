@@ -123,8 +123,6 @@ const ProductShowcaseHero: React.FC = () => {
   if (slides.length === 0) return null;
 
   const current = slides[index];
-  const prev = slides[(index - 1 + slides.length) % slides.length];
-  const next = slides[(index + 1) % slides.length];
   const logo = companyInfo?.company_logo || companyInfo?.company_icon || '';
 
   return (
