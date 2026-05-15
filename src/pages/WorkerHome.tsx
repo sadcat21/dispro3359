@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import heroBg from '@/assets/hero-offers-bg.jpg';
 
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/database';
