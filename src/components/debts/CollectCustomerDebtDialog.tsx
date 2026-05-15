@@ -225,6 +225,7 @@ const buildTimeline = (
       kind: amount <= 0 ? 'visit' : 'partial',
       date,
       workerName: payment.worker?.full_name || '-',
+      workerId: payment.worker_id || null,
       paymentMethod: payment.payment_method || null,
       amount,
       note: payment.notes || null,
