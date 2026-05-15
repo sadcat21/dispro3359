@@ -638,7 +638,7 @@ const Customers: React.FC = () => {
                   type="button"
                   onClick={() => {
                     if (longPressTriggered.current) return;
-                    openEditDialog(customer);
+                    navigate(`/customer-journey?customerId=${customer.id}`);
                   }}
                   onPointerDown={startLongPress}
                   onPointerUp={cancelLongPress}
