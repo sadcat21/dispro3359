@@ -404,7 +404,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
         store_name_fr: storeNameFr.trim() || null,
         phone: phoneStr || null,
         address: address.trim() || null,
-        wilaya,
+        wilaya: selectedBranch?.wilaya || wilaya || null,
         branch_id: effectiveBranchId,
         created_by: workerId,
         latitude, longitude,
