@@ -636,62 +636,63 @@ const CustomerJourney = () => {
               />
             </div>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">{t('customers.journey.purchase_history')}</CardTitle>
                 <CardDescription>{purchaseSummary.ordersCount} {t('nav.orders')}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="p-0">
                 {isPurchaseTabLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   </div>
                 ) : orders.length === 0 ? (
-                  <EmptyState label={t('customers.journey.no_orders')} />
+                  <div className="p-6"><EmptyState label={t('customers.journey.no_orders')} /></div>
                 ) : (
-                  orders.map((order) => (
-                    <button
-                      key={order.id}
-                      type="button"
-                      onClick={() => setSelectedOrder(order)}
-                      className="w-full rounded-2xl border bg-background p-3 text-start shadow-sm transition hover:border-primary/30 hover:bg-primary/5"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline">#{order.id.slice(0, 8)}</Badge>
-                            <Badge
-                              className={cn(
-                                'border-0',
-                                order.status === 'delivered' && 'bg-emerald-100 text-emerald-700',
-                                order.status === 'pending' && 'bg-amber-100 text-amber-700',
-                                order.status === 'assigned' && 'bg-sky-100 text-sky-700',
-                                order.status === 'in_progress' && 'bg-indigo-100 text-indigo-700',
-                                order.status === 'cancelled' && 'bg-rose-100 text-rose-700'
-                              )}
-                            >
-                              {order.status}
-                            </Badge>
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                            <span>{formatDateTime(order.created_at)}</span>
-                            <span>
-                              {t('customers.journey.assigned_worker')}: {order.assigned_worker?.full_name || order.created_by_worker?.full_name || '—'}
-                            </span>
-                            <span>{order.payment_type || '—'}</span>
-                            {order.notes && <span className="line-clamp-1">{order.notes}</span>}
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 text-end">
-                          <div className="text-base font-black text-primary" dir="ltr">
+                  <div className="border-t bg-white overflow-y-auto max-h-[60vh]">
+                    {orders.map((order, idx) => {
+                      const isCancelled = order.status === 'cancelled';
+                      const isDelivered = order.status === 'delivered';
+                      const tone = isCancelled
+                        ? { bar: 'bg-slate-300', text: 'text-slate-500 line-through' }
+                        : isDelivered
+                          ? { bar: 'bg-emerald-500', text: 'text-emerald-700' }
+                          : { bar: 'bg-primary', text: 'text-primary' };
+                      const dateStr = formatDateTime(order.created_at);
+                      const [datePart, ...timeRest] = dateStr.split(' ');
+                      const timePart = timeRest.join(' ');
+                      const workerName = order.assigned_worker?.full_name || order.created_by_worker?.full_name || '—';
+                      return (
+                        <button
+                          key={order.id}
+                          type="button"
+                          dir={dir}
+                          onClick={() => setSelectedOrder(order)}
+                          className={cn(
+                            'relative flex items-center gap-3 px-4 py-3 text-sm w-full border-b last:border-b-0 hover:bg-slate-100 cursor-pointer',
+                            idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
+                          )}
+                        >
+                          <span className={cn('absolute inset-y-0 w-1', dir === 'rtl' ? 'right-0' : 'left-0', tone.bar)} />
+                          <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
                             {formatAmount(order.total_amount)} {t('common.currency')}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ))
+                          </span>
+                          <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                            {workerName}
+                          </Badge>
+                          {order.payment_type && (
+                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                              {order.payment_type}
+                            </Badge>
+                          )}
+                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                            <span className="text-black">{datePart}</span>
+                            {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
