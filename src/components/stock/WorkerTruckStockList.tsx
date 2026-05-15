@@ -542,6 +542,18 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               {entry.type === 'modification' && entry.orderStatus === 'cancelled' && (
                                 <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">طلب ملغى</Badge>
                               )}
+                              {entry.type === 'sale' && entry.orderStatus === 'cancelled' && (
+                                <Badge className="text-[10px] bg-red-100 text-red-700 border-red-200">ملغى</Badge>
+                              )}
+                              {entry.type === 'sale' && entry.mods && entry.mods.length > 0 && entry.mods.map((mm: any) => (
+                                <Badge
+                                  key={mm.id}
+                                  className={`text-[10px] ${mm.orderStatus === 'cancelled' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-purple-100 text-purple-700 border-purple-200'}`}
+                                  title={mm.note || ''}
+                                >
+                                  {mm.label}
+                                </Badge>
+                              ))}
                               {entry.type !== 'sale' && entry.sourceLabel && (
                                 <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
                               )}
