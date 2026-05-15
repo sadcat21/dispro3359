@@ -8,8 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { 
   Gift, Plus, Search, Edit2, Trash2, Package, 
-  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle, Settings2
+  Calendar, Users, Layers, ArrowLeft, Clock, PlayCircle, Settings2, CheckSquare, X
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProductOffers } from '@/hooks/useProductOffers';
@@ -46,12 +47,22 @@ const ProductOffers: React.FC = () => {
   const [editOffer, setEditOffer] = useState<ProductOfferWithDetails | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [extendTarget, setExtendTarget] = useState<{
-    offerId: string;
-    offerName: string;
+    offerId?: string;
+    offerName?: string;
     tierId: string | null;
     tierLabel: string | null;
     mode: 'extend' | 'resume';
+    targets?: { offerId: string; offerName: string; tierId: null; tierLabel: null }[];
   } | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
 
@@ -148,6 +159,16 @@ const ProductOffers: React.FC = () => {
                 <span className="truncate">إعدادات العروض</span>
               </Button>
             )}
+            {canManage && (
+              <Button
+                variant={selectMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+              >
+                <CheckSquare className="w-4 h-4 me-2" />
+                {selectMode ? 'إلغاء التحديد' : 'تحديد متعدد'}
+              </Button>
+            )}
             {!isAddOfferHidden && (
               <Button size="sm" onClick={() => setShowCreateDialog(true)} className="sm:size-default">
                 <Plus className="w-4 h-4 me-2" />
@@ -156,6 +177,35 @@ const ProductOffers: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* شريط الإجراءات الجماعية */}
+        {selectMode && selectedIds.size > 0 && (
+          <div className="sticky top-2 z-20 flex items-center justify-between gap-2 p-2 rounded-lg border bg-primary/5 backdrop-blur">
+            <span className="text-sm font-semibold">تم تحديد {selectedIds.size} عرض</span>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  const selected = filteredOffers.filter(o => selectedIds.has(o.id));
+                  if (selected.length === 0) return;
+                  const anyRunning = selected.some(isOfferRunning);
+                  setExtendTarget({
+                    tierId: null,
+                    tierLabel: null,
+                    mode: anyRunning ? 'extend' : 'resume',
+                    targets: selected.map(o => ({ offerId: o.id, offerName: o.name, tierId: null, tierLabel: null })),
+                  });
+                }}
+              >
+                <PlayCircle className="w-4 h-4 me-1" />
+                تمديد / استئناف الكل
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative">
@@ -269,6 +319,12 @@ const ProductOffers: React.FC = () => {
                               {/* Group header */}
                               <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted/40 border-b border-border/50">
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  {selectMode && (
+                                    <Checkbox
+                                      checked={selectedIds.has(offer.id)}
+                                      onCheckedChange={() => toggleSelect(offer.id)}
+                                    />
+                                  )}
                                   <Badge className="bg-primary text-primary-foreground border-0 text-[10px] h-5 px-2 font-bold shrink-0">
                                     #{gIndex + 1}
                                   </Badge>
@@ -403,8 +459,9 @@ const ProductOffers: React.FC = () => {
           offerName={extendTarget.offerName}
           tierId={extendTarget.tierId}
           tierLabel={extendTarget.tierLabel}
+          targets={extendTarget.targets}
           mode={extendTarget.mode}
-          onSuccess={() => fetchOffers()}
+          onSuccess={() => { fetchOffers(); setSelectedIds(new Set()); }}
         />
       )}
 
