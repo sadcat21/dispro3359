@@ -319,6 +319,12 @@ const ProductOffers: React.FC = () => {
                               {/* Group header */}
                               <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted/40 border-b border-border/50">
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  {selectMode && (
+                                    <Checkbox
+                                      checked={selectedIds.has(offer.id)}
+                                      onCheckedChange={() => toggleSelect(offer.id)}
+                                    />
+                                  )}
                                   <Badge className="bg-primary text-primary-foreground border-0 text-[10px] h-5 px-2 font-bold shrink-0">
                                     #{gIndex + 1}
                                   </Badge>
