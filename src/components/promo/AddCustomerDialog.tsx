@@ -626,31 +626,43 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
                   نوع العميل *
                 </Label>
                 <div className="flex flex-wrap gap-2">
-                  {customerTypes.map((entry, idx) => {
-                    const colors = getCustomerTypeColor(entry.short, idx, entry);
-                    const isActive = customerType === entry.ar;
-                    return (
-                      <Button
-                        key={entry.ar}
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        className={`font-mono uppercase text-xs hover:opacity-100 ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : ''}`}
-                        style={{ backgroundColor: colors.bg, borderColor: colors.bg, color: colors.text }}
-                        onClick={() => setCustomerType(isActive ? '' : entry.ar)}
-                      >
-                        {entry.short || entry[language] || entry.ar}
-                      </Button>
-                    );
-                  })}
+                  {(() => {
+                    const selectedTypes = customerType ? customerType.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    return customerTypes.map((entry, idx) => {
+                      const colors = getCustomerTypeColor(entry.short, idx, entry);
+                      const isActive = selectedTypes.includes(entry.ar);
+                      return (
+                        <Button
+                          key={entry.ar}
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          className={`font-mono uppercase text-xs hover:opacity-100 ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : ''}`}
+                          style={{ backgroundColor: colors.bg, borderColor: colors.bg, color: colors.text }}
+                          onClick={() => {
+                            const next = isActive
+                              ? selectedTypes.filter(t => t !== entry.ar)
+                              : [...selectedTypes, entry.ar];
+                            setCustomerType(next.join(', '));
+                          }}
+                        >
+                          {entry.short || entry[language] || entry.ar}
+                        </Button>
+                      );
+                    });
+                  })()}
                 </div>
                 {customerType && (() => {
-                  const selected = customerTypes.find(t => t.ar === customerType);
-                  return selected ? (
-                    <p className="text-xs text-muted-foreground">{selected.fr} — {selected[language] || selected.ar}</p>
+                  const selectedTypes = customerType.split(',').map(s => s.trim()).filter(Boolean);
+                  const labels = selectedTypes
+                    .map(ar => customerTypes.find(t => t.ar === ar))
+                    .filter(Boolean)
+                    .map((t: any) => t[language] || t.ar);
+                  return labels.length ? (
+                    <p className="text-xs text-muted-foreground">{labels.join('، ')}</p>
                   ) : null;
                 })()}
-                {!customerType && requiredOnCreateSet.has('customer_type') && <p className="text-xs text-destructive">يجب تحديد نوع العميل</p>}
+                {!customerType && requiredOnCreateSet.has('customer_type') && <p className="text-xs text-destructive">يجب تحديد نوع واحد على الأقل</p>}
               </div>
             )}
 
