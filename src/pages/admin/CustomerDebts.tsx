@@ -506,17 +506,22 @@ const CustomerDebts: React.FC = () => {
                                   {group.totalRemaining.toLocaleString()} DA
                                 </p>
                                 {group.lastEventAt && (
-                                  <p className="text-xs text-slate-500 whitespace-nowrap mt-0.5">
-                                    {formatDate(new Date(group.lastEventAt), 'dd/MM/yyyy HH:mm', language)}
+                                  <p className="text-xs whitespace-nowrap mt-0.5" dir="ltr">
+                                    <span className="text-black font-semibold">
+                                      {formatDate(new Date(group.lastEventAt), 'dd/MM/yyyy', language)}
+                                    </span>
+                                    <span className="text-red-600 font-semibold ml-1">
+                                      {formatDate(new Date(group.lastEventAt), 'HH:mm', language)}
+                                    </span>
                                   </p>
                                 )}
                               </div>
                               <div className="min-w-0 flex flex-col items-end text-right">
-                                <p className="truncate text-base font-bold text-slate-800">
+                                <p className="truncate text-base font-bold text-slate-800" dir="auto">
                                   {primaryDebt?.customer?.store_name || group.name}
                                 </p>
                                 {primaryDebt?.customer?.name && primaryDebt?.customer?.store_name && primaryDebt.customer.name !== primaryDebt.customer.store_name && (
-                                  <p className="truncate text-xs text-slate-500 mt-0.5">
+                                  <p className="truncate text-xs text-slate-500 mt-0.5" dir="auto">
                                     {primaryDebt.customer.name}
                                   </p>
                                 )}
