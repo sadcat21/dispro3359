@@ -545,6 +545,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
   );
+  const visitsCount = useMemo(() => timeline.filter((i) => i.kind === 'visit').length, [timeline]);
   const timelineSections = useMemo(() => {
     const map = new Map<string, TimelineEvent[]>();
     filteredTimeline.forEach((item) => {
@@ -852,11 +853,16 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       type="button"
                       variant={showVisitsInTimeline ? 'default' : 'outline'}
                       size="sm"
-                      className="rounded-full h-9 px-3 text-xs gap-1 shrink-0"
+                      className="relative rounded-full h-9 px-3 text-xs gap-1 shrink-0"
                       onClick={() => setShowVisitsInTimeline((v) => !v)}
                     >
                       <MapPin className="h-3.5 w-3.5" />
                       {t('debt_collect.show_visits')}
+                      {visitsCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-white text-[10px] font-bold inline-flex items-center justify-center shadow">
+                          {visitsCount}
+                        </span>
+                      )}
                     </Button>
                   </div>
 
@@ -926,6 +932,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   {paymentMethodLabel(item.paymentMethod, t)}
                                 </Badge>
                               )}
+                              {isVisit && (
+                                <Badge className="rounded-full text-[10px] font-semibold gap-1 bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-100">
+                                  <MapPin className="h-3 w-3" />
+                                  زيارة بدون تحصيل
+                                </Badge>
+                              )}
                               {isAccounted && (
                                 <span
                                   className="inline-flex items-center gap-1 rounded-md border-2 border-emerald-600 bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 -rotate-6 shadow-sm"
@@ -935,7 +947,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   محاسَب
                                 </span>
                               )}
-                              <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
+                              <span className="ml-auto text-xs font-semibold text-indigo-600 tabular-nums" dir="ltr">
                                 {item.displayDate}
                               </span>
                             </button>
