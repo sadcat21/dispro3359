@@ -24,6 +24,7 @@ import MyStock from "./pages/MyStock";
 import Workers from "./pages/admin/Workers";
 import Products from "./pages/admin/Products";
 import Customers from "./pages/admin/Customers";
+import DuplicateCustomers from "./pages/admin/DuplicateCustomers";
 import Stats from "./pages/admin/Stats";
 import Settings from "./pages/admin/Settings";
 import PromoTable from "./pages/admin/PromoTable";
