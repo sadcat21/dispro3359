@@ -540,7 +540,12 @@ const Customers: React.FC = () => {
         // don't end up with multiple groups all labelled "غير معروف".
         const sectorGroups = new Map<string | null, Customer[]>();
         const unknownGroup: Customer[] = [];
+        const noBranchGroup: Customer[] = [];
         filteredCustomers.forEach(c => {
+          if (effectiveBranchId && !c.branch_id) {
+            noBranchGroup.push(c);
+            return;
+          }
           if (!c.sector_id) {
             const k = null;
             if (!sectorGroups.has(k)) sectorGroups.set(k, []);
@@ -571,6 +576,9 @@ const Customers: React.FC = () => {
         }
         if (unknownGroup.length > 0) {
           groups.push({ key: 'unknown-sector', label: t('customers.unknown'), customers: unknownGroup });
+        }
+        if (noBranchGroup.length > 0) {
+          groups.push({ key: 'no-branch', label: 'بدون فرع', customers: noBranchGroup });
         }
 
         return groups.map(group => (
