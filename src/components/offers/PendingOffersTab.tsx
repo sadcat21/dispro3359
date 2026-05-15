@@ -24,6 +24,13 @@ const formatQty = (boxes: number, pieces: number): string => {
   return `${b}.${piecesPart} ص.ق`;
 };
 
+const formatQtyPlain = (boxes: number, pieces: number): string => {
+  const b = Math.max(0, Number(boxes || 0));
+  const p = Math.max(0, Number(pieces || 0));
+  const piecesPart = p > 0 ? p.toString().padStart(2, '0') : '00';
+  return `${b}.${piecesPart}`;
+};
+
 const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _dateFrom, dateTo: _dateTo, onCustomerCountChange }) => {
   // Pending offers are intentionally NOT filtered by date — they remain visible
   // until confirmed/rejected, regardless of when the sale happened.
