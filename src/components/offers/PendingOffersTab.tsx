@@ -37,6 +37,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
   const [busyId, setBusyId] = useState<string | null>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [productImages, setProductImages] = useState<Record<string, string>>({});
+  const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
 
   // Visible items (exclude optimistically removed)
   const visibleItems = useMemo(
@@ -71,6 +72,24 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
       }
     })();
   }, [visibleItems, productImages]);
+
+  // Fetch store names for customers
+  useEffect(() => {
+    const ids = Array.from(new Set(
+      visibleItems.map((r) => r.customer_id).filter(Boolean) as string[]
+    )).filter((id) => !(id in customerStores));
+    if (ids.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from('customers').select('id, store_name').in('id', ids);
+      if (data) {
+        setCustomerStores((prev) => {
+          const next = { ...prev };
+          for (const c of data as any[]) next[c.id] = c.store_name || '';
+          return next;
+        });
+      }
+    })();
+  }, [visibleItems, customerStores]);
 
   // Group by customer
   const grouped = useMemo(() => {
@@ -177,12 +196,21 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
       <Dialog open={!!openCustomer} onOpenChange={(o) => { if (!o) setOpenCustomer(null); }}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-amber-600" />
-                عروض {openCustomer?.name}
+            <DialogTitle className="flex items-start justify-between gap-2">
+              <span className="flex items-start gap-2 min-w-0">
+                <Gift className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                <span className="flex flex-col min-w-0 text-right">
+                  <span className="text-base font-bold truncate">
+                    {(openCustomer && customerStores[openCustomer.id]) || openCustomer?.name || 'بدون زبون'}
+                  </span>
+                  {openCustomer && customerStores[openCustomer.id] && (
+                    <span className="text-xs font-normal text-muted-foreground truncate">
+                      {openCustomer.name}
+                    </span>
+                  )}
+                </span>
               </span>
-              <Badge variant="secondary" className="text-xs font-bold">
+              <Badge variant="secondary" className="text-xs font-bold shrink-0">
                 متبقّي: {customerRows.length}
               </Badge>
             </DialogTitle>
@@ -215,10 +243,10 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                           {formatQty(r.purchased_boxes, r.purchased_pieces)}
                         </span>
                         <span className="text-muted-foreground">+</span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
-                          <Gift className="w-3 h-3" />
+                        <span className="px-3 py-1 rounded-md bg-red-600 text-white text-sm font-extrabold inline-flex items-center gap-1.5 shadow-sm">
+                          <Gift className="w-4 h-4" />
                           {formatQty(r.gift_boxes, r.gift_pieces)}
-                          <span className="opacity-70">(هدية)</span>
+                          <span className="text-[10px] font-bold opacity-90">(هدية)</span>
                         </span>
                       </div>
                       {r.gift_product_name && r.gift_product_id !== r.product_id && (
