@@ -8,6 +8,8 @@ import {
   Eye,
   Loader2,
   MapPin,
+  LayoutGrid,
+  List as ListIcon,
   Pencil,
   Printer,
   Trash2,
