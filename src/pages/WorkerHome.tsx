@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import heroBg from '@/assets/hero-offers-bg.jpg';
 
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/database';
@@ -390,7 +391,10 @@ const WorkerHome: React.FC = () => {
   }
 
   return (
-    <div className="pb-24 touch-pan-y">
+    <div
+      className="pb-24 touch-pan-y min-h-screen bg-fixed bg-no-repeat bg-cover"
+      style={{ backgroundImage: `linear-gradient(to bottom, hsl(var(--background) / 0.85), hsl(var(--background) / 0.95)), url(${heroBg})` }}
+    >
       {/* Offers Showcase */}
       <ProductShowcaseHero />
 
@@ -406,7 +410,7 @@ const WorkerHome: React.FC = () => {
           </div>
           <Button
             variant="outline"
-            className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
+            className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 shadow-md"
             onClick={() => setShowHandoverPreview(true)}
           >
             <ClipboardList className="w-3.5 h-3.5 text-primary" />
