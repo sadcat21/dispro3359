@@ -920,6 +920,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                                   {paymentMethodLabel(item.paymentMethod, t)}
                                 </Badge>
                               )}
+                              {isLocked && (
+                                <Badge variant="outline" className="rounded-full text-[10px] font-semibold gap-1 border-slate-300 text-slate-500">
+                                  <Lock className="h-3 w-3" />
+                                  مغلق
+                                </Badge>
+                              )}
                               <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
                                 {item.displayDate}
                               </span>
