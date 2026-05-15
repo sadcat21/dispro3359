@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Loader2,
   MapPin,
+  Lock,
   Printer,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,6 +73,7 @@ interface TimelineEvent {
   date: string;
   displayDate: string;
   workerName: string;
+  workerId?: string | null;
   paymentMethod: string | null;
   amount: number;
   beforeAmount: number;
@@ -185,6 +187,7 @@ const buildTimeline = (
   payments: Array<{
     id: string;
     debt_id: string;
+    worker_id?: string | null;
     amount: number;
     payment_method?: string | null;
     notes?: string | null;
@@ -205,6 +208,7 @@ const buildTimeline = (
       kind: isCancelled ? 'cancelled_debt' : 'debt',
       date: debt.created_at,
       workerName: debt.worker?.full_name || debt.worker?.username || '-',
+      workerId: debt.worker_id || null,
       paymentMethod: 'debt',
       amount: toNumber(debt.total_amount),
       note: debt.notes || null,
@@ -221,6 +225,7 @@ const buildTimeline = (
       kind: amount <= 0 ? 'visit' : 'partial',
       date,
       workerName: payment.worker?.full_name || '-',
+      workerId: payment.worker_id || null,
       paymentMethod: payment.payment_method || null,
       amount,
       note: payment.notes || null,
@@ -316,6 +321,45 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     [debts],
   );
   const { data: payments = [], isLoading: paymentsLoading } = useDebtPaymentsGroup(debtIds);
+
+  // Worker permissions are tied to accounting sessions: once a worker has a completed
+  // accounting session covering a payment's collected_at, that payment becomes frozen
+  // for the worker. Admin / branch manager / assistant manager can still bypass.
+  const canBypassAccountingLock = isAdmin || role === 'admin_assistant';
+  const paymentWorkerIds = useMemo(
+    () => Array.from(new Set(payments.map((p) => p.worker_id).filter(Boolean) as string[])),
+    [payments],
+  );
+  const { data: completedSessions = [] } = useQuery({
+    queryKey: ['debt-payments-locking-sessions', paymentWorkerIds],
+    queryFn: async () => {
+      if (!paymentWorkerIds.length) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, period_start, period_end, completed_at, status')
+        .in('worker_id', paymentWorkerIds)
+        .not('completed_at', 'is', null);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && paymentWorkerIds.length > 0 && !canBypassAccountingLock,
+  });
+  const lockedPaymentIds = useMemo(() => {
+    const set = new Set<string>();
+    if (canBypassAccountingLock) return set;
+    payments.forEach((p) => {
+      const ts = new Date(p.collected_at || p.created_at || 0).getTime();
+      if (!ts) return;
+      const locked = completedSessions.some((s: any) => {
+        if (s.worker_id !== p.worker_id) return false;
+        const start = s.period_start ? new Date(s.period_start).getTime() : -Infinity;
+        const end = s.period_end ? new Date(s.period_end).getTime() : Infinity;
+        return ts >= start && ts <= end;
+      });
+      if (locked) set.add(p.id);
+    });
+    return set;
+  }, [payments, completedSessions, canBypassAccountingLock]);
 
   const { data: debtOrders = [] } = useQuery({
     queryKey: ['collect-customer-debt-origin-orders', orderIds],
@@ -840,8 +884,13 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             : item.id.startsWith('payment-')
                               ? item.id.slice(8)
                               : null;
+                          const isLocked = isPayment && underlyingId ? lockedPaymentIds.has(underlyingId) : false;
                           const handleClick = () => {
                             if (isPayment && underlyingId) {
+                              if (isLocked) {
+                                toast.error('تم إغلاق هذا التحصيل بعد المحاسبة مع المسؤول');
+                                return;
+                              }
                               setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
                               setEditAmountInput(String(item.amount));
                             } else if (isDebt || isCancelledDebt) {
@@ -869,6 +918,12 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               {!isVisit && (
                                 <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
                                   {paymentMethodLabel(item.paymentMethod, t)}
+                                </Badge>
+                              )}
+                              {isLocked && (
+                                <Badge variant="outline" className="rounded-full text-[10px] font-semibold gap-1 border-slate-300 text-slate-500">
+                                  <Lock className="h-3 w-3" />
+                                  مغلق
                                 </Badge>
                               )}
                               <span className="ml-auto text-xs text-slate-500 tabular-nums" dir="ltr">
