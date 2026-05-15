@@ -447,7 +447,20 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     const linkedDebt = item.debtId ? debtsById.get(item.debtId) : undefined;
     let linkedOrderId = item.orderId || linkedDebt?.order_id || null;
 
-    if (!linkedOrderId && item.debtId) {
+    if (linkedOrderId) {
+      setSelectedOrderId(linkedOrderId);
+      return;
+    }
+
+    if (!item.debtId) {
+      toast.error(t('debt_collect.no_order_linked'));
+      return;
+    }
+
+    // Open dialog immediately in loading state while resolving
+    setIsResolvingOrder(true);
+
+    try {
       const { data, error } = await supabase
         .from('customer_debts')
         .select('id, order_id, customer_id, worker_id, branch_id, total_amount, paid_amount, remaining_amount, created_at')
@@ -456,6 +469,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
       if (error) {
         toast.error(error.message || t('debt_collect.no_order_linked'));
+        setIsResolvingOrder(false);
         return;
       }
 
@@ -476,6 +490,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
         if (orderSearchError) {
           toast.error(orderSearchError.message || t('debt_collect.no_order_linked'));
+          setIsResolvingOrder(false);
           return;
         }
 
@@ -504,14 +519,17 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
         linkedOrderId = scoredOrders[0]?.score >= 8 ? scoredOrders[0].orderId : null;
       }
-    }
 
-    if (!linkedOrderId) {
-      toast.error(t('debt_collect.no_order_linked'));
-      return;
-    }
+      if (!linkedOrderId) {
+        toast.error(t('debt_collect.no_order_linked'));
+        setIsResolvingOrder(false);
+        return;
+      }
 
-    setSelectedOrderId(linkedOrderId);
+      setSelectedOrderId(linkedOrderId);
+    } finally {
+      setIsResolvingOrder(false);
+    }
   };
 
   const totalDebt = useMemo(
