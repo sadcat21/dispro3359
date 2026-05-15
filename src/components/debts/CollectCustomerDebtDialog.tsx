@@ -871,8 +871,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   <div className="grid grid-cols-2 gap-2" dir="ltr">
                     <Button
                       type="button"
-                      className="rounded-xl h-11 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                      onClick={() => setActiveTab('collect')}
+                       className="rounded-xl h-11 gap-2 bg-red-600 hover:bg-red-700 text-white"
+                       onClick={() => setActiveTab('collect')}
                     >
                       <Banknote className="h-4 w-4" />
                       تحصيل
@@ -880,7 +880,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-xl h-11 gap-2 border-yellow-500 bg-yellow-400 text-black hover:bg-yellow-500"
+                      className="rounded-xl h-11 gap-2 border-orange-500 bg-orange-400 text-black hover:bg-orange-500"
                       onClick={() => setActiveTab('visit')}
                     >
                       <MapPin className="h-4 w-4" />
@@ -961,7 +961,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               )}
                               {isAccounted && (
                                 <span
-                                  className="inline-flex items-center gap-1 rounded-md border-2 border-emerald-600 bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 -rotate-6 shadow-sm"
+                                  className="inline-flex items-center gap-1 rounded-md border-2 border-red-600/60 bg-red-500/30 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-red-700 -rotate-6 shadow-sm"
                                   title="تمت محاسبة هذا التحصيل مع المسؤول"
                                 >
                                   <Lock className="h-3 w-3" />
