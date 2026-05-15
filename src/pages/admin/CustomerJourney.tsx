@@ -388,14 +388,19 @@ const CustomerJourney = () => {
     ordersCount: orders.length,
   }), [orders]);
 
+  const displayVisits = useMemo(
+    () => visits.filter((v) => !['direct_sale', 'delivery'].includes(v.operation_type)),
+    [visits]
+  );
+
   const visitSummary = useMemo(() => {
-    const withOrder = visits.filter((visit) => !!visit.order || visit.operation_type === 'order').length;
+    const withOrder = displayVisits.filter((visit) => !!visit.order || visit.operation_type === 'order').length;
     return {
-      total: visits.length,
+      total: displayVisits.length,
       withOrder,
-      withoutOrder: Math.max(0, visits.length - withOrder),
+      withoutOrder: Math.max(0, displayVisits.length - withOrder),
     };
-  }, [visits]);
+  }, [displayVisits]);
 
   const debtTimeline = useMemo(() => {
     const baseItems = [
