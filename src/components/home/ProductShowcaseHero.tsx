@@ -1,24 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProductOffers } from '@/hooks/useProductOffers';
+import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Gift } from 'lucide-react';
 
 type Slide = {
   title: string;
-  subtitle: string;
   image: string | null;
   tierLabel?: string;
 };
 
-const unitLabel = (u?: string) => {
-  if (u === 'box') return 'صندوق';
-  if (u === 'piece') return 'قطعة';
-  return u || '';
-};
-
 const ProductShowcaseHero: React.FC = () => {
-  const { activeOffers, isLoading } = useProductOffers();
-  const [fallbackImages, setFallbackImages] = useState<string[]>([]);
+  const { activeOffers } = useProductOffers();
+  const { companyInfo } = useCompanyInfo();
   const [index, setIndex] = useState(0);
   const [enabled, setEnabled] = useState<boolean | null>(null);
 
@@ -41,39 +35,18 @@ const ProductShowcaseHero: React.FC = () => {
     return () => { alive = false; (supabase as any).removeChannel(channel); };
   }, []);
 
+  // Only products that actually have an active offer + an image
   const slides = useMemo<Slide[]>(() => {
     const list: Slide[] = [];
     (activeOffers || [])
-      .filter((o: any) => o?.product?.name)
+      .filter((o: any) => o?.product?.name && o?.product?.image_url)
       .forEach((o: any) => {
-        const productName = o.product?.name || '';
-        const image = o.product?.image_url || null;
+        const productName = o.product.name as string;
+        const image = o.product.image_url as string;
         const tiers = (o.tiers && o.tiers.length > 0) ? o.tiers : [o];
-        tiers.forEach((t: any, idx: number) => {
-          const giftName = t?.gift_product?.name || o.gift_product?.name || null;
-          const giftQty = Number(t?.gift_quantity || 0);
-          const giftUnit = t?.gift_quantity_unit || '';
-          const minQty = Number(t?.min_quantity || 0);
-          const minUnit = t?.min_quantity_unit || '';
-          const discount = Number(t?.discount_percentage || 0);
-          const discountAmt = Number(t?.discount_amount || 0);
-
-          let detail = '';
-          if (giftName && giftQty > 0) {
-            detail = `${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} ${giftName} هدية`;
-          } else if (giftQty > 0) {
-            detail = `${minQty} ${unitLabel(minUnit)} + ${giftQty} ${unitLabel(giftUnit)} هدية`;
-          } else if (discount > 0) {
-            detail = `خصم ${discount}% عند شراء ${minQty} ${unitLabel(minUnit)}`;
-          } else if (discountAmt > 0) {
-            detail = `خصم ${discountAmt} دج عند شراء ${minQty} ${unitLabel(minUnit)}`;
-          } else {
-            detail = o.description || productName;
-          }
-
+        tiers.forEach((_t: any, idx: number) => {
           list.push({
             title: `PROM: ${productName}`,
-            subtitle: detail,
             image,
             tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
           });
@@ -83,40 +56,21 @@ const ProductShowcaseHero: React.FC = () => {
   }, [activeOffers]);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('image_url')
-        .not('image_url', 'is', null)
-        .limit(20);
-      if (!alive) return;
-      setFallbackImages((data || []).map((r: any) => r.image_url).filter(Boolean));
-    })();
-    return () => { alive = false; };
-  }, []);
-
-  const cycle: Slide[] = slides.length > 0
-    ? slides
-    : fallbackImages.map((img) => ({ title: 'عروض حصرية قادمة', subtitle: '', image: img }));
-
-  useEffect(() => {
-    if (cycle.length < 2) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % cycle.length), 3500);
+    if (slides.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 3500);
     return () => clearInterval(id);
-  }, [cycle.length]);
+  }, [slides.length]);
 
   if (enabled === false) return null;
+  if (slides.length === 0) return null;
 
-  const current = cycle[index];
-  const prev = cycle[(index - 1 + cycle.length) % cycle.length];
-  const next = cycle[(index + 1) % cycle.length];
+  const current = slides[index];
+  const prev = slides[(index - 1 + slides.length) % slides.length];
+  const next = slides[(index + 1) % slides.length];
+  const logo = companyInfo?.company_logo || companyInfo?.company_icon || '';
 
   return (
-    <div
-      className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-red-700 [.theme-soft_&]:from-primary [.theme-soft_&]:via-primary [.theme-soft_&]:to-primary"
-      dir="rtl"
-    >
+    <div className="relative h-48 sm:h-56 overflow-hidden bg-white" dir="rtl">
       <style>{`
         @keyframes heroDepthIn {
           0%   { transform: translateZ(-400px) scale(0.3) rotateY(-8deg); opacity: 0; filter: blur(14px); }
@@ -124,8 +78,8 @@ const ProductShowcaseHero: React.FC = () => {
           100% { transform: translateZ(0) scale(1) rotateY(0); opacity: 1; filter: blur(0); }
         }
         @keyframes heroSideFade {
-          0%   { opacity: 0; transform: scale(0.7); }
-          100% { opacity: 0.35; transform: scale(1); }
+          0%   { opacity: 0; transform: translateY(-50%) scale(0.7); }
+          100% { opacity: 0.45; transform: translateY(-50%) scale(1); }
         }
         @keyframes heroTextRise {
           0%   { transform: translateY(18px); opacity: 0; }
@@ -134,78 +88,90 @@ const ProductShowcaseHero: React.FC = () => {
         .hero-stage { perspective: 900px; transform-style: preserve-3d; }
       `}</style>
 
-      {/* soft radial glow background */}
-      <div className="absolute inset-0 opacity-40 mix-blend-overlay"
-        style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, rgba(255,255,255,0.6), transparent 55%)' }} />
+      {/* Consistent decorative background — soft neutral pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 25% 30%, hsl(var(--primary)) 0, transparent 35%), radial-gradient(circle at 80% 70%, hsl(var(--primary)) 0, transparent 40%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 14px)',
+          color: 'hsl(var(--primary))',
+        }}
+      />
 
-      <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center">
-        {/* Text — right side in RTL */}
-        <div key={`txt-${index}`} className="relative z-20 flex-1 min-w-0 text-white animate-[heroTextRise_0.6s_ease-out]">
-          {current?.tierLabel && (
-            <span className="inline-block text-[10px] font-semibold tracking-wider bg-white/15 backdrop-blur px-2 py-0.5 rounded mb-1">
-              {current.tierLabel}
+      <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3">
+        {/* Right: company logo + offer label (RTL) */}
+        <div className="relative z-20 flex-1 min-w-0 flex flex-col items-start gap-2">
+          {logo ? (
+            <img
+              src={logo}
+              alt={companyInfo?.company_name || ''}
+              className="h-10 sm:h-14 w-auto max-w-[60%] object-contain drop-shadow-sm"
+            />
+          ) : (
+            <span className="text-base sm:text-xl font-extrabold text-foreground tracking-tight">
+              {companyInfo?.company_name || ''}
             </span>
           )}
-          <h2 className="text-base sm:text-2xl font-extrabold leading-tight drop-shadow-md line-clamp-2">
-            {current?.title || 'عروض حصرية'}
-          </h2>
-          {current?.subtitle && (
-            <p className="mt-1.5 text-xs sm:text-sm font-medium text-white/95 line-clamp-2 flex items-center gap-1.5">
-              <Gift className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{isLoading && !current ? 'جاري تحميل العروض...' : current.subtitle}</span>
-            </p>
-          )}
-          {cycle.length > 1 && (
-            <div className="flex gap-1 mt-2.5">
-              {cycle.slice(0, 6).map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-1 rounded-full transition-all duration-500 ${
-                    i === index % 6 ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
-                  }`}
-                />
-              ))}
+          <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out] min-w-0 w-full">
+            <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded">
+              <Gift className="w-3 h-3" />
+              عرض خاص
             </div>
-          )}
+            <h2 className="mt-1 text-sm sm:text-lg font-extrabold leading-tight text-foreground line-clamp-2">
+              {current.title}
+            </h2>
+            {current.tierLabel && (
+              <span className="text-[10px] text-muted-foreground">{current.tierLabel}</span>
+            )}
+            {slides.length > 1 && (
+              <div className="flex gap-1 mt-2">
+                {slides.slice(0, 6).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1 rounded-full transition-all duration-500 ${
+                      i === index % 6 ? 'w-6 bg-primary' : 'w-1.5 bg-muted-foreground/30'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 3D depth stage — left side */}
-        <div className="hero-stage relative shrink-0 w-[150px] sm:w-[260px] h-full flex items-center justify-center">
-          {/* Side previous (back-left) */}
+        {/* Left: 3D depth product stage (RTL) */}
+        <div className="hero-stage relative shrink-0 w-[160px] sm:w-[280px] h-full flex items-center justify-center">
           {prev?.image && (
             <div
               key={`prev-${index}`}
-              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 -translate-y-1/2 rounded-xl overflow-hidden bg-white/90 shadow-lg ring-1 ring-white/30 animate-[heroSideFade_0.7s_ease-out_forwards]"
-              style={{ transform: 'translateY(-50%) translateX(-30%) scale(0.8)', filter: 'blur(2px)' }}
+              className="absolute left-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5 animate-[heroSideFade_0.7s_ease-out_forwards]"
+              style={{ transform: 'translateY(-50%) translateX(-20%) scale(0.85)', filter: 'blur(2px)' }}
             >
               <img src={prev.image} alt="" className="w-full h-full object-contain p-1.5" />
             </div>
           )}
-
-          {/* Side next (back-right) */}
           {next?.image && (
             <div
               key={`next-${index}`}
-              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 -translate-y-1/2 rounded-xl overflow-hidden bg-white/90 shadow-lg ring-1 ring-white/30 animate-[heroSideFade_0.7s_ease-out_forwards]"
-              style={{ transform: 'translateY(-50%) translateX(30%) scale(0.8)', filter: 'blur(2px)' }}
+              className="absolute right-0 top-1/2 w-16 sm:w-24 h-16 sm:h-24 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-black/5 animate-[heroSideFade_0.7s_ease-out_forwards]"
+              style={{ transform: 'translateY(-50%) translateX(20%) scale(0.85)', filter: 'blur(2px)' }}
             >
               <img src={next.image} alt="" className="w-full h-full object-contain p-1.5" />
             </div>
           )}
-
-          {/* Featured center — comes from depth */}
-          {current?.image ? (
-            <div
-              key={`center-${index}`}
-              className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white shadow-2xl ring-2 ring-white/60 overflow-hidden animate-[heroDepthIn_0.9s_cubic-bezier(0.22,1,0.36,1)]"
-            >
-              <img src={current.image} alt={current.title} className="w-full h-full object-contain p-2" loading="eager" />
-            </div>
-          ) : (
-            <div className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <Gift className="w-10 h-10 text-white/80" />
-            </div>
-          )}
+          <div
+            key={`center-${index}`}
+            className="relative z-10 w-28 sm:w-40 h-28 sm:h-40 rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden animate-[heroDepthIn_0.9s_cubic-bezier(0.22,1,0.36,1)]"
+          >
+            <img src={current.image!} alt={current.title} className="w-full h-full object-contain p-2" loading="eager" />
+          </div>
         </div>
       </div>
     </div>
