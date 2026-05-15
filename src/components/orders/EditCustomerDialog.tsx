@@ -248,6 +248,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setSalesReps(reps);
       setAddress(customer.address || '');
       setWilaya(customer.wilaya || '');
+      setSelectedBranchId(customer.branch_id || activeBranch?.id || (user as any)?.branch_id || '');
       setLatitude(customer.latitude);
       setLongitude(customer.longitude);
       setLocationType((customer as any).location_type || 'store');
