@@ -395,12 +395,9 @@ const WorkerHome: React.FC = () => {
       className="pb-24 touch-pan-y min-h-screen bg-fixed bg-no-repeat bg-cover"
       style={{ backgroundImage: `linear-gradient(to bottom, hsl(var(--background) / 0.85), hsl(var(--background) / 0.95)), url(${heroBg})` }}
     >
-      {/* Offers Showcase */}
-      <ProductShowcaseHero />
-
-      {/* Sales Summary + Greeting + Delivery Summary — single integrated row */}
-      <div className="px-4 mt-2">
-        <div className="flex items-stretch gap-1.5 rounded-lg border border-primary/20 bg-gradient-to-br from-background to-muted/30 p-1.5">
+      {/* Offers Showcase with integrated action buttons */}
+      <ProductShowcaseHero>
+        <div className="flex items-stretch gap-1.5 rounded-lg border border-primary/20 bg-background/85 backdrop-blur-sm p-1.5 shadow-md">
           <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
           <div className="flex flex-col items-center justify-center px-1.5 min-w-0 flex-shrink">
             <span className="text-[9px] text-muted-foreground leading-tight">{t('common.welcome')}</span>
@@ -417,7 +414,7 @@ const WorkerHome: React.FC = () => {
             <span>ملخص</span>
           </Button>
         </div>
-      </div>
+      </ProductShowcaseHero>
 
       {/* Today's Customers Notification for Supervisors */}
       {isSupervisor && (
