@@ -2119,7 +2119,7 @@ export const translations: Translations = {
   'debt_collect.record_visit': { ar: 'تسجيل زيارة بدون تحصيل', fr: 'Enregistrer une visite sans collecte', en: 'Record visit without collection' },
   'debt_collect.movement': { ar: 'حركة الدين', fr: 'Mouvement de dette', en: 'Debt movement' },
   'debt_collect.date_only': { ar: 'تاريخ الحركة فقط', fr: 'Date du mouvement uniquement', en: 'Movement date only' },
-  'debt_collect.show_visits': { ar: 'إظهار الزيارات', fr: 'Afficher les visites', en: 'Show visits' },
+  'debt_collect.show_visits': { ar: 'الزيارات', fr: 'Visites', en: 'Visits' },
   'debt_collect.view_cards': { ar: 'تفاصيل', fr: 'Détails', en: 'Details' },
   'debt_collect.view_list': { ar: 'قائمة', fr: 'Liste', en: 'List' },
   'debt_collect.no_movements': { ar: 'لا توجد حركات دين لهذا العميل', fr: 'Aucun mouvement de dette pour ce client', en: 'No debt movements for this customer' },
