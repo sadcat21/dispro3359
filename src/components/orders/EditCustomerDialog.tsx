@@ -75,6 +75,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [address, setAddress] = useState('');
   const [addressLoading, setAddressLoading] = useState(false);
   const [wilaya, setWilaya] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
