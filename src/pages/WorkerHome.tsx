@@ -397,6 +397,18 @@ const WorkerHome: React.FC = () => {
       {/* Worker Sales Summary */}
       <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
 
+      {/* Open Delivery Summary directly */}
+      <div className="px-4 mt-2">
+        <Button
+          variant="outline"
+          className="w-full h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
+          onClick={() => setShowHandoverPreview(true)}
+        >
+          <ClipboardList className="w-4 h-4 text-primary" />
+          <span>ملخص التسليم</span>
+        </Button>
+      </div>
+
       {/* Today's Customers Notification for Supervisors */}
       {isSupervisor && (
         <div className="px-4 mt-3">
