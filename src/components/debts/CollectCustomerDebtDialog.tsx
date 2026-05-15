@@ -545,6 +545,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     () => timeline.filter((item) => showVisitsInTimeline || item.kind !== 'visit'),
     [timeline, showVisitsInTimeline],
   );
+  const visitsCount = useMemo(() => timeline.filter((i) => i.kind === 'visit').length, [timeline]);
   const timelineSections = useMemo(() => {
     const map = new Map<string, TimelineEvent[]>();
     filteredTimeline.forEach((item) => {
