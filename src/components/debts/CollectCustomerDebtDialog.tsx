@@ -1147,8 +1147,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   }
                   toast.success(t('debt_collect.edited_success'));
                   setEditTarget(null);
-                } catch (err: any) {
-                  toast.error(err?.message || t('debt_collect.edit_failed'));
+                } catch (err: unknown) {
+                  toast.error(getErrorMessage(err) || t('debt_collect.edit_failed'));
                 }
               }}
             >
@@ -1197,8 +1197,8 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   }
                   toast.success(t('debt_collect.cancelled_success'));
                   setDeleteTarget(null);
-                } catch (err: any) {
-                  toast.error(err?.message || t('debt_collect.cancel_failed'));
+                } catch (err: unknown) {
+                  toast.error(getErrorMessage(err) || t('debt_collect.cancel_failed'));
                 }
               }}
             >
