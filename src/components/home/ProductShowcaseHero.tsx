@@ -5,11 +5,21 @@ import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Gift } from 'lucide-react';
 import heroBg from '@/assets/hero-offers-bg.jpg';
 
+type SubtitlePart = { text: string; highlight?: boolean };
 type Slide = {
   title: string;
-  subtitle: string;
+  subtitleParts: SubtitlePart[];
   image: string | null;
   tierLabel?: string;
+  endDate?: string | null;
+};
+
+const formatDate = (d?: string | null) => {
+  if (!d) return '';
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleDateString('ar-DZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch { return ''; }
 };
 
 const unitLabel = (u?: string) => {
