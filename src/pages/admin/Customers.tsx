@@ -270,6 +270,8 @@ const Customers: React.FC = () => {
       // الذين لا تتعارض ولايتهم مع ولاية الفرع.
       list = list.filter(c => {
         if (c.branch_id === effectiveBranchId) return true;
+        // العملاء بدون فرع: نُظهرهم في مجموعة "بدون فرع"
+        if (!c.branch_id) return true;
         // عملاء نفس الولاية: فقط إذا كانوا منتمين لقطاع (لتجنب التكرار)
         if (branchWilaya && c.wilaya === branchWilaya && c.sector_id) return true;
         return false;
