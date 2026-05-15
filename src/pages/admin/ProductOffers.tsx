@@ -461,7 +461,7 @@ const ProductOffers: React.FC = () => {
           tierLabel={extendTarget.tierLabel}
           targets={extendTarget.targets}
           mode={extendTarget.mode}
-          onSuccess={() => fetchOffers()}
+          onSuccess={() => { fetchOffers(); setSelectedIds(new Set()); }}
         />
       )}
 
