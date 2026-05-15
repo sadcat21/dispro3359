@@ -70,6 +70,34 @@ const supportsUnitSale = (product?: Product | null): boolean => {
   return !!product.allow_unit_sale && Number(product.pieces_per_box || 0) > 1;
 };
 
+const bpQuantityToPieces = (value: unknown, piecesPerBox: number): number => {
+  const numeric = Number(value || 0);
+  if (!Number.isFinite(numeric) || numeric === 0) return 0;
+  const sign = numeric < 0 ? -1 : 1;
+  const abs = Math.abs(Math.round(numeric * 100) / 100);
+  const boxes = Math.floor(abs);
+  const pieces = Math.round((abs - boxes) * 100);
+  return sign * ((boxes * Math.max(1, piecesPerBox)) + pieces);
+};
+
+const piecesToBpQuantity = (pieces: number, piecesPerBox: number): number => {
+  const safePieces = Math.max(0, Math.round(pieces));
+  const safePpb = Math.max(1, Math.round(piecesPerBox || 1));
+  const boxes = Math.floor(safePieces / safePpb);
+  const remainder = safePieces % safePpb;
+  return boxes + remainder / 100;
+};
+
+const getMovementSignedBpQuantity = (movement: { movement_type?: string | null; quantity?: number | null; signed_quantity?: number | null }): number => {
+  const signed = Number(movement.signed_quantity);
+  if (Number.isFinite(signed) && movement.signed_quantity !== null && movement.signed_quantity !== undefined) return signed;
+  const quantity = Number(movement.quantity || 0);
+  if (!Number.isFinite(quantity)) return 0;
+  return ['delivery', 'direct_sale', 'modification', 'promo_gift', 'promo_sale'].includes(String(movement.movement_type || ''))
+    ? -quantity
+    : quantity;
+};
+
 const normalizePaymentType = (raw: string | null | undefined): string => {
   if (raw === 'with_invoice' || raw === 'without_invoice') return raw;
   // Legacy/other values map to without_invoice
