@@ -656,29 +656,10 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           dir="rtl"
-          className="max-w-[96vw] sm:max-w-xl p-0 overflow-hidden [&>button]:hidden"
+          className="max-w-[96vw] sm:max-w-xl p-0 overflow-hidden"
         >
           <DialogTitle className="sr-only">{sectionTitle(activeTab, t)}</DialogTitle>
 
-          <div className="relative border-b border-red-100 bg-white px-5 pb-4 pt-5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute left-3 top-3 h-10 w-10 rounded-full border border-slate-200 bg-white text-slate-500"
-              onClick={() => onOpenChange(false)}
-            >
-              ×
-            </Button>
-
-            <div className="pr-10 text-right">
-              <p className="text-lg font-black text-slate-900">{customerName}</p>
-              <p className="mt-1 text-sm text-slate-500">{sectionTitle(activeTab, t)}</p>
-              <p className="mt-2 text-3xl font-black text-destructive" dir="ltr">
-                {formatMoney(totalRemaining)}
-              </p>
-            </div>
-          </div>
 
           <ScrollArea className="max-h-[78vh]">
             <div className="space-y-4 p-4">
