@@ -351,7 +351,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
-    const isManager = isAdminRole(role);
+    // isManager already defined at component scope
     if (!name.trim()) { toast.error('الرجاء إدخال اسم العميل'); return; }
 
     const firstMissingRequired = customerFieldSettings.requiredOnEdit.find((field) => !isFieldFilled(field));
