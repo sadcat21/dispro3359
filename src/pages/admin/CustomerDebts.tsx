@@ -110,7 +110,7 @@ const CustomerDebts: React.FC = () => {
     queryFn: async () => {
       let query = supabase
         .from('customers')
-        .select('id, name, store_name, phone, customer_type, wilaya, address, branch_id, latitude, longitude, sector_id, zone_id, status')
+        .select('id, name, name_fr, store_name, store_name_fr, phone, customer_type, wilaya, address, branch_id, latitude, longitude, sector_id, zone_id, status')
         .order('name');
 
       if (activeBranch?.id) query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
@@ -517,14 +517,24 @@ const CustomerDebts: React.FC = () => {
                                 )}
                               </div>
                               <div className="min-w-0 flex flex-col items-end text-right">
-                                <p className="truncate text-base font-bold text-slate-800" dir="auto">
-                                  {primaryDebt?.customer?.store_name || group.name}
-                                </p>
-                                {primaryDebt?.customer?.name && primaryDebt?.customer?.store_name && primaryDebt.customer.name !== primaryDebt.customer.store_name && (
-                                  <p className="truncate text-xs text-slate-500 mt-0.5" dir="auto">
-                                    {primaryDebt.customer.name}
-                                  </p>
-                                )}
+                                {(() => {
+                                  const c: any = primaryDebt?.customer || {};
+                                  const isFr = language === 'fr';
+                                  const storeName = (isFr ? (c.store_name_fr || c.store_name) : (c.store_name || c.store_name_fr)) || group.name;
+                                  const personName = (isFr ? (c.name_fr || c.name) : (c.name || c.name_fr)) || '';
+                                  return (
+                                    <>
+                                      <p className="truncate text-base font-bold text-slate-800" dir="auto">
+                                        {storeName}
+                                      </p>
+                                      {personName && personName !== storeName && (
+                                        <p className="truncate text-xs text-slate-500 mt-0.5" dir="auto">
+                                          {personName}
+                                        </p>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </CardContent>
