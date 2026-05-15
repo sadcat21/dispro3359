@@ -394,19 +394,25 @@ const WorkerHome: React.FC = () => {
       {/* Offers Showcase */}
       <ProductShowcaseHero />
 
-      {/* Worker Sales Summary */}
-      <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
-
-      {/* Open Delivery Summary directly */}
-      <div className="px-4 mt-2">
-        <Button
-          variant="outline"
-          className="w-full h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
-          onClick={() => setShowHandoverPreview(true)}
-        >
-          <ClipboardList className="w-4 h-4 text-primary" />
-          <span>ملخص التسليم</span>
-        </Button>
+      {/* Sales Summary + Greeting + Delivery Summary — single integrated row */}
+      <div className="px-4 mt-3">
+        <div className="flex items-stretch gap-2 rounded-xl border border-primary/20 bg-gradient-to-br from-background to-muted/30 p-2">
+          <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
+          <div className="flex flex-col items-center justify-center px-2 min-w-0 flex-shrink">
+            <span className="text-[10px] text-muted-foreground leading-tight">{t('common.welcome')}</span>
+            <span className="text-xs font-bold text-foreground leading-tight truncate max-w-[120px]">
+              {user?.full_name} 👋
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            className="flex-1 h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 hover:shadow-md"
+            onClick={() => setShowHandoverPreview(true)}
+          >
+            <ClipboardList className="w-4 h-4 text-primary" />
+            <span>ملخص التسليم</span>
+          </Button>
+        </div>
       </div>
 
       {/* Today's Customers Notification for Supervisors */}
