@@ -902,9 +902,11 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const qtyBoxesPart = Math.floor(qtyRounded);
         const qtyPiecesPart = Math.round((qtyRounded - qtyBoxesPart) * 100);
         const qtyTotalPieces = qtyBoxesPart * ppb + qtyPiecesPart;
-        // For deferred: subtract both gift boxes and gift pieces from deduction.
+        // For deferred: subtract gift boxes from deduction (they will deduct on confirmation).
+        // Gift PIECES are tracked separately and are NOT included in item.quantity / qtyTotalPieces,
+        // so we must not subtract them here — doing so produced phantom "0.19" sales for 1-box deliveries.
         const deductTotalPieces = isDeferred
-          ? Math.max(0, qtyTotalPieces - storedGiftBoxes * ppb - storedGiftPieces)
+          ? Math.max(0, qtyTotalPieces - storedGiftBoxes * ppb)
           : qtyTotalPieces;
         const soldPieces = deductTotalPieces;
         const stockDeductQty = isDeferred
