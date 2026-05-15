@@ -500,13 +500,27 @@ const CustomerDebts: React.FC = () => {
                           onClick={() => setQuickCustomerAction({ id: group.id, name: primaryDebt?.customer?.store_name || group.name, debts: group.debts, initialTab: 'history' })}
                         >
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-lg font-black text-destructive shrink-0" dir="ltr">
-                                {group.totalRemaining.toLocaleString()} DA
-                              </p>
-                              <p className="min-w-0 flex-1 truncate text-right text-base font-bold text-slate-800">
-                                {primaryDebt?.customer?.store_name || group.name}
-                              </p>
+                            <div className="flex items-start justify-between gap-3" dir="ltr">
+                              <div className="min-w-0 flex flex-col">
+                                <p className="text-lg font-black text-destructive whitespace-nowrap">
+                                  {group.totalRemaining.toLocaleString()} DA
+                                </p>
+                                {group.lastEventAt && (
+                                  <p className="text-xs text-slate-500 whitespace-nowrap mt-0.5">
+                                    {formatDate(new Date(group.lastEventAt), 'dd/MM/yyyy HH:mm', language)}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex flex-col items-end text-right">
+                                <p className="truncate text-base font-bold text-slate-800">
+                                  {primaryDebt?.customer?.store_name || group.name}
+                                </p>
+                                {primaryDebt?.customer?.name && primaryDebt?.customer?.store_name && primaryDebt.customer.name !== primaryDebt.customer.store_name && (
+                                  <p className="truncate text-xs text-slate-500 mt-0.5">
+                                    {primaryDebt.customer.name}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </CardContent>
                         </Card>
