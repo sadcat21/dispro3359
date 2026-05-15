@@ -776,6 +776,29 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     <div className="rounded-2xl border bg-white p-8 text-center text-sm text-slate-500">
                       {t('debt_collect.no_movements')}
                     </div>
+                  ) : historyViewMode === 'list' ? (
+                    <div className="rounded-2xl border bg-white divide-y">
+                      {timelineSections.flatMap((section) =>
+                        section.items.map((item) => {
+                          const isDebt = item.kind === 'debt';
+                          const isCancelledDebt = item.kind === 'cancelled_debt';
+                          const isVisit = item.kind === 'visit';
+                          const color = isVisit
+                            ? 'text-slate-700'
+                            : isCancelledDebt
+                              ? 'text-slate-400 line-through'
+                              : isDebt
+                                ? 'text-destructive'
+                                : 'text-emerald-700';
+                          return (
+                            <div key={item.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                              <span className={`font-black ${color}`} dir="ltr">{formatMoney(item.amount)}</span>
+                              <span className="text-xs text-slate-500" dir="ltr">{item.displayDate}</span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {timelineSections.map((section) => (
