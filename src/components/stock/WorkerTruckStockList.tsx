@@ -264,7 +264,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const saleQty = Math.max(0, totalBoxes - giftQty);
       const when = it.order_updated_at || it.order_created_at || '';
       const totalDelta = saleQty + giftQty;
-      if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta });
+      if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta, orderId: it.order_id || null });
     }
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
       const isCancelled = m.order?.status === 'cancelled';
