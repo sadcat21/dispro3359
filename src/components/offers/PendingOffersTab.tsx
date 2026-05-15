@@ -254,13 +254,13 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                       <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs font-semibold">
                         <span className="px-2 py-0.5 rounded bg-muted text-foreground">
-                          {formatQty(r.purchased_boxes, r.purchased_pieces)}
+                          {formatQtyPlain(r.purchased_boxes, r.purchased_pieces)}
                         </span>
                         <span className="text-muted-foreground">+</span>
                         <span className="px-3 py-1 rounded-md bg-red-600 text-white text-sm font-extrabold inline-flex items-center gap-1.5 shadow-sm">
                           <Gift className="w-4 h-4" />
-                          {formatQty(r.gift_boxes, r.gift_pieces)}
-                          <span className="text-[10px] font-bold opacity-90">(هدية)</span>
+                          {formatQtyPlain(r.gift_boxes, r.gift_pieces)}
+                          <span className="text-[10px] font-bold opacity-90">(PROMO)</span>
                         </span>
                       </div>
                       {r.gift_product_name && r.gift_product_id !== r.product_id && (
