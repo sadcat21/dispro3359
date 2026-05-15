@@ -868,6 +868,26 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </Button>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      className="rounded-xl h-11 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => setActiveTab('collect')}
+                    >
+                      <Banknote className="h-4 w-4" />
+                      تحصيل
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-xl h-11 gap-2 border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                      onClick={() => setActiveTab('visit')}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      زيارة بدون تحصيل
+                    </Button>
+                  </div>
+
                   {paymentsLoading ? (
                     <div className="flex items-center justify-center py-10">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
