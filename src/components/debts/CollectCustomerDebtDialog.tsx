@@ -101,7 +101,9 @@ const formatDateOnly = (value?: string | null, t?: (k: string) => string) => {
   if (!value) return t ? t('debt_collect.no_date') : 'No date';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
-  return date.toLocaleDateString('fr-FR');
+  const d = date.toLocaleDateString('fr-FR');
+  const tm = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return `${d} ${tm}`;
 };
 
 const paymentMethodLabel = (value?: string | null, t?: (k: string) => string) => {
