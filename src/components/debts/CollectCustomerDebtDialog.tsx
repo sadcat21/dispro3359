@@ -736,12 +736,19 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       >
                         <Printer className="h-4 w-4" />
                       </Button>
-                      <div className="text-right">
-                        <div className="text-xs text-slate-500">{t('debt_collect.date_only')}</div>
-                      </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant={showVisitsInTimeline ? 'default' : 'outline'}
+                        size="sm"
+                        className="rounded-full h-8 px-3 text-xs gap-1"
+                        onClick={() => setShowVisitsInTimeline((v) => !v)}
+                      >
+                        <MapPin className="h-3.5 w-3.5" />
+                        {t('debt_collect.show_visits')}
+                      </Button>
                       <div className="inline-flex rounded-full border bg-slate-50 p-0.5">
                         <button
                           type="button"
@@ -759,14 +766,6 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                         >
                           <ListIcon className="h-4 w-4" />
                         </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="show-visits" className="text-sm">{t('debt_collect.show_visits')}</Label>
-                        <Switch
-                          id="show-visits"
-                          checked={showVisitsInTimeline}
-                          onCheckedChange={setShowVisitsInTimeline}
-                        />
                       </div>
                     </div>
                   </div>
