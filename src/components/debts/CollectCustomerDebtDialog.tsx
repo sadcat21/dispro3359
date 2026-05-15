@@ -8,6 +8,8 @@ import {
   Eye,
   Loader2,
   MapPin,
+  LayoutGrid,
+  List as ListIcon,
   Pencil,
   Printer,
   Trash2,
@@ -735,7 +737,6 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                         <Printer className="h-4 w-4" />
                       </Button>
                       <div className="text-right">
-                        <div className="text-sm font-bold">{t('debt_collect.movement')}</div>
                         <div className="text-xs text-slate-500">{t('debt_collect.date_only')}</div>
                       </div>
                     </div>
@@ -744,17 +745,19 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       <div className="inline-flex rounded-full border bg-slate-50 p-0.5">
                         <button
                           type="button"
+                          aria-label={t('debt_collect.view_cards') || 'تفاصيل'}
                           onClick={() => setHistoryViewMode('cards')}
-                          className={`px-3 py-1 text-xs font-bold rounded-full transition ${historyViewMode === 'cards' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
+                          className={`h-8 w-8 inline-flex items-center justify-center rounded-full transition ${historyViewMode === 'cards' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
                         >
-                          {t('debt_collect.view_cards') || 'تفاصيل'}
+                          <LayoutGrid className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
+                          aria-label={t('debt_collect.view_list') || 'قائمة'}
                           onClick={() => setHistoryViewMode('list')}
-                          className={`px-3 py-1 text-xs font-bold rounded-full transition ${historyViewMode === 'list' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
+                          className={`h-8 w-8 inline-flex items-center justify-center rounded-full transition ${historyViewMode === 'list' ? 'bg-primary text-primary-foreground shadow' : 'text-slate-600'}`}
                         >
-                          {t('debt_collect.view_list') || 'قائمة'}
+                          <ListIcon className="h-4 w-4" />
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
@@ -803,9 +806,6 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               <span className={`font-black tabular-nums ${tone.text}`} dir="ltr">
                                 {formatMoney(item.amount)}
                               </span>
-                              <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
-                                {item.workerName}
-                              </Badge>
                               {!isVisit && (
                                 <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
                                   {paymentMethodLabel(item.paymentMethod, t)}
