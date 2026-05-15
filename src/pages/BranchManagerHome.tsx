@@ -188,29 +188,22 @@ const BranchManagerHome: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-      {/* Offers Showcase — same as worker home */}
-      <ProductShowcaseHero />
-      {/* Hero Header — أزرق احترافي مع لمسة سماوية */}
+      {/* Daily worker tasks button — above hero */}
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
-        <div className="relative px-3 py-2">
-          {/* زر الموافقات البارز */}
+        <div className="relative px-3 py-1.5">
           <button
             onClick={() => setDailyTasksOpen(true)}
-            className="w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2.5 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.01] transition-all"
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center ring-2 ring-white/30">
-                <ClipboardList className="w-7 h-7" />
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-bold">مهام العمال اليومية</div>
-                <div className="text-xs text-white/85">عرض عملاء اليوم لكل عامل</div>
-              </div>
-            </div>
+            <ClipboardList className="w-5 h-5" />
+            <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
         </div>
       </div>
+
+      {/* Offers Showcase — same as worker home */}
+      <ProductShowcaseHero />
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
       <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">
