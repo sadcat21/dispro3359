@@ -880,7 +880,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-xl h-11 gap-2 border-yellow-500 bg-yellow-400 text-black hover:bg-yellow-500"
+                      className="rounded-xl h-11 gap-2 border-orange-500 bg-orange-400 text-black hover:bg-orange-500"
                       onClick={() => setActiveTab('visit')}
                     >
                       <MapPin className="h-4 w-4" />
