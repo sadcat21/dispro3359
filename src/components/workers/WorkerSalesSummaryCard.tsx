@@ -92,7 +92,7 @@ const WorkerSalesSummaryCard: React.FC<WorkerSalesSummaryCardProps> = ({ onOpenS
   return (
     <Button
       onClick={onOpenSalesSummary}
-      className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 text-foreground hover:shadow-md"
+      className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 text-foreground shadow-md"
       variant="outline"
     >
       <TrendingUp className="w-3.5 h-3.5 text-primary" />
