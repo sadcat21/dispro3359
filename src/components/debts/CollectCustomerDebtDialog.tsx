@@ -806,9 +806,6 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               <span className={`font-black tabular-nums ${tone.text}`} dir="ltr">
                                 {formatMoney(item.amount)}
                               </span>
-                              <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
-                                {item.workerName}
-                              </Badge>
                               {!isVisit && (
                                 <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
                                   {paymentMethodLabel(item.paymentMethod, t)}
