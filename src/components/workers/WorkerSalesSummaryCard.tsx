@@ -82,11 +82,9 @@ const WorkerSalesSummaryCard: React.FC<WorkerSalesSummaryCardProps> = ({ onOpenS
   if (isLoading) {
     return (
       <div className="px-4 mt-3">
-        <Card className="border border-border">
-          <CardContent className="p-4 flex items-center justify-center">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          </CardContent>
-        </Card>
+        <Button variant="outline" disabled className="w-full h-12">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        </Button>
       </div>
     );
   }
@@ -95,45 +93,17 @@ const WorkerSalesSummaryCard: React.FC<WorkerSalesSummaryCardProps> = ({ onOpenS
 
   return (
     <div className="px-4 mt-3">
-      <Card
-        className="border border-primary/20 bg-gradient-to-br from-background to-muted/30 overflow-hidden cursor-pointer active:scale-[0.98] transition-all hover:shadow-md"
+      <Button
         onClick={onOpenSalesSummary}
+        className="w-full h-12 gap-2 font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 text-foreground hover:shadow-md"
+        variant="outline"
       >
-        <CardContent className="p-0">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <span className="font-bold text-sm">ملخص المبيعات</span>
-            </div>
-            <Badge variant="secondary" className="text-[10px]">
-              {data.orderCount}
-            </Badge>
-          </div>
-
-          {/* Total Sales */}
-          <div className="px-4 pb-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">إجمالي المبيعات</span>
-              <span className="text-xl font-bold text-destructive">
-                {data.totalSales.toLocaleString()} DA
-              </span>
-            </div>
-          </div>
-
-          {/* Paid & Debts */}
-          <div className="grid grid-cols-2 gap-0 border-t border-border">
-            <div className="p-3 text-center border-e border-border">
-              <p className="text-xs text-muted-foreground mb-0.5">المبالغ المدفوعة</p>
-              <p className="font-bold text-sm">{data.paidAmount.toLocaleString()} DA</p>
-            </div>
-            <div className="p-3 text-center">
-              <p className="text-xs text-muted-foreground mb-0.5">ديون جديدة</p>
-              <p className="font-bold text-sm">{data.newDebts.toLocaleString()} DA</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <TrendingUp className="w-4 h-4 text-primary" />
+        <span>ملخص المبيعات</span>
+        <Badge variant="secondary" className="text-[10px] ms-1">
+          {data.orderCount}
+        </Badge>
+      </Button>
     </div>
   );
 };
