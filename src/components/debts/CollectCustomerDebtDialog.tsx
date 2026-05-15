@@ -101,7 +101,9 @@ const formatDateOnly = (value?: string | null, t?: (k: string) => string) => {
   if (!value) return t ? t('debt_collect.no_date') : 'No date';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
-  return date.toLocaleDateString('fr-FR');
+  const d = date.toLocaleDateString('fr-FR');
+  const tm = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return `${d} ${tm}`;
 };
 
 const paymentMethodLabel = (value?: string | null, t?: (k: string) => string) => {
@@ -935,7 +937,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                               {isVisit && (
                                 <Badge className="rounded-full text-[10px] font-semibold gap-1 bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-100">
                                   <MapPin className="h-3 w-3" />
-                                  زيارة بدون تحصيل
+                                  زيارة
                                 </Badge>
                               )}
                               {isAccounted && (
