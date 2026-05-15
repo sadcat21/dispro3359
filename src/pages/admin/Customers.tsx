@@ -764,11 +764,6 @@ const Customers: React.FC = () => {
                   <Settings2 className="w-3.5 h-3.5" />
                 </Button>
               )}
-              {isManager && (
-                <Button size="icon" variant="outline" className="h-7 w-7 text-amber-600 hover:text-amber-700" onClick={() => navigate('/duplicate-customers')} title="دمج العملاء المكررين">
-                  <Users className="w-3.5 h-3.5" />
-                </Button>
-              )}
               {!isAddCustomerHidden && (
                 <Button size="icon" className="h-7 w-7" onClick={() => setShowAddDialog(true)}>
                   <UserPlus className="w-3.5 h-3.5" />
@@ -776,6 +771,18 @@ const Customers: React.FC = () => {
               )}
             </div>
           </div>
+
+          {isManager && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-9 border-amber-500/60 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:hover:bg-amber-950/50 dark:text-amber-300 gap-2"
+              onClick={() => navigate('/duplicate-customers')}
+            >
+              <Users className="w-4 h-4" />
+              <span className="font-semibold">دمج العملاء المكررين</span>
+            </Button>
+          )}
 
           {/* Row 2: Search + map */}
           <div className="grid grid-cols-[1fr_auto] gap-2">
