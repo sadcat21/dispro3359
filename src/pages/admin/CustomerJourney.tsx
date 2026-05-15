@@ -604,7 +604,7 @@ const CustomerJourney = () => {
                               ? (language === 'fr' ? 'Dette' : language === 'en' ? 'Debt' : 'دين')
                               : getPaymentMethodLabel(item.paymentMethod)}
                           </Badge>
-                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap text-left shrink-0 min-w-[110px]" dir="ltr">
                             <span className="text-black">{datePart}</span>
                             {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                           </span>
@@ -683,7 +683,7 @@ const CustomerJourney = () => {
                               {order.payment_type}
                             </Badge>
                           )}
-                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap text-left shrink-0 min-w-[110px]" dir="ltr">
                             <span className="text-black">{datePart}</span>
                             {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                           </span>
@@ -772,7 +772,7 @@ const CustomerJourney = () => {
                           <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
                             {getVisitOperationLabel(visit.operation_type)}
                           </Badge>
-                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap" dir="ltr">
+                          <span className="ms-auto text-xs font-semibold tabular-nums whitespace-nowrap text-left shrink-0 min-w-[110px]" dir="ltr">
                             <span className="text-black">{datePart}</span>
                             {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                           </span>
