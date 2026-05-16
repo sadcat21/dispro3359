@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
-import { isAdminRole } from '@/lib/utils';
+import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
 
 interface WorkerRoleEntry {
   id?: string;
