@@ -457,6 +457,18 @@ const CustomerJourney = () => {
     [visits]
   );
 
+  const channelByOrderId = useMemo(() => {
+    const map: Record<string, string> = {};
+    visits.forEach((v) => {
+      if (v.operation_id) {
+        if (v.operation_type === 'delivery') map[v.operation_id] = 'delivery';
+        else if (v.operation_type === 'direct_sale') map[v.operation_id] = 'cash_van';
+        else if (!map[v.operation_id]) map[v.operation_id] = 'depot';
+      }
+    });
+    return map;
+  }, [visits]);
+
   const visitSummary = useMemo(() => {
     const withOrder = displayVisits.filter((visit) => !!visit.order || visit.operation_type === 'order').length;
     return {
