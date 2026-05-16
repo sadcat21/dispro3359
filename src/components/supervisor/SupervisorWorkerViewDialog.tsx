@@ -4,9 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
+import { isAdminRole } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 
-import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck } from 'lucide-react';
+import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck, TrendingUp } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -22,12 +24,14 @@ const roleMeta: Record<string, { label: string; icon: React.ComponentType<{ clas
 };
 
 const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => {
-  const { activeBranch, user } = useAuth();
+  const { activeBranch, user, role } = useAuth();
+  const isAdmin = isAdminRole(role);
   const branchId = activeBranch?.id || user?.branch_id || null;
   const navigate = useNavigate();
   const { setSelectedWorker } = useSelectedWorker();
   const [step, setStep] = useState<'worker' | 'action'>('worker');
   const [picked, setPicked] = useState<{ id: string; name: string } | null>(null);
+  const [salesOpen, setSalesOpen] = useState(false);
 
   const { data: workers = [], isLoading } = useQuery({
     queryKey: ['supervisor-pick-worker-roles', branchId],
@@ -175,9 +179,26 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
                 </button>
               );
             })}
+            {isAdmin && (
+              <button
+                onClick={() => setSalesOpen(true)}
+                className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl text-white bg-gradient-to-br from-emerald-500 to-emerald-700 hover:shadow-lg hover:scale-[1.02] transition-all min-h-[100px] col-span-2"
+              >
+                <TrendingUp className="w-7 h-7" />
+                <span className="text-xs font-bold text-center leading-tight">تجميع المبيعات</span>
+              </button>
+            )}
           </div>
         )}
       </DialogContent>
+      {isAdmin && picked && (
+        <WorkerSalesSummaryDialog
+          open={salesOpen}
+          onOpenChange={setSalesOpen}
+          workerId={picked.id}
+          workerName={picked.name}
+        />
+      )}
     </Dialog>
   );
 };
