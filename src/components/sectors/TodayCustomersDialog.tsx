@@ -226,7 +226,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [calendarFilter, setCalendarFilter] = useState<'orders' | 'debts' | 'collections' | 'sales'>('orders');
 
   // Fetch workers list for admin picker
-  const { data: workersList = [] } = useQuery({
   const supervisorBranchId = activeBranch?.id || activeRole?.branch_id || user?.branch_id || null;
   const { data: workersList = [] } = useQuery({
     queryKey: ['today-cust-workers-list', activeBranch?.id, supervisorBranchId],
