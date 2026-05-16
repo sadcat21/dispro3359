@@ -980,24 +980,36 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       </nav>
 
       {/* Branch Selection Dialog */}
-      <BranchSelectionDialog
-        open={showBranchSelection}
-        onSelectBranch={selectBranch}
-      />
+      {showBranchSelection && (
+        <React.Suspense fallback={null}>
+          <BranchSelectionDialog
+            open={showBranchSelection}
+            onSelectBranch={selectBranch}
+          />
+        </React.Suspense>
+      )}
 
       {/* Role Selection Dialog (for switching roles without logging out) */}
-      <RoleSelectionDialog
-        open={showRoleSelection}
-        roles={availableRoles}
-        onSelectRole={selectRole}
-      />
+      {showRoleSelection && (
+        <React.Suspense fallback={null}>
+          <RoleSelectionDialog
+            open={showRoleSelection}
+            roles={availableRoles}
+            onSelectRole={selectRole}
+          />
+        </React.Suspense>
+      )}
       
       {showInvoiceButton && (
-        <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />
+        <React.Suspense fallback={null}>
+          {invoiceRequestOpen && <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />}
+        </React.Suspense>
       )}
 
       {isFieldWorker && !isTodayCustomersHidden && (
-        <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />
+        <React.Suspense fallback={null}>
+          {todayCustomersOpen && <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />}
+        </React.Suspense>
       )}
     </div>
   );
