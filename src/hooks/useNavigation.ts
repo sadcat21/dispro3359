@@ -248,6 +248,22 @@ export const useNavigation = () => {
       };
     }
 
+    // External Supervisor — مشرف ميداني خارجي بصلاحيات عامل
+    if (activeRole?.custom_role_code === 'external_supervisor') {
+      return {
+        main: [
+          { path: '/', icon: Home, label: t('nav.home') },
+          { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
+          { path: '/customers', icon: UserCheck, label: t('nav.customers') },
+          { path: '/my-stock', icon: Warehouse, label: t('stock.my_stock') },
+        ],
+        more: [
+          { path: '/customer-debts', icon: Banknote, label: t('debts.title') },
+          { path: '/guide', icon: BookOpen, label: t('nav.guide') },
+        ],
+      };
+    }
+
     if (role === 'worker' && activeRole?.custom_role_code === 'warehouse_manager') {
       return {
         main: [

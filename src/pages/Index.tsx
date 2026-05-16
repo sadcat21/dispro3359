@@ -1,11 +1,12 @@
 import React, { lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
+import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole, isExternalSupervisorRole } from '@/lib/utils';
 
 const WorkerHome = lazy(() => import('./WorkerHome'));
 const AdminHome = lazy(() => import('./AdminHome'));
 const CompanyManagerHome = lazy(() => import('./CompanyManagerHome'));
 const InternalSupervisorHome = lazy(() => import('./InternalSupervisorHome'));
+const ExternalSupervisorHome = lazy(() => import('./ExternalSupervisorHome'));
 const BranchManagerHome = lazy(() => import('./BranchManagerHome'));
 const AssistantManagerHome = lazy(() => import('./AssistantManagerHome'));
 
@@ -20,6 +21,11 @@ const Index: React.FC = () => {
   // Internal Supervisor — branch-scoped staff discipline & monitoring dashboard
   if (isInternalSupervisorRole(activeRole?.custom_role_code)) {
     return <Suspense fallback={null}><InternalSupervisorHome /></Suspense>;
+  }
+
+  // External Supervisor — field supervisor with worker-like permissions + approval flow
+  if (isExternalSupervisorRole(activeRole?.custom_role_code)) {
+    return <Suspense fallback={null}><ExternalSupervisorHome /></Suspense>;
   }
 
   // Branch Manager — dedicated streamlined dashboard with only allowed features

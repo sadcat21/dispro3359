@@ -48,6 +48,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   warehouse_manager: 'مسؤول المخزن',
   company_manager: 'مساعد المدير العام',
   internal_supervisor: 'مشرف داخلي',
+  external_supervisor: 'مشرف خارجي',
 };
 
 interface DataCloneOption {

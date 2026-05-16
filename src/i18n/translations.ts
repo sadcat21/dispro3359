@@ -717,6 +717,9 @@ export const translations: Translations = {
   'workers.company_manager': { ar: 'مساعد المدير العام', fr: 'Assistant du directeur général', en: 'Assistant General Manager' },
   'workers.role_internal_supervisor': { ar: 'مشرف داخلي', fr: 'Superviseur interne', en: 'Internal Supervisor' },
   'workers.internal_supervisor': { ar: 'مشرف داخلي', fr: 'Superviseur interne', en: 'Internal Supervisor' },
+  'workers.role_external_supervisor': { ar: 'مشرف خارجي', fr: 'Superviseur externe', en: 'External Supervisor' },
+  'workers.external_supervisor': { ar: 'مشرف خارجي', fr: 'Superviseur externe', en: 'External Supervisor' },
+  'role_selection.external_supervisor_desc': { ar: 'مشرف ميداني خارجي بصلاحيات عامل مع اشتراط الموافقة على التعديلات', fr: 'Superviseur de terrain externe avec autorisations d\'employé et approbation requise', en: 'External field supervisor with worker-level permissions and approval required' },
 
   // ==================== Internal Supervisor Dashboard ====================
   'internal_supervisor.welcome': { ar: 'مرحباً بك في لوحة المشرف الداخلي', fr: 'Bienvenue sur le tableau du superviseur interne', en: 'Welcome to the Internal Supervisor dashboard' },

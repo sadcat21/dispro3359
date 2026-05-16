@@ -25,3 +25,8 @@ export function isCompanyManagerRole(customRoleCode: string | null | undefined):
 export function isInternalSupervisorRole(customRoleCode: string | null | undefined): boolean {
   return customRoleCode === 'internal_supervisor';
 }
+
+/** Returns true if the active custom role is the External Supervisor (field supervisor with worker-like permissions + approval) */
+export function isExternalSupervisorRole(customRoleCode: string | null | undefined): boolean {
+  return customRoleCode === 'external_supervisor';
+}
