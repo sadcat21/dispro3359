@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
+import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
+import managerHeroBg from '@/assets/hero-manager-bg.jpg';
+import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
-  Crown, ShieldCheck, Split, FileText, BarChart3, Warehouse, Truck, ClipboardCheck,
+  ShieldCheck, BarChart3, Warehouse, Truck, ClipboardCheck,
   Package, Gift, Users, Building2, Settings, Database, Shield, FileSpreadsheet,
-  TrendingUp, Wallet, Banknote, Pencil, Coins, HandCoins, PackageSearch, BookOpen, LucideIcon
+  TrendingUp, Wallet, Banknote, Pencil, Coins, HandCoins, PackageSearch, BookOpen,
+  ClipboardList, LucideIcon,
 } from 'lucide-react';
 import ManualPromoEntryDialog from '@/components/offers/ManualPromoEntryDialog';
 import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
@@ -33,30 +33,12 @@ interface ExecSection {
 const CompanyManagerHome: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { user, activeBranch } = useAuth();
 
   const [manualPromoOpen, setManualPromoOpen] = useState(false);
   const [factoryReceiptOpen, setFactoryReceiptOpen] = useState(false);
   const [factoryDeliveryOpen, setFactoryDeliveryOpen] = useState(false);
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
-
-  const { data: kpis } = useQuery({
-    queryKey: ['cm-kpis', activeBranch?.id],
-    queryFn: async () => {
-      const [workers, branches, pendingFactory, pendingInvoices] = await Promise.all([
-        supabase.from('workers').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('branches').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('stock_receipts').select('id', { count: 'exact', head: true }).eq('status', 'pending_assistant'),
-        supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_assistant'),
-      ]);
-      return {
-        workers: workers.count || 0,
-        branches: branches.count || 0,
-        pendingApprovals: (pendingFactory.count || 0) + (pendingInvoices.count || 0),
-      };
-    },
-    staleTime: 60_000,
-  });
+  const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
 
   const sections: ExecSection[] = [
     {
@@ -133,64 +115,78 @@ const CompanyManagerHome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pb-24">
-      {/* Hero Header — أبيض مع لمسة ذهبية */}
-      <div className="relative overflow-hidden border-b border-red-200 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-50 via-white to-red-50/60" />
-        <div className="relative px-6 py-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30 ring-2 ring-red-300/40">
-              <Crown className="w-9 h-9 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-red-700 tracking-tight">
-                {t('company_manager.welcome')}
-              </h1>
-              <p className="text-sm text-slate-600 mt-1">{t('company_manager.subtitle')}</p>
-              {user?.full_name && (
-                <Badge variant="outline" className="mt-2 border-red-400/60 text-red-700 bg-red-50">
-                  {user.full_name}
-                  {activeBranch?.name && ` — ${activeBranch.name}`}
-                </Badge>
-              )}
-            </div>
-          </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-2">
+      {/* Hero — same blue identity as branch manager */}
+      <ProductShowcaseHero
+        bgImage={managerHeroBg}
+        overlayClassName="bg-gradient-to-l from-blue-900/20 via-white/30 to-white/10"
+      />
 
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-            <KpiCard label={t('company_manager.kpi_pending_approvals')} value={kpis?.pendingApprovals ?? '—'} icon={ShieldCheck} accent="red" />
-            <KpiCard label={t('company_manager.kpi_active_workers')} value={kpis?.workers ?? '—'} icon={Users} accent="slate" />
-            <KpiCard label={t('company_manager.kpi_branches')} value={kpis?.branches ?? '—'} icon={Building2} accent="slate" />
-            <KpiCard label={t('company_manager.kpi_total_sales')} value="—" icon={TrendingUp} accent="red" />
-          </div>
+      {/* Daily worker tasks button */}
+      <div className="relative overflow-hidden border-b border-blue-200 bg-white">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
+        <div className="relative px-3 py-1.5">
+          <button
+            onClick={() => setDailyTasksOpen(true)}
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+          >
+            <ClipboardList className="w-5 h-5" />
+            <span className="text-base font-bold">مهام العمال اليومية</span>
+          </button>
         </div>
       </div>
 
-      {/* Sections */}
-      <div className="px-4 py-6 space-y-6">
-        {sections.map((section) => {
+      {/* Sections — same structure as BranchManagerHome */}
+      <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">
+        {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
           const SecIcon = section.icon;
+          const sectionPalette = [
+            { wrap: 'bg-amber-50/60 border-amber-200', title: 'text-amber-700' },
+            { wrap: 'bg-emerald-50/60 border-emerald-200', title: 'text-emerald-700' },
+            { wrap: 'bg-sky-50/60 border-sky-200', title: 'text-sky-700' },
+            { wrap: 'bg-rose-50/60 border-rose-200', title: 'text-rose-700' },
+            { wrap: 'bg-violet-50/60 border-violet-200', title: 'text-violet-700' },
+            { wrap: 'bg-orange-50/60 border-orange-200', title: 'text-orange-700' },
+            { wrap: 'bg-teal-50/60 border-teal-200', title: 'text-teal-700' },
+          ][sIdx % 7];
+
+          const cardPalettes = [
+            { border: 'border-rose-300', icon: 'text-rose-500' },
+            { border: 'border-emerald-300', icon: 'text-emerald-500' },
+            { border: 'border-amber-300', icon: 'text-amber-500' },
+            { border: 'border-violet-300', icon: 'text-violet-500' },
+            { border: 'border-sky-300', icon: 'text-sky-500' },
+            { border: 'border-orange-300', icon: 'text-orange-500' },
+            { border: 'border-teal-300', icon: 'text-teal-500' },
+            { border: 'border-pink-300', icon: 'text-pink-500' },
+            { border: 'border-indigo-300', icon: 'text-indigo-500' },
+          ];
+
           return (
-            <div key={section.titleKey}>
-              <div className="flex items-center gap-2 mb-3 px-2">
-                <SecIcon className="w-5 h-5 text-red-600" />
-                <h2 className="text-base font-semibold text-slate-800">{t(section.titleKey)}</h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-red-300/60 to-transparent" />
+            <div
+              key={section.titleKey}
+              className={`relative rounded-2xl border ${sectionPalette.wrap} p-2`}
+            >
+              <div className="flex items-center justify-center gap-2 mb-1.5 px-1">
+                <SecIcon className={`w-4 h-4 ${sectionPalette.title}`} />
+                <h2 className={`text-xs sm:text-sm font-bold ${sectionPalette.title}`}>
+                  {t(section.titleKey)}
+                </h2>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {section.items.map((item) => {
+
+              <div className="grid grid-cols-4 gap-1.5">
+                {section.items.map((item, iIdx) => {
                   const Icon = item.icon;
+                  const cp = cardPalettes[iIdx % cardPalettes.length];
                   return (
                     <Card
                       key={item.key}
                       onClick={() => handleClick(item)}
-                      className="group cursor-pointer border-slate-200 bg-white hover:border-red-400 hover:shadow-md hover:shadow-red-500/10 transition-all"
+                      className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${cp.border}`}
                     >
-                      <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                          <Icon className="w-6 h-6 text-red-600 group-hover:text-red-700" />
-                        </div>
-                        <p className="text-sm font-medium text-slate-800 leading-tight">
+                      <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
+                        <Icon className={`w-4 h-4 ${cp.icon}`} strokeWidth={2} />
+                        <p className="text-[10px] font-semibold text-slate-700 leading-tight line-clamp-2">
                           {item.label}
                         </p>
                       </CardContent>
@@ -208,22 +204,8 @@ const CompanyManagerHome: React.FC = () => {
       <FactoryReceiptQuickDialog open={factoryReceiptOpen} onOpenChange={setFactoryReceiptOpen} />
       <FactoryDeliveryQuickDialog open={factoryDeliveryOpen} onOpenChange={setFactoryDeliveryOpen} />
       <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />
+      <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
     </div>
-  );
-};
-
-const KpiCard: React.FC<{ label: string; value: number | string; icon: LucideIcon; accent: 'red' | 'slate' }> = ({ label, value, icon: Icon, accent }) => {
-  const isRed = accent === 'red';
-  return (
-    <Card className={`border ${isRed ? 'border-red-300 bg-red-50/60' : 'border-slate-200 bg-white'}`}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <Icon className={`w-5 h-5 ${isRed ? 'text-red-600' : 'text-slate-500'}`} />
-        </div>
-        <p className={`text-3xl font-bold ${isRed ? 'text-red-700' : 'text-slate-800'}`}>{value}</p>
-        <p className="text-xs text-slate-600 mt-1 font-medium">{label}</p>
-      </CardContent>
-    </Card>
   );
 };
 
