@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { useWarehouseStock, WarehouseStockItem } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
+import { useProductOffersMap } from '@/hooks/useProductOffersMap';
 import { supabase } from '@/integrations/supabase/client';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -366,6 +367,8 @@ const OutgoingTab: React.FC<{
 
   const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, Number(item.quantity || 0) + getRawGiftQuantity(item)])), [editItems]);
   const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, getRawGiftQuantity(item)])), [editItems]);
+  const editProductIds = useMemo(() => editItems.map(i => i.product_id), [editItems]);
+  const offersMap = useProductOffersMap(editProductIds, 'worker_loading');
 
   const startEditing = (conf: StockConfirmation) => {
     setEditingId(conf.id);
@@ -509,7 +512,7 @@ const OutgoingTab: React.FC<{
       onEditProduct={handleEditProduct}
       onRemoveProduct={handleRemoveProduct}
       onConfirmLoading={handleSaveAmendment}
-      quantityDisplayMode="raw"
+      offersMap={offersMap}
       workerName={editingOriginal?.worker?.full_name || editingOriginal?.manager?.full_name || ''}
       showCloseButton
     />

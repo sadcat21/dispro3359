@@ -9,6 +9,7 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useWarehouseStock } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from './ProductPickerDialog';
+import { useProductOffersMap } from '@/hooks/useProductOffersMap';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
@@ -112,6 +113,8 @@ const ManagerConfirmationsPanel: React.FC = () => {
     () => Object.fromEntries(editItems.map(i => [i.product_id, getRawGiftQuantity(i)])),
     [editItems]
   );
+  const editProductIds = useMemo(() => editItems.map(i => i.product_id), [editItems]);
+  const offersMap = useProductOffersMap(editProductIds, 'worker_loading');
 
   const handleAddProducts = (
     items: { productId: string; quantity: number; giftQuantity?: number; giftUnit?: string }[]
@@ -317,7 +320,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
         onEditProduct={handleEditProduct}
         onRemoveProduct={handleRemoveProduct}
         onConfirmLoading={() => handleSaveAmendment(editItems)}
-        quantityDisplayMode="raw"
+        offersMap={offersMap}
         workerName={editingConf?.worker?.full_name || ''}
         showCloseButton
       />
