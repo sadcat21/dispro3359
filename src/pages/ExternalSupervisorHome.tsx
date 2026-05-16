@@ -13,7 +13,7 @@ import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import SupervisorWorkerViewDialog from '@/components/supervisor/SupervisorWorkerViewDialog';
 import { Customer } from '@/types/database';
 import {
-  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3, Banknote,
+  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, BarChart3, Banknote,
 } from 'lucide-react';
 
 const ExternalSupervisorHome: React.FC = () => {
@@ -40,8 +40,6 @@ const ExternalSupervisorHome: React.FC = () => {
   });
 
   const buttons = [
-    { key: 'sales_summary', label: 'تجميع المبيعات', icon: BarChart3, onClick: () => setShowWorkerViewDialog(true), palette: { border: 'border-rose-300', icon: 'text-rose-500' } },
-    { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
     { key: 'debts', label: 'إدارة الديون', icon: Banknote, onClick: () => navigate('/customer-debts'), palette: { border: 'border-red-300', icon: 'text-red-500' } },
   ];
@@ -65,27 +63,34 @@ const ExternalSupervisorHome: React.FC = () => {
               </Badge>
             </div>
           )}
-          <div className="flex items-stretch gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setDailyTasksOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-3 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-3 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <ClipboardList className="w-5 h-5" />
               <span className="text-sm font-bold">مهام العمال اليومية</span>
             </button>
             <button
               onClick={() => { setSelectedCustomerId(undefined); setShowCustomerPicker(true); }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <ShoppingCart className="w-5 h-5" />
               <span className="text-sm font-bold">إنشاء طلب جديد</span>
+            </button>
+            <button
+              onClick={() => setShowWorkerViewDialog(true)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 px-3 py-2 text-white shadow-md shadow-rose-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-sm font-bold">إجراءات العمال</span>
             </button>
           </div>
         </div>
       </div>
 
       <div className="px-2 sm:px-3 py-2">
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {buttons.map((b) => {
             const Icon = b.icon;
             return (
