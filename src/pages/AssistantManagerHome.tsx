@@ -120,10 +120,10 @@ const AssistantManagerHome: React.FC = () => {
         {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
           const SecIcon = section.icon;
           const sectionPalette = [
-            { wrap: 'bg-rose-50/60 border-rose-200', title: 'text-rose-700' },
             { wrap: 'bg-amber-50/60 border-amber-200', title: 'text-amber-700' },
             { wrap: 'bg-emerald-50/60 border-emerald-200', title: 'text-emerald-700' },
             { wrap: 'bg-sky-50/60 border-sky-200', title: 'text-sky-700' },
+            { wrap: 'bg-rose-50/60 border-rose-200', title: 'text-rose-700' },
             { wrap: 'bg-violet-50/60 border-violet-200', title: 'text-violet-700' },
             { wrap: 'bg-orange-50/60 border-orange-200', title: 'text-orange-700' },
             { wrap: 'bg-teal-50/60 border-teal-200', title: 'text-teal-700' },
