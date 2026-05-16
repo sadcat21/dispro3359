@@ -9,9 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
-import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
-import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
-import { Customer } from '@/types/database';
+import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
   Activity, UserCheck, ShoppingCart, Radar, FileSpreadsheet, UserCog,
@@ -37,12 +35,7 @@ const InternalSupervisorHome: React.FC = () => {
   const { t } = useLanguage();
   const { user, activeBranch } = useAuth();
 
-  // Order creation state
-  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
-  const [showCreateOrder, setShowCreateOrder] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-
-  const effectiveBranchId = activeBranch?.id || null;
+  const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
 
   const { data: kpis } = useQuery({
     queryKey: ['internal-supervisor-kpis', activeBranch?.id],
@@ -78,18 +71,6 @@ const InternalSupervisorHome: React.FC = () => {
       };
     },
     staleTime: 60_000,
-  });
-
-  // Customers for picker
-  const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['customers-for-order-picker-supervisor', effectiveBranchId],
-    queryFn: async () => {
-      let q = supabase.from('customers').select('*').eq('status', 'active').order('name');
-      if (effectiveBranchId) q = q.eq('branch_id', effectiveBranchId);
-      const { data } = await q;
-      return (data || []) as Customer[];
-    },
-    enabled: showCustomerPicker,
   });
 
   const sections: Section[] = [
@@ -149,11 +130,11 @@ const InternalSupervisorHome: React.FC = () => {
             </div>
           )}
           <button
-            onClick={() => setShowCustomerPicker(true)}
+            onClick={() => setDailyTasksOpen(true)}
             className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
           >
-            <Plus className="w-5 h-5" />
-            <span className="text-base font-bold">{t('orders.create_new')}</span>
+            <ClipboardList className="w-5 h-5" />
+            <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
         </div>
       </div>
@@ -221,26 +202,7 @@ const InternalSupervisorHome: React.FC = () => {
         })}
       </div>
 
-      {/* Customer Picker for Order Creation */}
-      <CustomerPickerDialog
-        open={showCustomerPicker}
-        onOpenChange={setShowCustomerPicker}
-        customers={allCustomers}
-        isLoading={customersLoading}
-        onSelect={(customer) => {
-          setSelectedCustomer(customer);
-          setShowCustomerPicker(false);
-          setShowCreateOrder(true);
-        }}
-      />
-
-      {/* Create Order Dialog */}
-      <OrderFlowDialog
-        open={showCreateOrder}
-        onOpenChange={setShowCreateOrder}
-        mode="create"
-        initialCustomerId={selectedCustomer?.id}
-      />
+      <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
     </div>
   );
 };
