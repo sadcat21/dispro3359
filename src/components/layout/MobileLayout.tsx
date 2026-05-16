@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import OffersNotification from '@/components/offers/OffersNotification';
-import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
 
 // ManagerConfirmationsPanel merged into StockConfirmationsPopover
 import TasksPopover from '@/components/tasks/TasksPopover';
@@ -41,6 +40,7 @@ const BranchSelectionDialog = React.lazy(() => import('@/components/auth/BranchS
 const RoleSelectionDialog = React.lazy(() => import('@/components/auth/RoleSelectionDialog'));
 const InvoiceRequestDialog = React.lazy(() => import('@/components/treasury/InvoiceRequestDialog'));
 const TodayCustomersDialog = React.lazy(() => import('@/components/sectors/TodayCustomersDialog'));
+const StockConfirmationsPopover = React.lazy(() => import('@/components/stock/StockConfirmationsPopover'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -453,7 +453,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
           {(activeRole?.custom_role_code === 'delivery_rep'
             || activeRole?.custom_role_code === 'warehouse_manager'
-          ) && <StockConfirmationsPopover />}
+          ) && (
+            <React.Suspense fallback={null}>
+              <StockConfirmationsPopover />
+            </React.Suspense>
+          )}
           
           
           {!isTasksHidden && <TasksPopover />}
