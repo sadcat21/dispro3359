@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -14,81 +15,81 @@ import { InvoiceFilterProvider } from "@/contexts/InvoiceFilterContext";
 import MobileLayout from "@/components/layout/MobileLayout";
 import GpsGuard from "@/components/auth/GpsGuard";
 import VersionGuard from "@/components/VersionGuard";
-import LoginForm from "@/components/auth/LoginForm";
 import ScrollToTop from "@/components/ScrollToTop";
-import Index from "./pages/Index";
-import MyPromos from "./pages/MyPromos";
-import Orders from "./pages/Orders";
-import MyDeliveries from "./pages/MyDeliveries";
-import MyStock from "./pages/MyStock";
-import Workers from "./pages/admin/Workers";
-import Products from "./pages/admin/Products";
-import Customers from "./pages/admin/Customers";
-import DuplicateCustomers from "./pages/admin/DuplicateCustomers";
-import Stats from "./pages/admin/Stats";
-import Settings from "./pages/admin/Settings";
-import PromoTable from "./pages/admin/PromoTable";
-import Branches from "./pages/admin/Branches";
-import Permissions from "./pages/admin/Permissions";
-import ActivityLogs from "./pages/admin/ActivityLogs";
-import NearbyStores from "./pages/admin/NearbyStores";
-import CustomerAccounts from "./pages/admin/CustomerAccounts";
-import CustomerJourney from "./pages/admin/CustomerJourney";
-import ProductOffers from "./pages/admin/ProductOffers";
-import AvailableOffers from "./pages/AvailableOffers";
-import Expenses from "./pages/Expenses";
-import ExpensesManagement from "./pages/admin/ExpensesManagement";
-import Guide from "./pages/Guide";
-import WarehouseStock from "./pages/admin/WarehouseStock";
-import WarehouseReview from "./pages/admin/WarehouseReview";
-import PendingWarehouseReviews from "./pages/admin/PendingWarehouseReviews";
-import StockReceipts from "./pages/admin/StockReceipts";
-import StockMovementsLedger from "./pages/admin/StockMovementsLedger";
-import OfferLedger from "./pages/admin/OfferLedger";
-import SalesTrackingLedger from "./pages/admin/SalesTrackingLedger";
-import CashLedger from "./pages/admin/CashLedger";
-import DebtLedger from "./pages/admin/DebtLedger";
-import LoadStock from "./pages/admin/LoadStock";
-import CustomerDebts from "./pages/admin/CustomerDebts";
-import AccountingSessions from "./pages/admin/AccountingSessions";
-import WorkerDebts from "./pages/admin/WorkerDebts";
-import WorkerTracking from "./pages/admin/WorkerTracking";
-import GeoOperations from "./pages/admin/GeoOperations";
-import WorkerActions from "./pages/admin/WorkerActions";
-import DailyReceipts from "./pages/admin/DailyReceipts";
-import ManagerTreasury from "./pages/admin/ManagerTreasury";
-import WorkerLiability from "./pages/admin/WorkerLiability";
-import ShareTarget from "./pages/ShareTarget";
-import SharedInvoices from "./pages/admin/SharedInvoices";
-import AssistantApprovals from "./pages/admin/AssistantApprovals";
-import Suppliers from "./pages/admin/Suppliers";
-import BranchInvoiceApprovals from "./pages/admin/BranchInvoiceApprovals";
-import BranchManagerApprovals from "./pages/admin/BranchManagerApprovals";
-import SurplusDeficitTreasury from "./pages/admin/SurplusDeficitTreasury";
-import Rewards from "./pages/admin/Rewards";
-import Targets from "./pages/admin/Targets";
-import TargetsLeaderboardPage from "./pages/admin/TargetsLeaderboardPage";
-import WorkerRewards from "./pages/WorkerRewards";
-import MyAchievements from "./pages/MyAchievements";
-import PromoSplits from "./pages/admin/PromoSplits";
-import NotFound from "./pages/NotFound";
-import Landing from "./pages/Landing";
-import ProductJourney from "./pages/ProductJourney";
-import Chat from "./pages/Chat";
-import Attendance from "./pages/admin/Attendance";
-import OrderTracking from "./pages/admin/OrderTracking";
-import OrderModificationsLog from "./pages/admin/OrderModificationsLog";
-import Training from "./pages/admin/Training";
-import ComponentsReference from "./pages/admin/ComponentsReference";
-import BackupRestore from "./pages/admin/BackupRestore";
-import ManagerSalesSummaryPage from "./pages/admin/ManagerSalesSummaryPage";
-import PromoTracking from "./pages/admin/PromoTracking";
-import ManagerAccountingReview from "./pages/admin/ManagerAccountingReview";
-import WorkerRounds from "./pages/admin/WorkerRounds";
-import WorkerRolesManagement from "./pages/admin/WorkerRolesManagement";
-import AssistantPermissionsControl from "./pages/admin/AssistantPermissionsControl";
-import FloatingChat from "./components/chat/FloatingChat";
 import { Loader2 } from "lucide-react";
+
+const LoginForm = lazy(() => import("@/components/auth/LoginForm"));
+const Index = lazy(() => import("./pages/Index"));
+const MyPromos = lazy(() => import("./pages/MyPromos"));
+const Orders = lazy(() => import("./pages/Orders"));
+const MyDeliveries = lazy(() => import("./pages/MyDeliveries"));
+const MyStock = lazy(() => import("./pages/MyStock"));
+const Workers = lazy(() => import("./pages/admin/Workers"));
+const Products = lazy(() => import("./pages/admin/Products"));
+const Customers = lazy(() => import("./pages/admin/Customers"));
+const DuplicateCustomers = lazy(() => import("./pages/admin/DuplicateCustomers"));
+const Stats = lazy(() => import("./pages/admin/Stats"));
+const Settings = lazy(() => import("./pages/admin/Settings"));
+const PromoTable = lazy(() => import("./pages/admin/PromoTable"));
+const Branches = lazy(() => import("./pages/admin/Branches"));
+const Permissions = lazy(() => import("./pages/admin/Permissions"));
+const ActivityLogs = lazy(() => import("./pages/admin/ActivityLogs"));
+const NearbyStores = lazy(() => import("./pages/admin/NearbyStores"));
+const CustomerAccounts = lazy(() => import("./pages/admin/CustomerAccounts"));
+const CustomerJourney = lazy(() => import("./pages/admin/CustomerJourney"));
+const ProductOffers = lazy(() => import("./pages/admin/ProductOffers"));
+const AvailableOffers = lazy(() => import("./pages/AvailableOffers"));
+const Expenses = lazy(() => import("./pages/Expenses"));
+const ExpensesManagement = lazy(() => import("./pages/admin/ExpensesManagement"));
+const Guide = lazy(() => import("./pages/Guide"));
+const WarehouseStock = lazy(() => import("./pages/admin/WarehouseStock"));
+const WarehouseReview = lazy(() => import("./pages/admin/WarehouseReview"));
+const PendingWarehouseReviews = lazy(() => import("./pages/admin/PendingWarehouseReviews"));
+const StockReceipts = lazy(() => import("./pages/admin/StockReceipts"));
+const StockMovementsLedger = lazy(() => import("./pages/admin/StockMovementsLedger"));
+const OfferLedger = lazy(() => import("./pages/admin/OfferLedger"));
+const SalesTrackingLedger = lazy(() => import("./pages/admin/SalesTrackingLedger"));
+const CashLedger = lazy(() => import("./pages/admin/CashLedger"));
+const DebtLedger = lazy(() => import("./pages/admin/DebtLedger"));
+const LoadStock = lazy(() => import("./pages/admin/LoadStock"));
+const CustomerDebts = lazy(() => import("./pages/admin/CustomerDebts"));
+const AccountingSessions = lazy(() => import("./pages/admin/AccountingSessions"));
+const WorkerDebts = lazy(() => import("./pages/admin/WorkerDebts"));
+const WorkerTracking = lazy(() => import("./pages/admin/WorkerTracking"));
+const GeoOperations = lazy(() => import("./pages/admin/GeoOperations"));
+const WorkerActions = lazy(() => import("./pages/admin/WorkerActions"));
+const DailyReceipts = lazy(() => import("./pages/admin/DailyReceipts"));
+const ManagerTreasury = lazy(() => import("./pages/admin/ManagerTreasury"));
+const WorkerLiability = lazy(() => import("./pages/admin/WorkerLiability"));
+const ShareTarget = lazy(() => import("./pages/ShareTarget"));
+const SharedInvoices = lazy(() => import("./pages/admin/SharedInvoices"));
+const AssistantApprovals = lazy(() => import("./pages/admin/AssistantApprovals"));
+const Suppliers = lazy(() => import("./pages/admin/Suppliers"));
+const BranchInvoiceApprovals = lazy(() => import("./pages/admin/BranchInvoiceApprovals"));
+const BranchManagerApprovals = lazy(() => import("./pages/admin/BranchManagerApprovals"));
+const SurplusDeficitTreasury = lazy(() => import("./pages/admin/SurplusDeficitTreasury"));
+const Rewards = lazy(() => import("./pages/admin/Rewards"));
+const Targets = lazy(() => import("./pages/admin/Targets"));
+const TargetsLeaderboardPage = lazy(() => import("./pages/admin/TargetsLeaderboardPage"));
+const WorkerRewards = lazy(() => import("./pages/WorkerRewards"));
+const MyAchievements = lazy(() => import("./pages/MyAchievements"));
+const PromoSplits = lazy(() => import("./pages/admin/PromoSplits"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Landing = lazy(() => import("./pages/Landing"));
+const ProductJourney = lazy(() => import("./pages/ProductJourney"));
+const Chat = lazy(() => import("./pages/Chat"));
+const Attendance = lazy(() => import("./pages/admin/Attendance"));
+const OrderTracking = lazy(() => import("./pages/admin/OrderTracking"));
+const OrderModificationsLog = lazy(() => import("./pages/admin/OrderModificationsLog"));
+const Training = lazy(() => import("./pages/admin/Training"));
+const ComponentsReference = lazy(() => import("./pages/admin/ComponentsReference"));
+const BackupRestore = lazy(() => import("./pages/admin/BackupRestore"));
+const ManagerSalesSummaryPage = lazy(() => import("./pages/admin/ManagerSalesSummaryPage"));
+const PromoTracking = lazy(() => import("./pages/admin/PromoTracking"));
+const ManagerAccountingReview = lazy(() => import("./pages/admin/ManagerAccountingReview"));
+const WorkerRounds = lazy(() => import("./pages/admin/WorkerRounds"));
+const WorkerRolesManagement = lazy(() => import("./pages/admin/WorkerRolesManagement"));
+const AssistantPermissionsControl = lazy(() => import("./pages/admin/AssistantPermissionsControl"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +101,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-secondary">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 const INTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
   '/',
@@ -196,6 +203,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const AppRoutes = () => {
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={
@@ -638,6 +646,7 @@ const AppRoutes = () => {
       <Route path="/tracking" element={<Navigate to="/promo-tracking" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 

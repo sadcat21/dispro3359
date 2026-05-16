@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import CustomerQuickProfileDialog from '@/components/orders/CustomerQuickProfileDialog';
 import FitText from '@/components/customers/FitText';
 import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CustomerPickerDialogProps {
   open: boolean;
@@ -35,7 +36,8 @@ interface SectorGroup {
 }
 
 const normalizeSectorGroupName = (name: string) => name.replace(/\s+/g, ' ').trim();
-const SEARCH_RESULT_LIMIT = 80;
+const SEARCH_RESULT_LIMIT_DESKTOP = 80;
+const SEARCH_RESULT_LIMIT_MOBILE = 30;
 
 const getCustomerSearchText = (customer: Customer) => [
   customer.name,
@@ -76,7 +78,6 @@ const CustomerSearchField = React.memo(({ placeholder, resetSignal, onSearchChan
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
-        autoFocus
       />
     </div>
   );
@@ -95,6 +96,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { t, dir, language } = useLanguage();
   const { activeBranch } = useAuth();
   const { customerTypes } = useCustomerTypes();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
@@ -152,44 +154,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     enabled: open,
   });
 
-  // Fetch active debts for all customers
-  const { data: customerDebtsMap } = useQuery({
-    queryKey: ['customer-debts-summary-all'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('customer_debts')
-        .select('customer_id, remaining_amount, updated_at')
-        .in('status', ['active', 'partially_paid']);
-      const map: Record<string, { total: number; lastDate: string | null }> = {};
-      (data || []).forEach(d => {
-        if (!map[d.customer_id]) map[d.customer_id] = { total: 0, lastDate: null };
-        map[d.customer_id].total += Number(d.remaining_amount || 0);
-        if (d.updated_at && (!map[d.customer_id].lastDate || d.updated_at > map[d.customer_id].lastDate!)) {
-          map[d.customer_id].lastDate = d.updated_at;
-        }
-      });
-      return map;
-    },
-    enabled: open,
-  });
-
-  // العملاء الذين لديهم طلبية لم تُسلَّم ولم ينتهِ أجلها
-  const { data: pendingOrderCustomers } = useQuery({
-    queryKey: ['customers-with-pending-orders'],
-    queryFn: async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
-        .from('orders')
-        .select('customer_id, status, delivery_date')
-        .not('status', 'in', '(delivered,cancelled,returned)')
-        .gte('delivery_date', today);
-      const set = new Set<string>();
-      (data || []).forEach((o: any) => { if (o.customer_id) set.add(o.customer_id); });
-      return set;
-    },
-    enabled: open,
-  });
-
   useEffect(() => {
     if (open) {
       setSearch('');
@@ -216,6 +180,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const committedSearch = search.trim().toLowerCase();
   const hasSearch = committedSearch.length > 0;
+  const searchResultLimit = isMobile ? SEARCH_RESULT_LIMIT_MOBILE : SEARCH_RESULT_LIMIT_DESKTOP;
 
   const filteredCustomers = useMemo(() => {
     if (!hasSearch) {
@@ -226,11 +191,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     for (const item of normalizedCustomers) {
       if (item.searchText.includes(committedSearch)) {
         matches.push(item.customer);
-        if (matches.length >= SEARCH_RESULT_LIMIT) break;
+        if (matches.length >= searchResultLimit) break;
       }
     }
     return matches;
-  }, [normalizedCustomers, committedSearch, hasSearch]);
+  }, [normalizedCustomers, committedSearch, hasSearch, searchResultLimit]);
 
   // Build sector map for quick lookup
   const sectorMap = useMemo(() => {
@@ -277,6 +242,64 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
   const visibleCustomers = hasSearch ? filteredCustomers : (activeGroup?.customers || []);
+  const statusCustomerIds = useMemo(
+    () => {
+      if (hasSearch) return filteredCustomers.map((customer) => customer.id);
+      if (!activeRegionKey) return [];
+
+      return visibleCustomers
+        .filter((customer) => {
+          const zoneId = (customer as any).zone_id as string | null | undefined;
+          const zone = zoneId ? zonesMap?.[zoneId] : null;
+          const label = zone
+            ? ((language !== 'ar' && zone.name_fr) ? zone.name_fr : zone.name)
+            : 'بدون منطقة';
+          return label === activeRegionKey;
+        })
+        .map((customer) => customer.id);
+    },
+    [activeRegionKey, filteredCustomers, hasSearch, language, visibleCustomers, zonesMap],
+  );
+
+  // Fetch only status markers needed for the currently displayed customers.
+  const { data: customerDebtsMap } = useQuery({
+    queryKey: ['customer-debts-summary-visible', statusCustomerIds.join(',')],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('customer_debts')
+        .select('customer_id, remaining_amount, updated_at')
+        .in('customer_id', statusCustomerIds)
+        .in('status', ['active', 'partially_paid']);
+      const map: Record<string, { total: number; lastDate: string | null }> = {};
+      (data || []).forEach(d => {
+        if (!map[d.customer_id]) map[d.customer_id] = { total: 0, lastDate: null };
+        map[d.customer_id].total += Number(d.remaining_amount || 0);
+        if (d.updated_at && (!map[d.customer_id].lastDate || d.updated_at > map[d.customer_id].lastDate!)) {
+          map[d.customer_id].lastDate = d.updated_at;
+        }
+      });
+      return map;
+    },
+    enabled: open && statusCustomerIds.length > 0,
+  });
+
+  // العملاء المعروضون فقط الذين لديهم طلبية لم تُسلَّم ولم ينتهِ أجلها
+  const { data: pendingOrderCustomers } = useQuery({
+    queryKey: ['customers-with-pending-orders-visible', statusCustomerIds.join(',')],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('orders')
+        .select('customer_id, status, delivery_date')
+        .in('customer_id', statusCustomerIds)
+        .not('status', 'in', '(delivered,cancelled,returned)')
+        .gte('delivery_date', today);
+      const set = new Set<string>();
+      (data || []).forEach((o: any) => { if (o.customer_id) set.add(o.customer_id); });
+      return set;
+    },
+    enabled: open && statusCustomerIds.length > 0,
+  });
 
   return (
     <>
@@ -389,17 +412,17 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               // إذا لم تُختر منطقة بعد ولم يكن هناك بحث: اعرض شبكة أزرار المناطق
               if (!activeRegionKey && !hasSearch) {
                 return (
-                  <div className="grid grid-cols-2 gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                  <div className={cn("grid grid-cols-2 gap-2 p-4", !isMobile && "animate-in fade-in slide-in-from-bottom-3 duration-300")}>
                     {regionEntries.map(([region, list], rIdx) => (
                       <button
                         key={region}
                         dir={dir}
                         onClick={() => setActiveRegionKey(region)}
-                        style={{ animationDelay: `${rIdx * 40}ms` }}
+                        style={isMobile ? undefined : { animationDelay: `${rIdx * 40}ms` }}
                         className={cn(
                           "group relative flex items-center ps-3 pe-12 py-2 rounded-xl border-2 border-foreground bg-background shadow-sm min-h-[40px] text-right overflow-hidden",
-                          "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
-                          "animate-in fade-in zoom-in-95 fill-mode-both"
+                          "transition-colors duration-150 active:translate-y-0",
+                          !isMobile && "hover:shadow-md hover:-translate-y-0.5 animate-in fade-in zoom-in-95 fill-mode-both"
                         )}
                       >
                         <span className="text-sm font-bold truncate min-w-0 flex-1 text-right text-foreground">
@@ -423,7 +446,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                   {visibleRegions.map(([region, list]) => {
                     return (
                       <div key={region}>
-                        <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                        <div className={cn("grid grid-cols-2 gap-2", !isMobile && "animate-in fade-in slide-in-from-bottom-3 duration-300")}>
                           {list.map((customer, cIdx) => {
                             const isSelected = selectedCustomerId === customer.id;
                             const storeName = (language !== 'ar' && (customer as any).store_name_fr)
@@ -484,15 +507,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 key={customer.id}
                                 type="button"
                                 style={{
-                                  animationDelay: `${cIdx * 30}ms`,
+                                  ...(isMobile ? {} : { animationDelay: `${cIdx * 30}ms` }),
                                   border: `1.5px solid ${borderColor}`,
                                   boxShadow: primaryColors
                                     ? `0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.08) inset, 0 2px 4px ${primaryColors.bg}33, 0 1px 2px hsl(0 0% 0% / 0.08)`
                                     : '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 1px 3px hsl(0 0% 0% / 0.1)',
                                 }}
                                 className={cn(
-                                  "relative flex flex-col items-stretch rounded-xl overflow-hidden text-center bg-background transition-all hover:-translate-y-0.5 select-none min-h-[52px]",
-                                  "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
+                                  "relative flex flex-col items-stretch rounded-xl overflow-hidden text-center bg-background select-none min-h-[52px]",
+                                  isMobile ? "transition-colors duration-150" : "transition-all hover:-translate-y-0.5 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
                                   isSelected && "ring-2 ring-primary/40"
                                 )}
                                 title={topText}
@@ -510,9 +533,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 <div className="flex items-stretch bg-foreground">
                                   {startTypes.map((e, i) => renderChip(e, i, 'start'))}
                                   <div className="flex-1 min-w-0 px-2 py-1 flex items-center justify-center text-background">
-                                    <FitText className="font-bold text-center" min={8} max={15}>
-                                      {topText}
-                                    </FitText>
+                                    {isMobile ? (
+                                      <span className="block w-full truncate text-center text-[13px] font-bold leading-tight">
+                                        {topText}
+                                      </span>
+                                    ) : (
+                                      <FitText className="font-bold text-center" min={8} max={15}>
+                                        {topText}
+                                      </FitText>
+                                    )}
                                   </div>
                                   {endTypes.map((e, i) => renderChip(e, i, 'end'))}
                                 </div>
@@ -522,9 +551,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                     "flex-1 min-w-0 px-2 py-1 flex items-center justify-center",
                                     hasDebt ? "text-destructive-foreground" : "text-foreground"
                                   )}>
-                                    <FitText className="font-medium text-center" min={8} max={13}>
-                                      {bottomText || '—'}
-                                    </FitText>
+                                    {isMobile ? (
+                                      <span className="block w-full truncate text-center text-[12px] font-medium leading-tight">
+                                        {bottomText || '—'}
+                                      </span>
+                                    ) : (
+                                      <FitText className="font-medium text-center" min={8} max={13}>
+                                        {bottomText || '—'}
+                                      </FitText>
+                                    )}
                                   </div>
                                   {zoneLabel && (
                                     <div

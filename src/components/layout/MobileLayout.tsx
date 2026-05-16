@@ -17,22 +17,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
-import RoleSelectionDialog from '@/components/auth/RoleSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
-import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
 
 // ManagerConfirmationsPanel merged into StockConfirmationsPopover
-import StockAlertsNotification from '@/components/stock/StockAlertsNotification';
 import TasksPopover from '@/components/tasks/TasksPopover';
-import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
 // DebtCollectionsPopover moved into SectorCustomersPopover
-import SectorCustomersPopover from '@/components/sectors/SectorCustomersPopover';
-import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 
 
-import ReceiptModificationsNotification from '@/components/printing/ReceiptModificationsNotification';
-import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
 import { useChat } from '@/hooks/useChat';
 import { ALGERIAN_WILAYAS } from '@/data/algerianWilayas';
 import { useNavigation } from '@/hooks/useNavigation';
@@ -44,6 +35,12 @@ import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import RefreshButton from '@/components/layout/RefreshButton';
 import BranchWilayaBadges from '@/components/company-manager/BranchWilayaBadges';
+
+const BranchSelectionDialog = React.lazy(() => import('@/components/auth/BranchSelectionDialog'));
+const RoleSelectionDialog = React.lazy(() => import('@/components/auth/RoleSelectionDialog'));
+const InvoiceRequestDialog = React.lazy(() => import('@/components/treasury/InvoiceRequestDialog'));
+const TodayCustomersDialog = React.lazy(() => import('@/components/sectors/TodayCustomersDialog'));
+const StockConfirmationsPopover = React.lazy(() => import('@/components/stock/StockConfirmationsPopover'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -456,7 +453,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
           {(activeRole?.custom_role_code === 'delivery_rep'
             || activeRole?.custom_role_code === 'warehouse_manager'
-          ) && <StockConfirmationsPopover />}
+          ) && (
+            <React.Suspense fallback={null}>
+              <StockConfirmationsPopover />
+            </React.Suspense>
+          )}
           
           
           {!isTasksHidden && <TasksPopover />}
@@ -983,24 +984,36 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       </nav>
 
       {/* Branch Selection Dialog */}
-      <BranchSelectionDialog
-        open={showBranchSelection}
-        onSelectBranch={selectBranch}
-      />
+      {showBranchSelection && (
+        <React.Suspense fallback={null}>
+          <BranchSelectionDialog
+            open={showBranchSelection}
+            onSelectBranch={selectBranch}
+          />
+        </React.Suspense>
+      )}
 
       {/* Role Selection Dialog (for switching roles without logging out) */}
-      <RoleSelectionDialog
-        open={showRoleSelection}
-        roles={availableRoles}
-        onSelectRole={selectRole}
-      />
+      {showRoleSelection && (
+        <React.Suspense fallback={null}>
+          <RoleSelectionDialog
+            open={showRoleSelection}
+            roles={availableRoles}
+            onSelectRole={selectRole}
+          />
+        </React.Suspense>
+      )}
       
       {showInvoiceButton && (
-        <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />
+        <React.Suspense fallback={null}>
+          {invoiceRequestOpen && <InvoiceRequestDialog open={invoiceRequestOpen} onOpenChange={setInvoiceRequestOpen} />}
+        </React.Suspense>
       )}
 
       {isFieldWorker && !isTodayCustomersHidden && (
-        <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />
+        <React.Suspense fallback={null}>
+          {todayCustomersOpen && <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />}
+        </React.Suspense>
       )}
     </div>
   );
