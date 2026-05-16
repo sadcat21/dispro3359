@@ -107,7 +107,10 @@ export const useCreateSession = () => {
           status: 'completed',
           completed_at: new Date().toISOString(),
           is_treasury_posted: false,
-        })
+          unload_confirmed: true,
+          unload_notes: params.unload_notes || null,
+          unload_confirmed_at: new Date().toISOString(),
+        } as any)
         .select()
         .single();
 
