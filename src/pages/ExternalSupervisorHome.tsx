@@ -12,7 +12,7 @@ import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { Customer } from '@/types/database';
 import {
-  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet,
+  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3,
 } from 'lucide-react';
 
 const ExternalSupervisorHome: React.FC = () => {
@@ -38,6 +38,7 @@ const ExternalSupervisorHome: React.FC = () => {
   });
 
   const buttons = [
+    { key: 'sales_summary', label: 'تجميع المبيعات', icon: BarChart3, onClick: () => navigate('/manager-sales-summary'), palette: { border: 'border-rose-300', icon: 'text-rose-500' } },
     { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
   ];
@@ -81,7 +82,7 @@ const ExternalSupervisorHome: React.FC = () => {
       </div>
 
       <div className="px-2 sm:px-3 py-2">
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {buttons.map((b) => {
             const Icon = b.icon;
             return (
