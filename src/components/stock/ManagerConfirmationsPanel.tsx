@@ -105,11 +105,11 @@ const ManagerConfirmationsPanel: React.FC = () => {
   }, [warehouseStock, editItems]);
 
   const loadedQtyMap = useMemo(
-    () => Object.fromEntries(editItems.map(i => [i.product_id, i.quantity])),
+    () => Object.fromEntries(editItems.map(i => [i.product_id, Number(i.quantity || 0) + getRawGiftQuantity(i)])),
     [editItems]
   );
   const giftQtyMap = useMemo(
-    () => Object.fromEntries(editItems.map(i => [i.product_id, i.gift_quantity || 0])),
+    () => Object.fromEntries(editItems.map(i => [i.product_id, getRawGiftQuantity(i)])),
     [editItems]
   );
 
@@ -317,6 +317,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
         onEditProduct={handleEditProduct}
         onRemoveProduct={handleRemoveProduct}
         onConfirmLoading={() => handleSaveAmendment(editItems)}
+        quantityDisplayMode="raw"
         workerName={editingConf?.worker?.full_name || ''}
         showCloseButton
       />
