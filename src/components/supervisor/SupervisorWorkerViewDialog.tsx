@@ -47,7 +47,7 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
         .select('worker_id, custom_role_id, branch_id, is_active')
         .eq('is_active', true)
         .in('custom_role_id', roleIds);
-      if (activeBranch?.id) wrQuery = wrQuery.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+      if (activeBranch?.id) wrQuery = wrQuery.eq('branch_id', activeBranch.id);
       const { data: wr, error: wrErr } = await wrQuery;
       if (wrErr) throw wrErr;
 
