@@ -366,7 +366,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                       </div>
                       <div className="px-1 py-1 bg-card flex items-center justify-center gap-1 border-t border-border">
                         <span className="flex h-6 min-w-6 px-1.5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold" dir="ltr">
-                          {dbBPDisplayAlways(n.quantity, n.piecesPerBox)}
+                          {dbBPDisplayAlways(Math.max(0, n.quantity - n.giftQuantity), n.piecesPerBox)}
                         </span>
                         {(n.giftQuantity > 0 || n.giftPieces > 0) && (() => {
                           const giftBoxes = n.giftQuantity + (n.giftPieces / Math.max(1, n.piecesPerBox));

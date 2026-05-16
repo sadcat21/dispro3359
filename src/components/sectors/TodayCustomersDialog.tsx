@@ -3517,9 +3517,10 @@ const OrderDetailsDialog: React.FC<{ order: any; onClose: () => void; onCancelOr
                           <span className="font-bold text-sm whitespace-nowrap">{Number(itemTotal || 0).toLocaleString()} DA</span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                          <span>الكمية: {quantity}</span>
+                          <span>الكمية المباعة: {Math.max(0, quantity - giftQty)}</span>
                           <span>السعر: {Number(unitPrice || 0).toLocaleString()} DA</span>
                           {giftQty > 0 && <span className="text-emerald-600">هدية: {giftQty}</span>}
+                          {giftQty > 0 && <span className="text-muted-foreground">المجموع في الشاحنة: {quantity}</span>}
                         </div>
                       </div>
                     </div>
