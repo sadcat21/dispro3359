@@ -274,7 +274,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const currentQty = loadedQtyMap[p.id] || 0;
       const currentGift = giftQtyMap[p.id] || 0;
       const ppbVal = p.pieces_per_box || 1;
-      const regularQty = quantityDisplayMode === 'raw' ? currentQty : Math.max(0, currentQty - currentGift);
+      const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
       setSingleQtyFields(regularQty > 0
         ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(regularQty), pieces: '' } : piecesToFields(regularQty, ppbVal))
