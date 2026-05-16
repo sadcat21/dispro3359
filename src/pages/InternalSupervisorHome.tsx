@@ -134,6 +134,13 @@ const InternalSupervisorHome: React.FC = () => {
             <ClipboardList className="w-5 h-5" />
             <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
+          <button
+            onClick={() => setShowCreateOrderDialog(true)}
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-4 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-base font-bold">إنشاء طلب جديد</span>
+          </button>
         </div>
       </div>
 
