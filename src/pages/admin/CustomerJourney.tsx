@@ -351,6 +351,30 @@ const CustomerJourney = () => {
     enabled: !!selectedCustomerId,
   });
 
+  const orderIdsList = useMemo(() => orders.map((o) => o.id), [orders]);
+
+  const { data: orderItemsSubtypes = {} } = useQuery({
+    queryKey: ['customer-journey-order-subtypes', orderIdsList],
+    queryFn: async () => {
+      if (orderIdsList.length === 0) return {} as Record<string, string[]>;
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('order_id, price_subtype')
+        .in('order_id', orderIdsList);
+      if (error) throw error;
+      const map: Record<string, Set<string>> = {};
+      (data || []).forEach((row: any) => {
+        if (!row.price_subtype) return;
+        if (!map[row.order_id]) map[row.order_id] = new Set();
+        map[row.order_id].add(row.price_subtype);
+      });
+      const result: Record<string, string[]> = {};
+      Object.entries(map).forEach(([k, v]) => { result[k] = Array.from(v); });
+      return result;
+    },
+    enabled: orderIdsList.length > 0,
+  });
+
   const { data: visits = [], isLoading: visitsLoading } = useQuery({
     queryKey: ['customer-journey-visits', selectedCustomerId, role, activeBranch?.id],
     queryFn: async () => {
