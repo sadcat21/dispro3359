@@ -117,7 +117,7 @@ const InternalSupervisorHome: React.FC = () => {
       titleKey: 'internal_supervisor.section_performance',
       icon: BarChart3,
       items: [
-        { key: 'sales_summary', label: t('admin_home.item.manager_sales_summary'), icon: BarChart3, path: '/manager-sales-summary' },
+        { key: 'sales_summary', label: t('admin_home.item.manager_sales_summary'), icon: BarChart3, path: '/my-achievements' },
         { key: 'promo_table', label: t('nav.table'), icon: FileSpreadsheet, path: '/promo-table' },
         { key: 'promo_tracking', label: t('admin.promo_tracking'), icon: Gift, path: '/promo-tracking' },
       ],
