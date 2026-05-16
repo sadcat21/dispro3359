@@ -80,9 +80,7 @@ const InternalSupervisorHome: React.FC = () => {
       icon: Truck,
       items: [
         { key: 'orders', label: t('nav.orders'), icon: ShoppingCart, path: '/orders' },
-        { key: 'order_tracking', label: t('nav.order_tracking'), icon: Radar, path: '/order-tracking' },
         { key: 'customers', label: t('nav.customers'), icon: UserCheck, path: '/customers' },
-        { key: 'customer_journey', label: t('nav.customer_journey'), icon: Activity, path: '/customer-journey' },
         { key: 'customer_debts', label: t('debts.title'), icon: Banknote, path: '/customer-debts' },
       ],
     },
@@ -92,8 +90,6 @@ const InternalSupervisorHome: React.FC = () => {
       icon: ShieldCheck,
       items: [
         { key: 'worker_tracking', label: t('navigation.worker_tracking'), icon: MapPin, path: '/worker-tracking' },
-        { key: 'geo_operations', label: t('nav.geo_operations'), icon: Navigation, path: '/geo-operations' },
-        { key: 'activity_logs', label: t('nav.activity_logs'), icon: Activity, path: '/activity-logs' },
       ],
     },
     // الأداء العام
