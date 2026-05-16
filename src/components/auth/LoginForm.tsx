@@ -114,6 +114,7 @@ const QUICK_GROUP_ORDER = [
   'admin_assistant',
   'branch_admin',
   'internal_supervisor',
+  'external_supervisor',
   'supervisor',
   'warehouse_manager',
   'sales_rep',
@@ -177,6 +178,14 @@ const QUICK_GROUP_META: Record<string, { label: string; sectionClass: string; ba
     cardClass: 'border-indigo-200 bg-indigo-50/20 hover:border-indigo-300 hover:bg-indigo-50/40',
     iconWrapClass: 'bg-indigo-50 ring-indigo-100',
     branchTextClass: 'text-indigo-500',
+  },
+  external_supervisor: {
+    label: 'المشرفون الخارجيون',
+    sectionClass: 'border-teal-200 bg-teal-50 text-teal-700',
+    badgeClass: 'bg-teal-100 text-teal-700',
+    cardClass: 'border-teal-200 bg-teal-50/20 hover:border-teal-300 hover:bg-teal-50/40',
+    iconWrapClass: 'bg-teal-50 ring-teal-100',
+    branchTextClass: 'text-teal-500',
   },
   supervisor: {
     label: 'المشرفون',
