@@ -1,81 +1,41 @@
+# خطة: إضافة دور "مشرف خارجي" (external_supervisor)
 
-# نظام العروض المؤجلة (Deferred Offer Confirmation)
+## الهدف
+دور جديد بنفس تصميم وهوية المشرف الداخلي، مع أزرار مختلفة في الصفحة الرئيسية:
+1. **إنشاء طلب** (نفس زر العامل/مندوب المبيعات)
+2. **مهام العمال اليومية** (نفس حوار `TodayCustomersDialog` المستخدم في المشرف الداخلي)
+3. **جمع المبيعات** (نفس آلية العامل)
+4. **إدارة العملاء** بصلاحيات إضافة/تعديل/حذف مع اشتراط الموافقة (نفس نظام طلبات العمال)
 
-## الفكرة
-عند إنشاء/تعديل عرض، يُضاف Switch جديد: **"عرض مؤجل التأكيد"** (`is_deferred_confirmation`).
-- إذا كان مُفعَّلاً: عند تطبيق العرض في البيع، يُسجَّل تفصيل العرض والهدية في السجل، **ولا** تُخصم كمية الهدية من رصيد العامل.
-- يظهر السجل في تبويب جديد "العروض بانتظار التأكيد" داخل صفحة إنجازات اليوم.
-- لكل زبون كرت؛ بالضغط عليه تُعرض المنتجات التي سُجِّل لها عرض، مع زر **"تأكيد"** لكل منتج على حدة.
-- عند التأكيد فقط، تُخصم كمية الهدية من مخزون العامل وتُسجَّل الحركة فعلياً.
+## التغييرات
 
-## 1. قاعدة البيانات (migration)
+### 1) قاعدة البيانات (migration)
+- إضافة `external_supervisor` إلى enum `app_role`.
+- إدراج صف في `custom_roles` بكود `external_supervisor` واسم "مشرف خارجي".
+- نسخ صلاحيات `worker` الأساسية إلى الدور الجديد (لإدارة العملاء + إنشاء الطلب + جمع المبيعات)، بحيث تمر طلبات العملاء عبر نفس جدول `customer_change_requests` كما هو الحال للعمال.
 
-### تعديل `product_offers`
-- `is_deferred_confirmation boolean default false`
+### 2) الأنواع والمساعدات
+- `src/types/database.ts`: إضافة `'external_supervisor'` إلى `AppRole`.
+- `src/lib/utils.ts`: إضافة `isExternalSupervisorRole()`.
 
-### جدول جديد `pending_offer_confirmations`
-أعمدة:
-- `id, created_at, updated_at`
-- `order_id` (مرجع للطلب الذي طُبِّق فيه العرض، nullable)
-- `order_item_id` (nullable)
-- `offer_id` (مرجع `product_offers`)
-- `product_id`, `product_name`, `pieces_per_box`
-- `gift_product_id`, `gift_product_name`
-- `gift_boxes int default 0`, `gift_pieces int default 0`
-- `customer_id`, `customer_name`
-- `worker_id`, `worker_name`
-- `branch_id`, `branch_name`
-- `source` (`direct_sale|delivery_sale|warehouse_sale|order`)
-- `status text default 'pending'` (`pending|confirmed|rejected`)
-- `confirmed_at timestamptz null`, `confirmed_by uuid null`
-- `notes text null`
+### 3) الصفحة الرئيسية للدور
+- ملف جديد `src/pages/ExternalSupervisorHome.tsx` مبني نسخاً من `InternalSupervisorHome.tsx` مع نفس الهوية البصرية (نفس الـ hero والـ palette الأزرق)، لكن الشبكة تحتوي فقط على 4 أزرار: إنشاء طلب، مهام العمال اليومية، جمع المبيعات، إدارة العملاء.
+- `src/pages/Index.tsx`: توجيه الدور الجديد إلى `ExternalSupervisorHome`.
 
-RLS:
-- قراءة: المستخدمون المصادق عليهم في نفس الفرع.
-- إدراج: المستخدمون المصادق عليهم.
-- تحديث (للتأكيد/الرفض): المدراء (`has_role admin/branch_manager`) أو صاحب السجل.
+### 4) التوجيه والحماية
+- `src/App.tsx`: إضافة قائمة `EXTERNAL_SUPERVISOR_ALLOWED_PATHS` (`/`, `/orders`, `/customers`, `/sales`...) وتطبيقها في `ProtectedRoute`.
+- `src/hooks/useNavigation.ts`: فرع navigation خاص بالدور.
 
-دالة `confirm_pending_offer(p_id uuid)`:
-- تحدّث `status='confirmed', confirmed_at=now(), confirmed_by=auth.uid()`.
-- تُدرج صفاً في `sales_tracking` بكميات الهدية فقط (sold_*=0, gift_*=الكمية) لخصم المخزون كما يفعل النظام الحالي.
+### 5) الترجمات وتسميات الدور
+- `src/i18n/translations.ts`: مفاتيح `workers.role_external_supervisor`, `role_selection.external_supervisor_desc`, إلخ.
+- `src/pages/admin/Workers.tsx` و `src/components/workers/TestWorkersTab.tsx`: إضافة التسمية.
+- `src/components/auth/LoginForm.tsx` و `RoleSelectionDialog.tsx`: إضافة الستايل واللون (مقترح: tealor أخضر مميز).
 
-## 2. الأنواع والثوابت
-- `src/types/productOffer.ts`: إضافة `is_deferred_confirmation?: boolean`.
-- `src/types/pendingOffer.ts` (جديد): واجهة `PendingOfferConfirmation`.
+### 6) موافقة تعديلات العملاء
+- التحقق من أن `CustomerApprovalTab.tsx` يعالج طلبات `external_supervisor` تلقائياً (لا حاجة لاستثناء — كونه ليس admin، ستمر طلباته كأي عامل).
 
-## 3. تطبيق العرض في تدفقات البيع
-الملفات المتأثرة (المسارات التي تطبّق العروض حالياً):
-- `src/components/orders/ProductQuantityDialog.tsx`
-- `src/components/orders/ModifyOrderDialog.tsx`
-- مكوّنات البيع المباشر/المستودع التي تستخدم `recordSaleTracking`
+## ملاحظات تقنية
+- لن أُغيّر منطق "إنشاء الطلب" أو "جمع المبيعات" — سأعيد استخدام نفس صفحات/مكونات العامل (`/orders`, `WorkerHome` collect flow) ليتجنّب الازدواجية.
+- بعد تطبيق الهجرة يجب تحديث types من Supabase تلقائياً.
 
-عند الحفظ:
-- إذا العرض المُطبَّق `is_deferred_confirmation=true`:
-  - **لا تُمرَّر** كميات الهدية إلى `recordSaleTracking` (تبقى 0).
-  - تُستدعى دالة جديدة `recordPendingOfferConfirmation(...)` تُدرج صفاً في `pending_offer_confirmations`.
-- إذا `false`: السلوك الحالي بدون تغيير.
-
-ملف جديد: `src/utils/pendingOfferConfirmations.ts` يحتوي `recordPendingOfferConfirmation()` و`confirmPendingOffer(id)`.
-
-## 4. واجهة إنشاء/تعديل العرض
-- `src/components/offers/AddProductOfferDialog.tsx` (أو `CreateOfferDialog.tsx`):
-  - إضافة Switch ضمن "إعدادات العرض": **"تأكيد لاحق (لا يُخصم من رصيد العامل حتى يُؤكَّد)"**.
-
-## 5. تبويب "العروض بانتظار التأكيد" في إنجازات اليوم
-- إيجاد صفحة الإنجازات الحالية (يُرجَّح `src/pages/admin/SalesTrackingLedger.tsx` أو ما يكافئها) واستخدام `<Tabs>`.
-- تبويب جديد: قائمة كروت لكل زبون فيه `pending` (تجميع حسب `customer_id`):
-  - عنوان الكارت: اسم الزبون + عدد المنتجات المعلَّقة.
-  - عند الضغط: Dialog يعرض كل منتج بسطر فيه: اسم المنتج + كمية الهدية بصيغة B.P + زر **"تأكيد"** يستدعي `confirm_pending_offer`.
-- Hook جديد: `src/hooks/usePendingOfferConfirmations.ts` (fetch + realtime + confirm).
-
-## 6. عرض الهدية في تفاصيل البيع
-- تظل الهدية مرئية في تفاصيل الطلب/البيع كما هي اليوم؛ نضيف فقط شارة "بانتظار التأكيد" حين يكون السجل المرتبط في حالة pending (اختياري في `OrderDetailsDialog.tsx`).
-
-## التفاصيل التقنية
-- خصم المخزون اليوم يتم عبر `sales_tracking` + triggers DB موجودة. الدالة `confirm_pending_offer` ستُدرج صفاً مكافئاً للحركة لتفعيل نفس المسار.
-- لا تغيير على ملف `src/integrations/supabase/types.ts` (يُعاد توليده تلقائياً بعد migration).
-
-## أسئلة قبل البدء
-1. تأكيد المسار: تبويب التأكيد يكون داخل صفحة إنجازات اليوم الحالية أم صفحة مستقلة جديدة؟
-2. من له صلاحية التأكيد: العامل نفسه، مدير الفرع فقط، أم كلاهما؟
-3. هل الرفض مطلوب الآن (زر "رفض") أم يكفي زر "تأكيد" فقط في هذه المرحلة؟
+هل توافق على البدء؟
