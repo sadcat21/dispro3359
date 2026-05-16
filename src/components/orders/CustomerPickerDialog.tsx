@@ -54,6 +54,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { activeBranch } = useAuth();
   const { customerTypes } = useCustomerTypes();
   const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
   const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
@@ -196,10 +197,17 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   useEffect(() => {
     if (open) {
       setSearch('');
+      setSearchInput('');
       setActiveSectorKey(null);
       setActiveRegionKey(null);
     }
   }, [open]);
+
+  // Debounce: keep typing fluid, commit search to heavy filter after a short delay
+  useEffect(() => {
+    const id = window.setTimeout(() => setSearch(searchInput), 180);
+    return () => window.clearTimeout(id);
+  }, [searchInput]);
 
   useEffect(() => {
     setActiveRegionKey(null);
@@ -326,8 +334,8 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={t('customer_picker.search_placeholder')}
                 className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
                 autoFocus
