@@ -52,6 +52,8 @@ interface ProductPickerDialogProps {
   loadedQtyMap?: Record<string, number>;
   /** Map of product_id → gift quantity in session */
   giftQtyMap?: Record<string, number>;
+  /** Display selected quantities as raw counts instead of box.piece notation */
+  quantityDisplayMode?: 'box-piece' | 'raw';
   /** Map of product_id → offer info for gift suggestions */
   offersMap?: Record<string, OfferInfo>;
   hideHeader?: boolean;
@@ -118,6 +120,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   needsMap = {},
   loadedQtyMap = {},
   giftQtyMap = {},
+  quantityDisplayMode = 'box-piece',
   offersMap = {},
   hideHeader = false,
   showCloseButton = false,
@@ -273,7 +276,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const ppbVal = p.pieces_per_box || 1;
       const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
-      setSingleQtyFields(regularQty > 0 ? piecesToFields(regularQty, ppbVal) : createDefaultSingleFields());
+      setSingleQtyFields(regularQty > 0
+        ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(regularQty), pieces: '' } : piecesToFields(regularQty, ppbVal))
+        : createDefaultSingleFields()
+      );
       setSingleGiftFields(currentGift > 0 ? piecesToFields(currentGift, ppbVal) : createDefaultSingleFields());
       if (currentGift > 0) setOfferActivated(prev => ({ ...prev, [p.id]: true }));
       setSingleGiftQty(0);
