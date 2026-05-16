@@ -24,6 +24,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { isOfferCurrentlyActive } from '@/utils/productOffers';
+import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
+import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 
 type OfferSnapshot = {
   id: string;
