@@ -10018,6 +10018,7 @@ export type Database = {
         | "warehouse_manager"
         | "company_manager"
         | "internal_supervisor"
+        | "external_supervisor"
       target_metric_type: "sales_amount" | "deliveries_count" | "cartons_sold"
       target_period_type: "daily" | "weekly" | "monthly"
       target_progress_status: "in_progress" | "achieved" | "missed"
@@ -10162,6 +10163,7 @@ export const Constants = {
         "warehouse_manager",
         "company_manager",
         "internal_supervisor",
+        "external_supervisor",
       ],
       target_metric_type: ["sales_amount", "deliveries_count", "cartons_sold"],
       target_period_type: ["daily", "weekly", "monthly"],
