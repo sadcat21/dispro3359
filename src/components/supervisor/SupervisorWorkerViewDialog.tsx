@@ -179,9 +179,26 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
                 </button>
               );
             })}
+            {isAdmin && (
+              <button
+                onClick={() => setSalesOpen(true)}
+                className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl text-white bg-gradient-to-br from-emerald-500 to-emerald-700 hover:shadow-lg hover:scale-[1.02] transition-all min-h-[100px] col-span-2"
+              >
+                <TrendingUp className="w-7 h-7" />
+                <span className="text-xs font-bold text-center leading-tight">تجميع المبيعات</span>
+              </button>
+            )}
           </div>
         )}
       </DialogContent>
+      {isAdmin && picked && (
+        <WorkerSalesSummaryDialog
+          open={salesOpen}
+          onOpenChange={setSalesOpen}
+          workerId={picked.id}
+          workerName={picked.name}
+        />
+      )}
     </Dialog>
   );
 };
