@@ -189,11 +189,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
 
   const handleShowConfirmation = () => {
     if (!selectedWorkerId || !calc) { toast.error('اختر العامل'); return; }
     setShowConfirmation(true);
+  };
+
+  // Branch manager must confirm full truck unload before save (new sessions only)
+  const handleProceedToSave = () => {
+    if (isEditMode) {
+      // Editing existing session: skip unload step
+      handleSubmit();
+      return;
+    }
+    setShowConfirmation(false);
+    setShowUnloadDialog(true);
   };
 
   const handleSubmit = async () => {
