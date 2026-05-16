@@ -370,6 +370,7 @@ const OutgoingTab: React.FC<{
 
   const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, Number(item.quantity || 0)])), [editItems]);
   const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, getRawGiftQuantity(item)])), [editItems]);
+  const giftUnitMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.gift_unit || 'piece'])), [editItems]);
   const editProductIds = useMemo(() => editItems.map(i => i.product_id), [editItems]);
   const offersMap = useProductOffersMap(editProductIds, 'worker_loading');
 
@@ -528,6 +529,7 @@ const OutgoingTab: React.FC<{
       selectedProductIds={editItems.map(item => item.product_id)}
       loadedQtyMap={loadedQtyMap}
       giftQtyMap={giftQtyMap}
+      giftUnitMap={giftUnitMap}
       onAddProducts={handleAddProducts}
       onEditProduct={handleEditProduct}
       onRemoveProduct={handleRemoveProduct}
