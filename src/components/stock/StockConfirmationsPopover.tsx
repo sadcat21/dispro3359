@@ -675,6 +675,10 @@ const StockConfirmationsPopover: React.FC = () => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
   };
 
+  const handleCancel = (id: string) => {
+    managerHook.cancelConfirmation.mutate({ confirmationId: id });
+  };
+
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [confirmDeleteAllOpen, setConfirmDeleteAllOpen] = useState(false);
   const handleDeleteAllLogs = async () => {
