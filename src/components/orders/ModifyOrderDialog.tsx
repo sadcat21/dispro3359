@@ -23,6 +23,8 @@ import PostDeliveryConfirmDialog from './PostDeliveryConfirmDialog';
 import InvoicePaymentMethodSelect from './InvoicePaymentMethodSelect';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { InvoicePaymentMethod } from '@/types/stamp';
+import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
+import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
