@@ -24,12 +24,14 @@ const roleMeta: Record<string, { label: string; icon: React.ComponentType<{ clas
 };
 
 const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => {
-  const { activeBranch, user } = useAuth();
+  const { activeBranch, user, role } = useAuth();
+  const isAdmin = isAdminRole(role);
   const branchId = activeBranch?.id || user?.branch_id || null;
   const navigate = useNavigate();
   const { setSelectedWorker } = useSelectedWorker();
   const [step, setStep] = useState<'worker' | 'action'>('worker');
   const [picked, setPicked] = useState<{ id: string; name: string } | null>(null);
+  const [salesOpen, setSalesOpen] = useState(false);
 
   const { data: workers = [], isLoading } = useQuery({
     queryKey: ['supervisor-pick-worker-roles', branchId],
