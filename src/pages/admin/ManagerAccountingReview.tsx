@@ -315,9 +315,6 @@ const ManagerAccountingReview: React.FC = () => {
         onConfirm={handleConfirmUnloadAndSave}
         isPending={confirmMutation.isPending}
       />
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
