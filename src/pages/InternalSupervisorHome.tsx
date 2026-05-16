@@ -9,8 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
-import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
-import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { Customer } from '@/types/database';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
