@@ -320,7 +320,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
         onEditProduct={handleEditProduct}
         onRemoveProduct={handleRemoveProduct}
         onConfirmLoading={() => handleSaveAmendment(editItems)}
-        quantityDisplayMode="raw"
+        offersMap={offersMap}
         workerName={editingConf?.worker?.full_name || ''}
         showCloseButton
       />
