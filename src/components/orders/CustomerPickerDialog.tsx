@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import CustomerQuickProfileDialog from '@/components/orders/CustomerQuickProfileDialog';
 import FitText from '@/components/customers/FitText';
 import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CustomerPickerDialogProps {
   open: boolean;
@@ -35,7 +36,8 @@ interface SectorGroup {
 }
 
 const normalizeSectorGroupName = (name: string) => name.replace(/\s+/g, ' ').trim();
-const SEARCH_RESULT_LIMIT = 80;
+const SEARCH_RESULT_LIMIT_DESKTOP = 80;
+const SEARCH_RESULT_LIMIT_MOBILE = 30;
 
 const getCustomerSearchText = (customer: Customer) => [
   customer.name,
