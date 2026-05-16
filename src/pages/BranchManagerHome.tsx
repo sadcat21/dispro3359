@@ -188,7 +188,7 @@ const BranchManagerHome: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-2">
       {/* Offers Showcase — blue identity for branch manager */}
       <ProductShowcaseHero
         bgImage={managerHeroBg}
