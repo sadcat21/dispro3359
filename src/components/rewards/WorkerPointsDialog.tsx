@@ -35,7 +35,7 @@ const WorkerPointsDialog: React.FC<Props> = ({ open, onOpenChange, workerId, wor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5" />

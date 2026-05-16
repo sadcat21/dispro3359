@@ -279,7 +279,7 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh]" dir="rtl">
+      <DialogContent className="max-w-lg max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <RefreshCw className="w-5 h-5 text-primary" />
@@ -551,7 +551,7 @@ const SectorCoverageDialog: React.FC<SectorCoverageDialogProps> = ({ open, onOpe
 
     {/* Mode selection dialog for conflicts */}
     <AlertDialog open={showModeDialog} onOpenChange={setShowModeDialog}>
-      <AlertDialogContent dir="rtl" className="max-w-sm">
+      <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-amber-500" />

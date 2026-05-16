@@ -657,7 +657,7 @@ const MyDeliveries: React.FC = () => {
       : 'border-r-yellow-500';
 
     return (
-      <Card key={order.id} className={`overflow-hidden border-r-4 ${sideBorder}`} dir="rtl">
+      <Card key={order.id} className={`overflow-hidden border-r-4 ${sideBorder}`}>
         <CardContent className="p-0">
           {/* Compact grid: store icon | customer info | status badge + assigned worker */}
           <div
@@ -792,7 +792,7 @@ const MyDeliveries: React.FC = () => {
       </div>
 
       {/* Delivery Type Tabs (Orders vs Direct Sales vs Postponed) */}
-      <Tabs value={deliveryType} onValueChange={(v) => { setDeliveryType(v as DeliveryType); setActiveTab('all'); }} dir="rtl">
+      <Tabs value={deliveryType} onValueChange={(v) => { setDeliveryType(v as DeliveryType); setActiveTab('all'); }}>
         <TabsList className="w-full h-10 p-1 bg-muted/60">
           <TabsTrigger value="orders" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <Truck className="w-4 h-4" />
@@ -811,7 +811,7 @@ const MyDeliveries: React.FC = () => {
 
       {/* Status Tabs - only for orders, not direct sales */}
       {deliveryType === 'orders' && (
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabStatus)} dir="rtl">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabStatus)}>
           <TabsList className="w-full h-auto p-1 bg-muted/60 flex-wrap">
             {tabs.map((tab) => {
               const count = statusCounts[tab.value] || 0;
@@ -928,7 +928,7 @@ const MyDeliveries: React.FC = () => {
 
       {/* Order Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-sm max-h-[90vh] flex flex-col p-0" dir="rtl">
+        <DialogContent className="max-w-sm max-h-[90vh] flex flex-col p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle>{t('orders.details')}</DialogTitle>
           </DialogHeader>
@@ -1215,7 +1215,7 @@ const MyDeliveries: React.FC = () => {
       </AlertDialog>
       {/* Postpone Day Picker Dialog */}
       <Dialog open={!!postponeOrderId} onOpenChange={(open) => { if (!open) setPostponeOrderId(null); }}>
-        <DialogContent className="max-w-xs" dir="rtl">
+        <DialogContent className="max-w-xs">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarClock className="w-5 h-5 text-amber-600" />

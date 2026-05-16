@@ -453,7 +453,7 @@ const SessionPrintView: React.FC<SessionPrintViewProps> = ({
   const matchedItems = items.filter(item => !discrepancyProductIds.has(item.product_id));
 
   const printContent = session && (
-    <div ref={printRef} className="print-container" dir="rtl" style={{ display: 'none' }}>
+    <div ref={printRef} className="print-container" style={{ display: 'none' }}>
       <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, opacity: 0.15, pointerEvents: 'none' }}>
         <img src={logoImage} alt="" style={{ width: '280px', height: 'auto' }} />
       </div>
@@ -635,7 +635,7 @@ const SessionPrintView: React.FC<SessionPrintViewProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Printer className="w-4 h-4" />
@@ -659,7 +659,7 @@ const SessionPrintView: React.FC<SessionPrintViewProps> = ({
               </div>
 
               {/* Tabs: Table preview vs Thermal preview */}
-              <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full grid grid-cols-2">
                   <TabsTrigger value="preview" className="gap-1.5 text-xs">
                     <Package className="w-3.5 h-3.5" />

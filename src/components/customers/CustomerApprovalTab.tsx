@@ -473,7 +473,7 @@ const CustomerApprovalTab: React.FC = () => {
 
             {/* Review/Edit Dialog - Full Form matching EditCustomerDialog */}
             <Dialog open={!!reviewRequest} onOpenChange={(open) => !open && setReviewRequest(null)}>
-                <DialogContent className="max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden" dir="rtl">
+                <DialogContent className="max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden">
                     <DialogHeader className="p-4 pb-3 border-b bg-muted/30">
                         <DialogTitle className="flex items-center gap-2">
                             <User className="w-5 h-5 text-primary" />
@@ -594,7 +594,7 @@ const CustomerApprovalTab: React.FC = () => {
                                         <div className="space-y-2">
                                             <Label className="text-xs">المنطقة داخل السكتور</Label>
                                             {addingZone ? (
-                                                <div className="flex gap-2" dir="rtl">
+                                                <div className="flex gap-2">
                                                     <Input value={newZoneName} onChange={(e) => setNewZoneName(e.target.value)} placeholder="اسم المنطقة الجديدة" autoFocus onKeyDown={(e) => e.key === 'Enter' && handleAddZoneApproval()} />
                                                     <Button size="sm" onClick={handleAddZoneApproval} disabled={savingZone || !newZoneName.trim()}>
                                                         {savingZone ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}

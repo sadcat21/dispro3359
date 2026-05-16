@@ -265,7 +265,7 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
 
       <div className="print:hidden">
         <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent className="max-w-[95vw] sm:max-w-6xl max-h-[90vh] overflow-hidden" dir="rtl">
+          <DialogContent className="max-w-[95vw] sm:max-w-6xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base">
                 <Printer className="w-4 h-4" />

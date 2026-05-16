@@ -84,7 +84,7 @@ export const TargetFormDialog: React.FC<Props> = ({ open, onOpenChange, initial 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? 'تعديل هدف' : 'إنشاء هدف جديد'}</DialogTitle>
         </DialogHeader>

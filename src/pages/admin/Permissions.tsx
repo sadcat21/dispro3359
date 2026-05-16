@@ -174,7 +174,7 @@ const Permissions: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="roles" dir="rtl">
+      <Tabs defaultValue="roles">
         <TabsList className="w-full">
           <TabsTrigger value="roles" className="flex-1 gap-1.5">
             <Shield className="w-4 h-4" />

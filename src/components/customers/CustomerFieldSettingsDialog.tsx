@@ -107,7 +107,7 @@ const CustomerFieldSettingsDialog: React.FC<CustomerFieldSettingsDialogProps> = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg" dir="rtl">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
@@ -121,7 +121,7 @@ const CustomerFieldSettingsDialog: React.FC<CustomerFieldSettingsDialogProps> = 
           </div>
         ) : (
           <>
-            <Tabs defaultValue="editable" className="w-full" dir="rtl">
+            <Tabs defaultValue="editable" className="w-full">
               <TabsList className="grid w-full grid-cols-5 h-auto">
                 <TabsTrigger value="editable" className="text-[10px] py-2">تعديل ({counts.editable})</TabsTrigger>
                 <TabsTrigger value="completion" className="text-[10px] py-2">اكتمال ({counts.completion})</TabsTrigger>

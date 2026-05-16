@@ -171,7 +171,7 @@ const CheckVerificationDialog: React.FC<CheckVerificationDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-4 pb-2 border-b">
           <DialogTitle className="flex items-center gap-2 text-base">
             <FileCheck className="w-5 h-5 text-primary" />

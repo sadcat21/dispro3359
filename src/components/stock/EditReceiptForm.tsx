@@ -368,7 +368,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   };
 
   return (
-    <div className="space-y-4" dir="rtl">
+    <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-lime-700">
         <ArrowDownToLine className="w-4 h-4" /> استلام مخزون
       </div>
@@ -509,7 +509,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       </Button>
 
       <Dialog open={showPicker} onOpenChange={setShowPicker}>
-        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden">
           <DialogHeader className="px-3 pt-3 pb-1 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Package className="w-5 h-5 text-primary" /> منتجات الاستلام
@@ -553,7 +553,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
       </Dialog>
 
       <Dialog open={!!currentProduct} onOpenChange={(open) => { if (!open) setSingleProductId(null); }}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base"><Package className="w-4 h-4 text-primary" /> تعديل الاستلام</DialogTitle>
           </DialogHeader>

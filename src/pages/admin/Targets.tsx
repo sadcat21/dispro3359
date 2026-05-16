@@ -8,7 +8,7 @@ const Targets: React.FC = () => {
   const [tab, setTab] = useState('leaderboard');
 
   return (
-    <div className="p-4 space-y-4" dir="rtl">
+    <div className="p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Target className="w-6 h-6 text-primary" />
         <h2 className="text-xl font-bold">أهداف العمال والحوافز</h2>

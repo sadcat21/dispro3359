@@ -208,7 +208,7 @@ const CustomerTypesCard: React.FC = () => {
                         value={editForm.ar}
                         onChange={(e) => setEditForm({ ...editForm, ar: e.target.value })}
                         placeholder="عربي"
-                        dir="rtl"
+                       
                         className="flex-1 h-8 text-sm"
                       />
                     </div>
@@ -249,7 +249,7 @@ const CustomerTypesCard: React.FC = () => {
                         value={editForm.description}
                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                         placeholder="وصف النوع (مثال: محل متوسط في الحي يبيع تشكيلة متنوعة...)"
-                        dir="rtl"
+                       
                         className="flex-1 text-sm min-h-[60px]"
                         rows={2}
                       />

@@ -98,7 +98,7 @@ const EditRewardTaskDialog: React.FC<Props> = ({ task, onOpenChange }) => {
 
   return (
     <Dialog open={!!task} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>تعديل المهمة</DialogTitle>
         </DialogHeader>

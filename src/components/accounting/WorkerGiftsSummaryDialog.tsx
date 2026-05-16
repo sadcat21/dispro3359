@@ -220,7 +220,7 @@ const GiftExpandedCarousel: React.FC<{
                   <div
                     key={idx}
                     className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/80 border border-border/60 text-sm"
-                    dir="rtl"
+                   
                   >
                     <div className="flex flex-col min-w-0 gap-0.5">
                       <div className="flex items-center gap-1.5">
@@ -939,7 +939,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[92dvh] min-h-0 overflow-hidden flex flex-col" dir="rtl">
+      <DialogContent className="max-w-md max-h-[92dvh] min-h-0 overflow-hidden flex flex-col">
         {!expandedProduct && (
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

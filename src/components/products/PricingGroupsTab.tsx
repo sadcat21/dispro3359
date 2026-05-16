@@ -322,7 +322,7 @@ const PricingGroupsTab: React.FC = () => {
               مجموعة جديدة
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col" dir="rtl">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>إنشاء مجموعة تسعير</DialogTitle>
             </DialogHeader>
@@ -454,7 +454,7 @@ const PricingGroupsTab: React.FC = () => {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingGroup} onOpenChange={(open) => !open && setEditingGroup(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>تعديل المجموعة</DialogTitle>
           </DialogHeader>
@@ -508,7 +508,7 @@ const PricingGroupsTab: React.FC = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
@@ -537,7 +537,7 @@ const PricingGroupsTab: React.FC = () => {
 
       {/* Sync Prices Dialog */}
       <Dialog open={!!syncGroup} onOpenChange={(open) => !open && setSyncGroup(null)}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Copy className="w-5 h-5" />

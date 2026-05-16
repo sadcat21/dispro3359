@@ -850,7 +850,7 @@ const OrdersContent: React.FC = () => {
           const isOverdue = !!order.delivery_date && new Date(order.delivery_date) < new Date() && order.status !== 'delivered' && order.status !== 'cancelled';
           const itemsCount = Array.isArray(order.items) ? order.items.length : 0;
           return (
-            <Card key={order.id} className={`overflow-hidden border-r-4 ${isOverdue ? 'border-r-destructive' : order.status === 'delivered' ? 'border-r-green-500' : order.status === 'in_progress' ? 'border-r-purple-500' : order.status === 'assigned' ? 'border-r-blue-500' : order.status === 'cancelled' ? 'border-r-muted' : 'border-r-yellow-500'}`} dir="rtl">
+            <Card key={order.id} className={`overflow-hidden border-r-4 ${isOverdue ? 'border-r-destructive' : order.status === 'delivered' ? 'border-r-green-500' : order.status === 'in_progress' ? 'border-r-purple-500' : order.status === 'assigned' ? 'border-r-blue-500' : order.status === 'cancelled' ? 'border-r-muted' : 'border-r-yellow-500'}`}>
               <CardContent className="p-0">
                 {/* Compact grid: store icon | customer info | status badge + assigned worker */}
                 <div

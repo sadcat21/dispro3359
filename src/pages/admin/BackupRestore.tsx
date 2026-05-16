@@ -487,7 +487,7 @@ function doGet(e) {
   const lastSheetUrl = backupLogs.find(l => l.google_sheet_url)?.google_sheet_url;
 
   return (
-    <div className="p-4 pb-24 space-y-4 max-w-2xl mx-auto" dir="rtl">
+    <div className="p-4 pb-24 space-y-4 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

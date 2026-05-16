@@ -513,7 +513,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>تعديل بيانات العميل</DialogTitle>
         </DialogHeader>
@@ -745,7 +745,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
                   {zonesLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
                 </Label>
                 {addingZone ? (
-                  <div className="flex gap-2" dir="rtl">
+                  <div className="flex gap-2">
                     <Input value={newZoneName} onChange={(e) => setNewZoneName(e.target.value)} placeholder="اسم المنطقة الجديدة" autoFocus onKeyDown={(e) => e.key === 'Enter' && handleAddZone()} />
                     <Button size="sm" onClick={handleAddZone} disabled={savingZone || !newZoneName.trim()}>
                       {savingZone ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -935,7 +935,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         </form>
 
         <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <AlertDialogContent className="text-right" dir="rtl">
+          <AlertDialogContent className="text-right">
             <AlertDialogHeader>
               <AlertDialogTitle>تأكيد حذف العميل</AlertDialogTitle>
               <AlertDialogDescription>

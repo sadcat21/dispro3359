@@ -101,7 +101,7 @@ const TranslatableInput: React.FC<TranslatableInputProps> = ({
             value={valueAr}
             onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChangeAr(e.target.value)}
             placeholder={placeholder ? `${placeholder} (عربي)` : 'عربي'}
-            dir="rtl"
+           
             required={required}
             className="flex-1"
             rows={multiline ? 2 : undefined}

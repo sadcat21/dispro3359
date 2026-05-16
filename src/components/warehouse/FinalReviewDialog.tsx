@@ -796,7 +796,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[92dvh] flex flex-col overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-4xl max-h-[92dvh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-primary" />
@@ -859,7 +859,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
                 </span>
               </Button>
               <Dialog open={sessionPickerOpen} onOpenChange={setSessionPickerOpen}>
-                <DialogContent className="max-w-2xl" dir="rtl">
+                <DialogContent className="max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>اختر جلسة الشحن</DialogTitle>
                   </DialogHeader>
@@ -949,7 +949,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
 
         {/* Confirm delete dialog: hide vs permanent delete */}
         <Dialog open={!!confirmTarget} onOpenChange={(o) => !o && setConfirmTarget(null)}>
-          <DialogContent className="max-w-sm" dir="rtl">
+          <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base">
                 <Trash2 className="w-4 h-4 text-destructive" />

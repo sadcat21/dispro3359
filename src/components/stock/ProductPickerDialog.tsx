@@ -771,7 +771,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden">
           {showCloseButton && (
             <button
               type="button"
@@ -895,7 +895,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
         <DialogContent
           className="top-6 sm:top-8 translate-y-0 max-w-sm w-[95vw] p-0 gap-0 flex flex-col overflow-hidden"
           style={{ maxHeight: `${singleQtyMaxHeight}px` }}
-          dir="rtl"
+         
         >
           <DialogHeader className="px-3 pt-3 pb-2 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">

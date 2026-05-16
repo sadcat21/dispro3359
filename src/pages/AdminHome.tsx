@@ -652,7 +652,7 @@ const AdminHome: React.FC = () => {
       )}
 
       {giftsOpen && activeWorkers.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background border-t p-2 flex items-center gap-1 overflow-x-auto" dir="rtl">
+        <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background border-t p-2 flex items-center gap-1 overflow-x-auto">
           {activeWorkers.map((w, idx) => (
             <button
               key={w.id}

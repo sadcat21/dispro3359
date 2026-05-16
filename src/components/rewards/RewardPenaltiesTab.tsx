@@ -174,7 +174,7 @@ const RewardPenaltiesTab: React.FC = () => {
 
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh]">
           <DialogHeader><DialogTitle>إنشاء مخالفة</DialogTitle></DialogHeader>
           <ScrollArea className="max-h-[70vh] pr-2">
             <div className="space-y-4 pb-2">
@@ -244,7 +244,7 @@ const RewardPenaltiesTab: React.FC = () => {
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>حذف المخالفة</AlertDialogTitle>
             <AlertDialogDescription>هل أنت متأكد من حذف هذه المخالفة؟</AlertDialogDescription>

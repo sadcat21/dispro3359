@@ -705,7 +705,7 @@ const Products: React.FC = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto" dir="rtl">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b">
         <div className="flex items-center gap-3">
@@ -735,7 +735,7 @@ const Products: React.FC = () => {
                 {t('products.add')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl p-0 flex flex-col" style={{ maxHeight: '90vh' }} dir="rtl">
+            <DialogContent className="max-w-2xl p-0 flex flex-col" style={{ maxHeight: '90vh' }}>
               <DialogHeader className="shrink-0 p-4 pb-2 border-b">
                 <DialogTitle className="flex items-center gap-2">
                   <Plus className="w-5 h-5 text-primary" />
@@ -1221,7 +1221,7 @@ const Products: React.FC = () => {
 
       {/* Edit Product Dialog */}
       <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
-        <DialogContent className="max-w-md p-0 flex flex-col" style={{ maxHeight: '90vh' }} dir="rtl">
+        <DialogContent className="max-w-md p-0 flex flex-col" style={{ maxHeight: '90vh' }}>
           <DialogHeader className="shrink-0 p-4 pb-2">
             <DialogTitle>{t('products.edit')}</DialogTitle>
           </DialogHeader>
@@ -1535,7 +1535,7 @@ const Products: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!productToDelete} onOpenChange={(open) => { if (!open) { setProductToDelete(null); setDeletePassword(''); setDeletePasswordError(''); } }}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{deleteConfirmTitle}</AlertDialogTitle>
             <AlertDialogDescription asChild>

@@ -363,7 +363,7 @@ const ExceptionalActionsSummary: React.FC<ExceptionalActionsSummaryProps> = ({
   const isEmpty = !actions || actions.length === 0;
 
   return (
-    <div className="space-y-2" dir="rtl">
+    <div className="space-y-2">
       {giftReversals.length > 0 && (
         <Badge className="bg-primary/10 text-primary border border-primary/30 text-[10px]">
           <RotateCcw className="w-3 h-3 ml-1" />
@@ -467,7 +467,7 @@ const ExceptionalActionsSummary: React.FC<ExceptionalActionsSummaryProps> = ({
 
       {/* Entity Details Dialog */}
       <Dialog open={detailDialog.open} onOpenChange={(o) => setDetailDialog(prev => ({ ...prev, open: o }))}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[80vh] flex flex-col p-0 gap-0" dir="rtl">
+        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[80vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-4 pt-4 pb-2 border-b shrink-0">
             <DialogTitle className="text-sm">
               تفاصيل {detailDialog.entityType === 'order' ? 'الطلبية' : 'الإجراء'}

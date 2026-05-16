@@ -206,7 +206,7 @@ const StockDisputesPopover: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="pending" className="w-full" dir="rtl">
+          <Tabs defaultValue="pending" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-9">
               <TabsTrigger value="pending" className="text-xs gap-1">
                 <AlertTriangle className="w-3.5 h-3.5" />

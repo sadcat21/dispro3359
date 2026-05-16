@@ -331,7 +331,7 @@ const ApprovalHistoryDialog: React.FC<Props> = ({ open, onOpenChange, type, titl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-2xl max-h-[85dvh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85dvh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="w-5 h-5 text-primary" />

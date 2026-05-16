@@ -137,7 +137,7 @@ const CompanyManagerHome: React.FC = () => {
       </div>
 
       {/* Sections — same structure as BranchManagerHome */}
-      <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">
+      <div className="px-2 sm:px-3 py-2 space-y-2">
         {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
           const SecIcon = section.icon;
           const sectionPalette = [

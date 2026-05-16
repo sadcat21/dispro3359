@@ -416,7 +416,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0" dir="rtl">
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-4 pt-4 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Gift className="w-5 h-5 text-primary" />
@@ -457,7 +457,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
 
               {/* Product picker dialog */}
               <Dialog open={showProductPicker} onOpenChange={setShowProductPicker}>
-                <DialogContent className="max-w-md p-0" dir="rtl">
+                <DialogContent className="max-w-md p-0">
                   <DialogHeader className="px-4 pt-4 pb-2">
                     <DialogTitle className="flex items-center gap-2 text-base">
                       <Package className="w-4 h-4" /> اختر المنتج

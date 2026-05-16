@@ -565,7 +565,7 @@ const Workers: React.FC = () => {
               {t('workers.add')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-sm" dir="rtl">
+          <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>{t('workers.add_new')}</DialogTitle>
             </DialogHeader>
@@ -793,7 +793,7 @@ const Workers: React.FC = () => {
 
       {/* Edit Roles Dialog */}
       <Dialog open={showRolesDialog} onOpenChange={setShowRolesDialog}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
               {t('workers.manage_roles')} - {selectedWorker?.full_name}

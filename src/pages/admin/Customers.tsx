@@ -930,7 +930,7 @@ const Customers: React.FC = () => {
 
       {/* Tab Interface */}
       {isManager ? (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="list" className="text-xs">{t('customers.title')}</TabsTrigger>
             <TabsTrigger value="requests" className="relative text-xs">
@@ -952,7 +952,7 @@ const Customers: React.FC = () => {
           </TabsContent>
         </Tabs>
       ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="list" className="text-xs">{t('customers.title')}</TabsTrigger>
             <TabsTrigger value="my-requests" className="relative text-xs">
@@ -1003,7 +1003,7 @@ const Customers: React.FC = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!customerToDelete} onOpenChange={() => setCustomerToDelete(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('common.confirm')}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1038,7 +1038,7 @@ const Customers: React.FC = () => {
 
       {/* Last Order Details Dialog */}
       <Dialog open={!!lastOrderDialogCustomer} onOpenChange={(open) => { if (!open) { setLastOrderDialogCustomer(null); setLastOrderDetails(null); } }}>
-        <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm">
               <ShoppingBag className="w-4 h-4 text-primary" />

@@ -519,7 +519,7 @@ const AssistantApprovals: React.FC = () => {
 
       {/* نافذة طلبات الفاتورة المعلقة لعميل محدد */}
       <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) setCustomerDialog(null); }}>
-        <DialogContent dir="rtl" className="max-w-2xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               طلبات الفاتورة المعلقة — {customerDialog?.name}

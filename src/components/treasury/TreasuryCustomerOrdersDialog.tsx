@@ -99,7 +99,7 @@ const TreasuryCustomerOrdersDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base">تفاصيل الطلبيات</DialogTitle>
         </DialogHeader>

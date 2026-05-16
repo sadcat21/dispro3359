@@ -49,7 +49,7 @@ const SetReviewPinDialog: React.FC<SetReviewPinDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-sm">
+      <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-primary" />

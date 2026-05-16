@@ -877,7 +877,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
   const documentsSubtitle = `${aggregate.documentsCount} ${labels.documentsCount} • ${labels.docsReceived} ${fmtMoney(aggregate.receivedDocumentsValue)} • ${labels.docsPending} ${fmtMoney(pendingDocumentsValue)}`;
 
   return (
-      <div className="flex h-full min-h-0 flex-col overflow-hidden" dir="rtl">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden">
         <div className="border-b border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
@@ -909,7 +909,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
         </div>
 
         <Dialog open={timeFilterOpen} onOpenChange={setTimeFilterOpen}>
-          <DialogContent className="max-w-md rounded-[28px] p-0" dir="rtl">
+          <DialogContent className="max-w-md rounded-[28px] p-0">
             <div className="border-b border-slate-200 px-4 py-3">
               <div className="text-sm font-bold text-slate-900">فلتر التوقيت</div>
               <div className="text-xs text-slate-500">حدد يومًا سريعًا أو اختر فترة يدوية</div>
@@ -966,7 +966,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
         </Dialog>
 
         <Dialog open={workerFilterOpen} onOpenChange={setWorkerFilterOpen}>
-          <DialogContent className="max-w-md rounded-[28px] p-0" dir="rtl">
+          <DialogContent className="max-w-md rounded-[28px] p-0">
             <div className="border-b border-slate-200 px-4 py-3">
               <div className="text-sm font-bold text-slate-900">فلتر العمال</div>
               <div className="text-xs text-slate-500">اختر كل العمال أو عاملًا محددًا</div>
@@ -1120,7 +1120,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                       : (item.workerStockQuantity || 0);
 
                     return (
-                    <div key={item.productId} dir="rtl" className="flex flex-col overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-lg transition-all hover:border-primary/40">
+                    <div key={item.productId} className="flex flex-col overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-lg transition-all hover:border-primary/40">
                       <div className="border-b border-slate-200 bg-slate-50 px-2.5 py-2 text-center">
                         <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
                           {item.name}

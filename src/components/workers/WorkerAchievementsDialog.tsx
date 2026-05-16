@@ -346,7 +346,7 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) setActiveFilter(null); }}>
-        <DialogContent className="max-w-md p-0 flex flex-col" style={{ maxHeight: '85vh' }} dir="rtl">
+        <DialogContent className="max-w-md p-0 flex flex-col" style={{ maxHeight: '85vh' }}>
           <DialogHeader className="shrink-0 p-4 pb-2">
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5 text-primary" />
@@ -526,7 +526,7 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
 
       {/* Achievement Detail Dialog */}
       <Dialog open={!!selectedVisit} onOpenChange={(o) => { if (!o) setSelectedVisit(null); }}>
-        <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto">
           {selectedVisit && (
             <AchievementDetailContent
               visit={selectedVisit}

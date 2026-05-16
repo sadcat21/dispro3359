@@ -130,7 +130,7 @@ const Suppliers: React.FC = () => {
   };
 
   return (
-    <div className="p-4 space-y-4" dir="rtl">
+    <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Truck className="h-6 w-6 text-primary" />
@@ -142,7 +142,7 @@ const Suppliers: React.FC = () => {
               <Plus className="h-4 w-4 ml-1" /> إضافة مورد
             </Button>
           </DialogTrigger>
-          <DialogContent dir="rtl">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>{editing ? 'تعديل مورد' : 'إضافة مورد'}</DialogTitle>
             </DialogHeader>
@@ -225,7 +225,7 @@ const Suppliers: React.FC = () => {
       )}
 
       <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>سيتم حذف المورد. لن يتأثر المنتجات المرتبطة به سوى بإزالة الربط.</AlertDialogDescription>
@@ -238,7 +238,7 @@ const Suppliers: React.FC = () => {
       </AlertDialog>
 
       <Dialog open={!!viewProductsFor} onOpenChange={(v) => !v && setViewProductsFor(null)}>
-        <DialogContent dir="rtl" className="max-w-lg">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />

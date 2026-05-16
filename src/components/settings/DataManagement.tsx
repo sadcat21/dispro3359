@@ -522,7 +522,7 @@ const DataManagement: React.FC = () => {
 
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirm} onOpenChange={(open) => { setShowConfirm(open); if (!open) { setPassword(''); setPasswordError(''); } }}>
-          <AlertDialogContent dir="rtl">
+          <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="text-destructive flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" />
@@ -592,7 +592,7 @@ const RelatedDataDialog: React.FC<{
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Link2 className="w-5 h-5 text-amber-500" />

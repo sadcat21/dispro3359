@@ -169,7 +169,7 @@ const CustomerChangeReviewDialog: React.FC<Props> = ({ open, onOpenChange, custo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh]" dir="rtl">
+      <DialogContent className="max-w-md max-h-[85vh]">
         <DialogHeader>
           <DialogTitle className="text-base">
             طلبات مراجعة: {customer.store_name || customer.name}

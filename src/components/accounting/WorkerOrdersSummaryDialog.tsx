@@ -151,7 +151,7 @@ const OrdersCarousel: React.FC<{
                   <div
                     key={c.customerId}
                     className="flex items-center justify-between py-2 px-3 rounded-lg bg-card/80 border border-border/60 text-sm"
-                    dir="rtl"
+                   
                   >
                     <div className="flex flex-col min-w-0 flex-1 gap-0.5">
                       <div className="flex items-center gap-1.5">
@@ -687,7 +687,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       )}
 
     <Dialog open={open} onOpenChange={(v) => { if (isPrintingRef.current) return; onOpenChange(v); }}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md h-[92dvh] max-h-[92dvh] flex flex-col overflow-hidden p-0 gap-0 rounded-2xl" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-md h-[92dvh] max-h-[92dvh] flex flex-col overflow-hidden p-0 gap-0 rounded-2xl">
         {/* Header */}
         <div className="bg-primary/5 border-b px-4 pt-4 pb-3 shrink-0">
           <DialogHeader className="p-0 space-y-1">
@@ -856,7 +856,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
 
     {/* Print Settings Dialog */}
     <Dialog open={showPrintSettings} onOpenChange={setShowPrintSettings}>
-      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 max-h-[85dvh] overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 max-h-[85dvh] overflow-hidden">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Printer className="w-4 h-4" />
@@ -986,7 +986,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
 
     {/* Customer Picker Dialog */}
     <Dialog open={showCustomerPicker} onOpenChange={setShowCustomerPicker}>
-      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 max-h-[80dvh] flex flex-col" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 max-h-[80dvh] flex flex-col">
         <DialogHeader className="pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Users className="w-4 h-4" />
@@ -1066,7 +1066,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
 
     {/* Cash Van Dialog */}
     <Dialog open={showCashVanDialog} onOpenChange={setShowCashVanDialog}>
-      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 max-h-[80dvh] flex flex-col" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 max-h-[80dvh] flex flex-col">
         <DialogHeader className="pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Truck className="w-4 h-4" />
@@ -1188,7 +1188,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
 
     {/* Extra Products Picker (multi-select) */}
     <Dialog open={showExtraProductsPicker} onOpenChange={setShowExtraProductsPicker}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 gap-0 rounded-2xl" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 gap-0 rounded-2xl">
         <DialogHeader className="p-4 border-b shrink-0">
           <DialogTitle className="text-base flex items-center gap-2">
             <Plus className="w-5 h-5 text-primary" />

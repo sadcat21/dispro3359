@@ -49,7 +49,7 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm" dir="rtl">
+      <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <FileText className="w-4 h-4" />

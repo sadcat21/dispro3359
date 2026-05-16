@@ -101,7 +101,7 @@ const QuickReceiptDialog: React.FC<QuickReceiptDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('stock.new_receipt')}</DialogTitle>
           </DialogHeader>

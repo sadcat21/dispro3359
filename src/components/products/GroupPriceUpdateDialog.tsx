@@ -113,7 +113,7 @@ const GroupPriceUpdateDialog: React.FC<GroupPriceUpdateDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="w-5 h-5" />

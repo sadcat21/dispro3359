@@ -989,7 +989,7 @@ const WorkerActions: React.FC = () => {
       {/* Truck Stock Dialog */}
       {selectedWorker && (
         <Dialog open={truckStockOpen} onOpenChange={setTruckStockOpen}>
-          <DialogContent className="w-[calc(100vw-0.75rem)] max-w-md max-h-[100dvh] overflow-hidden p-3 sm:max-h-[92dvh] sm:max-w-md sm:p-6" dir="rtl">
+          <DialogContent className="w-[calc(100vw-0.75rem)] max-w-md max-h-[100dvh] overflow-hidden p-3 sm:max-h-[92dvh] sm:max-w-md sm:p-6">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 pl-8 text-sm sm:text-base">
                 <Package className="w-5 h-5 text-primary" />
@@ -1115,7 +1115,7 @@ const WorkerActions: React.FC = () => {
             if (!open) setSelectedTruckProduct(null);
           }}
         >
-            <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden" dir="rtl">
+            <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 flex-wrap">
                   <History className="w-5 h-5 text-primary" />

@@ -59,7 +59,7 @@ const VersionGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   if (needsUpdate) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="max-w-sm w-full text-center space-y-6">
           <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
             <AlertTriangle className="w-10 h-10 text-destructive" />

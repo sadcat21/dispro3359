@@ -204,7 +204,7 @@ const ReplaceDamagedDialog: React.FC<Props> = ({ open, onOpenChange, onSaved }) 
   return (
     <>
       <Dialog open={open && step === 'source'} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>اختر مصدر التالف</DialogTitle></DialogHeader>
           <div className="space-y-2">
             <Button
@@ -231,7 +231,7 @@ const ReplaceDamagedDialog: React.FC<Props> = ({ open, onOpenChange, onSaved }) 
       </Dialog>
 
       <Dialog open={open && step === 'list'} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>استبدال تالف — {source?.label}</DialogTitle>
           </DialogHeader>
@@ -288,7 +288,7 @@ const ReplaceDamagedDialog: React.FC<Props> = ({ open, onOpenChange, onSaved }) 
 
       {/* Quantity dialog */}
       <Dialog open={!!qtyProductId} onOpenChange={(v) => { if (!v) { setQtyProductId(null); setPickerOpen(true); } }}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-sm">
               {productById.get(qtyProductId || '')?.name}

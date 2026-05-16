@@ -239,7 +239,7 @@ const WorkerRounds: React.FC = () => {
   }, [rounds, accountingSessions]);
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b px-3 py-2 space-y-2">
         <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ const WorkerRounds: React.FC = () => {
 
       {/* Round Details Dialog — full screen like truck balance */}
       <Dialog open={!!selectedRound} onOpenChange={(open) => !open && setSelectedRound(null)}>
-        <DialogContent className="max-w-full w-full h-[100dvh] m-0 p-0 rounded-none border-none gap-0 [&>button]:hidden" dir="rtl">
+        <DialogContent className="max-w-full w-full h-[100dvh] m-0 p-0 rounded-none border-none gap-0 [&>button]:hidden">
           {selectedRound && (
             <div className="flex flex-col h-full bg-secondary/30">
               {/* Dialog Header */}

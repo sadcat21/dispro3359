@@ -83,7 +83,7 @@ const RewardDisputesTab: React.FC = () => {
       )}
 
       <Dialog open={!!selectedId} onOpenChange={() => setSelectedId(null)}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>مراجعة الاعتراض</DialogTitle></DialogHeader>
           {selectedId && (() => {
             const d = disputes?.find(x => x.id === selectedId);

@@ -300,7 +300,7 @@ const WarehouseReviewDialog: React.FC<WarehouseReviewDialogProps> = ({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-lg max-h-[90dvh] flex flex-col overflow-hidden">
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-primary" />

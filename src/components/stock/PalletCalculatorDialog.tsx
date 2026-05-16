@@ -96,7 +96,7 @@ const PalletCalculatorDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm p-3" dir="rtl">
+        <DialogContent className="max-w-sm p-3">
           <DialogHeader className="pb-1">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">

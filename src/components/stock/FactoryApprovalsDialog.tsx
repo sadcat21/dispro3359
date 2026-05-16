@@ -1249,7 +1249,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col" dir="rtl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Truck className="w-5 h-5 text-primary" />
@@ -1281,7 +1281,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
 
       {/* نافذة ملخص الإرسال للإدارة */}
       <Dialog open={!!summaryReceipt} onOpenChange={(o) => { if (!o) setSummaryReceipt(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
@@ -1364,7 +1364,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
               if (!node) return;
               const w = window.open('', '_blank', 'width=800,height=600');
               if (!w) return;
-              w.document.write(`<html dir="rtl"><head><title>ملخص الاستلام</title>
+              w.document.write(`<html><head><title>ملخص الاستلام</title>
                 <style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}</style>
                 </head><body>${buildPrintHeaderHTML(companyInfo, { dir: 'rtl' })}<h2>ملخص الاستلام للإدارة</h2>${node.innerHTML}</body></html>`);
               w.document.close();

@@ -117,7 +117,7 @@ const WorkerRewards: React.FC = () => {
   const levelProgress = nextLevel ? ((total - level.min) / (nextLevel.min - level.min)) * 100 : 100;
 
   return (
-    <div className="p-4 space-y-4 pb-20" dir="rtl">
+    <div className="p-4 space-y-4 pb-20">
       {/* Header */}
       <div className={`rounded-2xl p-5 ${level.bg} border`}>
         <div className="flex items-center justify-between mb-3">
@@ -287,7 +287,7 @@ const WorkerRewards: React.FC = () => {
 
       {/* Dispute Dialog */}
       <Dialog open={!!disputeLogId} onOpenChange={() => setDisputeLogId(null)}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>اعتراض على الخصم</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

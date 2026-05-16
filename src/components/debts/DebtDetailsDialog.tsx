@@ -116,7 +116,7 @@ const DebtDetailsDialog: React.FC<DebtDetailsDialogProps> = ({
     const title = mode === 'thermal' ? 'سجل ديون العميل - 48mm' : 'سجل ديون العميل';
 
     win.document.write(`
-      <html dir="rtl">
+      <html>
         <head>
           <title>${title}</title>
           <style>

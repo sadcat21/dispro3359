@@ -374,7 +374,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
               onKeyDown={handleSearchKeyDown}
               placeholder={t('customers.search_location') || 'ابحث عن موقع...'}
               className="pe-10 text-right"
-              dir="rtl"
+             
             />
             <div className="absolute start-3 top-1/2 -translate-y-1/2">
               {isSearching ? (

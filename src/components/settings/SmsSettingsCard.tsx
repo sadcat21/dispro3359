@@ -238,7 +238,7 @@ const SmsSettingsCard: React.FC = () => {
                     value={settings[op].template}
                     onChange={(e) => updateOperation(op, { template: e.target.value })}
                     className="min-h-[120px] text-sm font-mono"
-                    dir="rtl"
+                   
                   />
                   <p className="text-xs text-muted-foreground">
                     المتغيرات المتاحة: {'{customer}'} {'{total}'} {'{order_id}'} {'{company}'} {'{amount}'} {'{remaining}'} {'{payment_status}'}

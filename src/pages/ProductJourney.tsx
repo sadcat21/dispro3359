@@ -22,7 +22,7 @@ const steps = [
 
 const ProductJourney: React.FC = () => {
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Top bar */}
       <header className="sticky top-0 z-40 backdrop-blur-lg bg-background/80 border-b">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">

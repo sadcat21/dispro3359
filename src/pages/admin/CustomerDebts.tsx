@@ -389,7 +389,7 @@ const CustomerDebts: React.FC = () => {
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'debts' | 'documents')} dir="rtl">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'debts' | 'documents')}>
           <TabsList className="w-full h-10 p-1 bg-muted/60">
             <TabsTrigger value="debts" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
               <Banknote className="w-4 h-4" />
@@ -584,7 +584,7 @@ const CustomerDebts: React.FC = () => {
             if (!open) resetNewDebtForm();
           }}
         >
-          <DialogContent dir="rtl" className="max-w-md">
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>{t('debts.add_previous_debt')}</DialogTitle>
             </DialogHeader>

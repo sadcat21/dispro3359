@@ -90,7 +90,7 @@ const DocCollectDialog: React.FC<DocCollectDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 gap-3" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 gap-3">
         <DialogHeader className="pb-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <FileCheck className="w-4 h-4 shrink-0" />

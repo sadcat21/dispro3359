@@ -791,7 +791,7 @@ const BranchInvoiceApprovals: React.FC = () => {
 
       {/* نافذة طلبات الفاتورة المعلقة (مرحلة المدير) لعميل محدد */}
       <Dialog open={!!customerDialog} onOpenChange={(v) => { if (!v) { setCustomerDialog(null); setSelectedIds([]); } }}>
-        <DialogContent dir="rtl" className="max-w-2xl p-0 gap-0 overflow-hidden">
+        <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden">
           {/* رأس مُتدرج جذاب */}
           <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white p-5">
             <div className="flex items-start gap-3">
@@ -945,7 +945,7 @@ const BranchInvoiceApprovals: React.FC = () => {
 
       {/* اختيار نطاق الفاتورة عند الإرسال الجماعي */}
       <Dialog open={!!bulkScopeDialog} onOpenChange={(v) => { if (!v) setBulkScopeDialog(null); }}>
-        <DialogContent dir="rtl" className="max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>اختر نوع الفاتورة للإرسال ({selectedIds.length})</DialogTitle>
           </DialogHeader>

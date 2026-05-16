@@ -540,7 +540,7 @@ const ManageSectorsDialog: React.FC<ManageSectorsDialogProps> = ({ open, onOpenC
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-primary" />
@@ -747,7 +747,7 @@ const ManageSectorsDialog: React.FC<ManageSectorsDialogProps> = ({ open, onOpenC
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!sectorToDelete} onOpenChange={() => setSectorToDelete(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
