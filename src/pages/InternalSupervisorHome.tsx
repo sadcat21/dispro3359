@@ -147,20 +147,27 @@ const InternalSupervisorHome: React.FC = () => {
               </Badge>
             </div>
           )}
-          <div className="flex items-stretch gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setDailyTasksOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-3 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-3 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <ClipboardList className="w-5 h-5" />
               <span className="text-sm font-bold">مهام العمال</span>
             </button>
             <button
               onClick={() => { setSelectedCustomerId(undefined); setShowCustomerPicker(true); }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <Plus className="w-5 h-5" />
               <span className="text-sm font-bold">إنشاء طلبية</span>
+            </button>
+            <button
+              onClick={() => setShowWorkerViewDialog(true)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 px-3 py-2 text-white shadow-md shadow-rose-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-sm font-bold">إجراءات العمال</span>
             </button>
           </div>
         </div>
