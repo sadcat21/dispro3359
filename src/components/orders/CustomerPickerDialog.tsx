@@ -48,6 +48,40 @@ const getCustomerSearchText = (customer: Customer) => [
   customer.address,
 ].filter(Boolean).join(' ').toLowerCase();
 
+interface CustomerSearchFieldProps {
+  placeholder: string;
+  resetSignal: boolean;
+  onSearchChange: (value: string) => void;
+}
+
+const CustomerSearchField = React.memo(({ placeholder, resetSignal, onSearchChange }: CustomerSearchFieldProps) => {
+  const [value, setValue] = useState('');
+
+  useEffect(() => {
+    if (!resetSignal) return;
+    setValue('');
+    onSearchChange('');
+  }, [resetSignal, onSearchChange]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => onSearchChange(value), 180);
+    return () => window.clearTimeout(id);
+  }, [value, onSearchChange]);
+
+  return (
+    <div className="relative flex-1">
+      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
+        autoFocus
+      />
+    </div>
+  );
+});
+
 const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   open,
   onOpenChange,
@@ -62,7 +96,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { activeBranch } = useAuth();
   const { customerTypes } = useCustomerTypes();
   const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
   const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
@@ -160,17 +193,10 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   useEffect(() => {
     if (open) {
       setSearch('');
-      setSearchInput('');
       setActiveSectorKey(null);
       setActiveRegionKey(null);
     }
   }, [open]);
-
-  // Debounce: keep typing fluid, commit search to heavy filter after a short delay
-  useEffect(() => {
-    const id = window.setTimeout(() => setSearch(searchInput), 180);
-    return () => window.clearTimeout(id);
-  }, [searchInput]);
 
   useEffect(() => {
     setActiveRegionKey(null);
