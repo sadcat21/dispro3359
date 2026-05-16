@@ -16,13 +16,18 @@ import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/Recalib
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
-  const { workerId: authWorkerId } = useAuth();
+  const { workerId: authWorkerId, role, activeRole } = useAuth();
   const { workerId: selectedWorkerId } = useSelectedWorker();
   const workerId = selectedWorkerId || authWorkerId;
   const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
+  const canAdjustBalance =
+    isAdminRole(role) ||
+    isCompanyManagerRole(activeRole?.custom_role_code) ||
+    isCompanyManagerRole(role) ||
+    isInternalSupervisorRole(activeRole?.custom_role_code);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
