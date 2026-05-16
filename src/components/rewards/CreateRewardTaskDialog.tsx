@@ -64,7 +64,7 @@ const CreateRewardTaskDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>إنشاء مهمة جديدة</DialogTitle>
         </DialogHeader>

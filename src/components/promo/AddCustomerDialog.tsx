@@ -450,7 +450,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-primary" />
@@ -741,7 +741,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
                   {zonesLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
                 </Label>
                 {addingZone ? (
-                  <div className="flex gap-2" dir="rtl">
+                  <div className="flex gap-2">
                     <Input value={newZoneName} onChange={(e) => setNewZoneName(e.target.value)} placeholder="اسم المنطقة الجديدة" autoFocus onKeyDown={(e) => e.key === 'Enter' && handleAddZone()} />
                     <Button size="sm" onClick={handleAddZone} disabled={savingZone || !newZoneName.trim()}>
                       {savingZone ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}

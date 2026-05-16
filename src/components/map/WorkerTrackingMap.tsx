@@ -139,7 +139,7 @@ const WorkerTrackingMap: React.FC<WorkerTrackingMapProps> = ({ highlightWorkerId
       const typeLabel = customer.customer_type || '';
       const marker = L.marker([customer.latitude!, customer.longitude!], { icon })
         .addTo(mapRef.current!)
-        .bindPopup(`<div class="text-center p-1" dir="rtl"><p class="font-bold text-sm">🏪 ${displayName}</p>${typeLabel ? `<p class="text-xs" style="color:${colors.bg};font-weight:bold;">${typeLabel}</p>` : ''}<p class="text-xs text-gray-500">${customer.name}</p></div>`);
+        .bindPopup(`<div class="text-center p-1"><p class="font-bold text-sm">🏪 ${displayName}</p>${typeLabel ? `<p class="text-xs" style="color:${colors.bg};font-weight:bold;">${typeLabel}</p>` : ''}<p class="text-xs text-gray-500">${customer.name}</p></div>`);
       customerMarkersRef.current.set(customer.id, marker);
     });
   }, [showNearbyCustomers, highlightWorkerId, allCustomers, locations, nearbyDistanceMeters, typeColorMap]);
@@ -483,7 +483,7 @@ const WorkerTrackingMap: React.FC<WorkerTrackingMapProps> = ({ highlightWorkerId
       });
 
       L.marker([stop.lat, stop.lng], { icon })
-        .bindPopup(`<div class="text-center p-1" dir="rtl"><p class="font-bold text-xs">توقف #${idx + 1}</p><p class="text-xs">⏸ ${stop.duration_min} دقيقة</p>${stop.address ? `<p class="text-xs">${stop.address}</p>` : ''}</div>`)
+        .bindPopup(`<div class="text-center p-1"><p class="font-bold text-xs">توقف #${idx + 1}</p><p class="text-xs">⏸ ${stop.duration_min} دقيقة</p>${stop.address ? `<p class="text-xs">${stop.address}</p>` : ''}</div>`)
         .addTo(group);
     });
 

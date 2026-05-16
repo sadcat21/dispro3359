@@ -211,7 +211,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>شحن عامل</DialogTitle>
           </DialogHeader>
@@ -364,7 +364,7 @@ const QuickLoadWorkerDialog: React.FC<QuickLoadWorkerDialogProps> = ({
       />
 
       <AlertDialog open={showConfirm} onOpenChange={(o) => { if (!isSaving) setShowConfirm(o); }}>
-        <AlertDialogContent dir="rtl" className="max-w-md">
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
               <AlertTriangle className="w-5 h-5" />

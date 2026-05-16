@@ -280,7 +280,7 @@ const ProductInvoiceTemplateDialog: React.FC<Props> = ({ open, onOpenChange, pro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-[96vw] w-[1200px] max-h-[95vh] overflow-hidden p-0">
+      <DialogContent className="max-w-[96vw] w-[1200px] max-h-[95vh] overflow-hidden p-0">
         <div className="border-b px-5 py-4">
           <DialogHeader className="mb-3">
             <DialogTitle className="text-xl">إعدادات طباعة الفاتورة</DialogTitle>

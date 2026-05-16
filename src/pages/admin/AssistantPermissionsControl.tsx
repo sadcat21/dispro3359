@@ -209,7 +209,7 @@ const AssistantPermissionsControl: React.FC = () => {
   };
 
   return (
-    <div dir="rtl" className="container mx-auto p-4 space-y-4 max-w-7xl">
+    <div className="container mx-auto p-4 space-y-4 max-w-7xl">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">

@@ -165,7 +165,7 @@ const WorkerUIOverridesSection: React.FC<{ initialWorkerId?: string | null }> = 
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : (
-        <Tabs defaultValue="pages" dir="rtl">
+        <Tabs defaultValue="pages">
           <TabsList className="w-full grid grid-cols-5">
             {CATEGORIES.map(cat => {
               const hiddenInCat = overrides?.filter(o => o.element_type === cat.type && o.is_hidden).length || 0;

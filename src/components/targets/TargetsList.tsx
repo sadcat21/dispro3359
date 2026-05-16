@@ -85,7 +85,7 @@ export const TargetsList: React.FC = () => {
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="ghost"><Trash2 className="w-4 h-4 text-destructive" /></Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent dir="rtl">
+                  <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>حذف الهدف؟</AlertDialogTitle>
                       <AlertDialogDescription>سيتم حذف الهدف وجميع سجلات إنجازه. لا يمكن التراجع.</AlertDialogDescription>

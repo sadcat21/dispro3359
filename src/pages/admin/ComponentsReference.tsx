@@ -1178,7 +1178,7 @@ const ComponentsReference: React.FC = () => {
       })}
       {/* Preview Dialog for sub-windows */}
       <Dialog open={!!previewDialog} onOpenChange={(open) => !open && setPreviewDialog(null)}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base">{previewDialog?.name}</DialogTitle>
             <DialogDescription className="text-xs">{previewDialog?.description}</DialogDescription>

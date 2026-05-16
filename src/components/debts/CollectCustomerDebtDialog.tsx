@@ -728,7 +728,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          dir="rtl"
+         
           className="max-w-[96vw] sm:max-w-xl p-0 overflow-hidden"
         >
           <DialogTitle className="sr-only">{sectionTitle(activeTab, t)}</DialogTitle>
@@ -1032,7 +1032,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
       {/* Edit amount dialog */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
-        <DialogContent dir="rtl" className="max-w-sm">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 flex-wrap">
               <span>{editTarget?.kind === 'debt' ? t('debt_collect.edit_debt_amount') : t('debt_collect.edit_collection_amount')}</span>
@@ -1112,7 +1112,7 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('debt_collect.cancel_label')} {deleteTarget?.label}</AlertDialogTitle>
             <AlertDialogDescription>

@@ -795,7 +795,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
         </table>
       </div>` : '';
 
-    w.document.write(`<html dir="rtl"><head><title>تقرير مفصل - وصل الاستلام</title><style>
+    w.document.write(`<html><head><title>تقرير مفصل - وصل الاستلام</title><style>
       * { box-sizing: border-box; }
       body { font-family: 'Tahoma', Arial, sans-serif; padding: 20px; color: #000; background: #fff; }
       h1 { text-align:center; font-size:22px; margin:0 0 4px; color:#1e293b; }
@@ -851,7 +851,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   return (
     <>
       <Dialog open={open && !previewOnly} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md w-[95vw] h-[90dvh] max-h-[90dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0" dir="rtl">
+        <DialogContent className="max-w-md w-[95vw] h-[90dvh] max-h-[90dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0">
           <DialogHeader className="px-4 pt-4 pb-2 shrink-0 border-b">
             <DialogTitle className="flex items-center gap-2">
               <ArrowDownToLine className="w-5 h-5 text-lime-600" />
@@ -1183,7 +1183,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* Product Picker Grid Dialog */}
       <Dialog open={showPicker} onOpenChange={(v) => { if (!v) { setShowPicker(false); setMultiSelected(new Set()); } }}>
-        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden">
           <DialogHeader className="px-3 pt-3 pb-1 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Package className="w-5 h-5 text-lime-600" />
@@ -1280,7 +1280,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* Single Product Quantity Dialog */}
       <Dialog open={!!singleProduct} onOpenChange={(v) => { if (!v) setSingleProductId(null); }}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Package className="w-4 h-4 text-lime-600" />
@@ -1437,7 +1437,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* Delivery Product Picker Grid */}
       <Dialog open={showDeliveryPicker} onOpenChange={(v) => { if (!v) setShowDeliveryPicker(false); }}>
-        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md h-[85dvh] max-h-[85dvh] flex flex-col p-0 overflow-hidden top-[5dvh] translate-y-0">
           <DialogHeader className="px-3 pt-3 pb-1 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Truck className="w-5 h-5 text-orange-600" />
@@ -1491,7 +1491,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* Delivery single product detail dialog */}
       <Dialog open={!!deliverySingleProductId} onOpenChange={(v) => { if (!v) setDeliverySingleProductId(null); }}>
-        <DialogContent className="max-w-sm top-[5dvh] translate-y-0" dir="rtl">
+        <DialogContent className="max-w-sm top-[5dvh] translate-y-0">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Truck className="w-4 h-4 text-orange-600" />
@@ -1588,7 +1588,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
 
       {/* نافذة المراجعة قبل الإرسال للموافقة */}
       <Dialog open={showReview} onOpenChange={(v) => { setShowReview(v); if (!v && previewOnly) onOpenChange(false); }}>
-        <DialogContent className="max-w-3xl w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6" dir="rtl">
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[90dvh] overflow-y-auto overflow-x-hidden p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCheck2 className="w-5 h-5 text-lime-600" />

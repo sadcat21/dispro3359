@@ -554,7 +554,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Icon className={`h-5 w-5 ${config.colorClass}`} />

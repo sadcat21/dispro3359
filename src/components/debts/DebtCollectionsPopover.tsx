@@ -170,7 +170,7 @@ const DebtCollectionsPopover: React.FC = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="بحث بالاسم أو الهاتف..."
                     className="h-9 text-xs"
-                    dir="rtl"
+                   
                   />
                 </div>
                 <p className="text-[10px] text-muted-foreground text-center py-1">{selectedDateLabel}</p>
@@ -183,7 +183,7 @@ const DebtCollectionsPopover: React.FC = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="بحث بالاسم أو العامل..."
                     className="h-9 text-xs"
-                    dir="rtl"
+                   
                   />
                 </div>
                 <PendingCollectionsList
@@ -206,7 +206,7 @@ const DebtCollectionsPopover: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="بحث بالاسم أو الهاتف..."
                   className="h-9 text-xs"
-                  dir="rtl"
+                 
                 />
               </div>
               <p className="text-[10px] text-muted-foreground text-center py-1">{selectedDateLabel}</p>

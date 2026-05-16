@@ -758,7 +758,7 @@ const WorkerHome: React.FC = () => {
       />
 
       <TBDialog open={!!truckBalanceWorker} onOpenChange={(o) => { if (!o) setTruckBalanceWorker(null); }}>
-        <TBDialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <TBDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <TBDialogHeader>
             <TBDialogTitle className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-primary" />

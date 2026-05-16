@@ -487,7 +487,7 @@ const MyPromosContent: React.FC = () => {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('common.edit_operation')}</DialogTitle>
           </DialogHeader>

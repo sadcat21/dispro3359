@@ -464,7 +464,7 @@ const SectorScheduleDialog: React.FC<SectorScheduleDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <MapPin className="w-5 h-5 text-primary" />
@@ -570,7 +570,7 @@ const SectorScheduleDialog: React.FC<SectorScheduleDialogProps> = ({
 
       {/* Same-worker Conflict Resolution Dialog */}
       <AlertDialog open={!!conflict} onOpenChange={(o) => !o && setConflict(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -639,7 +639,7 @@ const SectorScheduleDialog: React.FC<SectorScheduleDialogProps> = ({
 
       {/* Cross-worker Conflict Resolution Dialog */}
       <AlertDialog open={!!crossWorkerConflict} onOpenChange={(o) => !o && setCrossWorkerConflict(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Users className="w-5 h-5 text-orange-500" />

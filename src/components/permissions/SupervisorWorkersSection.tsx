@@ -270,7 +270,7 @@ const SupervisorWorkersSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue={hasSupervisors ? 'supervisors' : hasManagers ? 'managers' : 'branch-admins'} dir="rtl">
+      <Tabs defaultValue={hasSupervisors ? 'supervisors' : hasManagers ? 'managers' : 'branch-admins'}>
         <TabsList className="w-full">
           {hasSupervisors && <TabsTrigger value="supervisors" className="flex-1 gap-1"><HardHat className="w-4 h-4" /> المشرفون</TabsTrigger>}
           {hasManagers && <TabsTrigger value="managers" className="flex-1 gap-1"><Warehouse className="w-4 h-4" /> مسؤولو المخزن</TabsTrigger>}

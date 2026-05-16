@@ -300,7 +300,7 @@ const CollectedDebtOperationDialog: React.FC<Props> = ({ open, onOpenChange, col
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md p-4 gap-3 max-h-[85vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-[95vw] sm:max-w-md p-4 gap-3 max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-0">
             <DialogTitle className="text-base">تفاصيل التحصيل</DialogTitle>
           </DialogHeader>

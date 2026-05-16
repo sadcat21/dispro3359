@@ -199,7 +199,7 @@ const TreasuryConsolidationEditDialog = ({
   if (isLoading || !data) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent dir="rtl" className="max-w-sm">
+        <DialogContent className="max-w-sm">
           <div className="py-8 text-center text-sm text-muted-foreground">
             {error ? 'تعذر تحميل بيانات التجميع' : 'جاري تحميل بيانات التجميع...'}
           </div>

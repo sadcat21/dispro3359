@@ -206,7 +206,7 @@ const Branches: React.FC = () => {
               {t('branches.add')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-sm" dir="rtl">
+          <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>{t('branches.add_new')}</DialogTitle>
             </DialogHeader>
@@ -364,7 +364,7 @@ const Branches: React.FC = () => {
           resetForm();
         }
       }}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('branches.edit')}</DialogTitle>
           </DialogHeader>
@@ -435,7 +435,7 @@ const Branches: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!branchToDelete} onOpenChange={(open) => !open && setBranchToDelete(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('customers.confirm_delete')}</AlertDialogTitle>
             <AlertDialogDescription>

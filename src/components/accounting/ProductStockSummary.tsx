@@ -464,7 +464,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
 
           {/* Session Counts */}
           {loadingData && (
-            <div className="flex items-center gap-2 flex-wrap text-xs bg-muted/30 border rounded-lg px-3 py-1.5" dir="rtl">
+            <div className="flex items-center gap-2 flex-wrap text-xs bg-muted/30 border rounded-lg px-3 py-1.5">
               <span className="whitespace-nowrap">شحن: <span className="font-bold text-green-600">{loadingData.loadCount}</span></span>
               <span className="text-muted-foreground/40">|</span>
               <span className="whitespace-nowrap">تفريغ: <span className="font-bold text-destructive">{loadingData.unloadCount}</span></span>
@@ -475,7 +475,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
 
           {/* Review Session Info */}
           {reviewData?.sessionInfo && (
-            <div className="flex items-center gap-2 flex-wrap text-xs bg-muted/50 border rounded-lg px-3 py-2" dir="rtl">
+            <div className="flex items-center gap-2 flex-wrap text-xs bg-muted/50 border rounded-lg px-3 py-2">
               <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-background/70 px-2 py-1">
                 <span className="font-semibold">{new Date(reviewData.sessionInfo.created_at).toLocaleDateString('ar-DZ')}</span>
                 <span className="text-muted-foreground">،</span>
@@ -518,13 +518,13 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                   </Badge>
                 )}
                 {row.status === 'deficit' && (
-                  <Badge className="text-[10px] bg-destructive text-destructive-foreground" dir="rtl">
+                  <Badge className="text-[10px] bg-destructive text-destructive-foreground">
                     <AlertTriangle className="w-2.5 h-2.5 me-1" />
                     عجز ({fmtQty(Math.abs(row.diff!))})
                   </Badge>
                 )}
                 {row.status === 'surplus' && (
-                  <Badge className="text-[10px] bg-orange-500 text-white" dir="rtl">
+                  <Badge className="text-[10px] bg-orange-500 text-white">
                     <TrendingUp className="w-2.5 h-2.5 me-1" />
                     فائض ({fmtQty(Math.abs(row.diff!))})
                   </Badge>

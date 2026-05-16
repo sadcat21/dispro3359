@@ -73,7 +73,7 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Still checking
   if (gpsStatus === 'checking') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4 p-6 text-center" dir="rtl">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4 p-6 text-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
         <p className="text-lg font-medium">جاري التحقق من خدمة الموقع...</p>
       </div>
@@ -83,7 +83,7 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // GPS denied or unavailable — show blocking screen
   if (gpsStatus === 'denied' || gpsStatus === 'unavailable') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-6 p-6 text-center" dir="rtl">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-6 p-6 text-center">
         <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
           <MapPin className="w-10 h-10 text-destructive" />
         </div>

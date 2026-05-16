@@ -39,7 +39,7 @@ const ManagerSalesSummaryPage: React.FC = () => {
   });
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col p-2 sm:p-4" dir="rtl">
+    <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col p-2 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-600">

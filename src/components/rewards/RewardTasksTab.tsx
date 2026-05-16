@@ -162,7 +162,7 @@ const RewardTasksTab: React.FC = () => {
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>حذف المهمة</AlertDialogTitle>
             <AlertDialogDescription>هل أنت متأكد من حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>

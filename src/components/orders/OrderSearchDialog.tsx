@@ -743,7 +743,7 @@ const OrderSearchDialog: React.FC<OrderSearchDialogProps> = ({ open, onOpenChang
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent 
           className="max-w-lg max-h-[90vh] overflow-y-auto" 
-          dir="rtl"
+         
           onClick={handleUserActivity}
           onKeyDown={handleUserActivity}
         >
@@ -1106,7 +1106,7 @@ const OrderSearchDialog: React.FC<OrderSearchDialogProps> = ({ open, onOpenChang
       
       {/* Delete Confirmation */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-destructive" />

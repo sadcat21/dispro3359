@@ -457,7 +457,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
       {history && (
         <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-          <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden" dir="rtl">
+          <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 flex-wrap">
                 <History className="w-5 h-5 text-primary" />

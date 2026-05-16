@@ -2015,7 +2015,7 @@ const LoadStock: React.FC = () => {
 
       {/* Session Details View Dialog */}
       <Dialog open={!!viewSessionId} onOpenChange={(open) => { if (!open) setViewSessionId(null); }}>
-        <DialogContent className="max-w-md h-[90dvh] max-h-[90dvh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-md h-[90dvh] max-h-[90dvh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5 text-primary" />
@@ -2272,7 +2272,7 @@ const LoadStock: React.FC = () => {
 
       {/* Confirm Final Review submission */}
       <Dialog open={!!confirmFinalReview} onOpenChange={(o) => { if (!o && !submittingFinalReview) setConfirmFinalReview(null); }}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
@@ -2442,7 +2442,7 @@ const LoadStock: React.FC = () => {
 
       {/* Post-confirmation dialog */}
       <Dialog open={postConfirmDialog.open} onOpenChange={(o) => setPostConfirmDialog((p) => ({ ...p, open: o }))}>
-        <DialogContent dir="rtl" className="max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <CheckCircle className="w-5 h-5 text-primary" />

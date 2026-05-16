@@ -1208,7 +1208,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                       return (
                         <button
                           key={product.id}
-                          dir="rtl"
+                         
                           onClick={() => handleProductClick(product)}
                           className={cn(
                             "flex items-center gap-2 p-2 rounded-lg border-2 bg-white text-right transition-all",
@@ -1242,7 +1242,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     return (
                       <button
                         key={product.id}
-                        dir="rtl"
+                       
                         onClick={() => handleProductClick(product)}
                         className={cn(
                           "flex flex-col rounded-2xl overflow-hidden text-center transition-all relative",

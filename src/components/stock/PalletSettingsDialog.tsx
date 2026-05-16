@@ -115,7 +115,7 @@ const PalletSettingsDialog: React.FC<Props> = ({ open, onOpenChange, branchId, s
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-primary" />

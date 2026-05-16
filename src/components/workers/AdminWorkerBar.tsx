@@ -49,7 +49,7 @@ const AdminWorkerBar: React.FC = () => {
           <X className="w-3 h-3" />
         </Button>
       )}
-      <ScrollArea className="w-full" dir="rtl">
+      <ScrollArea className="w-full">
         <div className="flex gap-2 pb-1">
           {workers.map((w) => {
             const isSelected = w.id === selectedWorkerId;

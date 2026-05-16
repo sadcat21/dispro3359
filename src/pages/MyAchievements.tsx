@@ -136,7 +136,7 @@ const DebtAggregatesDialog: React.FC<{
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>تجميعات الديون</DialogTitle>
         </DialogHeader>
@@ -895,7 +895,7 @@ const MyAchievements: React.FC = () => {
     <div
       className="p-2 sm:p-3 flex h-[100dvh] flex-col gap-1.5 overflow-hidden"
       style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
-      dir="rtl"
+     
     >
       {/* Hero section – compact grid */}
       <div className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1">
@@ -1200,7 +1200,7 @@ const MyAchievements: React.FC = () => {
       </Tabs>
 
       <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
-        <DialogContent dir="rtl" className="max-w-sm">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>تحديد الفترة</DialogTitle>
           </DialogHeader>
@@ -1270,7 +1270,7 @@ const MyAchievements: React.FC = () => {
       <DebtAggregatesDialog open={showDebtAggregates} onOpenChange={setShowDebtAggregates} workerId={targetWorkerId || undefined} dateFrom={dateFrom} dateTo={dateTo} />
 
       <Dialog open={productFilterOpen} onOpenChange={setProductFilterOpen}>
-        <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
           <DialogHeader className="px-4 pt-4">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Filter className="w-4 h-4" />

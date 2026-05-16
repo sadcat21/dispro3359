@@ -342,7 +342,7 @@ const Training: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-3 sm:p-4 space-y-3 pb-24 max-w-2xl mx-auto" dir="rtl">
+    <div className="p-3 sm:p-4 space-y-3 pb-24 max-w-2xl mx-auto">
       {/* ─── Header ─── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-4 text-primary-foreground shadow-lg">
         <div className="absolute inset-0 opacity-[0.07]">

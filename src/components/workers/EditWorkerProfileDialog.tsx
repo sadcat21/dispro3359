@@ -113,7 +113,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" dir="rtl">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-primary" />

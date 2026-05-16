@@ -146,7 +146,7 @@ const NearbyStores: React.FC = () => {
     if (mapRef.current) {
       const locationMarker = L.marker([lat, lon])
         .addTo(mapRef.current)
-        .bindPopup(`<div class="text-right" dir="rtl"><strong>الموقع المحدد</strong><br/><small>انقر للبحث عن المحلات</small></div>`)
+        .bindPopup(`<div class="text-right"><strong>الموقع المحدد</strong><br/><small>انقر للبحث عن المحلات</small></div>`)
         .openPopup();
       markersRef.current.push(locationMarker);
     }
@@ -423,7 +423,7 @@ const NearbyStores: React.FC = () => {
           const marker = L.marker([store.lat, store.lon], { icon: storeIcon })
             .addTo(mapRef.current!)
             .bindPopup(`
-              <div class="text-right" dir="rtl">
+              <div class="text-right">
                 <strong>${store.name}</strong><br/>
                 <span class="text-sm">${store.type}</span><br/>
                 ${store.address !== 'العنوان غير متوفر' ? `<span class="text-xs">${store.address}</span><br/>` : ''}
@@ -547,7 +547,7 @@ const NearbyStores: React.FC = () => {
       // Add location marker
       const locationMarker = L.marker([location.lat, location.lon])
         .addTo(mapRef.current)
-        .bindPopup(`<div class="text-right" dir="rtl"><strong>الموقع المحدد</strong></div>`)
+        .bindPopup(`<div class="text-right"><strong>الموقع المحدد</strong></div>`)
         .openPopup();
       markersRef.current.push(locationMarker);
       
@@ -619,7 +619,7 @@ const NearbyStores: React.FC = () => {
               onChange={(e) => handleSearchInputChange(e.target.value)}
               placeholder="أدخل العنوان أو المنطقة للبحث..."
               className="pe-10 text-right"
-              dir="rtl"
+             
             />
             <div className="absolute start-3 top-1/2 -translate-y-1/2">
               {isSearching ? (

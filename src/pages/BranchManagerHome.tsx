@@ -210,7 +210,7 @@ const BranchManagerHome: React.FC = () => {
       </div>
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
-      <div className="px-2 sm:px-3 py-2 space-y-2" dir="rtl">
+      <div className="px-2 sm:px-3 py-2 space-y-2">
         {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
           const SecIcon = section.icon;
           // لوحة ألوان دوّارة لكل قسم لإعطاء كل قسم لون خلفية مميز كما في الصورة
@@ -289,7 +289,7 @@ const BranchManagerHome: React.FC = () => {
       <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
 
       <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ClipboardCheck className="w-5 h-5 text-emerald-600" />
@@ -328,7 +328,7 @@ const BranchManagerHome: React.FC = () => {
 
       {/* اختيار العامل لرصيد الشاحنة */}
       <Dialog open={truckPickerOpen} onOpenChange={setTruckPickerOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5 text-blue-600" />
@@ -357,7 +357,7 @@ const BranchManagerHome: React.FC = () => {
 
       {/* عرض رصيد الشاحنة */}
       <Dialog open={!!truckBalanceWorker} onOpenChange={(o) => { if (!o) setTruckBalanceWorker(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5 text-blue-600" />

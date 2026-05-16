@@ -143,7 +143,7 @@ const StampTiersDialog: React.FC<StampTiersDialogProps> = ({ open, onOpenChange 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[85vh] p-0 gap-0 overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-md max-h-[85vh] p-0 gap-0 overflow-hidden">
           <DialogHeader className="p-4 pb-2 border-b">
             <DialogTitle className="flex items-center gap-2">
               <Stamp className="w-5 h-5" />
@@ -338,7 +338,7 @@ const StampTiersDialog: React.FC<StampTiersDialogProps> = ({ open, onOpenChange 
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>حذف النطاق؟</AlertDialogTitle>
             <AlertDialogDescription>

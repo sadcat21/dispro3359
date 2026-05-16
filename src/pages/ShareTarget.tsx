@@ -118,7 +118,7 @@ const ShareTarget: React.FC = () => {
 
   if (isProcessing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
           <p className="text-sm text-muted-foreground">جاري معالجة الملفات المشاركة...</p>
@@ -129,7 +129,7 @@ const ShareTarget: React.FC = () => {
 
   if (sharedFiles.length === 0 && !sharedText) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-sm text-center">
           <CardContent className="pt-6 space-y-4">
             <FileText className="w-12 h-12 mx-auto text-muted-foreground" />
@@ -146,7 +146,7 @@ const ShareTarget: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4" dir="rtl">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-md mx-auto space-y-4">
         <Card>
           <CardHeader className="pb-3">

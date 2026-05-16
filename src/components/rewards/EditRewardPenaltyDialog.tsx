@@ -86,7 +86,7 @@ const EditRewardPenaltyDialog: React.FC<Props> = ({ penalty, onOpenChange }) => 
 
   return (
     <Dialog open={!!penalty} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh]" dir="rtl">
+      <DialogContent className="max-w-md max-h-[90vh]">
         <DialogHeader><DialogTitle>تعديل المخالفة</DialogTitle></DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-2">
           <div className="space-y-4 pb-2">

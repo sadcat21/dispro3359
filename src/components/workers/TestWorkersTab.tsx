@@ -733,7 +733,7 @@ const TestWorkersTab: React.FC = () => {
 
       {/* ─── نافذة إنشاء الفرع التجريبي ─── */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="w-5 h-5" />
@@ -785,7 +785,7 @@ const TestWorkersTab: React.FC = () => {
 
       {/* ─── نافذة تحديث البيانات ─── */}
       <Dialog open={showSyncDialog} onOpenChange={setShowSyncDialog}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RefreshCw className="w-5 h-5" />

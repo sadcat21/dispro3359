@@ -106,7 +106,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md p-0 gap-0 max-h-[85vh] overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-md p-0 gap-0 max-h-[85vh] overflow-hidden">
         <DialogHeader className="p-4 pb-3 border-b bg-muted/30">
           <DialogTitle className="flex items-center gap-2 text-base">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

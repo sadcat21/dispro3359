@@ -155,7 +155,7 @@ const VerificationChecklistCard: React.FC = () => {
 
         {/* Add/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-sm" dir="rtl">
+          <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>{editingItem ? 'تعديل بند التحقق' : 'إضافة بند تحقق جديد'}</DialogTitle>
             </DialogHeader>

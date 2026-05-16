@@ -2379,7 +2379,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[calc(100vw-10px)] max-w-[calc(100vw-10px)] sm:max-w-md p-0 gap-0 max-h-[88dvh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogContent className="w-[calc(100vw-10px)] max-w-[calc(100vw-10px)] sm:max-w-md p-0 gap-0 max-h-[88dvh] flex flex-col overflow-hidden">
           <DialogHeader className="px-2.5 py-2 border-b shrink-0">
             <DialogTitle className="flex w-full items-center gap-1.5 pe-12 text-sm">
               <MapPin className="w-4 h-4 text-primary shrink-0" />
@@ -2457,7 +2457,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 ];
 
                 const renderRow = (workers: typeof adminPickerWorkers, colorOffset: number) => (
-                  <ScrollArea className="w-full" dir="rtl">
+                  <ScrollArea className="w-full">
                     <div className="flex gap-1 pb-1">
                       {workers.map((w, idx) => {
                         const isSelected = w.id === selectedAdminWorkerId;
@@ -2491,7 +2491,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
           {/* Day picker strip - equal width day buttons */}
           <div className="border-b px-1.5 py-1 shrink-0">
-            <div className="grid grid-cols-6 gap-1" dir="rtl">
+            <div className="grid grid-cols-6 gap-1">
               {Object.entries(DAY_NAMES).map(([key, label]) => {
                 const isSelected = key === selectedDay && !selectedCustomDate;
                 const isToday = key === todayName;
@@ -2524,14 +2524,14 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-8 text-xs pr-8"
-                dir="rtl"
+               
               />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={sortByDistance} onCheckedChange={setSortByDistance} className="shrink-0" />
               <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
                 <MapPin className="w-3 h-3 shrink-0 text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground truncate" dir="rtl">
+                <span className="text-[10px] text-muted-foreground truncate">
                   {workerAddress || (sortByDistance ? 'جارٍ تحديد الموقع...' : 'فعّل الترتيب لعرض موقعك')}
                 </span>
               </div>
@@ -2980,7 +2980,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       {/* Multiple orders picker - when worker entered multiple orders for the same customer */}
       {orderPickerDialog && (
         <Dialog open={!!orderPickerDialog} onOpenChange={(o) => !o && setOrderPickerDialog(null)}>
-          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" dir="rtl">
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base">
                 طلبيات {orderPickerDialog.customer?.store_name || orderPickerDialog.customer?.name || 'العميل'} ({orderPickerDialog.orders.length})
@@ -3069,7 +3069,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       />
 
       <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
-        <DialogContent className="w-auto max-w-[92vw] p-0 overflow-hidden" dir="rtl">
+        <DialogContent className="w-auto max-w-[92vw] p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4 pb-2">
             <DialogTitle className="text-sm mb-2">اختيار تاريخ مخصص</DialogTitle>
             <div className="flex flex-wrap gap-1">
@@ -3158,7 +3158,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       )}
       {/* Single Customer Postpone Dialog */}
       <Dialog open={!!postponeCustomer} onOpenChange={(open) => { if (!open) { setPostponeCustomer(null); setPostponeWorkerId(null); } }}>
-        <DialogContent className="max-w-xs" dir="rtl">
+        <DialogContent className="max-w-xs">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarClock className="w-5 h-5 text-amber-600" />
@@ -3172,7 +3172,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="نفس العامل الحالي" />
               </SelectTrigger>
-              <SelectContent dir="rtl">
+              <SelectContent>
                 <SelectItem value="_same">نفس العامل الحالي</SelectItem>
                 {adminPickerWorkers.map(w => (
                   <SelectItem key={w.id} value={w.id}>{w.full_name}</SelectItem>
@@ -3284,7 +3284,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       />
 
       <Dialog open={showPrintPreviewDialog} onOpenChange={setShowPrintPreviewDialog}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] p-0 overflow-hidden" dir="rtl">
+        <DialogContent className="max-w-[95vw] max-h-[90vh] p-0 overflow-hidden">
           <DialogHeader className="p-4 pb-2 border-b">
             <DialogTitle className="flex items-center gap-2">
               <Eye className="w-5 h-5" />
@@ -3437,7 +3437,7 @@ const OrderDetailsDialog: React.FC<{ order: any; onClose: () => void; onCancelOr
   return (
     <>
     <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 gap-3 max-h-[80vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-[95vw] sm:max-w-sm p-4 gap-3 max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base flex items-center gap-2">
             {isDirectSale ? '🛒 تفاصيل البيع المباشر' : '📦 تفاصيل الطلبية'}

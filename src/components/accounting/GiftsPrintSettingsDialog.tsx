@@ -251,7 +251,7 @@ const GiftsPrintSettingsDialog: React.FC<Props> = ({ open, onOpenChange, product
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm max-h-[85vh] overflow-hidden flex flex-col" dir="rtl">
+      <DialogContent className="max-w-sm max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Settings className="w-4 h-4" />

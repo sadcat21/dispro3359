@@ -68,7 +68,7 @@ const CustomerAccounts = () => {
   };
 
   return (
-    <div className="p-4 space-y-4" dir="rtl">
+    <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">حسابات التجار</h1>
         {pendingCount > 0 && activeTab !== 'pending' && (
@@ -225,7 +225,7 @@ const CustomerAccounts = () => {
 
       {/* Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent dir="rtl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>تفاصيل التاجر</DialogTitle>
           </DialogHeader>
@@ -284,7 +284,7 @@ const CustomerAccounts = () => {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent dir="rtl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>رفض طلب التاجر</DialogTitle>
           </DialogHeader>

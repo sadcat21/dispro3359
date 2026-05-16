@@ -706,7 +706,7 @@ const StockConfirmationsPopover: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="incoming" className="w-full flex flex-col flex-1 min-h-0" dir="rtl">
+          <Tabs defaultValue="incoming" className="w-full flex flex-col flex-1 min-h-0">
             <div className="px-4">
               <TabsList className="grid w-full grid-cols-3 h-9">
                 <TabsTrigger value="incoming" className="text-xs gap-1">

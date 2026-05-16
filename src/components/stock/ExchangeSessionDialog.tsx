@@ -266,7 +266,7 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
@@ -324,7 +324,7 @@ const ExchangeSessionDialog: React.FC<ExchangeSessionDialogProps> = ({
           if (!v) { setSelectedProductId(null); setQtyInput(''); }
         }}
       >
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <RefreshCw className="w-4 h-4 text-orange-500" />

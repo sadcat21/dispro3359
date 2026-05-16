@@ -233,7 +233,7 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
                     </PopoverTrigger>
                     <PopoverContent className="w-[280px] p-0" align="start">
                       <Command>
-                        <CommandInput placeholder={t('common.search')} className="text-right h-12" dir="rtl" />
+                        <CommandInput placeholder={t('common.search')} className="text-right h-12" />
                         <CommandList className="max-h-60">
                           <CommandEmpty>{t('customers.no_customers')}</CommandEmpty>
                           <CommandGroup>
@@ -246,7 +246,7 @@ const AddPromoDialog: React.FC<AddPromoDialogProps> = ({
                                   setCustomerSearchOpen(false);
                                 }}
                                 className="text-right py-3"
-                                dir="rtl"
+                               
                               >
                                 <Check
                                   className={cn(

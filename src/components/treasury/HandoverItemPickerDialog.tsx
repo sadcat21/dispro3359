@@ -193,7 +193,7 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>اختيار {labels[paymentMethod]} للتسليم</DialogTitle>
         </DialogHeader>

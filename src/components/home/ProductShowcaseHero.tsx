@@ -157,7 +157,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
   return (
     <div
       className="relative h-44 sm:h-52 overflow-hidden select-none"
-      dir="rtl"
+     
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

@@ -450,7 +450,7 @@ const WarehouseReview: React.FC = () => {
   };
 
   return (
-    <div className="pb-32 min-h-screen bg-muted/20 max-w-4xl mx-auto" dir="rtl">
+    <div className="pb-32 min-h-screen bg-muted/20 max-w-4xl mx-auto">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
         <div className="px-4 pt-3 pb-2 space-y-2">

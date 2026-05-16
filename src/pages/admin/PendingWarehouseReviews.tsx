@@ -344,7 +344,7 @@ const PendingWarehouseReviews: React.FC = () => {
   }
 
   return (
-    <div className="pb-20 min-h-screen bg-muted/20 max-w-4xl mx-auto" dir="rtl">
+    <div className="pb-20 min-h-screen bg-muted/20 max-w-4xl mx-auto">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <div className="px-4 py-3 flex items-center justify-between">
@@ -499,7 +499,7 @@ const PendingWarehouseReviews: React.FC = () => {
 
       {/* Decision Dialog */}
       <Dialog open={!!dialogItem} onOpenChange={(o) => { if (!o) closeDialog(); }}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ClipboardCheck className="w-5 h-5 text-primary" />

@@ -204,7 +204,7 @@ export const ProductReviewDetailsDialog: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-       <DialogContent className="max-w-md max-h-[92dvh] overflow-hidden flex flex-col p-0" dir="rtl">
+       <DialogContent className="max-w-md max-h-[92dvh] overflow-hidden flex flex-col p-0">
         <DialogHeader>
            <div className="px-4 pt-4 pb-2 border-b border-border space-y-2">
              <DialogTitle className="flex items-start gap-2">

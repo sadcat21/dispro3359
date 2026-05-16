@@ -290,7 +290,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
   };
 
   return (
-    <div className="space-y-3" dir="rtl">
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h3 className="text-base font-bold flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
@@ -562,7 +562,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
         </div>
       )}
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
@@ -585,7 +585,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
 
       {/* نافذة فلترة المنتجات */}
       <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" dir="rtl">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Filter className="w-4 h-4" />

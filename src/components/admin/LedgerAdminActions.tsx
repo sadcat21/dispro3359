@@ -123,7 +123,7 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
             أرشفة السجلات
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>أرشفة جميع سجلات {cfg.label}؟</AlertDialogTitle>
             <AlertDialogDescription>
@@ -145,7 +145,7 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
             حذف السجلات
           </Button>
         </DialogTrigger>
-        <DialogContent dir="rtl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-destructive">حذف سجلات {cfg.label}</DialogTitle>
             <DialogDescription>
@@ -187,7 +187,7 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
       </Dialog>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">⚠️ تأكيد الحذف النهائي</AlertDialogTitle>
             <AlertDialogDescription>

@@ -131,7 +131,7 @@ const BulkLoadNeedsDialog: React.FC<BulkLoadNeedsDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden" dir="rtl">
+        <DialogContent className="w-[95vw] max-w-md h-[90dvh] max-h-[90dvh] gap-0 flex flex-col overflow-hidden p-0 [&>button:last-child]:hidden">
           <DialogHeader className="px-3 pt-3 pb-2 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Truck className="w-5 h-5 text-destructive" />
@@ -228,7 +228,7 @@ const BulkLoadNeedsDialog: React.FC<BulkLoadNeedsDialogProps> = ({
           }
         }}
       >
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Package className="w-4 h-4 text-primary" />

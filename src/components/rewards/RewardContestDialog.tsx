@@ -74,7 +74,7 @@ const RewardContestDialog: React.FC<Props> = ({ open, onOpenChange, fundBalance,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-yellow-600" />
