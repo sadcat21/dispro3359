@@ -543,7 +543,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1.5 flex-1 text-sm font-extrabold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 <Truck className="w-4 h-4" />
-                {fmtBP(loadedQty, p.pieces_per_box || 1)}
+                {quantityDisplayMode === 'raw' ? fmtQty(loadedQty) : fmtBP(loadedQty, p.pieces_per_box || 1)}
               </button>
             </div>
           </>
