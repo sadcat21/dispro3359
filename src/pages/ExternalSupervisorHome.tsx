@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
+import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import {
   ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet,
 } from 'lucide-react';
@@ -14,9 +15,10 @@ const ExternalSupervisorHome: React.FC = () => {
   const navigate = useNavigate();
   const { user, activeBranch } = useAuth();
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
 
   const buttons = [
-    { key: 'create_order', label: 'إنشاء طلب', icon: ShoppingCart, onClick: () => navigate('/orders'), palette: { border: 'border-emerald-300', icon: 'text-emerald-500' } },
+    { key: 'create_order', label: 'إنشاء طلب', icon: ShoppingCart, onClick: () => setShowCreateOrderDialog(true), palette: { border: 'border-emerald-300', icon: 'text-emerald-500' } },
     { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
   ];
@@ -73,6 +75,12 @@ const ExternalSupervisorHome: React.FC = () => {
       </div>
 
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+
+      <OrderFlowDialog
+        open={showCreateOrderDialog}
+        onOpenChange={setShowCreateOrderDialog}
+        mode="create"
+      />
     </div>
   );
 };
