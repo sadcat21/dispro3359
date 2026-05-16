@@ -185,6 +185,7 @@ const InternalSupervisorHome: React.FC = () => {
       </div>
 
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+      <OrderFlowDialog open={showCreateOrderDialog} onOpenChange={setShowCreateOrderDialog} mode="create" />
     </div>
   );
 };
