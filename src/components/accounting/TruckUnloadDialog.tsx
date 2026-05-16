@@ -152,6 +152,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
         workerId={workerId}
         open={emptyOpen}
         onOpenChange={setEmptyOpen}
+        autoFullUnload
       />
     )}
     </>
