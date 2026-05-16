@@ -81,6 +81,9 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const canDeleteCustomer = role === 'admin' || role === 'branch_admin' || role === 'project_manager' || role === 'admin_assistant';
   const [showMap, setShowMap] = useState(false);
   const [locationType, setLocationType] = useState<'store' | 'warehouse' | 'office'>('store');
   const [salesReps, setSalesReps] = useState<SalesRep[]>([{ name: '', phone: '' }]);
