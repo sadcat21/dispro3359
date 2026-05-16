@@ -115,6 +115,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         onFocus={handleFocus}
+        onOpenAutoFocus={handleOpenAutoFocus}
         style={{
           ...(maxHeight ? { maxHeight: `${maxHeight}px` } : {}),
           ...style,
