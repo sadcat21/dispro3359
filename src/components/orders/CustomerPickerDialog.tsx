@@ -297,7 +297,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const sectorStyle = (key: string, index: number) => SECTOR_STYLES[index % SECTOR_STYLES.length];
 
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
-  const visibleCustomers = search.trim() ? filteredCustomers : (activeGroup?.customers || []);
+  const visibleCustomers = deferredSearch.trim() ? filteredCustomers : (activeGroup?.customers || []);
 
   const getSectorName = (sectorId: string | null | undefined) => {
     if (!sectorId) return '';
