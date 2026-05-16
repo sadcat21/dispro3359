@@ -94,7 +94,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
             {workers.map(w => {
               const deficit = getWorkerDeficit(w.id);
               const isSelected = w.id === selectedWorkerId;
-              const isFrozen = frozenWorkerIds.includes(w.id);
+              const isFrozen = effectiveFrozen.includes(w.id);
               const colorClass = AVATAR_COLORS[getColorIndex(w.id)];
               return (
                 <button
