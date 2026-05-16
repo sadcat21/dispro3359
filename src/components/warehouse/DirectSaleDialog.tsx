@@ -746,18 +746,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         });
       } catch (e) { console.warn('sales_tracking failed', e); }
 
-      // إذا كان الطلب يتطلب سلسلة موافقات، نتوقف هنا (لا خصم مخزون، لا وصل، لا SMS)
+      // ملاحظة: حتى لو كان الطلب بفاتورة ويتطلب سلسلة موافقات،
+      // يجب خصم المخزون فوراً لأن البيع تم فعلياً. الموافقة تخص الفاتورة فقط.
       if (requiresApprovalChain) {
-        queryClient.invalidateQueries({ queryKey: ['orders'] });
-        queryClient.invalidateQueries({ queryKey: ['today-orders-dialog'] });
-        queryClient.invalidateQueries({ queryKey: ['today-direct-sales-dialog'] });
-        queryClient.invalidateQueries({ queryKey: ['today-cust-assigned-orders-full'] });
         queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
-        toast.success('تم إرسال طلب الفاتورة لمدير الفرع للمراجعة');
-        setShowPaymentDialog(false);
-        onOpenChange(false);
-        setIsSaving(false);
-        return;
       }
 
       // Resolve which offers are deferred (gift not deducted from stock yet)
