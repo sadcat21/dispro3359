@@ -398,17 +398,17 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               // إذا لم تُختر منطقة بعد ولم يكن هناك بحث: اعرض شبكة أزرار المناطق
               if (!activeRegionKey && !hasSearch) {
                 return (
-                  <div className="grid grid-cols-2 gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                  <div className={cn("grid grid-cols-2 gap-2 p-4", !isMobile && "animate-in fade-in slide-in-from-bottom-3 duration-300")}>
                     {regionEntries.map(([region, list], rIdx) => (
                       <button
                         key={region}
                         dir={dir}
                         onClick={() => setActiveRegionKey(region)}
-                        style={{ animationDelay: `${rIdx * 40}ms` }}
+                        style={isMobile ? undefined : { animationDelay: `${rIdx * 40}ms` }}
                         className={cn(
                           "group relative flex items-center ps-3 pe-12 py-2 rounded-xl border-2 border-foreground bg-background shadow-sm min-h-[40px] text-right overflow-hidden",
-                          "transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
-                          "animate-in fade-in zoom-in-95 fill-mode-both"
+                          "transition-colors duration-150 active:translate-y-0",
+                          !isMobile && "hover:shadow-md hover:-translate-y-0.5 animate-in fade-in zoom-in-95 fill-mode-both"
                         )}
                       >
                         <span className="text-sm font-bold truncate min-w-0 flex-1 text-right text-foreground">
@@ -432,7 +432,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                   {visibleRegions.map(([region, list]) => {
                     return (
                       <div key={region}>
-                        <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                        <div className={cn("grid grid-cols-2 gap-2", !isMobile && "animate-in fade-in slide-in-from-bottom-3 duration-300")}>
                           {list.map((customer, cIdx) => {
                             const isSelected = selectedCustomerId === customer.id;
                             const storeName = (language !== 'ar' && (customer as any).store_name_fr)
@@ -493,15 +493,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 key={customer.id}
                                 type="button"
                                 style={{
-                                  animationDelay: `${cIdx * 30}ms`,
+                                  ...(isMobile ? {} : { animationDelay: `${cIdx * 30}ms` }),
                                   border: `1.5px solid ${borderColor}`,
                                   boxShadow: primaryColors
                                     ? `0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 -1px 0 hsl(0 0% 0% / 0.08) inset, 0 2px 4px ${primaryColors.bg}33, 0 1px 2px hsl(0 0% 0% / 0.08)`
                                     : '0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 1px 3px hsl(0 0% 0% / 0.1)',
                                 }}
                                 className={cn(
-                                  "relative flex flex-col items-stretch rounded-xl overflow-hidden text-center bg-background transition-all hover:-translate-y-0.5 select-none min-h-[52px]",
-                                  "animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
+                                  "relative flex flex-col items-stretch rounded-xl overflow-hidden text-center bg-background select-none min-h-[52px]",
+                                  isMobile ? "transition-colors duration-150" : "transition-all hover:-translate-y-0.5 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 fill-mode-both duration-300",
                                   isSelected && "ring-2 ring-primary/40"
                                 )}
                                 title={topText}
