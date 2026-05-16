@@ -12,6 +12,7 @@ import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import SupervisorWorkerViewDialog from '@/components/supervisor/SupervisorWorkerViewDialog';
 import { Customer } from '@/types/database';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
