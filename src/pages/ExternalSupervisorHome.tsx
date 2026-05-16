@@ -76,7 +76,7 @@ const ExternalSupervisorHome: React.FC = () => {
               className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span className="text-sm font-bold">إنشاء طلب</span>
+              <span className="text-sm font-bold">إنشاء طلبية</span>
             </button>
             <button
               onClick={() => setShowWorkerViewDialog(true)}
