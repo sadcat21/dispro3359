@@ -347,12 +347,12 @@ const MyPromosContent: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {!isEditPromoHidden && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)} disabled={isFrozen}>
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
                           )}
                           {!isDeletePromoHidden && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)} disabled={isFrozen}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           )}
