@@ -750,7 +750,7 @@ const CustomerJourney = () => {
                               </div>
                             )}
                           </div>
-                          <div className="ms-auto flex flex-col items-start gap-1 shrink-0 min-w-[110px]">
+                          <div className="ms-auto flex flex-col items-start gap-1 shrink-0">
                             <span className="text-xs font-semibold tabular-nums whitespace-nowrap text-left" dir="ltr">
                               <span className="text-black">{datePart}</span>
                               {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
