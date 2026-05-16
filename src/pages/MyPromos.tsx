@@ -24,6 +24,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { isOfferCurrentlyActive } from '@/utils/productOffers';
+import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
+import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 
 type OfferSnapshot = {
   id: string;
@@ -80,6 +82,8 @@ const unitLabel = (u: 'box' | 'piece' | string | null | undefined) =>
 const MyPromosContent: React.FC = () => {
   const [deletePromo, setDeletePromo] = useState<PromoWithDetails | null>(null);
   const { workerId, activeBranch } = useAuth();
+  const { data: frozenStatus } = useWorkerFrozenStatus(workerId);
+  const isFrozen = !!frozenStatus?.isFrozen;
   const { t, language } = useLanguage();
   const [promos, setPromos] = useState<PromoWithDetails[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -160,7 +164,11 @@ const MyPromosContent: React.FC = () => {
 
   const handleSaveEdit = async () => {
     if (!editingPromo) return;
-    
+    if (isFrozen) {
+      toast.error('لا يمكن تعديل عروض الأسعار - الحساب مجمَّد بسبب عجز غير مسدَّد');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -198,6 +206,10 @@ const MyPromosContent: React.FC = () => {
   };
 
   const handleDelete = async (promo: PromoWithDetails) => {
+    if (isFrozen) {
+      toast.error('لا يمكن حذف عروض الأسعار - الحساب مجمَّد بسبب عجز غير مسدَّد');
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -258,6 +270,7 @@ const MyPromosContent: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4">
+      <FrozenWorkerBadge workerId={workerId} />
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground">
@@ -335,12 +348,12 @@ const MyPromosContent: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {!isEditPromoHidden && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)} disabled={isFrozen}>
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
                           )}
                           {!isDeletePromoHidden && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)} disabled={isFrozen}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           )}

@@ -10,6 +10,7 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useWarehouseStock } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from './ProductPickerDialog';
 import { useProductOffersMap } from '@/hooks/useProductOffersMap';
+import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
@@ -46,6 +47,31 @@ const parseMismatches = (note: string | null): { product: string; expected: stri
     if (match) return { product: match[1].trim(), expected: match[2], actual: match[3] };
     return { product: part, expected: '?', actual: '?' };
   }).filter(m => m.product);
+};
+
+const AmendButton: React.FC<{ workerId: string; hasGift: boolean; onClick: () => void }> = ({ workerId, hasGift, onClick }) => {
+  const { data: frozen } = useWorkerFrozenStatus(hasGift ? workerId : null);
+  const isFrozen = hasGift && !!frozen?.isFrozen;
+  return (
+    <>
+      {isFrozen && (
+        <div className="flex items-start gap-1.5 bg-destructive/10 border border-destructive/30 rounded p-2 text-[10px] text-destructive mb-1.5">
+          <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <span>هذا العامل مجمَّد بسبب عجز غير مسدَّد. لا يمكن تعديل تأكيدات الهدايا حتى تسوية المحاسبة.</span>
+        </div>
+      )}
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
+        onClick={onClick}
+        disabled={isFrozen}
+      >
+        <Edit className="w-3.5 h-3.5 me-1" />
+        تعديل الكميات وإعادة إرسال
+      </Button>
+    </>
+  );
 };
 
 const ManagerConfirmationsPanel: React.FC = () => {
@@ -254,15 +280,11 @@ const ManagerConfirmationsPanel: React.FC = () => {
               </div>
             )}
             {canAmend && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
+              <AmendButton
+                workerId={conf.worker_id}
+                hasGift={conf.items.some(i => (i.gift_quantity || 0) > 0)}
                 onClick={() => startEditing(conf)}
-              >
-                <Edit className="w-3.5 h-3.5 me-1" />
-                تعديل الكميات وإعادة إرسال
-              </Button>
+              />
             )}
           </div>
         )}

@@ -1,41 +1,63 @@
-# خطة: إضافة دور "مشرف خارجي" (external_supervisor)
+## ما المطلوب
 
-## الهدف
-دور جديد بنفس تصميم وهوية المشرف الداخلي، مع أزرار مختلفة في الصفحة الرئيسية:
-1. **إنشاء طلب** (نفس زر العامل/مندوب المبيعات)
-2. **مهام العمال اليومية** (نفس حوار `TodayCustomersDialog` المستخدم في المشرف الداخلي)
-3. **جمع المبيعات** (نفس آلية العامل)
-4. **إدارة العملاء** بصلاحيات إضافة/تعديل/حذف مع اشتراط الموافقة (نفس نظام طلبات العمال)
+بعد أن يؤكد المدير المراجعة النهائية للمخزون (`warehouse_review_sessions.is_final = true`) ويترتب على الموظف عجز/دين، يجب **تجميد** كل العمليات التالية على الموظف حتى يسوّي حسابه:
+
+1. **الطلبيات المسلَّمة (delivered orders)** – لا تعديل، لا حذف، لا تغيير حالة، لا تغيير الدفع.
+2. **عروض الأسعار / الكوتيشن (quotations / promos)** – لا تعديل ولا حذف ولا تحويل لطلبية.
+3. **تأكيدات الهدايا المعلّقة (pending gift confirmations)** – لا قبول، لا رفض، لا تعديل.
+
+## كيف نتعرّف على الموظف "المجمَّد"
+
+موظف يُعتبر مجمَّداً إذا تحقق الشرطان:
+- يوجد `warehouse_review_sessions` خاصة به بحالة `is_final = true` و`completed_at IS NOT NULL`.
+- يوجد `worker_debts` بنوع `deficit` مرتبط بهذه المراجعة (`remaining_amount > 0` أو `status != 'paid'`).
+
+سننشئ هوك مركزي `useWorkerFrozenStatus(workerId)` يُرجع `{ isFrozen, debtAmount, reviewSessionId }` ليُستخدم في كل الواجهات.
 
 ## التغييرات
 
-### 1) قاعدة البيانات (migration)
-- إضافة `external_supervisor` إلى enum `app_role`.
-- إدراج صف في `custom_roles` بكود `external_supervisor` واسم "مشرف خارجي".
-- نسخ صلاحيات `worker` الأساسية إلى الدور الجديد (لإدارة العملاء + إنشاء الطلب + جمع المبيعات)، بحيث تمر طلبات العملاء عبر نفس جدول `customer_change_requests` كما هو الحال للعمال.
+### 1. هوك جديد
+`src/hooks/useWorkerFrozenStatus.ts`
+- استعلام يجمع بين `warehouse_review_sessions` (final) و`worker_debts` غير المسددة.
+- يُعرض على شكل React Query هوك مع realtime على الجدولين.
 
-### 2) الأنواع والمساعدات
-- `src/types/database.ts`: إضافة `'external_supervisor'` إلى `AppRole`.
-- `src/lib/utils.ts`: إضافة `isExternalSupervisorRole()`.
+### 2. حماية على مستوى الواجهة (UI guard)
 
-### 3) الصفحة الرئيسية للدور
-- ملف جديد `src/pages/ExternalSupervisorHome.tsx` مبني نسخاً من `InternalSupervisorHome.tsx` مع نفس الهوية البصرية (نفس الـ hero والـ palette الأزرق)، لكن الشبكة تحتوي فقط على 4 أزرار: إنشاء طلب، مهام العمال اليومية، جمع المبيعات، إدارة العملاء.
-- `src/pages/Index.tsx`: توجيه الدور الجديد إلى `ExternalSupervisorHome`.
+| الملف | التغيير |
+|------|--------|
+| `src/components/orders/DeliveryPaymentDialog.tsx` و كل ديالوغ تعديل طلبية مسلَّمة | تعطيل أزرار الحفظ + رسالة "الموظف مجمَّد بسبب عجز غير مسدد" |
+| `src/pages/admin/PromoTable.tsx` و `src/components/promo/*` (Edit/Delete/Convert) | نفس التعطيل لعروض الأسعار التابعة للموظف |
+| `src/components/stock/StockConfirmationsPopover.tsx` و `ManagerConfirmationsPanel.tsx` و `FactoryApprovalsDialog.tsx` (الجزء الخاص بـ pending gift confirmations) | تعطيل أزرار "قبول/رفض" مع شارة "مجمَّد" |
 
-### 4) التوجيه والحماية
-- `src/App.tsx`: إضافة قائمة `EXTERNAL_SUPERVISOR_ALLOWED_PATHS` (`/`, `/orders`, `/customers`, `/sales`...) وتطبيقها في `ProtectedRoute`.
-- `src/hooks/useNavigation.ts`: فرع navigation خاص بالدور.
+كل واجهة تستخدم `useWorkerFrozenStatus(order.assigned_worker_id)` ثم:
+```tsx
+<Button disabled={isFrozen || ...}>...</Button>
+{isFrozen && <Alert>الموظف مجمَّد - يجب تسوية العجز أولاً</Alert>}
+```
 
-### 5) الترجمات وتسميات الدور
-- `src/i18n/translations.ts`: مفاتيح `workers.role_external_supervisor`, `role_selection.external_supervisor_desc`, إلخ.
-- `src/pages/admin/Workers.tsx` و `src/components/workers/TestWorkersTab.tsx`: إضافة التسمية.
-- `src/components/auth/LoginForm.tsx` و `RoleSelectionDialog.tsx`: إضافة الستايل واللون (مقترح: tealor أخضر مميز).
+### 3. حماية على مستوى قاعدة البيانات (RLS + Trigger)
 
-### 6) موافقة تعديلات العملاء
-- التحقق من أن `CustomerApprovalTab.tsx` يعالج طلبات `external_supervisor` تلقائياً (لا حاجة لاستثناء — كونه ليس admin، ستمر طلباته كأي عامل).
+نضيف دالة `public.is_worker_frozen(_worker_id uuid) returns boolean` (SECURITY DEFINER) ثم triggers `BEFORE UPDATE/DELETE` على:
+- `orders` (عند `status='delivered'`)
+- `promos` / `quotations`
+- `stock_confirmations` (نوع gift، حالة pending)
 
-## ملاحظات تقنية
-- لن أُغيّر منطق "إنشاء الطلب" أو "جمع المبيعات" — سأعيد استخدام نفس صفحات/مكونات العامل (`/orders`, `WorkerHome` collect flow) ليتجنّب الازدواجية.
-- بعد تطبيق الهجرة يجب تحديث types من Supabase تلقائياً.
+كل trigger يرفع `RAISE EXCEPTION 'WORKER_FROZEN'` إذا الموظف مجمَّد، باستثناء العمليات التي:
+- يقوم بها admin / project_manager / company_manager.
+- تسجّل دفعة على الدين نفسه.
 
-هل توافق على البدء؟
+### 4. فك التجميد
+
+تلقائي – بمجرد أن يصبح `worker_debts.remaining_amount = 0` أو `status = 'paid'`، يعود الموظف لوضع طبيعي بدون تدخل يدوي.
+
+## الملفات المتأثرة
+
+- جديد: `src/hooks/useWorkerFrozenStatus.ts`
+- جديد: `src/components/workers/FrozenWorkerBadge.tsx` (شارة مشتركة)
+- معدَّل: `DeliveryPaymentDialog.tsx`, `PromoTable.tsx`, `StockConfirmationsPopover.tsx`, `ManagerConfirmationsPanel.tsx`, `FactoryApprovalsDialog.tsx`
+- migration: دالة `is_worker_frozen` + 3 triggers.
+
+## ما هو خارج النطاق
+
+- تجميد عمليات أخرى (تحميل، بيع مباشر، تحصيل) – موجودة سابقاً أو ستُعالج لاحقاً.
+- إشعارات تلقائية للموظف بأنه مجمَّد.

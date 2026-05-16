@@ -23,6 +23,8 @@ import PostDeliveryConfirmDialog from './PostDeliveryConfirmDialog';
 import InvoicePaymentMethodSelect from './InvoicePaymentMethodSelect';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { InvoicePaymentMethod } from '@/types/stamp';
+import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
+import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
@@ -197,6 +199,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [adjustRemainingAmount, setAdjustRemainingAmount] = useState<number>(Math.max(0, Number(order.total_amount || 0) - initPaid));
 
   const isSold = ['delivered', 'sold', 'completed', 'approved', 'cancelled'].includes(order.status || '') || !!(order as any)?._isDirectSale || !!(order as any)?._forceSold;
+  const { data: frozenStatus } = useWorkerFrozenStatus(order.assigned_worker_id || null);
+  const isWorkerFrozen = !!frozenStatus?.isFrozen && (order.status === 'delivered' || isSold);
   const canChangeWorker = isAdminRole(role) || order.created_by === workerId;
   const dialogText = useMemo(() => ({
     removeDate: language === 'ar' ? 'إزالة التاريخ' : language === 'fr' ? 'Retirer la date' : 'Remove date',
@@ -1980,6 +1984,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
         <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 sm:px-4 overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-3">
+            {isWorkerFrozen && (
+              <FrozenWorkerBadge workerId={order.assigned_worker_id} />
+            )}
 
             {/* Assign delivery worker */}
             {canChangeWorker && (
@@ -2326,7 +2333,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               className="h-10 w-full"
               variant={isOrderCancelled ? 'default' : 'destructive'}
               onClick={handleCancelOrResume}
-              disabled={isCancellingOrder || isSubmitting}
+              disabled={isCancellingOrder || isSubmitting || isWorkerFrozen}
             >
               {isCancellingOrder ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -2346,7 +2353,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           <Button
             className="h-11 w-full"
             onClick={handleSaveClick}
-            disabled={!hasChanges || isSubmitting || isCancellingOrder}
+            disabled={!hasChanges || isSubmitting || isCancellingOrder || isWorkerFrozen}
           >
             {isSubmitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
