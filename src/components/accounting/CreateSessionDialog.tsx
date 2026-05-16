@@ -694,13 +694,26 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             </div>
 
             {/* Submit */}
-            <Button
-              className="w-full rounded-xl h-11 text-base font-bold"
-              onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc}
-            >
-              {isEditMode ? (t('accounting.update_session') || 'حفظ التعديلات') : t('accounting.save_session')}
-            </Button>
+            <div className="flex gap-2">
+              {isFrozen && selectedWorkerId && (
+                <Button
+                  variant="outline"
+                  className="rounded-xl h-11 text-base font-bold border-destructive text-destructive hover:bg-destructive/10"
+                  onClick={handleUnfreeze}
+                  disabled={isUnfreezing}
+                >
+                  {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+                  فك التجميد
+                </Button>
+              )}
+              <Button
+                className="flex-1 rounded-xl h-11 text-base font-bold"
+                onClick={handleShowConfirmation}
+                disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc}
+              >
+                {isEditMode ? (t('accounting.update_session') || 'حفظ التعديلات') : t('accounting.save_session')}
+              </Button>
+            </div>
           </div>
         </ScrollArea>
       </DialogContent>
