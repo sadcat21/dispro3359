@@ -334,7 +334,9 @@ const OutgoingTab: React.FC<{
   isAmending: boolean;
   allowAmend?: boolean;
   onRaiseDispute?: (conf: StockConfirmation) => void;
-}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute }) => {
+  onCancel?: (id: string) => void;
+  isCancelling?: boolean;
+}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute, onCancel, isCancelling }) => {
   const { warehouseStock } = useWarehouseStock();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
