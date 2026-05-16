@@ -11,6 +11,8 @@ import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import { Customer } from '@/types/database';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
   Activity, UserCheck, ShoppingCart, Radar, FileSpreadsheet, UserCog,
