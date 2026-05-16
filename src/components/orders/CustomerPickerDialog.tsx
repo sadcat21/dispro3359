@@ -242,19 +242,33 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
   const visibleCustomers = hasSearch ? filteredCustomers : (activeGroup?.customers || []);
-  const visibleCustomerIds = useMemo(
-    () => visibleCustomers.map((customer) => customer.id),
-    [visibleCustomers],
+  const statusCustomerIds = useMemo(
+    () => {
+      if (hasSearch) return filteredCustomers.map((customer) => customer.id);
+      if (!activeRegionKey) return [];
+
+      return visibleCustomers
+        .filter((customer) => {
+          const zoneId = (customer as any).zone_id as string | null | undefined;
+          const zone = zoneId ? zonesMap?.[zoneId] : null;
+          const label = zone
+            ? ((language !== 'ar' && zone.name_fr) ? zone.name_fr : zone.name)
+            : 'بدون منطقة';
+          return label === activeRegionKey;
+        })
+        .map((customer) => customer.id);
+    },
+    [activeRegionKey, filteredCustomers, hasSearch, language, visibleCustomers, zonesMap],
   );
 
   // Fetch only status markers needed for the currently displayed customers.
   const { data: customerDebtsMap } = useQuery({
-    queryKey: ['customer-debts-summary-visible', visibleCustomerIds.join(',')],
+    queryKey: ['customer-debts-summary-visible', statusCustomerIds.join(',')],
     queryFn: async () => {
       const { data } = await supabase
         .from('customer_debts')
         .select('customer_id, remaining_amount, updated_at')
-        .in('customer_id', visibleCustomerIds)
+        .in('customer_id', statusCustomerIds)
         .in('status', ['active', 'partially_paid']);
       const map: Record<string, { total: number; lastDate: string | null }> = {};
       (data || []).forEach(d => {
@@ -266,25 +280,25 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
       });
       return map;
     },
-    enabled: open && visibleCustomerIds.length > 0,
+    enabled: open && statusCustomerIds.length > 0,
   });
 
   // العملاء المعروضون فقط الذين لديهم طلبية لم تُسلَّم ولم ينتهِ أجلها
   const { data: pendingOrderCustomers } = useQuery({
-    queryKey: ['customers-with-pending-orders-visible', visibleCustomerIds.join(',')],
+    queryKey: ['customers-with-pending-orders-visible', statusCustomerIds.join(',')],
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const { data } = await supabase
         .from('orders')
         .select('customer_id, status, delivery_date')
-        .in('customer_id', visibleCustomerIds)
+        .in('customer_id', statusCustomerIds)
         .not('status', 'in', '(delivered,cancelled,returned)')
         .gte('delivery_date', today);
       const set = new Set<string>();
       (data || []).forEach((o: any) => { if (o.customer_id) set.add(o.customer_id); });
       return set;
     },
-    enabled: open && visibleCustomerIds.length > 0,
+    enabled: open && statusCustomerIds.length > 0,
   });
 
   return (
