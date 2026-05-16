@@ -519,9 +519,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                 <div className="flex items-stretch bg-foreground">
                                   {startTypes.map((e, i) => renderChip(e, i, 'start'))}
                                   <div className="flex-1 min-w-0 px-2 py-1 flex items-center justify-center text-background">
-                                    <FitText className="font-bold text-center" min={8} max={15}>
-                                      {topText}
-                                    </FitText>
+                                    {isMobile ? (
+                                      <span className="block w-full truncate text-center text-[13px] font-bold leading-tight">
+                                        {topText}
+                                      </span>
+                                    ) : (
+                                      <FitText className="font-bold text-center" min={8} max={15}>
+                                        {topText}
+                                      </FitText>
+                                    )}
                                   </div>
                                   {endTypes.map((e, i) => renderChip(e, i, 'end'))}
                                 </div>
@@ -531,9 +537,15 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                                     "flex-1 min-w-0 px-2 py-1 flex items-center justify-center",
                                     hasDebt ? "text-destructive-foreground" : "text-foreground"
                                   )}>
-                                    <FitText className="font-medium text-center" min={8} max={13}>
-                                      {bottomText || '—'}
-                                    </FitText>
+                                    {isMobile ? (
+                                      <span className="block w-full truncate text-center text-[12px] font-medium leading-tight">
+                                        {bottomText || '—'}
+                                      </span>
+                                    ) : (
+                                      <FitText className="font-medium text-center" min={8} max={13}>
+                                        {bottomText || '—'}
+                                      </FitText>
+                                    )}
                                   </div>
                                   {zoneLabel && (
                                     <div
