@@ -18,7 +18,6 @@ const ExternalSupervisorHome: React.FC = () => {
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
 
   const buttons = [
-    { key: 'create_order', label: 'إنشاء طلب', icon: ShoppingCart, onClick: () => setShowCreateOrderDialog(true), palette: { border: 'border-emerald-300', icon: 'text-emerald-500' } },
     { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
   ];
@@ -42,18 +41,27 @@ const ExternalSupervisorHome: React.FC = () => {
               </Badge>
             </div>
           )}
-          <button
-            onClick={() => setDailyTasksOpen(true)}
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
-          >
-            <ClipboardList className="w-5 h-5" />
-            <span className="text-base font-bold">مهام العمال اليومية</span>
-          </button>
+          <div className="flex items-stretch gap-2">
+            <button
+              onClick={() => setDailyTasksOpen(true)}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-3 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+            >
+              <ClipboardList className="w-5 h-5" />
+              <span className="text-sm font-bold">مهام العمال اليومية</span>
+            </button>
+            <button
+              onClick={() => setShowCreateOrderDialog(true)}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              <span className="text-sm font-bold">إنشاء طلب جديد</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="px-2 sm:px-3 py-2">
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {buttons.map((b) => {
             const Icon = b.icon;
             return (
