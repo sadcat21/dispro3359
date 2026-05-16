@@ -255,15 +255,11 @@ const ManagerConfirmationsPanel: React.FC = () => {
               </div>
             )}
             {canAmend && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
+              <AmendButton
+                workerId={conf.worker_id}
+                hasGift={conf.items.some(i => (i.gift_quantity || 0) > 0)}
                 onClick={() => startEditing(conf)}
-              >
-                <Edit className="w-3.5 h-3.5 me-1" />
-                تعديل الكميات وإعادة إرسال
-              </Button>
+              />
             )}
           </div>
         )}
