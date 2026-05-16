@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -80,6 +81,9 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const canDeleteCustomer = role === 'admin' || role === 'branch_admin' || role === 'project_manager' || role === 'admin_assistant';
   const [showMap, setShowMap] = useState(false);
   const [locationType, setLocationType] = useState<'store' | 'warehouse' | 'office'>('store');
   const [salesReps, setSalesReps] = useState<SalesRep[]>([{ name: '', phone: '' }]);
@@ -909,12 +913,66 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
           </div>
 
           <div className="sticky bottom-0 z-20 bg-background border-t pt-3 pb-1 -mx-6 px-6">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-              حفظ التعديلات
-            </Button>
+            <div className={`grid gap-2 ${canDeleteCustomer ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <Button type="submit" className="w-full" disabled={isLoading || isDeleting}>
+                {isLoading && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                حفظ التعديلات
+              </Button>
+              {canDeleteCustomer && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="w-full"
+                  disabled={isLoading || isDeleting || !customer}
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4 ml-2" />
+                  حذف العميل
+                </Button>
+              )}
+            </div>
           </div>
         </form>
+
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent className="text-right" dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>تأكيد حذف العميل</AlertDialogTitle>
+              <AlertDialogDescription>
+                هذا الإجراء متاح فقط لمدير النظام / مدير الفرع / مساعد المدير. سيتم حذف العميل
+                <span className="font-semibold"> {customer?.name} </span>
+                بشكل نهائي ولا يمكن التراجع عن هذه العملية. هل أنت متأكد؟
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isDeleting || !customer}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!customer || !canDeleteCustomer) return;
+                  setIsDeleting(true);
+                  try {
+                    const { error } = await supabase.from('customers').delete().eq('id', customer.id);
+                    if (error) throw error;
+                    toast.success('تم حذف العميل بنجاح');
+                    setDeleteOpen(false);
+                    onOpenChange(false);
+                    onSuccess({ ...customer, _deleted: true } as any);
+                  } catch (err: any) {
+                    toast.error(err?.message || 'تعذر حذف العميل');
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                تأكيد الحذف
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
