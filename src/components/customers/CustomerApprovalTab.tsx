@@ -222,6 +222,10 @@ const CustomerApprovalTab: React.FC = () => {
     };
 
     const handleDirectApprove = async (request: ApprovalRequest) => {
+        if (role === 'internal_supervisor' && request.operation_type !== 'update') {
+            toast.error('المشرف الداخلي يمكنه الموافقة على طلبات التعديل فقط');
+            return;
+        }
         setProcessingId(request.id);
         try {
             if (request.operation_type === 'update' && request.customer_id) {
