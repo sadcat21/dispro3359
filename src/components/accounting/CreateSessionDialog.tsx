@@ -208,7 +208,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     setShowUnloadDialog(true);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (unloadNotes?: string) => {
     if (!selectedWorkerId || !calc || isSubmitting) { toast.error('اختر العامل'); return; }
 
     setIsSubmitting(true);
