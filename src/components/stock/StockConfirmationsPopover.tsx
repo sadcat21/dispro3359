@@ -493,9 +493,26 @@ const OutgoingTab: React.FC<{
                     ))}
                   </div>
                   {canAmend && (
-                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
-                      <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
+                        <Edit className="w-3.5 h-3.5 me-1" />تعديل وإعادة إرسال
+                      </Button>
+                      {onCancel && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs border-destructive text-destructive hover:bg-destructive/10"
+                          disabled={isCancelling}
+                          onClick={() => {
+                            if (window.confirm('هل أنت متأكد من إلغاء هذا الشحن؟ سيظهر كملغى للطرفين.')) {
+                              onCancel(conf.id);
+                            }
+                          }}
+                        >
+                          <X className="w-3.5 h-3.5 me-1" />إلغاء الشحن
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </>
               </div>
