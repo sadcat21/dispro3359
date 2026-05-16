@@ -780,16 +780,29 @@ const CustomerJourney = () => {
                               <span className="text-black">{datePart}</span>
                               {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                             </span>
-                            <div className="inline-flex items-stretch rounded-full overflow-hidden border border-slate-200 text-[10px] font-semibold leading-none">
-                              <span className="inline-flex items-center bg-white text-slate-700 px-2 py-1">
-                                {workerName}
-                              </span>
-                              {channelByOrderId[order.id] && (
-                                <span className="inline-flex items-center bg-amber-100 text-amber-800 px-2 py-1 border-s border-slate-200">
-                                  {getChannelLabel(channelByOrderId[order.id])}
-                                </span>
-                              )}
-                            </div>
+                            {(() => {
+                              const ch = channelByOrderId[order.id];
+                              const chClass =
+                                ch === 'delivery'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : ch === 'cash_van'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : ch === 'depot'
+                                      ? 'bg-sky-100 text-sky-800'
+                                      : 'bg-slate-100 text-slate-700';
+                              return (
+                                <div className="inline-flex items-stretch rounded-full overflow-hidden border border-slate-200 text-[10px] font-semibold leading-none">
+                                  <span className="inline-flex items-center bg-white text-red-600 px-2 py-1">
+                                    {workerName}
+                                  </span>
+                                  {ch && (
+                                    <span className={cn('inline-flex items-center px-2 py-1 border-s border-slate-200', chClass)}>
+                                      {getChannelLabel(ch)}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </button>
                       );
