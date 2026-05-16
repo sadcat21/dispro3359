@@ -7,6 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
+import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { Customer } from '@/types/database';
