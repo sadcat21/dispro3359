@@ -49,6 +49,31 @@ const parseMismatches = (note: string | null): { product: string; expected: stri
   }).filter(m => m.product);
 };
 
+const AmendButton: React.FC<{ workerId: string; hasGift: boolean; onClick: () => void }> = ({ workerId, hasGift, onClick }) => {
+  const { data: frozen } = useWorkerFrozenStatus(hasGift ? workerId : null);
+  const isFrozen = hasGift && !!frozen?.isFrozen;
+  return (
+    <>
+      {isFrozen && (
+        <div className="flex items-start gap-1.5 bg-destructive/10 border border-destructive/30 rounded p-2 text-[10px] text-destructive mb-1.5">
+          <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <span>هذا العامل مجمَّد بسبب عجز غير مسدَّد. لا يمكن تعديل تأكيدات الهدايا حتى تسوية المحاسبة.</span>
+        </div>
+      )}
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50"
+        onClick={onClick}
+        disabled={isFrozen}
+      >
+        <Edit className="w-3.5 h-3.5 me-1" />
+        تعديل الكميات وإعادة إرسال
+      </Button>
+    </>
+  );
+};
+
 const ManagerConfirmationsPanel: React.FC = () => {
   const { confirmations, isLoading, needsAttentionCount, currentWorkerId, amendConfirmation, refetch } = useManagerConfirmations();
   const { warehouseStock } = useWarehouseStock();
