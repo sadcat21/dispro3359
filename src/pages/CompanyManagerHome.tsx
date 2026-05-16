@@ -55,8 +55,6 @@ const CompanyManagerHome: React.FC = () => {
         { key: 'sales_summary', label: t('company_manager.sales_summary'), icon: BarChart3, path: '/manager-sales-summary' },
         { key: 'stats', label: t('nav.stats'), icon: BarChart3, path: '/stats' },
         { key: 'promo_table', label: t('nav.table'), icon: FileSpreadsheet, path: '/promo-table' },
-        { key: 'manager_treasury', label: t('nav.manager_treasury'), icon: Wallet, path: '/manager-treasury' },
-        { key: 'rewards', label: t('nav.rewards'), icon: Banknote, path: '/rewards' },
       ],
     },
     {
@@ -83,28 +81,14 @@ const CompanyManagerHome: React.FC = () => {
       icon: Warehouse,
       items: [
         { key: 'warehouse', label: t('stock.warehouse_stock'), icon: Warehouse, path: '/warehouse' },
-        { key: 'warehouse_review', label: t('nav.warehouse_review'), icon: ClipboardCheck, path: '/warehouse-review' },
         { key: 'manual_stock', label: t('company_manager.manual_stock'), icon: Pencil, path: '/warehouse' },
-        { key: 'stock_movements', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
-      ],
-    },
-    {
-      titleKey: 'سجلات الحركة (Ledgers)',
-      icon: BookOpen,
-      items: [
-        { key: 'cash_ledger', label: 'سجل حركة الأموال', icon: Coins, path: '/cash-ledger' },
-        { key: 'debt_ledger', label: 'سجل حركة الديون', icon: HandCoins, path: '/debt-ledger' },
-        { key: 'stock_movements_2', label: 'سجل حركة المخزون', icon: PackageSearch, path: '/stock-movements' },
-        { key: 'sales_tracking', label: 'سجل تتبع المبيعات', icon: TrendingUp, path: '/sales-tracking' },
       ],
     },
     {
       titleKey: 'company_manager.section_admin',
       icon: Settings,
       items: [
-        { key: 'branches', label: t('nav.branches'), icon: Building2, path: '/branches' },
         { key: 'settings', label: t('nav.settings'), icon: Settings, path: '/settings' },
-        { key: 'backup', label: t('company_manager.backup'), icon: Database, path: '/backup' },
       ],
     },
   ];
