@@ -1,35 +1,36 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
-import WorkerHome from './WorkerHome';
-import AdminHome from './AdminHome';
-import CompanyManagerHome from './CompanyManagerHome';
-import InternalSupervisorHome from './InternalSupervisorHome';
-import BranchManagerHome from './BranchManagerHome';
+
+const WorkerHome = lazy(() => import('./WorkerHome'));
+const AdminHome = lazy(() => import('./AdminHome'));
+const CompanyManagerHome = lazy(() => import('./CompanyManagerHome'));
+const InternalSupervisorHome = lazy(() => import('./InternalSupervisorHome'));
+const BranchManagerHome = lazy(() => import('./BranchManagerHome'));
 
 const Index: React.FC = () => {
   const { role, activeRole } = useAuth();
 
   // Assistant General Manager has its own executive dashboard with a distinct theme
   if (isCompanyManagerRole(activeRole?.custom_role_code)) {
-    return <CompanyManagerHome />;
+    return <Suspense fallback={null}><CompanyManagerHome /></Suspense>;
   }
 
   // Internal Supervisor — branch-scoped staff discipline & monitoring dashboard
   if (isInternalSupervisorRole(activeRole?.custom_role_code)) {
-    return <InternalSupervisorHome />;
+    return <Suspense fallback={null}><InternalSupervisorHome /></Suspense>;
   }
 
   // Branch Manager — dedicated streamlined dashboard with only allowed features
   if (role === 'branch_admin') {
-    return <BranchManagerHome />;
+    return <Suspense fallback={null}><BranchManagerHome /></Suspense>;
   }
 
   if (isAdminRole(role)) {
-    return <AdminHome />;
+    return <Suspense fallback={null}><AdminHome /></Suspense>;
   }
 
-  return <WorkerHome />;
+  return <Suspense fallback={null}><WorkerHome /></Suspense>;
 };
 
 export default Index;
