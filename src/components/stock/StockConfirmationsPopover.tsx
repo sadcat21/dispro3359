@@ -42,6 +42,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   approved: { label: 'تمت الموافقة', color: 'bg-green-600' },
   rejected: { label: 'مرفوض', color: 'bg-destructive' },
   disputed: { label: 'خلاف مرفوع', color: 'bg-purple-600' },
+  cancelled: { label: 'ملغاة', color: 'bg-gray-500' },
 };
 
 const fmtQty = (qty: number): string => {
@@ -333,7 +334,9 @@ const OutgoingTab: React.FC<{
   isAmending: boolean;
   allowAmend?: boolean;
   onRaiseDispute?: (conf: StockConfirmation) => void;
-}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute }) => {
+  onCancel?: (id: string) => void;
+  isCancelling?: boolean;
+}> = ({ confirmations, isLoading, onAmend, isAmending, allowAmend = true, onRaiseDispute, onCancel, isCancelling }) => {
   const { warehouseStock } = useWarehouseStock();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -490,9 +493,26 @@ const OutgoingTab: React.FC<{
                     ))}
                   </div>
                   {canAmend && (
-                    <Button size="sm" variant="outline" className="w-full h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
-                      <Edit className="w-3.5 h-3.5 me-1" />تعديل الكميات وإعادة إرسال
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 h-8 text-xs border-amber-500 text-amber-700 hover:bg-amber-50" onClick={() => startEditing(conf)}>
+                        <Edit className="w-3.5 h-3.5 me-1" />تعديل وإعادة إرسال
+                      </Button>
+                      {onCancel && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-8 text-xs border-destructive text-destructive hover:bg-destructive/10"
+                          disabled={isCancelling}
+                          onClick={() => {
+                            if (window.confirm('هل أنت متأكد من إلغاء هذا الشحن؟ سيظهر كملغى للطرفين.')) {
+                              onCancel(conf.id);
+                            }
+                          }}
+                        >
+                          <X className="w-3.5 h-3.5 me-1" />إلغاء الشحن
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </>
               </div>
@@ -623,7 +643,7 @@ const StockConfirmationsPopover: React.FC = () => {
     const source = isWarehouseManager ? (managerHook.confirmations || []) : (workerHook.confirmations || []);
 
     return source
-      .filter(c => c.status === 'approved' || c.status === 'disputed' || (!isWarehouseManager && c.status === 'rejected'))
+      .filter(c => c.status === 'approved' || c.status === 'disputed' || c.status === 'cancelled' || (!isWarehouseManager && c.status === 'rejected'))
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
 
@@ -653,6 +673,10 @@ const StockConfirmationsPopover: React.FC = () => {
 
   const handleAmend = (id: string, items: StockConfirmationItem[], note: string) => {
     managerHook.amendConfirmation.mutate({ confirmationId: id, newItems: items, note });
+  };
+
+  const handleCancel = (id: string) => {
+    managerHook.cancelConfirmation.mutate({ confirmationId: id });
   };
 
   const [isDeletingAll, setIsDeletingAll] = useState(false);
@@ -745,6 +769,8 @@ const StockConfirmationsPopover: React.FC = () => {
                     onAmend={handleAmend}
                     isAmending={managerHook.amendConfirmation.isPending}
                     allowAmend
+                    onCancel={handleCancel}
+                    isCancelling={managerHook.cancelConfirmation.isPending}
                   />
                 ) : (
                   <IncomingTab
@@ -765,7 +791,8 @@ const StockConfirmationsPopover: React.FC = () => {
                   onAmend={handleAmend}
                   isAmending={managerHook.amendConfirmation.isPending}
                   allowAmend={isWarehouseManager}
-                  
+                  onCancel={isWarehouseManager ? handleCancel : undefined}
+                  isCancelling={managerHook.cancelConfirmation.isPending}
                 />
               </TabsContent>
               <TabsContent value="history" className="mt-0">
