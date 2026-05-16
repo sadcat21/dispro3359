@@ -7,6 +7,7 @@ const AdminHome = lazy(() => import('./AdminHome'));
 const CompanyManagerHome = lazy(() => import('./CompanyManagerHome'));
 const InternalSupervisorHome = lazy(() => import('./InternalSupervisorHome'));
 const BranchManagerHome = lazy(() => import('./BranchManagerHome'));
+const AssistantManagerHome = lazy(() => import('./AssistantManagerHome'));
 
 const Index: React.FC = () => {
   const { role, activeRole } = useAuth();
