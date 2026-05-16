@@ -37,7 +37,7 @@ interface WorkerWithRoles extends Worker {
 
 const Workers: React.FC = () => {
   const { t } = useLanguage();
-  const { activeBranch, role } = useAuth();
+  const { activeBranch, role, activeRole } = useAuth();
   const queryClient = useQueryClient();
   const [deleteWorker, setDeleteWorker] = useState<WorkerWithRoles | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
