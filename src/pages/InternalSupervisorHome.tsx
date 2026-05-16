@@ -222,6 +222,7 @@ const InternalSupervisorHome: React.FC = () => {
         }}
       />
       <OrderFlowDialog open={showCreateOrderDialog} onOpenChange={setShowCreateOrderDialog} mode="create" initialCustomerId={selectedCustomerId} />
+      <SupervisorWorkerViewDialog open={showWorkerViewDialog} onOpenChange={setShowWorkerViewDialog} />
     </div>
   );
 };
