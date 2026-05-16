@@ -187,7 +187,8 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const navigate = useNavigate();
   const isInternalSupervisor = activeRole?.custom_role_code === 'internal_supervisor';
   const isExternalSupervisor = activeRole?.custom_role_code === 'external_supervisor';
-  const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor || isExternalSupervisor;
+  const isCompanyManager = activeRole?.custom_role_code === 'company_manager';
+  const isAdmin = isAdminRole(role) || role === 'supervisor' || isInternalSupervisor || isExternalSupervisor || isCompanyManager;
   const isDeliveryRole = activeRole?.custom_role_code === 'delivery_rep';
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const directSaleLabel = isWarehouseManager ? 'Vente Dépôt' : 'Vente Directe';
@@ -259,7 +260,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       return workers.map(w => ({ ...w, _custom_role_codes: workerRoleCodesMap.get(w.id) || new Set<string>() }));
     },
-    enabled: (isAdminRole(role) || role === 'supervisor' || isInternalSupervisor || isExternalSupervisor) && open && !targetWorkerId,
+    enabled: (isAdminRole(role) || role === 'supervisor' || isInternalSupervisor || isExternalSupervisor || isCompanyManager) && open && !targetWorkerId,
   });
 
   const adminExcludedRoles = useMemo(() => new Set(['admin', 'branch_admin', 'project_manager', 'accountant', 'admin_assistant']), []);
