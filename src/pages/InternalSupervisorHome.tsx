@@ -7,6 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
+import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { Customer } from '@/types/database';
@@ -126,36 +128,33 @@ const InternalSupervisorHome: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24">
-      {/* Hero — Sky/Blue distinct theme */}
-      <div className="relative overflow-hidden border-b border-sky-200 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-sky-50 via-white to-cyan-50/60" />
-        <div className="relative px-3 py-3 space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center shadow-md shadow-sky-500/30 ring-2 ring-sky-300/40 shrink-0">
-              <ShieldCheck className="w-7 h-7 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-base font-bold text-sky-700 tracking-tight truncate">
-                {t('internal_supervisor.welcome')}
-              </h1>
-              {user?.full_name && (
-                <Badge variant="outline" className="mt-1 border-sky-400/60 text-sky-700 bg-sky-50 text-[10px]">
-                  {user.full_name}
-                  {activeBranch?.name && ` — ${activeBranch.name}`}
-                </Badge>
-              )}
-            </div>
-          </div>
+    <div className="bg-slate-50 text-slate-900 pb-2">
+      {/* Offers Showcase — blue identity (same as Branch Manager) */}
+      <ProductShowcaseHero
+        bgImage={managerHeroBg}
+        overlayClassName="bg-gradient-to-l from-blue-900/20 via-white/30 to-white/10"
+      />
 
-          {/* Create Order Button */}
-          <Button
+      {/* Create Order button — below hero with blue identity */}
+      <div className="relative overflow-hidden border-b border-blue-200 bg-white">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
+        <div className="relative px-3 py-1.5 space-y-1.5">
+          {user?.full_name && (
+            <div className="flex items-center justify-center">
+              <Badge variant="outline" className="border-blue-400/60 text-blue-700 bg-blue-50 text-[10px]">
+                <ShieldCheck className="w-3 h-3 ms-1" />
+                {user.full_name}
+                {activeBranch?.name && ` — ${activeBranch.name}`}
+              </Badge>
+            </div>
+          )}
+          <button
             onClick={() => setShowCustomerPicker(true)}
-            className="w-full h-10 bg-gradient-to-r from-sky-600 via-cyan-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white gap-2 text-sm font-bold shadow-lg shadow-sky-500/30"
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
           >
             <Plus className="w-5 h-5" />
-            {t('orders.create_new')}
-          </Button>
+            <span className="text-base font-bold">{t('orders.create_new')}</span>
+          </button>
         </div>
       </div>
 
