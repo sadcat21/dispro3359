@@ -240,16 +240,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   });
 
   type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number };
-  let centerAction: CenterAction | null = null;
-  if (isWarehouseManager) {
-    centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
-  } else if (isBranchAdmin) {
-    centerAction = { type: 'navigate', to: '/branch-approvals', icon: ShieldCheck, label: 'الموافقات', badge: branchApprovalsPendingCount || 0 };
-  } else if (isAdminAssistant) {
-    centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
-  } else if (isFieldWorker || isFieldRoleCustom) {
-    centerAction = { type: 'today' };
-  }
 
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
