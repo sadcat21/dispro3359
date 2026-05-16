@@ -106,7 +106,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
   }, [warehouseStock, editItems]);
 
   const loadedQtyMap = useMemo(
-    () => Object.fromEntries(editItems.map(i => [i.product_id, Number(i.quantity || 0) + getRawGiftQuantity(i)])),
+    () => Object.fromEntries(editItems.map(i => [i.product_id, Number(i.quantity || 0)])),
     [editItems]
   );
   const giftQtyMap = useMemo(
