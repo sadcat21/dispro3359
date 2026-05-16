@@ -28,6 +28,7 @@ interface Props {
 
 const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId }) => {
   const [notes, setNotes] = useState('');
+  const [emptyOpen, setEmptyOpen] = useState(false);
 
   // Live shipment balance for this worker (worker_stock).
   // The manager can only save the accounting session when this balance is empty.
