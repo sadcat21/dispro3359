@@ -184,8 +184,12 @@ const CustomerApprovalTab: React.FC = () => {
                 requester_name: r.workers?.full_name
             }));
             const remaining = await autoApproveInsertRequests(allRequests);
-            setRequests(remaining);
-            if (remaining.length < allRequests.length) {
+            // المشرف الداخلي: يرى ويوافق فقط على طلبات التعديل (لا حذف)
+            const filtered = role === 'internal_supervisor'
+                ? remaining.filter((r: any) => r.operation_type === 'update')
+                : remaining;
+            setRequests(filtered);
+            if (filtered.length < allRequests.length) {
                 queryClient.invalidateQueries({ queryKey: ['customers'] });
                 queryClient.invalidateQueries({ queryKey: ['worker-request-summaries'] });
             }
@@ -218,6 +222,10 @@ const CustomerApprovalTab: React.FC = () => {
     };
 
     const handleDirectApprove = async (request: ApprovalRequest) => {
+        if (role === 'internal_supervisor' && request.operation_type !== 'update') {
+            toast.error('المشرف الداخلي يمكنه الموافقة على طلبات التعديل فقط');
+            return;
+        }
         setProcessingId(request.id);
         try {
             if (request.operation_type === 'update' && request.customer_id) {
