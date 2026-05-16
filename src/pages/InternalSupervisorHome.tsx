@@ -153,42 +153,32 @@ const InternalSupervisorHome: React.FC = () => {
         </div>
       </div>
 
-      {/* All buttons unified — no section dividers */}
-      <div className="px-2 sm:px-3 py-2">
+      {/* Client action buttons — gradient style matching top row */}
+      <div className="px-3 py-2">
         {(() => {
-          const cardPalettes = [
-            { border: 'border-rose-300', icon: 'text-rose-500' },
-            { border: 'border-emerald-300', icon: 'text-emerald-500' },
-            { border: 'border-amber-300', icon: 'text-amber-500' },
-            { border: 'border-violet-300', icon: 'text-violet-500' },
-            { border: 'border-sky-300', icon: 'text-sky-500' },
-            { border: 'border-orange-300', icon: 'text-orange-500' },
-            { border: 'border-teal-300', icon: 'text-teal-500' },
-            { border: 'border-pink-300', icon: 'text-pink-500' },
-            { border: 'border-indigo-300', icon: 'text-indigo-500' },
-          ];
+          const gradients: Record<string, string> = {
+            customers: 'from-fuchsia-600 via-purple-600 to-fuchsia-700 shadow-fuchsia-500/30',
+            customer_debts: 'from-orange-600 via-amber-600 to-orange-700 shadow-orange-500/30',
+          };
+          const fallback = 'from-slate-600 via-slate-700 to-slate-800 shadow-slate-500/30';
           const allItems = sections.flatMap(s => s.items);
           return (
-            <div className="grid grid-cols-4 gap-1.5">
-              {allItems.map((item, iIdx) => {
+            <div className="grid grid-cols-2 gap-2">
+              {allItems.map((item) => {
                 const Icon = item.icon;
-                const cp = cardPalettes[iIdx % cardPalettes.length];
+                const grad = gradients[item.key] || fallback;
                 return (
-                  <Card
+                  <button
                     key={item.key}
                     onClick={() => {
                       if (item.key === 'sales_summary') setShowWorkerViewDialog(true);
                       else navigate(item.path);
                     }}
-                    className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${cp.border}`}
+                    className={`flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r ${grad} px-3 py-2.5 text-white shadow-md hover:shadow-lg hover:scale-[1.01] transition-all`}
                   >
-                    <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
-                      <Icon className={`w-4 h-4 ${cp.icon}`} strokeWidth={2} />
-                      <p className="text-[10px] font-semibold text-slate-700 leading-tight line-clamp-2">
-                        {item.label}
-                      </p>
-                    </CardContent>
-                  </Card>
+                    <Icon className="w-5 h-5" />
+                    <span className="text-sm font-bold">{item.label}</span>
+                  </button>
                 );
               })}
             </div>
