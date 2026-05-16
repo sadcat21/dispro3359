@@ -79,17 +79,12 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     enabled: open,
   });
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return workers;
-    return workers.filter((w) => w.full_name.toLowerCase().includes(term));
-  }, [workers, search]);
+  const filtered = workers;
 
   const handleOpenChange = (v: boolean) => {
     if (!v) {
       setStep('worker');
       setPicked(null);
-      setSearch('');
     }
     onOpenChange(v);
   };
