@@ -50,6 +50,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
   const isEmpty = !isLoading && (data?.length ?? 0) === 0;
 
   return (
+    <>
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <AlertDialogHeader>
