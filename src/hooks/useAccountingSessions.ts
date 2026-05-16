@@ -89,6 +89,7 @@ export const useCreateSession = () => {
       period_end: string;
       notes?: string;
       items: { item_type: string; expected_amount: number; actual_amount: number; notes?: string }[];
+      unload_notes?: string;
     }) => {
       // Create session
       // Convert datetime-local to timestamptz with Algeria timezone (+01:00)
