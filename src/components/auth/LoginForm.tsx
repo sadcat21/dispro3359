@@ -328,13 +328,21 @@ const LoginForm: React.FC = () => {
 
     const funcRoleMap: Record<string, string> = {};
     if (roles) {
-      // أولاً: الأدوار الرئيسية النشطة لها الأولوية
+      // أولوية قصوى: أدوار المشرف الداخلي/الخارجي تُعرض دائماً في فئتها المخصصة
+      const SUPERVISOR_PRIORITY = ['internal_supervisor', 'external_supervisor'];
       for (const r of roles as any[]) {
-        if (r.is_primary && r.custom_roles?.code) {
+        const code = r.custom_roles?.code;
+        if (code && SUPERVISOR_PRIORITY.includes(code)) {
+          funcRoleMap[r.worker_id] = code;
+        }
+      }
+      // ثم الأدوار الرئيسية النشطة
+      for (const r of roles as any[]) {
+        if (!funcRoleMap[r.worker_id] && r.is_primary && r.custom_roles?.code) {
           funcRoleMap[r.worker_id] = r.custom_roles.code;
         }
       }
-      // ثانياً: من ليس له دور رئيسي، نأخذ أي دور نشط
+      // ثم أي دور نشط آخر
       for (const r of roles as any[]) {
         if (!funcRoleMap[r.worker_id] && r.custom_roles?.code) {
           funcRoleMap[r.worker_id] = r.custom_roles.code;
