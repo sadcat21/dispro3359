@@ -145,6 +145,7 @@ const EXTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
   '/my-promos',
   '/my-deliveries',
   '/my-order-tracking',
+  '/manager-sales-summary',
   '/guide',
 ]);
 
@@ -607,7 +608,7 @@ const AppRoutes = () => {
       } />
 
       <Route path="/manager-sales-summary" element={
-        <ProtectedRoute adminOnly>
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin', 'supervisor', 'project_manager']} allowedCustomRoles={['internal_supervisor', 'external_supervisor', 'company_manager']}>
           <ManagerSalesSummaryPage />
         </ProtectedRoute>
       } />
