@@ -239,7 +239,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
-  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number };
+  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number; color?: 'red' | 'blue' };
 
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
