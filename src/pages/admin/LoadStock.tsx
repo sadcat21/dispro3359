@@ -2491,7 +2491,14 @@ const LoadStock: React.FC = () => {
           const paidPieces = customToTotalPieces(si.quantity || 0, ppb);
           const rawGift = si.gift_quantity || 0;
           const giftPieces = (si.gift_unit || 'piece') === 'box' ? rawGift * ppb : rawGift;
-          acc[si.product_id] = (acc[si.product_id] || 0) + paidPieces + giftPieces;
+          // Accumulate as total pieces, then convert to B.P decimal (boxes + pieces/100) for display
+          const prevBP = acc[si.product_id] || 0;
+          const prevBoxes = Math.floor(prevBP);
+          const prevPieces = Math.round((prevBP - prevBoxes) * 100);
+          const totalPieces = prevBoxes * ppb + prevPieces + paidPieces + giftPieces;
+          const boxes = Math.floor(totalPieces / ppb);
+          const pieces = totalPieces % ppb;
+          acc[si.product_id] = boxes + pieces / 100;
           return acc;
         }, {} as Record<string, number>)}
         giftQtyMap={sessionItems.reduce((acc: Record<string, number>, si: any) => {
