@@ -254,6 +254,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           period_end: periodEnd,
           notes: sessionNotes || undefined,
           items,
+          unload_notes: unloadNotes || undefined,
         });
         sessionId = result?.id;
         toast.success(t('accounting.session_created'));
