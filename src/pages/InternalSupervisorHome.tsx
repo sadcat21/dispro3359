@@ -202,26 +202,7 @@ const InternalSupervisorHome: React.FC = () => {
         })}
       </div>
 
-      {/* Customer Picker for Order Creation */}
-      <CustomerPickerDialog
-        open={showCustomerPicker}
-        onOpenChange={setShowCustomerPicker}
-        customers={allCustomers}
-        isLoading={customersLoading}
-        onSelect={(customer) => {
-          setSelectedCustomer(customer);
-          setShowCustomerPicker(false);
-          setShowCreateOrder(true);
-        }}
-      />
-
-      {/* Create Order Dialog */}
-      <OrderFlowDialog
-        open={showCreateOrder}
-        onOpenChange={setShowCreateOrder}
-        mode="create"
-        initialCustomerId={selectedCustomer?.id}
-      />
+      <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
     </div>
   );
 };
