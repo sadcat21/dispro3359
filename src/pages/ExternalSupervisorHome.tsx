@@ -12,7 +12,7 @@ import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { Customer } from '@/types/database';
 import {
-  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3,
+  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3, Banknote,
 } from 'lucide-react';
 
 const ExternalSupervisorHome: React.FC = () => {
