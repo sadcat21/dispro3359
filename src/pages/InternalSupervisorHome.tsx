@@ -96,32 +96,12 @@ const InternalSupervisorHome: React.FC = () => {
   });
 
   const sections: Section[] = [
-    // المرحلة: التوصيل للعملاء والتحصيل
     {
       titleKey: 'internal_supervisor.section_delivery_stage',
       icon: Truck,
       items: [
-        { key: 'orders', label: t('nav.orders'), icon: ShoppingCart, path: '/orders' },
         { key: 'customers', label: t('nav.customers'), icon: UserCheck, path: '/customers' },
         { key: 'customer_debts', label: t('debts.title'), icon: Banknote, path: '/customer-debts' },
-      ],
-    },
-    // الانضباط ومتابعة الالتزام
-    {
-      titleKey: 'internal_supervisor.section_discipline',
-      icon: ShieldCheck,
-      items: [
-        { key: 'worker_tracking', label: t('navigation.worker_tracking'), icon: MapPin, path: '/worker-tracking' },
-      ],
-    },
-    // الأداء العام
-    {
-      titleKey: 'internal_supervisor.section_performance',
-      icon: BarChart3,
-      items: [
-        { key: 'sales_summary', label: t('admin_home.item.manager_sales_summary'), icon: BarChart3, path: '/my-achievements' },
-        { key: 'promo_table', label: t('nav.table'), icon: FileSpreadsheet, path: '/promo-table' },
-        { key: 'promo_tracking', label: t('admin.promo_tracking'), icon: Gift, path: '/promo-tracking' },
       ],
     },
   ];
