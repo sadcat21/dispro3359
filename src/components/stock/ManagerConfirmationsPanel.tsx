@@ -10,6 +10,7 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useWarehouseStock } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from './ProductPickerDialog';
 import { useProductOffersMap } from '@/hooks/useProductOffersMap';
+import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
 
 const OPERATION_LABELS: Record<string, string> = {
   load: 'شحن', unload: 'تفريغ', deficit: 'عجز', surplus: 'فائض',
