@@ -709,11 +709,19 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Button
                 className="flex-1 rounded-xl h-11 text-base font-bold"
                 onClick={handleShowConfirmation}
-                disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc}
+                disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen)}
               >
                 {isEditMode ? (t('accounting.update_session') || 'حفظ التعديلات') : t('accounting.save_session')}
               </Button>
             </div>
+            {!isEditMode && !isFrozen && selectedWorkerId && (
+              <Alert className="mt-2">
+                <Info className="w-4 h-4" />
+                <AlertDescription className="text-xs">
+                  لا يمكن حفظ الجلسة حتى يقوم مدير المخزن بإجراء مراجعة نهائية جديدة للعامل.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </ScrollArea>
       </DialogContent>
