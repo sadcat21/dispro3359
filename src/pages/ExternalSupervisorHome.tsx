@@ -90,7 +90,7 @@ const ExternalSupervisorHome: React.FC = () => {
       </div>
 
       <div className="px-2 sm:px-3 py-2">
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {buttons.map((b) => {
             const Icon = b.icon;
             return (
