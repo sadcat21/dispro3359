@@ -197,10 +197,17 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   useEffect(() => {
     if (open) {
       setSearch('');
+      setSearchInput('');
       setActiveSectorKey(null);
       setActiveRegionKey(null);
     }
   }, [open]);
+
+  // Debounce: keep typing fluid, commit search to heavy filter after a short delay
+  useEffect(() => {
+    const id = window.setTimeout(() => setSearch(searchInput), 180);
+    return () => window.clearTimeout(id);
+  }, [searchInput]);
 
   useEffect(() => {
     setActiveRegionKey(null);
