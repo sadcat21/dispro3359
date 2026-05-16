@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package, Loader2, ShoppingBag, RefreshCw } from 'lucide-react';
@@ -14,7 +15,9 @@ import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/Recalib
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
-  const { workerId } = useAuth();
+  const { workerId: authWorkerId } = useAuth();
+  const { workerId: selectedWorkerId } = useSelectedWorker();
+  const workerId = selectedWorkerId || authWorkerId;
   const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const [recalibrating, setRecalibrating] = useState(false);

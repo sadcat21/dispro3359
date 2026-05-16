@@ -12,6 +12,7 @@ import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import SupervisorWorkerViewDialog from '@/components/supervisor/SupervisorWorkerViewDialog';
 import { Customer } from '@/types/database';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
@@ -42,6 +43,7 @@ const InternalSupervisorHome: React.FC = () => {
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
+  const [showWorkerViewDialog, setShowWorkerViewDialog] = useState(false);
 
   const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
     queryKey: ['customers-for-order-picker-internal', activeBranch?.id, activeBranch?.wilaya],
@@ -187,7 +189,10 @@ const InternalSupervisorHome: React.FC = () => {
                 return (
                   <Card
                     key={item.key}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => {
+                      if (item.key === 'sales_summary') setShowWorkerViewDialog(true);
+                      else navigate(item.path);
+                    }}
                     className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${cp.border}`}
                   >
                     <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
@@ -217,6 +222,7 @@ const InternalSupervisorHome: React.FC = () => {
         }}
       />
       <OrderFlowDialog open={showCreateOrderDialog} onOpenChange={setShowCreateOrderDialog} mode="create" initialCustomerId={selectedCustomerId} />
+      <SupervisorWorkerViewDialog open={showWorkerViewDialog} onOpenChange={setShowWorkerViewDialog} />
     </div>
   );
 };
