@@ -35,12 +35,7 @@ const InternalSupervisorHome: React.FC = () => {
   const { t } = useLanguage();
   const { user, activeBranch } = useAuth();
 
-  // Order creation state
-  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
-  const [showCreateOrder, setShowCreateOrder] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-
-  const effectiveBranchId = activeBranch?.id || null;
+  const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
 
   const { data: kpis } = useQuery({
     queryKey: ['internal-supervisor-kpis', activeBranch?.id],
@@ -76,18 +71,6 @@ const InternalSupervisorHome: React.FC = () => {
       };
     },
     staleTime: 60_000,
-  });
-
-  // Customers for picker
-  const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['customers-for-order-picker-supervisor', effectiveBranchId],
-    queryFn: async () => {
-      let q = supabase.from('customers').select('*').eq('status', 'active').order('name');
-      if (effectiveBranchId) q = q.eq('branch_id', effectiveBranchId);
-      const { data } = await q;
-      return (data || []) as Customer[];
-    },
-    enabled: showCustomerPicker,
   });
 
   const sections: Section[] = [
