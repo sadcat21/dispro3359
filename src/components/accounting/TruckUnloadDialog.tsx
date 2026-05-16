@@ -127,7 +127,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>إلغاء</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>إغلاق</AlertDialogCancel>
           {isEmpty ? (
             <AlertDialogAction
               onClick={() => onConfirm(notes)}
