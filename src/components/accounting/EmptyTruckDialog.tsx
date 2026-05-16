@@ -78,6 +78,14 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
     }
   }, [open]);
 
+  // Auto full-unload mode: as soon as items are loaded, fire handleConfirm with full quantities
+  React.useEffect(() => {
+    if (open && autoFullUnload && loaded && items.length > 0 && !isEmptying) {
+      handleConfirm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, autoFullUnload, loaded, items.length]);
+
   // تفريغ كلي - إرجاع كل الكميات
   const setFullUnload = () => {
     setItems(prev => prev.map(it => ({ ...it, returnQty: it.currentQty })));
