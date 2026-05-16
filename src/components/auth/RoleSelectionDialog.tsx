@@ -167,6 +167,7 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
     switch (role) {
       case 'admin': return t('workers.role_admin');
       case 'project_manager': return t('workers.role_project_manager');
+      case 'company_manager': return t('workers.role_company_manager');
       case 'branch_admin': return t('workers.role_branch_admin');
       case 'supervisor': return t('workers.role_supervisor');
       case 'worker': return t('workers.role_worker');
@@ -214,7 +215,7 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
         </DialogHeader>
         <div className="grid gap-3 py-2">
           {sortedRoles.map((roleData, index) => {
-            const isCompanyManager = roleData.custom_role_code === 'company_manager';
+            const isCompanyManager = roleData.custom_role_code === 'company_manager' || roleData.role === 'company_manager';
             const isInternalSupervisor = roleData.custom_role_code === 'internal_supervisor';
             const isExternalSupervisor = roleData.custom_role_code === 'external_supervisor';
             const isPrimary = index === effectivePrimaryIndex;
