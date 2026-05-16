@@ -102,6 +102,12 @@ const queryClient = new QueryClient({
   },
 });
 
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-secondary">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
+
 const INTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
   '/',
   '/attendance',
@@ -197,6 +203,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const AppRoutes = () => {
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={
@@ -639,6 +646,7 @@ const AppRoutes = () => {
       <Route path="/tracking" element={<Navigate to="/promo-tracking" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 
