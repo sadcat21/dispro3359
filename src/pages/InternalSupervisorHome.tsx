@@ -130,11 +130,11 @@ const InternalSupervisorHome: React.FC = () => {
             </div>
           )}
           <button
-            onClick={() => setShowCustomerPicker(true)}
+            onClick={() => setDailyTasksOpen(true)}
             className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
           >
-            <Plus className="w-5 h-5" />
-            <span className="text-base font-bold">{t('orders.create_new')}</span>
+            <ClipboardList className="w-5 h-5" />
+            <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
         </div>
       </div>
