@@ -42,6 +42,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   approved: { label: 'تمت الموافقة', color: 'bg-green-600' },
   rejected: { label: 'مرفوض', color: 'bg-destructive' },
   disputed: { label: 'خلاف مرفوع', color: 'bg-purple-600' },
+  cancelled: { label: 'ملغاة', color: 'bg-gray-500' },
 };
 
 const fmtQty = (qty: number): string => {
