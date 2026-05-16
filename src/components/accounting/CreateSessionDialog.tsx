@@ -26,6 +26,7 @@ import ExceptionalActionsSummary from './ExceptionalActionsSummary';
 import WorkerHandoverSummary from './WorkerHandoverSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
 import TruckReviewSection from './TruckReviewSection';
+import TruckUnloadDialog from './TruckUnloadDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { Info } from 'lucide-react';
