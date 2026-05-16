@@ -30,7 +30,6 @@ const ManagerAccountingReview: React.FC = () => {
   const { workerId: managerId, activeBranch } = useAuth();
   const [activeTab, setActiveTab] = useState('pending');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
 
   // Unreviewed sessions
