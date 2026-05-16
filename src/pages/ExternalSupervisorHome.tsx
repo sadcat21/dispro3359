@@ -12,7 +12,7 @@ import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { Customer } from '@/types/database';
 import {
-  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3,
+  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3, Banknote,
 } from 'lucide-react';
 
 const ExternalSupervisorHome: React.FC = () => {
@@ -41,6 +41,7 @@ const ExternalSupervisorHome: React.FC = () => {
     { key: 'sales_summary', label: 'تجميع المبيعات', icon: BarChart3, onClick: () => navigate('/manager-sales-summary'), palette: { border: 'border-rose-300', icon: 'text-rose-500' } },
     { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
+    { key: 'debts', label: 'إدارة الديون', icon: Banknote, onClick: () => navigate('/customer-debts'), palette: { border: 'border-red-300', icon: 'text-red-500' } },
   ];
 
   return (
