@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck } from 'lucide-react';
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -240,16 +240,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   });
 
   type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number };
-  let centerAction: CenterAction | null = null;
-  if (isWarehouseManager) {
-    centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
-  } else if (isBranchAdmin) {
-    centerAction = { type: 'navigate', to: '/accounting', icon: Wallet, label: 'المحاسبة' };
-  } else if (isAdminAssistant) {
-    centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
-  } else if (isFieldWorker || isFieldRoleCustom) {
-    centerAction = { type: 'today' };
-  }
 
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
@@ -288,6 +278,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     enabled: !!activeBranch?.id,
     refetchInterval: 30000,
   });
+
+  let centerAction: CenterAction | null = null;
+  if (isWarehouseManager) {
+    centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
+  } else if (isBranchAdmin) {
+    centerAction = { type: 'navigate', to: '/branch-approvals', icon: ShieldCheck, label: 'الموافقات', badge: branchApprovalsPendingCount || 0 };
+  } else if (isAdminAssistant) {
+    centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
+  } else if (isFieldWorker || isFieldRoleCustom) {
+    centerAction = { type: 'today' };
+  }
 
   const LANGUAGES: { code: Language; label: string; flag: string }[] = [
     { code: 'ar', label: 'العربية', flag: '🇩🇿' },
