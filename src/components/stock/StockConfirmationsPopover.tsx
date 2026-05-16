@@ -368,7 +368,7 @@ const OutgoingTab: React.FC<{
     return Array.from(map.values());
   }, [warehouseStock, editItems]);
 
-  const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, Number(item.quantity || 0) + getRawGiftQuantity(item)])), [editItems]);
+  const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, Number(item.quantity || 0)])), [editItems]);
   const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, getRawGiftQuantity(item)])), [editItems]);
   const editProductIds = useMemo(() => editItems.map(i => i.product_id), [editItems]);
   const offersMap = useProductOffersMap(editProductIds, 'worker_loading');
