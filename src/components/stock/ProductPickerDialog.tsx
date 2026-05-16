@@ -300,17 +300,17 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       // Edit mode: pre-fill with current loaded quantity (excluding existing gift)
       const currentQty = loadedQtyMap[p.id] || 0;
       const currentGift = giftQtyMap[p.id] || 0;
+      const currentGiftUnit = giftUnitMap[p.id] || 'piece';
       const ppbVal = p.pieces_per_box || 1;
-      const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
-      setSingleQtyFields(regularQty > 0
-        ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(regularQty), pieces: '' } : piecesToFields(regularQty, ppbVal))
+      setSingleQtyFields(currentQty > 0
+        ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(currentQty), pieces: '' } : bpQuantityToFields(currentQty, ppbVal))
         : createDefaultSingleFields()
       );
-      setSingleGiftFields(currentGift > 0 ? piecesToFields(currentGift, ppbVal) : createDefaultSingleFields());
+      setSingleGiftFields(currentGift > 0 ? giftQuantityToFields(currentGift, currentGiftUnit, ppbVal) : createDefaultSingleFields());
       if (currentGift > 0) setOfferActivated(prev => ({ ...prev, [p.id]: true }));
       setSingleGiftQty(0);
-      setSingleGiftUnit('piece');
+      setSingleGiftUnit(currentGiftUnit);
       setIsEditMode(true);
       setMode('single-qty');
     } else {
@@ -483,6 +483,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const neededQty = needsMap[p.id] || 0;
     const loadedQty = loadedQtyMap[p.id] || 0;
     const giftQty = giftQtyMap[p.id] || 0;
+    const giftUnit = giftUnitMap[p.id] || 'piece';
     const isMultiSelected = multiSelected.has(p.id);
 
     return (
@@ -560,7 +561,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 }`}
               >
                 <Gift className="w-3.5 h-3.5" />
-                {giftQty > 0 ? fmtQty(giftQty) : '—'}
+                {giftQty > 0 ? giftQuantityDisplay(giftQty, giftUnit, p.pieces_per_box || 1) : '—'}
               </button>
 
               {/* Section 4 — Total shipped */}
@@ -570,7 +571,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1.5 flex-1 text-sm font-extrabold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 <Truck className="w-4 h-4" />
-                {fmtQty(loadedQty)}
+                {bpQuantityDisplay(loadedQty, p.pieces_per_box || 1)}
               </button>
             </div>
           </>
