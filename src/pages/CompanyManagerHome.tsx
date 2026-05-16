@@ -106,16 +106,16 @@ const CompanyManagerHome: React.FC = () => {
         overlayClassName="bg-gradient-to-l from-blue-900/20 via-white/30 to-white/10"
       />
 
-      {/* Daily worker tasks button */}
+      {/* Final approvals button */}
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
         <div className="relative px-3 py-1.5">
           <button
-            onClick={() => setDailyTasksOpen(true)}
+            onClick={() => navigate('/assistant-approvals')}
             className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
           >
-            <ClipboardList className="w-5 h-5" />
-            <span className="text-base font-bold">مهام العمال اليومية</span>
+            <ShieldCheck className="w-5 h-5" />
+            <span className="text-base font-bold">{t('assistant_approvals.title') || 'الموافقات النهائية'}</span>
           </button>
         </div>
       </div>
