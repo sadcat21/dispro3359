@@ -154,7 +154,7 @@ const InternalSupervisorHome: React.FC = () => {
               <span className="text-sm font-bold">مهام العمال اليومية</span>
             </button>
             <button
-              onClick={() => setShowCreateOrderDialog(true)}
+              onClick={() => { setSelectedCustomerId(undefined); setShowCustomerPicker(true); }}
               className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <Plus className="w-5 h-5" />
