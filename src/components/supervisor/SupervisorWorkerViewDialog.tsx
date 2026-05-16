@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+
 import { Button } from '@/components/ui/button';
 import { BarChart3, Package, Truck, Loader2, User, Warehouse, Briefcase } from 'lucide-react';
 
