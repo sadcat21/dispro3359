@@ -174,7 +174,7 @@ const ProtectedRoute: React.FC<{
 
   const customCode = activeRole?.custom_role_code;
   // مساعد المدير العام له صلاحيات إدارية كاملة على جميع المسارات
-  const isCompanyManager = isCompanyManagerRole(customCode);
+  const isCompanyManager = isCompanyManagerRole(customCode) || isCompanyManagerRole(role);
   const isInternalSupervisorAllowed =
     isInternalSupervisorRole(customCode) && INTERNAL_SUPERVISOR_ALLOWED_PATHS.has(location.pathname);
 
