@@ -191,6 +191,43 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
+  const [isUnfreezing, setIsUnfreezing] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Worker freeze status (final review pending close)
+  const { data: frozenRows = [] } = useQuery({
+    queryKey: ['worker-freeze-status', selectedWorkerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('loading_sessions')
+        .select('id')
+        .eq('worker_id', selectedWorkerId!)
+        .eq('status', 'review')
+        .eq('is_final', true);
+      return data || [];
+    },
+    enabled: !!selectedWorkerId && open,
+  });
+  const isFrozen = frozenRows.length > 0;
+
+  const handleUnfreeze = async () => {
+    if (!selectedWorkerId || frozenRows.length === 0) return;
+    setIsUnfreezing(true);
+    try {
+      const { error } = await supabase
+        .from('loading_sessions')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .in('id', frozenRows.map(r => r.id));
+      if (error) throw error;
+      toast.success('تم فك تجميد العامل');
+      queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
+      queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+    } catch (e: any) {
+      toast.error(e.message || 'فشل فك التجميد');
+    } finally {
+      setIsUnfreezing(false);
+    }
+  };
 
   const handleShowConfirmation = () => {
     if (!selectedWorkerId || !calc) { toast.error('اختر العامل'); return; }
