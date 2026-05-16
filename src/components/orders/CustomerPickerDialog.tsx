@@ -207,11 +207,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   
 
+  const deferredSearch = useDeferredValue(search);
+
   const filteredCustomers = useMemo(() => {
-    const source = !search.trim()
+    const source = !deferredSearch.trim()
       ? customers
       : customers.filter(c => {
-        const q = search.toLowerCase();
+        const q = deferredSearch.toLowerCase();
         return (
       c.name?.toLowerCase().includes(q) ||
       c.name_fr?.toLowerCase().includes(q) ||
@@ -230,7 +232,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
       seen.add(customer.id);
       return true;
     });
-  }, [customers, search]);
+  }, [customers, deferredSearch]);
 
   // Build sector map for quick lookup
   const sectorMap = useMemo(() => {
