@@ -109,18 +109,6 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
                   );
                 })}
               </div>
-              {workerId && (
-                <div className="pt-3 flex justify-center">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setEmptyOpen(true)}
-                  >
-                    <PackageX className="w-4 h-4 ml-2" />
-                    تفريغ الشاحنة الآن (المدير)
-                  </Button>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -133,21 +121,36 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
           />
         )}
 
-        <Textarea
-          placeholder="ملاحظات حول التفريغ (اختياري)..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        {isEmpty && (
+          <Textarea
+            placeholder="ملاحظات حول التفريغ (اختياري)..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        )}
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>إلغاء</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => onConfirm(notes)}
-            disabled={isPending || !isEmpty}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد التفريغ وحفظ المحاسبة'}
-          </AlertDialogAction>
+          {isEmpty ? (
+            <AlertDialogAction
+              onClick={() => onConfirm(notes)}
+              disabled={isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد التفريغ وحفظ المحاسبة'}
+            </AlertDialogAction>
+          ) : (
+            workerId && (
+              <Button
+                variant="destructive"
+                onClick={() => setEmptyOpen(true)}
+                disabled={isPending || isLoading}
+              >
+                <PackageX className="w-4 h-4 ml-2" />
+                تفريغ الشاحنة الآن (المدير)
+              </Button>
+            )
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
