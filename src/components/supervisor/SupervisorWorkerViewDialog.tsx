@@ -23,15 +23,17 @@ const roleMeta: Record<string, { label: string; icon: React.ComponentType<{ clas
 };
 
 const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, user } = useAuth();
+  const branchId = activeBranch?.id || user?.branch_id || null;
   const navigate = useNavigate();
   const { setSelectedWorker } = useSelectedWorker();
   const [step, setStep] = useState<'worker' | 'action'>('worker');
   const [picked, setPicked] = useState<{ id: string; name: string } | null>(null);
 
   const { data: workers = [], isLoading } = useQuery({
-    queryKey: ['supervisor-pick-worker-roles', activeBranch?.id],
+    queryKey: ['supervisor-pick-worker-roles', branchId],
     queryFn: async () => {
+      if (!branchId) return [] as Array<{ id: string; full_name: string; codes: string[] }>;
       const { data: roles, error } = await supabase
         .from('custom_roles')
         .select('id, code')
@@ -41,13 +43,12 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
       const codeById = new Map((roles || []).map((r) => [r.id, r.code]));
       if (roleIds.length === 0) return [] as Array<{ id: string; full_name: string; codes: string[] }>;
 
-      let wrQuery = supabase
+      const { data: wr, error: wrErr } = await supabase
         .from('worker_roles')
         .select('worker_id, custom_role_id, branch_id, is_active')
         .eq('is_active', true)
+        .eq('branch_id', branchId)
         .in('custom_role_id', roleIds);
-      if (activeBranch?.id) wrQuery = wrQuery.eq('branch_id', activeBranch.id);
-      const { data: wr, error: wrErr } = await wrQuery;
       if (wrErr) throw wrErr;
 
       const byWorker = new Map<string, Set<string>>();
@@ -60,12 +61,12 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
       const workerIds = Array.from(byWorker.keys());
       if (workerIds.length === 0) return [];
 
-      let wQuery = supabase
+      const { data: ws, error: wErr } = await supabase
         .from('workers_safe')
         .select('id, full_name, branch_id, is_active')
-        .in('id', workerIds);
-      if (activeBranch?.id) wQuery = wQuery.eq('branch_id', activeBranch.id);
-      const { data: ws, error: wErr } = await wQuery.order('full_name');
+        .in('id', workerIds)
+        .eq('branch_id', branchId)
+        .order('full_name');
       if (wErr) throw wErr;
 
       return (ws || [])
