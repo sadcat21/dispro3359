@@ -27,6 +27,11 @@ const Index: React.FC = () => {
     return <Suspense fallback={null}><BranchManagerHome /></Suspense>;
   }
 
+  // Assistant Manager — same layout as Branch Manager with red identity
+  if (role === 'admin_assistant') {
+    return <Suspense fallback={null}><AssistantManagerHome /></Suspense>;
+  }
+
   if (isAdminRole(role)) {
     return <Suspense fallback={null}><AdminHome /></Suspense>;
   }
