@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +9,8 @@ import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
+import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
+import { Customer } from '@/types/database';
 import {
   ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet,
 } from 'lucide-react';
@@ -15,7 +19,23 @@ const ExternalSupervisorHome: React.FC = () => {
   const navigate = useNavigate();
   const { user, activeBranch } = useAuth();
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
+
+  const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
+    queryKey: ['customers-for-order-picker', activeBranch?.id, activeBranch?.wilaya],
+    queryFn: async () => {
+      let query = supabase.from('customers').select('*').order('name');
+      if (activeBranch?.id) query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+      if (activeBranch?.wilaya) query = query.or(`wilaya.eq."${activeBranch.wilaya}",wilaya.is.null`);
+      const { data, error } = await query;
+      if (error) throw error;
+      const seen = new Set<string>();
+      return (data as Customer[]).filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)));
+    },
+    enabled: showCustomerPicker,
+  });
 
   const buttons = [
     { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
@@ -50,7 +70,7 @@ const ExternalSupervisorHome: React.FC = () => {
               <span className="text-sm font-bold">مهام العمال اليومية</span>
             </button>
             <button
-              onClick={() => setShowCreateOrderDialog(true)}
+              onClick={() => { setSelectedCustomerId(undefined); setShowCustomerPicker(true); }}
               className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <ShoppingCart className="w-5 h-5" />
@@ -84,10 +104,23 @@ const ExternalSupervisorHome: React.FC = () => {
 
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
 
+      <CustomerPickerDialog
+        open={showCustomerPicker}
+        onOpenChange={setShowCustomerPicker}
+        customers={allCustomers}
+        isLoading={customersLoading}
+        onSelect={(customer) => {
+          setSelectedCustomerId(customer.id);
+          setShowCustomerPicker(false);
+          setShowCreateOrderDialog(true);
+        }}
+      />
+
       <OrderFlowDialog
         open={showCreateOrderDialog}
         onOpenChange={setShowCreateOrderDialog}
         mode="create"
+        initialCustomerId={selectedCustomerId}
       />
     </div>
   );
