@@ -202,6 +202,10 @@ const MyPromosContent: React.FC = () => {
   };
 
   const handleDelete = async (promo: PromoWithDetails) => {
+    if (isFrozen) {
+      toast.error('لا يمكن حذف عروض الأسعار - الحساب مجمَّد بسبب عجز غير مسدَّد');
+      return;
+    }
 
     try {
       const { error } = await supabase
