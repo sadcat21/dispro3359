@@ -113,6 +113,10 @@ const ManagerConfirmationsPanel: React.FC = () => {
     () => Object.fromEntries(editItems.map(i => [i.product_id, getRawGiftQuantity(i)])),
     [editItems]
   );
+  const giftUnitMap = useMemo(
+    () => Object.fromEntries(editItems.map(i => [i.product_id, i.gift_unit || 'piece'])),
+    [editItems]
+  );
   const editProductIds = useMemo(() => editItems.map(i => i.product_id), [editItems]);
   const offersMap = useProductOffersMap(editProductIds, 'worker_loading');
 
@@ -316,6 +320,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
         selectedProductIds={editItems.map(i => i.product_id)}
         loadedQtyMap={loadedQtyMap}
         giftQtyMap={giftQtyMap}
+        giftUnitMap={giftUnitMap}
         onAddProducts={handleAddProducts}
         onEditProduct={handleEditProduct}
         onRemoveProduct={handleRemoveProduct}

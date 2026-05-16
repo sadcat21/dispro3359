@@ -52,6 +52,8 @@ interface ProductPickerDialogProps {
   loadedQtyMap?: Record<string, number>;
   /** Map of product_id → gift quantity in session */
   giftQtyMap?: Record<string, number>;
+  /** Map of product_id → gift unit in session */
+  giftUnitMap?: Record<string, string>;
   /** Display selected quantities as raw counts instead of box.piece notation */
   quantityDisplayMode?: 'box-piece' | 'raw';
   /** Map of product_id → offer info for gift suggestions */
@@ -94,6 +96,30 @@ const piecesToFields = (totalPieces: number, piecesPerBox: number): QuantityFiel
   };
 };
 
+const bpQuantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
+  const parsed = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
+  return {
+    boxes: String(parsed.boxes),
+    pieces: parsed.pieces > 0 ? String(parsed.pieces) : '',
+  };
+};
+
+const bpQuantityDisplay = (quantity: number, piecesPerBox: number): string => {
+  const parsed = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
+  return `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`;
+};
+
+const giftQuantityToFields = (giftQty: number, giftUnit: string, piecesPerBox: number): QuantityFields => {
+  if ((giftUnit || 'piece') === 'box') return bpQuantityToFields(giftQty, piecesPerBox);
+  return piecesToFields(giftQty, piecesPerBox);
+};
+
+const giftQuantityDisplay = (giftQty: number, giftUnit: string, piecesPerBox: number): string => {
+  if ((giftUnit || 'piece') === 'box') return bpQuantityDisplay(giftQty, piecesPerBox);
+  const fields = piecesToFields(giftQty, piecesPerBox);
+  return `${fields.boxes}.${String(Number(fields.pieces || 0)).padStart(2, '0')}`;
+};
+
 const giftToPieces = (giftQty: number, giftUnit: string, piecesPerBox: number): number => {
   const ppb = Math.max(1, Math.round(piecesPerBox || 1));
   return giftUnit === 'box' ? Math.round(giftQty * ppb) : Math.round(giftQty || 0);
@@ -120,6 +146,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   needsMap = {},
   loadedQtyMap = {},
   giftQtyMap = {},
+  giftUnitMap = {},
   quantityDisplayMode = 'box-piece',
   offersMap = {},
   hideHeader = false,
@@ -273,17 +300,17 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       // Edit mode: pre-fill with current loaded quantity (excluding existing gift)
       const currentQty = loadedQtyMap[p.id] || 0;
       const currentGift = giftQtyMap[p.id] || 0;
+      const currentGiftUnit = giftUnitMap[p.id] || 'piece';
       const ppbVal = p.pieces_per_box || 1;
-      const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
-      setSingleQtyFields(regularQty > 0
-        ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(regularQty), pieces: '' } : piecesToFields(regularQty, ppbVal))
+      setSingleQtyFields(currentQty > 0
+        ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(currentQty), pieces: '' } : bpQuantityToFields(currentQty, ppbVal))
         : createDefaultSingleFields()
       );
-      setSingleGiftFields(currentGift > 0 ? piecesToFields(currentGift, ppbVal) : createDefaultSingleFields());
+      setSingleGiftFields(currentGift > 0 ? giftQuantityToFields(currentGift, currentGiftUnit, ppbVal) : createDefaultSingleFields());
       if (currentGift > 0) setOfferActivated(prev => ({ ...prev, [p.id]: true }));
       setSingleGiftQty(0);
-      setSingleGiftUnit('piece');
+      setSingleGiftUnit(currentGiftUnit);
       setIsEditMode(true);
       setMode('single-qty');
     } else {
@@ -456,6 +483,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
     const neededQty = needsMap[p.id] || 0;
     const loadedQty = loadedQtyMap[p.id] || 0;
     const giftQty = giftQtyMap[p.id] || 0;
+    const giftUnit = giftUnitMap[p.id] || 'piece';
     const isMultiSelected = multiSelected.has(p.id);
 
     return (
@@ -533,7 +561,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 }`}
               >
                 <Gift className="w-3.5 h-3.5" />
-                {giftQty > 0 ? fmtQty(giftQty) : '—'}
+                {giftQty > 0 ? giftQuantityDisplay(giftQty, giftUnit, p.pieces_per_box || 1) : '—'}
               </button>
 
               {/* Section 4 — Total shipped */}
@@ -543,7 +571,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1.5 flex-1 text-sm font-extrabold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 <Truck className="w-4 h-4" />
-                {fmtQty(loadedQty)}
+                {bpQuantityDisplay(loadedQty, p.pieces_per_box || 1)}
               </button>
             </div>
           </>
@@ -927,10 +955,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     <div className="flex items-center gap-2 flex-wrap text-[10px] text-muted-foreground mt-0.5">
                       <span>المتاح: <strong className="text-foreground">{fmtBP(singleProduct.warehouseQty, singleProduct.pieces_per_box || 1)}</strong></span>
                       {(loadedQtyMap[singleProduct.id] || 0) > 0 && (
-                        <span>الشاحنة: <strong className="text-green-600">{fmtQty(loadedQtyMap[singleProduct.id])}</strong></span>
+                        <span>الشاحنة: <strong className="text-green-600">{bpQuantityDisplay(loadedQtyMap[singleProduct.id], singleProduct.pieces_per_box || 1)}</strong></span>
                       )}
                       {(needsMap[singleProduct.id] || 0) > 0 && (
-                        <span>يحتاج: <strong className="text-destructive">{fmtQty(needsMap[singleProduct.id])}</strong></span>
+                        <span>يحتاج: <strong className="text-destructive">{bpQuantityDisplay(needsMap[singleProduct.id], singleProduct.pieces_per_box || 1)}</strong></span>
                       )}
                       {singlePPB > 1 && <span>الصندوق={singlePPB}</span>}
                     </div>
