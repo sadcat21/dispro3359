@@ -126,6 +126,8 @@ const ExternalSupervisorHome: React.FC = () => {
         mode="create"
         initialCustomerId={selectedCustomerId}
       />
+
+      <SupervisorWorkerViewDialog open={showWorkerViewDialog} onOpenChange={setShowWorkerViewDialog} />
     </div>
   );
 };
