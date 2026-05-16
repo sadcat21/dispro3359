@@ -104,6 +104,8 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     handleOpenChange(false);
     if (path === '/my-achievements') {
       navigate(`/my-achievements?worker=${picked.id}&name=${encodeURIComponent(picked.name)}`);
+    } else if (path === '/worker-tracking') {
+      navigate(`/worker-tracking?worker=${picked.id}`);
     } else {
       navigate(path);
     }
