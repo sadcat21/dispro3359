@@ -189,7 +189,10 @@ const InternalSupervisorHome: React.FC = () => {
                 return (
                   <Card
                     key={item.key}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => {
+                      if (item.key === 'sales_summary') setShowWorkerViewDialog(true);
+                      else navigate(item.path);
+                    }}
                     className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${cp.border}`}
                   >
                     <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
