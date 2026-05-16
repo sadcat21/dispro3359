@@ -52,9 +52,26 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
   selectedWorkerId,
   onSelect,
   stockAlerts = [],
-  frozenWorkerIds = [],
+  frozenWorkerIds,
 }) => {
   const { t } = useLanguage();
+
+  const workerIdsKey = workers.map(w => w.id).sort().join(',');
+  const { data: autoFrozenIds = [] } = useQuery({
+    queryKey: ['frozen-workers-picker', workerIdsKey],
+    enabled: open && frozenWorkerIds === undefined && workers.length > 0,
+    queryFn: async () => {
+      const frozen: string[] = [];
+      await Promise.all(
+        workers.map(async (w) => {
+          const { data, error } = await supabase.rpc('is_worker_frozen', { _worker_id: w.id });
+          if (!error && data === true) frozen.push(w.id);
+        })
+      );
+      return frozen;
+    },
+  });
+  const effectiveFrozen = frozenWorkerIds ?? autoFrozenIds;
 
   const getWorkerDeficit = (workerId: string) => {
     return stockAlerts
