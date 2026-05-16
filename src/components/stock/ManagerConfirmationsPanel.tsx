@@ -34,6 +34,8 @@ const fmtQty = (qty: number): string => {
   return `${boxes}`;
 };
 
+const getRawGiftQuantity = (item: StockConfirmationItem): number => Math.max(0, Number(item.gift_quantity) || 0);
+
 /** Parse mismatch details from rejection_note */
 const parseMismatches = (note: string | null): { product: string; expected: string; actual: string }[] => {
   if (!note || !note.includes('عدم تطابق الكميات')) return [];
@@ -95,7 +97,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
           name: getProductDisplayName({ name: it.product_name, app_name: it.product_app_name }),
           warehouseQty: 0,
           image_url: it.image_url,
-          pieces_per_box: 20,
+          pieces_per_box: it.pieces_per_box || 20,
         });
       }
     });
