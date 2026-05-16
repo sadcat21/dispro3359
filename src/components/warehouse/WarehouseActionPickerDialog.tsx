@@ -1,9 +1,9 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, PackageX, CheckCircle, RefreshCw, History, Truck } from 'lucide-react';
+import { Plus, PackageX, CheckCircle, RefreshCw, History, Truck, Wallet } from 'lucide-react';
 
-export type WarehouseAction = 'load' | 'unload' | 'review' | 'exchange' | 'history';
+export type WarehouseAction = 'load' | 'unload' | 'review' | 'exchange' | 'history' | 'balance';
 
 interface Props {
   open: boolean;
@@ -62,6 +62,15 @@ const WarehouseActionPickerDialog: React.FC<Props> = ({ open, onOpenChange, work
             تغيير التالف
           </Button>
         </div>
+
+        <Button
+          variant="outline"
+          onClick={() => pick('balance')}
+          className="w-full h-11 rounded-xl text-sm gap-2 border-primary/40 text-primary"
+        >
+          <Wallet className="w-4 h-4" />
+          رصيد شاحنة العامل
+        </Button>
 
         <Button
           variant="secondary"

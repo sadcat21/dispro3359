@@ -24,6 +24,8 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
 import WarehouseActionPickerDialog, { WarehouseAction } from '@/components/warehouse/WarehouseActionPickerDialog';
+import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
+import { Dialog as TBDialog, DialogContent as TBDialogContent, DialogHeader as TBDialogHeader, DialogTitle as TBDialogTitle } from '@/components/ui/dialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -66,6 +68,7 @@ const WorkerHome: React.FC = () => {
   const [showStockManagement, setShowStockManagement] = useState(false);
   const [showLoadWorkerPicker, setShowLoadWorkerPicker] = useState(false);
   const [warehouseActionFor, setWarehouseActionFor] = useState<{ id: string; name: string } | null>(null);
+  const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   // Open load-worker picker when navigated with ?openLoadWorker=1 (e.g. center nav button)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -744,10 +747,27 @@ const WorkerHome: React.FC = () => {
           }
           setContextWorker(warehouseActionFor.id);
           const id = warehouseActionFor.id;
+          const name = warehouseActionFor.name;
           setWarehouseActionFor(null);
+          if (action === 'balance') {
+            setTruckBalanceWorker({ id, name });
+            return;
+          }
           navigate(`/load-stock?worker=${id}&action=${action}`);
         }}
       />
+
+      <TBDialog open={!!truckBalanceWorker} onOpenChange={(o) => { if (!o) setTruckBalanceWorker(null); }}>
+        <TBDialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <TBDialogHeader>
+            <TBDialogTitle className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-primary" />
+              <span>رصيد شاحنة {truckBalanceWorker?.name}</span>
+            </TBDialogTitle>
+          </TBDialogHeader>
+          {truckBalanceWorker && <WorkerTruckStockList workerId={truckBalanceWorker.id} />}
+        </TBDialogContent>
+      </TBDialog>
 
       {/* Final Review picker + dialog */}
       <WorkerPickerDialog
