@@ -955,10 +955,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                     <div className="flex items-center gap-2 flex-wrap text-[10px] text-muted-foreground mt-0.5">
                       <span>المتاح: <strong className="text-foreground">{fmtBP(singleProduct.warehouseQty, singleProduct.pieces_per_box || 1)}</strong></span>
                       {(loadedQtyMap[singleProduct.id] || 0) > 0 && (
-                        <span>الشاحنة: <strong className="text-green-600">{fmtQty(loadedQtyMap[singleProduct.id])}</strong></span>
+                        <span>الشاحنة: <strong className="text-green-600">{bpQuantityDisplay(loadedQtyMap[singleProduct.id], singleProduct.pieces_per_box || 1)}</strong></span>
                       )}
                       {(needsMap[singleProduct.id] || 0) > 0 && (
-                        <span>يحتاج: <strong className="text-destructive">{fmtQty(needsMap[singleProduct.id])}</strong></span>
+                        <span>يحتاج: <strong className="text-destructive">{bpQuantityDisplay(needsMap[singleProduct.id], singleProduct.pieces_per_box || 1)}</strong></span>
                       )}
                       {singlePPB > 1 && <span>الصندوق={singlePPB}</span>}
                     </div>
