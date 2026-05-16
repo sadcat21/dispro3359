@@ -769,6 +769,8 @@ const StockConfirmationsPopover: React.FC = () => {
                     onAmend={handleAmend}
                     isAmending={managerHook.amendConfirmation.isPending}
                     allowAmend
+                    onCancel={handleCancel}
+                    isCancelling={managerHook.cancelConfirmation.isPending}
                   />
                 ) : (
                   <IncomingTab
@@ -789,7 +791,8 @@ const StockConfirmationsPopover: React.FC = () => {
                   onAmend={handleAmend}
                   isAmending={managerHook.amendConfirmation.isPending}
                   allowAmend={isWarehouseManager}
-                  
+                  onCancel={isWarehouseManager ? handleCancel : undefined}
+                  isCancelling={managerHook.cancelConfirmation.isPending}
                 />
               </TabsContent>
               <TabsContent value="history" className="mt-0">
