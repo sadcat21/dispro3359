@@ -58,10 +58,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
             <Truck className="w-5 h-5 text-orange-600" />
             رصيد شحنة العامل
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            لا يمكن حفظ جلسة المحاسبة إلا بعد تفريغ شاحنة العامل بالكامل.
-            يجب أن يكون رصيد شحنته فارغاً (لا توجد منتجات متبقية).
-          </AlertDialogDescription>
+          <AlertDialogDescription className="sr-only">رصيد شحنة العامل</AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="max-h-[50vh] overflow-y-auto border rounded-md p-2 my-2 bg-muted/30">
