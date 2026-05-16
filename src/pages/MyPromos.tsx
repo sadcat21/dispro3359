@@ -164,7 +164,11 @@ const MyPromosContent: React.FC = () => {
 
   const handleSaveEdit = async () => {
     if (!editingPromo) return;
-    
+    if (isFrozen) {
+      toast.error('لا يمكن تعديل عروض الأسعار - الحساب مجمَّد بسبب عجز غير مسدَّد');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { error } = await supabase
