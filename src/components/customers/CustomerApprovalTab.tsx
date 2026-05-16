@@ -189,7 +189,7 @@ const CustomerApprovalTab: React.FC = () => {
                 ? remaining.filter((r: any) => r.operation_type === 'update')
                 : remaining;
             setRequests(filtered);
-            if (remaining.length < allRequests.length) {
+            if (filtered.length < allRequests.length) {
                 queryClient.invalidateQueries({ queryKey: ['customers'] });
                 queryClient.invalidateQueries({ queryKey: ['worker-request-summaries'] });
             }
