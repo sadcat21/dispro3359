@@ -39,7 +39,23 @@ const InternalSupervisorHome: React.FC = () => {
   const { user, activeBranch } = useAuth();
 
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
+
+  const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
+    queryKey: ['customers-for-order-picker-internal', activeBranch?.id, activeBranch?.wilaya],
+    queryFn: async () => {
+      let query = supabase.from('customers').select('*').order('name');
+      if (activeBranch?.id) query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+      if (activeBranch?.wilaya) query = query.or(`wilaya.eq."${activeBranch.wilaya}",wilaya.is.null`);
+      const { data, error } = await query;
+      if (error) throw error;
+      const seen = new Set<string>();
+      return (data as Customer[]).filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)));
+    },
+    enabled: showCustomerPicker,
+  });
 
   const { data: kpis } = useQuery({
     queryKey: ['internal-supervisor-kpis', activeBranch?.id],
