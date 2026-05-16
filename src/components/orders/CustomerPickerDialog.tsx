@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -207,11 +207,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   
 
+  const deferredSearch = useDeferredValue(search);
+
   const filteredCustomers = useMemo(() => {
-    const source = !search.trim()
+    const source = !deferredSearch.trim()
       ? customers
       : customers.filter(c => {
-        const q = search.toLowerCase();
+        const q = deferredSearch.toLowerCase();
         return (
       c.name?.toLowerCase().includes(q) ||
       c.name_fr?.toLowerCase().includes(q) ||
@@ -230,7 +232,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
       seen.add(customer.id);
       return true;
     });
-  }, [customers, search]);
+  }, [customers, deferredSearch]);
 
   // Build sector map for quick lookup
   const sectorMap = useMemo(() => {
@@ -295,7 +297,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const sectorStyle = (key: string, index: number) => SECTOR_STYLES[index % SECTOR_STYLES.length];
 
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
-  const visibleCustomers = search.trim() ? filteredCustomers : (activeGroup?.customers || []);
+  const visibleCustomers = deferredSearch.trim() ? filteredCustomers : (activeGroup?.customers || []);
 
   const getSectorName = (sectorId: string | null | undefined) => {
     if (!sectorId) return '';
