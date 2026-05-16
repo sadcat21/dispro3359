@@ -1,21 +1,17 @@
-import React, { useState, useMemo, useEffect, useDeferredValue } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { Search, UserPlus, User, ChevronLeft, ChevronRight, Loader2, X, Banknote, MapPin, Store, Building2, Home, Map as MapIcon, Navigation, Compass, Landmark, Tent, TreePine, Mountain, Waves, Sun, Star, Users } from 'lucide-react';
+import { Search, UserPlus, User, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react';
 import { Customer, Sector } from '@/types/database';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getLocalizedName } from '@/utils/sectorName';
-import CustomerSummary from '@/components/customers/CustomerSummary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import ClientTrustBadge from '@/components/customers/ClientTrustBadge';
-import { computeClientTrustScoreFromHistory } from '@/utils/clientTrustScore';
 import CustomerQuickProfileDialog from '@/components/orders/CustomerQuickProfileDialog';
 import FitText from '@/components/customers/FitText';
 import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
@@ -39,6 +35,52 @@ interface SectorGroup {
 }
 
 const normalizeSectorGroupName = (name: string) => name.replace(/\s+/g, ' ').trim();
+const SEARCH_RESULT_LIMIT = 80;
+
+const getCustomerSearchText = (customer: Customer) => [
+  customer.name,
+  (customer as any).name_fr,
+  customer.store_name,
+  (customer as any).store_name_fr,
+  customer.phone,
+  customer.wilaya,
+  customer.internal_name,
+  customer.address,
+].filter(Boolean).join(' ').toLowerCase();
+
+interface CustomerSearchFieldProps {
+  placeholder: string;
+  resetSignal: boolean;
+  onSearchChange: (value: string) => void;
+}
+
+const CustomerSearchField = React.memo(({ placeholder, resetSignal, onSearchChange }: CustomerSearchFieldProps) => {
+  const [value, setValue] = useState('');
+
+  useEffect(() => {
+    if (!resetSignal) return;
+    setValue('');
+    onSearchChange('');
+  }, [resetSignal, onSearchChange]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => onSearchChange(value), 180);
+    return () => window.clearTimeout(id);
+  }, [value, onSearchChange]);
+
+  return (
+    <div className="relative flex-1">
+      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
+        autoFocus
+      />
+    </div>
+  );
+});
 
 const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   open,
@@ -54,7 +96,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { activeBranch } = useAuth();
   const { customerTypes } = useCustomerTypes();
   const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
   const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
@@ -149,65 +190,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     enabled: open,
   });
 
-  const { data: customerTrustMap } = useQuery({
-    queryKey: ['customer-trust-summary-all'],
-    queryFn: async () => {
-      const { data: allDebts, error: debtsError } = await supabase
-        .from('customer_debts')
-        .select('id, customer_id, total_amount, paid_amount');
-      if (debtsError) throw debtsError;
-
-      const debtIds = (allDebts || []).map((debt) => debt.id);
-      if (!debtIds.length) return {};
-
-      const { data: collections, error: collectionsError } = await supabase
-        .from('debt_collections')
-        .select('debt_id, amount_collected, created_at')
-        .in('debt_id', debtIds);
-      if (collectionsError) throw collectionsError;
-
-      const debtsByCustomer = (allDebts || []).reduce((acc: Record<string, any[]>, debt: any) => {
-        if (!debt.customer_id) return acc;
-        if (!acc[debt.customer_id]) acc[debt.customer_id] = [];
-        acc[debt.customer_id].push(debt);
-        return acc;
-      }, {});
-
-      const debtToCustomer = new Map<string, string>((allDebts || []).map((debt: any) => [debt.id, debt.customer_id]));
-      const collectionsByCustomer = (collections || []).reduce((acc: Record<string, any[]>, item: any) => {
-        const customerId = item.debt_id ? debtToCustomer.get(item.debt_id as string) : null;
-        if (!customerId) return acc;
-        if (!acc[customerId]) acc[customerId] = [];
-        acc[customerId].push(item);
-        return acc;
-      }, {});
-
-      const result: Record<string, ReturnType<typeof computeClientTrustScoreFromHistory>> = {};
-      Object.keys(debtsByCustomer).forEach((customerId) => {
-        result[customerId] = computeClientTrustScoreFromHistory(
-          debtsByCustomer[customerId],
-          collectionsByCustomer[customerId] || [],
-        );
-      });
-      return result;
-    },
-    enabled: open,
-  });
-
   useEffect(() => {
     if (open) {
       setSearch('');
-      setSearchInput('');
       setActiveSectorKey(null);
       setActiveRegionKey(null);
     }
   }, [open]);
-
-  // Debounce: keep typing fluid, commit search to heavy filter after a short delay
-  useEffect(() => {
-    const id = window.setTimeout(() => setSearch(searchInput), 180);
-    return () => window.clearTimeout(id);
-  }, [searchInput]);
 
   useEffect(() => {
     setActiveRegionKey(null);
@@ -215,32 +204,33 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   
 
-  const deferredSearch = useDeferredValue(search);
+  const normalizedCustomers = useMemo(() => {
+    const seen = new Set<string>();
+    return customers.reduce<Array<{ customer: Customer; searchText: string }>>((acc, customer) => {
+      if (seen.has(customer.id)) return acc;
+      seen.add(customer.id);
+      acc.push({ customer, searchText: getCustomerSearchText(customer) });
+      return acc;
+    }, []);
+  }, [customers]);
+
+  const committedSearch = search.trim().toLowerCase();
+  const hasSearch = committedSearch.length > 0;
 
   const filteredCustomers = useMemo(() => {
-    const source = !deferredSearch.trim()
-      ? customers
-      : customers.filter(c => {
-        const q = deferredSearch.toLowerCase();
-        return (
-      c.name?.toLowerCase().includes(q) ||
-      c.name_fr?.toLowerCase().includes(q) ||
-      c.store_name?.toLowerCase().includes(q) ||
-      (c as any).store_name_fr?.toLowerCase().includes(q) ||
-      c.phone?.includes(q) ||
-      c.wilaya?.toLowerCase().includes(q) ||
-      c.internal_name?.toLowerCase().includes(q) ||
-      c.address?.toLowerCase().includes(q)
-        );
-      });
+    if (!hasSearch) {
+      return normalizedCustomers.map(({ customer }) => customer);
+    }
 
-    const seen = new Set<string>();
-    return source.filter((customer) => {
-      if (seen.has(customer.id)) return false;
-      seen.add(customer.id);
-      return true;
-    });
-  }, [customers, deferredSearch]);
+    const matches: Customer[] = [];
+    for (const item of normalizedCustomers) {
+      if (item.searchText.includes(committedSearch)) {
+        matches.push(item.customer);
+        if (matches.length >= SEARCH_RESULT_LIMIT) break;
+      }
+    }
+    return matches;
+  }, [normalizedCustomers, committedSearch, hasSearch]);
 
   // Build sector map for quick lookup
   const sectorMap = useMemo(() => {
@@ -285,32 +275,8 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     });
   }, [filteredCustomers, sectorMap]);
 
-  // Sector visual styles (icon + color) — deterministic by index
-  const SECTOR_STYLES = useMemo(() => ([
-    { icon: MapPin, bg: 'bg-rose-500/10', text: 'text-rose-600', border: 'border-rose-500/30' },
-    { icon: Store, bg: 'bg-amber-500/10', text: 'text-amber-600', border: 'border-amber-500/30' },
-    { icon: Building2, bg: 'bg-sky-500/10', text: 'text-sky-600', border: 'border-sky-500/30' },
-    { icon: Home, bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500/30' },
-    { icon: MapIcon, bg: 'bg-violet-500/10', text: 'text-violet-600', border: 'border-violet-500/30' },
-    { icon: Navigation, bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-600', border: 'border-fuchsia-500/30' },
-    { icon: Compass, bg: 'bg-cyan-500/10', text: 'text-cyan-600', border: 'border-cyan-500/30' },
-    { icon: Landmark, bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-500/30' },
-    { icon: Tent, bg: 'bg-lime-500/10', text: 'text-lime-600', border: 'border-lime-500/30' },
-    { icon: TreePine, bg: 'bg-green-500/10', text: 'text-green-600', border: 'border-green-500/30' },
-    { icon: Mountain, bg: 'bg-stone-500/10', text: 'text-stone-600', border: 'border-stone-500/30' },
-    { icon: Waves, bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-500/30' },
-    { icon: Sun, bg: 'bg-yellow-500/10', text: 'text-yellow-600', border: 'border-yellow-500/30' },
-    { icon: Star, bg: 'bg-pink-500/10', text: 'text-pink-600', border: 'border-pink-500/30' },
-  ]), []);
-  const sectorStyle = (key: string, index: number) => SECTOR_STYLES[index % SECTOR_STYLES.length];
-
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
-  const visibleCustomers = deferredSearch.trim() ? filteredCustomers : (activeGroup?.customers || []);
-
-  const getSectorName = (sectorId: string | null | undefined) => {
-    if (!sectorId) return '';
-    return sectorMap.get(sectorId) || '';
-  };
+  const visibleCustomers = hasSearch ? filteredCustomers : (activeGroup?.customers || []);
 
   return (
     <>
@@ -331,18 +297,13 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={t('customer_picker.search_placeholder')}
-                className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
-                autoFocus
-              />
-            </div>
+            <CustomerSearchField
+              placeholder={t('customer_picker.search_placeholder')}
+              resetSignal={open}
+              onSearchChange={setSearch}
+            />
           </div>
-          {activeSectorKey && !search.trim() && (
+          {activeSectorKey && !hasSearch && (
             <div className="flex items-center gap-2 text-xs">
               <button
                 onClick={() => { setActiveSectorKey(null); setActiveRegionKey(null); }}
@@ -376,9 +337,9 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             <div className="py-10 text-center">
               <User className="w-10 h-10 mx-auto mb-2 opacity-30" />
               <p className="text-sm text-muted-foreground">
-                {search ? t('customer_picker.no_match') : t('orders.no_customers')}
+                {hasSearch ? t('customer_picker.no_match') : t('orders.no_customers')}
               </p>
-              {search && onAddNew && (
+              {hasSearch && onAddNew && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -390,7 +351,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                 </Button>
               )}
             </div>
-          ) : !activeSectorKey && !search.trim() ? (
+          ) : !activeSectorKey && !hasSearch ? (
             // Sector grid - بدون أيقونات، شارة عدد بالأحمر
             <div className="grid grid-cols-2 gap-2 p-3">
               {groupedCustomers.map((group) => (
@@ -426,7 +387,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                 a[0].localeCompare(b[0], 'ar')
               );
               // إذا لم تُختر منطقة بعد ولم يكن هناك بحث: اعرض شبكة أزرار المناطق
-              if (!activeRegionKey && !search.trim()) {
+              if (!activeRegionKey && !hasSearch) {
                 return (
                   <div className="grid grid-cols-2 gap-2 p-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
                     {regionEntries.map(([region, list], rIdx) => (
@@ -454,13 +415,12 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
               }
 
               // عند البحث: قائمة مسطحة بدون تجميع. بدون بحث: المنطقة المختارة فقط.
-              const visibleRegions = search.trim()
+              const visibleRegions = hasSearch
                 ? [['__search__', visibleCustomers] as [string, Customer[]]]
                 : regionEntries.filter(([r]) => r === activeRegionKey);
               return (
                 <div className="p-3 space-y-5">
-                  {visibleRegions.map(([region, list], rIdx) => {
-                    const rStyle = sectorStyle(region, rIdx);
+                  {visibleRegions.map(([region, list]) => {
                     return (
                       <div key={region}>
                         <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
