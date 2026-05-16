@@ -279,11 +279,29 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
+  // Workers owing money count (for accounting center button badge)
+  const { data: workersOwingCount } = useQuery({
+    queryKey: ['workers-owing-money-nav', activeBranch?.id],
+    queryFn: async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      let q = supabase
+        .from('worker_debts')
+        .select('worker_id')
+        .in('status', ['active', 'partially_paid']);
+      if (activeBranch?.id) q = q.eq('branch_id', activeBranch.id);
+      const { data, error } = await q;
+      if (error) return 0;
+      return new Set((data || []).map((r: any) => r.worker_id)).size;
+    },
+    enabled: !!activeBranch?.id,
+    refetchInterval: 60000,
+  });
+
   let centerAction: CenterAction | null = null;
   if (isWarehouseManager) {
     centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
   } else if (isBranchAdmin) {
-    centerAction = { type: 'navigate', to: '/branch-approvals', icon: ShieldCheck, label: 'الموافقات', badge: branchApprovalsPendingCount || 0 };
+    centerAction = { type: 'navigate', to: '/accounting', icon: Calculator, label: 'المحاسبة', badge: workersOwingCount || 0, color: 'blue' };
   } else if (isAdminAssistant) {
     centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
   } else if (isFieldWorker || isFieldRoleCustom) {
