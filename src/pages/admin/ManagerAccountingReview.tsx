@@ -113,17 +113,29 @@ const ManagerAccountingReview: React.FC = () => {
 
   const pendingTotals = useMemo(() => calcTotals(pendingSessions), [pendingSessions]);
 
-  const handleConfirmReview = () => {
+  // Step 1: user clicks confirm in the first dialog → open unload dialog
+  const handleProceedToUnload = () => {
+    setShowConfirmDialog(false);
+    setShowUnloadDialog(true);
+  };
+
+  // Step 2: user confirms full truck unload → actually save the review
+  const handleConfirmUnloadAndSave = (unloadNotes: string) => {
     const sessionIds = pendingSessions.map((s: any) => s.id);
     confirmMutation.mutate(
-      { notes: reviewNotes || undefined, sessionIds },
+      {
+        notes: reviewNotes || undefined,
+        sessionIds,
+        unloadConfirmed: true,
+        unloadNotes: unloadNotes || undefined,
+      },
       {
         onSuccess: () => {
-          toast.success('تم تأكيد المراجعة وإدراج المبالغ في الخزينة');
-          setShowConfirmDialog(false);
+          toast.success('تم تأكيد التفريغ الكامل وحفظ المراجعة');
+          setShowUnloadDialog(false);
           setReviewNotes('');
         },
-        onError: () => toast.error('حدث خطأ أثناء تأكيد المراجعة'),
+        onError: () => toast.error('حدث خطأ أثناء حفظ المراجعة'),
       }
     );
   };
