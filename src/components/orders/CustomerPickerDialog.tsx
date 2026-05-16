@@ -154,44 +154,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     enabled: open,
   });
 
-  // Fetch active debts for all customers
-  const { data: customerDebtsMap } = useQuery({
-    queryKey: ['customer-debts-summary-all'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('customer_debts')
-        .select('customer_id, remaining_amount, updated_at')
-        .in('status', ['active', 'partially_paid']);
-      const map: Record<string, { total: number; lastDate: string | null }> = {};
-      (data || []).forEach(d => {
-        if (!map[d.customer_id]) map[d.customer_id] = { total: 0, lastDate: null };
-        map[d.customer_id].total += Number(d.remaining_amount || 0);
-        if (d.updated_at && (!map[d.customer_id].lastDate || d.updated_at > map[d.customer_id].lastDate!)) {
-          map[d.customer_id].lastDate = d.updated_at;
-        }
-      });
-      return map;
-    },
-    enabled: open,
-  });
-
-  // العملاء الذين لديهم طلبية لم تُسلَّم ولم ينتهِ أجلها
-  const { data: pendingOrderCustomers } = useQuery({
-    queryKey: ['customers-with-pending-orders'],
-    queryFn: async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
-        .from('orders')
-        .select('customer_id, status, delivery_date')
-        .not('status', 'in', '(delivered,cancelled,returned)')
-        .gte('delivery_date', today);
-      const set = new Set<string>();
-      (data || []).forEach((o: any) => { if (o.customer_id) set.add(o.customer_id); });
-      return set;
-    },
-    enabled: open,
-  });
-
   useEffect(() => {
     if (open) {
       setSearch('');
@@ -280,6 +242,50 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
   const visibleCustomers = hasSearch ? filteredCustomers : (activeGroup?.customers || []);
+  const visibleCustomerIds = useMemo(
+    () => visibleCustomers.map((customer) => customer.id),
+    [visibleCustomers],
+  );
+
+  // Fetch only status markers needed for the currently displayed customers.
+  const { data: customerDebtsMap } = useQuery({
+    queryKey: ['customer-debts-summary-visible', visibleCustomerIds.join(',')],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('customer_debts')
+        .select('customer_id, remaining_amount, updated_at')
+        .in('customer_id', visibleCustomerIds)
+        .in('status', ['active', 'partially_paid']);
+      const map: Record<string, { total: number; lastDate: string | null }> = {};
+      (data || []).forEach(d => {
+        if (!map[d.customer_id]) map[d.customer_id] = { total: 0, lastDate: null };
+        map[d.customer_id].total += Number(d.remaining_amount || 0);
+        if (d.updated_at && (!map[d.customer_id].lastDate || d.updated_at > map[d.customer_id].lastDate!)) {
+          map[d.customer_id].lastDate = d.updated_at;
+        }
+      });
+      return map;
+    },
+    enabled: open && visibleCustomerIds.length > 0,
+  });
+
+  // العملاء المعروضون فقط الذين لديهم طلبية لم تُسلَّم ولم ينتهِ أجلها
+  const { data: pendingOrderCustomers } = useQuery({
+    queryKey: ['customers-with-pending-orders-visible', visibleCustomerIds.join(',')],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('orders')
+        .select('customer_id, status, delivery_date')
+        .in('customer_id', visibleCustomerIds)
+        .not('status', 'in', '(delivered,cancelled,returned)')
+        .gte('delivery_date', today);
+      const set = new Set<string>();
+      (data || []).forEach((o: any) => { if (o.customer_id) set.add(o.customer_id); });
+      return set;
+    },
+    enabled: open && visibleCustomerIds.length > 0,
+  });
 
   return (
     <>
