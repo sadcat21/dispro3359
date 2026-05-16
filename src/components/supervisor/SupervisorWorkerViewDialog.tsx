@@ -6,8 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-import { Button } from '@/components/ui/button';
-import { BarChart3, Package, Truck, Loader2, User, Warehouse, Briefcase } from 'lucide-react';
+import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -104,7 +103,6 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const actions = [
     { label: 'الإنجازات اليومية', icon: BarChart3, path: '/my-achievements', bg: 'from-rose-500 to-rose-700' },
     { label: 'رصيد الشحنة', icon: Package, path: '/my-stock', bg: 'from-amber-500 to-amber-700' },
-    { label: 'ملخص التوصيل', icon: Truck, path: '/my-deliveries', bg: 'from-sky-500 to-sky-700' },
   ];
 
   return (
@@ -160,29 +158,20 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              {actions.map((a) => {
-                const Icon = a.icon;
-                return (
-                  <button
-                    key={a.path}
-                    onClick={() => go(a.path)}
-                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl text-white bg-gradient-to-br ${a.bg} hover:shadow-lg hover:scale-[1.02] transition-all min-h-[100px]`}
-                  >
-                    <Icon className="w-7 h-7" />
-                    <span className="text-xs font-bold text-center leading-tight">{a.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => { setPicked(null); setStep('worker'); }}
-              className="w-full"
-            >
-              رجوع لاختيار عامل آخر
-            </Button>
+          <div className="grid grid-cols-2 gap-2">
+            {actions.map((a) => {
+              const Icon = a.icon;
+              return (
+                <button
+                  key={a.path}
+                  onClick={() => go(a.path)}
+                  className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl text-white bg-gradient-to-br ${a.bg} hover:shadow-lg hover:scale-[1.02] transition-all min-h-[100px]`}
+                >
+                  <Icon className="w-7 h-7" />
+                  <span className="text-xs font-bold text-center leading-tight">{a.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
       </DialogContent>
