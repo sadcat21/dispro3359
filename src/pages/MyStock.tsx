@@ -15,10 +15,9 @@ import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/Recalib
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
-  const { workerId: authWorkerId, role } = useAuth();
+  const { workerId: authWorkerId } = useAuth();
   const { workerId: selectedWorkerId } = useSelectedWorker();
-  const isAdminOrSupervisor = role === 'admin' || role === 'branch_admin' || role === 'supervisor';
-  const workerId = isAdminOrSupervisor && selectedWorkerId ? selectedWorkerId : authWorkerId;
+  const workerId = selectedWorkerId || authWorkerId;
   const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const [recalibrating, setRecalibrating] = useState(false);
