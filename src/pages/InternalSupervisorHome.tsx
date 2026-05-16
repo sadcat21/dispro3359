@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
+import OrderFlowDialog from '@/components/orders/OrderFlowDialog';
 import {
   ShieldCheck, Users, BarChart3, Banknote, MapPin, CalendarDays,
   Activity, UserCheck, ShoppingCart, Radar, FileSpreadsheet, UserCog,
@@ -36,6 +37,7 @@ const InternalSupervisorHome: React.FC = () => {
   const { user, activeBranch } = useAuth();
 
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
 
   const { data: kpis } = useQuery({
     queryKey: ['internal-supervisor-kpis', activeBranch?.id],
@@ -132,6 +134,13 @@ const InternalSupervisorHome: React.FC = () => {
             <ClipboardList className="w-5 h-5" />
             <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
+          <button
+            onClick={() => setShowCreateOrderDialog(true)}
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 px-4 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-base font-bold">إنشاء طلب جديد</span>
+          </button>
         </div>
       </div>
 
@@ -176,6 +185,7 @@ const InternalSupervisorHome: React.FC = () => {
       </div>
 
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+      <OrderFlowDialog open={showCreateOrderDialog} onOpenChange={setShowCreateOrderDialog} mode="create" />
     </div>
   );
 };
