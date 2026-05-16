@@ -23,6 +23,7 @@ const ExternalSupervisorHome: React.FC = () => {
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
+  const [showWorkerViewDialog, setShowWorkerViewDialog] = useState(false);
 
   const { data: allCustomers = [], isLoading: customersLoading } = useQuery({
     queryKey: ['customers-for-order-picker', activeBranch?.id, activeBranch?.wilaya],
