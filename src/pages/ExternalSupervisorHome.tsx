@@ -40,8 +40,6 @@ const ExternalSupervisorHome: React.FC = () => {
   });
 
   const buttons = [
-    { key: 'sales_summary', label: 'تجميع المبيعات', icon: BarChart3, onClick: () => setShowWorkerViewDialog(true), palette: { border: 'border-rose-300', icon: 'text-rose-500' } },
-    { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
     { key: 'debts', label: 'إدارة الديون', icon: Banknote, onClick: () => navigate('/customer-debts'), palette: { border: 'border-red-300', icon: 'text-red-500' } },
   ];
