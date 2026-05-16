@@ -13,7 +13,7 @@ import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import SupervisorWorkerViewDialog from '@/components/supervisor/SupervisorWorkerViewDialog';
 import { Customer } from '@/types/database';
 import {
-  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, Wallet, BarChart3, Banknote,
+  ShieldCheck, UserCheck, ShoppingCart, ClipboardList, BarChart3, Banknote,
 } from 'lucide-react';
 
 const ExternalSupervisorHome: React.FC = () => {
