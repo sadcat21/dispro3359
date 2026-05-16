@@ -128,7 +128,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
           />
         )}
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="flex-row justify-end gap-2 sm:gap-2">
           <AlertDialogCancel disabled={isPending}>إغلاق</AlertDialogCancel>
           {isEmpty ? (
             <AlertDialogAction
