@@ -95,19 +95,19 @@ const AssistantManagerHome: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-2">
-      {/* Offers Showcase — red identity for assistant manager */}
+      {/* Offers Showcase — same blue identity as branch manager */}
       <ProductShowcaseHero
         bgImage={managerHeroBg}
-        overlayClassName="bg-gradient-to-l from-red-900/20 via-white/30 to-white/10"
+        overlayClassName="bg-gradient-to-l from-blue-900/20 via-white/30 to-white/10"
       />
 
       {/* Daily worker tasks button — below hero */}
-      <div className="relative overflow-hidden border-b border-red-200 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-50 via-rose-50/60 to-red-50/40" />
+      <div className="relative overflow-hidden border-b border-blue-200 bg-white">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
         <div className="relative px-3 py-1.5">
           <button
             onClick={() => setDailyTasksOpen(true)}
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 px-4 py-2 text-white shadow-md shadow-red-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
           >
             <ClipboardList className="w-5 h-5" />
             <span className="text-base font-bold">مهام العمال اليومية</span>
