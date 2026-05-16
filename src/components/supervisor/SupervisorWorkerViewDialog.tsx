@@ -123,15 +123,6 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
 
         {step === 'worker' ? (
           <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ابحث عن عامل..."
-                className="pr-9"
-              />
-            </div>
             <div className="max-h-[55vh] overflow-y-auto">
               {isLoading ? (
                 <div className="flex justify-center py-8">
