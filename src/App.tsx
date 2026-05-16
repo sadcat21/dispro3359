@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from "@/lib/utils";
+import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole, isExternalSupervisorRole } from "@/lib/utils";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";
 import { UIThemeProvider } from "@/contexts/UIThemeContext";
@@ -135,6 +135,19 @@ const INTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
   '/guide',
 ]);
 
+// External Supervisor — worker-like permissions but limited surface area (with approval workflow)
+const EXTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
+  '/',
+  '/orders',
+  '/customers',
+  '/customer-debts',
+  '/my-stock',
+  '/my-promos',
+  '/my-deliveries',
+  '/my-order-tracking',
+  '/guide',
+]);
+
 // Protected Route Component
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
@@ -164,6 +177,13 @@ const ProtectedRoute: React.FC<{
     isInternalSupervisorRole(customCode) && INTERNAL_SUPERVISOR_ALLOWED_PATHS.has(location.pathname);
 
   if (isInternalSupervisorAllowed) {
+    return <GpsGuard><MobileLayout>{children}</MobileLayout></GpsGuard>;
+  }
+
+  const isExternalSupervisorAllowed =
+    isExternalSupervisorRole(customCode) && EXTERNAL_SUPERVISOR_ALLOWED_PATHS.has(location.pathname);
+
+  if (isExternalSupervisorAllowed) {
     return <GpsGuard><MobileLayout>{children}</MobileLayout></GpsGuard>;
   }
 
