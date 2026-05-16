@@ -54,6 +54,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { activeBranch } = useAuth();
   const { customerTypes } = useCustomerTypes();
   const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
   const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
