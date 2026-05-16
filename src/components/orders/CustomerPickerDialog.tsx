@@ -78,7 +78,6 @@ const CustomerSearchField = React.memo(({ placeholder, resetSignal, onSearchChan
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
-        autoFocus
       />
     </div>
   );
@@ -97,6 +96,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const { t, dir, language } = useLanguage();
   const { activeBranch } = useAuth();
   const { customerTypes } = useCustomerTypes();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [activeSectorKey, setActiveSectorKey] = useState<string | null>(null);
   const [activeRegionKey, setActiveRegionKey] = useState<string | null>(null);
@@ -218,6 +218,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
 
   const committedSearch = search.trim().toLowerCase();
   const hasSearch = committedSearch.length > 0;
+  const searchResultLimit = isMobile ? SEARCH_RESULT_LIMIT_MOBILE : SEARCH_RESULT_LIMIT_DESKTOP;
 
   const filteredCustomers = useMemo(() => {
     if (!hasSearch) {
@@ -228,11 +229,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
     for (const item of normalizedCustomers) {
       if (item.searchText.includes(committedSearch)) {
         matches.push(item.customer);
-        if (matches.length >= SEARCH_RESULT_LIMIT) break;
+        if (matches.length >= searchResultLimit) break;
       }
     }
     return matches;
-  }, [normalizedCustomers, committedSearch, hasSearch]);
+  }, [normalizedCustomers, committedSearch, hasSearch, searchResultLimit]);
 
   // Build sector map for quick lookup
   const sectorMap = useMemo(() => {
