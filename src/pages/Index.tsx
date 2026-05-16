@@ -7,6 +7,7 @@ const AdminHome = lazy(() => import('./AdminHome'));
 const CompanyManagerHome = lazy(() => import('./CompanyManagerHome'));
 const InternalSupervisorHome = lazy(() => import('./InternalSupervisorHome'));
 const BranchManagerHome = lazy(() => import('./BranchManagerHome'));
+const AssistantManagerHome = lazy(() => import('./AssistantManagerHome'));
 
 const Index: React.FC = () => {
   const { role, activeRole } = useAuth();
@@ -24,6 +25,11 @@ const Index: React.FC = () => {
   // Branch Manager — dedicated streamlined dashboard with only allowed features
   if (role === 'branch_admin') {
     return <Suspense fallback={null}><BranchManagerHome /></Suspense>;
+  }
+
+  // Assistant Manager — same layout as Branch Manager with red identity
+  if (role === 'admin_assistant') {
+    return <Suspense fallback={null}><AssistantManagerHome /></Suspense>;
   }
 
   if (isAdminRole(role)) {
