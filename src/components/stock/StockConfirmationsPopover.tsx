@@ -512,7 +512,7 @@ const OutgoingTab: React.FC<{
       onEditProduct={handleEditProduct}
       onRemoveProduct={handleRemoveProduct}
       onConfirmLoading={handleSaveAmendment}
-      quantityDisplayMode="raw"
+      offersMap={offersMap}
       workerName={editingOriginal?.worker?.full_name || editingOriginal?.manager?.full_name || ''}
       showCloseButton
     />
