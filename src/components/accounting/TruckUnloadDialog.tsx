@@ -24,14 +24,13 @@ interface Props {
   onConfirm: (notes: string) => void;
   isPending?: boolean;
   workerId?: string;
+  workerName?: string;
 }
 
-const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId }) => {
+const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId, workerName }) => {
   const [notes, setNotes] = useState('');
   const [emptyOpen, setEmptyOpen] = useState(false);
 
-  // Live shipment balance for this worker (worker_stock).
-  // The manager can only save the accounting session when this balance is empty.
   const { data, isLoading } = useQuery({
     queryKey: ['worker-shipment-balance', workerId],
     queryFn: async () => {
@@ -52,16 +51,19 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-2xl">
+      <AlertDialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
+          <AlertDialogTitle className="flex items-center gap-2 flex-wrap">
             <Truck className="w-5 h-5 text-orange-600" />
-            رصيد شحنة العامل
+            <span>رصيد شحنة العامل</span>
+            {workerName && (
+              <span className="text-destructive font-bold">— {workerName}</span>
+            )}
           </AlertDialogTitle>
           <AlertDialogDescription className="sr-only">رصيد شحنة العامل</AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="max-h-[50vh] overflow-y-auto border rounded-md p-2 my-2 bg-muted/30">
+        <div className="flex-1 min-h-0 overflow-y-auto border rounded-md p-2 my-2 bg-muted/30">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -126,7 +128,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
           />
         )}
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="flex-row justify-end gap-2 sm:gap-2">
           <AlertDialogCancel disabled={isPending}>إغلاق</AlertDialogCancel>
           {isEmpty ? (
             <AlertDialogAction
