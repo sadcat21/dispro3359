@@ -297,16 +297,11 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={t('customer_picker.search_placeholder')}
-                className="pr-10 h-10 rounded-full border-2 border-primary/30 focus:border-primary text-sm"
-                autoFocus
-              />
-            </div>
+            <CustomerSearchField
+              placeholder={t('customer_picker.search_placeholder')}
+              resetSignal={open}
+              onSearchChange={setSearch}
+            />
           </div>
           {activeSectorKey && !hasSearch && (
             <div className="flex items-center gap-2 text-xs">
