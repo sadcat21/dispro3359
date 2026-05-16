@@ -121,12 +121,36 @@ export const useManagerConfirmations = () => {
     onError: (err: any) => toast.error(err?.message || 'فشل التعديل'),
   });
 
+  const cancelConfirmation = useMutation({
+    mutationFn: async ({ confirmationId, note }: { confirmationId: string; note?: string }) => {
+      if (!currentWorkerId) throw new Error('تعذر تحديد مسؤول المخزن الحالي');
+      const { error } = await supabase
+        .from('stock_confirmations')
+        .update({
+          status: 'cancelled',
+          amendment_note: note || 'تم إلغاء الشحن من قِبل مسؤول المخزن',
+          responded_at: new Date().toISOString(),
+        } as any)
+        .eq('id', confirmationId)
+        .eq('manager_id', currentWorkerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manager-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-confirmations-count'] });
+      toast.success('تم إلغاء الشحن وإبلاغ الطرفين');
+    },
+    onError: (err: any) => toast.error(err?.message || 'فشل إلغاء الشحن'),
+  });
+
   return {
     confirmations: confirmationsQuery.data || [],
     isLoading: isAuthLoading || confirmationsQuery.isLoading,
     needsAttentionCount,
     currentWorkerId,
     amendConfirmation,
+    cancelConfirmation,
     refetch: () => confirmationsQuery.refetch(),
   };
 };
