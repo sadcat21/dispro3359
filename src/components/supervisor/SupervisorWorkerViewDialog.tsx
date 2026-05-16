@@ -27,7 +27,6 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const navigate = useNavigate();
   const { setSelectedWorker } = useSelectedWorker();
   const [step, setStep] = useState<'worker' | 'action'>('worker');
-  const [search, setSearch] = useState('');
   const [picked, setPicked] = useState<{ id: string; name: string } | null>(null);
 
   const { data: workers = [], isLoading } = useQuery({
