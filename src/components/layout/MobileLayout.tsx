@@ -855,13 +855,19 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 ) : (
                   <Link
                     to={centerAction.to}
-                    className="relative flex h-12 w-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105"
+                    className={cn(
+                      'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105',
+                      centerAction.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-sidebar-primary',
+                    )}
                     title={centerAction.label}
                     aria-label={centerAction.label}
                   >
                     <centerAction.icon className="h-[23px] w-[23px]" strokeWidth={2.45} />
                     {(centerAction.badge ?? 0) > 0 && (
-                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar-background bg-background px-1 text-[10px] font-bold text-sidebar-primary">
+                      <span className={cn(
+                        'absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar-background bg-background px-1 text-[10px] font-bold',
+                        centerAction.color === 'blue' ? 'text-blue-700' : 'text-sidebar-primary',
+                      )}>
                         {centerAction.badge! > 99 ? '99+' : centerAction.badge}
                       </span>
                     )}
