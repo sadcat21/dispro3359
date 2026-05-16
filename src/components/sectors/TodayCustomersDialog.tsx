@@ -226,11 +226,13 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
   const [calendarFilter, setCalendarFilter] = useState<'orders' | 'debts' | 'collections' | 'sales'>('orders');
 
   // Fetch workers list for admin picker
+  const supervisorBranchId = activeBranch?.id || activeRole?.branch_id || user?.branch_id || null;
   const { data: workersList = [] } = useQuery({
-    queryKey: ['today-cust-workers-list', activeBranch?.id],
+    queryKey: ['today-cust-workers-list', activeBranch?.id, supervisorBranchId],
     queryFn: async () => {
       let query = supabase.from('workers').select('id, full_name, username, is_active, role, branch_id');
-      if (activeBranch) query = query.eq('branch_id', activeBranch.id);
+      const branchFilter = activeBranch?.id || (isInternalSupervisor || isExternalSupervisor ? supervisorBranchId : null);
+      if (branchFilter) query = query.eq('branch_id', branchFilter);
       const { data } = await query.order('full_name');
       const workers = data || [];
       // Fetch custom roles to identify warehouse_manager
