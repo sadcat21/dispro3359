@@ -69,7 +69,7 @@ const ExternalSupervisorHome: React.FC = () => {
               className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-3 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
             >
               <ClipboardList className="w-5 h-5" />
-              <span className="text-sm font-bold">مهام العمال اليومية</span>
+              <span className="text-sm font-bold">مهام العمال</span>
             </button>
             <button
               onClick={() => { setSelectedCustomerId(undefined); setShowCustomerPicker(true); }}
