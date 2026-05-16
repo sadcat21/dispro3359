@@ -99,12 +99,10 @@ const MyStock: React.FC = () => {
           {t('stock.my_stock')}
         </h2>
         <div className="flex items-center gap-2">
-          {canAdjustBalance && (
-            <Button size="sm" variant="outline" onClick={openPreview} disabled={recalibrating || previewLoading}>
-              {(recalibrating || previewLoading) ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
-              تصحيح الرصيد
-            </Button>
-          )}
+          <Button size="sm" variant="outline" onClick={openPreview} disabled={recalibrating || previewLoading}>
+            {(recalibrating || previewLoading) ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
+            تصحيح الرصيد
+          </Button>
           {hasStock && !isDirectSaleHidden && (
             <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
               <ShoppingBag className="w-4 h-4 ml-1" />
