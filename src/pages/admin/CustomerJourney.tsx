@@ -165,20 +165,43 @@ const CustomerJourney = () => {
 
   const getPaymentTypeLabel = (type: string | null | undefined) => {
     if (!type) return '—';
+    const key = String(type).toLowerCase();
+    if (key === 'with_invoice') return t('orders.with_invoice');
+    if (key === 'without_invoice') return t('orders.without_invoice');
     const map: Record<string, { ar: string; fr: string; en: string }> = {
-      cash: { ar: 'كاش', fr: 'Espèces', en: 'Cash' },
+      cash: { ar: 'كاش', fr: 'ESP', en: 'Cash' },
       credit: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
       debt: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
-      check: { ar: 'شيك', fr: 'Chèque', en: 'Check' },
-      transfer: { ar: 'تحويل', fr: 'Virement', en: 'Transfer' },
-      with_invoice: { ar: 'بفاتورة', fr: 'Avec facture', en: 'With Invoice' },
-      without_invoice: { ar: 'بدون فاتورة', fr: 'Sans facture', en: 'Without Invoice' },
-      invoice: { ar: 'فاتورة', fr: 'Facture', en: 'Invoice' },
+      check: { ar: 'شيك', fr: 'CHQ', en: 'Check' },
+      transfer: { ar: 'تحويل', fr: 'VRMT', en: 'Transfer' },
       receipt: { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
     };
-    const entry = map[String(type).toLowerCase()];
+    const entry = map[key];
     return entry ? entry[language] : type;
   };
+
+  const getPriceSubtypeAbbr = (subtype: string | null | undefined) => {
+    switch (String(subtype || '').toLowerCase()) {
+      case 'retail': return 'D';
+      case 'gros': return 'G';
+      case 'super_gros': return 'SG';
+      case 'invoice': return 'F';
+      default: return null;
+    }
+  };
+
+  const getChannelLabel = (channel: string | null | undefined) => {
+    const map: Record<string, { ar: string; fr: string; en: string }> = {
+      delivery: { ar: 'توصيل', fr: 'Livraison', en: 'Delivery' },
+      cash_van: { ar: 'كاش فان', fr: 'Cash Van', en: 'Cash Van' },
+      direct_sale: { ar: 'كاش فان', fr: 'Cash Van', en: 'Cash Van' },
+      depot: { ar: 'مستودع', fr: 'Dépôt', en: 'Depot' },
+      order: { ar: 'مستودع', fr: 'Dépôt', en: 'Depot' },
+    };
+    const entry = map[String(channel || '').toLowerCase()];
+    return entry ? entry[language] : null;
+  };
+
 
   const getCollectionStatusLabel = (status: string | null | undefined) => {
     if (status === 'pending') return t('customers.journey.status_pending');
@@ -328,6 +351,30 @@ const CustomerJourney = () => {
     enabled: !!selectedCustomerId,
   });
 
+  const orderIdsList = useMemo(() => orders.map((o) => o.id), [orders]);
+
+  const { data: orderItemsSubtypes = {} } = useQuery({
+    queryKey: ['customer-journey-order-subtypes', orderIdsList],
+    queryFn: async () => {
+      if (orderIdsList.length === 0) return {} as Record<string, string[]>;
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('order_id, price_subtype')
+        .in('order_id', orderIdsList);
+      if (error) throw error;
+      const map: Record<string, Set<string>> = {};
+      (data || []).forEach((row: any) => {
+        if (!row.price_subtype) return;
+        if (!map[row.order_id]) map[row.order_id] = new Set();
+        map[row.order_id].add(row.price_subtype);
+      });
+      const result: Record<string, string[]> = {};
+      Object.entries(map).forEach(([k, v]) => { result[k] = Array.from(v); });
+      return result;
+    },
+    enabled: orderIdsList.length > 0,
+  });
+
   const { data: visits = [], isLoading: visitsLoading } = useQuery({
     queryKey: ['customer-journey-visits', selectedCustomerId, role, activeBranch?.id],
     queryFn: async () => {
@@ -409,6 +456,18 @@ const CustomerJourney = () => {
     () => visits.filter((v) => !['direct_sale', 'delivery'].includes(v.operation_type)),
     [visits]
   );
+
+  const channelByOrderId = useMemo(() => {
+    const map: Record<string, string> = {};
+    visits.forEach((v) => {
+      if (v.operation_id) {
+        if (v.operation_type === 'delivery') map[v.operation_id] = 'delivery';
+        else if (v.operation_type === 'direct_sale') map[v.operation_id] = 'cash_van';
+        else if (!map[v.operation_id]) map[v.operation_id] = 'depot';
+      }
+    });
+    return map;
+  }, [visits]);
 
   const visitSummary = useMemo(() => {
     const withOrder = displayVisits.filter((visit) => !!visit.order || visit.operation_type === 'order').length;
@@ -698,20 +757,37 @@ const CustomerJourney = () => {
                             <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
                               {formatAmount(order.total_amount)} {t('common.currency')}
                             </span>
-                            {order.payment_type && (
-                              <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
-                                {getPaymentTypeLabel(order.payment_type)}
-                              </Badge>
-                            )}
+                            <div className="flex flex-wrap items-center gap-1">
+                              {order.payment_type && (
+                                <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                                  {getPaymentTypeLabel(order.payment_type)}
+                                </Badge>
+                              )}
+                              {(orderItemsSubtypes[order.id] || []).map((st) => {
+                                const abbr = getPriceSubtypeAbbr(st);
+                                return abbr ? (
+                                  <Badge key={st} className="rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border-0">
+                                    {abbr}
+                                  </Badge>
+                                ) : null;
+                              })}
+                            </div>
                           </div>
                           <div className="ms-auto flex flex-col items-start gap-1 shrink-0 min-w-[110px]">
                             <span className="text-xs font-semibold tabular-nums whitespace-nowrap text-left" dir="ltr">
                               <span className="text-black">{datePart}</span>
                               {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                             </span>
-                            <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
-                              {workerName}
-                            </Badge>
+                            <div className="flex flex-wrap items-center gap-1">
+                              <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                                {workerName}
+                              </Badge>
+                              {channelByOrderId[order.id] && (
+                                <Badge className="rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border-0">
+                                  {getChannelLabel(channelByOrderId[order.id])}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </button>
                       );
