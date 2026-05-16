@@ -109,9 +109,29 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
                   );
                 })}
               </div>
+              {workerId && (
+                <div className="pt-3 flex justify-center">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setEmptyOpen(true)}
+                  >
+                    <PackageX className="w-4 h-4 ml-2" />
+                    تفريغ الشاحنة الآن (المدير)
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
+
+        {workerId && (
+          <EmptyTruckDialog
+            workerId={workerId}
+            open={emptyOpen}
+            onOpenChange={setEmptyOpen}
+          />
+        )}
 
         <Textarea
           placeholder="ملاحظات حول التفريغ (اختياري)..."
