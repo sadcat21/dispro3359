@@ -165,20 +165,43 @@ const CustomerJourney = () => {
 
   const getPaymentTypeLabel = (type: string | null | undefined) => {
     if (!type) return '—';
+    const key = String(type).toLowerCase();
+    if (key === 'with_invoice') return t('orders.with_invoice');
+    if (key === 'without_invoice') return t('orders.without_invoice');
     const map: Record<string, { ar: string; fr: string; en: string }> = {
-      cash: { ar: 'كاش', fr: 'Espèces', en: 'Cash' },
+      cash: { ar: 'كاش', fr: 'ESP', en: 'Cash' },
       credit: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
       debt: { ar: 'دين', fr: 'Crédit', en: 'Credit' },
-      check: { ar: 'شيك', fr: 'Chèque', en: 'Check' },
-      transfer: { ar: 'تحويل', fr: 'Virement', en: 'Transfer' },
-      with_invoice: { ar: 'بفاتورة', fr: 'Avec facture', en: 'With Invoice' },
-      without_invoice: { ar: 'بدون فاتورة', fr: 'Sans facture', en: 'Without Invoice' },
-      invoice: { ar: 'فاتورة', fr: 'Facture', en: 'Invoice' },
+      check: { ar: 'شيك', fr: 'CHQ', en: 'Check' },
+      transfer: { ar: 'تحويل', fr: 'VRMT', en: 'Transfer' },
       receipt: { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
     };
-    const entry = map[String(type).toLowerCase()];
+    const entry = map[key];
     return entry ? entry[language] : type;
   };
+
+  const getPriceSubtypeAbbr = (subtype: string | null | undefined) => {
+    switch (String(subtype || '').toLowerCase()) {
+      case 'retail': return 'D';
+      case 'gros': return 'G';
+      case 'super_gros': return 'SG';
+      case 'invoice': return 'F';
+      default: return null;
+    }
+  };
+
+  const getChannelLabel = (channel: string | null | undefined) => {
+    const map: Record<string, { ar: string; fr: string; en: string }> = {
+      delivery: { ar: 'توصيل', fr: 'Livraison', en: 'Delivery' },
+      cash_van: { ar: 'كاش فان', fr: 'Cash Van', en: 'Cash Van' },
+      direct_sale: { ar: 'كاش فان', fr: 'Cash Van', en: 'Cash Van' },
+      depot: { ar: 'مستودع', fr: 'Dépôt', en: 'Depot' },
+      order: { ar: 'مستودع', fr: 'Dépôt', en: 'Depot' },
+    };
+    const entry = map[String(channel || '').toLowerCase()];
+    return entry ? entry[language] : null;
+  };
+
 
   const getCollectionStatusLabel = (status: string | null | undefined) => {
     if (status === 'pending') return t('customers.journey.status_pending');
