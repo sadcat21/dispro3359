@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
+import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package, Loader2, ShoppingBag, RefreshCw } from 'lucide-react';
@@ -15,13 +16,18 @@ import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/Recalib
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
-  const { workerId: authWorkerId } = useAuth();
+  const { workerId: authWorkerId, role, activeRole } = useAuth();
   const { workerId: selectedWorkerId } = useSelectedWorker();
   const workerId = selectedWorkerId || authWorkerId;
   const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
+  const canAdjustBalance =
+    isAdminRole(role) ||
+    isCompanyManagerRole(activeRole?.custom_role_code) ||
+    isCompanyManagerRole(role) ||
+    isInternalSupervisorRole(activeRole?.custom_role_code);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -93,10 +99,12 @@ const MyStock: React.FC = () => {
           {t('stock.my_stock')}
         </h2>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={openPreview} disabled={recalibrating || previewLoading}>
-            {(recalibrating || previewLoading) ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
-            تصحيح الرصيد
-          </Button>
+          {canAdjustBalance && (
+            <Button size="sm" variant="outline" onClick={openPreview} disabled={recalibrating || previewLoading}>
+              {(recalibrating || previewLoading) ? <Loader2 className="w-4 h-4 ml-1 animate-spin" /> : <RefreshCw className="w-4 h-4 ml-1" />}
+              تصحيح الرصيد
+            </Button>
+          )}
           {hasStock && !isDirectSaleHidden && (
             <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
               <ShoppingBag className="w-4 h-4 ml-1" />
