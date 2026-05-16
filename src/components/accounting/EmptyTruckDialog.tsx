@@ -24,9 +24,10 @@ interface EmptyTruckDialogProps {
   workerId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  autoFullUnload?: boolean;
 }
 
-const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange }) => {
+const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange, autoFullUnload }) => {
   const { t } = useLanguage();
   const { workerId: currentWorkerId, activeBranch } = useAuth();
   const queryClient = useQueryClient();
@@ -76,6 +77,14 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
       setItems([]);
     }
   }, [open]);
+
+  // Auto full-unload mode: as soon as items are loaded, fire handleConfirm with full quantities
+  React.useEffect(() => {
+    if (open && autoFullUnload && loaded && items.length > 0 && !isEmptying) {
+      handleConfirm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, autoFullUnload, loaded, items.length]);
 
   // تفريغ كلي - إرجاع كل الكميات
   const setFullUnload = () => {
