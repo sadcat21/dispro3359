@@ -90,6 +90,7 @@ const ManagerAccountingReview = lazy(() => import("./pages/admin/ManagerAccounti
 const WorkerRounds = lazy(() => import("./pages/admin/WorkerRounds"));
 const WorkerRolesManagement = lazy(() => import("./pages/admin/WorkerRolesManagement"));
 const AssistantPermissionsControl = lazy(() => import("./pages/admin/AssistantPermissionsControl"));
+const ProductChecklist = lazy(() => import("./pages/ProductChecklist"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -641,6 +642,13 @@ const AppRoutes = () => {
 
       {/* Share Target */}
       <Route path="/share" element={<ShareTarget />} />
+
+      {/* Product checklist (review) */}
+      <Route path="/checklist" element={
+        <ProtectedRoute>
+          <ProductChecklist />
+        </ProtectedRoute>
+      } />
 
       {/* 404 */}
       <Route path="/tracking" element={<Navigate to="/promo-tracking" replace />} />
