@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,35 +21,37 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   onConfirm: (notes: string) => void;
   isPending?: boolean;
+  workerId?: string;
 }
 
-const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending }) => {
-  const { activeBranch } = useAuth();
+const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId }) => {
   const [notes, setNotes] = useState('');
 
-  // Fetch latest completed warehouse review session for this branch + its items
+  // Fetch the worker's latest final review loading session and its items
+  // (quantities confirmed by the warehouse worker for THIS worker's truck).
   const { data, isLoading } = useQuery({
-    queryKey: ['last-warehouse-review-items', activeBranch?.id],
+    queryKey: ['worker-last-review-items', workerId],
     queryFn: async () => {
-      if (!activeBranch?.id) return { session: null, items: [] };
+      if (!workerId) return { session: null, items: [] as any[] };
       const { data: session } = await supabase
-        .from('warehouse_review_sessions')
-        .select('id, completed_at, created_at')
-        .eq('branch_id', activeBranch.id)
-        .eq('status', 'completed')
-        .order('completed_at', { ascending: false, nullsFirst: false })
+        .from('loading_sessions')
+        .select('id, created_at, completed_at')
+        .eq('worker_id', workerId)
+        .eq('status', 'review')
+        .eq('is_final', true)
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (!session) return { session: null, items: [] };
+      if (!session) return { session: null, items: [] as any[] };
       const { data: items } = await supabase
-        .from('warehouse_review_items')
-        .select('id, product_id, actual_quantity, product:products(name, app_name)')
+        .from('loading_session_items')
+        .select('id, product_id, quantity, product:products(name, app_name, image_url)')
         .eq('session_id', session.id)
-        .gt('actual_quantity', 0)
+        .gt('quantity', 0)
         .order('created_at');
       return { session, items: items || [] };
     },
-    enabled: open && !!activeBranch?.id,
+    enabled: open && !!workerId,
   });
 
   return (
@@ -62,8 +63,8 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
             تفريغ كامل لشاحنة العامل
           </AlertDialogTitle>
           <AlertDialogDescription>
-            يجب التحقق من تفريغ كل المنتجات التالية من الشاحنة قبل حفظ المراجعة النهائية.
-            هذه الكميات مأخوذة من آخر مراجعة مخزن مكتملة.
+            يجب التحقق من تفريغ كل المنتجات التالية من شاحنة العامل قبل حفظ المراجعة النهائية.
+            هذه الكميات مأخوذة من آخر مراجعة نهائية لشحنة العامل (مؤكدة من عامل المخزن).
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -74,7 +75,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
             </div>
           ) : !data?.session ? (
             <p className="text-sm text-center py-6 text-muted-foreground">
-              لا توجد مراجعة مخزن مكتملة لهذا الفرع.
+              لا توجد مراجعة نهائية لشحنة هذا العامل.
             </p>
           ) : data.items.length === 0 ? (
             <p className="text-sm text-center py-6 text-muted-foreground">
@@ -82,22 +83,36 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {data.items.map((it: any) => (
-                <div
-                  key={it.id}
-                  className="flex items-center gap-2 p-2 bg-background border rounded-md"
-                >
-                  <Package className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium truncate">
-                      {getProductDisplayName(it.product || {})}
-                    </p>
-                    <Badge variant="secondary" className="text-[10px] mt-0.5">
-                      {Number(it.actual_quantity)}
-                    </Badge>
+              {data.items.map((it: any) => {
+                const img = it.product?.image_url;
+                return (
+                  <div
+                    key={it.id}
+                    className="flex items-center gap-2 p-2 bg-background border rounded-md"
+                  >
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={getProductDisplayName(it.product || {})}
+                        className="w-10 h-10 rounded object-cover shrink-0 border"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center shrink-0 border">
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium truncate">
+                        {getProductDisplayName(it.product || {})}
+                      </p>
+                      <Badge variant="secondary" className="text-[10px] mt-0.5">
+                        {Number(it.quantity)}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
