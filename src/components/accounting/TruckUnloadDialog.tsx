@@ -112,14 +112,6 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
           )}
         </div>
 
-        {workerId && (
-          <EmptyTruckDialog
-            workerId={workerId}
-            open={emptyOpen}
-            onOpenChange={setEmptyOpen}
-          />
-        )}
-
         {isEmpty && (
           <Textarea
             placeholder="ملاحظات حول التفريغ (اختياري)..."
@@ -142,7 +134,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
             workerId && (
               <Button
                 variant="destructive"
-                onClick={() => setEmptyOpen(true)}
+                onClick={(e) => { e.preventDefault(); setEmptyOpen(true); }}
                 disabled={isPending || isLoading}
               >
                 <PackageX className="w-4 h-4 ml-2" />
@@ -153,6 +145,15 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {workerId && (
+      <EmptyTruckDialog
+        workerId={workerId}
+        open={emptyOpen}
+        onOpenChange={setEmptyOpen}
+      />
+    )}
+    </>
   );
 };
 
