@@ -120,67 +120,39 @@ const CompanyManagerHome: React.FC = () => {
         </div>
       </div>
 
-      {/* Sections — same structure as BranchManagerHome */}
-      <div className="px-2 sm:px-3 py-2 space-y-2">
-        {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
-          const SecIcon = section.icon;
-          const sectionPalette = [
-            { wrap: 'bg-amber-50/60 border-amber-200', title: 'text-amber-700' },
-            { wrap: 'bg-emerald-50/60 border-emerald-200', title: 'text-emerald-700' },
-            { wrap: 'bg-sky-50/60 border-sky-200', title: 'text-sky-700' },
-            { wrap: 'bg-rose-50/60 border-rose-200', title: 'text-rose-700' },
-            { wrap: 'bg-violet-50/60 border-violet-200', title: 'text-violet-700' },
-            { wrap: 'bg-orange-50/60 border-orange-200', title: 'text-orange-700' },
-            { wrap: 'bg-teal-50/60 border-teal-200', title: 'text-teal-700' },
-          ][sIdx % 7];
-
-          const cardPalettes = [
-            { border: 'border-rose-300', icon: 'text-rose-500' },
-            { border: 'border-emerald-300', icon: 'text-emerald-500' },
-            { border: 'border-amber-300', icon: 'text-amber-500' },
-            { border: 'border-violet-300', icon: 'text-violet-500' },
-            { border: 'border-sky-300', icon: 'text-sky-500' },
-            { border: 'border-orange-300', icon: 'text-orange-500' },
-            { border: 'border-teal-300', icon: 'text-teal-500' },
-            { border: 'border-pink-300', icon: 'text-pink-500' },
-            { border: 'border-indigo-300', icon: 'text-indigo-500' },
-          ];
-
-          return (
-            <div
-              key={section.titleKey}
-              className={`relative rounded-2xl border ${sectionPalette.wrap} p-2`}
-            >
-              <div className="flex items-center justify-center gap-2 mb-1.5 px-1">
-                <SecIcon className={`w-4 h-4 ${sectionPalette.title}`} />
-                <h2 className={`text-xs sm:text-sm font-bold ${sectionPalette.title}`}>
-                  {t(section.titleKey)}
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-4 gap-1.5">
-                {section.items.map((item, iIdx) => {
-                  const Icon = item.icon;
-                  const cp = cardPalettes[iIdx % cardPalettes.length];
-                  return (
-                    <Card
-                      key={item.key}
-                      onClick={() => handleClick(item)}
-                      className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${cp.border}`}
-                    >
-                      <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
-                        <Icon className={`w-4 h-4 ${cp.icon}`} strokeWidth={2} />
-                        <p className="text-[10px] font-semibold text-slate-700 leading-tight line-clamp-2">
-                          {item.label}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+      {/* Unified interface — all items in one grid, no section separators */}
+      <div className="px-2 sm:px-3 py-2">
+        <div className="grid grid-cols-4 gap-1.5">
+          {sections.flatMap(s => s.items).map((item, iIdx) => {
+            const Icon = item.icon;
+            const cardPalettes = [
+              { border: 'border-rose-300', icon: 'text-rose-500' },
+              { border: 'border-emerald-300', icon: 'text-emerald-500' },
+              { border: 'border-amber-300', icon: 'text-amber-500' },
+              { border: 'border-violet-300', icon: 'text-violet-500' },
+              { border: 'border-sky-300', icon: 'text-sky-500' },
+              { border: 'border-orange-300', icon: 'text-orange-500' },
+              { border: 'border-teal-300', icon: 'text-teal-500' },
+              { border: 'border-pink-300', icon: 'text-pink-500' },
+              { border: 'border-indigo-300', icon: 'text-indigo-500' },
+            ];
+            const cp = cardPalettes[iIdx % cardPalettes.length];
+            return (
+              <Card
+                key={item.key}
+                onClick={() => handleClick(item)}
+                className={`group cursor-pointer bg-white border hover:shadow-sm hover:-translate-y-0.5 transition-all relative rounded-lg ${cp.border}`}
+              >
+                <CardContent className="p-1 flex flex-col items-center justify-center text-center gap-0.5 min-h-[48px]">
+                  <Icon className={`w-4 h-4 ${cp.icon}`} strokeWidth={2} />
+                  <p className="text-[10px] font-semibold text-slate-700 leading-tight line-clamp-2">
+                    {item.label}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Dialogs */}
