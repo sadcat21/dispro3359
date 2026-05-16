@@ -260,7 +260,7 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       return workers.map(w => ({ ...w, _custom_role_codes: workerRoleCodesMap.get(w.id) || new Set<string>() }));
     },
-    enabled: (isAdminRole(role) || role === 'supervisor' || isInternalSupervisor || isExternalSupervisor) && open && !targetWorkerId,
+    enabled: (isAdminRole(role) || role === 'supervisor' || isInternalSupervisor || isExternalSupervisor || isCompanyManager) && open && !targetWorkerId,
   });
 
   const adminExcludedRoles = useMemo(() => new Set(['admin', 'branch_admin', 'project_manager', 'accountant', 'admin_assistant']), []);
