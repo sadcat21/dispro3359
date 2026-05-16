@@ -643,7 +643,7 @@ const StockConfirmationsPopover: React.FC = () => {
     const source = isWarehouseManager ? (managerHook.confirmations || []) : (workerHook.confirmations || []);
 
     return source
-      .filter(c => c.status === 'approved' || c.status === 'disputed' || (!isWarehouseManager && c.status === 'rejected'))
+      .filter(c => c.status === 'approved' || c.status === 'disputed' || c.status === 'cancelled' || (!isWarehouseManager && c.status === 'rejected'))
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
 
