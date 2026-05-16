@@ -14,7 +14,7 @@ const Index: React.FC = () => {
   const { role, activeRole } = useAuth();
 
   // Assistant General Manager has its own executive dashboard with a distinct theme
-  if (isCompanyManagerRole(activeRole?.custom_role_code)) {
+  if (isCompanyManagerRole(activeRole?.custom_role_code) || isCompanyManagerRole(role)) {
     return <Suspense fallback={null}><CompanyManagerHome /></Suspense>;
   }
 

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthState, Worker, AppRole, Branch } from '@/types/database';
-import { isAdminRole } from '@/lib/utils';
+import { isAdminRole, isCompanyManagerRole } from '@/lib/utils';
 import { getDeviceFingerprint, getDeviceInfo } from '@/utils/deviceFingerprint';
 
 export interface WorkerRole {
@@ -256,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Single role - check if admin needs branch selection
     const selectedRole: WorkerRole = roles.length === 1 ? roles[0] : { role: worker.role, branch_id: worker.branch_id, branch_name: null };
     
-    if (isAdminRole(selectedRole.role) || selectedRole.custom_role_code === 'company_manager') {
+    if (isAdminRole(selectedRole.role) || isCompanyManagerRole(selectedRole.custom_role_code) || isCompanyManagerRole(selectedRole.role)) {
       // branch_admin: auto-lock to their branch, skip branch selection
       if (selectedRole.role === 'branch_admin' && worker.branch_id) {
         const { data: branchData } = await supabase
@@ -298,7 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveRole(roleData);
 
     // If admin role selected, show branch selection (except branch_admin auto-locks)
-    if (isAdminRole(roleData.role) || roleData.custom_role_code === 'company_manager') {
+    if (isAdminRole(roleData.role) || isCompanyManagerRole(roleData.custom_role_code) || isCompanyManagerRole(roleData.role)) {
       if (roleData.role === 'branch_admin' && worker.branch_id) {
         // Auto-lock branch_admin to their branch
         supabase.from('branches').select('*').eq('id', worker.branch_id).maybeSingle().then(({ data: branchData }) => {
@@ -387,7 +387,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchBranch = () => {
     // branch_admin is locked to their branch; everyone else with admin/company_manager access can switch
     if (authState.role === 'branch_admin') return;
-    if (isAdminRole(authState.role) || activeRole?.custom_role_code === 'company_manager') {
+    if (isAdminRole(authState.role) || isCompanyManagerRole(activeRole?.custom_role_code) || isCompanyManagerRole(authState.role)) {
       setShowBranchSelection(true);
     }
   };
