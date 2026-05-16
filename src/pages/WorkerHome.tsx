@@ -24,6 +24,8 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import ReplaceDamagedDialog from '@/components/warehouse/ReplaceDamagedDialog';
 import WarehouseActionPickerDialog, { WarehouseAction } from '@/components/warehouse/WarehouseActionPickerDialog';
+import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
+import { Dialog as TBDialog, DialogContent as TBDialogContent, DialogHeader as TBDialogHeader, DialogTitle as TBDialogTitle } from '@/components/ui/dialog';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 
 import { useNavigate, Link, useLocation } from 'react-router-dom';
