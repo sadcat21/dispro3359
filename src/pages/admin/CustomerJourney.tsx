@@ -900,6 +900,7 @@ const CustomerJourney = () => {
           if (!open) setSelectedOrder(null);
         }}
         order={selectedOrder}
+        hideModifyAction
       />
     </div>
   );
