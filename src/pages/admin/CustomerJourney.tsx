@@ -791,12 +791,12 @@ const CustomerJourney = () => {
                                       ? 'bg-sky-100 text-sky-800'
                                       : 'bg-slate-100 text-slate-700';
                               return (
-                                <div className="inline-flex items-stretch rounded-full overflow-hidden border border-slate-200 text-[10px] font-semibold leading-none">
+                                <div className="inline-flex items-stretch rounded-full overflow-hidden border border-red-500 text-[10px] font-semibold leading-none">
                                   <span className="inline-flex items-center bg-white text-red-600 px-2 py-1">
                                     {workerName}
                                   </span>
                                   {ch && (
-                                    <span className={cn('inline-flex items-center px-2 py-1 border-s border-slate-200', chClass)}>
+                                    <span className={cn('inline-flex items-center px-2 py-1 border-s border-red-500', chClass)}>
                                       {getChannelLabel(ch)}
                                     </span>
                                   )}
