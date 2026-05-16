@@ -548,34 +548,9 @@ const CustomerJourney = () => {
 
   return (
     <div className="p-3 pb-24 space-y-3" dir={dir}>
-      <div className="flex items-center justify-between gap-3">
-        <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-4 h-4" />
-          {t('sales.back_to_list')}
-        </Button>
-        <div className="min-w-0 text-end">
-          <h1 className="text-xl font-black truncate">{t('customers.journey.title')}</h1>
-          <p className="text-xs text-muted-foreground truncate">{t('customers.journey.subtitle')}</p>
-        </div>
-      </div>
-
-      <Card className="border-primary/15 shadow-sm">
-        <CardContent className="p-3 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">{t('customers.journey.select_customer')}</p>
-              <p className="font-semibold text-sm">
-                {selectedCustomerSummary
-                  ? (selectedCustomerSummary.store_name || selectedCustomerSummary.name || '—')
-                  : t('customers.journey.empty')}
-              </p>
-            </div>
-            <Button type="button" onClick={() => setCustomerPickerOpen(true)} className="shrink-0">
-              {selectedCustomerSummary ? t('customers.journey.change_customer') : t('customers.journey.select_customer')}
-            </Button>
-          </div>
-
-          {selectedCustomerSummary && (
+      {selectedCustomerSummary && (
+        <Card className="border-primary/15 shadow-sm">
+          <CardContent className="p-3">
             <div className="rounded-2xl border bg-muted/30 p-3">
               <CustomerSummary
                 customer={selectedCustomerSummary}
@@ -588,9 +563,9 @@ const CustomerJourney = () => {
                 ].filter(Boolean).join(' • ')}
               />
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {!selectedCustomerId ? (
         <Card className="border-dashed">
