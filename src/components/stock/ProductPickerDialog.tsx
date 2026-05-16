@@ -533,7 +533,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 }`}
               >
                 <Gift className="w-3.5 h-3.5" />
-                {giftQty > 0 ? fmtBP(giftQty, p.pieces_per_box || 1) : '—'}
+                {giftQty > 0 ? (quantityDisplayMode === 'raw' ? fmtQty(giftQty) : fmtBP(giftQty, p.pieces_per_box || 1)) : '—'}
               </button>
 
               {/* Section 4 — Total shipped */}
