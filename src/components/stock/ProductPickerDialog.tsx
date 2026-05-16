@@ -52,6 +52,8 @@ interface ProductPickerDialogProps {
   loadedQtyMap?: Record<string, number>;
   /** Map of product_id → gift quantity in session */
   giftQtyMap?: Record<string, number>;
+  /** Map of product_id → gift unit in session */
+  giftUnitMap?: Record<string, string>;
   /** Display selected quantities as raw counts instead of box.piece notation */
   quantityDisplayMode?: 'box-piece' | 'raw';
   /** Map of product_id → offer info for gift suggestions */
@@ -94,6 +96,30 @@ const piecesToFields = (totalPieces: number, piecesPerBox: number): QuantityFiel
   };
 };
 
+const bpQuantityToFields = (quantity: number, piecesPerBox: number): QuantityFields => {
+  const parsed = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
+  return {
+    boxes: String(parsed.boxes),
+    pieces: parsed.pieces > 0 ? String(parsed.pieces) : '',
+  };
+};
+
+const bpQuantityDisplay = (quantity: number, piecesPerBox: number): string => {
+  const parsed = parseBP(Number(quantity || 0).toFixed(2), piecesPerBox);
+  return `${parsed.boxes}.${String(parsed.pieces).padStart(2, '0')}`;
+};
+
+const giftQuantityToFields = (giftQty: number, giftUnit: string, piecesPerBox: number): QuantityFields => {
+  if ((giftUnit || 'piece') === 'box') return bpQuantityToFields(giftQty, piecesPerBox);
+  return piecesToFields(giftQty, piecesPerBox);
+};
+
+const giftQuantityDisplay = (giftQty: number, giftUnit: string, piecesPerBox: number): string => {
+  if ((giftUnit || 'piece') === 'box') return bpQuantityDisplay(giftQty, piecesPerBox);
+  const fields = piecesToFields(giftQty, piecesPerBox);
+  return `${fields.boxes}.${String(Number(fields.pieces || 0)).padStart(2, '0')}`;
+};
+
 const giftToPieces = (giftQty: number, giftUnit: string, piecesPerBox: number): number => {
   const ppb = Math.max(1, Math.round(piecesPerBox || 1));
   return giftUnit === 'box' ? Math.round(giftQty * ppb) : Math.round(giftQty || 0);
@@ -120,6 +146,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   needsMap = {},
   loadedQtyMap = {},
   giftQtyMap = {},
+  giftUnitMap = {},
   quantityDisplayMode = 'box-piece',
   offersMap = {},
   hideHeader = false,
