@@ -12,9 +12,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Package, Truck, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Package, Truck, CheckCircle2, AlertTriangle, PackageX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import EmptyTruckDialog from './EmptyTruckDialog';
 
 interface Props {
   open: boolean;
