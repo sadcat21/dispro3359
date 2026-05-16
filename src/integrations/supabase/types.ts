@@ -2876,6 +2876,9 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           status: string
+          unload_confirmed: boolean
+          unload_confirmed_at: string | null
+          unload_notes: string | null
         }
         Insert: {
           branch_id?: string | null
@@ -2887,6 +2890,9 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: string
+          unload_confirmed?: boolean
+          unload_confirmed_at?: string | null
+          unload_notes?: string | null
         }
         Update: {
           branch_id?: string | null
@@ -2898,6 +2904,9 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: string
+          unload_confirmed?: boolean
+          unload_confirmed_at?: string | null
+          unload_notes?: string | null
         }
         Relationships: [
           {
