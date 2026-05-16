@@ -37,6 +37,7 @@ const InternalSupervisorHome: React.FC = () => {
   const { user, activeBranch } = useAuth();
 
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
 
   const { data: kpis } = useQuery({
     queryKey: ['internal-supervisor-kpis', activeBranch?.id],
