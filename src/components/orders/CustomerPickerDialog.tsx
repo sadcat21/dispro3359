@@ -252,11 +252,6 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
   const activeGroup = activeSectorKey ? groupedCustomers.find(g => g.key === activeSectorKey) : null;
   const visibleCustomers = hasSearch ? filteredCustomers : (activeGroup?.customers || []);
 
-  const getSectorName = (sectorId: string | null | undefined) => {
-    if (!sectorId) return '';
-    return sectorMap.get(sectorId) || '';
-  };
-
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -404,7 +399,7 @@ const CustomerPickerDialog: React.FC<CustomerPickerDialogProps> = ({
                 : regionEntries.filter(([r]) => r === activeRegionKey);
               return (
                 <div className="p-3 space-y-5">
-                  {visibleRegions.map(([region, list], rIdx) => {
+                  {visibleRegions.map(([region, list]) => {
                     return (
                       <div key={region}>
                         <div className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
