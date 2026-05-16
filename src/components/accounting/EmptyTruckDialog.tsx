@@ -24,9 +24,10 @@ interface EmptyTruckDialogProps {
   workerId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  autoFullUnload?: boolean;
 }
 
-const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange }) => {
+const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange, autoFullUnload }) => {
   const { t } = useLanguage();
   const { workerId: currentWorkerId, activeBranch } = useAuth();
   const queryClient = useQueryClient();
