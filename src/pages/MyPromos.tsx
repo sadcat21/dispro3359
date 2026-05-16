@@ -82,6 +82,8 @@ const unitLabel = (u: 'box' | 'piece' | string | null | undefined) =>
 const MyPromosContent: React.FC = () => {
   const [deletePromo, setDeletePromo] = useState<PromoWithDetails | null>(null);
   const { workerId, activeBranch } = useAuth();
+  const { data: frozenStatus } = useWorkerFrozenStatus(workerId);
+  const isFrozen = !!frozenStatus?.isFrozen;
   const { t, language } = useLanguage();
   const [promos, setPromos] = useState<PromoWithDetails[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
