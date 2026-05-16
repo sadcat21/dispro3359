@@ -22,7 +22,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import TruckUnloadDialog from '@/components/accounting/TruckUnloadDialog';
 
 const fmt = (n: number) => n.toLocaleString();
 
@@ -31,7 +30,6 @@ const ManagerAccountingReview: React.FC = () => {
   const { workerId: managerId, activeBranch } = useAuth();
   const [activeTab, setActiveTab] = useState('pending');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
 
   // Unreviewed sessions
@@ -113,29 +111,17 @@ const ManagerAccountingReview: React.FC = () => {
 
   const pendingTotals = useMemo(() => calcTotals(pendingSessions), [pendingSessions]);
 
-  // Step 1: user clicks confirm in the first dialog → open unload dialog
-  const handleProceedToUnload = () => {
-    setShowConfirmDialog(false);
-    setShowUnloadDialog(true);
-  };
-
-  // Step 2: user confirms full truck unload → actually save the review
-  const handleConfirmUnloadAndSave = (unloadNotes: string) => {
+  const handleConfirmReview = () => {
     const sessionIds = pendingSessions.map((s: any) => s.id);
     confirmMutation.mutate(
-      {
-        notes: reviewNotes || undefined,
-        sessionIds,
-        unloadConfirmed: true,
-        unloadNotes: unloadNotes || undefined,
-      },
+      { notes: reviewNotes || undefined, sessionIds },
       {
         onSuccess: () => {
-          toast.success('تم تأكيد التفريغ الكامل وحفظ المراجعة');
-          setShowUnloadDialog(false);
+          toast.success('تم تأكيد المراجعة وإدراج المبالغ في الخزينة');
+          setShowConfirmDialog(false);
           setReviewNotes('');
         },
-        onError: () => toast.error('حدث خطأ أثناء حفظ المراجعة'),
+        onError: () => toast.error('حدث خطأ أثناء تأكيد المراجعة'),
       }
     );
   };
@@ -301,20 +287,12 @@ const ManagerAccountingReview: React.FC = () => {
           />
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleProceedToUnload} className="bg-emerald-600 hover:bg-emerald-700">
-              متابعة إلى التفريغ
+            <AlertDialogAction onClick={handleConfirmReview} className="bg-emerald-600 hover:bg-emerald-700">
+              تأكيد المراجعة
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Truck Unload Dialog — gates the save */}
-      <TruckUnloadDialog
-        open={showUnloadDialog}
-        onOpenChange={(v) => { if (!confirmMutation.isPending) setShowUnloadDialog(v); }}
-        onConfirm={handleConfirmUnloadAndSave}
-        isPending={confirmMutation.isPending}
-      />
     </div>
   );
 };

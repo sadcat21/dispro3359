@@ -26,6 +26,7 @@ import ExceptionalActionsSummary from './ExceptionalActionsSummary';
 import WorkerHandoverSummary from './WorkerHandoverSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
 import TruckReviewSection from './TruckReviewSection';
+import TruckUnloadDialog from './TruckUnloadDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { Info } from 'lucide-react';
@@ -188,6 +189,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
 
   const handleShowConfirmation = () => {
@@ -195,7 +197,18 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     setShowConfirmation(true);
   };
 
-  const handleSubmit = async () => {
+  // Branch manager must confirm full truck unload before save (new sessions only)
+  const handleProceedToSave = () => {
+    if (isEditMode) {
+      // Editing existing session: skip unload step
+      handleSubmit();
+      return;
+    }
+    setShowConfirmation(false);
+    setShowUnloadDialog(true);
+  };
+
+  const handleSubmit = async (unloadNotes?: string) => {
     if (!selectedWorkerId || !calc || isSubmitting) { toast.error('اختر العامل'); return; }
 
     setIsSubmitting(true);
@@ -241,6 +254,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           period_end: periodEnd,
           notes: sessionNotes || undefined,
           items,
+          unload_notes: unloadNotes || undefined,
         });
         sessionId = result?.id;
         toast.success(t('accounting.session_created'));
@@ -699,15 +713,26 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             </Button>
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
-              onClick={handleSubmit}
+              onClick={handleProceedToSave}
               disabled={isSubmitting || createSession.isPending || updateSession.isPending}
             >
               {(isSubmitting || createSession.isPending || updateSession.isPending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              تأكيد الحفظ
+              {isEditMode ? 'تأكيد الحفظ' : 'متابعة إلى التفريغ'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mandatory full truck unload — branch manager confirms before save */}
+      <TruckUnloadDialog
+        open={showUnloadDialog}
+        onOpenChange={(v) => { if (!isSubmitting && !createSession.isPending) setShowUnloadDialog(v); }}
+        onConfirm={async (notes) => {
+          await handleSubmit(notes);
+          setShowUnloadDialog(false);
+        }}
+        isPending={isSubmitting || createSession.isPending}
+      />
     </Dialog>
   );
 };

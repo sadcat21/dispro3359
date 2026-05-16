@@ -89,6 +89,7 @@ export const useCreateSession = () => {
       period_end: string;
       notes?: string;
       items: { item_type: string; expected_amount: number; actual_amount: number; notes?: string }[];
+      unload_notes?: string;
     }) => {
       // Create session
       // Convert datetime-local to timestamptz with Algeria timezone (+01:00)
@@ -106,7 +107,10 @@ export const useCreateSession = () => {
           status: 'completed',
           completed_at: new Date().toISOString(),
           is_treasury_posted: false,
-        })
+          unload_confirmed: true,
+          unload_notes: params.unload_notes || null,
+          unload_confirmed_at: new Date().toISOString(),
+        } as any)
         .select()
         .single();
 

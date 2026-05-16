@@ -81,6 +81,9 @@ export type Database = {
           review_session_id: string | null
           session_date: string
           status: string
+          unload_confirmed: boolean
+          unload_confirmed_at: string | null
+          unload_notes: string | null
           worker_id: string
         }
         Insert: {
@@ -96,6 +99,9 @@ export type Database = {
           review_session_id?: string | null
           session_date?: string
           status?: string
+          unload_confirmed?: boolean
+          unload_confirmed_at?: string | null
+          unload_notes?: string | null
           worker_id: string
         }
         Update: {
@@ -111,6 +117,9 @@ export type Database = {
           review_session_id?: string | null
           session_date?: string
           status?: string
+          unload_confirmed?: boolean
+          unload_confirmed_at?: string | null
+          unload_notes?: string | null
           worker_id?: string
         }
         Relationships: [
@@ -2876,9 +2885,6 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           status: string
-          unload_confirmed: boolean
-          unload_confirmed_at: string | null
-          unload_notes: string | null
         }
         Insert: {
           branch_id?: string | null
@@ -2890,9 +2896,6 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: string
-          unload_confirmed?: boolean
-          unload_confirmed_at?: string | null
-          unload_notes?: string | null
         }
         Update: {
           branch_id?: string | null
@@ -2904,9 +2907,6 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: string
-          unload_confirmed?: boolean
-          unload_confirmed_at?: string | null
-          unload_notes?: string | null
         }
         Relationships: [
           {
