@@ -184,7 +184,11 @@ const CustomerApprovalTab: React.FC = () => {
                 requester_name: r.workers?.full_name
             }));
             const remaining = await autoApproveInsertRequests(allRequests);
-            setRequests(remaining);
+            // المشرف الداخلي: يرى ويوافق فقط على طلبات التعديل (لا حذف)
+            const filtered = role === 'internal_supervisor'
+                ? remaining.filter((r: any) => r.operation_type === 'update')
+                : remaining;
+            setRequests(filtered);
             if (remaining.length < allRequests.length) {
                 queryClient.invalidateQueries({ queryKey: ['customers'] });
                 queryClient.invalidateQueries({ queryKey: ['worker-request-summaries'] });
