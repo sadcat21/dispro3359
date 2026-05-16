@@ -8,7 +8,7 @@ import { isAdminRole } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 
-import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck, TrendingUp } from 'lucide-react';
+import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck, TrendingUp, MapPin } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -104,6 +104,8 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     handleOpenChange(false);
     if (path === '/my-achievements') {
       navigate(`/my-achievements?worker=${picked.id}&name=${encodeURIComponent(picked.name)}`);
+    } else if (path === '/worker-tracking') {
+      navigate(`/worker-tracking?worker=${picked.id}`);
     } else {
       navigate(path);
     }
@@ -112,6 +114,7 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const actions = [
     { label: 'الإنجازات اليومية', icon: BarChart3, path: '/my-achievements', bg: 'from-rose-500 to-rose-700' },
     { label: 'رصيد الشحنة', icon: Package, path: '/my-stock', bg: 'from-amber-500 to-amber-700' },
+    { label: 'تتبع العامل', icon: MapPin, path: '/worker-tracking', bg: 'from-sky-500 to-sky-700' },
   ];
 
   return (
