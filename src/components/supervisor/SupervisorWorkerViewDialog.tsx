@@ -104,7 +104,6 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const actions = [
     { label: 'الإنجازات اليومية', icon: BarChart3, path: '/my-achievements', bg: 'from-rose-500 to-rose-700' },
     { label: 'رصيد الشحنة', icon: Package, path: '/my-stock', bg: 'from-amber-500 to-amber-700' },
-    { label: 'ملخص التوصيل', icon: Truck, path: '/my-deliveries', bg: 'from-sky-500 to-sky-700' },
   ];
 
   return (
