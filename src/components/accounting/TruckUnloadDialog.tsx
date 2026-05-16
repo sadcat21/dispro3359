@@ -12,9 +12,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Package, Truck, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Package, Truck, CheckCircle2, AlertTriangle, PackageX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import EmptyTruckDialog from './EmptyTruckDialog';
 
 interface Props {
   open: boolean;
@@ -26,6 +28,7 @@ interface Props {
 
 const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId }) => {
   const [notes, setNotes] = useState('');
+  const [emptyOpen, setEmptyOpen] = useState(false);
 
   // Live shipment balance for this worker (worker_stock).
   // The manager can only save the accounting session when this balance is empty.
@@ -106,9 +109,29 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
                   );
                 })}
               </div>
+              {workerId && (
+                <div className="pt-3 flex justify-center">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setEmptyOpen(true)}
+                  >
+                    <PackageX className="w-4 h-4 ml-2" />
+                    تفريغ الشاحنة الآن (المدير)
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
+
+        {workerId && (
+          <EmptyTruckDialog
+            workerId={workerId}
+            open={emptyOpen}
+            onOpenChange={setEmptyOpen}
+          />
+        )}
 
         <Textarea
           placeholder="ملاحظات حول التفريغ (اختياري)..."
