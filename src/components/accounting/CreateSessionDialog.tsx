@@ -713,15 +713,26 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             </Button>
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
-              onClick={handleSubmit}
+              onClick={handleProceedToSave}
               disabled={isSubmitting || createSession.isPending || updateSession.isPending}
             >
               {(isSubmitting || createSession.isPending || updateSession.isPending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              تأكيد الحفظ
+              {isEditMode ? 'تأكيد الحفظ' : 'متابعة إلى التفريغ'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mandatory full truck unload — branch manager confirms before save */}
+      <TruckUnloadDialog
+        open={showUnloadDialog}
+        onOpenChange={(v) => { if (!isSubmitting && !createSession.isPending) setShowUnloadDialog(v); }}
+        onConfirm={async (notes) => {
+          await handleSubmit(notes);
+          setShowUnloadDialog(false);
+        }}
+        isPending={isSubmitting || createSession.isPending}
+      />
     </Dialog>
   );
 };
