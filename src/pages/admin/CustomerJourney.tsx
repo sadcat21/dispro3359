@@ -757,35 +757,37 @@ const CustomerJourney = () => {
                             <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
                               {formatAmount(order.total_amount)} {t('common.currency')}
                             </span>
-                            <div className="flex flex-wrap items-center gap-1">
-                              {order.payment_type && (
-                                <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
-                                  {getPaymentTypeLabel(order.payment_type)}
-                                </Badge>
-                              )}
-                              {(orderItemsSubtypes[order.id] || []).map((st) => {
-                                const abbr = getPriceSubtypeAbbr(st);
-                                return abbr ? (
-                                  <Badge key={st} className="rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border-0">
-                                    {abbr}
-                                  </Badge>
-                                ) : null;
-                              })}
-                            </div>
+                            {(order.payment_type || (orderItemsSubtypes[order.id] || []).length > 0) && (
+                              <div className="inline-flex items-stretch rounded-full overflow-hidden border border-slate-200 text-[10px] font-semibold leading-none">
+                                {order.payment_type && (
+                                  <span className="inline-flex items-center bg-slate-900 text-white px-2 py-1">
+                                    {getPaymentTypeLabel(order.payment_type)}
+                                  </span>
+                                )}
+                                {(orderItemsSubtypes[order.id] || []).map((st) => {
+                                  const abbr = getPriceSubtypeAbbr(st);
+                                  return abbr ? (
+                                    <span key={st} className="inline-flex items-center bg-indigo-100 text-indigo-700 px-2 py-1 font-bold border-s border-white/40">
+                                      {abbr}
+                                    </span>
+                                  ) : null;
+                                })}
+                              </div>
+                            )}
                           </div>
                           <div className="ms-auto flex flex-col items-start gap-1 shrink-0 min-w-[110px]">
                             <span className="text-xs font-semibold tabular-nums whitespace-nowrap text-left" dir="ltr">
                               <span className="text-black">{datePart}</span>
                               {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                             </span>
-                            <div className="flex flex-wrap items-center gap-1">
-                              <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                            <div className="inline-flex items-stretch rounded-full overflow-hidden border border-slate-200 text-[10px] font-semibold leading-none">
+                              <span className="inline-flex items-center bg-white text-slate-700 px-2 py-1">
                                 {workerName}
-                              </Badge>
+                              </span>
                               {channelByOrderId[order.id] && (
-                                <Badge className="rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border-0">
+                                <span className="inline-flex items-center bg-amber-100 text-amber-800 px-2 py-1 border-s border-slate-200">
                                   {getChannelLabel(channelByOrderId[order.id])}
-                                </Badge>
+                                </span>
                               )}
                             </div>
                           </div>
