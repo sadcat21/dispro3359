@@ -145,6 +145,7 @@ const EXTERNAL_SUPERVISOR_ALLOWED_PATHS = new Set([
   '/my-promos',
   '/my-deliveries',
   '/my-order-tracking',
+  '/manager-sales-summary',
   '/guide',
 ]);
 
