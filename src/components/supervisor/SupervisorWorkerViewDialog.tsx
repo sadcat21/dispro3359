@@ -132,9 +132,12 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
                         setPicked({ id: w.id, name: w.full_name });
                         setStep('action');
                       }}
-                      className="flex flex-col items-center justify-center gap-1 p-3 rounded-xl border border-slate-200 bg-white hover:border-primary hover:shadow-md transition-all min-h-[90px]"
+                      className="group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/60 active:scale-[0.98] transition-all duration-200 min-h-[110px] overflow-hidden"
                     >
-                      <User className="w-6 h-6 text-slate-500" />
+                      <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/0 via-primary/60 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 ring-1 ring-primary/10 group-hover:from-primary/20 group-hover:to-primary/10 transition-colors">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
                       <span className="text-xs font-semibold text-slate-800 text-center line-clamp-2 leading-tight">
                         {w.full_name}
                       </span>
@@ -144,8 +147,8 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
                           if (!m) return null;
                           const Icon = m.icon;
                           return (
-                            <span key={c} className="inline-flex items-center gap-0.5 text-[9px] text-slate-600">
-                              <Icon className={`w-3 h-3 ${m.color}`} />
+                            <span key={c} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-slate-100 text-[9px] font-medium text-slate-700">
+                              <Icon className={`w-2.5 h-2.5 ${m.color}`} />
                               {m.label}
                             </span>
                           );
