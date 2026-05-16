@@ -17,22 +17,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import BranchSelectionDialog from '@/components/auth/BranchSelectionDialog';
-import RoleSelectionDialog from '@/components/auth/RoleSelectionDialog';
 import OffersNotification from '@/components/offers/OffersNotification';
 import StockConfirmationsPopover from '@/components/stock/StockConfirmationsPopover';
 
 // ManagerConfirmationsPanel merged into StockConfirmationsPopover
-import StockAlertsNotification from '@/components/stock/StockAlertsNotification';
 import TasksPopover from '@/components/tasks/TasksPopover';
-import WorkerRequestsPopover from '@/components/tasks/WorkerRequestsPopover';
 // DebtCollectionsPopover moved into SectorCustomersPopover
-import SectorCustomersPopover from '@/components/sectors/SectorCustomersPopover';
-import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 
 
-import ReceiptModificationsNotification from '@/components/printing/ReceiptModificationsNotification';
-import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
 import { useChat } from '@/hooks/useChat';
 import { ALGERIAN_WILAYAS } from '@/data/algerianWilayas';
 import { useNavigation } from '@/hooks/useNavigation';
@@ -44,6 +36,11 @@ import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { useInvoiceFilter } from '@/contexts/InvoiceFilterContext';
 import RefreshButton from '@/components/layout/RefreshButton';
 import BranchWilayaBadges from '@/components/company-manager/BranchWilayaBadges';
+
+const BranchSelectionDialog = React.lazy(() => import('@/components/auth/BranchSelectionDialog'));
+const RoleSelectionDialog = React.lazy(() => import('@/components/auth/RoleSelectionDialog'));
+const InvoiceRequestDialog = React.lazy(() => import('@/components/treasury/InvoiceRequestDialog'));
+const TodayCustomersDialog = React.lazy(() => import('@/components/sectors/TodayCustomersDialog'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
