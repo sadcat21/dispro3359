@@ -80,8 +80,17 @@ function useViewportMaxHeight() {
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, style, onFocus, ...props }, ref) => {
+>(({ className, children, style, onFocus, onOpenAutoFocus, ...props }, ref) => {
   const maxHeight = useViewportMaxHeight();
+
+  const handleOpenAutoFocus = (e: Event) => {
+    if (onOpenAutoFocus) {
+      onOpenAutoFocus(e);
+      return;
+    }
+    // Prevent Radix from auto-focusing the first focusable element (e.g. search inputs)
+    e.preventDefault();
+  };
 
   const handleFocus = (e: React.FocusEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
