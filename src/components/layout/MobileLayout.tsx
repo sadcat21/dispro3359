@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator } from 'lucide-react';
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -239,7 +239,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
-  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number };
+  type CenterAction = { type: 'today' } | { type: 'navigate'; to: string; icon: any; label: string; badge?: number; color?: 'red' | 'blue' };
 
   // Fetch pending invoice orders count for badge
   const { data: pendingInvoiceCount } = useQuery({
@@ -279,11 +279,29 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
+  // Workers owing money count (for accounting center button badge)
+  const { data: workersOwingCount } = useQuery({
+    queryKey: ['workers-owing-money-nav', activeBranch?.id],
+    queryFn: async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      let q = supabase
+        .from('worker_debts')
+        .select('worker_id')
+        .in('status', ['active', 'partially_paid']);
+      if (activeBranch?.id) q = q.eq('branch_id', activeBranch.id);
+      const { data, error } = await q;
+      if (error) return 0;
+      return new Set((data || []).map((r: any) => r.worker_id)).size;
+    },
+    enabled: !!activeBranch?.id,
+    refetchInterval: 60000,
+  });
+
   let centerAction: CenterAction | null = null;
   if (isWarehouseManager) {
     centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
   } else if (isBranchAdmin) {
-    centerAction = { type: 'navigate', to: '/branch-approvals', icon: ShieldCheck, label: 'الموافقات', badge: branchApprovalsPendingCount || 0 };
+    centerAction = { type: 'navigate', to: '/accounting', icon: Calculator, label: 'المحاسبة', badge: workersOwingCount || 0, color: 'blue' };
   } else if (isAdminAssistant) {
     centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
   } else if (isFieldWorker || isFieldRoleCustom) {
@@ -837,13 +855,19 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 ) : (
                   <Link
                     to={centerAction.to}
-                    className="relative flex h-12 w-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105"
+                    className={cn(
+                      'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105',
+                      centerAction.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-sidebar-primary',
+                    )}
                     title={centerAction.label}
                     aria-label={centerAction.label}
                   >
                     <centerAction.icon className="h-[23px] w-[23px]" strokeWidth={2.45} />
                     {(centerAction.badge ?? 0) > 0 && (
-                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar-background bg-background px-1 text-[10px] font-bold text-sidebar-primary">
+                      <span className={cn(
+                        'absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar-background bg-background px-1 text-[10px] font-bold',
+                        centerAction.color === 'blue' ? 'text-blue-700' : 'text-sidebar-primary',
+                      )}>
                         {centerAction.badge! > 99 ? '99+' : centerAction.badge}
                       </span>
                     )}
