@@ -732,6 +732,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           setShowUnloadDialog(false);
         }}
         isPending={isSubmitting || createSession.isPending}
+        workerId={selectedWorkerId}
       />
     </Dialog>
   );
