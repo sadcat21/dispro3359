@@ -1984,6 +1984,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
         <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 sm:px-4 overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-3">
+            {isWorkerFrozen && (
+              <FrozenWorkerBadge workerId={order.assigned_worker_id} />
+            )}
 
             {/* Assign delivery worker */}
             {canChangeWorker && (
