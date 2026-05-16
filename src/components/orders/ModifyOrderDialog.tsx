@@ -2333,7 +2333,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               className="h-10 w-full"
               variant={isOrderCancelled ? 'default' : 'destructive'}
               onClick={handleCancelOrResume}
-              disabled={isCancellingOrder || isSubmitting}
+              disabled={isCancellingOrder || isSubmitting || isWorkerFrozen}
             >
               {isCancellingOrder ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
