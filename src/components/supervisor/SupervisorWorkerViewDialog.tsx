@@ -4,9 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
+import { isAdminRole } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 
-import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck } from 'lucide-react';
+import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck, TrendingUp } from 'lucide-react';
 
 interface Props {
   open: boolean;
