@@ -289,20 +289,12 @@ const ManagerAccountingReview: React.FC = () => {
           />
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleProceedToUnload} className="bg-emerald-600 hover:bg-emerald-700">
-              متابعة إلى التفريغ
+            <AlertDialogAction onClick={handleConfirmReview} className="bg-emerald-600 hover:bg-emerald-700">
+              تأكيد المراجعة
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Truck Unload Dialog — gates the save */}
-      <TruckUnloadDialog
-        open={showUnloadDialog}
-        onOpenChange={(v) => { if (!confirmMutation.isPending) setShowUnloadDialog(v); }}
-        onConfirm={handleConfirmUnloadAndSave}
-        isPending={confirmMutation.isPending}
-      />
     </div>
   );
 };
