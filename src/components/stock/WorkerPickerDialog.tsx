@@ -1,8 +1,10 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { User, AlertTriangle, CheckCircle, Snowflake } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WorkerOption {
   id: string;
@@ -50,9 +52,26 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
   selectedWorkerId,
   onSelect,
   stockAlerts = [],
-  frozenWorkerIds = [],
+  frozenWorkerIds,
 }) => {
   const { t } = useLanguage();
+
+  const workerIdsKey = workers.map(w => w.id).sort().join(',');
+  const { data: autoFrozenIds = [] } = useQuery({
+    queryKey: ['frozen-workers-picker', workerIdsKey],
+    enabled: open && frozenWorkerIds === undefined && workers.length > 0,
+    queryFn: async () => {
+      const frozen: string[] = [];
+      await Promise.all(
+        workers.map(async (w) => {
+          const { data, error } = await supabase.rpc('is_worker_frozen', { _worker_id: w.id });
+          if (!error && data === true) frozen.push(w.id);
+        })
+      );
+      return frozen;
+    },
+  });
+  const effectiveFrozen = frozenWorkerIds ?? autoFrozenIds;
 
   const getWorkerDeficit = (workerId: string) => {
     return stockAlerts
@@ -75,7 +94,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
             {workers.map(w => {
               const deficit = getWorkerDeficit(w.id);
               const isSelected = w.id === selectedWorkerId;
-              const isFrozen = frozenWorkerIds.includes(w.id);
+              const isFrozen = effectiveFrozen.includes(w.id);
               const colorClass = AVATAR_COLORS[getColorIndex(w.id)];
               return (
                 <button
