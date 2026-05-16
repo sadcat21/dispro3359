@@ -73,7 +73,7 @@ export const useConfirmManagerReview = () => {
   const { workerId, activeBranch } = useAuth();
 
   return useMutation({
-    mutationFn: async (params: { notes?: string; sessionIds: string[] }) => {
+    mutationFn: async (params: { notes?: string; sessionIds: string[]; unloadConfirmed?: boolean; unloadNotes?: string }) => {
       if (!workerId) throw new Error('No worker');
 
       // 1. Create the review session
@@ -85,7 +85,10 @@ export const useConfirmManagerReview = () => {
           status: 'completed',
           notes: params.notes || null,
           completed_at: new Date().toISOString(),
-        })
+          unload_confirmed: params.unloadConfirmed ?? false,
+          unload_notes: params.unloadNotes || null,
+          unload_confirmed_at: params.unloadConfirmed ? new Date().toISOString() : null,
+        } as any)
         .select()
         .single();
 
