@@ -279,6 +279,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     refetchInterval: 30000,
   });
 
+  let centerAction: CenterAction | null = null;
+  if (isWarehouseManager) {
+    centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
+  } else if (isBranchAdmin) {
+    centerAction = { type: 'navigate', to: '/branch-approvals', icon: ShieldCheck, label: 'الموافقات', badge: branchApprovalsPendingCount || 0 };
+  } else if (isAdminAssistant) {
+    centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
+  } else if (isFieldWorker || isFieldRoleCustom) {
+    centerAction = { type: 'today' };
+  }
+
   const LANGUAGES: { code: Language; label: string; flag: string }[] = [
     { code: 'ar', label: 'العربية', flag: '🇩🇿' },
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
