@@ -8,7 +8,7 @@ import { isAdminRole } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
 
-import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck, TrendingUp, MapPin } from 'lucide-react';
+import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck, TrendingUp, MapPin, CalendarCheck } from 'lucide-react';
 
 interface Props {
   open: boolean;
