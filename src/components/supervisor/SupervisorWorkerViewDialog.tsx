@@ -24,8 +24,8 @@ const roleMeta: Record<string, { label: string; icon: React.ComponentType<{ clas
 };
 
 const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => {
-  const { activeBranch, user, role } = useAuth();
-  const isAdmin = isAdminRole(role);
+  const { activeBranch, user, role, activeRole } = useAuth();
+  const isAdmin = isAdminRole(role) || isAdminRole(activeRole?.role);
   const branchId = activeBranch?.id || user?.branch_id || null;
   const navigate = useNavigate();
   const { setSelectedWorker } = useSelectedWorker();
