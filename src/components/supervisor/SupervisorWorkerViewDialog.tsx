@@ -7,7 +7,7 @@ import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Package, Truck, Loader2, Search, User, Warehouse, Briefcase } from 'lucide-react';
+import { BarChart3, Package, Truck, Loader2, User, Warehouse, Briefcase } from 'lucide-react';
 
 interface Props {
   open: boolean;
