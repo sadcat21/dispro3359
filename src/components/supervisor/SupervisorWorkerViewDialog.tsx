@@ -6,8 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-import { Button } from '@/components/ui/button';
-import { BarChart3, Package, Truck, Loader2, User, Warehouse, Briefcase } from 'lucide-react';
+import { BarChart3, Package, Loader2, User, Warehouse, Briefcase, Truck } from 'lucide-react';
 
 interface Props {
   open: boolean;
