@@ -56,7 +56,17 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
   const { t, dir } = useLanguage();
   const ChevronIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
-  const getRoleStyle = (role: AppRole, isCompanyManager: boolean, isInternalSupervisor: boolean): RoleStyle => {
+  const getRoleStyle = (role: AppRole, isCompanyManager: boolean, isInternalSupervisor: boolean, isExternalSupervisor: boolean): RoleStyle => {
+    if (isExternalSupervisor) {
+      return {
+        icon: <Shield className="w-6 h-6" />,
+        gradient: 'from-teal-50 via-emerald-50 to-teal-50 dark:from-teal-950/40 dark:via-emerald-950/30 dark:to-teal-950/40',
+        iconBg: 'bg-gradient-to-br from-teal-500 to-emerald-600',
+        iconColor: 'text-white',
+        ring: 'ring-teal-300/50 hover:ring-teal-500/60',
+        accent: 'text-teal-700 dark:text-teal-300',
+      };
+    }
     if (isInternalSupervisor) {
       return {
         icon: <Shield className="w-6 h-6" />,
@@ -166,7 +176,8 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
     }
   };
 
-  const getRoleDescription = (role: AppRole, isCompanyManager: boolean, isInternalSupervisor: boolean) => {
+  const getRoleDescription = (role: AppRole, isCompanyManager: boolean, isInternalSupervisor: boolean, isExternalSupervisor: boolean) => {
+    if (isExternalSupervisor) return t('role_selection.external_supervisor_desc');
     if (isInternalSupervisor) return t('role_selection.internal_supervisor_desc');
     if (isCompanyManager) return t('role_selection.company_manager_desc');
     switch (role) {
@@ -205,10 +216,11 @@ const RoleSelectionDialog: React.FC<RoleSelectionDialogProps> = ({
           {sortedRoles.map((roleData, index) => {
             const isCompanyManager = roleData.custom_role_code === 'company_manager';
             const isInternalSupervisor = roleData.custom_role_code === 'internal_supervisor';
+            const isExternalSupervisor = roleData.custom_role_code === 'external_supervisor';
             const isPrimary = index === effectivePrimaryIndex;
-            const style = getRoleStyle(roleData.role, isCompanyManager, isInternalSupervisor);
+            const style = getRoleStyle(roleData.role, isCompanyManager, isInternalSupervisor, isExternalSupervisor);
             const label = roleData.custom_role_name || getRoleLabel(roleData.role);
-            const description = getRoleDescription(roleData.role, isCompanyManager, isInternalSupervisor);
+            const description = getRoleDescription(roleData.role, isCompanyManager, isInternalSupervisor, isExternalSupervisor);
 
             return (
               <button
