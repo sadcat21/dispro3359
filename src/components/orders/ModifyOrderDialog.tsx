@@ -199,6 +199,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [adjustRemainingAmount, setAdjustRemainingAmount] = useState<number>(Math.max(0, Number(order.total_amount || 0) - initPaid));
 
   const isSold = ['delivered', 'sold', 'completed', 'approved', 'cancelled'].includes(order.status || '') || !!(order as any)?._isDirectSale || !!(order as any)?._forceSold;
+  const { data: frozenStatus } = useWorkerFrozenStatus(order.assigned_worker_id || null);
+  const isWorkerFrozen = !!frozenStatus?.isFrozen && (order.status === 'delivered' || isSold);
   const canChangeWorker = isAdminRole(role) || order.created_by === workerId;
   const dialogText = useMemo(() => ({
     removeDate: language === 'ar' ? 'إزالة التاريخ' : language === 'fr' ? 'Retirer la date' : 'Remove date',
