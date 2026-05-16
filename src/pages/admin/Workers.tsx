@@ -144,14 +144,19 @@ const Workers: React.FC = () => {
   // Filter workers by activeBranch
   const filteredWorkers = useMemo(() => {
     let result = workers.filter(w => !(w as any).is_test);
-    if (isAdminRole(role) && activeBranch) {
-      result = result.filter(w => 
-        w.branch_id === activeBranch.id || 
+    const shouldFilterByBranch =
+      isAdminRole(role) ||
+      isCompanyManagerRole(activeRole?.custom_role_code) ||
+      isCompanyManagerRole(role) ||
+      isInternalSupervisorRole(activeRole?.custom_role_code);
+    if (shouldFilterByBranch && activeBranch) {
+      result = result.filter(w =>
+        w.branch_id === activeBranch.id ||
         w.worker_roles.some(wr => wr.branch_id === activeBranch.id)
       );
     }
     return result;
-  }, [workers, activeBranch, role]);
+  }, [workers, activeBranch, role, activeRole]);
 
   const getBranchName = (branchId: string | null) => {
     if (!branchId) return null;
