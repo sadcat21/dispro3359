@@ -757,20 +757,37 @@ const CustomerJourney = () => {
                             <span className={cn('font-black tabular-nums whitespace-nowrap text-[clamp(0.7rem,2.6vw,0.95rem)]', tone.text)} dir="ltr">
                               {formatAmount(order.total_amount)} {t('common.currency')}
                             </span>
-                            {order.payment_type && (
-                              <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
-                                {getPaymentTypeLabel(order.payment_type)}
-                              </Badge>
-                            )}
+                            <div className="flex flex-wrap items-center gap-1">
+                              {order.payment_type && (
+                                <Badge variant="secondary" className="rounded-full text-[10px] font-semibold">
+                                  {getPaymentTypeLabel(order.payment_type)}
+                                </Badge>
+                              )}
+                              {(orderItemsSubtypes[order.id] || []).map((st) => {
+                                const abbr = getPriceSubtypeAbbr(st);
+                                return abbr ? (
+                                  <Badge key={st} className="rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border-0">
+                                    {abbr}
+                                  </Badge>
+                                ) : null;
+                              })}
+                            </div>
                           </div>
                           <div className="ms-auto flex flex-col items-start gap-1 shrink-0 min-w-[110px]">
                             <span className="text-xs font-semibold tabular-nums whitespace-nowrap text-left" dir="ltr">
                               <span className="text-black">{datePart}</span>
                               {timePart && <span className="text-red-600 ml-1">{timePart}</span>}
                             </span>
-                            <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
-                              {workerName}
-                            </Badge>
+                            <div className="flex flex-wrap items-center gap-1">
+                              <Badge variant="outline" className="rounded-full text-[10px] font-semibold">
+                                {workerName}
+                              </Badge>
+                              {channelByOrderId[order.id] && (
+                                <Badge className="rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border-0">
+                                  {getChannelLabel(channelByOrderId[order.id])}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </button>
                       );
