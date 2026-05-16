@@ -18,7 +18,6 @@ const ExternalSupervisorHome: React.FC = () => {
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
 
   const buttons = [
-    { key: 'create_order', label: 'إنشاء طلب', icon: ShoppingCart, onClick: () => setShowCreateOrderDialog(true), palette: { border: 'border-emerald-300', icon: 'text-emerald-500' } },
     { key: 'collect_sales', label: 'جمع المبيعات', icon: Wallet, onClick: () => navigate('/my-stock'), palette: { border: 'border-amber-300', icon: 'text-amber-500' } },
     { key: 'customers', label: 'إدارة العملاء', icon: UserCheck, onClick: () => navigate('/customers'), palette: { border: 'border-sky-300', icon: 'text-sky-500' } },
   ];
