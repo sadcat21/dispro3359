@@ -487,7 +487,7 @@ const OutgoingTab: React.FC<{
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
                           <span className="text-[10px] font-semibold">{fmtQty(getConfirmationItemTotalQty(item))}</span>
-                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">يشمل {item.gift_quantity} هدية</span>}
+                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">يشمل {fmtQty(Number(item.gift_quantity) || 0)} هدية</span>}
                         </div>
                       </div>
                     ))}
