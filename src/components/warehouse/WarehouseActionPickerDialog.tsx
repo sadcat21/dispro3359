@@ -64,6 +64,15 @@ const WarehouseActionPickerDialog: React.FC<Props> = ({ open, onOpenChange, work
         </div>
 
         <Button
+          variant="outline"
+          onClick={() => pick('balance')}
+          className="w-full h-11 rounded-xl text-sm gap-2 border-primary/40 text-primary"
+        >
+          <Wallet className="w-4 h-4" />
+          رصيد شاحنة العامل
+        </Button>
+
+        <Button
           variant="secondary"
           onClick={() => pick('history')}
           className="w-full h-11 rounded-xl text-sm gap-2"
