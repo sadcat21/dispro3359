@@ -50,6 +50,8 @@ const fmtQty = (qty: number): string => {
   return `${boxes}`;
 };
 
+const getRawGiftQuantity = (item: StockConfirmationItem): number => Math.max(0, Number(item.gift_quantity) || 0);
+
 interface WorkerVerification {
   [productId: string]: { matched: boolean; qty: number | '' };
 }
@@ -356,14 +358,14 @@ const OutgoingTab: React.FC<{
         name: getProductDisplayName({ name: item.product_name, app_name: item.product_app_name }),
         warehouseQty: 0,
         image_url: item.image_url,
-        pieces_per_box: 20,
+        pieces_per_box: item.pieces_per_box || 20,
       });
     });
     return Array.from(map.values());
   }, [warehouseStock, editItems]);
 
-  const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.quantity])), [editItems]);
-  const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, item.gift_quantity || 0])), [editItems]);
+  const loadedQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, Number(item.quantity || 0) + getRawGiftQuantity(item)])), [editItems]);
+  const giftQtyMap = useMemo(() => Object.fromEntries(editItems.map(item => [item.product_id, getRawGiftQuantity(item)])), [editItems]);
 
   const startEditing = (conf: StockConfirmation) => {
     setEditingId(conf.id);
@@ -507,6 +509,7 @@ const OutgoingTab: React.FC<{
       onEditProduct={handleEditProduct}
       onRemoveProduct={handleRemoveProduct}
       onConfirmLoading={handleSaveAmendment}
+      quantityDisplayMode="raw"
       workerName={editingOriginal?.worker?.full_name || editingOriginal?.manager?.full_name || ''}
       showCloseButton
     />

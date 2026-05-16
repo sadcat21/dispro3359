@@ -52,6 +52,8 @@ interface ProductPickerDialogProps {
   loadedQtyMap?: Record<string, number>;
   /** Map of product_id → gift quantity in session */
   giftQtyMap?: Record<string, number>;
+  /** Display selected quantities as raw counts instead of box.piece notation */
+  quantityDisplayMode?: 'box-piece' | 'raw';
   /** Map of product_id → offer info for gift suggestions */
   offersMap?: Record<string, OfferInfo>;
   hideHeader?: boolean;
@@ -118,6 +120,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
   needsMap = {},
   loadedQtyMap = {},
   giftQtyMap = {},
+  quantityDisplayMode = 'box-piece',
   offersMap = {},
   hideHeader = false,
   showCloseButton = false,
@@ -273,7 +276,10 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
       const ppbVal = p.pieces_per_box || 1;
       const regularQty = Math.max(0, currentQty - currentGift);
       setSingleProductId(p.id);
-      setSingleQtyFields(regularQty > 0 ? piecesToFields(regularQty, ppbVal) : createDefaultSingleFields());
+      setSingleQtyFields(regularQty > 0
+        ? (quantityDisplayMode === 'raw' ? { boxes: fmtQty(regularQty), pieces: '' } : piecesToFields(regularQty, ppbVal))
+        : createDefaultSingleFields()
+      );
       setSingleGiftFields(currentGift > 0 ? piecesToFields(currentGift, ppbVal) : createDefaultSingleFields());
       if (currentGift > 0) setOfferActivated(prev => ({ ...prev, [p.id]: true }));
       setSingleGiftQty(0);
@@ -527,7 +533,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 }`}
               >
                 <Gift className="w-3.5 h-3.5" />
-                {giftQty > 0 ? fmtBP(giftQty, p.pieces_per_box || 1) : '—'}
+                {giftQty > 0 ? (quantityDisplayMode === 'raw' ? fmtQty(giftQty) : fmtBP(giftQty, p.pieces_per_box || 1)) : '—'}
               </button>
 
               {/* Section 4 — Total shipped */}
@@ -537,7 +543,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1.5 flex-1 text-sm font-extrabold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 <Truck className="w-4 h-4" />
-                {fmtBP(loadedQty, p.pieces_per_box || 1)}
+                {quantityDisplayMode === 'raw' ? fmtQty(loadedQty) : fmtBP(loadedQty, p.pieces_per_box || 1)}
               </button>
             </div>
           </>

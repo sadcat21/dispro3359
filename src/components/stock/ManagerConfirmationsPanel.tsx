@@ -34,6 +34,8 @@ const fmtQty = (qty: number): string => {
   return `${boxes}`;
 };
 
+const getRawGiftQuantity = (item: StockConfirmationItem): number => Math.max(0, Number(item.gift_quantity) || 0);
+
 /** Parse mismatch details from rejection_note */
 const parseMismatches = (note: string | null): { product: string; expected: string; actual: string }[] => {
   if (!note || !note.includes('عدم تطابق الكميات')) return [];
@@ -95,7 +97,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
           name: getProductDisplayName({ name: it.product_name, app_name: it.product_app_name }),
           warehouseQty: 0,
           image_url: it.image_url,
-          pieces_per_box: 20,
+          pieces_per_box: it.pieces_per_box || 20,
         });
       }
     });
@@ -103,11 +105,11 @@ const ManagerConfirmationsPanel: React.FC = () => {
   }, [warehouseStock, editItems]);
 
   const loadedQtyMap = useMemo(
-    () => Object.fromEntries(editItems.map(i => [i.product_id, i.quantity])),
+    () => Object.fromEntries(editItems.map(i => [i.product_id, Number(i.quantity || 0) + getRawGiftQuantity(i)])),
     [editItems]
   );
   const giftQtyMap = useMemo(
-    () => Object.fromEntries(editItems.map(i => [i.product_id, i.gift_quantity || 0])),
+    () => Object.fromEntries(editItems.map(i => [i.product_id, getRawGiftQuantity(i)])),
     [editItems]
   );
 
@@ -315,6 +317,7 @@ const ManagerConfirmationsPanel: React.FC = () => {
         onEditProduct={handleEditProduct}
         onRemoveProduct={handleRemoveProduct}
         onConfirmLoading={() => handleSaveAmendment(editItems)}
+        quantityDisplayMode="raw"
         workerName={editingConf?.worker?.full_name || ''}
         showCloseButton
       />
