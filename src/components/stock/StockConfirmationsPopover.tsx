@@ -46,10 +46,10 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 const fmtQty = (qty: number): string => {
-  const boxes = Math.floor(Math.round(qty * 100) / 100);
-  const piecePart = Math.round((qty - boxes) * 100);
-  if (piecePart > 0) return `${boxes}.${String(piecePart).padStart(2, '0')}`;
-  return `${boxes}`;
+  const rounded = Math.round(Math.max(0, Number(qty) || 0) * 100) / 100;
+  const boxes = Math.floor(rounded);
+  const piecePart = Math.round((rounded - boxes) * 100);
+  return `${boxes}.${String(piecePart).padStart(2, '0')}`;
 };
 
 const getRawGiftQuantity = (item: StockConfirmationItem): number => Math.max(0, Number(item.gift_quantity) || 0);
@@ -487,7 +487,7 @@ const OutgoingTab: React.FC<{
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold truncate">{getProductDisplayName({ name: item.product_name, app_name: item.product_app_name })}</p>
                           <span className="text-[10px] font-semibold">{fmtQty(getConfirmationItemTotalQty(item))}</span>
-                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">يشمل {item.gift_quantity} هدية</span>}
+                          {(item.gift_quantity || 0) > 0 && <span className="text-[10px] text-green-600 ms-2">يشمل {fmtQty(Number(item.gift_quantity) || 0)} هدية</span>}
                         </div>
                       </div>
                     ))}
