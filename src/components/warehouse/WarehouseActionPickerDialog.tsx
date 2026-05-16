@@ -1,9 +1,9 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, PackageX, CheckCircle, RefreshCw, History, Truck } from 'lucide-react';
+import { Plus, PackageX, CheckCircle, RefreshCw, History, Truck, Wallet } from 'lucide-react';
 
-export type WarehouseAction = 'load' | 'unload' | 'review' | 'exchange' | 'history';
+export type WarehouseAction = 'load' | 'unload' | 'review' | 'exchange' | 'history' | 'balance';
 
 interface Props {
   open: boolean;
