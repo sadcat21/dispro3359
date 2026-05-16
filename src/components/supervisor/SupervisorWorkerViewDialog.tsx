@@ -1,13 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+
 import { Button } from '@/components/ui/button';
-import { BarChart3, Package, Truck, Loader2, Search, User, Warehouse, Briefcase } from 'lucide-react';
+import { BarChart3, Package, Truck, Loader2, User, Warehouse, Briefcase } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -27,7 +27,6 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
   const navigate = useNavigate();
   const { setSelectedWorker } = useSelectedWorker();
   const [step, setStep] = useState<'worker' | 'action'>('worker');
-  const [search, setSearch] = useState('');
   const [picked, setPicked] = useState<{ id: string; name: string } | null>(null);
 
   const { data: workers = [], isLoading } = useQuery({
@@ -47,7 +46,7 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
         .select('worker_id, custom_role_id, branch_id, is_active')
         .eq('is_active', true)
         .in('custom_role_id', roleIds);
-      if (activeBranch?.id) wrQuery = wrQuery.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
+      if (activeBranch?.id) wrQuery = wrQuery.eq('branch_id', activeBranch.id);
       const { data: wr, error: wrErr } = await wrQuery;
       if (wrErr) throw wrErr;
 
@@ -80,17 +79,12 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
     enabled: open,
   });
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return workers;
-    return workers.filter((w) => w.full_name.toLowerCase().includes(term));
-  }, [workers, search]);
+  const filtered = workers;
 
   const handleOpenChange = (v: boolean) => {
     if (!v) {
       setStep('worker');
       setPicked(null);
-      setSearch('');
     }
     onOpenChange(v);
   };
@@ -123,15 +117,6 @@ const SupervisorWorkerViewDialog: React.FC<Props> = ({ open, onOpenChange }) => 
 
         {step === 'worker' ? (
           <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ابحث عن عامل..."
-                className="pr-9"
-              />
-            </div>
             <div className="max-h-[55vh] overflow-y-auto">
               {isLoading ? (
                 <div className="flex justify-center py-8">
