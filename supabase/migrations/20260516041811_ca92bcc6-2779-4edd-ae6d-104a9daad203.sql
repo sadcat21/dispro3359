@@ -1,0 +1,1 @@
+DELETE FROM public.workers WHERE full_name ILIKE '[تجريبي]%';
