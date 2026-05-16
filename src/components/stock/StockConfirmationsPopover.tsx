@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { useWarehouseStock, WarehouseStockItem } from '@/hooks/useWarehouseStock';
 import ProductPickerDialog from '@/components/stock/ProductPickerDialog';
+import { useProductOffersMap } from '@/hooks/useProductOffersMap';
 import { supabase } from '@/integrations/supabase/client';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
