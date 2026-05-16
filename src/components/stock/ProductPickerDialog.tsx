@@ -533,7 +533,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 }`}
               >
                 <Gift className="w-3.5 h-3.5" />
-                {giftQty > 0 ? (quantityDisplayMode === 'raw' ? fmtQty(giftQty) : fmtBP(giftQty, p.pieces_per_box || 1)) : '—'}
+                {giftQty > 0 ? `${Math.round(giftQty)} ق` : '—'}
               </button>
 
               {/* Section 4 — Total shipped */}
@@ -543,7 +543,7 @@ const ProductPickerDialog: React.FC<ProductPickerDialogProps> = ({
                 className="flex items-center justify-center gap-1.5 flex-1 text-sm font-extrabold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 <Truck className="w-4 h-4" />
-                {quantityDisplayMode === 'raw' ? fmtQty(loadedQty) : fmtBP(loadedQty, p.pieces_per_box || 1)}
+                {`${Math.round(loadedQty)} ق`}
               </button>
             </div>
           </>
