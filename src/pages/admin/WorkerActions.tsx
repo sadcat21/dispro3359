@@ -554,6 +554,8 @@ const WorkerActions: React.FC = () => {
       string,
       {
         loaded: number;
+        lastLoaded: number;
+        lastLoadedAt: number;
         unloaded: number;
         sold: number;
         giftQty: number;
