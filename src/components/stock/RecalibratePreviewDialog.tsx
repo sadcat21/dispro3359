@@ -64,7 +64,8 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
     setExpanded(next);
   };
 
-  const hasErrors = rows.length > 0;
+  const gapRows = rows.filter(r => Number(r.new_qty) !== Number(r.current_qty));
+  const hasErrors = gapRows.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,7 +92,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {rows.map((r) => {
+              {gapRows.map((r) => {
                 const isOpen = expanded.has(r.product_id);
                 const diff = Number(r.new_qty) - Number(r.current_qty);
                 const diffPositive = diff > 0;
@@ -195,7 +196,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
           {hasErrors && (
             <Button onClick={onConfirm} disabled={applying || loading} className="w-full">
               {applying && <Loader2 className="w-4 h-4 ml-1 animate-spin" />}
-              تأكيد التصحيح ({rows.length})
+              تأكيد التصحيح ({gapRows.length})
             </Button>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={applying} className="w-full">
