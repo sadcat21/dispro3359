@@ -181,6 +181,8 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                   const Icon = meta.icon;
                   const v = totalsByKind[kind];
                   const has = v > 0;
+                  // Use the first row's ppb as a representative; falls back to 1.
+                  const ppbRef = Math.max(Number(rows[0]?.ppb) || 1, 1);
                   return (
                     <Badge
                       key={kind}
@@ -191,7 +193,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                     >
                       {has ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
                       <Icon className="w-3 h-3" />
-                      {meta.label}: {has ? `${v} قطعة` : 'لا فجوة'}
+                      {meta.label}: {has ? `${piecesToBP(v, ppbRef)} ب.ق` : 'لا فجوة'}
                     </Badge>
                   );
                 })}
