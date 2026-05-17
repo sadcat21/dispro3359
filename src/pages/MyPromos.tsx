@@ -444,7 +444,6 @@ const MyPromosContent: React.FC = () => {
                                </span>
                              </div>
                            </div>
-                          </div>
 
                           {/* Customer entries */}
                           <div className="divide-y divide-border/60">
