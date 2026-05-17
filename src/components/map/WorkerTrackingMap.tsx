@@ -43,7 +43,7 @@ interface WorkerTrackingMapProps {
   showNearbyCustomers?: boolean;
   nearbyDistanceMeters?: number;
   showStopsRoute?: boolean;
-  stops?: { lat: number; lng: number; started_at: string; ended_at?: string; duration_min: number; address?: string }[];
+  stops?: { lat: number; lng: number; started_at: string; ended_at?: string; duration_min: number; address?: string; operation_label?: string; customer_name?: string }[];
 }
 
 const WorkerTrackingMap: React.FC<WorkerTrackingMapProps> = ({ highlightWorkerId, showOnlyHighlighted, trackableWorkerIds, showNearbyCustomers, nearbyDistanceMeters = 500, showStopsRoute, stops }) => {
