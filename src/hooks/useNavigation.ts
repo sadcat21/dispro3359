@@ -297,10 +297,9 @@ export const useNavigation = () => {
       mainItems.push({ path: '/my-promos', icon: BarChart3, label: t('nav.my_promos') });
     }
 
-    // My Deliveries page - for delivery workers
+    // My Deliveries page - for delivery workers (truck icon now opens /my-stock per user request)
     if (!isSalesRole && (hasPermission('page_my_deliveries') || hasPermission('update_order_status') || (isDeliveryRole && hasPermission('view_assigned_orders')))) {
-      mainItems.push({ path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') });
-      mainItems.push({ path: '/my-stock', icon: Warehouse, label: t('stock.my_stock') });
+      mainItems.push({ path: '/my-stock', icon: Truck, label: t('stock.my_stock') });
     }
 
     // Customers page
