@@ -43,7 +43,7 @@ interface WorkerTrackingMapProps {
   showNearbyCustomers?: boolean;
   nearbyDistanceMeters?: number;
   showStopsRoute?: boolean;
-  stops?: { lat: number; lng: number; started_at: string; ended_at?: string; duration_min: number; address?: string }[];
+  stops?: { lat: number; lng: number; started_at: string; ended_at?: string; duration_min: number; address?: string; operation_label?: string; customer_name?: string }[];
 }
 
 const WorkerTrackingMap: React.FC<WorkerTrackingMapProps> = ({ highlightWorkerId, showOnlyHighlighted, trackableWorkerIds, showNearbyCustomers, nearbyDistanceMeters = 500, showStopsRoute, stops }) => {
@@ -482,8 +482,10 @@ const WorkerTrackingMap: React.FC<WorkerTrackingMapProps> = ({ highlightWorkerId
         iconAnchor: [11, 11],
       });
 
+      const timeStr = new Date(stop.started_at).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+      const title = stop.operation_label || `توقف #${idx + 1}`;
       L.marker([stop.lat, stop.lng], { icon })
-        .bindPopup(`<div class="text-center p-1"><p class="font-bold text-xs">توقف #${idx + 1}</p><p class="text-xs">⏸ ${stop.duration_min} دقيقة</p>${stop.address ? `<p class="text-xs">${stop.address}</p>` : ''}</div>`)
+        .bindPopup(`<div class="text-center p-1"><p class="font-bold text-xs">${idx + 1}. ${title}</p><p class="text-xs">🕒 ${timeStr}</p>${stop.customer_name ? `<p class="text-xs font-medium">${stop.customer_name}</p>` : ''}${stop.address ? `<p class="text-xs">${stop.address}</p>` : ''}</div>`)
         .addTo(group);
     });
 
