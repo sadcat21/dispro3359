@@ -255,7 +255,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
 
-    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; giftQty?: number; delta: number; before?: number; after?: number; orderId?: string | null; mods?: Array<{ id: string; label: string; note?: string | null; when: string; delta: number; orderStatus?: string | null }> };
+    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification' | 'empty'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; giftQty?: number; previousQty?: number; delta: number; before?: number; after?: number; orderId?: string | null; mods?: Array<{ id: string; label: string; note?: string | null; when: string; delta: number; orderStatus?: string | null }> };
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
@@ -264,7 +264,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
       const paid = dbBPToBoxes(Number(it.quantity || 0), ppb);
       const total = paid + giftQty;
-      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: total, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: total });
+      const previousQty = dbBPToBoxes(Number(it.previous_quantity || 0), ppb);
+      if (total > 0 && previousQty <= 0) {
+        movements.push({ id: `empty-${it.session_id}-${pid}`, type: 'empty', label: 'الشاحنة فارغة', quantity: 0, when: it._session?.created_at || '', note: 'تم بدء هذا الشحن من رصيد صفر لهذا المنتج', sourceLabel: it._session?.manager?.full_name || null, delta: 0, previousQty: 0 });
+      }
+      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: total, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: total, previousQty });
     }
     for (const it of unloadedData.filter((x: any) => x.product_id === pid)) {
       const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
