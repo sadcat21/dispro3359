@@ -752,16 +752,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
       }
 
-      // Resolve which offers are deferred (gift not deducted from stock yet)
-      const deferredOfferIdSet2 = new Set<string>();
-      const allOfferIds2 = Array.from(new Set(orderItems.map((i: any) => i.giftOfferId).filter(Boolean) as string[]));
-      if (allOfferIds2.length > 0) {
-        const { data: offRows2 } = await supabase
-          .from('product_offers')
-          .select('id, is_deferred_confirmation')
-          .in('id', allOfferIds2);
-        for (const o of (offRows2 || []) as any[]) if (o.is_deferred_confirmation) deferredOfferIdSet2.add(o.id);
-      }
+      // Resolve deferred gift offers via single source of truth.
+      // See: src/utils/deferredGiftStock.ts + mem://features/deferred-gift-stock
+      const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
+      const deferredOfferIdSet2 = await resolveDeferredOfferIds(
+        orderItems.map((i: any) => i.giftOfferId)
+      );
 
       // Deduct from stock & log movements. Deferred gifts stay out until confirmation.
       for (const item of orderItems) {
