@@ -59,7 +59,7 @@ const AvailableOffers: React.FC = () => {
     if (offer.gift_type === 'same_product') {
       return `${offer.gift_quantity} ${unitLabel} ${t('common.free')}`;
     } else if (offer.gift_type === 'different_product' && offer.gift_product) {
-      return `${offer.gift_quantity} ${unitLabel} ${getProductDisplayName(offer.gift_product)}`;
+      return `${offer.gift_quantity} ${unitLabel} ${offer.gift_product?.name || getProductDisplayName(offer.gift_product)}`;
     } else if (offer.gift_type === 'discount') {
       return `${offer.discount_percentage}% ${t('offers.discount')}`;
     }
