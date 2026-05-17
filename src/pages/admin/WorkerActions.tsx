@@ -850,7 +850,7 @@ const WorkerActions: React.FC = () => {
       totalSold,
       totalGift,
       ppb,
-      loadCount: loadedItems.filter((item) => item.delta > 0).length,
+      loadCount: loadOnlyItems.filter((item) => item.delta > 0).length,
       unloadCount: unloadItems.length,
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
