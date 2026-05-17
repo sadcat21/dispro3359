@@ -444,16 +444,16 @@ const MyPromosContent: React.FC = () => {
                       </div>
 
                       {/* Body */}
-                      <div className="p-4 space-y-3">
-                        <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      <div className="p-4 space-y-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                        {storeName && (
+                          <div className="flex items-center gap-2 text-base min-w-0 pb-2 border-b border-border/60">
+                            <Store className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span className="font-bold truncate">{storeName}</span>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4">
                           {/* Customer column (right in AR, left in FR/EN) */}
                           <div className="order-1 space-y-2">
-                            {storeName && (
-                              <div className="flex items-center gap-2 text-base min-w-0">
-                                <Store className="w-4 h-4 text-amber-600 shrink-0" />
-                                <span className="font-bold truncate">{storeName}</span>
-                              </div>
-                            )}
                             <div className="flex items-center gap-2 text-base min-w-0">
                               <User className="w-4 h-4 shrink-0 text-muted-foreground" />
                               <span className="truncate font-bold">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
