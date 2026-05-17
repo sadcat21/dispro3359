@@ -120,8 +120,33 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
 
         <ScrollArea className="flex-1 px-3 py-3">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            <div className="py-8 px-2 space-y-3">
+              <p className="text-center text-sm font-medium mb-2">جارٍ تحليل الفجوات…</p>
+              {ANALYSIS_STEPS.map((kind, idx) => {
+                const meta = GAP_META[kind];
+                const Icon = meta.icon;
+                const done = idx < analysisStep;
+                const active = idx === analysisStep;
+                return (
+                  <div
+                    key={kind}
+                    className={`flex items-center gap-2 p-2 rounded-lg border ${
+                      active ? 'border-primary bg-primary/5' : done ? 'border-muted bg-muted/30' : 'border-dashed opacity-60'
+                    }`}
+                  >
+                    {active ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : done ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <span className="text-sm">
+                      {active ? `جارٍ تحليل فجوة ${meta.label}…` : `تحليل فجوة ${meta.label}`}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           ) : !hasErrors ? (
             <div className="text-center py-12 text-muted-foreground">
