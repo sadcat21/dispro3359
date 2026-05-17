@@ -349,7 +349,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const lastLoadedQty = movements.filter(m => m.type === 'load').at(-1)?.quantity || 0;
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
-    const totalGift = movements.filter(m => m.type === 'gift').reduce((s, m) => s + m.quantity, 0);
+    const totalGift = movements.reduce((s, m) => s + (m.type === 'sale' ? Number(m.giftQty || 0) : m.type === 'gift' ? m.quantity : 0), 0);
 
     return { entries, currentQty, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
