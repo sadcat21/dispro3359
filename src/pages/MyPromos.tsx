@@ -105,7 +105,7 @@ const MyPromosContent: React.FC = () => {
   // Add promo dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [detailGroup, setDetailGroup] = useState<{ promos: PromoWithDetails[]; offer: any; ppb: number; productName: string } | null>(null);
+  const [detailGroup, setDetailGroup] = useState<{ promos: PromoWithDetails[]; offer: any; ppb: number; productName: string; productImage: string | null; offerDescription: string; totalSaleBP: string; totalGiftBP: string } | null>(null);
 
   const logActivity = useLogActivity();
   const { data: myLogs } = useMyActivityLogs();
