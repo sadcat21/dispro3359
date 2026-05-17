@@ -198,6 +198,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                   .filter(m => m.movement_type !== 'load')
                   .length;
                 const isUnexplained = recordedSold === 0 && Number(r.current_qty) !== Number(r.new_qty);
+                const gaps = computeGaps(r);
 
                 return (
                   <div key={r.product_id} className="border rounded-lg overflow-hidden">
@@ -221,6 +222,26 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                           >
                             {diffPositive ? '+' : ''}{fmtBP(diff)} ب.ق
                           </Badge>
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap mt-1.5">
+                          {ANALYSIS_STEPS.map(kind => {
+                            const meta = GAP_META[kind];
+                            const Icon = meta.icon;
+                            const v = gaps[kind];
+                            const has = v > 0;
+                            return (
+                              <Badge
+                                key={kind}
+                                variant="outline"
+                                className={`gap-1 text-[10px] py-0 px-1.5 ${
+                                  has ? 'text-red-700 border-red-300 bg-red-50' : 'text-emerald-700 border-emerald-300 bg-emerald-50'
+                                }`}
+                              >
+                                <Icon className="w-2.5 h-2.5" />
+                                {meta.label}: {has ? v : '0'}
+                              </Badge>
+                            );
+                          })}
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           <span>الحالي: <strong className="text-foreground">{fmtBP(r.current_qty)}</strong></span>
