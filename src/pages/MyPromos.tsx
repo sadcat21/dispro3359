@@ -474,26 +474,26 @@ const MyPromosContent: React.FC = () => {
                           );
                         })()}
                         {/* Customer info */}
-                        <div className="space-y-1.5 bg-muted/30 rounded-lg p-2.5">
+                        <div className="grid grid-cols-2 gap-2 bg-muted/30 rounded-lg p-2.5">
                           {storeName && (
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-sm min-w-0">
                               <Store className="w-4 h-4 text-amber-600 shrink-0" />
                               <span className="font-semibold truncate">{storeName}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                             <User className="w-4 h-4 shrink-0" />
                             <span className="truncate">{promo.customer?.name}</span>
                           </div>
                           {promo.customer?.phone && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
                               <Phone className="w-3.5 h-3.5 shrink-0" />
                               <span dir="ltr" className="truncate">{promo.customer.phone}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
                             <Calendar className="w-3.5 h-3.5 shrink-0" />
-                            <span>{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
+                            <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
                           </div>
                         </div>
 
