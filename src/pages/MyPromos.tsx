@@ -416,18 +416,6 @@ const MyPromosContent: React.FC = () => {
                               <span className="text-xs font-semibold text-muted-foreground truncate block">{offerDescription}</span>
                             )}
                           </div>
-                          {offer && (
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
-                                <ShoppingCart className="w-3 h-3" />
-                                <span className="font-semibold">{offerSaleBP}</span>
-                              </span>
-                              <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
-                                <Gift className="w-3 h-3" />
-                                <span className="font-semibold">{offerGiftBP}</span>
-                              </span>
-                            </div>
-                          )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {!isEditPromoHidden && (
@@ -447,7 +435,7 @@ const MyPromosContent: React.FC = () => {
                       <div className="p-4 space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                           {/* Right column: sales / gift / date */}
-                          <div className="order-1 space-y-2">
+                          <div className="order-2 space-y-2">
                             <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
                               <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                               <div className="min-w-0">
@@ -468,7 +456,7 @@ const MyPromosContent: React.FC = () => {
                             </div>
                           </div>
                           {/* Left column: customer info */}
-                          <div className="order-2 space-y-2 bg-muted/30 rounded-lg p-2.5">
+                          <div className="order-1 space-y-2 bg-muted/30 rounded-lg p-2.5">
                             {storeName && (
                               <div className="flex items-center gap-2 text-sm min-w-0">
                                 <Store className="w-4 h-4 text-amber-600 shrink-0" />
