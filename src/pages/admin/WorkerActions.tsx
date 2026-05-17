@@ -646,7 +646,7 @@ const WorkerActions: React.FC = () => {
 
     const entries: Array<{
       id: string;
-      type: 'load' | 'unload' | 'sale' | 'gift';
+      type: 'load' | 'unload' | 'sale' | 'gift' | 'empty';
       label: string;
       quantity: number;
       before: number;
@@ -659,12 +659,13 @@ const WorkerActions: React.FC = () => {
       customerPhone?: string | null;
       sourceLabel?: string | null;
       sourceStatus?: string | null;
+      previousQty?: number;
       delta: number;
     }> = [];
 
     const rawMovements: Array<{
       id: string;
-      type: 'load' | 'unload' | 'sale' | 'gift';
+      type: 'load' | 'unload' | 'sale' | 'gift' | 'empty';
       label: string;
       quantity: number;
       when: string;
@@ -675,17 +676,34 @@ const WorkerActions: React.FC = () => {
       customerPhone?: string | null;
       sourceLabel?: string | null;
       sourceStatus?: string | null;
+      previousQty?: number;
       delta: number;
     }> = [];
 
     const loadedItems = (truckLoadedData || [])
       .filter((item: any) => item.product_id === productId)
-      .map((item: any) => {
+      .flatMap((item: any) => {
         const session = loadSessionMap.get(item.session_id);
         const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
         const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
         const totalQty = paidQty + giftQty;
-        return {
+        const previousQty = bpStoredToBoxes(Number(item.previous_quantity || 0), ppb);
+        const movements = [] as typeof rawMovements;
+        if (totalQty > 0 && previousQty <= 0) {
+          movements.push({
+            id: `empty-${item.session_id || item.product_id}`,
+            type: 'empty' as const,
+            label: 'الشاحنة فارغة',
+            quantity: 0,
+            when: session?.created_at || '',
+            note: 'تم بدء هذا الشحن من رصيد صفر لهذا المنتج',
+            sourceLabel: session?.manager?.full_name || null,
+            sourceStatus: session?.status || null,
+            previousQty: 0,
+            delta: 0,
+          });
+        }
+        movements.push({
           id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${totalQty}-${item.gift_quantity || 0}`,
           type: 'load' as const,
           label: 'شحن',
@@ -694,8 +712,10 @@ const WorkerActions: React.FC = () => {
           note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
+          previousQty,
           delta: totalQty,
-        };
+        });
+        return movements;
       });
 
     const unloadItems = (truckUnloadedData || [])
@@ -773,9 +793,10 @@ const WorkerActions: React.FC = () => {
       return aTime - bTime;
     });
 
-    const totalLoaded = loadedItems.reduce((sum, item) => sum + item.quantity, 0);
-    const lastLoadedQty = loadedItems.length
-      ? [...loadedItems].sort((a, b) => {
+    const loadOnlyItems = loadedItems.filter((item) => item.type === 'load');
+    const totalLoaded = loadOnlyItems.reduce((sum, item) => sum + item.quantity, 0);
+    const lastLoadedQty = loadOnlyItems.length
+      ? [...loadOnlyItems].sort((a, b) => {
           const at = a.when ? new Date(a.when).getTime() : 0;
           const bt = b.when ? new Date(b.when).getTime() : 0;
           return bt - at;
@@ -799,7 +820,13 @@ const WorkerActions: React.FC = () => {
     // balance after that movement, independent of any later shortage/discrepancy.
     let runningPieces = toPieces(openingBalance);
     const forwardEntries = rawMovements.map((movement) => {
-      const beforePieces = runningPieces;
+      if (movement.type === 'empty') {
+        runningPieces = 0;
+        return { ...movement, before: 0, after: 0 };
+      }
+      const beforePieces = movement.type === 'load' && typeof movement.previousQty === 'number'
+        ? toPieces(movement.previousQty)
+        : runningPieces;
       const afterPieces = beforePieces + toPieces(movement.delta);
       runningPieces = afterPieces;
       return { ...movement, before: fromPieces(beforePieces), after: fromPieces(afterPieces) };
@@ -823,7 +850,7 @@ const WorkerActions: React.FC = () => {
       totalSold,
       totalGift,
       ppb,
-      loadCount: loadedItems.filter((item) => item.delta > 0).length,
+      loadCount: loadOnlyItems.filter((item) => item.delta > 0).length,
       unloadCount: unloadItems.length,
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
@@ -1063,7 +1090,7 @@ const WorkerActions: React.FC = () => {
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
                       const currentQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
-                      const totalAvailable = currentQty + unloaded + sold + giftQty;
+                      const totalAvailable = loaded + unloaded + sold + giftQty;
                       const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
@@ -1224,7 +1251,7 @@ const WorkerActions: React.FC = () => {
                       const showDay = index === 0 || prevDay !== currentDay;
                       const dateLabel = entry.when ? new Date(entry.when).toLocaleDateString('ar-DZ') : '—';
                       const timeLabel = entry.when ? new Date(entry.when).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }) : '';
-                      const deltaLabel = entry.type === 'load' ? `+${entry.quantity}` : `-${entry.quantity}`;
+                      const deltaLabel = entry.type === 'empty' ? '0' : entry.type === 'load' ? `+${entry.quantity}` : `-${entry.quantity}`;
                       const typeBadge =
                         entry.type === 'load'
                           ? 'bg-blue-100 text-blue-700 border-blue-200'
@@ -1232,7 +1259,9 @@ const WorkerActions: React.FC = () => {
                             ? 'bg-red-100 text-red-700 border-red-200'
                             : entry.type === 'gift'
                               ? 'bg-orange-100 text-orange-700 border-orange-200'
-                              : 'bg-green-100 text-green-700 border-green-200';
+                              : entry.type === 'empty'
+                                ? 'bg-slate-100 text-slate-700 border-slate-200'
+                                : 'bg-green-100 text-green-700 border-green-200';
 
                       return (
                         <div key={entry.id} className="space-y-1">
@@ -1241,7 +1270,7 @@ const WorkerActions: React.FC = () => {
                               {dateLabel}
                             </div>
                           )}
-                          <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}`}>
+                          <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'empty' ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-200'}`}>
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -1265,10 +1294,12 @@ const WorkerActions: React.FC = () => {
                                 {entry.customerName && entry.customerName !== entry.customerStoreName ? ` • ${entry.customerName}` : ''}
                               </div>
                             </div>
-                            <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : 'text-blue-700'}`}>
-                                {deltaLabel.startsWith('-')
-                                  ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
-                                  : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
+                            <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'empty' ? 'text-slate-700' : 'text-blue-700'}`}>
+                                {entry.type === 'empty'
+                                  ? formatTruckQty(0, selectedTruckProductHistory.ppb)
+                                  : deltaLabel.startsWith('-')
+                                    ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
+                                    : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
                                 }
                               </div>
                             </div>
