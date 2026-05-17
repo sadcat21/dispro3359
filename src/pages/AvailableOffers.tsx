@@ -147,7 +147,7 @@ const AvailableOffers: React.FC = () => {
                         <Package className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium">{getProductDisplayName(offer.product)}</p>
+                        <p className="font-medium">{offer.product?.name || getProductDisplayName(offer.product)}</p>
                         <p className="text-xs text-muted-foreground">{t('offers.product')}</p>
                       </div>
                     </div>
