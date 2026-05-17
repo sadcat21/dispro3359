@@ -246,6 +246,60 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     return out;
   }, [loadedData, unloadedData, soldData, ppbMap]);
 
+  // الرصيد الفعلي لكل منتج باستخدام نفس منطق المحاكاة الزمنية (يحترم إعادة تعيين "الشاحنة فارغة")
+  const remainingByProduct = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const it of truckStock as any[]) {
+      const pid = it.product_id;
+      const ppb = ppbOf(pid);
+      const currentQty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      type Mv = { type: 'load' | 'unload' | 'sale' | 'modification' | 'empty'; when: string; delta: number; previousQty?: number };
+      const movements: Mv[] = [];
+      for (const l of loadedData.filter((x: any) => x.product_id === pid)) {
+        const giftQty = l.gift_unit === 'piece'
+          ? Math.max(0, Number(l.gift_quantity || 0)) / ppb
+          : dbBPToBoxes(Number(l.gift_quantity || 0), ppb);
+        const paid = dbBPToBoxes(Number(l.quantity || 0), ppb);
+        const total = paid + giftQty;
+        const previousQty = dbBPToBoxes(Number(l.previous_quantity || 0), ppb);
+        if (total > 0 && previousQty <= 0) {
+          movements.push({ type: 'empty', when: l._session?.created_at || '', delta: 0, previousQty: 0 });
+        }
+        movements.push({ type: 'load', when: l._session?.created_at || '', delta: total, previousQty });
+      }
+      for (const u of unloadedData.filter((x: any) => x.product_id === pid)) {
+        const q = dbBPToBoxes(Number(u.quantity || 0), ppb);
+        movements.push({ type: 'unload', when: u._session?.created_at || '', delta: -q });
+      }
+      for (const so of soldData.filter((x: any) => x.product_id === pid)) {
+        const giftQty = confirmedGiftFractional(so, ppb);
+        const pendingGift = pendingGiftFractional(so, ppb);
+        const deliveredBP = so.delivered_quantity != null ? Number(so.delivered_quantity || 0) : Number(getDeliveredPaidQuantity(so) || 0);
+        const totalBoxes = Math.max(0, dbBPToBoxes(deliveredBP, ppb) - pendingGift);
+        const saleQty = Math.max(0, totalBoxes - giftQty);
+        const when = so.order_updated_at || so.order_created_at || '';
+        movements.push({ type: 'sale', when, delta: -(saleQty + giftQty) });
+      }
+      for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
+        const signed = Number(m.signed_quantity ?? 0);
+        const deltaBoxes = dbBPToBoxes(Math.abs(signed), ppb) * (signed >= 0 ? 1 : -1);
+        movements.push({ type: 'modification', when: m.created_at, delta: deltaBoxes });
+      }
+      movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
+      if (!movements.length) { out[pid] = currentQty; continue; }
+      const totalDelta = movements.reduce((s, m) => s + m.delta, 0);
+      const openingBalance = Math.max(0, currentQty - totalDelta);
+      let running = openingBalance;
+      for (const m of movements) {
+        if (m.type === 'empty') { running = 0; continue; }
+        const before = m.type === 'load' && typeof m.previousQty === 'number' ? Math.max(0, m.previousQty) : running;
+        running = Math.max(0, before + m.delta);
+      }
+      out[pid] = running;
+    }
+    return out;
+  }, [truckStock, loadedData, unloadedData, soldData, modificationData, ppbMap]);
+
   const history = useMemo(() => {
     if (!selected) return null;
     const pid = selected.product_id;
@@ -357,9 +411,16 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
+  const getRemaining = (item: any) => {
+    const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
+    const r = remainingByProduct[item.product_id];
+    return typeof r === 'number' ? r : dbBPToBoxes(Number(item.quantity || 0), ppb);
+  };
   const sorted = [...truckStock].sort((a: any, b: any) => {
-    if (a.quantity === 0 && b.quantity > 0) return 1;
-    if (a.quantity > 0 && b.quantity === 0) return -1;
+    const ra = getRemaining(a);
+    const rb = getRemaining(b);
+    if (ra === 0 && rb > 0) return 1;
+    if (ra > 0 && rb === 0) return -1;
     return (a.product?.name || '').localeCompare(b.product?.name || '');
   });
 
@@ -404,7 +465,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         <div className="grid grid-cols-3 gap-1.5">
           {sorted.map((item: any) => {
             const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
-            const isZero = item.quantity === 0;
+            const remaining = getRemaining(item);
+            const isZero = remaining === 0;
             const s = stats[item.product_id] || {};
             const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
             return (
@@ -424,7 +486,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 </div>
                 <div className="flex items-center justify-center gap-1 flex-wrap">
                   <span className={`inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
-                    <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
+                    <Package className="w-3 h-3" /> {fmtBP(remaining, ppb)}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border border-violet-300 text-violet-700 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800">
                     <TrendingUp className="w-3 h-3" /> {fmtBP(s.lastLoaded || 0, ppb)}
@@ -438,7 +500,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       <div className="grid gap-2">
         {sorted.map((item: any) => {
           const s = stats[item.product_id] || {};
-          const isZero = item.quantity === 0;
+          const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
+          const remaining = getRemaining(item);
+          const isZero = remaining === 0;
           const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
           return (
             <button
@@ -459,7 +523,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-sm truncate">{item.product?.name}</span>
                     <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
-                      {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                      {fmtBP(remaining, ppb)}
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">انقر لعرض سجل الحركة</p>
@@ -467,7 +531,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-1.5 border-t pt-2 text-[10px]">
                 <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> الباقي {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                  <Package className="w-3 h-3" /> الباقي {fmtBP(remaining, ppb)}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
                   <Package className="w-3 h-3" /> المجموع {fmtBP((s.loaded || 0) + (s.unloaded || 0) + (s.sold || 0) + (s.giftQty || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
