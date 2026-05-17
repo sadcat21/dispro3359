@@ -206,7 +206,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
   const stats = useMemo(() => {
     const out: Record<string, any> = {};
-    const ensure = (id: string) => (out[id] ||= { loaded: 0, unloaded: 0, sold: 0, giftQty: 0, loadCount: new Set(), unloadCount: new Set(), saleCount: new Set() });
+    const ensure = (id: string) => (out[id] ||= { loaded: 0, lastLoaded: 0, lastLoadedAt: 0, unloaded: 0, sold: 0, giftQty: 0, loadCount: new Set(), unloadCount: new Set(), saleCount: new Set() });
     for (const it of loadedData) {
       const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
@@ -216,6 +216,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
       // "Charged" = paid quantity only. Gifts are tracked separately.
       s.loaded += qty;
+      const ts = it._session?.created_at ? new Date(it._session.created_at).getTime() : 0;
+      if (qty > 0 && ts >= s.lastLoadedAt) {
+        s.lastLoadedAt = ts;
+        s.lastLoaded = qty;
+      }
       if ((qty + gift) > 0 && it.session_id) s.loadCount.add(String(it.session_id));
       s.giftQty += gift;
     }
