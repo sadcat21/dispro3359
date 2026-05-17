@@ -343,7 +343,16 @@ const MyPromosContent: React.FC = () => {
                       {/* Header: Product name */}
                       <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <Package className="w-4 h-4 text-primary shrink-0" />
+                          {promo.product?.image_url ? (
+                            <img
+                              src={promo.product.image_url}
+                              alt={promo.product?.name || ''}
+                              className="w-9 h-9 rounded-md object-cover border border-border shrink-0"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Package className="w-4 h-4 text-primary shrink-0" />
+                          )}
                           <span className="font-bold text-base truncate">{promo.product?.name}</span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
