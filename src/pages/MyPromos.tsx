@@ -459,9 +459,9 @@ const MyPromosContent: React.FC = () => {
                               <span className="truncate">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
                             </div>
                             {promo.customer?.phone && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                                <Phone className="w-3.5 h-3.5 shrink-0" />
-                                <span dir="ltr" className="truncate">{promo.customer.phone}</span>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+                                <Phone className="w-4 h-4 shrink-0" />
+                                <span dir="ltr" className="truncate font-medium">{promo.customer.phone}</span>
                               </div>
                             )}
                           </div>
