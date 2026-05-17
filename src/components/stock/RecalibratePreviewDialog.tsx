@@ -62,15 +62,23 @@ const GAP_META: Record<GapKind, { label: string; icon: React.ComponentType<{ cla
 };
 const ANALYSIS_STEPS: GapKind[] = ['shipping', 'gift', 'sale'];
 
+// Returns pieces per gap kind (already scoped to "after last shipment" by the SQL function).
 function computeGaps(r: PreviewRow): Record<GapKind, number> {
+  const ppb = Math.max(Number(r.ppb) || 1, 1);
   const movs = r.movements || [];
-  const sumPieces = (types: string[]) =>
-    movs.filter(m => types.includes(m.movement_type))
-        .reduce((s, m) => s + Math.abs(Number(m.quantity) || 0), 0);
+  // Gifts: sum promo_gift movement pieces (quantity stored as B.P encoded "b.pp")
+  const giftPieces = movs
+    .filter(m => m.movement_type === 'promo_gift')
+    .reduce((s, m) => {
+      const q = Math.abs(Number(m.quantity) || 0);
+      const b = Math.floor(q);
+      const p = Math.round((q - b) * 100);
+      return s + b * ppb + p;
+    }, 0);
   return {
-    shipping: sumPieces(['load']),
-    gift: sumPieces(['promo_gift']),
-    sale: sumPieces(['promo_sale', 'direct_sale', 'delivery', 'modification']),
+    shipping: Number(r.loaded_pieces) || 0,
+    gift: giftPieces,
+    sale: Number(r.sold_pieces) || 0,
   };
 }
 
