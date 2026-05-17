@@ -53,7 +53,7 @@ const getDateLocale = (language: string) => {
 const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
   const ppb = Number(piecesPerBox || 0);
   const p = Number(pieces || 0);
-  if (!ppb || ppb <= 1) return String(p);
+  if (!ppb || ppb <= 1) return `${p}.00`;
   const boxes = Math.floor(p / ppb);
   const rem = p % ppb;
   return `${boxes}.${String(rem).padStart(2, '0')}`;
