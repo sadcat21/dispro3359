@@ -13,6 +13,17 @@ const LF = 0x0A;
 // 48mm printer ≈ 32 chars per line (monospace)
 const LINE_WIDTH = 32;
 
+// --- HTML escape helper (prevents stored XSS in receipt previews) ---
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // --- Arabic to Latin transliteration ---
 const ARABIC_TO_LATIN: Record<string, string> = {
   'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th',
@@ -613,9 +624,9 @@ export function formatReceiptForPreview(data: ReceiptData): string {
 
       itemsHtml += `
         <div style="border-bottom:1px dotted #ccc;padding:3px 0;">
-          <div style="text-align:center;font-size:9px;color:#666;">-----( <strong>${shortName}</strong> )-----</div>
+          <div style="text-align:center;font-size:9px;color:#666;">-----( <strong>${escapeHtml(shortName)}</strong> )-----</div>
           <div style="text-align:center;font-size:10px;">
-            <strong>${qtyPart}</strong> | ${unitPrice} DA | <strong>${Math.round(item.totalPrice).toLocaleString()} DA</strong>
+            <strong>${escapeHtml(qtyPart)}</strong> | ${escapeHtml(unitPrice)} DA | <strong>${Math.round(item.totalPrice).toLocaleString()} DA</strong>
           </div>
         </div>`;
 
@@ -637,13 +648,13 @@ export function formatReceiptForPreview(data: ReceiptData): string {
         giftHtml = `<div style="color:#16a34a;font-size:8px;">🎁 +PROMO: ${giftText}</div>`;
       }
 
-      const noteHtml = item.offerNote ? `<div style="font-size:7px;color:#d97706;">${item.offerNote}</div>` : '';
+      const noteHtml = item.offerNote ? `<div style="font-size:7px;color:#d97706;">${escapeHtml(item.offerNote)}</div>` : '';
 
       itemsHtml += `
         <div style="border-bottom:1px dotted #ccc;padding:4px 0;margin-bottom:2px;">
-          <div style="font-size:10px;font-weight:bold;word-wrap:break-word;margin-bottom:2px;">${item.productName}</div>
+          <div style="font-size:10px;font-weight:bold;word-wrap:break-word;margin-bottom:2px;">${escapeHtml(item.productName)}</div>
           <div style="display:flex;justify-content:space-between;font-size:9px;color:#444;line-height:1.4;">
-            <span><strong>${formatQty(item.quantity)} ${unitLabel}</strong> x ${unitPrice}</span>
+            <span><strong>${formatQty(item.quantity)} ${escapeHtml(unitLabel)}</strong> x ${escapeHtml(unitPrice)}</span>
             <span style="font-weight:bold;">${Math.round(item.totalPrice).toLocaleString()} DA</span>
           </div>
           ${giftHtml}${noteHtml}
@@ -663,9 +674,9 @@ export function formatReceiptForPreview(data: ReceiptData): string {
       const sm: Record<string, string> = { full: '✅ Complet', partial: '⚠️ Partiel', refused: '❌ Refusé' };
       advRows.push(`<div>Livraison: <strong>${sm[opts.deliveryStatusValue] || opts.deliveryStatusValue}</strong></div>`);
     }
-    if (opts.showRouteCode && opts.routeCode) advRows.push(`<div>Route: <strong>${opts.routeCode}</strong></div>`);
-    if (opts.showTruckId && opts.truckId) advRows.push(`<div>Camion: <strong>${opts.truckId}</strong></div>`);
-    if (opts.showSessionId && opts.sessionId) advRows.push(`<div>Session: <strong>${opts.sessionId}</strong></div>`);
+    if (opts.showRouteCode && opts.routeCode) advRows.push(`<div>Route: <strong>${escapeHtml(opts.routeCode)}</strong></div>`);
+    if (opts.showTruckId && opts.truckId) advRows.push(`<div>Camion: <strong>${escapeHtml(opts.truckId)}</strong></div>`);
+    if (opts.showSessionId && opts.sessionId) advRows.push(`<div>Session: <strong>${escapeHtml(opts.sessionId)}</strong></div>`);
 
     if (advRows.length > 0) {
       advancedHtml = `
@@ -682,7 +693,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
         const it = data.items.find(i => i.productId === productId);
         const name = it ? it.productName : productId.substring(0, 16);
         const diffColor = diff < 0 ? '#dc2626' : diff > 0 ? '#16a34a' : '#666';
-        stockRows += `<tr><td style="font-size:9px;">${name}</td><td style="text-align:center;font-size:9px;">${before}</td><td style="text-align:center;font-size:9px;">${after}</td><td style="text-align:center;font-size:9px;color:${diffColor};">${diff}</td></tr>`;
+        stockRows += `<tr><td style="font-size:9px;">${escapeHtml(name)}</td><td style="text-align:center;font-size:9px;">${before}</td><td style="text-align:center;font-size:9px;">${after}</td><td style="text-align:center;font-size:9px;color:${diffColor};">${diff}</td></tr>`;
       }
       advancedHtml += `
         <div style="border-top:1px dashed #999;margin-top:4px;padding-top:4px;">
