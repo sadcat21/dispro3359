@@ -300,7 +300,7 @@ export const useNavigation = () => {
     // My Deliveries page - for delivery workers
     if (!isSalesRole && (hasPermission('page_my_deliveries') || hasPermission('update_order_status') || (isDeliveryRole && hasPermission('view_assigned_orders')))) {
       mainItems.push({ path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') });
-      moreItems.push({ path: '/my-stock', icon: Package, label: t('stock.my_stock') });
+      mainItems.push({ path: '/my-stock', icon: Warehouse, label: t('stock.my_stock') });
     }
 
     // Customers page
