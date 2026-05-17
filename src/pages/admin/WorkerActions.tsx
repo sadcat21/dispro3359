@@ -570,6 +570,8 @@ const WorkerActions: React.FC = () => {
       if (!stats[productId]) {
         stats[productId] = {
           loaded: 0,
+          lastLoaded: 0,
+          lastLoadedAt: 0,
           unloaded: 0,
           sold: 0,
           giftQty: 0,
