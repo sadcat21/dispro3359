@@ -448,14 +448,14 @@ const MyPromosContent: React.FC = () => {
                         <div className="grid grid-cols-2 gap-2">
                           {/* Right column: sales / gift / date */}
                           <div className="order-1 space-y-2">
-                            <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2 px-1">
                               <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                               <div className="min-w-0">
                                 <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')} ({unitLabel(saleUnit)})</p>
                                 <p className="font-bold text-primary leading-none">{displaySale}</p>
                               </div>
                             </div>
-                            <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
+                            <div className="flex items-center gap-2 px-1">
                               <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
                               <div className="min-w-0">
                                 <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')} ({unitLabel(giftUnit)})</p>
