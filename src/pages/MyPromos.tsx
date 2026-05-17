@@ -470,7 +470,7 @@ const MyPromosContent: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                               <p className="font-bold text-primary leading-none">
-                                {displaySale} <span className="text-[10px] font-normal text-muted-foreground">(بيع)</span>
+                                {displaySale} <span className="text-[10px] font-normal text-muted-foreground">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
