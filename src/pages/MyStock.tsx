@@ -2,69 +2,22 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSelectedWorker } from '@/contexts/SelectedWorkerContext';
-import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Loader2, ShoppingBag, RefreshCw } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Package, Loader2, ShoppingBag } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import SalesHubDialog from '@/components/sales/SalesHubDialog';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import WorkerTruckStockList from '@/components/stock/WorkerTruckStockList';
-import RecalibratePreviewDialog, { PreviewRow } from '@/components/stock/RecalibratePreviewDialog';
 
 const MyStock: React.FC = () => {
   const { t } = useLanguage();
-  const { workerId: authWorkerId, role, activeRole } = useAuth();
+  const { workerId: authWorkerId } = useAuth();
   const { workerId: selectedWorkerId } = useSelectedWorker();
   const workerId = selectedWorkerId || authWorkerId;
-  const queryClient = useQueryClient();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
-  const [recalibrating, setRecalibrating] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
-  const canAdjustBalance =
-    isAdminRole(role) ||
-    isCompanyManagerRole(activeRole?.custom_role_code) ||
-    isCompanyManagerRole(role) ||
-    isInternalSupervisorRole(activeRole?.custom_role_code);
-
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
-
-  const openPreview = async () => {
-    if (!workerId) return;
-    setPreviewOpen(true);
-    setPreviewLoading(true);
-    try {
-      const { data, error } = await supabase.rpc('preview_recalibrate_worker_stock' as any, { p_worker_id: workerId });
-      if (error) throw error;
-      setPreviewRows((data as any[]) as PreviewRow[]);
-    } catch (e: any) {
-      toast.error(e?.message || 'فشل تحميل المعاينة');
-      setPreviewOpen(false);
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  const runRecalibrate = async () => {
-    if (!workerId) return;
-    setRecalibrating(true);
-    try {
-      const { data, error } = await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId });
-      if (error) throw error;
-      const changed = (data || []).filter((r: any) => Number(r.old_qty) !== Number(r.new_qty));
-      toast.success(`تم تصحيح ${changed.length} منتج من أصل ${(data || []).length}`);
-      await queryClient.invalidateQueries();
-      setPreviewOpen(false);
-    } catch (e: any) {
-      toast.error(e?.message || 'فشل التصحيح');
-    } finally {
-      setRecalibrating(false);
-    }
-  };
 
   const { data: stockItems, isLoading } = useQuery({
     queryKey: ['my-worker-stock', workerId],
