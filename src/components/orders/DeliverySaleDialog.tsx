@@ -863,14 +863,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           .map((i: any) => recalcGift(i.productId, Math.floor(Math.max(0, Number(i.quantity || 0) - Number(i.giftQuantity || 0))), Number(i.piecesPerBox || 1)).offerId)
           .filter(Boolean) as string[],
       ]));
-      const deferredOfferIdSet = new Set<string>();
-      if (allOfferIds.length > 0) {
-        const { data: offRows } = await supabase
-          .from('product_offers')
-          .select('id, is_deferred_confirmation')
-          .in('id', allOfferIds);
-        for (const o of (offRows || []) as any[]) if (o.is_deferred_confirmation) deferredOfferIdSet.add(o.id);
-      }
+      // See: src/utils/deferredGiftStock.ts + mem://features/deferred-gift-stock
+      const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
+      const deferredOfferIdSet = await resolveDeferredOfferIds(allOfferIds);
 
       // Deduct from stock (warehouse_stock for warehouse manager, worker_stock for regular workers)
       for (const item of activeItems) {
