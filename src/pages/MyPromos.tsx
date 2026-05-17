@@ -445,55 +445,46 @@ const MyPromosContent: React.FC = () => {
 
                       {/* Body */}
                       <div className="p-4 space-y-3">
-                        {(() => {
-                          return (
-                            <>
-
-                              {/* Quantities (display per offer unit) */}
-                              <div className="grid grid-cols-2 gap-2">
-                                <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
-                                  <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                                  <div className="min-w-0">
-                                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')} ({unitLabel(saleUnit)})</p>
-                                    <p className="font-bold text-primary leading-none">
-                                      {displaySale}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
-                                  <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                                  <div className="min-w-0">
-                                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')} ({unitLabel(giftUnit)})</p>
-                                    <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                      {displayGift}
-                                    </p>
-                                  </div>
-                                </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Right column: sales / gift / date */}
+                          <div className="order-1 space-y-2">
+                            <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                              <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')} ({unitLabel(saleUnit)})</p>
+                                <p className="font-bold text-primary leading-none">{displaySale}</p>
                               </div>
-                            </>
-                          );
-                        })()}
-                        {/* Customer info */}
-                        <div className="grid grid-cols-2 gap-2 bg-muted/30 rounded-lg p-2.5">
-                          {storeName && (
-                            <div className="flex items-center gap-2 text-sm min-w-0">
-                              <Store className="w-4 h-4 text-amber-600 shrink-0" />
-                              <span className="font-semibold truncate">{storeName}</span>
                             </div>
-                          )}
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
-                            <User className="w-4 h-4 shrink-0" />
-                            <span className="truncate">{promo.customer?.name}</span>
+                            <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${promo.gratuite_quantity > 0 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-muted/30 border-muted'}`}>
+                              <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                              <div className="min-w-0">
+                                <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')} ({unitLabel(giftUnit)})</p>
+                                <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>{displayGift}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2 min-w-0">
+                              <Calendar className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
+                            </div>
                           </div>
-                          {promo.customer?.phone && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                              <Phone className="w-3.5 h-3.5 shrink-0" />
-                              <span dir="ltr" className="truncate">{promo.customer.phone}</span>
+                          {/* Left column: customer info */}
+                          <div className="order-2 space-y-2 bg-muted/30 rounded-lg p-2.5">
+                            {storeName && (
+                              <div className="flex items-center gap-2 text-sm min-w-0">
+                                <Store className="w-4 h-4 text-amber-600 shrink-0" />
+                                <span className="font-semibold truncate">{storeName}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+                              <User className="w-4 h-4 shrink-0" />
+                              <span className="truncate">{promo.customer?.name}</span>
                             </div>
-                          )}
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                            <Calendar className="w-3.5 h-3.5 shrink-0" />
-                            <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
+                            {promo.customer?.phone && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+                                <Phone className="w-3.5 h-3.5 shrink-0" />
+                                <span dir="ltr" className="truncate">{promo.customer.phone}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
