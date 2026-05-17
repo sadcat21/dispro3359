@@ -1251,7 +1251,7 @@ const WorkerActions: React.FC = () => {
                       const showDay = index === 0 || prevDay !== currentDay;
                       const dateLabel = entry.when ? new Date(entry.when).toLocaleDateString('ar-DZ') : '—';
                       const timeLabel = entry.when ? new Date(entry.when).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }) : '';
-                      const deltaLabel = entry.type === 'load' ? `+${entry.quantity}` : `-${entry.quantity}`;
+                      const deltaLabel = entry.type === 'empty' ? '0' : entry.type === 'load' ? `+${entry.quantity}` : `-${entry.quantity}`;
                       const typeBadge =
                         entry.type === 'load'
                           ? 'bg-blue-100 text-blue-700 border-blue-200'
