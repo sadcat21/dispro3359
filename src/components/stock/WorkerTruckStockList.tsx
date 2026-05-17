@@ -465,7 +465,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         <div className="grid grid-cols-3 gap-1.5">
           {sorted.map((item: any) => {
             const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
-            const isZero = item.quantity === 0;
+            const remaining = getRemaining(item);
+            const isZero = remaining === 0;
             const s = stats[item.product_id] || {};
             const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
             return (
@@ -485,7 +486,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 </div>
                 <div className="flex items-center justify-center gap-1 flex-wrap">
                   <span className={`inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
-                    <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
+                    <Package className="w-3 h-3" /> {fmtBP(remaining, ppb)}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border border-violet-300 text-violet-700 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800">
                     <TrendingUp className="w-3 h-3" /> {fmtBP(s.lastLoaded || 0, ppb)}
@@ -499,7 +500,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       <div className="grid gap-2">
         {sorted.map((item: any) => {
           const s = stats[item.product_id] || {};
-          const isZero = item.quantity === 0;
+          const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
+          const remaining = getRemaining(item);
+          const isZero = remaining === 0;
           const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
           return (
             <button
