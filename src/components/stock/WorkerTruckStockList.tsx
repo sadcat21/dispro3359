@@ -231,7 +231,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const s = ensure(it.product_id);
       const paidBP = getDeliveredPaidQuantity(it);
       const gift = confirmedGiftFractional(it, ppb);
-      const paid = Math.max(0, dbBPToBoxes(Number(paidBP || 0), ppb) - gift);
+      const pendingGift = pendingGiftFractional(it, ppb);
+      const totalBoxes = Math.max(0, dbBPToBoxes(Number(paidBP || 0), ppb) - pendingGift);
+      const paid = Math.max(0, totalBoxes - gift);
       s.sold += paid;
       if ((paid > 0 || gift > 0) && it.order_id) s.saleCount.add(String(it.order_id));
       s.giftQty += gift;
