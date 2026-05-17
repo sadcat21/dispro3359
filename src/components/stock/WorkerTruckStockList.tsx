@@ -21,6 +21,14 @@ const confirmedGiftFractional = (item: any, ppb: number) => {
   return Math.max(0, storedPieces - pendingPieces) / safePpb;
 };
 
+/** Gift portion still pending confirmation (in fractional boxes). Not yet delivered to the customer. */
+const pendingGiftFractional = (item: any, ppb: number) => {
+  const safePpb = Math.max(1, ppb || 1);
+  const pendingPieces = Math.max(0, Number(item.pending_gift_boxes || 0)) * safePpb
+    + Math.max(0, Number(item.pending_gift_pieces || 0));
+  return pendingPieces / safePpb;
+};
+
 interface Props {
   workerId: string;
   emptyLabel?: string;
