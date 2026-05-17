@@ -25,9 +25,10 @@ interface EmptyTruckDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   autoFullUnload?: boolean;
+  onUnloaded?: () => void;
 }
 
-const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange, autoFullUnload }) => {
+const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange, autoFullUnload, onUnloaded }) => {
   const { t } = useLanguage();
   const { workerId: currentWorkerId, activeBranch } = useAuth();
   const queryClient = useQueryClient();
@@ -205,6 +206,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
       toast.success(t('stock.empty_truck_success'));
       onOpenChange(false);
+      onUnloaded?.();
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     } finally {
