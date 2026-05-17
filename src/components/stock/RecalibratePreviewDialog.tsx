@@ -17,6 +17,7 @@ export interface PreviewRow {
   last_load_at: string;
   loaded_pieces: number;
   sold_pieces: number;
+  image_url?: string | null;
   movements: Array<{
     created_at: string;
     movement_type: string;
@@ -207,6 +208,16 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                       onClick={() => toggle(r.product_id)}
                       className="w-full p-3 flex items-center gap-2 hover:bg-muted/50 transition-colors text-right"
                     >
+                      {r.image_url ? (
+                        <img
+                          src={r.image_url}
+                          alt={r.product_name}
+                          className="w-10 h-10 rounded-md object-cover border shrink-0 bg-muted"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-md border bg-muted shrink-0" />
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium truncate">{r.product_name}</span>

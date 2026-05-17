@@ -34,7 +34,22 @@ const RecalibrateBalanceButton: React.FC<Props> = ({ workerId, className, title 
         { p_worker_id: workerId },
       );
       if (error) throw error;
-      setRows((data as any[]) as PreviewRow[]);
+      const all = (data as any[]) || [];
+      // Hide rows whose computed balance matches current (no correction needed)
+      const changed = all.filter(
+        (r) => Number(r.current_qty).toFixed(2) !== Number(r.new_qty).toFixed(2),
+      );
+      // Attach product images
+      const ids = Array.from(new Set(changed.map((r) => r.product_id)));
+      let imgMap: Record<string, string | null> = {};
+      if (ids.length) {
+        const { data: prods } = await supabase
+          .from('products')
+          .select('id,image_url')
+          .in('id', ids);
+        imgMap = Object.fromEntries((prods || []).map((p: any) => [p.id, p.image_url]));
+      }
+      setRows(changed.map((r) => ({ ...r, image_url: imgMap[r.product_id] ?? null })) as PreviewRow[]);
     } catch (e: any) {
       toast.error(e?.message || 'فشل تحميل المعاينة');
       setOpen(false);
