@@ -417,7 +417,7 @@ const MyPromosContent: React.FC = () => {
                           {/* Shared product header (clickable) */}
                           <button
                             type="button"
-                            onClick={() => setDetailGroup({ promos: group.promos, offer, ppb, productName: first.product?.name || '' })}
+                            onClick={() => setDetailGroup({ promos: group.promos, offer, ppb, productName: first.product?.name || '', productImage: first.product?.image_url || null, offerDescription, totalSaleBP, totalGiftBP })}
                             className="w-full text-start bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 flex items-center gap-3 hover:bg-primary/5 transition-colors cursor-pointer"
                           >
                             {first.product?.image_url ? (
