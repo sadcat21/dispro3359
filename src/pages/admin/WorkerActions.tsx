@@ -646,7 +646,7 @@ const WorkerActions: React.FC = () => {
 
     const entries: Array<{
       id: string;
-      type: 'load' | 'unload' | 'sale' | 'gift';
+      type: 'load' | 'unload' | 'sale' | 'gift' | 'empty';
       label: string;
       quantity: number;
       before: number;
@@ -659,12 +659,13 @@ const WorkerActions: React.FC = () => {
       customerPhone?: string | null;
       sourceLabel?: string | null;
       sourceStatus?: string | null;
+      previousQty?: number;
       delta: number;
     }> = [];
 
     const rawMovements: Array<{
       id: string;
-      type: 'load' | 'unload' | 'sale' | 'gift';
+      type: 'load' | 'unload' | 'sale' | 'gift' | 'empty';
       label: string;
       quantity: number;
       when: string;
@@ -675,6 +676,7 @@ const WorkerActions: React.FC = () => {
       customerPhone?: string | null;
       sourceLabel?: string | null;
       sourceStatus?: string | null;
+      previousQty?: number;
       delta: number;
     }> = [];
 
