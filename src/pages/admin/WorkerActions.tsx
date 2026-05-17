@@ -549,6 +549,7 @@ const WorkerActions: React.FC = () => {
   }, [truckStock]);
 
   const truckMovementStats = useMemo(() => {
+    const loadSessionMap = new Map<string, any>((truckLoadSessions || []).map((session: any) => [session.id, session]));
     const stats: Record<
       string,
       {
