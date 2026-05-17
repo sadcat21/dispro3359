@@ -628,7 +628,7 @@ const WorkerActions: React.FC = () => {
     }
 
     return stats;
-  }, [truckLoadedData, truckSoldData, truckUnloadedData, truckProductPpbMap]);
+  }, [truckLoadedData, truckSoldData, truckUnloadedData, truckProductPpbMap, truckLoadSessions]);
 
   const selectedTruckProductHistory = useMemo(() => {
     if (!selectedTruckProduct) return null;
