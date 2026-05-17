@@ -206,6 +206,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
       toast.success(t('stock.empty_truck_success'));
       onOpenChange(false);
+      onUnloaded?.();
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     } finally {
