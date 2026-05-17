@@ -394,8 +394,19 @@ const MyPromosContent: React.FC = () => {
                     const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
                     const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
                     const ppb = Number(first.product?.pieces_per_box || 0);
-                    const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
-                    const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
+                     const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
+                     const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
+                     // Totals across all customers in this product group
+                     const totalSalePieces = group.promos.reduce((sum, p) => {
+                       const u = ((p as any).sale_quantity_unit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                       return sum + (u === 'box' ? Number(p.vente_quantity || 0) * ppb : Number(p.vente_quantity || 0));
+                     }, 0);
+                     const totalGiftPieces = group.promos.reduce((sum, p) => {
+                       const u = ((p as any).gift_quantity_unit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
+                       return sum + (u === 'box' ? Number(p.gratuite_quantity || 0) * ppb : Number(p.gratuite_quantity || 0));
+                     }, 0);
+                     const totalSaleBP = formatBP(totalSalePieces, ppb);
+                     const totalGiftBP = formatBP(totalGiftPieces, ppb);
                     const offerDescription = offer
                       ? `${Number(offer.min_quantity || 0)} ${saleUnit === 'box' ? 'BOX' : 'PIECE'} + ${Number(offer.gift_quantity || 0)} ${giftUnit === 'box' ? 'BOX' : 'PIECE'} ( PROMO )`
                       : '';
