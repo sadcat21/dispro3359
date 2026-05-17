@@ -763,6 +763,13 @@ const WorkerActions: React.FC = () => {
     });
 
     const totalLoaded = loadedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const lastLoadedQty = loadedItems.length
+      ? [...loadedItems].sort((a, b) => {
+          const at = a.when ? new Date(a.when).getTime() : 0;
+          const bt = b.when ? new Date(b.when).getTime() : 0;
+          return bt - at;
+        })[0].quantity
+      : 0;
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
