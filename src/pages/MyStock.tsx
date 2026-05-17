@@ -84,15 +84,6 @@ const MyStock: React.FC = () => {
           product: (s as any).product,
         }))}
       />
-
-      <RecalibratePreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        rows={previewRows}
-        loading={previewLoading}
-        applying={recalibrating}
-        onConfirm={runRecalibrate}
-      />
     </div>
   );
 };
