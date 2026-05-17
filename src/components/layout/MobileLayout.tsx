@@ -966,6 +966,22 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </Link>
             ) : <div />}
 
+            {isBranchAdmin && (
+              <Link
+                to="/manager-treasury"
+                className={cn(
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  location.pathname === '/manager-treasury'
+                    ? 'bg-amber-500/15 text-amber-600'
+                    : 'text-amber-600/80 hover:bg-amber-500/10 hover:text-amber-600'
+                )}
+                title={t('nav.manager_treasury') || 'خزينة المدير'}
+                aria-label={t('nav.manager_treasury') || 'خزينة المدير'}
+              >
+                <Wallet className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/manager-treasury' ? 2.45 : 1.85} />
+              </Link>
+            )}
+
             {isFieldWorker && workerId && (
               <React.Suspense fallback={<div className="h-12 w-12" />}>
                 <RecalibrateBalanceButton workerId={workerId} />
