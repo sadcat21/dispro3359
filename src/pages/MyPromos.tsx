@@ -449,19 +449,19 @@ const MyPromosContent: React.FC = () => {
                           {/* Customer column (right in AR, left in FR/EN) */}
                           <div className="order-1 space-y-2">
                             {storeName && (
-                              <div className="flex items-center gap-2 text-sm min-w-0">
+                              <div className="flex items-center gap-2 text-base min-w-0">
                                 <Store className="w-4 h-4 text-amber-600 shrink-0" />
-                                <span className="font-semibold truncate">{storeName}</span>
+                                <span className="font-bold truncate">{storeName}</span>
                               </div>
                             )}
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
-                              <User className="w-4 h-4 shrink-0" />
-                              <span className="truncate">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
+                            <div className="flex items-center gap-2 text-base min-w-0">
+                              <User className="w-4 h-4 shrink-0 text-muted-foreground" />
+                              <span className="truncate font-bold">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
                             </div>
                             {promo.customer?.phone && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
-                                <Phone className="w-4 h-4 shrink-0" />
-                                <span dir="ltr" className="truncate font-medium">{promo.customer.phone}</span>
+                              <div className="flex items-center gap-2 text-base min-w-0">
+                                <Phone className="w-4 h-4 shrink-0 text-muted-foreground" />
+                                <span dir="ltr" className="truncate font-bold">{promo.customer.phone}</span>
                               </div>
                             )}
                           </div>
@@ -469,14 +469,14 @@ const MyPromosContent: React.FC = () => {
                           <div className="order-2 space-y-2.5">
                             <div className="flex items-center gap-2">
                               <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                              <p className="font-bold text-primary leading-none">
-                                {displaySale} <span className="text-xs font-semibold text-muted-foreground">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
+                              <p className="font-bold text-primary leading-none text-base">
+                                {displaySale} <span className="font-bold">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                {displayGift} <span className="text-xs font-semibold text-muted-foreground">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
+                              <p className={`font-bold leading-none text-base ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                {displayGift} <span className="font-bold">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
                               </p>
                             </div>
                             <div className="flex items-center gap-2 text-xs min-w-0">
