@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { requireAdminSecret } from "../_shared/admin.ts";
+import { requireAdminUser } from "../_shared/admin.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,7 +105,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    requireAdminSecret(req);
+    await requireAdminUser(req);
     const body = await req.json();
     const { step, target, sql, expected } = body || {};
 

@@ -30,3 +30,30 @@ export const requireAdminSecret = (req: Request) => {
     throw new Error("Unauthorized admin request");
   }
 };
+
+/**
+ * Verify the caller is an authenticated admin/branch_admin/company_manager
+ * by checking the bearer token's user_id against the user_roles table.
+ * Use for edge functions called from the authenticated admin UI.
+ */
+export const requireAdminUser = async (req: Request) => {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!token) throw new Error("Unauthorized: missing bearer token");
+
+  const admin = createAdminClient();
+  const { data: userRes, error: userErr } = await admin.auth.getUser(token);
+  if (userErr || !userRes?.user) throw new Error("Unauthorized: invalid session");
+
+  const { data: roles, error: rolesErr } = await admin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userRes.user.id);
+  if (rolesErr) throw new Error("Unauthorized: role lookup failed");
+
+  const allowed = new Set(["admin", "branch_admin", "company_manager"]);
+  const hasRole = (roles ?? []).some((r: { role: string }) => allowed.has(r.role));
+  if (!hasRole) throw new Error("Unauthorized: admin role required");
+
+  return userRes.user;
+};
