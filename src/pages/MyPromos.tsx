@@ -355,34 +355,42 @@ const MyPromosContent: React.FC = () => {
                   const displayGift = formatBP(giftPieces, ppb);
                   const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
                   const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
+                  const offerDescription = offer
+                    ? `${Number(offer.min_quantity || 0)} ${saleUnit === 'box' ? 'BOX' : 'PIECE'} + ${Number(offer.gift_quantity || 0)} ${giftUnit === 'box' ? 'BOX' : 'PIECE'} ( PROMO )`
+                    : '';
                   return (
                   <Card key={promo.id} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
                     <CardContent className="p-0">
                       {/* Header: Product name + offer badges */}
-                      <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                          {promo.product?.image_url ? (
-                            <img
-                              src={promo.product.image_url}
-                              alt={promo.product?.name || ''}
-                              className="w-9 h-9 rounded-md object-cover border border-border shrink-0"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <Package className="w-4 h-4 text-primary shrink-0" />
-                          )}
-                          <span className="font-bold text-base truncate">{promo.product?.name}</span>
+                      <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            {promo.product?.image_url ? (
+                              <img
+                                src={promo.product.image_url}
+                                alt={promo.product?.name || ''}
+                                className="w-9 h-9 rounded-md object-cover border border-border shrink-0"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <Package className="w-4 h-4 text-primary shrink-0" />
+                            )}
+                            <span className="font-bold text-base truncate">{promo.product?.name}</span>
+                            {offer && (
+                              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
+                                <ShoppingCart className="w-3 h-3" />
+                                <span className="font-semibold">{offerSaleBP}</span>
+                              </span>
+                            )}
+                          </div>
                           {offer && (
-                            <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
-                              <ShoppingCart className="w-3 h-3" />
-                              <span className="font-semibold">{offerSaleBP}</span>
-                            </span>
-                          )}
-                          {offer && (
-                            <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
-                              <Gift className="w-3 h-3" />
-                              <span className="font-semibold">{offerGiftBP}</span>
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-semibold text-muted-foreground truncate">{offerDescription}</span>
+                              <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
+                                <Gift className="w-3 h-3" />
+                                <span className="font-semibold">{offerGiftBP}</span>
+                              </span>
+                            </div>
                           )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
@@ -404,11 +412,7 @@ const MyPromosContent: React.FC = () => {
                         {(() => {
                           return (
                             <>
-                              {offer && (
-                                <div className="text-[11px] bg-muted/40 rounded-md py-1.5 px-2 border border-border flex items-center gap-1.5 flex-wrap">
-                                  <span className="font-semibold truncate text-muted-foreground">{offer.name}</span>
-                                </div>
-                              )}
+
                               {/* Quantities (display per offer unit) */}
                               <div className="grid grid-cols-2 gap-2">
                                 <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
