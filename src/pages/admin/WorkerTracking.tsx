@@ -30,14 +30,45 @@ const WorkerTracking: React.FC = () => {
     trackableIds === null || trackableIds === undefined || trackableIds.includes(w.worker_id)
   );
 
-  const selectedWorkerStops: WorkerStopRecord[] = useMemo(() => {
-    if (!highlightWorkerId || !workers) return [];
-    const w = workers.find(w => w.worker_id === highlightWorkerId);
-    const raw = w?.stops;
-    if (Array.isArray(raw)) return raw as WorkerStopRecord[];
-    if (raw && typeof raw === 'object') return Object.values(raw) as WorkerStopRecord[];
-    return [];
-  }, [highlightWorkerId, workers]);
+  // Fetch operation visits (sales, deliveries, customer visits...) for selected worker
+  // These are now the points used to draw the worker's path on the map.
+  const { data: visitStops } = useQuery({
+    queryKey: ['worker-visit-stops', highlightWorkerId],
+    enabled: !!highlightWorkerId,
+    queryFn: async () => {
+      const since = new Date();
+      since.setHours(since.getHours() - 24);
+      const { data, error } = await supabase
+        .from('visit_tracking')
+        .select('id, latitude, longitude, address, created_at, operation_type, customer_id, notes')
+        .eq('worker_id', highlightWorkerId!)
+        .gte('created_at', since.toISOString())
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      const customerIds = [...new Set((data || []).filter(v => v.customer_id).map(v => v.customer_id!))];
+      const { data: customers } = customerIds.length
+        ? await supabase.from('customers').select('id, name').in('id', customerIds)
+        : { data: [] as { id: string; name: string }[] };
+      const cMap = new Map((customers || []).map(c => [c.id, c.name]));
+      return (data || []).map((v: any) => ({
+        lat: Number(v.latitude),
+        lng: Number(v.longitude),
+        address: v.address || undefined,
+        started_at: v.created_at,
+        duration_min: 0,
+        operation_type: v.operation_type,
+        operation_label: getOperationLabel(v.operation_type as OperationType),
+        customer_name: v.customer_id ? cMap.get(v.customer_id) : undefined,
+        notes: v.notes || undefined,
+      })) as WorkerStopRecord[];
+    },
+    refetchInterval: 30000,
+  });
+
+  const selectedWorkerStops: WorkerStopRecord[] = visitStops || [];
+
 
   const selectWorker = (workerId: string) => {
     if (workerId === highlightWorkerId) {
