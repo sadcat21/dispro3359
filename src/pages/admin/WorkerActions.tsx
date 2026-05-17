@@ -793,9 +793,10 @@ const WorkerActions: React.FC = () => {
       return aTime - bTime;
     });
 
-    const totalLoaded = loadedItems.reduce((sum, item) => sum + item.quantity, 0);
-    const lastLoadedQty = loadedItems.length
-      ? [...loadedItems].sort((a, b) => {
+    const loadOnlyItems = loadedItems.filter((item) => item.type === 'load');
+    const totalLoaded = loadOnlyItems.reduce((sum, item) => sum + item.quantity, 0);
+    const lastLoadedQty = loadOnlyItems.length
+      ? [...loadOnlyItems].sort((a, b) => {
           const at = a.when ? new Date(a.when).getTime() : 0;
           const bt = b.when ? new Date(b.when).getTime() : 0;
           return bt - at;
@@ -819,7 +820,13 @@ const WorkerActions: React.FC = () => {
     // balance after that movement, independent of any later shortage/discrepancy.
     let runningPieces = toPieces(openingBalance);
     const forwardEntries = rawMovements.map((movement) => {
-      const beforePieces = runningPieces;
+      if (movement.type === 'empty') {
+        runningPieces = 0;
+        return { ...movement, before: 0, after: 0 };
+      }
+      const beforePieces = movement.type === 'load' && typeof movement.previousQty === 'number'
+        ? toPieces(movement.previousQty)
+        : runningPieces;
       const afterPieces = beforePieces + toPieces(movement.delta);
       runningPieces = afterPieces;
       return { ...movement, before: fromPieces(beforePieces), after: fromPieces(afterPieces) };
