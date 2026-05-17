@@ -804,6 +804,7 @@ const WorkerActions: React.FC = () => {
       computedCurrent: currentQty,
       entries: historyEntries,
       totalLoaded,
+      lastLoadedQty,
       openingBalance,
       shortage,
       totalAvailable,
