@@ -17,6 +17,7 @@ export interface PreviewRow {
   last_load_at: string;
   loaded_pieces: number;
   sold_pieces: number;
+  image_url?: string | null;
   movements: Array<{
     created_at: string;
     movement_type: string;
