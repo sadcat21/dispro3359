@@ -470,18 +470,22 @@ const MyPromosContent: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                               <p className="font-bold text-primary leading-none">
-                                {displaySale} <span className="text-[10px] font-normal text-muted-foreground">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
+                                {displaySale} <span className="text-xs font-semibold text-muted-foreground">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
                               <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                {displayGift} <span className="text-[10px] font-normal text-muted-foreground">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
+                                {displayGift} <span className="text-xs font-semibold text-muted-foreground">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
                               </p>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                              <Calendar className="w-3.5 h-3.5 shrink-0" />
-                              <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
+                            <div className="flex items-center gap-2 text-xs min-w-0">
+                              <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                              <span className="truncate">
+                                <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
+                                <span className="text-muted-foreground mx-1">-</span>
+                                <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
+                              </span>
                             </div>
                           </div>
                         </div>
