@@ -92,7 +92,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {rows.map((r) => {
+              {gapRows.map((r) => {
                 const isOpen = expanded.has(r.product_id);
                 const diff = Number(r.new_qty) - Number(r.current_qty);
                 const diffPositive = diff > 0;
