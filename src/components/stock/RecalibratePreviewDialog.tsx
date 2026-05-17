@@ -53,16 +53,55 @@ const piecesToBP = (pieces: number, ppb: number) => {
   return `${b}.${String(p).padStart(2, '0')}`;
 };
 
+type GapKind = 'shipping' | 'gift' | 'sale';
+const GAP_META: Record<GapKind, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  shipping: { label: 'الشحن', icon: Truck },
+  gift: { label: 'الهدايا', icon: Gift },
+  sale: { label: 'البيع', icon: ShoppingCart },
+};
+const ANALYSIS_STEPS: GapKind[] = ['shipping', 'gift', 'sale'];
+
+function computeGaps(r: PreviewRow): Record<GapKind, number> {
+  const movs = r.movements || [];
+  const sumPieces = (types: string[]) =>
+    movs.filter(m => types.includes(m.movement_type))
+        .reduce((s, m) => s + Math.abs(Number(m.quantity) || 0), 0);
+  return {
+    shipping: sumPieces(['load']),
+    gift: sumPieces(['promo_gift']),
+    sale: sumPieces(['promo_sale', 'direct_sale', 'delivery', 'modification']),
+  };
+}
+
 const RecalibratePreviewDialog: React.FC<Props> = ({
   open, onOpenChange, rows, loading, applying, onConfirm,
 }) => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [analysisStep, setAnalysisStep] = useState(0);
+
+  useEffect(() => {
+    if (!loading) { setAnalysisStep(ANALYSIS_STEPS.length); return; }
+    setAnalysisStep(0);
+    const id = setInterval(() => {
+      setAnalysisStep(s => (s < ANALYSIS_STEPS.length ? s + 1 : s));
+    }, 600);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const toggle = (id: string) => {
     const next = new Set(expanded);
     next.has(id) ? next.delete(id) : next.add(id);
     setExpanded(next);
   };
+
+  const totalsByKind = useMemo(() => {
+    const t: Record<GapKind, number> = { shipping: 0, gift: 0, sale: 0 };
+    rows.forEach(r => {
+      const g = computeGaps(r);
+      (Object.keys(g) as GapKind[]).forEach(k => { t[k] += g[k]; });
+    });
+    return t;
+  }, [rows]);
 
   const hasErrors = rows.length > 0;
 
