@@ -315,7 +315,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const openingBalance = Math.max(0, currentQty - totalDelta);
     let runningBalance = openingBalance;
     const forwardEntries = movements.map(m => {
-      const before = runningBalance;
+      if (m.type === 'empty') {
+        runningBalance = 0;
+        return { ...m, before: 0, after: 0 };
+      }
+      const before = m.type === 'load' && typeof m.previousQty === 'number' ? Math.max(0, m.previousQty) : runningBalance;
       const after = Math.max(0, before + m.delta);
       runningBalance = after;
       return { ...m, before, after };
