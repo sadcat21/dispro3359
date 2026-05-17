@@ -411,9 +411,16 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
+  const getRemaining = (item: any) => {
+    const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
+    const r = remainingByProduct[item.product_id];
+    return typeof r === 'number' ? r : dbBPToBoxes(Number(item.quantity || 0), ppb);
+  };
   const sorted = [...truckStock].sort((a: any, b: any) => {
-    if (a.quantity === 0 && b.quantity > 0) return 1;
-    if (a.quantity > 0 && b.quantity === 0) return -1;
+    const ra = getRemaining(a);
+    const rb = getRemaining(b);
+    if (ra === 0 && rb > 0) return 1;
+    if (ra > 0 && rb === 0) return -1;
     return (a.product?.name || '').localeCompare(b.product?.name || '');
   });
 
