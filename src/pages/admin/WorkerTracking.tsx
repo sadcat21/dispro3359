@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSearchParams } from 'react-router-dom';
 import WorkerTrackingMap from '@/components/map/WorkerTrackingMap';
@@ -10,6 +11,8 @@ import TrackingSettingsDialog from '@/components/map/TrackingSettingsDialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { getOperationLabel, OperationType } from '@/hooks/useVisitTracking';
 
 const WorkerTracking: React.FC = () => {
   const { t, dir } = useLanguage();
