@@ -1259,7 +1259,9 @@ const WorkerActions: React.FC = () => {
                             ? 'bg-red-100 text-red-700 border-red-200'
                             : entry.type === 'gift'
                               ? 'bg-orange-100 text-orange-700 border-orange-200'
-                              : 'bg-green-100 text-green-700 border-green-200';
+                              : entry.type === 'empty'
+                                ? 'bg-slate-100 text-slate-700 border-slate-200'
+                                : 'bg-green-100 text-green-700 border-green-200';
 
                       return (
                         <div key={entry.id} className="space-y-1">
@@ -1268,7 +1270,7 @@ const WorkerActions: React.FC = () => {
                               {dateLabel}
                             </div>
                           )}
-                          <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}`}>
+                          <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'empty' ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-200'}`}>
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -1292,7 +1294,7 @@ const WorkerActions: React.FC = () => {
                                 {entry.customerName && entry.customerName !== entry.customerStoreName ? ` • ${entry.customerName}` : ''}
                               </div>
                             </div>
-                            <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : 'text-blue-700'}`}>
+                            <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'empty' ? 'text-slate-700' : 'text-blue-700'}`}>
                                 {deltaLabel.startsWith('-')
                                   ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
                                   : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
