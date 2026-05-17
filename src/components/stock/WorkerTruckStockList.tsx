@@ -416,7 +416,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border border-violet-300 text-violet-700 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800">
-                    <TrendingUp className="w-3 h-3" /> {fmtBP(s.loaded || 0, ppb)}
+                    <TrendingUp className="w-3 h-3" /> {fmtBP(s.lastLoaded || 0, ppb)}
                   </span>
                 </div>
               </button>
@@ -459,10 +459,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <Package className="w-3 h-3" /> الباقي {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> المجموع {fmtBP(s.loaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                  <Package className="w-3 h-3" /> المجموع {fmtBP((s.loaded || 0) + (s.unloaded || 0) + (s.sold || 0) + (s.giftQty || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
-                  <TrendingUp className="w-3 h-3" /> شحن {fmtBP(s.loaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                  <TrendingUp className="w-3 h-3" /> شحن {fmtBP(s.lastLoaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.loadCount?.size > 0 && <span className="font-bold">×{s.loadCount.size}</span>}
                 </span>
                 <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
