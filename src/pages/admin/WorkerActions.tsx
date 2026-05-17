@@ -1116,7 +1116,7 @@ const WorkerActions: React.FC = () => {
                             </span>
                             <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                               <TrendingUp className="w-3 h-3" />
-                              شحن {formatTruckQty(loaded, ppb)}
+                              شحن {formatTruckQty(lastLoaded, ppb)}
                               {loadCount > 0 && <span className="font-bold">×{loadCount}</span>}
                             </span>
                             <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
