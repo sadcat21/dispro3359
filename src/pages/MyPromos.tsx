@@ -599,44 +599,44 @@ const MyPromosContent: React.FC = () => {
 
       <Dialog open={!!detailGroup} onOpenChange={(open) => !open && setDetailGroup(null)}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0">
-          <DialogHeader className="border-b sticky top-0 bg-background z-10 space-y-0">
-            <DialogTitle className="sr-only">{detailGroup?.productName}</DialogTitle>
-            {detailGroup && (
-              <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 flex items-center gap-3 text-start">
-                {detailGroup.productImage ? (
-                  <img
-                    src={detailGroup.productImage}
-                    alt={detailGroup.productName}
-                    className="w-12 h-12 rounded-md object-cover border border-border shrink-0"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-md border border-border bg-muted flex items-center justify-center shrink-0">
-                    <Package className="w-5 h-5 text-primary" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0 space-y-1">
-                  <span className="font-bold text-base truncate block">{detailGroup.productName}</span>
-                  {detailGroup.offer && (
-                    <span className="text-xs font-semibold text-muted-foreground truncate block">{detailGroup.offerDescription}</span>
-                  )}
-                  <span className="text-[11px] text-muted-foreground block">
-                    {detailGroup.promos.length} {language === 'fr' ? 'clients' : language === 'en' ? 'customers' : 'زبائن'}
-                  </span>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0 me-6">
-                  <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
-                    <ShoppingCart className="w-3 h-3" />
-                    <span className="font-semibold">{detailGroup.totalSaleBP}</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
-                    <Gift className="w-3 h-3" />
-                    <span className="font-semibold">{detailGroup.totalGiftBP}</span>
-                  </span>
-                </div>
-              </div>
-            )}
+          <DialogHeader className="sr-only">
+            <DialogTitle>{detailGroup?.productName}</DialogTitle>
           </DialogHeader>
+          {detailGroup && (
+            <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 flex items-center gap-3 border-b sticky top-0 z-10 pe-10">
+              {detailGroup.productImage ? (
+                <img
+                  src={detailGroup.productImage}
+                  alt={detailGroup.productName}
+                  className="w-12 h-12 rounded-md object-cover border border-border shrink-0"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-md border border-border bg-muted flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-primary" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 space-y-1">
+                <span className="font-bold text-base truncate block">{detailGroup.productName}</span>
+                {detailGroup.offer && (
+                  <span className="text-xs font-semibold text-muted-foreground truncate block">{detailGroup.offerDescription}</span>
+                )}
+                <span className="text-[11px] text-muted-foreground block">
+                  {detailGroup.promos.length} {language === 'fr' ? 'clients' : language === 'en' ? 'customers' : 'زبائن'}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
+                  <ShoppingCart className="w-3 h-3" />
+                  <span className="font-semibold">{detailGroup.totalSaleBP}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
+                  <Gift className="w-3 h-3" />
+                  <span className="font-semibold">{detailGroup.totalGiftBP}</span>
+                </span>
+              </div>
+            </div>
+          )}
           {detailGroup && (
             <div className="divide-y divide-border/60">
               {detailGroup.promos.map((promo) => {
