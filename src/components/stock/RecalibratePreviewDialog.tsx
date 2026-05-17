@@ -257,7 +257,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                                 }`}
                               >
                                 <Icon className="w-2.5 h-2.5" />
-                                {meta.label}: {has ? v : '0'}
+                                {meta.label}: {has ? `${piecesToBP(v, Math.max(Number(r.ppb) || 1, 1))} ب.ق` : '0'}
                               </Badge>
                             );
                           })}
