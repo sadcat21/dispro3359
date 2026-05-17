@@ -445,24 +445,9 @@ const MyPromosContent: React.FC = () => {
 
                       {/* Body */}
                       <div className="p-4 space-y-3">
-                        <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4" dir="rtl">
-                          {/* Right column: sales / gift / date */}
-                          <div className="order-1 space-y-2.5">
-                            <div className="flex items-center gap-2">
-                              <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                              <p className="font-bold text-primary leading-none">{displaySale}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>{displayGift}</p>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                              <Calendar className="w-3.5 h-3.5 shrink-0" />
-                              <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
-                            </div>
-                          </div>
-                          {/* Left column: customer info */}
-                          <div className="order-2 space-y-2">
+                        <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                          {/* Customer column (right in AR, left in FR/EN) */}
+                          <div className="order-1 space-y-2">
                             {storeName && (
                               <div className="flex items-center gap-2 text-sm min-w-0">
                                 <Store className="w-4 h-4 text-amber-600 shrink-0" />
@@ -479,6 +464,25 @@ const MyPromosContent: React.FC = () => {
                                 <span dir="ltr" className="truncate">{promo.customer.phone}</span>
                               </div>
                             )}
+                          </div>
+                          {/* Sales / gift / date column */}
+                          <div className="order-2 space-y-2.5">
+                            <div className="flex items-center gap-2">
+                              <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
+                              <p className="font-bold text-primary leading-none">
+                                {displaySale} <span className="text-[10px] font-normal text-muted-foreground">(بيع)</span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                {displayGift} <span className="text-[10px] font-normal text-muted-foreground">(برومو)</span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+                              <Calendar className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
+                            </div>
                           </div>
                         </div>
 
