@@ -1063,7 +1063,7 @@ const WorkerActions: React.FC = () => {
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
                       const currentQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
-                      const totalAvailable = currentQty + unloaded + sold + giftQty;
+                      const totalAvailable = loaded + unloaded + sold + giftQty;
                       const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
