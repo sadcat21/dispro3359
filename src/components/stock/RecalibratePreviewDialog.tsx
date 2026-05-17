@@ -64,7 +64,8 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
     setExpanded(next);
   };
 
-  const hasErrors = rows.length > 0;
+  const gapRows = rows.filter(r => Number(r.new_qty) !== Number(r.current_qty));
+  const hasErrors = gapRows.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
