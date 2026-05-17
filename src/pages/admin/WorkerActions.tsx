@@ -1058,6 +1058,7 @@ const WorkerActions: React.FC = () => {
                       const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 1);
                       const stats = truckMovementStats[item.product_id];
                       const loaded = stats?.loaded || 0;
+                      const lastLoaded = stats?.lastLoaded || 0;
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
