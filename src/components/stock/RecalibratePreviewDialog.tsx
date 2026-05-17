@@ -281,12 +281,12 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                             <p className="font-medium">{format(new Date(r.last_load_at), 'yyyy-MM-dd HH:mm')}</p>
                           </div>
                           <div className="p-2 rounded bg-background border">
-                            <p className="text-muted-foreground text-[10px]">المُحمَّل (قطع)</p>
-                            <p className="font-medium">{r.loaded_pieces} ({piecesToBP(Number(r.loaded_pieces), r.ppb)} ب.ق)</p>
+                            <p className="text-muted-foreground text-[10px]">المُحمَّل</p>
+                            <p className="font-medium">{piecesToBP(Number(r.loaded_pieces), r.ppb)} ب.ق</p>
                           </div>
                           <div className="p-2 rounded bg-background border">
-                            <p className="text-muted-foreground text-[10px]">المباع (قطع)</p>
-                            <p className="font-medium">{r.sold_pieces} ({piecesToBP(Number(r.sold_pieces), r.ppb)} ب.ق)</p>
+                            <p className="text-muted-foreground text-[10px]">المباع</p>
+                            <p className="font-medium">{piecesToBP(Number(r.sold_pieces), r.ppb)} ب.ق</p>
                           </div>
                         </div>
 
