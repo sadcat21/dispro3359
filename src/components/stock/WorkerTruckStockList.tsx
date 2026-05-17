@@ -576,7 +576,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                                 </div>
                               )}
                               <div className="rounded-lg bg-emerald-100/70 border border-emerald-200 px-1.5 py-1.5 text-center min-w-[52px]">
-                                <div className="text-[9px] text-emerald-800">المُسلَّم</div>
+                                <div className="text-[9px] text-emerald-800">{entry.type === 'load' ? 'الشحن' : 'المُسلَّم'}</div>
                                 <div className="text-[12px] font-extrabold text-emerald-700">{fmtBP(entry.quantity, history.ppb)}</div>
                               </div>
                               <div className="rounded-lg bg-red-600 border border-red-700 px-1.5 py-1.5 text-center min-w-[52px]">
