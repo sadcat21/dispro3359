@@ -307,9 +307,17 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     }
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
-    const chronological = [...movements].reverse();
-    let bal = currentQty;
-    const allEntries = chronological.map(m => { const after = bal; const before = bal - m.delta; bal = before; return { ...m, before, after }; });
+    const totalDelta = movements.reduce((sum, m) => sum + m.delta, 0);
+    const openingBalance = Math.max(0, currentQty - totalDelta);
+    let runningBalance = openingBalance;
+    const forwardEntries = movements.map(m => {
+      const before = runningBalance;
+      const after = Math.max(0, before + m.delta);
+      runningBalance = after;
+      return { ...m, before, after };
+    });
+    const chronological = [...forwardEntries].reverse();
+    const allEntries = chronological;
 
     // Group modifications/cancellations into their parent sale card (when same order_id).
     const saleByOrderId = new Map<string, any>();
@@ -330,11 +338,12 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     }
 
     const totalLoaded = movements.filter(m => m.type === 'load').reduce((s, m) => s + m.quantity, 0);
+    const lastLoadedQty = movements.filter(m => m.type === 'load').at(-1)?.quantity || 0;
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
     const totalGift = movements.filter(m => m.type === 'gift').reduce((s, m) => s + m.quantity, 0);
 
-    return { entries, currentQty, totalLoaded, totalUnloaded, totalSold, totalGift, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
+    return { entries, currentQty, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
   const sorted = [...truckStock].sort((a: any, b: any) => {
