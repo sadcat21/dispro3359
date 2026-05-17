@@ -367,139 +367,157 @@ const MyPromosContent: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredPromos.map((promo) => {
-                  const storeName = (language === 'fr' && promo.customer?.store_name_fr)
-                    ? promo.customer?.store_name_fr
-                    : promo.customer?.store_name;
-                  const explicitOffer: any = (promo as any).offer;
-                  const promoSaleUnit = (promo as any).sale_quantity_unit as 'box' | 'piece' | undefined;
-                  const promoGiftUnit = (promo as any).gift_quantity_unit as 'box' | 'piece' | undefined;
-                  const inferredOffer = !explicitOffer && promo.product_id
-                    ? offers
-                        .filter((offer) => offer.product_id === promo.product_id)
-                        .find((offer) => isOfferCurrentlyActive(offer, new Date(promo.promo_date)))
-                    : null;
-                  const offer = explicitOffer || inferredOffer;
-                  const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
-                  const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
-                  const ppb = Number(promo.product?.pieces_per_box || 0);
-                  const salePieces = saleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
-                  const giftPieces = giftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
-                  const displaySale = formatBP(salePieces, ppb);
-                  const displayGift = formatBP(giftPieces, ppb);
-                  const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
-                  const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
-                  const offerDescription = offer
-                    ? `${Number(offer.min_quantity || 0)} ${saleUnit === 'box' ? 'BOX' : 'PIECE'} + ${Number(offer.gift_quantity || 0)} ${giftUnit === 'box' ? 'BOX' : 'PIECE'} ( PROMO )`
-                    : '';
-                  return (
-                  <Card key={promo.id} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
-                    <CardContent className="p-0">
-                      {/* Header: Product name + offer badges */}
-                      <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0 flex items-center gap-3">
-                          {promo.product?.image_url ? (
-                            <img
-                              src={promo.product.image_url}
-                              alt={promo.product?.name || ''}
-                              className="w-12 h-12 rounded-md object-cover border border-border shrink-0"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-md border border-border bg-muted flex items-center justify-center shrink-0">
-                              <Package className="w-5 h-5 text-primary" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <span className="font-bold text-base truncate block">{promo.product?.name}</span>
-                            {offer && (
-                              <span className="text-xs font-semibold text-muted-foreground truncate block">{offerDescription}</span>
+                {(() => {
+                  // Group promos by product_id, preserving original order (latest first)
+                  const groups: { key: string; promos: typeof filteredPromos }[] = [];
+                  const groupIndex: Record<string, number> = {};
+                  filteredPromos.forEach((p) => {
+                    const key = p.product_id || p.id;
+                    if (groupIndex[key] === undefined) {
+                      groupIndex[key] = groups.length;
+                      groups.push({ key, promos: [p] });
+                    } else {
+                      groups[groupIndex[key]].promos.push(p);
+                    }
+                  });
+                  return groups.map((group) => {
+                    const first = group.promos[0];
+                    const explicitOffer: any = (first as any).offer;
+                    const promoSaleUnit = (first as any).sale_quantity_unit as 'box' | 'piece' | undefined;
+                    const promoGiftUnit = (first as any).gift_quantity_unit as 'box' | 'piece' | undefined;
+                    const inferredOffer = !explicitOffer && first.product_id
+                      ? offers
+                          .filter((offer) => offer.product_id === first.product_id)
+                          .find((offer) => isOfferCurrentlyActive(offer, new Date(first.promo_date)))
+                      : null;
+                    const offer = explicitOffer || inferredOffer;
+                    const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                    const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
+                    const ppb = Number(first.product?.pieces_per_box || 0);
+                    const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
+                    const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
+                    const offerDescription = offer
+                      ? `${Number(offer.min_quantity || 0)} ${saleUnit === 'box' ? 'BOX' : 'PIECE'} + ${Number(offer.gift_quantity || 0)} ${giftUnit === 'box' ? 'BOX' : 'PIECE'} ( PROMO )`
+                      : '';
+                    return (
+                      <Card key={group.key} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
+                        <CardContent className="p-0">
+                          {/* Shared product header */}
+                          <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-center gap-3">
+                            {first.product?.image_url ? (
+                              <img
+                                src={first.product.image_url}
+                                alt={first.product?.name || ''}
+                                className="w-12 h-12 rounded-md object-cover border border-border shrink-0"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-md border border-border bg-muted flex items-center justify-center shrink-0">
+                                <Package className="w-5 h-5 text-primary" />
+                              </div>
                             )}
-                          </div>
-                          {offer && (
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
-                                <ShoppingCart className="w-3 h-3" />
-                                <span className="font-semibold">{offerSaleBP}</span>
-                              </span>
-                              <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
-                                <Gift className="w-3 h-3" />
-                                <span className="font-semibold">{offerGiftBP}</span>
-                              </span>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <span className="font-bold text-base truncate block">{first.product?.name}</span>
+                              {offer && (
+                                <span className="text-xs font-semibold text-muted-foreground truncate block">{offerDescription}</span>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {!isEditPromoHidden && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)} disabled={isFrozen}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
-                          {!isDeletePromoHidden && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)} disabled={isFrozen}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Body */}
-                      <div className="p-4 space-y-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                        {storeName && (
-                          <div className="flex items-center gap-2 text-base min-w-0 pb-2 border-b border-border/60">
-                            <Store className="w-4 h-4 text-amber-600 shrink-0" />
-                            <span className="font-bold truncate">{storeName}</span>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4">
-                          {/* Customer column (right in AR, left in FR/EN) */}
-                          <div className="order-1 space-y-2">
-                            <div className="flex items-center gap-2 text-base min-w-0">
-                              <User className="w-4 h-4 shrink-0 text-muted-foreground" />
-                              <span className="truncate font-bold">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
-                            </div>
-                            {promo.customer?.phone && (
-                              <div className="flex items-center gap-2 text-base min-w-0">
-                                <Phone className="w-4 h-4 shrink-0 text-muted-foreground" />
-                                <span dir="ltr" className="truncate font-bold">{promo.customer.phone}</span>
+                            {offer && (
+                              <div className="flex flex-col items-end gap-1 shrink-0">
+                                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
+                                  <ShoppingCart className="w-3 h-3" />
+                                  <span className="font-semibold">{offerSaleBP}</span>
+                                </span>
+                                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
+                                  <Gift className="w-3 h-3" />
+                                  <span className="font-semibold">{offerGiftBP}</span>
+                                </span>
                               </div>
                             )}
                           </div>
-                          {/* Sales / gift / date column */}
-                          <div className="order-2 space-y-2.5">
-                            <div className="flex items-center gap-2">
-                              <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                              <p className="font-bold text-primary leading-none text-base">
-                                {displaySale} <span className="font-bold">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                              <p className={`font-bold leading-none text-base ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                {displayGift} <span className="font-bold">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs min-w-0">
-                              <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span className="truncate">
-                                <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
-                                <span className="text-muted-foreground mx-1">-</span>
-                                <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
 
-                        {promo.notes && (
-                          <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded border-r-2 border-muted-foreground/30">
-                            {promo.notes}
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  );
-                })}
+                          {/* Customer entries */}
+                          <div className="divide-y divide-border/60">
+                            {group.promos.map((promo) => {
+                              const storeName = (language === 'fr' && promo.customer?.store_name_fr)
+                                ? promo.customer?.store_name_fr
+                                : promo.customer?.store_name;
+                              const pSaleUnit = ((promo as any).sale_quantity_unit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                              const pGiftUnit = ((promo as any).gift_quantity_unit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
+                              const salePieces = pSaleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
+                              const giftPieces = pGiftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
+                              const displaySale = formatBP(salePieces, ppb);
+                              const displayGift = formatBP(giftPieces, ppb);
+                              return (
+                                <div key={promo.id} className="p-4 space-y-3 relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                                  <div className="absolute top-2 end-2 flex items-center gap-1">
+                                    {!isEditPromoHidden && (
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)} disabled={isFrozen}>
+                                        <Pencil className="w-3.5 h-3.5" />
+                                      </Button>
+                                    )}
+                                    {!isDeletePromoHidden && (
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)} disabled={isFrozen}>
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                  {storeName && (
+                                    <div className="flex items-center gap-2 text-base min-w-0 pb-2 border-b border-border/60 pe-16">
+                                      <Store className="w-4 h-4 text-amber-600 shrink-0" />
+                                      <span className="font-bold truncate">{storeName}</span>
+                                    </div>
+                                  )}
+                                  <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4">
+                                    <div className="order-1 space-y-2">
+                                      <div className="flex items-center gap-2 text-base min-w-0">
+                                        <User className="w-4 h-4 shrink-0 text-muted-foreground" />
+                                        <span className="truncate font-bold">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
+                                      </div>
+                                      {promo.customer?.phone && (
+                                        <div className="flex items-center gap-2 text-base min-w-0">
+                                          <Phone className="w-4 h-4 shrink-0 text-muted-foreground" />
+                                          <span dir="ltr" className="truncate font-bold">{promo.customer.phone}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="order-2 space-y-2.5">
+                                      <div className="flex items-center gap-2">
+                                        <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
+                                        <p className="font-bold text-primary leading-none text-base">
+                                          {displaySale} <span className="font-bold">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                                        <p className={`font-bold leading-none text-base ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                          {displayGift} <span className="font-bold">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-xs min-w-0">
+                                        <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                                        <span className="truncate">
+                                          <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
+                                          <span className="text-muted-foreground mx-1">-</span>
+                                          <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {promo.notes && (
+                                    <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded border-r-2 border-muted-foreground/30">
+                                      {promo.notes}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
