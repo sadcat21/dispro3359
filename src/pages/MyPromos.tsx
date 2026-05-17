@@ -476,7 +476,7 @@ const MyPromosContent: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
                               <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                {displayGift} <span className="text-[10px] font-normal text-muted-foreground">(برومو)</span>
+                                {displayGift} <span className="text-[10px] font-normal text-muted-foreground">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
                               </p>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
