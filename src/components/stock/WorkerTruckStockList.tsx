@@ -324,7 +324,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
     const totalDelta = movements.reduce((sum, m) => sum + m.delta, 0);
-    const openingBalance = Math.max(0, currentQty - totalDelta);
+    // إذا وُجد حدث "الشاحنة فارغة" فإن الرصيد قد أُعيد إلى الصفر، لذا لا يوجد رصيد افتتاحي غير مفسَّر.
+    const hasEmptyReset = movements.some(m => m.type === 'empty');
+    const openingBalance = hasEmptyReset ? 0 : Math.max(0, currentQty - totalDelta);
     let runningBalance = openingBalance;
     const forwardEntries = movements.map(m => {
       if (m.type === 'empty') {
