@@ -196,7 +196,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
           {hasErrors && (
             <Button onClick={onConfirm} disabled={applying || loading} className="w-full">
               {applying && <Loader2 className="w-4 h-4 ml-1 animate-spin" />}
-              تأكيد التصحيح ({rows.length})
+              تأكيد التصحيح ({gapRows.length})
             </Button>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={applying} className="w-full">
