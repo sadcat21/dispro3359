@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { requireAdminSecret } from "../_shared/admin.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-secret",
 };
 
 const json = (d: unknown, s = 200) =>
@@ -104,6 +105,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    requireAdminSecret(req);
     const body = await req.json();
     const { step, target, sql, expected } = body || {};
 
@@ -247,7 +249,6 @@ serve(async (req) => {
         await client.queryArray(`GRANT ALL ON SCHEMA public TO postgres;`);
         await client.queryArray(`GRANT ALL ON SCHEMA public TO public;`);
         await client.queryArray(`GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;`);
-        await client.queryArray(`GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;`);
         return json({ ok: true, message: "تم تفريغ قاعدة البيانات بنجاح" });
       }
 
