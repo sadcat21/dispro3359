@@ -345,8 +345,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       entries.push(e);
     }
 
-    const totalLoaded = movements.filter(m => m.type === 'load').reduce((s, m) => s + m.quantity, 0);
-    const lastLoadedQty = movements.filter(m => m.type === 'load').at(-1)?.quantity || 0;
+    const loadMovements = movements.filter(m => m.type === 'load');
+    const totalLoaded = loadMovements.reduce((s, m) => s + m.quantity, 0);
+    const lastLoadedQty = loadMovements.length ? loadMovements[loadMovements.length - 1].quantity : 0;
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
     const totalGift = movements.reduce((s, m) => s + (m.type === 'sale' ? Number(m.giftQty || 0) : m.type === 'gift' ? m.quantity : 0), 0);
