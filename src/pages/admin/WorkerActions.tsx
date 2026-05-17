@@ -1178,7 +1178,7 @@ const WorkerActions: React.FC = () => {
                     {selectedTruckProductHistory.shortage > 0 && (
                       <Badge variant="outline" className="border-red-400 text-red-700">عجز -{formatTruckQty(selectedTruckProductHistory.shortage, selectedTruckProductHistory.ppb)}</Badge>
                     )}
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded, selectedTruckProductHistory.ppb)}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.lastLoadedQty, selectedTruckProductHistory.ppb)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded, selectedTruckProductHistory.ppb)}</Badge>
                     <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(selectedTruckProductHistory.totalSold, selectedTruckProductHistory.ppb)}</Badge>
                     {selectedTruckProductHistory.totalGift > 0 && (
