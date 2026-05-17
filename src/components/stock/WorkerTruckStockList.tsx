@@ -246,6 +246,60 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     return out;
   }, [loadedData, unloadedData, soldData, ppbMap]);
 
+  // الرصيد الفعلي لكل منتج باستخدام نفس منطق المحاكاة الزمنية (يحترم إعادة تعيين "الشاحنة فارغة")
+  const remainingByProduct = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const it of truckStock as any[]) {
+      const pid = it.product_id;
+      const ppb = ppbOf(pid);
+      const currentQty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      type Mv = { type: 'load' | 'unload' | 'sale' | 'modification' | 'empty'; when: string; delta: number; previousQty?: number };
+      const movements: Mv[] = [];
+      for (const l of loadedData.filter((x: any) => x.product_id === pid)) {
+        const giftQty = l.gift_unit === 'piece'
+          ? Math.max(0, Number(l.gift_quantity || 0)) / ppb
+          : dbBPToBoxes(Number(l.gift_quantity || 0), ppb);
+        const paid = dbBPToBoxes(Number(l.quantity || 0), ppb);
+        const total = paid + giftQty;
+        const previousQty = dbBPToBoxes(Number(l.previous_quantity || 0), ppb);
+        if (total > 0 && previousQty <= 0) {
+          movements.push({ type: 'empty', when: l._session?.created_at || '', delta: 0, previousQty: 0 });
+        }
+        movements.push({ type: 'load', when: l._session?.created_at || '', delta: total, previousQty });
+      }
+      for (const u of unloadedData.filter((x: any) => x.product_id === pid)) {
+        const q = dbBPToBoxes(Number(u.quantity || 0), ppb);
+        movements.push({ type: 'unload', when: u._session?.created_at || '', delta: -q });
+      }
+      for (const so of soldData.filter((x: any) => x.product_id === pid)) {
+        const giftQty = confirmedGiftFractional(so, ppb);
+        const pendingGift = pendingGiftFractional(so, ppb);
+        const deliveredBP = so.delivered_quantity != null ? Number(so.delivered_quantity || 0) : Number(getDeliveredPaidQuantity(so) || 0);
+        const totalBoxes = Math.max(0, dbBPToBoxes(deliveredBP, ppb) - pendingGift);
+        const saleQty = Math.max(0, totalBoxes - giftQty);
+        const when = so.order_updated_at || so.order_created_at || '';
+        movements.push({ type: 'sale', when, delta: -(saleQty + giftQty) });
+      }
+      for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
+        const signed = Number(m.signed_quantity ?? 0);
+        const deltaBoxes = dbBPToBoxes(Math.abs(signed), ppb) * (signed >= 0 ? 1 : -1);
+        movements.push({ type: 'modification', when: m.created_at, delta: deltaBoxes });
+      }
+      movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
+      if (!movements.length) { out[pid] = currentQty; continue; }
+      const totalDelta = movements.reduce((s, m) => s + m.delta, 0);
+      const openingBalance = Math.max(0, currentQty - totalDelta);
+      let running = openingBalance;
+      for (const m of movements) {
+        if (m.type === 'empty') { running = 0; continue; }
+        const before = m.type === 'load' && typeof m.previousQty === 'number' ? Math.max(0, m.previousQty) : running;
+        running = Math.max(0, before + m.delta);
+      }
+      out[pid] = running;
+    }
+    return out;
+  }, [truckStock, loadedData, unloadedData, soldData, modificationData, ppbMap]);
+
   const history = useMemo(() => {
     if (!selected) return null;
     const pid = selected.product_id;
