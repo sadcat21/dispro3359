@@ -1147,6 +1147,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         // Determine which items have deferred-confirmation gift offers — their
         // gift boxes must NOT be deducted from stock until the worker confirms
         // the gift via the offer card.
+        // See: src/utils/deferredGiftStock.ts + mem://features/deferred-gift-stock
         const deferredItemIds = new Set<string>();
         const itemIdsWithGiftOffer = items
           .map((it) => it.id)
@@ -1156,21 +1157,13 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             .from('order_items')
             .select('id, gift_offer_id')
             .in('id', itemIdsWithGiftOffer);
-          const offerIds = Array.from(new Set(
-            (oiRows || []).map((r: any) => r.gift_offer_id).filter(Boolean) as string[]
-          ));
-          if (offerIds.length > 0) {
-            const { data: offers } = await supabase
-              .from('product_offers')
-              .select('id, is_deferred_confirmation')
-              .in('id', offerIds);
-            const deferredOfferIds = new Set(
-              (offers || []).filter((o: any) => o.is_deferred_confirmation).map((o: any) => o.id)
-            );
-            for (const r of (oiRows || []) as any[]) {
-              if (r.gift_offer_id && deferredOfferIds.has(r.gift_offer_id)) {
-                deferredItemIds.add(r.id);
-              }
+          const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
+          const deferredOfferIds = await resolveDeferredOfferIds(
+            (oiRows || []).map((r: any) => r.gift_offer_id)
+          );
+          for (const r of (oiRows || []) as any[]) {
+            if (r.gift_offer_id && deferredOfferIds.has(r.gift_offer_id)) {
+              deferredItemIds.add(r.id);
             }
           }
         }
