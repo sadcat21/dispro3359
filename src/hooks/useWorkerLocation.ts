@@ -11,6 +11,10 @@ export interface WorkerStopRecord {
   started_at: string;
   ended_at?: string;
   duration_min: number;
+  operation_type?: string;
+  operation_label?: string;
+  customer_name?: string;
+  notes?: string;
 }
 
 export interface WorkerLocationData {
