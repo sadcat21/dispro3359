@@ -214,10 +214,15 @@ const WorkerTracking: React.FC = () => {
                           {format(new Date(stop.started_at), 'HH:mm')}
                           {stop.ended_at && ` → ${format(new Date(stop.ended_at), 'HH:mm')}`}
                         </span>
-                        <span className="text-xs font-semibold text-amber-600">
-                          ⏸ {stop.duration_min} د
-                        </span>
+                        {stop.operation_label && (
+                          <span className="text-xs font-semibold text-primary">
+                            {stop.operation_label}
+                          </span>
+                        )}
                       </div>
+                      {stop.customer_name && (
+                        <p className="text-xs font-medium mt-0.5 truncate">{stop.customer_name}</p>
+                      )}
                       <p className="text-xs text-muted-foreground mt-0.5 truncate">
                         <MapPin className="w-3 h-3 inline-block ml-1" />
                         {stop.address || `${stop.lat.toFixed(5)}, ${stop.lng.toFixed(5)}`}
