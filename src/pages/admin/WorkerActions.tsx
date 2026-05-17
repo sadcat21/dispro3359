@@ -682,12 +682,28 @@ const WorkerActions: React.FC = () => {
 
     const loadedItems = (truckLoadedData || [])
       .filter((item: any) => item.product_id === productId)
-      .map((item: any) => {
+      .flatMap((item: any) => {
         const session = loadSessionMap.get(item.session_id);
         const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
         const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
         const totalQty = paidQty + giftQty;
-        return {
+        const previousQty = bpStoredToBoxes(Number(item.previous_quantity || 0), ppb);
+        const movements = [] as typeof rawMovements;
+        if (totalQty > 0 && previousQty <= 0) {
+          movements.push({
+            id: `empty-${item.session_id || item.product_id}`,
+            type: 'empty' as const,
+            label: 'الشاحنة فارغة',
+            quantity: 0,
+            when: session?.created_at || '',
+            note: 'تم بدء هذا الشحن من رصيد صفر لهذا المنتج',
+            sourceLabel: session?.manager?.full_name || null,
+            sourceStatus: session?.status || null,
+            previousQty: 0,
+            delta: 0,
+          });
+        }
+        movements.push({
           id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${totalQty}-${item.gift_quantity || 0}`,
           type: 'load' as const,
           label: 'شحن',
@@ -696,8 +712,10 @@ const WorkerActions: React.FC = () => {
           note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
+          previousQty,
           delta: totalQty,
-        };
+        });
+        return movements;
       });
 
     const unloadItems = (truckUnloadedData || [])
