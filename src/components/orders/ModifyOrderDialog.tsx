@@ -1144,9 +1144,43 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           signedPiecesByProduct.set(movement.product_id, (signedPiecesByProduct.get(movement.product_id) || 0) + signedPieces);
         }
 
+        // Determine which items have deferred-confirmation gift offers — their
+        // gift boxes must NOT be deducted from stock until the worker confirms
+        // the gift via the offer card.
+        const deferredItemIds = new Set<string>();
+        const itemIdsWithGiftOffer = items
+          .map((it) => it.id)
+          .filter((id): id is string => !!id);
+        if (itemIdsWithGiftOffer.length > 0) {
+          const { data: oiRows } = await supabase
+            .from('order_items')
+            .select('id, gift_offer_id')
+            .in('id', itemIdsWithGiftOffer);
+          const offerIds = Array.from(new Set(
+            (oiRows || []).map((r: any) => r.gift_offer_id).filter(Boolean) as string[]
+          ));
+          if (offerIds.length > 0) {
+            const { data: offers } = await supabase
+              .from('product_offers')
+              .select('id, is_deferred_confirmation')
+              .in('id', offerIds);
+            const deferredOfferIds = new Set(
+              (offers || []).filter((o: any) => o.is_deferred_confirmation).map((o: any) => o.id)
+            );
+            for (const r of (oiRows || []) as any[]) {
+              if (r.gift_offer_id && deferredOfferIds.has(r.gift_offer_id)) {
+                deferredItemIds.add(r.id);
+              }
+            }
+          }
+        }
+
         for (const item of items) {
           const ppb = Math.max(1, Number(item.pieces_per_box || 1));
-          const desiredDeductPieces = bpQuantityToPieces(item.new_quantity || 0, ppb) + Math.max(0, Math.round(Number(item.gift_pieces || 0)));
+          const isDeferredGift = !!(item.id && deferredItemIds.has(item.id));
+          const giftBoxesToExclude = isDeferredGift ? Math.max(0, Number(item.gift_quantity || 0)) : 0;
+          const effectiveNewQuantity = Math.max(0, Number(item.new_quantity || 0) - giftBoxesToExclude);
+          const desiredDeductPieces = bpQuantityToPieces(effectiveNewQuantity, ppb) + Math.max(0, Math.round(Number(item.gift_pieces || 0)));
           const currentSignedPieces = signedPiecesByProduct.get(item.product_id) || 0;
           const adjustmentSignedPieces = -desiredDeductPieces - currentSignedPieces;
           if (adjustmentSignedPieces === 0) continue;
