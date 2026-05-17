@@ -1,0 +1,1 @@
+UPDATE public.worker_stock SET quantity = 191.14, updated_at = now() WHERE id = '9ba36958-62e4-429a-bc05-0cc15037d329';
