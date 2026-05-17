@@ -397,9 +397,14 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}
                 </div>
-                <span className={`inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
-                  <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
-                </span>
+                <div className="flex items-center justify-center gap-1 flex-wrap">
+                  <span className={`inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border ${isZero ? 'border-destructive/40 text-destructive bg-destructive/5' : 'border-primary/30 text-primary bg-primary/5'}`}>
+                    <Package className="w-3 h-3" /> {fmtBP(dbBPToBoxes(Number(item.quantity || 0), ppb), ppb)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-sm font-bold px-1.5 py-0.5 rounded-full border border-violet-300 text-violet-700 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800">
+                    <TrendingUp className="w-3 h-3" /> {fmtBP(s.loaded || 0, ppb)}
+                  </span>
+                </div>
               </button>
             );
           })}
