@@ -18,6 +18,24 @@ const MyStock: React.FC = () => {
   const workerId = selectedWorkerId || authWorkerId;
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
+  const qc = useQueryClient();
+  const didResyncRef = useRef(false);
+
+  // Auto-resync the truck balance every time the page is opened, so the
+  // worker does not need to click the sync button manually.
+  useEffect(() => {
+    if (!workerId || didResyncRef.current) return;
+    didResyncRef.current = true;
+    (async () => {
+      try {
+        await supabase.rpc('recalibrate_worker_stock' as any, { p_worker_id: workerId });
+      } catch (e) {
+        console.warn('[MyStock] auto recalibrate failed', e);
+      } finally {
+        await qc.invalidateQueries();
+      }
+    })();
+  }, [workerId, qc]);
 
   const { data: stockItems, isLoading } = useQuery({
     queryKey: ['my-worker-stock', workerId],
