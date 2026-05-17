@@ -523,7 +523,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-sm truncate">{item.product?.name}</span>
                     <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
-                      {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                      {fmtBP(remaining, ppb)}
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">انقر لعرض سجل الحركة</p>
@@ -531,7 +531,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-1.5 border-t pt-2 text-[10px]">
                 <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> الباقي {fmtBP(dbBPToBoxes(Number(item.quantity || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20)), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                  <Package className="w-3 h-3" /> الباقي {fmtBP(remaining, ppb)}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
                   <Package className="w-3 h-3" /> المجموع {fmtBP((s.loaded || 0) + (s.unloaded || 0) + (s.sold || 0) + (s.giftQty || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
