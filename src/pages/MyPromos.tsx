@@ -355,6 +355,9 @@ const MyPromosContent: React.FC = () => {
                   const displayGift = formatBP(giftPieces, ppb);
                   const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
                   const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
+                  const offerDescription = offer
+                    ? `${Number(offer.min_quantity || 0)} ${saleUnit === 'box' ? 'BOX' : 'PIECE'} + ${Number(offer.gift_quantity || 0)} ${giftUnit === 'box' ? 'BOX' : 'PIECE'} ( PROMO )`
+                    : '';
                   return (
                   <Card key={promo.id} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
                     <CardContent className="p-0">
