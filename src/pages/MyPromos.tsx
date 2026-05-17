@@ -337,12 +337,30 @@ const MyPromosContent: React.FC = () => {
                   const storeName = (language === 'fr' && promo.customer?.store_name_fr)
                     ? promo.customer?.store_name_fr
                     : promo.customer?.store_name;
+                  const explicitOffer: any = (promo as any).offer;
+                  const promoSaleUnit = (promo as any).sale_quantity_unit as 'box' | 'piece' | undefined;
+                  const promoGiftUnit = (promo as any).gift_quantity_unit as 'box' | 'piece' | undefined;
+                  const inferredOffer = !explicitOffer && promo.product_id
+                    ? offers
+                        .filter((offer) => offer.product_id === promo.product_id)
+                        .find((offer) => isOfferCurrentlyActive(offer, new Date(promo.promo_date)))
+                    : null;
+                  const offer = explicitOffer || inferredOffer;
+                  const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                  const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
+                  const ppb = Number(promo.product?.pieces_per_box || 0);
+                  const salePieces = saleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
+                  const giftPieces = giftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
+                  const displaySale = formatBP(salePieces, ppb);
+                  const displayGift = formatBP(giftPieces, ppb);
+                  const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
+                  const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
                   return (
                   <Card key={promo.id} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
                     <CardContent className="p-0">
-                      {/* Header: Product name */}
+                      {/* Header: Product name + offer badges */}
                       <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
                           {promo.product?.image_url ? (
                             <img
                               src={promo.product.image_url}
@@ -354,6 +372,18 @@ const MyPromosContent: React.FC = () => {
                             <Package className="w-4 h-4 text-primary shrink-0" />
                           )}
                           <span className="font-bold text-base truncate">{promo.product?.name}</span>
+                          {offer && (
+                            <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
+                              <ShoppingCart className="w-3 h-3" />
+                              <span className="font-semibold">{offerSaleBP}</span>
+                            </span>
+                          )}
+                          {offer && (
+                            <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
+                              <Gift className="w-3 h-3" />
+                              <span className="font-semibold">{offerGiftBP}</span>
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {!isEditPromoHidden && (
@@ -372,23 +402,6 @@ const MyPromosContent: React.FC = () => {
                       {/* Body */}
                       <div className="p-4 space-y-3">
                         {(() => {
-                          const explicitOffer: any = (promo as any).offer;
-                          const promoSaleUnit = (promo as any).sale_quantity_unit as 'box' | 'piece' | undefined;
-                          const promoGiftUnit = (promo as any).gift_quantity_unit as 'box' | 'piece' | undefined;
-                          const inferredOffer = !explicitOffer && promo.product_id
-                            ? offers
-                                .filter((offer) => offer.product_id === promo.product_id)
-                                .find((offer) => isOfferCurrentlyActive(offer, new Date(promo.promo_date)))
-                            : null;
-                          const offer = explicitOffer || inferredOffer;
-                          const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
-                          const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
-                          // عرض الكميات بصيغة b.P (صناديق.قطع)
-                          const ppb = Number(promo.product?.pieces_per_box || 0);
-                          const salePieces = saleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
-                          const giftPieces = giftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
-                          const displaySale = formatBP(salePieces, ppb);
-                          const displayGift = formatBP(giftPieces, ppb);
                           return (
                             <>
                               {offer && (
