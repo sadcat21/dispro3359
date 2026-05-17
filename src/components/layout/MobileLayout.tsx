@@ -41,6 +41,7 @@ const RoleSelectionDialog = React.lazy(() => import('@/components/auth/RoleSelec
 const InvoiceRequestDialog = React.lazy(() => import('@/components/treasury/InvoiceRequestDialog'));
 const TodayCustomersDialog = React.lazy(() => import('@/components/sectors/TodayCustomersDialog'));
 const StockConfirmationsPopover = React.lazy(() => import('@/components/stock/StockConfirmationsPopover'));
+const RecalibrateBalanceButton = React.lazy(() => import('@/components/stock/RecalibrateBalanceButton'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
