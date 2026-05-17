@@ -9567,6 +9567,10 @@ export type Database = {
         Args: { p_promo_id: string }
         Returns: undefined
       }
+      ensure_pending_offer_cards_for_worker: {
+        Args: { p_worker_id: string }
+        Returns: number
+      }
       extend_offer_period: {
         Args: {
           p_new_end: string
