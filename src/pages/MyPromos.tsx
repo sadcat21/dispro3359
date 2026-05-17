@@ -433,18 +433,17 @@ const MyPromosContent: React.FC = () => {
                                 <span className="text-xs font-semibold text-muted-foreground truncate block">{offerDescription}</span>
                               )}
                             </div>
-                            {offer && (
-                              <div className="flex flex-col items-end gap-1 shrink-0">
-                                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
-                                  <ShoppingCart className="w-3 h-3" />
-                                  <span className="font-semibold">{offerSaleBP}</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
-                                  <Gift className="w-3 h-3" />
-                                  <span className="font-semibold">{offerGiftBP}</span>
-                                </span>
-                              </div>
-                            )}
+                             <div className="flex flex-col items-end gap-1 shrink-0">
+                               <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
+                                 <ShoppingCart className="w-3 h-3" />
+                                 <span className="font-semibold">{totalSaleBP}</span>
+                               </span>
+                               <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
+                                 <Gift className="w-3 h-3" />
+                                 <span className="font-semibold">{totalGiftBP}</span>
+                               </span>
+                             </div>
+                           </div>
                           </div>
 
                           {/* Customer entries */}
