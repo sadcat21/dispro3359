@@ -965,6 +965,12 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 )}
               </Link>
             ) : <div />}
+
+            {isFieldWorker && workerId && (
+              <React.Suspense fallback={<div className="h-12 w-12" />}>
+                <RecalibrateBalanceButton workerId={workerId} />
+              </React.Suspense>
+            )}
         </div>
 
           {/* قائمة المزيد */}
