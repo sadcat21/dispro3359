@@ -593,6 +593,12 @@ const WorkerActions: React.FC = () => {
       const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
       const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
       stat.loaded += paidQty;
+      const session = loadSessionMap.get(item.session_id);
+      const ts = session?.created_at ? new Date(session.created_at).getTime() : 0;
+      if (paidQty > 0 && ts >= stat.lastLoadedAt) {
+        stat.lastLoadedAt = ts;
+        stat.lastLoaded = paidQty;
+      }
       if ((paidQty + giftQty) > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
       if ((item.gift_quantity || 0) > 0) {
         stat.giftQty += giftQty;
