@@ -105,6 +105,7 @@ const MyPromosContent: React.FC = () => {
   // Add promo dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [detailGroup, setDetailGroup] = useState<{ promos: PromoWithDetails[]; offer: any; ppb: number; productName: string } | null>(null);
 
   const logActivity = useLogActivity();
   const { data: myLogs } = useMyActivityLogs();
@@ -413,8 +414,12 @@ const MyPromosContent: React.FC = () => {
                     return (
                       <Card key={group.key} className="overflow-hidden border-r-4 border-r-primary hover:shadow-md transition-shadow">
                         <CardContent className="p-0">
-                          {/* Shared product header */}
-                          <div className="bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 border-b flex items-center gap-3">
+                          {/* Shared product header (clickable) */}
+                          <button
+                            type="button"
+                            onClick={() => setDetailGroup({ promos: group.promos, offer, ppb, productName: first.product?.name || '' })}
+                            className="w-full text-start bg-gradient-to-l from-primary/10 to-transparent px-4 py-2.5 flex items-center gap-3 hover:bg-primary/5 transition-colors cursor-pointer"
+                          >
                             {first.product?.image_url ? (
                               <img
                                 src={first.product.image_url}
@@ -432,98 +437,21 @@ const MyPromosContent: React.FC = () => {
                               {offer && (
                                 <span className="text-xs font-semibold text-muted-foreground truncate block">{offerDescription}</span>
                               )}
+                              <span className="text-[11px] text-muted-foreground block">
+                                {group.promos.length} {language === 'fr' ? 'clients' : language === 'en' ? 'customers' : 'زبائن'}
+                              </span>
                             </div>
-                             <div className="flex flex-col items-end gap-1 shrink-0">
-                               <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
-                                 <ShoppingCart className="w-3 h-3" />
-                                 <span className="font-semibold">{totalSaleBP}</span>
-                               </span>
-                               <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
-                                 <Gift className="w-3 h-3" />
-                                 <span className="font-semibold">{totalGiftBP}</span>
-                               </span>
-                             </div>
-                           </div>
-
-                          {/* Customer entries */}
-                          <div className="divide-y divide-border/60">
-                            {group.promos.map((promo) => {
-                              const storeName = (language === 'fr' && promo.customer?.store_name_fr)
-                                ? promo.customer?.store_name_fr
-                                : promo.customer?.store_name;
-                              const pSaleUnit = ((promo as any).sale_quantity_unit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
-                              const pGiftUnit = ((promo as any).gift_quantity_unit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
-                              const salePieces = pSaleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
-                              const giftPieces = pGiftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
-                              const displaySale = formatBP(salePieces, ppb);
-                              const displayGift = formatBP(giftPieces, ppb);
-                              return (
-                                <div key={promo.id} className="p-4 space-y-3 relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                                  <div className="absolute top-2 end-2 flex items-center gap-1">
-                                    {!isEditPromoHidden && (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)} disabled={isFrozen}>
-                                        <Pencil className="w-3.5 h-3.5" />
-                                      </Button>
-                                    )}
-                                    {!isDeletePromoHidden && (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)} disabled={isFrozen}>
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                  {storeName && (
-                                    <div className="flex items-start gap-2 min-w-0 pb-2 border-b border-border/60 pe-16">
-                                      <Store className="w-4 h-4 text-amber-600 shrink-0 mt-1" />
-                                      <div className="flex-1 min-w-0 space-y-1">
-                                        <span className="font-bold truncate block text-base">{storeName}</span>
-                                        <div className="flex items-center gap-1 text-xs min-w-0">
-                                          <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                                          <span className="truncate">
-                                            <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
-                                            <span className="text-muted-foreground mx-1">-</span>
-                                            <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                  <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4">
-                                    <div className="order-1 space-y-2">
-                                      <div className="flex items-center gap-2 text-base min-w-0">
-                                        <User className="w-4 h-4 shrink-0 text-muted-foreground" />
-                                        <span className="truncate font-bold">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
-                                      </div>
-                                      {promo.customer?.phone && (
-                                        <div className="flex items-center gap-2 text-base min-w-0">
-                                          <Phone className="w-4 h-4 shrink-0 text-muted-foreground" />
-                                          <span dir="ltr" className="truncate font-bold">{promo.customer.phone}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="order-2 space-y-2.5">
-                                      <div className="flex items-center gap-2">
-                                        <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                                        <p className="font-bold text-primary leading-none text-base">
-                                          {displaySale} <span className="font-bold">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                                        <p className={`font-bold leading-none text-base ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
-                                          {displayGift} <span className="font-bold">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {promo.notes && (
-                                    <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded border-r-2 border-muted-foreground/30">
-                                      {promo.notes}
-                                    </p>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 text-[11px]">
+                                <ShoppingCart className="w-3 h-3" />
+                                <span className="font-semibold">{totalSaleBP}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5 text-[11px]">
+                                <Gift className="w-3 h-3" />
+                                <span className="font-semibold">{totalGiftBP}</span>
+                              </span>
+                            </div>
+                          </button>
                         </CardContent>
                       </Card>
                     );
@@ -668,6 +596,99 @@ const MyPromosContent: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!detailGroup} onOpenChange={(open) => !open && setDetailGroup(null)}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0">
+          <DialogHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Package className="w-4 h-4 text-primary" />
+              {detailGroup?.productName}
+            </DialogTitle>
+          </DialogHeader>
+          {detailGroup && (
+            <div className="divide-y divide-border/60">
+              {detailGroup.promos.map((promo) => {
+                const offer = detailGroup.offer;
+                const ppb = detailGroup.ppb;
+                const storeName = (language === 'fr' && promo.customer?.store_name_fr)
+                  ? promo.customer?.store_name_fr
+                  : promo.customer?.store_name;
+                const pSaleUnit = ((promo as any).sale_quantity_unit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                const pGiftUnit = ((promo as any).gift_quantity_unit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
+                const salePieces = pSaleUnit === 'box' ? Number(promo.vente_quantity || 0) * ppb : Number(promo.vente_quantity || 0);
+                const giftPieces = pGiftUnit === 'box' ? Number(promo.gratuite_quantity || 0) * ppb : Number(promo.gratuite_quantity || 0);
+                const displaySale = formatBP(salePieces, ppb);
+                const displayGift = formatBP(giftPieces, ppb);
+                return (
+                  <div key={promo.id} className="p-4 space-y-3 relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="absolute top-2 end-2 flex items-center gap-1">
+                      {!isEditPromoHidden && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(promo)} disabled={isFrozen}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                      {!isDeletePromoHidden && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeletePromo(promo)} disabled={isFrozen}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    {storeName && (
+                      <div className="flex items-start gap-2 min-w-0 pb-2 border-b border-border/60 pe-16">
+                        <Store className="w-4 h-4 text-amber-600 shrink-0 mt-1" />
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <span className="font-bold truncate block text-base">{storeName}</span>
+                          <div className="flex items-center gap-1 text-xs min-w-0">
+                            <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate">
+                              <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
+                              <span className="text-muted-foreground mx-1">-</span>
+                              <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4">
+                      <div className="order-1 space-y-2">
+                        <div className="flex items-center gap-2 text-base min-w-0">
+                          <User className="w-4 h-4 shrink-0 text-muted-foreground" />
+                          <span className="truncate font-bold">{(language === 'fr' && promo.customer?.name_fr) ? promo.customer.name_fr : promo.customer?.name}</span>
+                        </div>
+                        {promo.customer?.phone && (
+                          <div className="flex items-center gap-2 text-base min-w-0">
+                            <Phone className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            <span dir="ltr" className="truncate font-bold">{promo.customer.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="order-2 space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
+                          <p className="font-bold text-primary leading-none text-base">
+                            {displaySale} <span className="font-bold">({language === 'fr' ? 'vente' : language === 'en' ? 'sale' : 'بيع'})</span>
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                          <p className={`font-bold leading-none text-base ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
+                            {displayGift} <span className="font-bold">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {promo.notes && (
+                      <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded border-r-2 border-muted-foreground/30">
+                        {promo.notes}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
