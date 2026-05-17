@@ -445,30 +445,24 @@ const MyPromosContent: React.FC = () => {
 
                       {/* Body */}
                       <div className="p-4 space-y-3">
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4" dir="rtl">
                           {/* Right column: sales / gift / date */}
-                          <div className="order-1 space-y-2">
-                            <div className="flex items-center gap-2 px-1">
+                          <div className="order-1 space-y-2.5">
+                            <div className="flex items-center gap-2">
                               <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.sales')} ({unitLabel(saleUnit)})</p>
-                                <p className="font-bold text-primary leading-none">{displaySale}</p>
-                              </div>
+                              <p className="font-bold text-primary leading-none">{displaySale}</p>
                             </div>
-                            <div className="flex items-center gap-2 px-1">
+                            <div className="flex items-center gap-2">
                               <Gift className={`w-4 h-4 shrink-0 ${promo.gratuite_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                              <div className="min-w-0">
-                                <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('common.free')} ({unitLabel(giftUnit)})</p>
-                                <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>{displayGift}</p>
-                              </div>
+                              <p className={`font-bold leading-none ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>{displayGift}</p>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2 min-w-0">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
                               <Calendar className="w-3.5 h-3.5 shrink-0" />
                               <span className="truncate">{format(new Date(promo.promo_date), 'dd MMM yyyy - HH:mm', { locale: getDateLocale(language) })}</span>
                             </div>
                           </div>
                           {/* Left column: customer info */}
-                          <div className="order-2 space-y-2 bg-muted/30 rounded-lg p-2.5">
+                          <div className="order-2 space-y-2">
                             {storeName && (
                               <div className="flex items-center gap-2 text-sm min-w-0">
                                 <Store className="w-4 h-4 text-amber-600 shrink-0" />
