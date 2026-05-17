@@ -472,9 +472,19 @@ const MyPromosContent: React.FC = () => {
                                     )}
                                   </div>
                                   {storeName && (
-                                    <div className="flex items-center gap-2 text-base min-w-0 pb-2 border-b border-border/60 pe-16">
-                                      <Store className="w-4 h-4 text-amber-600 shrink-0" />
-                                      <span className="font-bold truncate">{storeName}</span>
+                                    <div className="flex items-start gap-2 min-w-0 pb-2 border-b border-border/60 pe-16">
+                                      <Store className="w-4 h-4 text-amber-600 shrink-0 mt-1" />
+                                      <div className="flex-1 min-w-0 space-y-1">
+                                        <span className="font-bold truncate block text-base">{storeName}</span>
+                                        <div className="flex items-center gap-1 text-xs min-w-0">
+                                          <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                                          <span className="truncate">
+                                            <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
+                                            <span className="text-muted-foreground mx-1">-</span>
+                                            <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   )}
                                   <div className="grid grid-cols-2 gap-4 divide-x divide-border/60 [&>*:nth-child(2)]:pr-4 [&>*:nth-child(1)]:pl-4">
@@ -502,14 +512,6 @@ const MyPromosContent: React.FC = () => {
                                         <p className={`font-bold leading-none text-base ${promo.gratuite_quantity > 0 ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
                                           {displayGift} <span className="font-bold">({language === 'fr' ? 'promo' : language === 'en' ? 'promo' : 'برومو'})</span>
                                         </p>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-xs min-w-0">
-                                        <Calendar className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                                        <span className="truncate">
-                                          <span className="text-foreground font-medium">{format(new Date(promo.promo_date), 'dd MMM yyyy', { locale: getDateLocale(language) })}</span>
-                                          <span className="text-muted-foreground mx-1">-</span>
-                                          <span className="text-red-600 dark:text-red-400 font-semibold">{format(new Date(promo.promo_date), 'HH:mm')}</span>
-                                        </span>
                                       </div>
                                     </div>
                                   </div>
