@@ -1295,9 +1295,11 @@ const WorkerActions: React.FC = () => {
                               </div>
                             </div>
                             <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'empty' ? 'text-slate-700' : 'text-blue-700'}`}>
-                                {deltaLabel.startsWith('-')
-                                  ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
-                                  : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
+                                {entry.type === 'empty'
+                                  ? formatTruckQty(0, selectedTruckProductHistory.ppb)
+                                  : deltaLabel.startsWith('-')
+                                    ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
+                                    : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
                                 }
                               </div>
                             </div>
