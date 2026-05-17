@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChevronDown, ChevronUp, AlertTriangle, Loader2, CheckCircle2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertTriangle, Loader2, CheckCircle2, XCircle, Truck, Gift, ShoppingCart } from 'lucide-react';
 import { format } from 'date-fns';
 
 export interface PreviewRow {
@@ -53,16 +53,55 @@ const piecesToBP = (pieces: number, ppb: number) => {
   return `${b}.${String(p).padStart(2, '0')}`;
 };
 
+type GapKind = 'shipping' | 'gift' | 'sale';
+const GAP_META: Record<GapKind, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  shipping: { label: 'الشحن', icon: Truck },
+  gift: { label: 'الهدايا', icon: Gift },
+  sale: { label: 'البيع', icon: ShoppingCart },
+};
+const ANALYSIS_STEPS: GapKind[] = ['shipping', 'gift', 'sale'];
+
+function computeGaps(r: PreviewRow): Record<GapKind, number> {
+  const movs = r.movements || [];
+  const sumPieces = (types: string[]) =>
+    movs.filter(m => types.includes(m.movement_type))
+        .reduce((s, m) => s + Math.abs(Number(m.quantity) || 0), 0);
+  return {
+    shipping: sumPieces(['load']),
+    gift: sumPieces(['promo_gift']),
+    sale: sumPieces(['promo_sale', 'direct_sale', 'delivery', 'modification']),
+  };
+}
+
 const RecalibratePreviewDialog: React.FC<Props> = ({
   open, onOpenChange, rows, loading, applying, onConfirm,
 }) => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [analysisStep, setAnalysisStep] = useState(0);
+
+  useEffect(() => {
+    if (!loading) { setAnalysisStep(ANALYSIS_STEPS.length); return; }
+    setAnalysisStep(0);
+    const id = setInterval(() => {
+      setAnalysisStep(s => (s < ANALYSIS_STEPS.length ? s + 1 : s));
+    }, 600);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const toggle = (id: string) => {
     const next = new Set(expanded);
     next.has(id) ? next.delete(id) : next.add(id);
     setExpanded(next);
   };
+
+  const totalsByKind = useMemo(() => {
+    const t: Record<GapKind, number> = { shipping: 0, gift: 0, sale: 0 };
+    rows.forEach(r => {
+      const g = computeGaps(r);
+      (Object.keys(g) as GapKind[]).forEach(k => { t[k] += g[k]; });
+    });
+    return t;
+  }, [rows]);
 
   const hasErrors = rows.length > 0;
 
@@ -81,16 +120,75 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
 
         <ScrollArea className="flex-1 px-3 py-3">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            <div className="py-8 px-2 space-y-3">
+              <p className="text-center text-sm font-medium mb-2">جارٍ تحليل الفجوات…</p>
+              {ANALYSIS_STEPS.map((kind, idx) => {
+                const meta = GAP_META[kind];
+                const Icon = meta.icon;
+                const done = idx < analysisStep;
+                const active = idx === analysisStep;
+                return (
+                  <div
+                    key={kind}
+                    className={`flex items-center gap-2 p-2 rounded-lg border ${
+                      active ? 'border-primary bg-primary/5' : done ? 'border-muted bg-muted/30' : 'border-dashed opacity-60'
+                    }`}
+                  >
+                    {active ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : done ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <span className="text-sm">
+                      {active ? `جارٍ تحليل فجوة ${meta.label}…` : `تحليل فجوة ${meta.label}`}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           ) : !hasErrors ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-emerald-500 opacity-80" />
+            <div className="text-center py-12 text-muted-foreground space-y-3">
+              <CheckCircle2 className="w-12 h-12 mx-auto mb-1 text-emerald-500 opacity-80" />
               <p>لا يوجد أي فرق — جميع الأرصدة مطابقة.</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {ANALYSIS_STEPS.map(kind => {
+                  const meta = GAP_META[kind];
+                  const Icon = meta.icon;
+                  return (
+                    <Badge key={kind} variant="outline" className="gap-1 text-[10px] text-emerald-700 border-emerald-300 bg-emerald-50">
+                      <Icon className="w-3 h-3" /> {meta.label}: لا فجوة
+                    </Badge>
+                  );
+                })}
+              </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {ANALYSIS_STEPS.map(kind => {
+                  const meta = GAP_META[kind];
+                  const Icon = meta.icon;
+                  const v = totalsByKind[kind];
+                  const has = v > 0;
+                  return (
+                    <Badge
+                      key={kind}
+                      variant="outline"
+                      className={`gap-1 text-[10px] ${
+                        has ? 'text-red-700 border-red-300 bg-red-50' : 'text-emerald-700 border-emerald-300 bg-emerald-50'
+                      }`}
+                    >
+                      {has ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                      <Icon className="w-3 h-3" />
+                      {meta.label}: {has ? `${v} قطعة` : 'لا فجوة'}
+                    </Badge>
+                  );
+                })}
+              </div>
+              <div className="space-y-2">
+
               {rows.map((r) => {
                 const isOpen = expanded.has(r.product_id);
                 const diff = Number(r.new_qty) - Number(r.current_qty);
@@ -100,6 +198,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                   .filter(m => m.movement_type !== 'load')
                   .length;
                 const isUnexplained = recordedSold === 0 && Number(r.current_qty) !== Number(r.new_qty);
+                const gaps = computeGaps(r);
 
                 return (
                   <div key={r.product_id} className="border rounded-lg overflow-hidden">
@@ -123,6 +222,26 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                           >
                             {diffPositive ? '+' : ''}{fmtBP(diff)} ب.ق
                           </Badge>
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap mt-1.5">
+                          {ANALYSIS_STEPS.map(kind => {
+                            const meta = GAP_META[kind];
+                            const Icon = meta.icon;
+                            const v = gaps[kind];
+                            const has = v > 0;
+                            return (
+                              <Badge
+                                key={kind}
+                                variant="outline"
+                                className={`gap-1 text-[10px] py-0 px-1.5 ${
+                                  has ? 'text-red-700 border-red-300 bg-red-50' : 'text-emerald-700 border-emerald-300 bg-emerald-50'
+                                }`}
+                              >
+                                <Icon className="w-2.5 h-2.5" />
+                                {meta.label}: {has ? v : '0'}
+                              </Badge>
+                            );
+                          })}
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           <span>الحالي: <strong className="text-foreground">{fmtBP(r.current_qty)}</strong></span>
@@ -187,6 +306,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </ScrollArea>
