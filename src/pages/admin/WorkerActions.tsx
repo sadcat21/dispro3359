@@ -486,10 +486,29 @@ const WorkerActions: React.FC = () => {
         .eq('worker_id', selectedWorker!.id)
         .eq('movement_type', 'delivery')
         .in('order_id', orderIds);
-      const deliveredByOrderProduct = new Map<string, number>();
+      // ppb lookup so we can sum movements in PIECES (BP-safe) then convert back to BP.
+      const ppbByProduct = new Map<string, number>();
+      for (const it of items) {
+        ppbByProduct.set(it.product_id, Math.max(1, Number(it.pieces_per_box) || 1));
+      }
+      const deliveredPiecesByOrderProduct = new Map<string, number>();
       for (const movement of movements || []) {
         const key = `${movement.order_id}|${movement.product_id}`;
-        deliveredByOrderProduct.set(key, (deliveredByOrderProduct.get(key) || 0) + Number(movement.quantity || 0));
+        const ppb = ppbByProduct.get(movement.product_id) || 1;
+        // Each movement.quantity is in box.piece notation; convert to pieces before summing.
+        const fracBoxes = dbBPToBoxes(Number(movement.quantity || 0), ppb);
+        const pieces = Math.round(fracBoxes * ppb);
+        deliveredPiecesByOrderProduct.set(key, (deliveredPiecesByOrderProduct.get(key) || 0) + pieces);
+      }
+      // Convert summed pieces back to box.piece notation for downstream consumers.
+      const deliveredByOrderProduct = new Map<string, number>();
+      for (const [key, totalPieces] of deliveredPiecesByOrderProduct) {
+        const productId = key.split('|')[1];
+        const ppb = ppbByProduct.get(productId) || 1;
+        const boxes = Math.floor(totalPieces / ppb);
+        const remainder = totalPieces % ppb;
+        // Box.piece: boxes + remainder/100 (BP convention used elsewhere)
+        deliveredByOrderProduct.set(key, boxes + remainder / 100);
       }
       const orderMap = new Map<string, any>(
         orders.map((order: any) => [
