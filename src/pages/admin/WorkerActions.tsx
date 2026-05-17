@@ -549,10 +549,13 @@ const WorkerActions: React.FC = () => {
   }, [truckStock]);
 
   const truckMovementStats = useMemo(() => {
+    const loadSessionMap = new Map<string, any>((truckLoadSessions || []).map((session: any) => [session.id, session]));
     const stats: Record<
       string,
       {
         loaded: number;
+        lastLoaded: number;
+        lastLoadedAt: number;
         unloaded: number;
         sold: number;
         giftQty: number;
@@ -567,6 +570,8 @@ const WorkerActions: React.FC = () => {
       if (!stats[productId]) {
         stats[productId] = {
           loaded: 0,
+          lastLoaded: 0,
+          lastLoadedAt: 0,
           unloaded: 0,
           sold: 0,
           giftQty: 0,
@@ -588,6 +593,12 @@ const WorkerActions: React.FC = () => {
       const paidQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
       const giftQty = loadGiftToBoxes(Number(item.gift_quantity || 0), item.gift_unit, ppb);
       stat.loaded += paidQty;
+      const session = loadSessionMap.get(item.session_id);
+      const ts = session?.created_at ? new Date(session.created_at).getTime() : 0;
+      if (paidQty > 0 && ts >= stat.lastLoadedAt) {
+        stat.lastLoadedAt = ts;
+        stat.lastLoaded = paidQty;
+      }
       if ((paidQty + giftQty) > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
       if ((item.gift_quantity || 0) > 0) {
         stat.giftQty += giftQty;
@@ -617,7 +628,7 @@ const WorkerActions: React.FC = () => {
     }
 
     return stats;
-  }, [truckLoadedData, truckSoldData, truckUnloadedData, truckProductPpbMap]);
+  }, [truckLoadedData, truckSoldData, truckUnloadedData, truckProductPpbMap, truckLoadSessions]);
 
   const selectedTruckProductHistory = useMemo(() => {
     if (!selectedTruckProduct) return null;
@@ -763,6 +774,13 @@ const WorkerActions: React.FC = () => {
     });
 
     const totalLoaded = loadedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const lastLoadedQty = loadedItems.length
+      ? [...loadedItems].sort((a, b) => {
+          const at = a.when ? new Date(a.when).getTime() : 0;
+          const bt = b.when ? new Date(b.when).getTime() : 0;
+          return bt - at;
+        })[0].quantity
+      : 0;
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
@@ -797,6 +815,7 @@ const WorkerActions: React.FC = () => {
       computedCurrent: currentQty,
       entries: historyEntries,
       totalLoaded,
+      lastLoadedQty,
       openingBalance,
       shortage,
       totalAvailable,
@@ -1039,6 +1058,7 @@ const WorkerActions: React.FC = () => {
                       const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 1);
                       const stats = truckMovementStats[item.product_id];
                       const loaded = stats?.loaded || 0;
+                      const lastLoaded = stats?.lastLoaded || 0;
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.giftQty || 0;
@@ -1096,7 +1116,7 @@ const WorkerActions: React.FC = () => {
                             </span>
                             <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                               <TrendingUp className="w-3 h-3" />
-                              شحن {formatTruckQty(loaded, ppb)}
+                              شحن {formatTruckQty(lastLoaded, ppb)}
                               {loadCount > 0 && <span className="font-bold">×{loadCount}</span>}
                             </span>
                             <span className="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full">
@@ -1170,7 +1190,7 @@ const WorkerActions: React.FC = () => {
                     {selectedTruckProductHistory.shortage > 0 && (
                       <Badge variant="outline" className="border-red-400 text-red-700">عجز -{formatTruckQty(selectedTruckProductHistory.shortage, selectedTruckProductHistory.ppb)}</Badge>
                     )}
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.totalLoaded, selectedTruckProductHistory.ppb)}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {formatTruckQty(selectedTruckProductHistory.lastLoadedQty, selectedTruckProductHistory.ppb)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {formatTruckQty(selectedTruckProductHistory.totalUnloaded, selectedTruckProductHistory.ppb)}</Badge>
                     <Badge className="bg-green-100 text-green-700 border-green-200">مباع {formatTruckQty(selectedTruckProductHistory.totalSold, selectedTruckProductHistory.ppb)}</Badge>
                     {selectedTruckProductHistory.totalGift > 0 && (
