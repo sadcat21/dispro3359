@@ -149,12 +149,46 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
               })}
             </div>
           ) : !hasErrors ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-emerald-500 opacity-80" />
+            <div className="text-center py-12 text-muted-foreground space-y-3">
+              <CheckCircle2 className="w-12 h-12 mx-auto mb-1 text-emerald-500 opacity-80" />
               <p>لا يوجد أي فرق — جميع الأرصدة مطابقة.</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {ANALYSIS_STEPS.map(kind => {
+                  const meta = GAP_META[kind];
+                  const Icon = meta.icon;
+                  return (
+                    <Badge key={kind} variant="outline" className="gap-1 text-[10px] text-emerald-700 border-emerald-300 bg-emerald-50">
+                      <Icon className="w-3 h-3" /> {meta.label}: لا فجوة
+                    </Badge>
+                  );
+                })}
+              </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {ANALYSIS_STEPS.map(kind => {
+                  const meta = GAP_META[kind];
+                  const Icon = meta.icon;
+                  const v = totalsByKind[kind];
+                  const has = v > 0;
+                  return (
+                    <Badge
+                      key={kind}
+                      variant="outline"
+                      className={`gap-1 text-[10px] ${
+                        has ? 'text-red-700 border-red-300 bg-red-50' : 'text-emerald-700 border-emerald-300 bg-emerald-50'
+                      }`}
+                    >
+                      {has ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                      <Icon className="w-3 h-3" />
+                      {meta.label}: {has ? `${v} قطعة` : 'لا فجوة'}
+                    </Badge>
+                  );
+                })}
+              </div>
+              <div className="space-y-2">
+
               {rows.map((r) => {
                 const isOpen = expanded.has(r.product_id);
                 const diff = Number(r.new_qty) - Number(r.current_qty);
