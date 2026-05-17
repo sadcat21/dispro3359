@@ -285,6 +285,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </ScrollArea>
