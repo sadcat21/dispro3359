@@ -512,7 +512,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <p className="text-sm font-semibold truncate">{history.productName}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
                     <Badge className="bg-violet-100 text-violet-700 border-violet-200">المجموع {fmtBP(history.totalLoaded, history.ppb)}</Badge>
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">شحن {fmtBP(history.totalLoaded, history.ppb)}</Badge>
+                    {history.openingBalance > 0 && (
+                      <Badge className="bg-amber-100 text-amber-800 border-amber-200">رصيد قبل الشحن {fmtBP(history.openingBalance, history.ppb)}</Badge>
+                    )}
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">آخر شحن {fmtBP(history.lastLoadedQty, history.ppb)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {fmtBP(history.totalUnloaded, history.ppb)}</Badge>
                     <Badge className="bg-green-100 text-green-700 border-green-200">مباع {fmtBP(history.totalSold, history.ppb)}</Badge>
                     {history.totalGift > 0 && (
