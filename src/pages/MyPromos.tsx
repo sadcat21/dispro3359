@@ -140,10 +140,44 @@ const MyPromosContent: React.FC = () => {
       if (promosRes.error) throw promosRes.error;
       if (customersRes.error) throw customersRes.error;
       if (productsRes.error) throw productsRes.error;
-      setPromos((promosRes.data || []) as PromoWithDetails[]);
+
+      // Load first tier per offer (tiers are source of truth for units/quantities)
+      const allOfferIds = Array.from(new Set([
+        ...((offersRes.data || []).map((o: any) => o.id)),
+        ...((promosRes.data || []).map((p: any) => p.offer?.id).filter(Boolean)),
+      ]));
+      let tiersByOffer: Record<string, any> = {};
+      if (allOfferIds.length > 0) {
+        const { data: tiersData } = await supabase
+          .from('product_offer_tiers')
+          .select('offer_id, min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, tier_order')
+          .in('offer_id', allOfferIds)
+          .order('tier_order', { ascending: true });
+        (tiersData || []).forEach((t: any) => {
+          if (!tiersByOffer[t.offer_id]) tiersByOffer[t.offer_id] = t;
+        });
+      }
+      const applyTier = (o: any) => {
+        if (!o) return o;
+        const t = tiersByOffer[o.id];
+        if (!t) return o;
+        return {
+          ...o,
+          min_quantity: t.min_quantity ?? o.min_quantity,
+          min_quantity_unit: t.min_quantity_unit ?? o.min_quantity_unit,
+          gift_quantity: t.gift_quantity ?? o.gift_quantity,
+          gift_quantity_unit: t.gift_quantity_unit ?? o.gift_quantity_unit,
+        };
+      };
+
+      const promosWithTiers = (promosRes.data || []).map((p: any) => ({
+        ...p,
+        offer: applyTier(p.offer),
+      }));
+      setPromos(promosWithTiers as PromoWithDetails[]);
       if (customersRes.data) setCustomers(customersRes.data);
       if (productsRes.data) setProducts(productsRes.data);
-      setOffers((offersRes.data || []) as OfferSnapshot[]);
+      setOffers(((offersRes.data || []) as any[]).map(applyTier) as OfferSnapshot[]);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error(t('stats.load_failed'));
