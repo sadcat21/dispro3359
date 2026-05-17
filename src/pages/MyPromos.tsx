@@ -53,7 +53,7 @@ const getDateLocale = (language: string) => {
 const formatBP = (pieces: number, piecesPerBox: number | null | undefined): string => {
   const ppb = Number(piecesPerBox || 0);
   const p = Number(pieces || 0);
-  if (!ppb || ppb <= 1) return String(p);
+  if (!ppb || ppb <= 1) return `${p}.00`;
   const boxes = Math.floor(p / ppb);
   const rem = p % ppb;
   return `${boxes}.${String(rem).padStart(2, '0')}`;
@@ -396,12 +396,12 @@ const MyPromosContent: React.FC = () => {
                                   <span className="font-semibold truncate text-muted-foreground">{offer.name}:</span>
                                   <span className="inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5">
                                     <ShoppingCart className="w-3 h-3" />
-                                    <span className="font-semibold">{offer.min_quantity} {unitLabel(saleUnit)}</span>
+                                    <span className="font-semibold">{formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb)}</span>
                                   </span>
                                   <span className="text-muted-foreground">→</span>
                                   <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 rounded-full px-2 py-0.5">
                                     <Gift className="w-3 h-3" />
-                                    <span className="font-semibold">{offer.gift_quantity} {unitLabel(giftUnit)}</span>
+                                    <span className="font-semibold">{formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb)}</span>
                                   </span>
                                 </div>
                               )}
