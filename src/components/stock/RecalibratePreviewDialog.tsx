@@ -181,6 +181,8 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                   const Icon = meta.icon;
                   const v = totalsByKind[kind];
                   const has = v > 0;
+                  // Use the first row's ppb as a representative; falls back to 1.
+                  const ppbRef = Math.max(Number(rows[0]?.ppb) || 1, 1);
                   return (
                     <Badge
                       key={kind}
@@ -191,7 +193,7 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                     >
                       {has ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
                       <Icon className="w-3 h-3" />
-                      {meta.label}: {has ? `${v} قطعة` : 'لا فجوة'}
+                      {meta.label}: {has ? `${piecesToBP(v, ppbRef)} ب.ق` : 'لا فجوة'}
                     </Badge>
                   );
                 })}
@@ -279,12 +281,12 @@ const RecalibratePreviewDialog: React.FC<Props> = ({
                             <p className="font-medium">{format(new Date(r.last_load_at), 'yyyy-MM-dd HH:mm')}</p>
                           </div>
                           <div className="p-2 rounded bg-background border">
-                            <p className="text-muted-foreground text-[10px]">المُحمَّل (قطع)</p>
-                            <p className="font-medium">{r.loaded_pieces} ({piecesToBP(Number(r.loaded_pieces), r.ppb)} ب.ق)</p>
+                            <p className="text-muted-foreground text-[10px]">المُحمَّل</p>
+                            <p className="font-medium">{piecesToBP(Number(r.loaded_pieces), r.ppb)} ب.ق</p>
                           </div>
                           <div className="p-2 rounded bg-background border">
-                            <p className="text-muted-foreground text-[10px]">المباع (قطع)</p>
-                            <p className="font-medium">{r.sold_pieces} ({piecesToBP(Number(r.sold_pieces), r.ppb)} ب.ق)</p>
+                            <p className="text-muted-foreground text-[10px]">المباع</p>
+                            <p className="font-medium">{piecesToBP(Number(r.sold_pieces), r.ppb)} ب.ق</p>
                           </div>
                         </div>
 
