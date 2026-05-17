@@ -25,6 +25,7 @@ interface EmptyTruckDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   autoFullUnload?: boolean;
+  onUnloaded?: () => void;
 }
 
 const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onOpenChange, autoFullUnload }) => {
