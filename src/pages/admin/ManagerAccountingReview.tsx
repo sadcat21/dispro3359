@@ -542,86 +542,119 @@ const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals:
       </tr>`;
   }).join('');
 
+  const twoCol = (left: string, right: string) => `<div class="two-col">${left}${right}</div>`;
+  const block = (title: string, color: string, rowsHtml: string) => `
+    <div class="block">
+      <div class="block-title" style="background:${color}">${escapeHtml(title)}</div>
+      <div class="block-body">${rowsHtml}</div>
+    </div>`;
+
   return `<!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>تقرير مراجعة حسابات المدير</title>
+  <title>Rapport de Révision des Comptes du Gérant</title>
   <style>
     @page { size: A4 portrait; margin: 10mm; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: Arial, Tahoma, sans-serif; }
-    body { width: 190mm; min-height: 277mm; direction: rtl; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    body { width: 190mm; min-height: 277mm; }
     .sheet { width: 100%; padding: 0; }
-    .header { border-bottom: 2px solid #0f172a; padding-bottom: 7px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .title { font-size: 18px; font-weight: 800; }
-    .meta, .small { font-size: 10px; color: #475569; }
-    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 7px; }
-    .kpi { border: 1px solid #cbd5e1; border-radius: 5px; padding: 5px; text-align: center; }
-    .kpi span { display: block; font-size: 9px; color: #64748b; }
-    .kpi strong { display: block; font-size: 13px; margin-top: 2px; }
-    .section { color: #fff; padding: 4px 8px; font-size: 11px; font-weight: 800; margin-top: 6px; }
-    .row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; }
+    .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+    .title { font-size: 18px; font-weight: 800; letter-spacing: 0.3px; }
+    .subtitle { font-size: 10px; color: #64748b; margin-top: 2px; }
+    .meta { font-size: 10px; color: #475569; text-align: right; line-height: 1.5; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+    .kpi { border: 1px solid #cbd5e1; border-radius: 6px; padding: 7px; text-align: center; background: linear-gradient(180deg,#f8fafc,#fff); }
+    .kpi span { display: block; font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi strong { display: block; font-size: 14px; margin-top: 3px; font-weight: 800; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    .block { border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 6px; page-break-inside: avoid; }
+    .block-title { color: #fff; padding: 5px 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; }
+    .block-body { padding: 2px 0; }
+    .row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 10px; border-bottom: 1px solid #f1f5f9; font-size: 10px; }
+    .row:last-child { border-bottom: none; }
     .row span { color: #475569; }
+    .row strong { font-variant-numeric: tabular-nums; }
     table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 9px; }
-    th { background: #f1f5f9; color: #334155; font-weight: 800; }
-    th, td { border: 1px solid #cbd5e1; padding: 3px; text-align: center; }
-    td:first-child { text-align: right; font-weight: 700; }
-    .signatures { margin-top: 12px; display: flex; justify-content: space-between; font-size: 10px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+    thead th { background: #0f172a; color: #fff; font-weight: 700; padding: 5px 4px; text-transform: uppercase; letter-spacing: 0.3px; font-size: 9px; }
+    td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; }
+    tbody tr:nth-child(even) td { background: #f8fafc; }
+    td:first-child { text-align: left; font-weight: 700; color: #0f172a; }
+    .signatures { margin-top: 14px; display: flex; justify-content: space-between; gap: 30px; font-size: 10px; color: #475569; }
+    .sign { flex: 1; border-top: 1px solid #0f172a; padding-top: 4px; text-align: center; }
   </style>
 </head>
 <body>
   <main class="sheet">
     <header class="header">
       <div>
-        <div class="title">تقرير مراجعة حسابات المدير</div>
-        <div class="meta">الفرع: ${escapeHtml(branchName || '—')} • تاريخ الطباعة: ${escapeHtml(today)}</div>
+        <div class="title">Rapport de Révision des Comptes du Gérant</div>
+        <div class="subtitle">Synthèse quotidienne — Tournées des vendeurs</div>
       </div>
-      <div class="small">عدد الجلسات: <b>${sessions.length}</b></div>
+      <div class="meta">
+        <div><b>Agence :</b> ${escapeHtml(branchName || '—')}</div>
+        <div><b>Date d'impression :</b> ${escapeHtml(today)}</div>
+        <div><b>Nombre de sessions :</b> ${sessions.length}</div>
+      </div>
     </header>
 
     <section class="kpis">
-      <div class="kpi"><span>إجمالي المبيعات</span><strong style="color:#0369a1">${totals.totalSales.toLocaleString()}</strong></div>
-      <div class="kpi"><span>النقدية الفعلية</span><strong style="color:#15803d">${totals.physicalCashActual.toLocaleString()}</strong></div>
-      <div class="kpi"><span>النقدية المتوقعة</span><strong style="color:#475569">${totals.physicalCashExpected.toLocaleString()}</strong></div>
-      <div class="kpi"><span>صافي الفرق</span><strong style="color:${totals.cashDifference >= 0 ? '#15803d' : '#b91c1c'}">${totals.cashDifference >= 0 ? '+' : ''}${totals.cashDifference.toLocaleString()}</strong></div>
+      <div class="kpi"><span>Total Ventes</span><strong style="color:#0369a1">${totals.totalSales.toLocaleString()}</strong></div>
+      <div class="kpi"><span>Espèces Réelles</span><strong style="color:#15803d">${totals.physicalCashActual.toLocaleString()}</strong></div>
+      <div class="kpi"><span>Espèces Attendues</span><strong style="color:#475569">${totals.physicalCashExpected.toLocaleString()}</strong></div>
+      <div class="kpi"><span>Écart Net</span><strong style="color:${totals.cashDifference >= 0 ? '#15803d' : '#b91c1c'}">${totals.cashDifference >= 0 ? '+' : ''}${totals.cashDifference.toLocaleString()}</strong></div>
     </section>
 
-    ${section('النقدية المستلمة', '#059669')}
-    ${row('نقدية مبيعات (إسباس)', totals.invoice1EspaceCash)}
-    ${row('نقدية مبيعات (فرسمان)', totals.invoice1VersementCash)}
-    ${row('نقدية فاتورة 2', totals.invoice2Cash)}
-    ${row('نقدية تحصيل ديون', totals.debtCollectionsCash)}
-    ${row('إجمالي النقدية', totalCash, '#059669')}
+    ${twoCol(
+      block('Espèces Encaissées', '#059669',
+        row('Ventes espèces (Espace)', totals.invoice1EspaceCash) +
+        row('Ventes espèces (Versement)', totals.invoice1VersementCash) +
+        row('Espèces facture 2', totals.invoice2Cash) +
+        row('Espèces recouvrement dettes', totals.debtCollectionsCash) +
+        row('Total Espèces', totalCash, '#059669')
+      ),
+      block('Chèques & Virements', '#2563eb',
+        row('Chèques', totalChecks, '#1d4ed8') +
+        row('Reçus bancaires', totalReceipts, '#7e22ce') +
+        row('Virements', totalTransfers, '#0e7490')
+      )
+    )}
 
-    ${section('الشيكات والتحويلات', '#2563eb')}
-    ${row('شيكات', totalChecks, '#1d4ed8')}
-    ${row('وصولات بنكية', totalReceipts, '#7e22ce')}
-    ${row('تحويلات', totalTransfers, '#0e7490')}
+    ${twoCol(
+      block('Dettes', '#e11d48',
+        row('Nouvelles dettes', totals.newDebts, '#b91c1c') +
+        row('Total recouvrement dettes', totals.debtCollectionsTotal, '#15803d')
+      ),
+      block('Dépenses & Écarts', '#d97706',
+        row('Dépenses approuvées', totals.expenses, '#c2410c') +
+        row('Change de monnaie', totals.coinAmount) +
+        row('Total Surplus', `+${totals.surplus.toLocaleString()}`, '#15803d') +
+        row('Total Déficit', `-${totals.deficit.toLocaleString()}`, '#b91c1c')
+      )
+    )}
 
-    ${section('الديون', '#e11d48')}
-    ${row('ديون جديدة', totals.newDebts, '#b91c1c')}
-    ${row('إجمالي تحصيل الديون', totals.debtCollectionsTotal, '#15803d')}
-
-    ${section('المصاريف والفروقات', '#d97706')}
-    ${row('مصاريف معتمدة', totals.expenses, '#c2410c')}
-    ${row('صرف عملة', totals.coinAmount)}
-    ${row('إجمالي الفائض', `+${totals.surplus.toLocaleString()}`, '#15803d')}
-    ${row('إجمالي العجز', `-${totals.deficit.toLocaleString()}`, '#b91c1c')}
-
-    ${section('تفاصيل العمال', '#0f172a')}
-    <table>
-      <thead>
-        <tr>
-          <th>العامل</th><th>المبيعات</th><th>نقدية</th><th>فرق</th><th>ديون جديدة</th><th>تحصيل</th><th>مصاريف</th>
-        </tr>
-      </thead>
-      <tbody>${workerRows}</tbody>
-    </table>
+    <div class="block">
+      <div class="block-title" style="background:#0f172a">Détails par Vendeur</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;padding-left:8px">Vendeur</th>
+            <th>Ventes</th>
+            <th>Espèces</th>
+            <th>Écart</th>
+            <th>Nouvelles Dettes</th>
+            <th>Recouvrement</th>
+            <th>Dépenses</th>
+          </tr>
+        </thead>
+        <tbody>${workerRows}</tbody>
+      </table>
+    </div>
 
     <footer class="signatures">
-      <span>توقيع المدير: ____________________</span>
-      <span>توقيع المحاسب: ____________________</span>
+      <div class="sign">Signature du Gérant</div>
+      <div class="sign">Signature du Comptable</div>
     </footer>
   </main>
 </body>
