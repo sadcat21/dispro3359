@@ -19,6 +19,7 @@ import CreateSessionDialog from './CreateSessionDialog';
 import PricingGroupsSummary from './PricingGroupsSummary';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
+import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { useSessionCalculations } from '@/hooks/useSessionCalculations';
 
 interface SessionDetailsDialogProps {
@@ -476,6 +477,18 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 periodEnd={session.period_end}
                 receivedDocs={receivedDocs}
                 onReceivedDocsChange={setReceivedDocs}
+              />
+            </CollapsibleSection>
+
+            {/* Expenses Details Section */}
+            <CollapsibleSection
+              icon={<CreditCard className="w-4 h-4 text-amber-600" />}
+              title="تفاصيل المصاريف"
+            >
+              <ExpensesDetailsSummary
+                workerId={session.worker_id}
+                periodStart={session.period_start}
+                periodEnd={session.period_end}
               />
             </CollapsibleSection>
 
