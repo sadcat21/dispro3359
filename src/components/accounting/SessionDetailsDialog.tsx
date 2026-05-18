@@ -35,10 +35,25 @@ const getItemValue = (items: AccountingSessionItem[], type: string): { expected:
   return { expected: Number(item?.expected_amount || 0), actual: Number(item?.actual_amount || 0) };
 };
 
-const CollapsibleSection: React.FC<{ icon: React.ReactNode; title: string; summary?: string; children: React.ReactNode; className?: string }> = ({ icon, title, summary, children, className = '' }) => {
-  const [open, setOpen] = useState(false);
+const CollapsibleSection: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  summary?: string;
+  children: React.ReactNode;
+  className?: string;
+  sectionKey?: string;
+  activeKey?: string | null;
+  onToggle?: (key: string) => void;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle }) => {
+  const controlled = sectionKey !== undefined && onToggle !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlled ? activeKey === sectionKey : uncontrolledOpen;
+  const handleChange = (v: boolean) => {
+    if (controlled) onToggle!(v ? sectionKey! : '');
+    else setUncontrolledOpen(v);
+  };
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={handleChange}>
       <div className={`border-2 rounded-xl overflow-hidden ${className}`}>
         <CollapsibleTrigger className="w-full flex items-center gap-2.5 p-3.5 hover:bg-muted/30 transition-colors">
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -57,6 +72,7 @@ const CollapsibleSection: React.FC<{ icon: React.ReactNode; title: string; summa
     </Collapsible>
   );
 };
+
 
 const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpenChange, session }) => {
   const { t, dir } = useLanguage();
