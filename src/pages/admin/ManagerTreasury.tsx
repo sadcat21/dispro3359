@@ -1199,10 +1199,9 @@ const ManagerTreasury = () => {
                     </Dialog>
                   </div>
                 );
-              })()}
+              })()}</section>
 
-              {/* Remaining Details */}
-              {sideSection === 'remaining' && (() => {
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">💰 الخزينة المتبقية</h2>{(() => {
                 const cashAvailableBeforeHandover =
                   (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) +
                   (summary?.receipt_cash || 0) + (summary?.cash_invoice2 || 0) +
