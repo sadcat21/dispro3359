@@ -699,38 +699,6 @@ const ManagerTreasury = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Sheet open={sideSheetOpen} onOpenChange={setSideSheetOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]">
-                <Menu className="w-4 h-4" />
-                <span>القائمة</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-72 p-4 pt-10" dir={dir}>
-              <div className="space-y-2">
-                {[
-                  { key: 'sales_summary', label: 'ملخص المبيعات والديون', icon: '📊' },
-                  { key: 'budget', label: 'الميزانية', icon: '⚖️' },
-                  { key: 'remaining', label: 'الخزينة المتبقية', icon: '💰' },
-                  { key: 'payment_details', label: 'تفاصيل المدفوعات', icon: '💳' },
-                  { key: 'entries', label: 'المستلمات', icon: '📥' },
-                  { key: 'handovers', label: 'التسليمات', icon: '📤' },
-                  { key: 'consolidations', label: 'التجميع', icon: '🪙' },
-                  { key: 'discrepancies', label: 'الفوارق المحاسبية', icon: '⚠️' },
-                ].map(item => (
-                  <Button
-                    key={item.key}
-                    variant="outline"
-                    className="w-full h-11 rounded-xl text-sm justify-start gap-3"
-                    onClick={() => { setSideSection(item.key); setSideSheetOpen(false); }}
-                  >
-                    <span>{item.icon}</span>
-                    {item.label}
-                  </Button>
-                ))}
-              </div>
-            </SheetContent>
-          </Sheet>
           <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px] border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => setConsolidationOpen(true)}>
             <Wallet className="w-4 h-4" /><span>تجميع الكاش</span>
           </Button>
@@ -1055,27 +1023,11 @@ const ManagerTreasury = () => {
       <UncollectedDebtsDialog open={uncollectedDebtsOpen} onOpenChange={setUncollectedDebtsOpen} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
-      {/* Side Section Dialog */}
-      <Dialog open={!!sideSection} onOpenChange={(open) => !open && setSideSection(null)}>
-        <DialogContent dir={dir} className="max-w-full w-full h-[100dvh] m-0 p-0 rounded-none border-none gap-0 [&>button]:hidden">
-          <div className="flex flex-col h-full">
-            <div className="shrink-0 bg-background border-b px-4 py-3 flex items-center justify-between">
-              <p className="text-base font-bold">
-                {sideSection === 'sales_summary' && '📊 ملخص المبيعات والديون'}
-                {sideSection === 'budget' && '⚖️ الميزانية'}
-                {sideSection === 'remaining' && '💰 الخزينة المتبقية'}
-                {sideSection === 'payment_details' && '💳 تفاصيل المدفوعات'}
-                {sideSection === 'entries' && '📥 المستلمات'}
-                {sideSection === 'handovers' && '📤 التسليمات'}
-                {sideSection === 'consolidations' && '🪙 التجميع'}
-                {sideSection === 'discrepancies' && '⚠️ الفوارق المحاسبية'}
-              </p>
-              <Button variant="ghost" size="sm" onClick={() => setSideSection(null)}>✕</Button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* All treasury sections on one page */}
+      <div className="px-3 md:px-4 pb-6 space-y-6" dir={dir}>
 
               {/* Sales & Debts Summary */}
-              {sideSection === 'sales_summary' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📊 ملخص المبيعات والديون</h2>{true && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center">
@@ -1109,10 +1061,9 @@ const ManagerTreasury = () => {
                     </button>
                   </div>
                 </div>
-              )}
+              )}</section>
 
-              {/* Budget / Gap Analysis */}
-              {sideSection === 'budget' && (() => {
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚖️ الميزانية</h2>{(() => {
                 const totalSales = summary?.totalSales || 0;
                 const unpaidAmount = summary?.uncollectedDebts || 0;
                 const debtCashCollected = summary?.debtCashCollected || 0;
@@ -1248,10 +1199,9 @@ const ManagerTreasury = () => {
                     </Dialog>
                   </div>
                 );
-              })()}
+              })()}</section>
 
-              {/* Remaining Details */}
-              {sideSection === 'remaining' && (() => {
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">💰 الخزينة المتبقية</h2>{(() => {
                 const cashAvailableBeforeHandover =
                   (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) +
                   (summary?.receipt_cash || 0) + (summary?.cash_invoice2 || 0) +
@@ -1318,10 +1268,10 @@ const ManagerTreasury = () => {
                     </Card>
                   </div>
                 );
-              })()}
+              })()}</section>
 
-              {/* Payment Details - NEW */}
-              {sideSection === 'payment_details' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">💳 تفاصيل المدفوعات</h2>{(
+
                 <div className="space-y-3">
                   {[
                     { label: `💵 ${t('treasury.cash_invoice1')}`, total: (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0), handed: (summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0) },
@@ -1355,10 +1305,10 @@ const ManagerTreasury = () => {
                     );
                   })}
                 </div>
-              )}
+              )}</section>
 
-              {/* Entries */}
-              {sideSection === 'entries' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📥 المستلمات</h2>{(
+
                 <div className="space-y-2">
                   {(!entries || entries.length === 0) ? (
                     <p className="text-center text-muted-foreground py-8">{t('treasury.no_entries')}</p>
@@ -1391,10 +1341,10 @@ const ManagerTreasury = () => {
                     );
                   })}
                 </div>
-              )}
+              )}</section>
 
-              {/* Handovers */}
-              {sideSection === 'handovers' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
+
                 <div className="space-y-2">
                   {(!handovers || handovers.length === 0) ? (
                     <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
@@ -1426,13 +1376,12 @@ const ManagerTreasury = () => {
                     </Card>
                   ))}
                 </div>
-              )}
+              )}</section>
 
-              {/* Consolidations */}
-              {sideSection === 'consolidations' && <ConsolidationHistoryTab />}
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">🪙 التجميع</h2><ConsolidationHistoryTab /></section>
 
-              {/* Discrepancies */}
-              {sideSection === 'discrepancies' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚠️ الفوارق المحاسبية</h2>{(
+
                 <div className="space-y-3">
                   {discrepancies && discrepancies.length > 0 ? (
                     <div className="space-y-2">
@@ -1461,12 +1410,10 @@ const ManagerTreasury = () => {
                     </div>
                   )}
                 </div>
-              )}
+              )}</section>
 
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      </div>
+
 
       {/* Print Handover Dialog */}
       {printHandover && (() => {
