@@ -471,3 +471,116 @@ const MiniBox: React.FC<{ label: string; value: number; color?: string; showSign
 };
 
 export default ManagerAccountingReview;
+
+// ============== A4 Print Summary ==============
+const PrintableA4: React.FC<{ totals: any; sessions: any[]; branchName: string }> = ({ totals, sessions, branchName }) => {
+  const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
+  const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
+  const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
+  const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
+  const today = format(new Date(), 'yyyy-MM-dd HH:mm');
+
+  const Row = ({ label, value, color = '#0f172a' }: { label: string; value: number | string; color?: string }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderBottom: '1px solid #e5e7eb', fontSize: 11 }}>
+      <span style={{ color: '#475569' }}>{label}</span>
+      <span style={{ fontWeight: 700, color }}>{typeof value === 'number' ? value.toLocaleString() : value}</span>
+    </div>
+  );
+
+  const SectionTitle = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
+    <div style={{ background: bg, color: '#fff', padding: '4px 8px', fontWeight: 700, fontSize: 12, marginTop: 8 }}>{children}</div>
+  );
+
+  return (
+    <div id="manager-review-print" dir="rtl" style={{ background: '#fff', color: '#0f172a', fontFamily: 'system-ui, sans-serif', padding: 0 }}>
+      {/* Header */}
+      <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: 8, marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>تقرير مراجعة حسابات المدير</div>
+          <div style={{ fontSize: 11, color: '#475569' }}>الفرع: {branchName || '—'} • تاريخ الطباعة: {today}</div>
+        </div>
+        <div style={{ fontSize: 11, color: '#475569', textAlign: 'left' }}>
+          عدد الجلسات: <b>{sessions.length}</b>
+        </div>
+      </div>
+
+      {/* KPIs grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 8 }}>
+        {[
+          { l: 'إجمالي المبيعات', v: totals.totalSales, c: '#0369a1' },
+          { l: 'النقدية الفعلية', v: totals.physicalCashActual, c: '#15803d' },
+          { l: 'النقدية المتوقعة', v: totals.physicalCashExpected, c: '#475569' },
+          { l: 'صافي الفرق', v: (totals.cashDifference >= 0 ? '+' : '') + totals.cashDifference.toLocaleString(), c: totals.cashDifference >= 0 ? '#15803d' : '#b91c1c' },
+        ].map((k, i) => (
+          <div key={i} style={{ border: '1px solid #cbd5e1', borderRadius: 6, padding: 6, textAlign: 'center' }}>
+            <div style={{ fontSize: 10, color: '#64748b' }}>{k.l}</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: k.c }}>{typeof k.v === 'number' ? k.v.toLocaleString() : k.v}</div>
+          </div>
+        ))}
+      </div>
+
+      <SectionTitle bg="#059669">النقدية المستلمة</SectionTitle>
+      <Row label="نقدية مبيعات (إسباس)" value={totals.invoice1EspaceCash} />
+      <Row label="نقدية مبيعات (فرسمان)" value={totals.invoice1VersementCash} />
+      <Row label="نقدية فاتورة 2" value={totals.invoice2Cash} />
+      <Row label="نقدية تحصيل ديون" value={totals.debtCollectionsCash} />
+      <Row label="إجمالي النقدية" value={totalCash} color="#059669" />
+
+      <SectionTitle bg="#2563eb">الشيكات والتحويلات</SectionTitle>
+      <Row label="شيكات" value={totalChecks} color="#1d4ed8" />
+      <Row label="وصولات بنكية" value={totalReceipts} color="#7e22ce" />
+      <Row label="تحويلات" value={totalTransfers} color="#0e7490" />
+
+      <SectionTitle bg="#e11d48">الديون</SectionTitle>
+      <Row label="ديون جديدة" value={totals.newDebts} color="#b91c1c" />
+      <Row label="إجمالي تحصيل الديون" value={totals.debtCollectionsTotal} color="#15803d" />
+
+      <SectionTitle bg="#d97706">المصاريف والفروقات</SectionTitle>
+      <Row label="مصاريف معتمدة" value={totals.expenses} color="#c2410c" />
+      <Row label="صرف عملة" value={totals.coinAmount} />
+      <Row label="إجمالي الفائض" value={'+' + totals.surplus.toLocaleString()} color="#15803d" />
+      <Row label="إجمالي العجز" value={'-' + totals.deficit.toLocaleString()} color="#b91c1c" />
+
+      <SectionTitle bg="#0f172a">تفاصيل العمال</SectionTitle>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, marginTop: 4 }}>
+        <thead>
+          <tr style={{ background: '#f1f5f9' }}>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>العامل</th>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>المبيعات</th>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>نقدية</th>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>فرق</th>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>ديون جديدة</th>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>تحصيل</th>
+            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>مصاريف</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sessions.map((s: any) => {
+            const items = s.items || [];
+            const g = (t: string, f: 'actual_amount' | 'expected_amount' = 'actual_amount') => {
+              const it = items.find((i: any) => i.item_type === t);
+              return it ? Number(it[f]) : 0;
+            };
+            const diff = g('physical_cash') - g('physical_cash', 'expected_amount');
+            return (
+              <tr key={s.id}>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', fontWeight: 600 }}>{s.worker?.full_name}</td>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('total_sales').toLocaleString()}</td>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('physical_cash').toLocaleString()}</td>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center', color: diff >= 0 ? '#15803d' : '#b91c1c', fontWeight: 700 }}>{diff >= 0 ? '+' : ''}{diff.toLocaleString()}</td>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('new_debts').toLocaleString()}</td>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('debt_collections_total').toLocaleString()}</td>
+                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('expenses').toLocaleString()}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#475569', borderTop: '1px solid #cbd5e1', paddingTop: 6 }}>
+        <span>توقيع المدير: ____________________</span>
+        <span>توقيع المحاسب: ____________________</span>
+      </div>
+    </div>
+  );
+};
