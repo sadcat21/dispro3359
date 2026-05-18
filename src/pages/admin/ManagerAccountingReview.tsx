@@ -136,9 +136,21 @@ const ManagerAccountingReview: React.FC = () => {
       <style>{`
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
+          html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
           body * { visibility: hidden !important; }
           #manager-review-print, #manager-review-print * { visibility: visible !important; }
-          #manager-review-print { position: absolute; inset: 0; display: block !important; }
+          #manager-review-print {
+            position: fixed !important;
+            top: 0; left: 0; right: 0;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            background: #fff !important;
+            z-index: 999999 !important;
+            transform: none !important;
+            overflow: visible !important;
+          }
         }
         @media screen { #manager-review-print { display: none; } }
       `}</style>
