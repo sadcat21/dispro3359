@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -503,7 +504,8 @@ const PrintableA4: React.FC<{ totals: any; sessions: any[]; branchName: string }
     <div style={{ background: bg, color: '#fff', padding: '4px 8px', fontWeight: 700, fontSize: 12, marginTop: 8 }}>{children}</div>
   );
 
-  return (
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div id="manager-review-print" dir="rtl" style={{ background: '#fff', color: '#0f172a', fontFamily: 'system-ui, sans-serif', padding: 0 }}>
       {/* Header */}
       <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: 8, marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -593,6 +595,7 @@ const PrintableA4: React.FC<{ totals: any; sessions: any[]; branchName: string }
         <span>توقيع المدير: ____________________</span>
         <span>توقيع المحاسب: ____________________</span>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
