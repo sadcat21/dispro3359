@@ -19,6 +19,7 @@ import CreateSessionDialog from './CreateSessionDialog';
 import PricingGroupsSummary from './PricingGroupsSummary';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
+import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { useSessionCalculations } from '@/hooks/useSessionCalculations';
 
 interface SessionDetailsDialogProps {
