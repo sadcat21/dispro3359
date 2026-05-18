@@ -1410,7 +1410,7 @@ const ManagerTreasury = () => {
                     </div>
                   )}
                 </div>
-              )}
+              )}</section>
 
       </div>
 
