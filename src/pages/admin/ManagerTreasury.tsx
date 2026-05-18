@@ -1050,7 +1050,7 @@ const ManagerTreasury = () => {
                     <button
                       type="button"
                       className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-center"
-                      onClick={() => { setSideSection(null); setTimeout(() => setUncollectedDebtsOpen(true), 200); }}
+                      onClick={() => { setTimeout(() => setUncollectedDebtsOpen(true), 200); }}
                     >
                       <AlertCircle className="w-4 h-4 mx-auto mb-1 text-destructive" />
                       <p className="text-[10px] text-muted-foreground">{t('treasury.uncollected_debts')}</p>
@@ -1354,9 +1354,9 @@ const ManagerTreasury = () => {
                             <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSideSection(null); setTimeout(() => setViewHandover(h.id), 200); }}><Eye className="w-3.5 h-3.5" /></Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSideSection(null); setTimeout(() => openEditHandover(h), 200); }}><Pencil className="w-3.5 h-3.5" /></Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSideSection(null); setTimeout(() => setPrintHandover(h.id), 200); }}><Printer className="w-3.5 h-3.5" /></Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setViewHandover(h.id), 200); }}><Eye className="w-3.5 h-3.5" /></Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => openEditHandover(h), 200); }}><Pencil className="w-3.5 h-3.5" /></Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setPrintHandover(h.id), 200); }}><Printer className="w-3.5 h-3.5" /></Button>
                             <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { if (confirm(t('common.confirm_delete'))) deleteHandover(h.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
                             <p className="text-xs text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
                           </div>
