@@ -213,6 +213,10 @@ const ManagerAccountingReview: React.FC = () => {
                 تأكيد المراجعة وإدراج في الخزينة ({pendingSessions.length} جلسة)
               </Button>
 
+              <Button onClick={handlePrint} variant="outline" className="w-full gap-2" size="lg">
+                <Printer className="w-4 h-4" /> طباعة ملخص A4
+              </Button>
+
               {/* Per-Worker Breakdown */}
               <WorkerBreakdown sessions={pendingSessions} />
             </>
