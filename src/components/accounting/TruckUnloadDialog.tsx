@@ -153,9 +153,9 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
         open={emptyOpen}
         onOpenChange={setEmptyOpen}
         autoFullUnload
-        onUnloaded={() => {
-          // بعد نجاح التفريغ، انتقل مباشرة إلى تأكيد حفظ المحاسبة
-          onConfirm(notes);
+        onUnloaded={async () => {
+          // After the truck is fully emptied, immediately save the accounting session.
+          await onConfirm(notes);
         }}
       />
     )}
