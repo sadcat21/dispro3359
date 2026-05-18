@@ -648,6 +648,7 @@ const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals:
             <th>Nouvelles Dettes</th>
             <th>Recouvrement</th>
             <th>Dépenses</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>${workerRows}</tbody>
