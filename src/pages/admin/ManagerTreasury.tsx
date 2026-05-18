@@ -1341,10 +1341,10 @@ const ManagerTreasury = () => {
                     );
                   })}
                 </div>
-              )}
+              )}</section>
 
-              {/* Handovers */}
-              {sideSection === 'handovers' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
+
                 <div className="space-y-2">
                   {(!handovers || handovers.length === 0) ? (
                     <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
