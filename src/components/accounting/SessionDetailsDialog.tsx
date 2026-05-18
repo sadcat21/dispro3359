@@ -82,7 +82,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [surplusAdded, setSurplusAdded] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
-  const [activeSection, setActiveSection] = useState<string | null>('financial');
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const toggleSection = (key: string) => setActiveSection(prev => (prev === key || key === '' ? null : key));
   
   // Fetch live calculations for promo tracking
