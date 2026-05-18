@@ -1268,10 +1268,10 @@ const ManagerTreasury = () => {
                     </Card>
                   </div>
                 );
-              })()}
+              })()}</section>
 
-              {/* Payment Details - NEW */}
-              {sideSection === 'payment_details' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">💳 تفاصيل المدفوعات</h2>{(
+
                 <div className="space-y-3">
                   {[
                     { label: `💵 ${t('treasury.cash_invoice1')}`, total: (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0), handed: (summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0) },
