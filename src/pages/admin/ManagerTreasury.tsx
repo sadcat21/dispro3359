@@ -1023,24 +1023,8 @@ const ManagerTreasury = () => {
       <UncollectedDebtsDialog open={uncollectedDebtsOpen} onOpenChange={setUncollectedDebtsOpen} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
-      {/* Side Section Dialog */}
-      <Dialog open={!!sideSection} onOpenChange={(open) => !open && setSideSection(null)}>
-        <DialogContent dir={dir} className="max-w-full w-full h-[100dvh] m-0 p-0 rounded-none border-none gap-0 [&>button]:hidden">
-          <div className="flex flex-col h-full">
-            <div className="shrink-0 bg-background border-b px-4 py-3 flex items-center justify-between">
-              <p className="text-base font-bold">
-                {sideSection === 'sales_summary' && '📊 ملخص المبيعات والديون'}
-                {sideSection === 'budget' && '⚖️ الميزانية'}
-                {sideSection === 'remaining' && '💰 الخزينة المتبقية'}
-                {sideSection === 'payment_details' && '💳 تفاصيل المدفوعات'}
-                {sideSection === 'entries' && '📥 المستلمات'}
-                {sideSection === 'handovers' && '📤 التسليمات'}
-                {sideSection === 'consolidations' && '🪙 التجميع'}
-                {sideSection === 'discrepancies' && '⚠️ الفوارق المحاسبية'}
-              </p>
-              <Button variant="ghost" size="sm" onClick={() => setSideSection(null)}>✕</Button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* All treasury sections on one page */}
+      <div className="px-3 md:px-4 pb-6 space-y-6" dir={dir}>
 
               {/* Sales & Debts Summary */}
               {sideSection === 'sales_summary' && (
