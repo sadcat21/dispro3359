@@ -754,7 +754,6 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
       // Resolve deferred gift offers via single source of truth.
       // See: src/utils/deferredGiftStock.ts + mem://features/deferred-gift-stock
-      const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
       const deferredOfferIdSet2 = await resolveDeferredOfferIds(
         orderItems.map((i: any) => i.giftOfferId)
       );

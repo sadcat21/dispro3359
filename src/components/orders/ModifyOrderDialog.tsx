@@ -1157,7 +1157,6 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             .from('order_items')
             .select('id, gift_offer_id')
             .in('id', itemIdsWithGiftOffer);
-          const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
           const deferredOfferIds = await resolveDeferredOfferIds(
             (oiRows || []).map((r: any) => r.gift_offer_id)
           );
