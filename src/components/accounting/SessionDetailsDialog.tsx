@@ -425,20 +425,30 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             </div>
 
             {/* Financial Items */}
-            {isLoading ? (
-              <div className="flex justify-center py-6">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-            ) : items && items.length > 0 ? (
-              isNewFormat ? renderNewFormat() : renderOldFormat()
-            ) : (
-              <p className="text-center text-muted-foreground py-6">لا توجد بنود</p>
-            )}
+            <CollapsibleSection
+              icon={<Calculator className="w-4 h-4 text-primary" />}
+              title="ملخص مالي"
+              sectionKey="financial"
+              activeKey={activeSection}
+              onToggle={toggleSection}
+            >
+              {isLoading ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : items && items.length > 0 ? (
+                isNewFormat ? renderNewFormat() : renderOldFormat()
+              ) : (
+                <p className="text-center text-muted-foreground py-6">لا توجد بنود</p>
+              )}
+            </CollapsibleSection>
 
-            {/* Sales Details Section */}
             <CollapsibleSection
               icon={<ShoppingBag className="w-4 h-4 text-primary" />}
               title="مبيعات العملاء"
+              sectionKey="sales"
+              activeKey={activeSection}
+              onToggle={toggleSection}
             >
               <SalesDetailsSummary
                 workerId={session.worker_id}
@@ -447,10 +457,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
-            {/* Pricing Groups Section */}
             <CollapsibleSection
               icon={<Layers className="w-4 h-4 text-primary" />}
               title="مجموعات التسعير"
+              sectionKey="pricing"
+              activeKey={activeSection}
+              onToggle={toggleSection}
             >
               <PricingGroupsSummary
                 workerId={session.worker_id}
@@ -459,10 +471,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
-            {/* Product Stock Section */}
             <CollapsibleSection
               icon={<Package className="w-4 h-4 text-primary" />}
               title={t('accounting.truck_stock') || 'تتبع المنتجات'}
+              sectionKey="stock"
+              activeKey={activeSection}
+              onToggle={toggleSection}
             >
               <ProductStockSummary
                 workerId={session.worker_id}
@@ -472,10 +486,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
-            {/* Debt Collections Detail Section */}
             <CollapsibleSection
               icon={<HandCoins className="w-4 h-4 text-orange-600" />}
               title="تفاصيل الديون المحصلة"
+              sectionKey="debts"
+              activeKey={activeSection}
+              onToggle={toggleSection}
             >
               <DebtCollectionsSummary
                 workerId={session.worker_id}
@@ -484,10 +500,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
-            {/* Document Collections Section */}
             <CollapsibleSection
               icon={<FileCheck2 className="w-4 h-4 text-blue-600" />}
               title="استلام المستندات"
+              sectionKey="docs"
+              activeKey={activeSection}
+              onToggle={toggleSection}
             >
               <DocumentCollectionsSummary
                 workerId={session.worker_id}
@@ -498,10 +516,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
-            {/* Expenses Details Section */}
             <CollapsibleSection
               icon={<CreditCard className="w-4 h-4 text-amber-600" />}
               title="تفاصيل المصاريف"
+              sectionKey="expenses"
+              activeKey={activeSection}
+              onToggle={toggleSection}
             >
               <ExpensesDetailsSummary
                 workerId={session.worker_id}
@@ -515,6 +535,9 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 icon={<Tag className="w-4 h-4 text-purple-600" />}
                 title="تتبع العروض"
                 summary={`${liveCalc.promoTracking.length} عروض`}
+                sectionKey="promos"
+                activeKey={activeSection}
+                onToggle={toggleSection}
               >
                 <PromoTrackingSummary
                   items={liveCalc.promoTracking}
