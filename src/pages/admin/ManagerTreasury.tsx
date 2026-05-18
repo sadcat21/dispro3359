@@ -699,38 +699,6 @@ const ManagerTreasury = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Sheet open={sideSheetOpen} onOpenChange={setSideSheetOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]">
-                <Menu className="w-4 h-4" />
-                <span>القائمة</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-72 p-4 pt-10" dir={dir}>
-              <div className="space-y-2">
-                {[
-                  { key: 'sales_summary', label: 'ملخص المبيعات والديون', icon: '📊' },
-                  { key: 'budget', label: 'الميزانية', icon: '⚖️' },
-                  { key: 'remaining', label: 'الخزينة المتبقية', icon: '💰' },
-                  { key: 'payment_details', label: 'تفاصيل المدفوعات', icon: '💳' },
-                  { key: 'entries', label: 'المستلمات', icon: '📥' },
-                  { key: 'handovers', label: 'التسليمات', icon: '📤' },
-                  { key: 'consolidations', label: 'التجميع', icon: '🪙' },
-                  { key: 'discrepancies', label: 'الفوارق المحاسبية', icon: '⚠️' },
-                ].map(item => (
-                  <Button
-                    key={item.key}
-                    variant="outline"
-                    className="w-full h-11 rounded-xl text-sm justify-start gap-3"
-                    onClick={() => { setSideSection(item.key); setSideSheetOpen(false); }}
-                  >
-                    <span>{item.icon}</span>
-                    {item.label}
-                  </Button>
-                ))}
-              </div>
-            </SheetContent>
-          </Sheet>
           <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px] border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => setConsolidationOpen(true)}>
             <Wallet className="w-4 h-4" /><span>تجميع الكاش</span>
           </Button>
