@@ -1063,10 +1063,7 @@ const ManagerTreasury = () => {
                 </div>
               )}</section>
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚖️ الميزانية</h2>{true && (() => {
-
-              {/* Budget / Gap Analysis */}
-              {sideSection === 'budget' && (() => {
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚖️ الميزانية</h2>{(() => {
                 const totalSales = summary?.totalSales || 0;
                 const unpaidAmount = summary?.uncollectedDebts || 0;
                 const debtCashCollected = summary?.debtCashCollected || 0;
