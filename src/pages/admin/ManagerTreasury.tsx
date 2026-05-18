@@ -1061,7 +1061,9 @@ const ManagerTreasury = () => {
                     </button>
                   </div>
                 </div>
-              )}
+              )}</section>
+
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚖️ الميزانية</h2>{true && (() => {
 
               {/* Budget / Gap Analysis */}
               {sideSection === 'budget' && (() => {
