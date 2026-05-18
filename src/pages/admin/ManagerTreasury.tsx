@@ -134,8 +134,6 @@ const ManagerTreasury = () => {
   const [activeTab, setActiveTab] = useState('handovers');
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [sideSection, setSideSection] = useState<string | null>(null);
-  const [sideSheetOpen, setSideSheetOpen] = useState(false);
   const [stampOpen, setStampOpen] = useState(false);
   const [detailsCategory, setDetailsCategory] = useState<'cash_invoice1' | 'cash_invoice2' | 'check' | 'bank_receipt_cash' | 'bank_receipt' | 'bank_transfer' | null>(null);
   const [uncollectedDebtsOpen, setUncollectedDebtsOpen] = useState(false);
