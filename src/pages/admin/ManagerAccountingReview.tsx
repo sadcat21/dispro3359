@@ -279,6 +279,9 @@ const ManagerAccountingReview: React.FC = () => {
           {reviewDetailSessions.length > 0 && (
             <>
               <SessionsSummary totals={displayTotals} sessions={reviewDetailSessions} />
+              <Button onClick={handlePrint} variant="outline" className="w-full gap-2">
+                <Printer className="w-4 h-4" /> طباعة ملخص A4
+              </Button>
               <WorkerBreakdown sessions={reviewDetailSessions} />
             </>
           )}
