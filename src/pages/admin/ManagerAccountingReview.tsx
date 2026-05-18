@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -130,31 +129,55 @@ const ManagerAccountingReview: React.FC = () => {
   const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? pendingSessions : []);
   const displayTotals = useMemo(() => calcTotals(displaySessions), [displaySessions]);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    if (typeof document === 'undefined') return;
+
+    if (displaySessions.length === 0) {
+      toast.error('لا توجد جلسات متاحة للطباعة');
+      return;
+    }
+
+    const iframe = document.createElement('iframe');
+    iframe.title = 'manager-review-print';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    document.body.appendChild(iframe);
+
+    const frameWindow = iframe.contentWindow;
+    const frameDocument = iframe.contentDocument || frameWindow?.document;
+    if (!frameWindow || !frameDocument) {
+      iframe.remove();
+      toast.error('تعذر تجهيز صفحة الطباعة');
+      return;
+    }
+
+    frameDocument.open();
+    frameDocument.write(buildManagerReviewPrintHtml({
+      totals: displayTotals,
+      sessions: displaySessions,
+      branchName: activeBranch?.name || '',
+    }));
+    frameDocument.close();
+
+    const removeFrame = () => {
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    };
+
+    frameWindow.onafterprint = removeFrame;
+    setTimeout(() => {
+      frameWindow.focus();
+      frameWindow.print();
+      setTimeout(removeFrame, 3000);
+    }, 250);
+  };
 
   return (
     <div className="p-4 space-y-5">
-      <style>{`
-        @media print {
-          @page { size: A4 portrait; margin: 12mm; }
-          html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
-          body * { visibility: hidden !important; }
-          #manager-review-print, #manager-review-print * { visibility: visible !important; }
-          #manager-review-print {
-            position: fixed !important;
-            top: 0; left: 0; right: 0;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            display: block !important;
-            background: #fff !important;
-            z-index: 999999 !important;
-            transform: none !important;
-            overflow: visible !important;
-          }
-        }
-        @media screen { #manager-review-print { display: none; } }
-      `}</style>
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
@@ -300,13 +323,6 @@ const ManagerAccountingReview: React.FC = () => {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* A4 Printable Summary */}
-      <PrintableA4
-        totals={displayTotals}
-        sessions={displaySessions}
-        branchName={activeBranch?.name || ''}
-      />
 
       {/* Confirm Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
