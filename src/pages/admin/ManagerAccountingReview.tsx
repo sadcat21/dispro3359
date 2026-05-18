@@ -595,6 +595,7 @@ const PrintableA4: React.FC<{ totals: any; sessions: any[]; branchName: string }
         <span>توقيع المدير: ____________________</span>
         <span>توقيع المحاسب: ____________________</span>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
