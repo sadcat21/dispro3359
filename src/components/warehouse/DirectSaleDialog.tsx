@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { resolveDeferredOfferIds } from '@/utils/deferredGiftStock';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
@@ -754,7 +755,6 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
       // Resolve deferred gift offers via single source of truth.
       // See: src/utils/deferredGiftStock.ts + mem://features/deferred-gift-stock
-      const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
       const deferredOfferIdSet2 = await resolveDeferredOfferIds(
         orderItems.map((i: any) => i.giftOfferId)
       );

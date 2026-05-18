@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { resolveDeferredOfferIds } from '@/utils/deferredGiftStock';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1157,7 +1158,6 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             .from('order_items')
             .select('id, gift_offer_id')
             .in('id', itemIdsWithGiftOffer);
-          const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
           const deferredOfferIds = await resolveDeferredOfferIds(
             (oiRows || []).map((r: any) => r.gift_offer_id)
           );

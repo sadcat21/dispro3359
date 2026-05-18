@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { resolveDeferredOfferIds } from '@/utils/deferredGiftStock';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
@@ -864,7 +865,6 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           .filter(Boolean) as string[],
       ]));
       // See: src/utils/deferredGiftStock.ts + mem://features/deferred-gift-stock
-      const { resolveDeferredOfferIds } = await import('@/utils/deferredGiftStock');
       const deferredOfferIdSet = await resolveDeferredOfferIds(allOfferIds);
 
       // Deduct from stock (warehouse_stock for warehouse manager, worker_stock for regular workers)
