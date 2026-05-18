@@ -502,116 +502,128 @@ const MiniBox: React.FC<{ label: string; value: number; color?: string; showSign
 export default ManagerAccountingReview;
 
 // ============== A4 Print Summary ==============
-const PrintableA4: React.FC<{ totals: any; sessions: any[]; branchName: string }> = ({ totals, sessions, branchName }) => {
+const escapeHtml = (value: unknown) => String(value ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
+
+const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
+
+const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals: any; sessions: any[]; branchName: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
   const today = format(new Date(), 'yyyy-MM-dd HH:mm');
+  const row = (label: string, value: number | string, color = '#0f172a') => `
+    <div class="row">
+      <span>${escapeHtml(label)}</span>
+      <strong style="color:${color}">${amount(value)}</strong>
+    </div>`;
+  const section = (title: string, color: string) => `<div class="section" style="background:${color}">${escapeHtml(title)}</div>`;
+  const workerRows = sessions.map((session: any) => {
+    const items = session.items || [];
+    const get = (type: string, field: 'actual_amount' | 'expected_amount' = 'actual_amount') => {
+      const item = items.find((i: any) => i.item_type === type);
+      return item ? Number(item[field]) : 0;
+    };
+    const diff = get('physical_cash') - get('physical_cash', 'expected_amount');
+    return `
+      <tr>
+        <td>${escapeHtml(session.worker?.full_name || session.worker?.username || '—')}</td>
+        <td>${get('total_sales').toLocaleString()}</td>
+        <td>${get('physical_cash').toLocaleString()}</td>
+        <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
+        <td>${get('new_debts').toLocaleString()}</td>
+        <td>${get('debt_collections_total').toLocaleString()}</td>
+        <td>${get('expenses').toLocaleString()}</td>
+      </tr>`;
+  }).join('');
 
-  const Row = ({ label, value, color = '#0f172a' }: { label: string; value: number | string; color?: string }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderBottom: '1px solid #e5e7eb', fontSize: 11 }}>
-      <span style={{ color: '#475569' }}>{label}</span>
-      <span style={{ fontWeight: 700, color }}>{typeof value === 'number' ? value.toLocaleString() : value}</span>
-    </div>
-  );
-
-  const SectionTitle = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
-    <div style={{ background: bg, color: '#fff', padding: '4px 8px', fontWeight: 700, fontSize: 12, marginTop: 8 }}>{children}</div>
-  );
-
-  if (typeof document === 'undefined') return null;
-  return createPortal(
-    <div id="manager-review-print" dir="rtl" style={{ background: '#fff', color: '#0f172a', fontFamily: 'system-ui, sans-serif', padding: 0 }}>
-      {/* Header */}
-      <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: 8, marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>تقرير مراجعة حسابات المدير</div>
-          <div style={{ fontSize: 11, color: '#475569' }}>الفرع: {branchName || '—'} • تاريخ الطباعة: {today}</div>
-        </div>
-        <div style={{ fontSize: 11, color: '#475569', textAlign: 'left' }}>
-          عدد الجلسات: <b>{sessions.length}</b>
-        </div>
+  return `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>تقرير مراجعة حسابات المدير</title>
+  <style>
+    @page { size: A4 portrait; margin: 10mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: Arial, Tahoma, sans-serif; }
+    body { width: 190mm; min-height: 277mm; direction: rtl; }
+    .sheet { width: 100%; padding: 0; }
+    .header { border-bottom: 2px solid #0f172a; padding-bottom: 7px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .title { font-size: 18px; font-weight: 800; }
+    .meta, .small { font-size: 10px; color: #475569; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 7px; }
+    .kpi { border: 1px solid #cbd5e1; border-radius: 5px; padding: 5px; text-align: center; }
+    .kpi span { display: block; font-size: 9px; color: #64748b; }
+    .kpi strong { display: block; font-size: 13px; margin-top: 2px; }
+    .section { color: #fff; padding: 4px 8px; font-size: 11px; font-weight: 800; margin-top: 6px; }
+    .row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; }
+    .row span { color: #475569; }
+    table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 9px; }
+    th { background: #f1f5f9; color: #334155; font-weight: 800; }
+    th, td { border: 1px solid #cbd5e1; padding: 3px; text-align: center; }
+    td:first-child { text-align: right; font-weight: 700; }
+    .signatures { margin-top: 12px; display: flex; justify-content: space-between; font-size: 10px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="header">
+      <div>
+        <div class="title">تقرير مراجعة حسابات المدير</div>
+        <div class="meta">الفرع: ${escapeHtml(branchName || '—')} • تاريخ الطباعة: ${escapeHtml(today)}</div>
       </div>
+      <div class="small">عدد الجلسات: <b>${sessions.length}</b></div>
+    </header>
 
-      {/* KPIs grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 8 }}>
-        {[
-          { l: 'إجمالي المبيعات', v: totals.totalSales, c: '#0369a1' },
-          { l: 'النقدية الفعلية', v: totals.physicalCashActual, c: '#15803d' },
-          { l: 'النقدية المتوقعة', v: totals.physicalCashExpected, c: '#475569' },
-          { l: 'صافي الفرق', v: (totals.cashDifference >= 0 ? '+' : '') + totals.cashDifference.toLocaleString(), c: totals.cashDifference >= 0 ? '#15803d' : '#b91c1c' },
-        ].map((k, i) => (
-          <div key={i} style={{ border: '1px solid #cbd5e1', borderRadius: 6, padding: 6, textAlign: 'center' }}>
-            <div style={{ fontSize: 10, color: '#64748b' }}>{k.l}</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: k.c }}>{typeof k.v === 'number' ? k.v.toLocaleString() : k.v}</div>
-          </div>
-        ))}
-      </div>
+    <section class="kpis">
+      <div class="kpi"><span>إجمالي المبيعات</span><strong style="color:#0369a1">${totals.totalSales.toLocaleString()}</strong></div>
+      <div class="kpi"><span>النقدية الفعلية</span><strong style="color:#15803d">${totals.physicalCashActual.toLocaleString()}</strong></div>
+      <div class="kpi"><span>النقدية المتوقعة</span><strong style="color:#475569">${totals.physicalCashExpected.toLocaleString()}</strong></div>
+      <div class="kpi"><span>صافي الفرق</span><strong style="color:${totals.cashDifference >= 0 ? '#15803d' : '#b91c1c'}">${totals.cashDifference >= 0 ? '+' : ''}${totals.cashDifference.toLocaleString()}</strong></div>
+    </section>
 
-      <SectionTitle bg="#059669">النقدية المستلمة</SectionTitle>
-      <Row label="نقدية مبيعات (إسباس)" value={totals.invoice1EspaceCash} />
-      <Row label="نقدية مبيعات (فرسمان)" value={totals.invoice1VersementCash} />
-      <Row label="نقدية فاتورة 2" value={totals.invoice2Cash} />
-      <Row label="نقدية تحصيل ديون" value={totals.debtCollectionsCash} />
-      <Row label="إجمالي النقدية" value={totalCash} color="#059669" />
+    ${section('النقدية المستلمة', '#059669')}
+    ${row('نقدية مبيعات (إسباس)', totals.invoice1EspaceCash)}
+    ${row('نقدية مبيعات (فرسمان)', totals.invoice1VersementCash)}
+    ${row('نقدية فاتورة 2', totals.invoice2Cash)}
+    ${row('نقدية تحصيل ديون', totals.debtCollectionsCash)}
+    ${row('إجمالي النقدية', totalCash, '#059669')}
 
-      <SectionTitle bg="#2563eb">الشيكات والتحويلات</SectionTitle>
-      <Row label="شيكات" value={totalChecks} color="#1d4ed8" />
-      <Row label="وصولات بنكية" value={totalReceipts} color="#7e22ce" />
-      <Row label="تحويلات" value={totalTransfers} color="#0e7490" />
+    ${section('الشيكات والتحويلات', '#2563eb')}
+    ${row('شيكات', totalChecks, '#1d4ed8')}
+    ${row('وصولات بنكية', totalReceipts, '#7e22ce')}
+    ${row('تحويلات', totalTransfers, '#0e7490')}
 
-      <SectionTitle bg="#e11d48">الديون</SectionTitle>
-      <Row label="ديون جديدة" value={totals.newDebts} color="#b91c1c" />
-      <Row label="إجمالي تحصيل الديون" value={totals.debtCollectionsTotal} color="#15803d" />
+    ${section('الديون', '#e11d48')}
+    ${row('ديون جديدة', totals.newDebts, '#b91c1c')}
+    ${row('إجمالي تحصيل الديون', totals.debtCollectionsTotal, '#15803d')}
 
-      <SectionTitle bg="#d97706">المصاريف والفروقات</SectionTitle>
-      <Row label="مصاريف معتمدة" value={totals.expenses} color="#c2410c" />
-      <Row label="صرف عملة" value={totals.coinAmount} />
-      <Row label="إجمالي الفائض" value={'+' + totals.surplus.toLocaleString()} color="#15803d" />
-      <Row label="إجمالي العجز" value={'-' + totals.deficit.toLocaleString()} color="#b91c1c" />
+    ${section('المصاريف والفروقات', '#d97706')}
+    ${row('مصاريف معتمدة', totals.expenses, '#c2410c')}
+    ${row('صرف عملة', totals.coinAmount)}
+    ${row('إجمالي الفائض', `+${totals.surplus.toLocaleString()}`, '#15803d')}
+    ${row('إجمالي العجز', `-${totals.deficit.toLocaleString()}`, '#b91c1c')}
 
-      <SectionTitle bg="#0f172a">تفاصيل العمال</SectionTitle>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, marginTop: 4 }}>
-        <thead>
-          <tr style={{ background: '#f1f5f9' }}>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>العامل</th>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>المبيعات</th>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>نقدية</th>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>فرق</th>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>ديون جديدة</th>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>تحصيل</th>
-            <th style={{ padding: 4, border: '1px solid #cbd5e1' }}>مصاريف</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sessions.map((s: any) => {
-            const items = s.items || [];
-            const g = (t: string, f: 'actual_amount' | 'expected_amount' = 'actual_amount') => {
-              const it = items.find((i: any) => i.item_type === t);
-              return it ? Number(it[f]) : 0;
-            };
-            const diff = g('physical_cash') - g('physical_cash', 'expected_amount');
-            return (
-              <tr key={s.id}>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', fontWeight: 600 }}>{s.worker?.full_name}</td>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('total_sales').toLocaleString()}</td>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('physical_cash').toLocaleString()}</td>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center', color: diff >= 0 ? '#15803d' : '#b91c1c', fontWeight: 700 }}>{diff >= 0 ? '+' : ''}{diff.toLocaleString()}</td>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('new_debts').toLocaleString()}</td>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('debt_collections_total').toLocaleString()}</td>
-                <td style={{ padding: 4, border: '1px solid #e2e8f0', textAlign: 'center' }}>{g('expenses').toLocaleString()}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    ${section('تفاصيل العمال', '#0f172a')}
+    <table>
+      <thead>
+        <tr>
+          <th>العامل</th><th>المبيعات</th><th>نقدية</th><th>فرق</th><th>ديون جديدة</th><th>تحصيل</th><th>مصاريف</th>
+        </tr>
+      </thead>
+      <tbody>${workerRows}</tbody>
+    </table>
 
-      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#475569', borderTop: '1px solid #cbd5e1', paddingTop: 6 }}>
-        <span>توقيع المدير: ____________________</span>
-        <span>توقيع المحاسب: ____________________</span>
-      </div>
-    </div>,
-    document.body
-  );
+    <footer class="signatures">
+      <span>توقيع المدير: ____________________</span>
+      <span>توقيع المحاسب: ____________________</span>
+    </footer>
+  </main>
+</body>
+</html>`;
 };
