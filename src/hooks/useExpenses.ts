@@ -90,12 +90,16 @@ export const useCreateExpense = () => {
       receipt_urls?: string[];
       payment_method?: string;
     }) => {
+      // Auto-approve: skip manager review and pass directly to accounting session
       const { error } = await supabase.from('expenses').insert({
         ...data,
         worker_id: workerId!,
         branch_id: activeBranch?.id || null,
         receipt_urls: data.receipt_urls || (data.receipt_url ? [data.receipt_url] : []),
         payment_method: data.payment_method || 'cash',
+        status: 'approved',
+        reviewed_by: workerId!,
+        reviewed_at: new Date().toISOString(),
       });
       if (error) throw error;
     },
