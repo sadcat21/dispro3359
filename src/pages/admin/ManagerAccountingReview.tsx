@@ -288,6 +288,13 @@ const ManagerAccountingReview: React.FC = () => {
         </TabsContent>
       </Tabs>
 
+      {/* A4 Printable Summary */}
+      <PrintableA4
+        totals={displayTotals}
+        sessions={displaySessions}
+        branchName={activeBranch?.name || ''}
+      />
+
       {/* Confirm Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
