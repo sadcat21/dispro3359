@@ -205,8 +205,14 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
       queryClient.invalidateQueries({ queryKey: ['sold-products-summary'] });
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
       toast.success(t('stock.empty_truck_success'));
-      onOpenChange(false);
-      onUnloaded?.();
+      // Fire the unload callback FIRST so the parent kicks off the save,
+      // then close this dialog. This guarantees the accounting session save
+      // runs even if React unmounts this component immediately.
+      try {
+        await onUnloaded?.();
+      } finally {
+        onOpenChange(false);
+      }
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     } finally {
