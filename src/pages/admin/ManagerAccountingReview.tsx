@@ -530,6 +530,7 @@ const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals:
       return item ? Number(item[field]) : 0;
     };
     const diff = get('physical_cash') - get('physical_cash', 'expected_amount');
+    const sessionTotal = get('total_sales') + get('debt_collections_total');
     return `
       <tr>
         <td>${escapeHtml(session.worker?.full_name || session.worker?.username || '—')}</td>
@@ -539,6 +540,7 @@ const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals:
         <td>${get('new_debts').toLocaleString()}</td>
         <td>${get('debt_collections_total').toLocaleString()}</td>
         <td>${get('expenses').toLocaleString()}</td>
+        <td style="font-weight:800;color:#0369a1">${sessionTotal.toLocaleString()}</td>
       </tr>`;
   }).join('');
 
@@ -646,6 +648,7 @@ const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals:
             <th>Nouvelles Dettes</th>
             <th>Recouvrement</th>
             <th>Dépenses</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>${workerRows}</tbody>
