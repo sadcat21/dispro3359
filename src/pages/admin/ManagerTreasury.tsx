@@ -1376,13 +1376,12 @@ const ManagerTreasury = () => {
                     </Card>
                   ))}
                 </div>
-              )}
+              )}</section>
 
-              {/* Consolidations */}
-              {sideSection === 'consolidations' && <ConsolidationHistoryTab />}
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">🪙 التجميع</h2><ConsolidationHistoryTab /></section>
 
-              {/* Discrepancies */}
-              {sideSection === 'discrepancies' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚠️ الفوارق المحاسبية</h2>{(
+
                 <div className="space-y-3">
                   {discrepancies && discrepancies.length > 0 ? (
                     <div className="space-y-2">
