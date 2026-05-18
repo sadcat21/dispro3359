@@ -129,8 +129,19 @@ const ManagerAccountingReview: React.FC = () => {
   const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? pendingSessions : []);
   const displayTotals = useMemo(() => calcTotals(displaySessions), [displaySessions]);
 
+  const handlePrint = () => window.print();
+
   return (
     <div className="p-4 space-y-5">
+      <style>{`
+        @media print {
+          @page { size: A4 portrait; margin: 12mm; }
+          body * { visibility: hidden !important; }
+          #manager-review-print, #manager-review-print * { visibility: visible !important; }
+          #manager-review-print { position: absolute; inset: 0; display: block !important; }
+        }
+        @media screen { #manager-review-print { display: none; } }
+      `}</style>
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
