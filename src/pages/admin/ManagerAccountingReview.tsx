@@ -335,27 +335,31 @@ const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ totals, s
           </div>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground">📋 الديون</p>
+        {/* قسم الديون — مستقل */}
+        <div className="space-y-2 border-t pt-3">
+          <p className="text-xs font-semibold text-rose-700">📋 الديون</p>
           <div className="grid grid-cols-2 gap-2">
             <SummaryRow label="ديون جديدة" value={totals.newDebts} color="red" />
             <SummaryRow label="إجمالي تحصيل الديون" value={totals.debtCollectionsTotal} color="green" />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <SummaryRow label="مصاريف معتمدة" value={totals.expenses} color="orange" />
-          <SummaryRow label="صرف عملة" value={totals.coinAmount} color="slate" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-green-700 flex items-center justify-center gap-1"><TrendingUp className="w-3 h-3" /> إجمالي الفائض</p>
-            <p className="text-sm font-bold text-green-700">+{fmt(totals.surplus)}</p>
+        {/* قسم منفصل: المصاريف والعملة والفروقات */}
+        <div className="space-y-2 border-t pt-3">
+          <p className="text-xs font-semibold text-amber-700">💼 المصاريف والفروقات</p>
+          <div className="grid grid-cols-2 gap-2">
+            <SummaryRow label="مصاريف معتمدة" value={totals.expenses} color="orange" />
+            <SummaryRow label="صرف عملة" value={totals.coinAmount} color="slate" />
           </div>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-red-700 flex items-center justify-center gap-1"><TrendingDown className="w-3 h-3" /> إجمالي العجز</p>
-            <p className="text-sm font-bold text-red-700">-{fmt(totals.deficit)}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 text-center">
+              <p className="text-[10px] text-green-700 flex items-center justify-center gap-1"><TrendingUp className="w-3 h-3" /> إجمالي الفائض</p>
+              <p className="text-sm font-bold text-green-700">+{fmt(totals.surplus)}</p>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-center">
+              <p className="text-[10px] text-red-700 flex items-center justify-center gap-1"><TrendingDown className="w-3 h-3" /> إجمالي العجز</p>
+              <p className="text-sm font-bold text-red-700">-{fmt(totals.deficit)}</p>
+            </div>
           </div>
         </div>
 
