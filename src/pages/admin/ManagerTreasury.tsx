@@ -1027,7 +1027,7 @@ const ManagerTreasury = () => {
       <div className="px-3 md:px-4 pb-6 space-y-6" dir={dir}>
 
               {/* Sales & Debts Summary */}
-              {sideSection === 'sales_summary' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📊 ملخص المبيعات والديون</h2>{true && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center">
