@@ -1305,10 +1305,10 @@ const ManagerTreasury = () => {
                     );
                   })}
                 </div>
-              )}
+              )}</section>
 
-              {/* Entries */}
-              {sideSection === 'entries' && (
+              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📥 المستلمات</h2>{(
+
                 <div className="space-y-2">
                   {(!entries || entries.length === 0) ? (
                     <p className="text-center text-muted-foreground py-8">{t('treasury.no_entries')}</p>
