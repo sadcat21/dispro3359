@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator, BookOpenCheck } from 'lucide-react';
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -979,6 +979,22 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 aria-label={t('nav.manager_treasury') || 'خزينة المدير'}
               >
                 <Wallet className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/manager-treasury' ? 2.45 : 1.85} />
+              </Link>
+            )}
+
+            {isBranchAdmin && (
+              <Link
+                to="/manager-accounting-review"
+                className={cn(
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  location.pathname === '/manager-accounting-review'
+                    ? 'bg-emerald-500/15 text-emerald-500'
+                    : 'text-emerald-500/80 hover:bg-emerald-500/10 hover:text-emerald-500'
+                )}
+                title="تدقيق الحسابات"
+                aria-label="تدقيق الحسابات"
+              >
+                <BookOpenCheck className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/manager-accounting-review' ? 2.45 : 1.85} />
               </Link>
             )}
 

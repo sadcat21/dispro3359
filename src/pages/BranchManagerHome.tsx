@@ -188,7 +188,7 @@ const BranchManagerHome: React.FC = () => {
   ];
 
   return (
-    <div className="bg-slate-50 text-slate-900 pb-24">
+    <div className="bg-slate-50 text-slate-900 pb-2">
       {/* Offers Showcase — blue identity for branch manager */}
       <ProductShowcaseHero
         bgImage={managerHeroBg}
@@ -369,22 +369,6 @@ const BranchManagerHome: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Bottom Navigation — Audit Accounts shortcut for branch manager */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-blue-200 bg-white/95 backdrop-blur shadow-[0_-4px_12px_rgba(0,0,0,0.06)]"
-        style={{ paddingBottom: `env(safe-area-inset-bottom)` }}
-      >
-        <div className="mx-auto max-w-md px-3 py-2">
-          <button
-            onClick={() => navigate('/manager-accounting-review')}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-3 text-white font-bold shadow-md shadow-emerald-500/30 hover:shadow-lg active:scale-[0.98] transition-all"
-          >
-            <BookOpenCheck className="w-5 h-5" />
-            <span>تدقيق الحسابات</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
