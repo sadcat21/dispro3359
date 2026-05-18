@@ -530,7 +530,7 @@ const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals:
       return item ? Number(item[field]) : 0;
     };
     const diff = get('physical_cash') - get('physical_cash', 'expected_amount');
-    const sessionTotal = get('total_sales') + get('debt_collections_total');
+    const sessionTotal = get('total_sales') + get('debt_collections_total') - get('expenses') - get('new_debts') + diff;
     return `
       <tr>
         <td>${escapeHtml(session.worker?.full_name || session.worker?.username || '—')}</td>
