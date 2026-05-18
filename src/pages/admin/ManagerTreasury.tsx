@@ -1415,10 +1415,8 @@ const ManagerTreasury = () => {
                 </div>
               )}
 
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      </div>
+
 
       {/* Print Handover Dialog */}
       {printHandover && (() => {
