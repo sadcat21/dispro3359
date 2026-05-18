@@ -480,6 +480,18 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
+            {/* Expenses Details Section */}
+            <CollapsibleSection
+              icon={<CreditCard className="w-4 h-4 text-amber-600" />}
+              title="تفاصيل المصاريف"
+            >
+              <ExpensesDetailsSummary
+                workerId={session.worker_id}
+                periodStart={session.period_start}
+                periodEnd={session.period_end}
+              />
+            </CollapsibleSection>
+
             {liveCalc && liveCalc.promoTracking.length > 0 && (
               <CollapsibleSection
                 icon={<Tag className="w-4 h-4 text-purple-600" />}
