@@ -416,6 +416,12 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                                   orderCreatedBy = data?.created_by || null;
                                 } catch { /* ignore */ }
                               }
+                              const statusMap: Record<string, string> = {
+                                confirmed: 'delivered',
+                                rejected: 'rejected',
+                                pending: 'pending',
+                              };
+                              const giftStatus = statusMap[(r as any).status] || (r as any).status || 'pending';
                               const lines = [
                                 `product_id: ${r.product_id}`,
                                 r.gift_product_id ? `gift_product_id: ${r.gift_product_id}` : null,
@@ -425,6 +431,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                                 r.customer_id ? `customer_id: ${r.customer_id}` : null,
                                 r.worker_id ? `sale_worker_id: ${r.worker_id}` : null,
                                 orderCreatedBy ? `order_created_by: ${orderCreatedBy}` : null,
+                                `gift_status: ${giftStatus}`,
                               ].filter(Boolean).join('\n');
                               navigator.clipboard.writeText(lines);
                               toast.success('تم نسخ المعرفات');
