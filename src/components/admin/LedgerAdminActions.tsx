@@ -139,10 +139,14 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>أرشفة جميع سجلات {cfg.label}؟</AlertDialogTitle>
+            <AlertDialogTitle>
+              {workerId ? `أرشفة سجلات ${cfg.label} للعامل ${workerName ?? ''}؟` : `أرشفة جميع سجلات ${cfg.label}؟`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم نقل كل السجلات الحالية إلى جدول الأرشيف وإفراغ الجدول الأساسي.
-              يمكن استرجاع البيانات لاحقاً من الأرشيف. هذا الإجراء متاح لمدير النظام فقط.
+              {workerId
+                ? `سيتم نقل سجلات هذا العامل فقط إلى الأرشيف وحذفها من الجدول الأساسي.`
+                : `سيتم نقل كل السجلات الحالية إلى جدول الأرشيف وإفراغ الجدول الأساسي.`}
+              {' '}يمكن استرجاع البيانات لاحقاً من الأرشيف. هذا الإجراء متاح لمدير النظام فقط.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -205,8 +209,12 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">⚠️ تأكيد الحذف النهائي</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم حذف <strong>{SCOPE_LABEL[scope]}</strong> من {cfg.label} نهائياً.
+              سيتم حذف <strong>{SCOPE_LABEL[scope]}</strong> من {cfg.label}
+              {scope === 'current' && workerId ? <> للعامل <strong>{workerName}</strong></> : null} نهائياً.
               <br />هذا الإجراء <strong>لا يمكن التراجع عنه</strong>.
+              {scope !== 'current' && workerId && (
+                <><br /><span className="text-amber-600">ملاحظة: فلترة العامل تُطبَّق على نطاق "الحالية فقط" — في "الأرشيف" أو "الكل" سيتم حذف الجميع.</span></>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
