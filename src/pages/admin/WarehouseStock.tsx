@@ -500,7 +500,7 @@ const WarehouseStock: React.FC = () => {
                   { label: t('warehouse.deficit'), value: s.deficit, display: fmt(s.deficit), color: 'text-destructive', bg: 'bg-red-50 dark:bg-red-950/30', onClick: () => setMetricLog({ product: s, metric: 'deficit' }) },
                 ] as Array<{ label: string; value: number; display: string; color: string; bg: string; onClick?: () => void }>;
                 const row2 = [
-                  { label: t('warehouse.gifts'), value: s.gifts, display: giftFormatted, color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/30', onClick: () => setMetricLog({ product: s, metric: 'gifts' }) },
+                  
                   { label: 'العروض', value: s.offers, display: fmt(s.offers), color: 'text-fuchsia-600', bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30', onClick: () => setMetricLog({ product: s, metric: 'offers' }) },
                   { label: t('warehouse.damaged'), value: s.damaged, display: fmt(s.damaged), color: 'text-destructive', bg: 'bg-red-50 dark:bg-red-950/30', onClick: () => setMetricLog({ product: s, metric: 'damaged' }) },
                   { label: t('warehouse.returned'), value: s.factoryReturn, display: fmt(s.factoryReturn), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30', onClick: () => setMetricLog({ product: s, metric: 'factoryReturn' }) },
@@ -540,7 +540,7 @@ const WarehouseStock: React.FC = () => {
                         className="flex flex-col gap-1 min-w-0 items-center text-center hover:opacity-80 transition-opacity"
                         onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
                       >
-                        <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
+                        <span className="font-extrabold text-sm text-foreground break-words">{s.productName}</span>
                         <div className="flex items-center justify-center gap-3 flex-wrap">
                           {!isWarehouseManager && (
                             <div className="flex items-center gap-1">
