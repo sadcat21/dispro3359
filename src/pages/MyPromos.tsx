@@ -126,7 +126,7 @@ const MyPromosContent: React.FC = () => {
       const [promosRes, customersRes, productsRes, offersRes] = await Promise.all([
         supabase
           .from('promos')
-          .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity)`)
+          .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity), order:orders(status)`)
           .eq('worker_id', workerId)
           .order('promo_date', { ascending: false }),
         supabase.from('customers').select('*').order('name'),
@@ -141,6 +141,12 @@ const MyPromosContent: React.FC = () => {
       if (promosRes.error) throw promosRes.error;
       if (customersRes.error) throw customersRes.error;
       if (productsRes.error) throw productsRes.error;
+
+      // Hide promos that are tied to an order which has NOT been delivered yet
+      // (e.g. just-created orders that are still pending/assigned).
+      promosRes.data = (promosRes.data || []).filter((p: any) =>
+        !p.order_id || !p.order || p.order.status === 'delivered'
+      );
 
       // Load first tier per offer (tiers are source of truth for units/quantities)
       const allOfferIds = Array.from(new Set([
