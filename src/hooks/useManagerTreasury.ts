@@ -112,9 +112,10 @@ export const useManagerTreasury = () => {
 };
 
 export const useTreasurySummary = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
+  const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['treasury-summary', activeBranch?.id],
+    queryKey: ['treasury-summary', activeBranch?.id, perManager],
     queryFn: async () => {
       // Get stamp tiers
       const { data: stampTiers } = await supabase
