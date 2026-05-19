@@ -91,6 +91,7 @@ const WorkerRounds = lazy(() => import("./pages/admin/WorkerRounds"));
 const WorkerRolesManagement = lazy(() => import("./pages/admin/WorkerRolesManagement"));
 const AssistantPermissionsControl = lazy(() => import("./pages/admin/AssistantPermissionsControl"));
 const ProductChecklist = lazy(() => import("./pages/ProductChecklist"));
+const IdentifierInspector = lazy(() => import("./pages/admin/IdentifierInspector"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
