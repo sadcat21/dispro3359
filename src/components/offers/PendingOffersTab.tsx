@@ -33,22 +33,21 @@ const formatQtyPlain = (boxes: number, pieces: number): string => {
 };
 
 const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _dateFrom, dateTo: _dateTo, onCustomerCountChange }) => {
-  // Pending offers are intentionally NOT filtered by date — they remain visible
-  // until confirmed/rejected, regardless of when the sale happened.
+  // Fetch ALL statuses so customer cards keep history (confirmed/rejected) and
+  // still surface any pending items that need action.
   const { items, isLoading } = usePendingOfferConfirmations({
     workerId,
     branchId,
-    status: 'pending',
   });
 
   const [openCustomer, setOpenCustomer] = useState<{ id: string; name: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<PendingOfferConfirmation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
 
   const loadHistory = async () => {
     setHistoryLoading(true);
