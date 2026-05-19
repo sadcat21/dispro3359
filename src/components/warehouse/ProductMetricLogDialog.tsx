@@ -134,11 +134,18 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           .eq('product_id', productId)
           .or(`branch_id.eq.${branchId},branch_id.is.null`)
           .order('sold_at', { ascending: false });
-        const filtered = (rows || []).filter((r: any) =>
+        const rawFiltered = (rows || []).filter((r: any) =>
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
         );
+        // Deduplicate: same worker + customer + sold_at + qty often double-recorded across direct_sale/delivery_sale
+        const seen = new Set<string>();
+        const filtered = rawFiltered.filter((r: any) => {
+          const key = `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
-        console.log('[OffersLog] worker names map:', Array.from(names.entries()), 'filtered worker_ids:', filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
@@ -242,11 +249,22 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                   {(e.who || e.refLabel || e.delivered != null) && (
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                       {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
-                      {e.workerName && (
-                        <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-300">
-                          العامل: {e.workerName}
-                        </Badge>
-                      )}
+                      {e.workerName && (() => {
+                        const palette = [
+                          'bg-blue-50 text-blue-700 border-blue-300',
+                          'bg-amber-50 text-amber-700 border-amber-300',
+                          'bg-emerald-50 text-emerald-700 border-emerald-300',
+                          'bg-purple-50 text-purple-700 border-purple-300',
+                          'bg-rose-50 text-rose-700 border-rose-300',
+                          'bg-cyan-50 text-cyan-700 border-cyan-300',
+                          'bg-orange-50 text-orange-700 border-orange-300',
+                          'bg-indigo-50 text-indigo-700 border-indigo-300',
+                        ];
+                        let h = 0;
+                        for (const ch of e.workerName) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+                        const cls = palette[h % palette.length];
+                        return <Badge variant="outline" className={`text-[10px] ${cls}`}>{e.workerName}</Badge>;
+                      })()}
                       {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
                       {e.delivered != null && (
                         <Badge
