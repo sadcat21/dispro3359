@@ -187,6 +187,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const total = useMemo(() => (data || []).reduce((s, e) => s + (e.qty || 0), 0), [data]);
 
+  const [offerDetail, setOfferDetail] = useState<Entry | null>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
@@ -209,24 +211,163 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           ) : (data?.length ?? 0) === 0 ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد سجلات</div>
           ) : (
-            (data || []).map(e => (
-              <div key={e.id} className={`rounded-xl border px-3 py-2 ${meta.tone} bg-opacity-40`}>
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>{e.when ? new Date(e.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</span>
+            (data || []).map(e => {
+              const clickable = metric === 'offers' && !!e.customerId;
+              const inner = (
+                <>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{e.when ? new Date(e.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</span>
+                    </div>
+                    <span className={`font-extrabold tabular-nums ${meta.accent}`}>{fmt(e.qty)}</span>
                   </div>
-                  <span className={`font-extrabold tabular-nums ${meta.accent}`}>{fmt(e.qty)}</span>
+                  {(e.who || e.refLabel) && (
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
+                      {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
+                      {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
+                      {clickable && <ChevronLeft className="w-3 h-3 ms-auto opacity-60" />}
+                    </div>
+                  )}
+                  {e.note && (<div className="mt-1 text-[11px] text-muted-foreground break-words">{e.note}</div>)}
+                </>
+              );
+              const cls = `block w-full text-right rounded-xl border px-3 py-2 ${meta.tone} bg-opacity-40 ${clickable ? 'cursor-pointer hover:ring-2 hover:ring-fuchsia-300 active:scale-[0.99] transition' : ''}`;
+              return clickable ? (
+                <button key={e.id} type="button" className={cls} onClick={() => setOfferDetail(e)}>{inner}</button>
+              ) : (
+                <div key={e.id} className={cls}>{inner}</div>
+              );
+            })
+          )}
+        </div>
+
+        {offerDetail && (
+          <OfferRecipientDetailsDialog
+            open={!!offerDetail}
+            onOpenChange={(v) => !v && setOfferDetail(null)}
+            branchId={branchId}
+            productId={productId}
+            productName={productName}
+            piecesPerBox={piecesPerBox}
+            entry={offerDetail}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Nested dialog: For a given offer event, show the customer's purchases of
+// this product accumulating until the offer was granted.
+// ─────────────────────────────────────────────────────────────────────────────
+const OfferRecipientDetailsDialog: React.FC<{
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  branchId: string;
+  productId: string;
+  productName: string;
+  piecesPerBox: number;
+  entry: Entry;
+}> = ({ open, onOpenChange, branchId, productId, productName, piecesPerBox, entry }) => {
+  const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['offer-recipient-detail', branchId, productId, entry.customerId, entry.when],
+    enabled: open && !!entry.customerId,
+    queryFn: async () => {
+      // All purchases by this customer for this product, up to and including this offer event
+      const upTo = entry.when || new Date().toISOString();
+      const { data: rows } = await supabase
+        .from('sales_tracking')
+        .select('id, sold_at, sold_boxes, sold_pieces, gift_boxes, gift_pieces, pieces_per_box, source')
+        .eq('product_id', productId)
+        .eq('customer_id', entry.customerId!)
+        .or(`branch_id.eq.${branchId},branch_id.is.null`)
+        .lte('sold_at', upTo)
+        .order('sold_at', { ascending: true });
+
+      // Determine the start point: previous gift event (so we show the accumulation that triggered THIS gift)
+      const list = (rows || []) as any[];
+      // last index where a gift was received BEFORE current entry
+      let startIdx = 0;
+      for (let i = list.length - 2; i >= 0; i--) {
+        const g = Number(list[i].gift_boxes || 0) + Number(list[i].gift_pieces || 0);
+        if (g > 0) { startIdx = i + 1; break; }
+      }
+      const slice = list.slice(startIdx);
+
+      let cumPieces = 0;
+      return slice.map((r) => {
+        const ppb = Number(r.pieces_per_box) || piecesPerBox;
+        const soldPieces = Number(r.sold_boxes || 0) * ppb + Number(r.sold_pieces || 0);
+        const giftPieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
+        cumPieces += soldPieces;
+        return {
+          id: r.id,
+          when: r.sold_at,
+          sold: piecesToDbBP(soldPieces, piecesPerBox),
+          gift: piecesToDbBP(giftPieces, piecesPerBox),
+          cum: piecesToDbBP(cumPieces, piecesPerBox),
+          source: r.source as string,
+        };
+      });
+    },
+  });
+
+  const sourceLabel = (s: string) => s === 'warehouse_sale' ? 'بيع من المخزن' : s === 'direct_sale' ? 'بيع مباشر' : 'توصيل';
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
+            <ShoppingCart className="w-5 h-5 text-fuchsia-600" />
+            <span className="truncate">{entry.customerName || entry.who || 'الزبون'}</span>
+            <span className="text-[11px] font-normal text-muted-foreground">المشتريات حتى استحقاق العرض</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex items-center justify-between border-2 rounded-xl p-3 bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700">
+          <span className="text-sm font-semibold">{productName}</span>
+          <Badge className="bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 text-sm">عرض {fmt(entry.qty)}</Badge>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
+          {isLoading ? (
+            <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
+          ) : (data?.length ?? 0) === 0 ? (
+            <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد مشتريات سابقة</div>
+          ) : (
+            (data || []).map((r, idx) => {
+              const isTrigger = idx === (data!.length - 1);
+              return (
+                <div key={r.id}
+                  className={`rounded-xl border px-3 py-2 ${isTrigger ? 'bg-fuchsia-50 border-fuchsia-300 ring-1 ring-fuchsia-300' : 'bg-muted/30'}`}>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{r.when ? new Date(r.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">{sourceLabel(r.source)}</Badge>
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between gap-2 text-[12px]">
+                    <span className="text-muted-foreground">
+                      اشترى: <span className="font-bold text-foreground tabular-nums">{fmt(r.sold)}</span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      التراكمي: <span className="font-extrabold text-fuchsia-700 tabular-nums">{fmt(r.cum)}</span>
+                    </span>
+                  </div>
+                  {r.gift > 0 && (
+                    <div className="mt-1 text-[11px] text-fuchsia-700 font-semibold">
+                      🎁 استلم عرض: {fmt(r.gift)}
+                    </div>
+                  )}
                 </div>
-                {(e.who || e.refLabel) && (
-                  <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
-                    {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
-                    {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
-                  </div>
-                )}
-                {e.note && (<div className="mt-1 text-[11px] text-muted-foreground break-words">{e.note}</div>)}
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </DialogContent>
