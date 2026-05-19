@@ -108,68 +108,53 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
     })();
   }, [visibleItems, customerStores]);
 
-  // Group by customer
+  // Group by customer (include all statuses so the card stays as a record).
   const grouped = useMemo(() => {
-    const map = new Map<string, { customerId: string; customerName: string; rows: PendingOfferConfirmation[] }>();
+    const map = new Map<string, { customerId: string; customerName: string; rows: PendingOfferConfirmation[]; pendingCount: number }>();
     for (const r of visibleItems) {
       const key = r.customer_id || `__no_customer__`;
       const name = r.customer_name || 'بدون زبون';
-      if (!map.has(key)) map.set(key, { customerId: key, customerName: name, rows: [] });
-      map.get(key)!.rows.push(r);
+      if (!map.has(key)) map.set(key, { customerId: key, customerName: name, rows: [], pendingCount: 0 });
+      const g = map.get(key)!;
+      g.rows.push(r);
+      if (r.status === 'pending') g.pendingCount++;
     }
-    return Array.from(map.values()).sort((a, b) => b.rows.length - a.rows.length);
+    return Array.from(map.values()).sort((a, b) => {
+      if (b.pendingCount !== a.pendingCount) return b.pendingCount - a.pendingCount;
+      return b.rows.length - a.rows.length;
+    });
   }, [visibleItems]);
 
+  // Report only customers that actually have pending offers (drives the top badge).
+  const pendingCustomerCount = useMemo(
+    () => grouped.filter((g) => g.pendingCount > 0).length,
+    [grouped]
+  );
+
   useEffect(() => {
-    onCustomerCountChange?.(grouped.length);
-  }, [grouped.length, onCustomerCountChange]);
+    onCustomerCountChange?.(pendingCustomerCount);
+  }, [pendingCustomerCount, onCustomerCountChange]);
 
   const customerRows = openCustomer
     ? visibleItems.filter((r) => (r.customer_id || '__no_customer__') === openCustomer.id)
     : [];
 
-  // Auto-close dialog when no remaining cards for the open customer
-  useEffect(() => {
-    if (openCustomer && customerRows.length === 0 && !busyId) {
-      setOpenCustomer(null);
-    }
-  }, [openCustomer, customerRows.length, busyId]);
-
   const handleConfirm = async (id: string) => {
     setBusyId(id);
-    // Optimistically remove the card immediately
-    setRemovedIds((prev) => new Set(prev).add(id));
     const res = await confirmPendingOffer(id);
     setBusyId(null);
-    if (!res.ok) {
-      // Rollback on failure
-      setRemovedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-      toast.error(res.error || 'فشل تأكيد العرض');
-    } else {
-      toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
-    }
+    if (!res.ok) toast.error(res.error || 'فشل تأكيد العرض');
+    else toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
   };
 
   const handleReject = async (id: string) => {
     setBusyId(id);
-    setRemovedIds((prev) => new Set(prev).add(id));
     const res = await rejectPendingOffer(id);
     setBusyId(null);
-    if (!res.ok) {
-      setRemovedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-      toast.error(res.error || 'فشل رفض العرض');
-    } else {
-      toast.success('تم رفض العرض');
-    }
+    if (!res.ok) toast.error(res.error || 'فشل رفض العرض');
+    else toast.success('تم رفض العرض');
   };
+
 
   const historyButton = (
     <div className="flex justify-end px-1 mb-2">
