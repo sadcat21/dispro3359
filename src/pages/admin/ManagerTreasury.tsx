@@ -606,6 +606,21 @@ const ManagerTreasury = () => {
             <Switch checked={showCardDetails} onCheckedChange={setShowCardDetails} />
           </div>
         </div>
+        <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-muted/30 p-2">
+          <div className="flex flex-col gap-1">
+            <Label className="text-[10px] text-muted-foreground">من تاريخ</Label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-[150px] text-xs" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-[10px] text-muted-foreground">إلى تاريخ</Label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-[150px] text-xs" />
+          </div>
+          {(dateFrom || dateTo) && (
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>
+              مسح
+            </Button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-1.5 pb-1 sm:gap-2">
           {!isSettingsHidden && (
             <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]" onClick={() => setSettingsOpen(true)}>
