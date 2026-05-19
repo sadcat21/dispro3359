@@ -403,7 +403,12 @@ const DataManagement: React.FC = () => {
     setPasswordError('');
     try {
       const categoriesToDelete = DATA_CATEGORIES.filter(c => selected.has(c.id)).sort((a, b) => b.order - a.order);
-      await nullifyFkReferences(selected);
+      // Skip cross-category nullify cleanup for categories that are being deleted with a worker filter,
+      // since those should not affect data belonging to other workers.
+      const fullDeletionIds = new Set(
+        Array.from(selected).filter(id => !(workerFilter[id] && WORKER_FILTERABLE[id]))
+      );
+      await nullifyFkReferences(fullDeletionIds);
       let hasErrors = false;
       const errors: string[] = [];
 
