@@ -83,10 +83,14 @@ export interface TreasurySummary {
   orderUnpaidAmount: number;
 }
 
+// Branch managers must see only their own treasury — never share with other managers in the same branch.
+const isPerManagerRole = (role: string | null | undefined) => role === 'branch_admin';
+
 export const useManagerTreasury = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
+  const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-treasury', activeBranch?.id],
+    queryKey: ['manager-treasury', activeBranch?.id, perManager],
     queryFn: async () => {
       let query = supabase
         .from('manager_treasury')
@@ -95,6 +99,9 @@ export const useManagerTreasury = () => {
 
       if (activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
+      }
+      if (perManager) {
+        query = query.eq('manager_id', perManager);
       }
 
       const { data, error } = await query;
