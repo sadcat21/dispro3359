@@ -509,27 +509,8 @@ const WarehouseStock: React.FC = () => {
                 return (
                   <Card key={s.productId} className="overflow-hidden border-border/60 shadow-sm">
                     {/* Product image + name + received + remaining */}
-                    <div className="w-full bg-primary/5 border-b border-border/40 px-3 py-2 grid grid-cols-[1fr_auto_auto] gap-2 items-center">
-                      {/* Middle column (right in RTL): name + delivery/remaining */}
-                      <button
-                        className="flex flex-col gap-1 min-w-0 text-right hover:opacity-80 transition-opacity"
-                        onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
-                      >
-                        <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
-                        <div className="flex items-center gap-3 flex-wrap">
-                          {!isWarehouseManager && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
-                              <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1">
-                            <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
-                            <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
-                          </div>
-                        </div>
-                      </button>
-                      {/* Middle column: action buttons stacked */}
+                    <div className="w-full bg-primary/5 border-b border-border/40 px-3 py-2 grid grid-cols-[auto_1fr_auto] gap-2 items-center">
+                      {/* Right column (DOM first in RTL): action buttons stacked */}
                       <div className="flex flex-col gap-1 shrink-0">
                         <Button
                           size="icon"
@@ -554,7 +535,26 @@ const WarehouseStock: React.FC = () => {
                           </Button>
                         )}
                       </div>
-                      {/* Left column: product image */}
+                      {/* Middle column: name + delivery/remaining */}
+                      <button
+                        className="flex flex-col gap-1 min-w-0 text-right hover:opacity-80 transition-opacity"
+                        onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
+                      >
+                        <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          {!isWarehouseManager && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
+                              <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
+                            <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
+                          </div>
+                        </div>
+                      </button>
+                      {/* Left column (DOM last in RTL): product image */}
                       {(() => {
                         const prod = products.find(p => p.id === s.productId);
                         return prod?.image_url ? (
