@@ -1562,7 +1562,7 @@ const Products: React.FC = () => {
             <AlertDialogCancel>{deleteConfirmAction}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
-                if (deletePassword !== 'hs0909sm') {
+                if (deletePassword !== 'lazer@2026@food') {
                   e.preventDefault();
                   setDeletePasswordError('كلمة السر غير صحيحة');
                   return;
