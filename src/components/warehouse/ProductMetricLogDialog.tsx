@@ -279,7 +279,19 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                         let h = 0;
                         for (const ch of e.workerName) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
                         const cls = palette[h % palette.length];
-                        return <Badge variant="outline" className={`text-[10px] ${cls}`}>{e.workerName}</Badge>;
+                        const isActive = workerFilter === e.workerName;
+                        return (
+                          <Badge
+                            variant="outline"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              setWorkerFilter(isActive ? null : e.workerName!);
+                            }}
+                            className={`text-[10px] cursor-pointer hover:ring-2 hover:ring-offset-1 ${cls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}
+                          >
+                            {e.workerName}
+                          </Badge>
+                        );
                       })()}
                       {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
                       {e.delivered != null && (
