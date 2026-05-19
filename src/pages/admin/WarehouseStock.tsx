@@ -382,7 +382,7 @@ const WarehouseStock: React.FC = () => {
 
     // Hide products where all values are zero
     return Object.values(summaries)
-      .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.remaining > 0)
+      .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.offers + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
   }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData]);
 
