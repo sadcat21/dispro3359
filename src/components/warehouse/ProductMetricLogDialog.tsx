@@ -38,6 +38,7 @@ interface Entry {
   customerName?: string | null;
   customerStoreName?: string | null;
   customerFullName?: string | null;
+  delivered?: boolean | null; // null = no related order
 }
 
 const META: Record<MetricKind, { title: string; icon: React.ReactNode; color: string; tone: string; accent: string }> = {
