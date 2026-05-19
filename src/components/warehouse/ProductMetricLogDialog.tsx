@@ -103,7 +103,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         // Per-delivery breakdown from sales_tracking gift_boxes / gift_pieces
         const { data: rows } = await supabase
           .from('sales_tracking')
-          .select('id, sold_at, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id')
+          .select('id, sold_at, worker_id, customer_id, customer_name, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id')
           .eq('product_id', productId)
           .or(`branch_id.eq.${branchId},branch_id.is.null`)
           .order('sold_at', { ascending: false });
@@ -138,14 +138,15 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
-          ? await supabase.from('customers').select('id, full_name, store_name').in('id', customerIds as string[])
+          ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
-        const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.full_name || null }]));
+        const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           const c = custMap.get(r.customer_id) || { store: null, full: null };
-          const cname = c.store || c.full || null;
+          const customerFallback = r.customer_name || null;
+          const cname = c.store || c.full || customerFallback;
           return {
             id: r.id,
             when: r.sold_at,
@@ -155,7 +156,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customerId: r.customer_id || null,
             customerName: cname,
             customerStoreName: c.store,
-            customerFullName: c.full,
+            customerFullName: c.full || customerFallback,
           };
         });
       }
