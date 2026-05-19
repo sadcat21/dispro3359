@@ -218,13 +218,30 @@ export const useTreasurySummary = () => {
       const { data: expensesData } = await expQuery;
       const totalExpenses = (expensesData || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
 
-      // Get completed accounting sessions to determine covered orders
+      // Get completed accounting sessions to determine covered orders.
+      // When viewing as a branch manager, restrict to sessions HE conducted with workers,
+      // so that the treasury only reflects sales he was the accountant for.
       let sessQuery = supabase
         .from('accounting_sessions')
-        .select('worker_id, period_start, period_end')
+        .select('worker_id, period_start, period_end, manager_id')
         .eq('status', 'completed');
       if (activeBranch?.id) sessQuery = sessQuery.eq('branch_id', activeBranch.id);
+      if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
+
+      // For branch managers: keep only orders covered by one of THEIR completed sessions
+      let scopedOrders = orders || [];
+      if (perManager) {
+        scopedOrders = (orders || []).filter((o: any) => {
+          if (!o.assigned_worker_id) return false;
+          const orderDate = o.delivery_date || o.created_at;
+          return (sessions || []).some((s: any) =>
+            s.worker_id === o.assigned_worker_id &&
+            orderDate >= s.period_start &&
+            orderDate <= s.period_end
+          );
+        });
+      }
 
       // Calculate worker-held amounts: delivered paid orders NOT covered by any completed session
       let workerHeldAmount = 0;
@@ -243,11 +260,11 @@ export const useTreasurySummary = () => {
         if (!isCovered) workerHeldAmount += paidAmount;
       });
 
-      // Calculate total sales from all delivered orders
-      const totalSales = (orders || []).reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
+      // Calculate total sales from all delivered orders (scoped to this manager when applicable)
+      const totalSales = scopedOrders.reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
 
       // Calculate actual paid amount from orders (what should be in treasury from order payments)
-      const paidFromOrders = (orders || []).reduce((s: number, o: any) => {
+      const paidFromOrders = scopedOrders.reduce((s: number, o: any) => {
         let paid = Number(o.total_amount || 0);
         if (o.payment_status === 'partial') paid = Number(o.partial_amount || 0);
         else if (o.payment_status === 'debt') paid = 0;
@@ -259,7 +276,7 @@ export const useTreasurySummary = () => {
       const orderUnpaidAmount = Math.max(0, rawOrderUnpaidAmount);
 
       // Calculate total gift value (gifts given without payment)
-      const totalGiftsValue = (orders || []).reduce((s: number, o: any) => {
+      const totalGiftsValue = scopedOrders.reduce((s: number, o: any) => {
         return s + (o.order_items || []).reduce((is: number, item: any) => {
           const giftBoxes = Number(item.gift_quantity || 0);
           const giftPieces = Number(item.gift_pieces || 0);
@@ -319,7 +336,7 @@ export const useTreasurySummary = () => {
         }
       }
 
-      (orders || []).forEach((o: any) => {
+      scopedOrders.forEach((o: any) => {
         const totalAmount = Number(o.total_amount || 0);
         const itemsSubtotal = (o.order_items || []).reduce((s: number, i: any) => s + Number(i.total_price || 0), 0);
         
