@@ -336,7 +336,7 @@ export const useTreasurySummary = () => {
         }
       }
 
-      (orders || []).forEach((o: any) => {
+      scopedOrders.forEach((o: any) => {
         const totalAmount = Number(o.total_amount || 0);
         const itemsSubtotal = (o.order_items || []).reduce((s: number, i: any) => s + Number(i.total_price || 0), 0);
         
