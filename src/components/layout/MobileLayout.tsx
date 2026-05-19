@@ -302,7 +302,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   if (isWarehouseManager) {
     centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
   } else if (isBranchAdmin) {
-    centerAction = { type: 'navigate', to: '/accounting', icon: Calculator, label: 'المحاسبة', badge: workersOwingCount || 0, color: 'blue' };
+    centerAction = { type: 'navigate', to: '/accounting', icon: Calculator, label: 'المحاسبة', badge: workersOwingCount || 0, color: 'red' };
   } else if (isAdminAssistant) {
     centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
   } else if (isFieldWorker || isFieldRoleCustom) {
@@ -858,7 +858,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                     to={centerAction.to}
                     className={cn(
                       'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105',
-                      centerAction.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-sidebar-primary',
+                      centerAction.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' : centerAction.color === 'red' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-sidebar-primary',
                     )}
                     title={centerAction.label}
                     aria-label={centerAction.label}
