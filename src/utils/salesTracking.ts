@@ -131,8 +131,19 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
     }
 
     if (!rows.length) return;
-    const { error } = await supabase.from('sales_tracking' as any).insert(rows as any);
-    if (error) console.warn('[salesTracking] insert failed', error);
+    // Split rows by whether they have an order_id (the unique index only covers those).
+    const withOrder = rows.filter((r) => r.order_id);
+    const withoutOrder = rows.filter((r) => !r.order_id);
+    if (withOrder.length) {
+      const { error } = await (supabase as any)
+        .from('sales_tracking')
+        .upsert(withOrder, { onConflict: 'order_id,product_id,source', ignoreDuplicates: true });
+      if (error) console.warn('[salesTracking] upsert failed', error);
+    }
+    if (withoutOrder.length) {
+      const { error } = await supabase.from('sales_tracking' as any).insert(withoutOrder as any);
+      if (error) console.warn('[salesTracking] insert failed', error);
+    }
   } catch (e) {
     console.warn('[salesTracking] unexpected error', e);
   }
