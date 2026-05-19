@@ -516,6 +516,16 @@ const WarehouseStock: React.FC = () => {
                           <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
                           <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
                         </div>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7"
+                          aria-label="سجل الحركات"
+                          title="سجل الحركات"
+                          onClick={(e) => { e.stopPropagation(); setMovementProduct(s); }}
+                        >
+                          <History className="w-3.5 h-3.5" />
+                        </Button>
                         {canEdit && (
                           <Button
                             size="icon"
