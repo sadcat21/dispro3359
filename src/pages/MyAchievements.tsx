@@ -1035,7 +1035,18 @@ const MyAchievements: React.FC = () => {
           >
             <ChevronLeft className="w-3 h-3" />
           </button>
+          <button
+            type="button"
+            aria-label="ترتيب الجلسات المحاسبية"
+            title="ترتيب أوقات الجلسات المحاسبية"
+            onClick={() => setShowSessionsTimeline(true)}
+            disabled={!targetWorkerId}
+            className="flex items-center justify-center w-6 h-6 rounded-full border border-purple-300 bg-purple-100 hover:bg-purple-200 text-purple-600 disabled:opacity-40"
+          >
+            <Clock className="w-3 h-3" />
+          </button>
         </div>
+
 
         {/* Search + action buttons in one row */}
         <div className="col-span-2 flex items-center gap-1.5">
