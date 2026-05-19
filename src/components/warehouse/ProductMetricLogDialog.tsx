@@ -80,17 +80,17 @@ const ProductMetricLogDialog: React.FC<Props> = ({
       if (metric === 'surplus' || metric === 'deficit') {
         const { data: rows } = await supabase
           .from('stock_discrepancies')
-          .select('id, quantity, discrepancy_type, created_at, notes, reported_by')
+          .select('id, quantity, discrepancy_type, created_at, notes, worker_id')
           .eq('branch_id', branchId)
           .eq('product_id', productId)
           .eq('discrepancy_type', metric)
           .order('created_at', { ascending: false });
-        const names = await resolveWorkers((rows || []).map((r: any) => r.reported_by));
+        const names = await resolveWorkers((rows || []).map((r: any) => r.worker_id));
         return (rows || []).map((r: any) => ({
           id: r.id,
           when: r.created_at,
           qty: Number(r.quantity || 0),
-          who: names.get(r.reported_by || '') || null,
+          who: names.get(r.worker_id || '') || null,
           note: r.notes || null,
         }));
       }
