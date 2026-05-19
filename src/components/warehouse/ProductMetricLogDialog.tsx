@@ -209,9 +209,15 @@ const ProductMetricLogDialog: React.FC<Props> = ({
     },
   });
 
-  const total = useMemo(() => (data || []).reduce((s, e) => s + (e.qty || 0), 0), [data]);
-
   const [offerDetail, setOfferDetail] = useState<Entry | null>(null);
+  const [workerFilter, setWorkerFilter] = useState<string | null>(null);
+
+  const filteredData = useMemo(() => {
+    if (!workerFilter) return data || [];
+    return (data || []).filter(e => e.workerName === workerFilter);
+  }, [data, workerFilter]);
+
+  const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -229,13 +235,23 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           <Badge className={`${meta.tone} text-sm font-bold border`}>{fmt(total)}</Badge>
         </div>
 
+        {workerFilter && (
+          <button
+            type="button"
+            onClick={() => setWorkerFilter(null)}
+            className="text-[11px] underline text-muted-foreground hover:text-foreground self-start"
+          >
+            إزالة فلتر العامل: {workerFilter}
+          </button>
+        )}
+
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
-          ) : (data?.length ?? 0) === 0 ? (
+          ) : (filteredData.length === 0) ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد سجلات</div>
           ) : (
-            (data || []).map(e => {
+            filteredData.map(e => {
               const clickable = metric === 'offers' && !!e.customerId;
               const inner = (
                 <>
@@ -263,7 +279,19 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                         let h = 0;
                         for (const ch of e.workerName) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
                         const cls = palette[h % palette.length];
-                        return <Badge variant="outline" className={`text-[10px] ${cls}`}>{e.workerName}</Badge>;
+                        const isActive = workerFilter === e.workerName;
+                        return (
+                          <Badge
+                            variant="outline"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              setWorkerFilter(isActive ? null : e.workerName!);
+                            }}
+                            className={`text-[10px] cursor-pointer hover:ring-2 hover:ring-offset-1 ${cls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}
+                          >
+                            {e.workerName}
+                          </Badge>
+                        );
                       })()}
                       {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
                       {e.delivered != null && (
