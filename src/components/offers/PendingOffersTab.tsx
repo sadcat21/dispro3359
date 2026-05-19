@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, Check, X, User, Package, History } from 'lucide-react';
+import { Loader2, Gift, Check, X, User, Package, History, Copy } from 'lucide-react';
 import { usePendingOfferConfirmations } from '@/hooks/usePendingOfferConfirmations';
 import { confirmPendingOffer, rejectPendingOffer } from '@/utils/pendingOfferConfirmations';
 import { supabase } from '@/integrations/supabase/client';
@@ -385,8 +385,25 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
-                        {isConfirmed && <Badge className="bg-green-600 text-white shrink-0">مؤكد</Badge>}
-                        {isRejected && <Badge className="bg-red-600 text-white shrink-0">مرفوض</Badge>}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {r.order_id && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(r.order_id!);
+                                toast.success('تم نسخ رقم الطلب');
+                              }}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted hover:bg-muted/70 text-[10px] font-mono border"
+                              title="نسخ رقم الطلب"
+                            >
+                              <Copy className="w-3 h-3" />
+                              {r.order_id.slice(0, 8)}
+                            </button>
+                          )}
+                          {isConfirmed && <Badge className="bg-green-600 text-white">مؤكد</Badge>}
+                          {isRejected && <Badge className="bg-red-600 text-white">مرفوض</Badge>}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs font-semibold">
                         <span className="px-2 py-0.5 rounded bg-muted text-foreground">
