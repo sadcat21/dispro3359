@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
