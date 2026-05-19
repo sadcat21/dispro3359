@@ -386,6 +386,8 @@ const MyAchievements: React.FC = () => {
   const [tempSelectedProductIds, setTempSelectedProductIds] = useState<Set<string>>(new Set());
   const [productSearch, setProductSearch] = useState('');
   const [showSessionsTimeline, setShowSessionsTimeline] = useState(false);
+  const [selectedSessionRanges, setSelectedSessionRanges] = useState<SelectedSessionRange[]>([]);
+  const selectedSessionIds = useMemo(() => new Set(selectedSessionRanges.map(r => r.id)), [selectedSessionRanges]);
 
 
   const { data: productsList = [] } = useQuery({
