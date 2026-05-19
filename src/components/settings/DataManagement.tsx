@@ -5,12 +5,49 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Trash2, Loader2, AlertTriangle, Database, Lock, Link2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Loader2, AlertTriangle, Database, Lock, Link2, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import { WorkerPickerDialog } from '@/components/admin/WorkerPickerDialog';
+
+// Categories that support filtering deletion by a specific worker/manager.
+// Each entry lists the tables (child-first) and which column carries the worker reference,
+// or, for child tables, the parent table to resolve ids from.
+type FilterSpec =
+  | { table: string; column: string }
+  | { table: string; via: 'parent'; parentTable: string; parentColumn: string; parentFkOnChild: string };
+
+const WORKER_FILTERABLE: Record<string, FilterSpec[]> = {
+  treasury: [
+    { table: 'handover_items', via: 'parent', parentTable: 'manager_handovers', parentColumn: 'manager_id', parentFkOnChild: 'handover_id' },
+    { table: 'manager_handovers', column: 'manager_id' },
+    { table: 'manager_treasury', column: 'manager_id' },
+  ],
+  accounting: [
+    { table: 'accounting_session_items', via: 'parent', parentTable: 'accounting_sessions', parentColumn: 'worker_id', parentFkOnChild: 'session_id' },
+    { table: 'accounting_sessions', column: 'worker_id' },
+  ],
+  liability: [{ table: 'worker_liability_adjustments', column: 'worker_id' }],
+  debts: [
+    { table: 'debt_payments', column: 'worker_id' },
+    { table: 'debt_collections', column: 'worker_id' },
+    { table: 'customer_debts', column: 'worker_id' },
+  ],
+  credits: [{ table: 'customer_credits', column: 'worker_id' }],
+  loading: [
+    { table: 'loading_session_items', via: 'parent', parentTable: 'loading_sessions', parentColumn: 'worker_id', parentFkOnChild: 'session_id' },
+    { table: 'loading_sessions', column: 'worker_id' },
+  ],
+  stock_movements: [
+    { table: 'stock_discrepancies', column: 'worker_id' },
+    { table: 'stock_movements', column: 'worker_id' },
+  ],
+  worker_stock: [{ table: 'worker_stock', column: 'worker_id' }],
+  expenses: [{ table: 'expenses', column: 'worker_id' }],
+};
 
 interface DataCategory {
   id: string;
