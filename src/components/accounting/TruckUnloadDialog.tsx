@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
@@ -30,6 +30,20 @@ interface Props {
 const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId, workerName }) => {
   const [notes, setNotes] = useState('');
   const [emptyOpen, setEmptyOpen] = useState(false);
+  const qc = useQueryClient();
+  const didSyncRef = useRef<string | null>(null);
+
+  // مزامنة الرصيد من سجل الحركات قبل التحقق من فراغ الشاحنة
+  useEffect(() => {
+    if (!open || !workerId) return;
+    if (didSyncRef.current === workerId) return;
+    didSyncRef.current = workerId;
+    (async () => {
+      try { await supabase.rpc('recalibrate_worker_stock' as any, { p_worker_id: workerId }); }
+      catch (e) { console.warn('[TruckUnloadDialog] recalibrate failed', e); }
+      finally { qc.invalidateQueries({ queryKey: ['worker-shipment-balance', workerId] }); }
+    })();
+  }, [open, workerId, qc]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['worker-shipment-balance', workerId],
