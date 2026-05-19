@@ -36,6 +36,8 @@ interface Entry {
   refLabel?: string | null;
   customerId?: string | null;
   customerName?: string | null;
+  customerStoreName?: string | null;
+  customerFullName?: string | null;
 }
 
 const META: Record<MetricKind, { title: string; icon: React.ReactNode; color: string; tone: string; accent: string }> = {
@@ -138,11 +140,12 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, full_name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
-        const custName = new Map((customers || []).map((c: any) => [c.id, c.store_name || c.full_name]));
+        const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.full_name || null }]));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
-          const cname = custName.get(r.customer_id) || null;
+          const c = custMap.get(r.customer_id) || { store: null, full: null };
+          const cname = c.store || c.full || null;
           return {
             id: r.id,
             when: r.sold_at,
@@ -151,6 +154,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
             customerId: r.customer_id || null,
             customerName: cname,
+            customerStoreName: c.store,
+            customerFullName: c.full,
           };
         });
       }
@@ -322,15 +327,33 @@ const OfferRecipientDetailsDialog: React.FC<{
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 flex-wrap">
-            <ShoppingCart className="w-5 h-5 text-fuchsia-600" />
-            <span className="truncate">{entry.customerName || entry.who || 'الزبون'}</span>
-            <span className="text-[11px] font-normal text-muted-foreground">المشتريات حتى استحقاق العرض</span>
+          <DialogTitle className="flex items-start gap-2">
+            <ShoppingCart className="w-5 h-5 text-fuchsia-600 mt-0.5 shrink-0" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="truncate font-bold text-base">
+                {entry.customerStoreName || entry.customerName || entry.who || 'الزبون'}
+              </span>
+              {entry.customerFullName && entry.customerStoreName && (
+                <span className="truncate text-xs font-normal text-muted-foreground">
+                  {entry.customerFullName}
+                </span>
+              )}
+              <span className="text-[11px] font-normal text-muted-foreground mt-0.5">
+                المشتريات حتى استحقاق العرض
+              </span>
+            </div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center justify-between border-2 rounded-xl p-3 bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700">
-          <span className="text-sm font-semibold">{productName}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold">{productName}</span>
+            {(data?.length ?? 0) > 0 && (
+              <span className="text-[11px] font-normal text-fuchsia-600/80">
+                إجمالي المشتريات: <span className="font-bold tabular-nums">{fmt(data![data!.length - 1].cum)}</span>
+              </span>
+            )}
+          </div>
           <Badge className="bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 text-sm">عرض {fmt(entry.qty)}</Badge>
         </div>
 
