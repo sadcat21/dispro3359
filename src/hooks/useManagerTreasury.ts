@@ -474,23 +474,21 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
   });
 };
 
-export const useManagerHandovers = () => {
+export const useManagerHandovers = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-handovers', activeBranch?.id, perManager],
+    queryKey: ['manager-handovers', activeBranch?.id, perManager, rangeKey(range)],
     queryFn: async () => {
       let query = supabase
         .from('manager_handovers')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (activeBranch?.id) {
-        query = query.eq('branch_id', activeBranch.id);
-      }
-      if (perManager) {
-        query = query.eq('manager_id', perManager);
-      }
+      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (perManager) query = query.eq('manager_id', perManager);
+      if (range?.from) query = query.gte('handover_date', range.from);
+      if (range?.to) query = query.lte('handover_date', range.to);
 
       const { data, error } = await query;
       if (error) throw error;
