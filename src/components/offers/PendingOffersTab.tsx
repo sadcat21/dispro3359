@@ -120,6 +120,24 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     })();
   }, [visibleItems, customerStores]);
 
+  // Fetch order statuses to freeze the Confirm button until the order is delivered.
+  useEffect(() => {
+    const ids = Array.from(new Set(
+      visibleItems.map((r) => r.order_id).filter(Boolean) as string[]
+    )).filter((id) => !(id in orderStatuses));
+    if (ids.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from('orders').select('id, status').in('id', ids);
+      if (data) {
+        setOrderStatuses((prev) => {
+          const next = { ...prev };
+          for (const o of data as any[]) next[o.id] = o.status || '';
+          return next;
+        });
+      }
+    })();
+  }, [visibleItems, orderStatuses]);
+
   // Group by customer (include all statuses so the card stays as a record).
   const grouped = useMemo(() => {
     const map = new Map<string, { customerId: string; customerName: string; rows: PendingOfferConfirmation[]; pendingCount: number }>();
