@@ -65,7 +65,10 @@ export const useMyRoleOverrides = () => {
         .select('custom_role_id')
         .eq('worker_id', workerId);
       if (!workerRoles || workerRoles.length === 0) return [];
-      const roleIds = workerRoles.map(wr => wr.custom_role_id);
+      const roleIds = workerRoles
+        .map(wr => wr.custom_role_id)
+        .filter((roleId): roleId is string => Boolean(roleId));
+      if (roleIds.length === 0) return [];
       const { data, error } = await supabase
         .from('role_ui_overrides' as any)
         .select('element_type, element_key, is_hidden')
