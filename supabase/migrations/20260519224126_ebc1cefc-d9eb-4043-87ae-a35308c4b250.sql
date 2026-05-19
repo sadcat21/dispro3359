@@ -1,0 +1,1 @@
+SELECT public.recalibrate_worker_stock('45f8ce43-628a-4f21-97bd-a373ee13b22f'::uuid);
