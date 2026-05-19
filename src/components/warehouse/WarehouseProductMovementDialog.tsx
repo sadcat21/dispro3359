@@ -36,11 +36,11 @@ interface Mv {
 }
 
 const TYPE_STYLE: Record<MvType, { badge: string; card: string; delta: string; icon: React.ReactNode }> = {
-  receipt:        { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', card: 'bg-emerald-50 border-emerald-200', delta: 'text-emerald-700', icon: <PackageOpen className="w-3 h-3" /> },
-  load:           { badge: 'bg-blue-100 text-blue-700 border-blue-200',          card: 'bg-blue-50 border-blue-200',       delta: 'text-blue-700',    icon: <Truck className="w-3 h-3" /> },
-  return:         { badge: 'bg-red-100 text-red-700 border-red-200',             card: 'bg-red-50 border-red-200',         delta: 'text-red-700',     icon: <RotateCcw className="w-3 h-3" /> },
-  factory_return: { badge: 'bg-violet-100 text-violet-700 border-violet-200',    card: 'bg-violet-50 border-violet-200',   delta: 'text-violet-700',  icon: <TrendingDown className="w-3 h-3" /> },
-  damaged:        { badge: 'bg-orange-100 text-orange-700 border-orange-200',    card: 'bg-orange-50 border-orange-200',   delta: 'text-orange-700',  icon: <AlertTriangle className="w-3 h-3" /> },
+  receipt:        { badge: 'bg-blue-100 text-blue-700 border-blue-200',          card: 'bg-blue-50 border-blue-200',       delta: 'text-blue-700',    icon: <PackageOpen className="w-3 h-3" /> },
+  load:           { badge: 'bg-red-100 text-red-700 border-red-200',             card: 'bg-red-50 border-red-200',         delta: 'text-red-700',     icon: <Truck className="w-3 h-3" /> },
+  return:         { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', card: 'bg-emerald-50 border-emerald-200', delta: 'text-emerald-700', icon: <RotateCcw className="w-3 h-3" /> },
+  factory_return: { badge: 'bg-orange-100 text-orange-700 border-orange-200',    card: 'bg-orange-50 border-orange-200',   delta: 'text-orange-700',  icon: <TrendingDown className="w-3 h-3" /> },
+  damaged:        { badge: 'bg-rose-100 text-rose-700 border-rose-200',          card: 'bg-rose-50 border-rose-200',       delta: 'text-rose-700',    icon: <AlertTriangle className="w-3 h-3" /> },
 };
 
 const TYPE_LABEL_AR: Record<MvType, string> = {
