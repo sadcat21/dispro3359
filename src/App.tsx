@@ -595,6 +595,13 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      {/* Identifier Inspector */}
+      <Route path="/identifier-inspector" element={
+        <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager', 'branch_admin']}>
+          <IdentifierInspector />
+        </ProtectedRoute>
+      } />
+
       {/* Order Tracking */}
       <Route path="/order-tracking" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
