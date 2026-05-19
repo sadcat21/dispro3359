@@ -50,12 +50,63 @@ const getMovementSignedQuantity = (movement: StockMovementForReversal): number =
   return 0;
 };
 
+export type AccountingContext = {
+  orderId: string;
+  orderCreatedAt: string;
+  workerId: string;
+  branchId: string;
+};
+
+/**
+ * Returns true if the order falls within a COMPLETED accounting session
+ * for its worker — i.e. the sale has been "accounted for" (stamped).
+ * Mirrors the criteria used in MyAchievements to display the stamp.
+ */
+export const isOrderAccounted = async (ctx: AccountingContext): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('accounting_sessions')
+    .select('id')
+    .eq('worker_id', ctx.workerId)
+    .eq('status', 'completed')
+    .lte('period_start', ctx.orderCreatedAt)
+    .gte('period_end', ctx.orderCreatedAt)
+    .limit(1);
+  if (error) return false;
+  return !!(data && data.length);
+};
+
 export const restoreStockFromMovements = async (
   movements: StockMovementForReversal[],
   fallbackWorkerId: string | null | undefined,
   fallbackBranchId: string | null | undefined,
   itemPiecesPerBox: Map<string, number>,
+  accountingContext?: AccountingContext,
 ) => {
+  // Determine if the sale has already been accounted for (stamped).
+  // If so, any stock movement must go to the BRANCH warehouse — not the
+  // worker's truck — and be logged as a special `return_post_accounting`
+  // movement carrying worker/customer/order info.
+  let accounted = false;
+  let accountingNoteParts: string[] = [];
+  if (accountingContext) {
+    accounted = await isOrderAccounted(accountingContext);
+    if (accounted) {
+      const [workerRes, orderRes] = await Promise.all([
+        supabase.from('workers_safe').select('full_name').eq('id', accountingContext.workerId).maybeSingle(),
+        supabase.from('orders').select('order_number, customer:customers(name, store_name)').eq('id', accountingContext.orderId).maybeSingle(),
+      ]);
+      const workerName = (workerRes.data as any)?.full_name || '';
+      const customer = (orderRes.data as any)?.customer || null;
+      const customerName = customer?.store_name || customer?.name || '';
+      const orderNumber = (orderRes.data as any)?.order_number || accountingContext.orderId;
+      accountingNoteParts = [
+        workerName ? `العامل: ${workerName}` : '',
+        customerName ? `الزبون: ${customerName}` : '',
+        `طلبية: ${orderNumber}`,
+      ].filter(Boolean);
+    }
+  }
+
   const reversals = new Map<string, {
     locationType: 'worker' | 'warehouse';
     ownerId: string;
