@@ -330,6 +330,8 @@ const MyAchievements: React.FC = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
   const [tempSelectedProductIds, setTempSelectedProductIds] = useState<Set<string>>(new Set());
   const [productSearch, setProductSearch] = useState('');
+  const [showSessionsTimeline, setShowSessionsTimeline] = useState(false);
+
 
   const { data: productsList = [] } = useQuery({
     queryKey: ['achievements-products-filter', activeBranch?.id],
