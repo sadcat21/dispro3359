@@ -98,6 +98,7 @@ const WarehouseStock: React.FC = () => {
   const [movementProduct, setMovementProduct] = useState<ProductSummary | null>(null);
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
+  const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
 
   const branchId = activeBranch?.id;
 
