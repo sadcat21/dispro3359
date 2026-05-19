@@ -113,7 +113,7 @@ const DATA_CATEGORIES: DataCategory[] = [
 ];
 
 const PROTECTED_CATEGORIES = ['customers', 'products', 'workers', 'offers', 'orders', 'delivered_orders', 'debts'];
-const DELETION_PASSWORD = 'hs0909sm';
+const DELETION_PASSWORD = 'lazer@2026@food';
 
 const DataManagement: React.FC = () => {
   const { t } = useLanguage();
