@@ -407,6 +407,29 @@ const LoginForm: React.FC = () => {
       .filter((group) => group.workers.length > 0);
   };
 
+  const doQuickLogin = async (worker: QuickWorker) => {
+    let password = worker.username;
+
+    if (worker.id) {
+      const { data } = await supabase
+        .from('workers')
+        .select('password_hash')
+        .eq('id', worker.id)
+        .maybeSingle();
+
+      const passwordHash = (data as { password_hash?: string | null } | null)?.password_hash;
+      if (passwordHash) {
+        try {
+          password = atob(passwordHash);
+        } catch {
+          password = worker.username;
+        }
+      }
+    }
+
+    await doLogin(worker.username, password, true);
+  };
+
   const renderQuickWorkerCard = (worker: QuickWorker, isRealMode: boolean) => {
     const WorkerIcon = getWorkerIcon(worker);
     const groupMeta = QUICK_GROUP_META[getQuickWorkerGroupKey(worker)] || QUICK_GROUP_META.worker;
