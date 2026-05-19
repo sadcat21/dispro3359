@@ -302,7 +302,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   if (isWarehouseManager) {
     centerAction = { type: 'navigate', to: '/?openLoadWorker=1', icon: Truck, label: t('worker_home.load_worker') || 'شحن العامل' };
   } else if (isBranchAdmin) {
-    centerAction = { type: 'navigate', to: '/accounting', icon: Calculator, label: 'المحاسبة', badge: workersOwingCount || 0, color: 'blue' };
+    centerAction = { type: 'navigate', to: '/accounting', icon: Calculator, label: 'المحاسبة', badge: workersOwingCount || 0, color: 'red' };
   } else if (isAdminAssistant) {
     centerAction = { type: 'navigate', to: '/assistant-approvals', icon: CalendarCheck, label: 'الموافقات', badge: assistantPendingCount || 0 };
   } else if (isFieldWorker || isFieldRoleCustom) {
