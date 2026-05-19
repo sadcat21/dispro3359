@@ -1681,7 +1681,16 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         effectiveWorkerId,
         order.branch_id,
         itemPiecesPerBox,
+        (effectiveWorkerId && order.branch_id && (order as any).created_at)
+          ? {
+              orderId: order.id,
+              orderCreatedAt: (order as any).created_at,
+              workerId: effectiveWorkerId,
+              branchId: order.branch_id,
+            }
+          : undefined,
       );
+
 
       await supabase.from('stock_movements').delete().eq('order_id', order.id);
 
