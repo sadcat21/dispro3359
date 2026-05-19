@@ -355,7 +355,15 @@ const AccountingSessions: React.FC = () => {
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <User className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="font-bold text-sm">{session.worker?.full_name}</span>
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span className="font-bold text-sm truncate">{session.worker?.full_name}</span>
+                          {session.manager?.full_name && (
+                            <Badge variant="outline" className="self-start text-[10px] px-1.5 py-0 h-4 gap-1 font-normal">
+                              <User className="w-2.5 h-2.5" />
+                              المحاسب: {session.manager.full_name}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={`${statusColor(session.status)} text-[11px] px-2.5 py-0.5 rounded-full`}>
