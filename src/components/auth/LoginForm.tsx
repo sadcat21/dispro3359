@@ -268,6 +268,11 @@ const LoginForm: React.FC = () => {
   const [quickPasswordValue, setQuickPasswordValue] = useState('');
   const [quickPasswordError, setQuickPasswordError] = useState('');
   const QUICK_LOGIN_PASSWORD = '09091408';
+  // Override passwords for quick login when username !== password
+  const QUICK_LOGIN_PASSWORD_OVERRIDES: Record<string, string> = {
+    adjel: 'adjelaroma26',
+    hssmg27: 'Hssmg27',
+  };
 
   const openQuickPassword = (target: 'test' | 'real') => {
     setQuickPasswordTarget(target);
