@@ -235,13 +235,23 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           <Badge className={`${meta.tone} text-sm font-bold border`}>{fmt(total)}</Badge>
         </div>
 
+        {workerFilter && (
+          <button
+            type="button"
+            onClick={() => setWorkerFilter(null)}
+            className="text-[11px] underline text-muted-foreground hover:text-foreground self-start"
+          >
+            إزالة فلتر العامل: {workerFilter}
+          </button>
+        )}
+
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
-          ) : (data?.length ?? 0) === 0 ? (
+          ) : (filteredData.length === 0) ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد سجلات</div>
           ) : (
-            (data || []).map(e => {
+            filteredData.map(e => {
               const clickable = metric === 'offers' && !!e.customerId;
               const inner = (
                 <>
