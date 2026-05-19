@@ -230,6 +230,27 @@ const AccountingSessionsTimelineDialog: React.FC<{
     },
   });
 
+  // أضف جلسة افتراضية "مفتوحة" إذا كانت آخر جلسة مكتملة وانتهت في الماضي
+  const displaySessions = useMemo(() => {
+    const list = [...sessions];
+    const latest = list[0];
+    if (latest && latest.status === 'completed' && latest.period_end) {
+      const endT = new Date(latest.period_end).getTime();
+      if (endT < Date.now()) {
+        list.unshift({
+          id: 'virtual-open',
+          period_start: latest.period_end,
+          period_end: new Date().toISOString(),
+          completed_at: null,
+          created_at: latest.period_end,
+          status: 'open',
+          __virtual: true,
+        } as any);
+      }
+    }
+    return list;
+  }, [sessions]);
+
   const [localSel, setLocalSel] = useState<Set<string>>(new Set());
   useEffect(() => { if (open) setLocalSel(new Set(selectedIds)); }, [open, selectedIds]);
 
