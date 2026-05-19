@@ -1,63 +1,52 @@
-## ما المطلوب
+## الهدف
+إضافة نافذة اختيار العامل/المدير في صفحة "حذف البيانات" (DataManagement) و"إجراءات السجل" (LedgerAdminActions) بحيث يمكن تصفية الحذف لعامل واحد بدلاً من حذف بيانات الجميع.
 
-بعد أن يؤكد المدير المراجعة النهائية للمخزون (`warehouse_review_sessions.is_final = true`) ويترتب على الموظف عجز/دين، يجب **تجميد** كل العمليات التالية على الموظف حتى يسوّي حسابه:
+## النطاق
 
-1. **الطلبيات المسلَّمة (delivered orders)** – لا تعديل، لا حذف، لا تغيير حالة، لا تغيير الدفع.
-2. **عروض الأسعار / الكوتيشن (quotations / promos)** – لا تعديل ولا حذف ولا تحويل لطلبية.
-3. **تأكيدات الهدايا المعلّقة (pending gift confirmations)** – لا قبول، لا رفض، لا تعديل.
+### 1. DataManagement.tsx — اختيار العامل لكل قسم قابل للتصفية
+لكل قسم من الأقسام التالية، أضف زر "تحديد العامل" يفتح Dialog فيه قائمة العمال (مع بحث):
 
-## كيف نتعرّف على الموظف "المجمَّد"
+| القسم | الحقل المستخدم للتصفية | الجدول/الجداول |
+|------|----------------------|----------------|
+| treasury (خزينة المدير) | `manager_id` / `worker_id` | manager_treasury, manager_handovers, handover_items |
+| accounting (جلسات المحاسبة) | `worker_id` | accounting_sessions (+items عبر session_id) |
+| liability (ذمة العامل) | `worker_id` | worker_liability_adjustments |
+| debts (الديون) | `collected_by` / `worker_id` | debt_payments, debt_collections |
+| credits (أرصدة) | `worker_id` | customer_credits |
+| loading (جلسات الشحن) | `worker_id` | loading_sessions (+items) |
+| stock_movements | `worker_id` | stock_movements, stock_discrepancies |
+| worker_stock | `worker_id` | worker_stock |
+| expenses | `worker_id` / `created_by` | expenses |
+| orders + deliveries | `assigned_worker_id` | orders + cascades |
 
-موظف يُعتبر مجمَّداً إذا تحقق الشرطان:
-- يوجد `warehouse_review_sessions` خاصة به بحالة `is_final = true` و`completed_at IS NOT NULL`.
-- يوجد `worker_debts` بنوع `deficit` مرتبط بهذه المراجعة (`remaining_amount > 0` أو `status != 'paid'`).
+- زر "كل العمال" يبقى السلوك الحالي (يحذف الكل).
+- إذا اختار عاملاً معيّناً: الحذف يتم بـ `.eq('worker_id', X)` بدلاً من `.neq('id', ...)`، ولا يتم تنظيف المراجع المرتبطة (nullifyFkReferences) إلا للسجلات المرتبطة بنفس العامل.
 
-سننشئ هوك مركزي `useWorkerFrozenStatus(workerId)` يُرجع `{ isFrozen, debtAmount, reviewSessionId }` ليُستخدم في كل الواجهات.
+### 2. LedgerAdminActions.tsx — اختيار العامل قبل الأرشفة/الحذف
+- إضافة Select للعامل أعلى البطاقة (افتراضي: كل العمال).
+- إنشاء RPCs جديدة بتوقيع `(p_worker_id uuid DEFAULT NULL)` لكل من:
+  - `archive_cash_movements`, `archive_debt_movements`, `archive_stock_movements`
+  - `purge_cash_movements`, `purge_debt_movements`, `purge_stock_movements`
+  - النسخ `_archive` و `_all` تبقى كما هي (للحذف الكامل من جدول الأرشيف).
+- عند `p_worker_id IS NULL` السلوك القديم؛ عند تمرير id يُصفّى بـ `WHERE worker_id = p_worker_id`.
 
-## التغييرات
+## مكوّن مشترك جديد
+`src/components/admin/WorkerPickerDialog.tsx`:
+- يجلب العمال من `profiles` + `worker_roles` (يستثني العامل الحالي تلقائياً للأمان).
+- بحث بالاسم، عرض الدور، اختيار واحد.
+- يُستخدم من كلا الشاشتين.
 
-### 1. هوك جديد
-`src/hooks/useWorkerFrozenStatus.ts`
-- استعلام يجمع بين `warehouse_review_sessions` (final) و`worker_debts` غير المسددة.
-- يُعرض على شكل React Query هوك مع realtime على الجدولين.
+## السلوك عند عدم الاختيار
+- الافتراضي = "كل العمال" → نفس السلوك الحالي (لا توقّف الاستخدام الحالي).
 
-### 2. حماية على مستوى الواجهة (UI guard)
+## تفاصيل تقنية
+- DataManagement: تخزين `selectedWorkerId: Record<categoryId, string|null>` في state.
+- كل قسم قابل للتصفية يظهر تحته شارة: "العامل: [الاسم] (تغيير)".
+- `deleteFromTable` يُستبدل بـ `deleteFromTableFiltered(table, workerColumn?, workerId?)`.
+- migration واحدة تنشئ النسخ الجديدة من 6 RPCs مع DEFAULT NULL (متوافقة رجعياً).
 
-| الملف | التغيير |
-|------|--------|
-| `src/components/orders/DeliveryPaymentDialog.tsx` و كل ديالوغ تعديل طلبية مسلَّمة | تعطيل أزرار الحفظ + رسالة "الموظف مجمَّد بسبب عجز غير مسدد" |
-| `src/pages/admin/PromoTable.tsx` و `src/components/promo/*` (Edit/Delete/Convert) | نفس التعطيل لعروض الأسعار التابعة للموظف |
-| `src/components/stock/StockConfirmationsPopover.tsx` و `ManagerConfirmationsPanel.tsx` و `FactoryApprovalsDialog.tsx` (الجزء الخاص بـ pending gift confirmations) | تعطيل أزرار "قبول/رفض" مع شارة "مجمَّد" |
-
-كل واجهة تستخدم `useWorkerFrozenStatus(order.assigned_worker_id)` ثم:
-```tsx
-<Button disabled={isFrozen || ...}>...</Button>
-{isFrozen && <Alert>الموظف مجمَّد - يجب تسوية العجز أولاً</Alert>}
-```
-
-### 3. حماية على مستوى قاعدة البيانات (RLS + Trigger)
-
-نضيف دالة `public.is_worker_frozen(_worker_id uuid) returns boolean` (SECURITY DEFINER) ثم triggers `BEFORE UPDATE/DELETE` على:
-- `orders` (عند `status='delivered'`)
-- `promos` / `quotations`
-- `stock_confirmations` (نوع gift، حالة pending)
-
-كل trigger يرفع `RAISE EXCEPTION 'WORKER_FROZEN'` إذا الموظف مجمَّد، باستثناء العمليات التي:
-- يقوم بها admin / project_manager / company_manager.
-- تسجّل دفعة على الدين نفسه.
-
-### 4. فك التجميد
-
-تلقائي – بمجرد أن يصبح `worker_debts.remaining_amount = 0` أو `status = 'paid'`، يعود الموظف لوضع طبيعي بدون تدخل يدوي.
-
-## الملفات المتأثرة
-
-- جديد: `src/hooks/useWorkerFrozenStatus.ts`
-- جديد: `src/components/workers/FrozenWorkerBadge.tsx` (شارة مشتركة)
-- معدَّل: `DeliveryPaymentDialog.tsx`, `PromoTable.tsx`, `StockConfirmationsPopover.tsx`, `ManagerConfirmationsPanel.tsx`, `FactoryApprovalsDialog.tsx`
-- migration: دالة `is_worker_frozen` + 3 triggers.
-
-## ما هو خارج النطاق
-
-- تجميد عمليات أخرى (تحميل، بيع مباشر، تحصيل) – موجودة سابقاً أو ستُعالج لاحقاً.
-- إشعارات تلقائية للموظف بأنه مجمَّد.
+## ملفات جديدة/معدّلة
+- جديد: `src/components/admin/WorkerPickerDialog.tsx`
+- معدّل: `src/components/settings/DataManagement.tsx`
+- معدّل: `src/components/admin/LedgerAdminActions.tsx`
+- migration: تحديث الـ 6 RPCs لقبول `p_worker_id`
