@@ -465,13 +465,14 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
   truckStock?.forEach(r => allProductNames.add(r.product_name));
   if (loadingData?.loadedMap) Object.keys(loadingData.loadedMap).forEach(n => allProductNames.add(n));
   if (loadingData?.unloadedMap) Object.keys(loadingData.unloadedMap).forEach(n => allProductNames.add(n));
+  if (shippingPerProduct) Object.keys(shippingPerProduct).forEach(n => allProductNames.add(n));
   if (salesPerProduct) Object.keys(salesPerProduct).forEach(n => allProductNames.add(n));
   if (reviewData?.items) Object.keys(reviewData.items).forEach(n => allProductNames.add(n));
 
   const productRows = Array.from(allProductNames).map(name => {
     const truckRow = truckStock?.find(r => r.product_name === name);
     const review = reviewData?.items?.[name];
-    const loaded = loadingData?.loadedMap?.[name] || 0;
+    const loaded = shippingPerProduct?.[name] ?? loadingData?.loadedMap?.[name] ?? 0;
     const unloaded = loadingData?.unloadedMap?.[name] || 0;
     const sold = salesPerProduct?.[name] || 0;
     const systemQty = review ? review.systemQty : (truckRow?.quantity || 0);
