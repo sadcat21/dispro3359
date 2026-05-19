@@ -566,22 +566,43 @@ const DataManagement: React.FC = () => {
                 {/* Group Items */}
                 {!isCollapsed && (
                   <div className="divide-y divide-border/40">
-                    {items.map(category => (
-                      <div
-                        key={category.id}
-                        className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors ${
-                          selected.has(category.id) ? 'bg-destructive/5' : 'hover:bg-muted/30'
-                        }`}
-                        onClick={() => toggleCategory(category.id)}
-                      >
-                        <Checkbox checked={selected.has(category.id)} onCheckedChange={() => toggleCategory(category.id)} className="shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-tight">{category.label}</p>
-                          <p className="text-[11px] text-muted-foreground leading-tight">{category.description}</p>
+                    {items.map(category => {
+                      const filterable = !!WORKER_FILTERABLE[category.id];
+                      const wf = workerFilter[category.id];
+                      return (
+                        <div
+                          key={category.id}
+                          className={`px-3 py-2 transition-colors ${
+                            selected.has(category.id) ? 'bg-destructive/5' : 'hover:bg-muted/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => toggleCategory(category.id)}>
+                            <Checkbox checked={selected.has(category.id)} onCheckedChange={() => toggleCategory(category.id)} className="shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium leading-tight">{category.label}</p>
+                              <p className="text-[11px] text-muted-foreground leading-tight">{category.description}</p>
+                            </div>
+                            {PROTECTED_CATEGORIES.includes(category.id) && <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                          </div>
+                          {filterable && selected.has(category.id) && (
+                            <div className="flex items-center gap-1.5 mt-1.5 pr-7" onClick={(e) => e.stopPropagation()}>
+                              <WorkerPickerDialog
+                                value={wf?.id ?? null}
+                                onChange={(id, name) => setWorkerFilter(prev => ({ ...prev, [category.id]: id ? { id, name: name ?? '' } : null }))}
+                                triggerLabel={wf ? `العامل: ${wf.name}` : 'كل العمال (تحديد عامل)'}
+                              />
+                              {wf && (
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs"
+                                  onClick={() => setWorkerFilter(prev => ({ ...prev, [category.id]: null }))}
+                                >
+                                  <X className="w-3 h-3 ml-1" /> مسح
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {PROTECTED_CATEGORIES.includes(category.id) && <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
