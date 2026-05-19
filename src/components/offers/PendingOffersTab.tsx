@@ -71,7 +71,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
   };
 
 
-  const visibleItems = items;
+  const visibleItems = useMemo(
+    () => items.map((r) => statusOverrides[r.id] ? { ...r, status: statusOverrides[r.id] } : r),
+    [items, statusOverrides]
+  );
+
 
 
   // Fetch product images for visible product_ids
