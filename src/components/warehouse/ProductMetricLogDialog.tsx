@@ -140,11 +140,12 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, full_name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
-        const custName = new Map((customers || []).map((c: any) => [c.id, c.store_name || c.full_name]));
+        const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.full_name || null }]));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
-          const cname = custName.get(r.customer_id) || null;
+          const c = custMap.get(r.customer_id) || { store: null, full: null };
+          const cname = c.store || c.full || null;
           return {
             id: r.id,
             when: r.sold_at,
@@ -153,6 +154,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
             customerId: r.customer_id || null,
             customerName: cname,
+            customerStoreName: c.store,
+            customerFullName: c.full,
           };
         });
       }
