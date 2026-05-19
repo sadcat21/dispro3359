@@ -308,7 +308,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                 </span>
               </span>
               <Badge variant="secondary" className="text-xs font-bold shrink-0">
-                متبقّي: {customerRows.length}
+                بانتظار: {customerRows.filter((r) => r.status === 'pending').length} / {customerRows.length}
               </Badge>
             </DialogTitle>
           </DialogHeader>
@@ -319,8 +319,16 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
             )}
             {customerRows.map((r) => {
               const img = productImages[r.product_id];
+              const isPending = r.status === 'pending';
+              const isConfirmed = r.status === 'confirmed';
+              const isRejected = r.status === 'rejected';
+              const cardCls = isPending
+                ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900'
+                : isConfirmed
+                  ? 'border-green-300 bg-green-50 dark:bg-green-950/20 dark:border-green-900'
+                  : 'border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-900';
               return (
-                <div key={r.id} className="rounded-lg border p-3 space-y-2 animate-in fade-in slide-in-from-top-1">
+                <div key={r.id} className={`rounded-lg border p-3 space-y-2 animate-in fade-in slide-in-from-top-1 ${cardCls}`}>
                   <div className="flex items-start gap-2">
                     {img ? (
                       <img
@@ -334,7 +342,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                        {isConfirmed && <Badge className="bg-green-600 text-white shrink-0">مؤكد</Badge>}
+                        {isRejected && <Badge className="bg-red-600 text-white shrink-0">مرفوض</Badge>}
+                      </div>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs font-semibold">
                         <span className="px-2 py-0.5 rounded bg-muted text-foreground">
                           {formatQtyPlain(r.purchased_boxes, r.purchased_pieces)}
@@ -356,28 +368,31 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      disabled={busyId === r.id}
-                      onClick={() => handleConfirm(r.id)}
-                    >
-                      {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={busyId === r.id}
-                      onClick={() => handleReject(r.id)}
-                    >
-                      <X className="w-4 h-4 ml-1" /> رفض
-                    </Button>
-                  </div>
+                  {isPending && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        disabled={busyId === r.id}
+                        onClick={() => handleConfirm(r.id)}
+                      >
+                        {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busyId === r.id}
+                        onClick={() => handleReject(r.id)}
+                      >
+                        <X className="w-4 h-4 ml-1" /> رفض
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
+
         </DialogContent>
       </Dialog>
     </>
