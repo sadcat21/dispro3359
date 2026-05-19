@@ -89,9 +89,15 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         seen.add(key);
         deduped.push(r);
       }
-      return deduped;
+      // Hide pending offer cards entirely until the linked order is delivered.
+      // Confirmed/rejected rows stay visible as a record regardless of order state.
+      return deduped.filter((r) => {
+        if (r.status !== 'pending') return true;
+        if (!r.order_id) return true; // not tied to an order (e.g. direct sale)
+        return orderStatuses[r.order_id] === 'delivered';
+      });
     },
-    [items, statusOverrides]
+    [items, statusOverrides, orderStatuses]
   );
 
 
