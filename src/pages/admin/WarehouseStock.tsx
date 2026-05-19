@@ -537,7 +537,7 @@ const WarehouseStock: React.FC = () => {
                       </div>
                       {/* Middle column: name + delivery/remaining */}
                       <button
-                        className="flex flex-col gap-1 min-w-0 text-right hover:opacity-80 transition-opacity"
+                        className="flex flex-col gap-1 min-w-0 items-center text-center hover:opacity-80 transition-opacity"
                         onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
                       >
                         <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
