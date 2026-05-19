@@ -98,34 +98,29 @@ export default function IdentifierInspector() {
       const tasks: Promise<any>[] = [];
 
       if (parsed.product_id) {
-        tasks.push(
+        tasks.push(Promise.resolve(
           supabase.from('products').select('*').eq('id', parsed.product_id).maybeSingle()
-            .then(({ data }) => { out.product = data; })
-        );
+        ).then(({ data }: any) => { out.product = data; }));
       }
       if (parsed.gift_product_id) {
-        tasks.push(
+        tasks.push(Promise.resolve(
           supabase.from('products').select('*').eq('id', parsed.gift_product_id).maybeSingle()
-            .then(({ data }) => { out.gift = data; })
-        );
+        ).then(({ data }: any) => { out.gift = data; }));
       }
       if (parsed.offer_id) {
-        tasks.push(
+        tasks.push(Promise.resolve(
           (supabase as any).from('product_offers').select('*').eq('id', parsed.offer_id).maybeSingle()
-            .then(({ data }: any) => { out.offer = data; })
-        );
+        ).then(({ data }: any) => { out.offer = data; }));
       }
       if (parsed.order_id) {
-        tasks.push(
+        tasks.push(Promise.resolve(
           (supabase as any).from('orders').select('*').eq('id', parsed.order_id).maybeSingle()
-            .then(({ data }: any) => { out.order = data; })
-        );
+        ).then(({ data }: any) => { out.order = data; }));
       }
       if (parsed.customer_id) {
-        tasks.push(
+        tasks.push(Promise.resolve(
           (supabase as any).from('customers').select('*').eq('id', parsed.customer_id).maybeSingle()
-            .then(({ data }: any) => { out.customer = data; })
-        );
+        ).then(({ data }: any) => { out.customer = data; }));
       }
 
       if (tasks.length === 0) {
