@@ -640,9 +640,17 @@ const DataManagement: React.FC = () => {
                 <div className="space-y-2">
                   <p className="font-bold text-destructive">أنت على وشك حذف البيانات التالية نهائياً:</p>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    {DATA_CATEGORIES.filter(c => selected.has(c.id)).map(c => (
-                      <li key={c.id}>{c.label}</li>
-                    ))}
+                    {DATA_CATEGORIES.filter(c => selected.has(c.id)).map(c => {
+                      const wf = workerFilter[c.id];
+                      return (
+                        <li key={c.id}>
+                          {c.label}
+                          {wf && WORKER_FILTERABLE[c.id] && (
+                            <span className="text-primary"> — للعامل: {wf.name}</span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                   {needsPassword && (
                     <div className="mt-3 space-y-2">
