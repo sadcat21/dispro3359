@@ -7,6 +7,7 @@ import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, Cli
 import WarehouseProductMovementDialog from '@/components/warehouse/WarehouseProductMovementDialog';
 import ProductWorkerMovementsDialog from '@/components/warehouse/ProductWorkerMovementsDialog';
 import ProductDailySoldDialog from '@/components/warehouse/ProductDailySoldDialog';
+import ProductMetricLogDialog, { MetricKind } from '@/components/warehouse/ProductMetricLogDialog';
 import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ interface ProductSummary {
   compensation: number;
   surplus: number;
   deficit: number;
+  offers: number;
   remaining: number;
 }
 
@@ -97,6 +99,7 @@ const WarehouseStock: React.FC = () => {
   const [movementProduct, setMovementProduct] = useState<ProductSummary | null>(null);
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
+  const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
 
   const branchId = activeBranch?.id;
 
@@ -266,6 +269,7 @@ const WarehouseStock: React.FC = () => {
         compensation: 0,
         surplus: 0,
         deficit: 0,
+        offers: 0,
         remaining: 0,
       };
     }
@@ -355,6 +359,17 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
+    // Offers (promo gift_boxes/gift_pieces) from sales_tracking
+    for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
+      const pid = s.product_id;
+      if (!pid || !summaries[pid]) continue;
+      const ppb = Number(s.pieces_per_box) || 20;
+      const giftPieces = Number(s.gift_boxes || 0) * ppb + Number(s.gift_pieces || 0);
+      if (giftPieces > 0) {
+        summaries[pid].offers += giftPieces; // pieces; converted below
+      }
+    }
+
     for (const pid of Object.keys(summaries)) {
       const received = summaries[pid].received;
       const loadT = loadByProduct[pid] || 0;
@@ -363,12 +378,13 @@ const WarehouseStock: React.FC = () => {
       const damaged = summaries[pid].damaged || 0;
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
       summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
+      summaries[pid].offers = piecesToDbBP(summaries[pid].offers || 0, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
     // Hide products where all values are zero
     return Object.values(summaries)
-      .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.remaining > 0)
+      .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.offers + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
   }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData]);
 
@@ -480,15 +496,16 @@ const WarehouseStock: React.FC = () => {
                 const row1 = [
                   { label: t('warehouse.at_workers'), value: s.workerStock, display: fmt(s.workerStock), color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30', onClick: () => setWorkersForProduct(s) },
                   { label: t('warehouse.sold'), value: s.sold, display: fmt(s.sold), color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-950/30', onClick: () => setSoldForProduct(s) },
-                  { label: t('warehouse.surplus'), value: s.surplus, display: fmt(s.surplus), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30' },
-                  { label: t('warehouse.deficit'), value: s.deficit, display: fmt(s.deficit), color: 'text-destructive', bg: 'bg-red-50 dark:bg-red-950/30' },
+                  { label: t('warehouse.surplus'), value: s.surplus, display: fmt(s.surplus), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', onClick: () => setMetricLog({ product: s, metric: 'surplus' }) },
+                  { label: t('warehouse.deficit'), value: s.deficit, display: fmt(s.deficit), color: 'text-destructive', bg: 'bg-red-50 dark:bg-red-950/30', onClick: () => setMetricLog({ product: s, metric: 'deficit' }) },
                 ] as Array<{ label: string; value: number; display: string; color: string; bg: string; onClick?: () => void }>;
                 const row2 = [
-                  { label: t('warehouse.gifts'), value: s.gifts, display: giftFormatted, color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/30' },
-                  { label: t('warehouse.damaged'), value: s.damaged, display: fmt(s.damaged), color: 'text-destructive', bg: 'bg-red-50 dark:bg-red-950/30' },
-                  { label: t('warehouse.returned'), value: s.factoryReturn, display: fmt(s.factoryReturn), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30' },
-                  { label: t('warehouse.compensation'), value: s.compensation, display: fmt(s.compensation), color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/30' },
-                ];
+                  { label: t('warehouse.gifts'), value: s.gifts, display: giftFormatted, color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/30', onClick: () => setMetricLog({ product: s, metric: 'gifts' }) },
+                  { label: 'العروض', value: s.offers, display: fmt(s.offers), color: 'text-fuchsia-600', bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/30', onClick: () => setMetricLog({ product: s, metric: 'offers' }) },
+                  { label: t('warehouse.damaged'), value: s.damaged, display: fmt(s.damaged), color: 'text-destructive', bg: 'bg-red-50 dark:bg-red-950/30', onClick: () => setMetricLog({ product: s, metric: 'damaged' }) },
+                  { label: t('warehouse.returned'), value: s.factoryReturn, display: fmt(s.factoryReturn), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30', onClick: () => setMetricLog({ product: s, metric: 'factoryReturn' }) },
+                  { label: t('warehouse.compensation'), value: s.compensation, display: fmt(s.compensation), color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/30', onClick: () => setMetricLog({ product: s, metric: 'compensation' }) },
+                ] as Array<{ label: string; value: number; display: string; color: string; bg: string; onClick?: () => void }>;
                 return (
                   <Card key={s.productId} className="overflow-hidden border-border/60 shadow-sm">
                     {/* Product image + name + received + remaining */}
@@ -564,13 +581,22 @@ const WarehouseStock: React.FC = () => {
                             );
                           })}
                         </div>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {row2.map(st => (
-                            <div key={st.label} className={`rounded-md px-2 py-1.5 text-center ${st.value > 0 ? st.bg : 'bg-muted/30'}`}>
-                              <div className={`text-[11px] leading-tight mb-0.5 ${st.value > 0 ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>{st.label}</div>
-                              <div className={`text-sm font-bold tabular-nums ${st.value > 0 ? st.color : 'text-muted-foreground/40'}`}>{st.display}</div>
-                            </div>
-                          ))}
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {row2.map(st => {
+                            const isBtn = !!st.onClick;
+                            const cls = `rounded-md px-2 py-1.5 text-center transition-colors ${st.value > 0 ? st.bg : 'bg-muted/30'} ${isBtn ? 'cursor-pointer hover:ring-2 hover:ring-primary/40 active:scale-[0.98]' : ''}`;
+                            const content = (
+                              <>
+                                <div className={`text-[11px] leading-tight mb-0.5 ${st.value > 0 ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>{st.label}</div>
+                                <div className={`text-sm font-bold tabular-nums ${st.value > 0 ? st.color : 'text-muted-foreground/40'}`}>{st.display}</div>
+                              </>
+                            );
+                            return isBtn ? (
+                              <button key={st.label} type="button" className={cls} onClick={st.onClick}>{content}</button>
+                            ) : (
+                              <div key={st.label} className={cls}>{content}</div>
+                            );
+                          })}
                         </div>
                       </CardContent>
                     )}
@@ -722,6 +748,17 @@ const WarehouseStock: React.FC = () => {
           productName={soldForProduct.productName}
           piecesPerBox={products.find(p => p.id === soldForProduct.productId)?.pieces_per_box || 20}
           sinceIso={latestReceiptAtByProduct[soldForProduct.productId] || null}
+        />
+      )}
+      {metricLog && branchId && (
+        <ProductMetricLogDialog
+          open={!!metricLog}
+          onOpenChange={(open) => !open && setMetricLog(null)}
+          branchId={branchId}
+          productId={metricLog.product.productId}
+          productName={metricLog.product.productName}
+          piecesPerBox={products.find(p => p.id === metricLog.product.productId)?.pieces_per_box || 20}
+          metric={metricLog.metric}
         />
       )}
       {movementProduct && branchId && (
