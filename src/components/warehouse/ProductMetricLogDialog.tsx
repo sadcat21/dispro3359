@@ -209,9 +209,15 @@ const ProductMetricLogDialog: React.FC<Props> = ({
     },
   });
 
-  const total = useMemo(() => (data || []).reduce((s, e) => s + (e.qty || 0), 0), [data]);
-
   const [offerDetail, setOfferDetail] = useState<Entry | null>(null);
+  const [workerFilter, setWorkerFilter] = useState<string | null>(null);
+
+  const filteredData = useMemo(() => {
+    if (!workerFilter) return data || [];
+    return (data || []).filter(e => e.workerName === workerFilter);
+  }, [data, workerFilter]);
+
+  const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
