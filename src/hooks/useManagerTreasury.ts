@@ -229,17 +229,27 @@ export const useTreasurySummary = () => {
       if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
 
-      // For branch managers: keep only orders covered by one of THEIR completed sessions
+      // For branch managers: keep only orders covered by one of THEIR completed sessions.
+      // NOTE: delivery_date is a DATE while period_start/period_end are TIMESTAMPTZ — must compare as Dates, not as strings.
+      const orderTime = (o: any) => {
+        const raw = o.delivery_date || o.created_at;
+        if (!raw) return 0;
+        // Date-only values are treated as the END of that local day so they fall within a same-day session window.
+        const s = String(raw);
+        const t = Date.parse(s.length === 10 ? `${s}T23:59:59` : s);
+        return Number.isFinite(t) ? t : 0;
+      };
+      const sessionWindows = (sessions || []).map((s: any) => ({
+        worker_id: s.worker_id,
+        start: Date.parse(s.period_start),
+        end: Date.parse(s.period_end),
+      }));
       let scopedOrders = orders || [];
       if (perManager) {
         scopedOrders = (orders || []).filter((o: any) => {
           if (!o.assigned_worker_id) return false;
-          const orderDate = o.delivery_date || o.created_at;
-          return (sessions || []).some((s: any) =>
-            s.worker_id === o.assigned_worker_id &&
-            orderDate >= s.period_start &&
-            orderDate <= s.period_end
-          );
+          const t = orderTime(o);
+          return sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         });
       }
 
@@ -251,12 +261,8 @@ export const useTreasurySummary = () => {
         else if (o.payment_status === 'debt') paidAmount = 0;
         if (paidAmount <= 0 || !o.assigned_worker_id) return;
 
-        const orderDate = o.delivery_date || o.created_at;
-        const isCovered = (sessions || []).some((s: any) =>
-          s.worker_id === o.assigned_worker_id &&
-          orderDate >= s.period_start &&
-          orderDate <= s.period_end
-        );
+        const t = orderTime(o);
+        const isCovered = sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         if (!isCovered) workerHeldAmount += paidAmount;
       });
 
