@@ -33,22 +33,21 @@ const formatQtyPlain = (boxes: number, pieces: number): string => {
 };
 
 const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _dateFrom, dateTo: _dateTo, onCustomerCountChange }) => {
-  // Pending offers are intentionally NOT filtered by date — they remain visible
-  // until confirmed/rejected, regardless of when the sale happened.
+  // Fetch ALL statuses so customer cards keep history (confirmed/rejected) and
+  // still surface any pending items that need action.
   const { items, isLoading } = usePendingOfferConfirmations({
     workerId,
     branchId,
-    status: 'pending',
   });
 
   const [openCustomer, setOpenCustomer] = useState<{ id: string; name: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<PendingOfferConfirmation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
 
   const loadHistory = async () => {
     setHistoryLoading(true);
@@ -69,20 +68,8 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
   };
 
 
-  // Visible items (exclude optimistically removed)
-  const visibleItems = useMemo(
-    () => items.filter((r) => !removedIds.has(r.id)),
-    [items, removedIds]
-  );
+  const visibleItems = items;
 
-  // Reset removed-ids when fresh data arrives that no longer contains them
-  useEffect(() => {
-    if (removedIds.size === 0) return;
-    const stillHere = new Set(items.map((i) => i.id));
-    const next = new Set<string>();
-    removedIds.forEach((id) => { if (stillHere.has(id)) next.add(id); });
-    if (next.size !== removedIds.size) setRemovedIds(next);
-  }, [items, removedIds]);
 
   // Fetch product images for visible product_ids
   useEffect(() => {
@@ -121,68 +108,53 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
     })();
   }, [visibleItems, customerStores]);
 
-  // Group by customer
+  // Group by customer (include all statuses so the card stays as a record).
   const grouped = useMemo(() => {
-    const map = new Map<string, { customerId: string; customerName: string; rows: PendingOfferConfirmation[] }>();
+    const map = new Map<string, { customerId: string; customerName: string; rows: PendingOfferConfirmation[]; pendingCount: number }>();
     for (const r of visibleItems) {
       const key = r.customer_id || `__no_customer__`;
       const name = r.customer_name || 'بدون زبون';
-      if (!map.has(key)) map.set(key, { customerId: key, customerName: name, rows: [] });
-      map.get(key)!.rows.push(r);
+      if (!map.has(key)) map.set(key, { customerId: key, customerName: name, rows: [], pendingCount: 0 });
+      const g = map.get(key)!;
+      g.rows.push(r);
+      if (r.status === 'pending') g.pendingCount++;
     }
-    return Array.from(map.values()).sort((a, b) => b.rows.length - a.rows.length);
+    return Array.from(map.values()).sort((a, b) => {
+      if (b.pendingCount !== a.pendingCount) return b.pendingCount - a.pendingCount;
+      return b.rows.length - a.rows.length;
+    });
   }, [visibleItems]);
 
+  // Report only customers that actually have pending offers (drives the top badge).
+  const pendingCustomerCount = useMemo(
+    () => grouped.filter((g) => g.pendingCount > 0).length,
+    [grouped]
+  );
+
   useEffect(() => {
-    onCustomerCountChange?.(grouped.length);
-  }, [grouped.length, onCustomerCountChange]);
+    onCustomerCountChange?.(pendingCustomerCount);
+  }, [pendingCustomerCount, onCustomerCountChange]);
 
   const customerRows = openCustomer
     ? visibleItems.filter((r) => (r.customer_id || '__no_customer__') === openCustomer.id)
     : [];
 
-  // Auto-close dialog when no remaining cards for the open customer
-  useEffect(() => {
-    if (openCustomer && customerRows.length === 0 && !busyId) {
-      setOpenCustomer(null);
-    }
-  }, [openCustomer, customerRows.length, busyId]);
-
   const handleConfirm = async (id: string) => {
     setBusyId(id);
-    // Optimistically remove the card immediately
-    setRemovedIds((prev) => new Set(prev).add(id));
     const res = await confirmPendingOffer(id);
     setBusyId(null);
-    if (!res.ok) {
-      // Rollback on failure
-      setRemovedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-      toast.error(res.error || 'فشل تأكيد العرض');
-    } else {
-      toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
-    }
+    if (!res.ok) toast.error(res.error || 'فشل تأكيد العرض');
+    else toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
   };
 
   const handleReject = async (id: string) => {
     setBusyId(id);
-    setRemovedIds((prev) => new Set(prev).add(id));
     const res = await rejectPendingOffer(id);
     setBusyId(null);
-    if (!res.ok) {
-      setRemovedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-      toast.error(res.error || 'فشل رفض العرض');
-    } else {
-      toast.success('تم رفض العرض');
-    }
+    if (!res.ok) toast.error(res.error || 'فشل رفض العرض');
+    else toast.success('تم رفض العرض');
   };
+
 
   const historyButton = (
     <div className="flex justify-end px-1 mb-2">
@@ -217,32 +189,50 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
       {historyButton}
       {grouped.length === 0 ? emptyState : (
         <div className="space-y-2 px-1">
-          {grouped.map((g) => (
-            <button
-              key={g.customerId}
-              type="button"
-              onClick={() => setOpenCustomer({ id: g.customerId, name: g.customerName })}
-              className="w-full text-start flex items-center gap-3 p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 hover:shadow-md transition-shadow"
-            >
-              <div className="shrink-0 w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-                <User className="w-4 h-4 text-amber-700 dark:text-amber-300" />
-              </div>
-              <div className="flex-1 min-w-0">
-                {customerStores[g.customerId] ? (
-                  <>
-                    <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
-                  </>
+          {grouped.map((g) => {
+            const hasPending = g.pendingCount > 0;
+            return (
+              <button
+                key={g.customerId}
+                type="button"
+                onClick={() => setOpenCustomer({ id: g.customerId, name: g.customerName })}
+                className={`w-full text-start flex items-center gap-3 p-3 rounded-lg border hover:shadow-md transition-shadow ${
+                  hasPending
+                    ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
+                    : 'bg-muted/30 border-border'
+                }`}
+              >
+                <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+                  hasPending ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-muted'
+                }`}>
+                  <User className={`w-4 h-4 ${hasPending ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  {customerStores[g.customerId] ? (
+                    <>
+                      <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm font-bold truncate">{g.customerName}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {hasPending
+                      ? `${g.pendingCount} بانتظار التأكيد • ${g.rows.length} إجمالي`
+                      : `${g.rows.length} عرض — تمت المعالجة`}
+                  </p>
+                </div>
+                {hasPending ? (
+                  <Badge className="shrink-0 bg-amber-500 text-white">{g.pendingCount}</Badge>
                 ) : (
-                  <p className="text-sm font-bold truncate">{g.customerName}</p>
+                  <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
                 )}
-                <p className="text-xs text-muted-foreground">{g.rows.length} عرض بانتظار التأكيد</p>
-              </div>
-              <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
+
 
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
@@ -318,7 +308,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                 </span>
               </span>
               <Badge variant="secondary" className="text-xs font-bold shrink-0">
-                متبقّي: {customerRows.length}
+                بانتظار: {customerRows.filter((r) => r.status === 'pending').length} / {customerRows.length}
               </Badge>
             </DialogTitle>
           </DialogHeader>
@@ -329,8 +319,16 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
             )}
             {customerRows.map((r) => {
               const img = productImages[r.product_id];
+              const isPending = r.status === 'pending';
+              const isConfirmed = r.status === 'confirmed';
+              const isRejected = r.status === 'rejected';
+              const cardCls = isPending
+                ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900'
+                : isConfirmed
+                  ? 'border-green-300 bg-green-50 dark:bg-green-950/20 dark:border-green-900'
+                  : 'border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-900';
               return (
-                <div key={r.id} className="rounded-lg border p-3 space-y-2 animate-in fade-in slide-in-from-top-1">
+                <div key={r.id} className={`rounded-lg border p-3 space-y-2 animate-in fade-in slide-in-from-top-1 ${cardCls}`}>
                   <div className="flex items-start gap-2">
                     {img ? (
                       <img
@@ -344,7 +342,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                        {isConfirmed && <Badge className="bg-green-600 text-white shrink-0">مؤكد</Badge>}
+                        {isRejected && <Badge className="bg-red-600 text-white shrink-0">مرفوض</Badge>}
+                      </div>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs font-semibold">
                         <span className="px-2 py-0.5 rounded bg-muted text-foreground">
                           {formatQtyPlain(r.purchased_boxes, r.purchased_pieces)}
@@ -366,28 +368,31 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      disabled={busyId === r.id}
-                      onClick={() => handleConfirm(r.id)}
-                    >
-                      {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={busyId === r.id}
-                      onClick={() => handleReject(r.id)}
-                    >
-                      <X className="w-4 h-4 ml-1" /> رفض
-                    </Button>
-                  </div>
+                  {isPending && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        disabled={busyId === r.id}
+                        onClick={() => handleConfirm(r.id)}
+                      >
+                        {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busyId === r.id}
+                        onClick={() => handleReject(r.id)}
+                      >
+                        <X className="w-4 h-4 ml-1" /> رفض
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
+
         </DialogContent>
       </Dialog>
     </>
