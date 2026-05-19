@@ -404,39 +404,30 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium truncate flex-1 min-w-0">{r.product_name || 'منتج'}</p>
                         <div className="flex flex-col items-end gap-1 shrink-0">
-                          {r.order_id && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(r.order_id!);
-                                toast.success('تم نسخ رقم الطلب');
-                              }}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted hover:bg-muted/70 text-[10px] font-mono border"
-                              title="نسخ رقم الطلب"
-                            >
-                              <Copy className="w-3 h-3" />
-                              cmnd: {r.order_id.slice(0, 8)}
-                            </button>
-                          )}
-                          {r.product_id && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(r.product_id);
-                                toast.success('تم نسخ رمز المنتج');
-                              }}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-background hover:bg-muted/70 border text-[10px] font-mono font-semibold"
-                              title="نسخ رمز المنتج"
-                            >
-                              <Copy className="w-3 h-3" />
-                              pro: {r.product_id.slice(0, 8)}
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const lines = [
+                                `product_id: ${r.product_id}`,
+                                r.gift_product_id ? `gift_product_id: ${r.gift_product_id}` : null,
+                                r.offer_id ? `offer_id: ${r.offer_id}` : null,
+                                `created_at: ${r.created_at}`,
+                                r.order_id ? `order_id: ${r.order_id}` : null,
+                              ].filter(Boolean).join('\n');
+                              navigator.clipboard.writeText(lines);
+                              toast.success('تم نسخ المعرفات');
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/70 text-[10px] font-mono border"
+                            title="نسخ المعرفات (المنتج، العرض، التوقيت، الطلبية)"
+                          >
+                            <Copy className="w-3 h-3" />
+                            نسخ المعرفات
+                          </button>
                           {isConfirmed && <Badge className="bg-green-600 text-white">مؤكد</Badge>}
                           {isRejected && <Badge className="bg-red-600 text-white">مرفوض</Badge>}
                         </div>
+
                       </div>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs font-semibold">
                         <span className="px-2 py-0.5 rounded bg-muted text-foreground">
