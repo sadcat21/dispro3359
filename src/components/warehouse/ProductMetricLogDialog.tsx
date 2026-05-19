@@ -113,9 +113,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const orderById = new Map((ordRows || []).map((o: any) => [o.id, o]));
         const customerIds = Array.from(new Set((ordRows || []).map((o: any) => o.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
-          ? await supabase.from('customers').select('id, full_name').in('id', customerIds)
+          ? await supabase.from('customers').select('id, full_name, store_name').in('id', customerIds)
           : { data: [] as any[] };
-        const custName = new Map((customers || []).map((c: any) => [c.id, c.full_name]));
+        const custName = new Map((customers || []).map((c: any) => [c.id, c.store_name || c.full_name]));
         return (items || []).map((it: any) => {
           const ord: any = orderById.get(it.order_id) || {};
           return {
@@ -141,9 +141,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
-          ? await supabase.from('customers').select('id, full_name').in('id', customerIds as string[])
+          ? await supabase.from('customers').select('id, full_name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
-        const custName = new Map((customers || []).map((c: any) => [c.id, c.full_name]));
+        const custName = new Map((customers || []).map((c: any) => [c.id, c.store_name || c.full_name]));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
