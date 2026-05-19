@@ -142,12 +142,18 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
         const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
+        const orderIds = Array.from(new Set(filtered.map((r: any) => r.order_id).filter(Boolean)));
+        const { data: orders } = orderIds.length
+          ? await supabase.from('orders').select('id, status').in('id', orderIds as string[])
+          : { data: [] as any[] };
+        const orderStatusMap = new Map((orders || []).map((o: any) => [o.id, o.status]));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           const c = custMap.get(r.customer_id) || { store: null, full: null };
           const customerFallback = r.customer_name || null;
           const cname = c.store || c.full || customerFallback;
+          const delivered: boolean | null = r.order_id ? orderStatusMap.get(r.order_id) === 'delivered' : null;
           return {
             id: r.id,
             when: r.sold_at,
@@ -158,6 +164,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customerName: cname,
             customerStoreName: c.store,
             customerFullName: c.full || customerFallback,
+            delivered,
           };
         });
       }
