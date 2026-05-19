@@ -5,6 +5,8 @@ import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog'
 import { useNavigate } from 'react-router-dom';
 import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil, History } from 'lucide-react';
 import WarehouseProductMovementDialog from '@/components/warehouse/WarehouseProductMovementDialog';
+import ProductWorkerMovementsDialog from '@/components/warehouse/ProductWorkerMovementsDialog';
+import ProductDailySoldDialog from '@/components/warehouse/ProductDailySoldDialog';
 import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
