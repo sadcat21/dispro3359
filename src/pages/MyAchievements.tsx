@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AdaptiveScrollContainer from '@/components/ui/adaptive-scroll-container';
 import { Input } from '@/components/ui/input';
-import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, Filter, Gift, X, Search } from 'lucide-react';
+import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, Filter, Gift, X, Search, Clock } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
@@ -205,6 +205,84 @@ const DebtAggregatesDialog: React.FC<{
   );
 };
 
+const AccountingSessionsTimelineDialog: React.FC<{
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  workerId: string;
+  workerName?: string;
+}> = ({ open, onOpenChange, workerId, workerName }) => {
+  const { data: sessions = [], isLoading } = useQuery({
+    queryKey: ['worker-accounting-sessions-timeline', workerId],
+    enabled: open && !!workerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select('id, period_start, period_end, completed_at, created_at, status')
+        .eq('worker_id', workerId)
+        .order('period_start', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const statusLabel: Record<string, { ar: string; cls: string }> = {
+    completed: { ar: 'مكتملة', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    open: { ar: 'مفتوحة', cls: 'bg-blue-100 text-blue-700 border-blue-200' },
+    pending: { ar: 'معلّقة', cls: 'bg-amber-100 text-amber-700 border-amber-200' },
+    cancelled: { ar: 'ملغاة', cls: 'bg-red-100 text-red-700 border-red-200' },
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Clock className="w-4 h-4 text-primary" />
+            <span>ترتيب أوقات الجلسات المحاسبية</span>
+          </DialogTitle>
+          {workerName && (
+            <p className="text-xs text-muted-foreground">{workerName}</p>
+          )}
+        </DialogHeader>
+        {isLoading ? (
+          <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>
+        ) : sessions.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">لا توجد جلسات محاسبية لهذا العامل</p>
+        ) : (
+          <ol className="relative border-r-2 border-border pr-4 space-y-3">
+            {sessions.map((s: any) => {
+              const sl = statusLabel[s.status] || { ar: s.status, cls: 'bg-muted text-muted-foreground border-border' };
+              return (
+                <li key={s.id} className="relative">
+                  <span className="absolute -right-[1.4rem] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                  <div className="rounded-lg border bg-card p-2.5 shadow-sm">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${sl.cls}`}>{sl.ar}</span>
+                      <span className="text-[10px] text-muted-foreground" dir="ltr">
+                        {s.completed_at ? format(new Date(s.completed_at), 'dd/MM/yyyy HH:mm') : '—'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-foreground/80" dir="ltr">
+                      <span className="text-muted-foreground">من: </span>
+                      {s.period_start ? format(new Date(s.period_start), 'dd/MM HH:mm') : '—'}
+                      <span className="mx-1 text-muted-foreground">←</span>
+                      <span className="text-muted-foreground">إلى: </span>
+                      {s.period_end ? format(new Date(s.period_end), 'dd/MM HH:mm') : '—'}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
+
 const MyAchievements: React.FC = () => {
   const { workerId, user, role, activeBranch, activeRole } = useAuth();
   const [searchParams] = useSearchParams();
@@ -252,6 +330,8 @@ const MyAchievements: React.FC = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
   const [tempSelectedProductIds, setTempSelectedProductIds] = useState<Set<string>>(new Set());
   const [productSearch, setProductSearch] = useState('');
+  const [showSessionsTimeline, setShowSessionsTimeline] = useState(false);
+
 
   const { data: productsList = [] } = useQuery({
     queryKey: ['achievements-products-filter', activeBranch?.id],
@@ -955,7 +1035,18 @@ const MyAchievements: React.FC = () => {
           >
             <ChevronLeft className="w-3 h-3" />
           </button>
+          <button
+            type="button"
+            aria-label="ترتيب الجلسات المحاسبية"
+            title="ترتيب أوقات الجلسات المحاسبية"
+            onClick={() => setShowSessionsTimeline(true)}
+            disabled={!targetWorkerId}
+            className="flex items-center justify-center w-6 h-6 rounded-full border border-purple-300 bg-purple-100 hover:bg-purple-200 text-purple-600 disabled:opacity-40"
+          >
+            <Clock className="w-3 h-3" />
+          </button>
         </div>
+
 
         {/* Search + action buttons in one row */}
         <div className="col-span-2 flex items-center gap-1.5">
@@ -1266,6 +1357,7 @@ const MyAchievements: React.FC = () => {
 
       <WorkerHandoverPreviewDialog open={showHandoverSummary} onOpenChange={setShowHandoverSummary} />
       <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
+      <AccountingSessionsTimelineDialog open={showSessionsTimeline} onOpenChange={setShowSessionsTimeline} workerId={targetWorkerId} workerName={targetWorkerName || undefined} />
       <WorkerOrdersSummaryDialog open={showOrdersSummary} onOpenChange={setShowOrdersSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} />
       <DebtAggregatesDialog open={showDebtAggregates} onOpenChange={setShowDebtAggregates} workerId={targetWorkerId || undefined} dateFrom={dateFrom} dateTo={dateTo} />
 
