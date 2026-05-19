@@ -48,6 +48,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
   const [busyId, setBusyId] = useState<string | null>(null);
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
+  const [orderStatuses, setOrderStatuses] = useState<Record<string, string>>({});
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<PendingOfferConfirmation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -118,6 +119,24 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
       }
     })();
   }, [visibleItems, customerStores]);
+
+  // Fetch order statuses to freeze the Confirm button until the order is delivered.
+  useEffect(() => {
+    const ids = Array.from(new Set(
+      visibleItems.map((r) => r.order_id).filter(Boolean) as string[]
+    )).filter((id) => !(id in orderStatuses));
+    if (ids.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from('orders').select('id, status').in('id', ids);
+      if (data) {
+        setOrderStatuses((prev) => {
+          const next = { ...prev };
+          for (const o of data as any[]) next[o.id] = o.status || '';
+          return next;
+        });
+      }
+    })();
+  }, [visibleItems, orderStatuses]);
 
   // Group by customer (include all statuses so the card stays as a record).
   const grouped = useMemo(() => {
@@ -390,26 +409,37 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                       )}
                     </div>
                   </div>
-                  {isPending && (
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        disabled={busyId === r.id}
-                        onClick={() => handleConfirm(r.id)}
-                      >
-                        {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={busyId === r.id}
-                        onClick={() => handleReject(r.id)}
-                      >
-                        <X className="w-4 h-4 ml-1" /> رفض
-                      </Button>
-                    </div>
-                  )}
+                  {isPending && (() => {
+                    const orderStatus = r.order_id ? orderStatuses[r.order_id] : null;
+                    const isFrozen = !!r.order_id && orderStatus !== 'delivered';
+                    return (
+                      <div className="space-y-1.5">
+                        {isFrozen && (
+                          <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100/60 dark:bg-amber-950/40 rounded px-2 py-1 text-center font-medium">
+                            مجمّد — التأكيد متاح بعد تسليم الطلب
+                          </p>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            disabled={busyId === r.id || isFrozen}
+                            onClick={() => handleConfirm(r.id)}
+                          >
+                            {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busyId === r.id}
+                            onClick={() => handleReject(r.id)}
+                          >
+                            <X className="w-4 h-4 ml-1" /> رفض
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
