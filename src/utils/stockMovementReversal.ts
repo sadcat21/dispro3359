@@ -178,7 +178,27 @@ export const restoreStockFromMovements = async (
         });
         if (insertError) throw insertError;
       }
+
+      if (accounted && accountingContext) {
+        const noteSuffix = accountingNoteParts.join(' | ');
+        const absQty = piecesToBpQuantity(Math.abs(reversal.reversePieces), reversal.piecesPerBox);
+        await supabase.from('stock_movements').insert({
+          product_id: reversal.productId,
+          branch_id: reversal.ownerId,
+          worker_id: accountingContext.workerId,
+          movement_type: 'return_post_accounting',
+          quantity: absQty,
+          signed_quantity: piecesToBpQuantity(reversal.reversePieces, reversal.piecesPerBox),
+          from_location_type: 'worker',
+          to_location_type: 'warehouse',
+          status: 'approved',
+          order_id: accountingContext.orderId,
+          reason: 'post_accounting_reversal',
+          notes: `إرجاع بعد المحاسبة — ${noteSuffix}`,
+        } as any);
+      }
       continue;
+
     }
 
     const { data: stockRow, error } = await supabase
