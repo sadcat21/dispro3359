@@ -138,6 +138,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
         );
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
+        console.log('[OffersLog] worker names map:', Array.from(names.entries()), 'filtered worker_ids:', filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
@@ -241,7 +242,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                   {(e.who || e.refLabel || e.delivered != null) && (
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                       {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
-                      {e.workerName && e.workerName !== e.who && (
+                      {e.workerName && (
                         <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-300">
                           العامل: {e.workerName}
                         </Badge>
