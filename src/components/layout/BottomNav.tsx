@@ -120,20 +120,27 @@ const NavButton: React.FC<{
   onClick: () => void;
 }> = ({ item, isActive, onClick }) => {
   const Icon = item.icon;
+  const isAchievements = item.key === 'achievements';
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={item.label}
       aria-current={isActive ? 'page' : undefined}
-      className="relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-white/5 active:scale-95"
+      className={cn(
+        'relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 active:scale-95',
+        isAchievements ? 'bg-blue-500 hover:bg-blue-600' : 'hover:bg-white/5',
+      )}
+      style={isAchievements ? { boxShadow: '0 6px 16px rgba(59,130,246,0.35)' } : undefined}
     >
       <Icon
         size={22}
         strokeWidth={isActive ? 2.2 : 1.8}
         className={cn(
           'transition-colors duration-200',
-          isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
+          isAchievements
+            ? 'text-white'
+            : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
       {item.badge ? (
