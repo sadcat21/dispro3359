@@ -150,6 +150,8 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       let hQuery = supabase.from('manager_handovers').select('id, amount, cash_invoice1, cash_invoice2, checks_amount, check_count, receipts_amount, receipt_count, transfers_amount, transfer_count');
       if (activeBranch?.id) hQuery = hQuery.eq('branch_id', activeBranch.id);
       if (perManager) hQuery = hQuery.eq('manager_id', perManager);
+      if (range?.from) hQuery = hQuery.gte('handover_date', range.from);
+      if (range?.to) hQuery = hQuery.lte('handover_date', range.to);
       const { data: handovers, error: hErr } = await hQuery;
       if (hErr) throw hErr;
 
