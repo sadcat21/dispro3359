@@ -104,13 +104,26 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
     return Array.from(map.values());
   }, [dateFilteredOrders]);
 
+  const customerIdsSignature = useMemo(
+    () => customerList.map(c => c.id).sort().join('|'),
+    [customerList]
+  );
+
   useEffect(() => {
     if (open) {
-      setSelectedCustomerIds(new Set(customerList.map(c => c.id)));
       setCashVanQuantities({});
       setSelectedShipmentProductId(null);
     }
-  }, [open, customerList]);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const customerIds = customerList.map(c => c.id);
+    setSelectedCustomerIds((prev) => {
+      if (prev.size === customerIds.length && customerIds.every(id => prev.has(id))) return prev;
+      return new Set(customerIds);
+    });
+  }, [open, customerIdsSignature, customerList]);
 
   const allSelected = selectedCustomerIds.size === customerList.length && customerList.length > 0;
 
@@ -198,7 +211,12 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
       const remaining = Math.max(0, stockQty - needed);
       if (remaining > 0) newCashVan[pid] = remaining;
     });
-    setCashVanQuantities(newCashVan);
+    setCashVanQuantities((prev) => {
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(newCashVan);
+      if (prevKeys.length === nextKeys.length && nextKeys.every(key => prev[key] === newCashVan[key])) return prev;
+      return newCashVan;
+    });
   }, [selectedOrders, workerStock]);
 
   const handleColumnsChange = (cols: PrintColumnConfig[]) => {
