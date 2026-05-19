@@ -218,13 +218,30 @@ export const useTreasurySummary = () => {
       const { data: expensesData } = await expQuery;
       const totalExpenses = (expensesData || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
 
-      // Get completed accounting sessions to determine covered orders
+      // Get completed accounting sessions to determine covered orders.
+      // When viewing as a branch manager, restrict to sessions HE conducted with workers,
+      // so that the treasury only reflects sales he was the accountant for.
       let sessQuery = supabase
         .from('accounting_sessions')
-        .select('worker_id, period_start, period_end')
+        .select('worker_id, period_start, period_end, manager_id')
         .eq('status', 'completed');
       if (activeBranch?.id) sessQuery = sessQuery.eq('branch_id', activeBranch.id);
+      if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
+
+      // For branch managers: keep only orders covered by one of THEIR completed sessions
+      let scopedOrders = orders || [];
+      if (perManager) {
+        scopedOrders = (orders || []).filter((o: any) => {
+          if (!o.assigned_worker_id) return false;
+          const orderDate = o.delivery_date || o.created_at;
+          return (sessions || []).some((s: any) =>
+            s.worker_id === o.assigned_worker_id &&
+            orderDate >= s.period_start &&
+            orderDate <= s.period_end
+          );
+        });
+      }
 
       // Calculate worker-held amounts: delivered paid orders NOT covered by any completed session
       let workerHeldAmount = 0;
