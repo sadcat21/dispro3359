@@ -153,6 +153,30 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
+  // Per-(worker, product) load/return totals for badges
+  const { data: workerProductMovements } = useQuery({
+    queryKey: ['warehouse-worker-product-movements', branchId],
+    enabled: !!branchId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('stock_movements')
+        .select('worker_id, product_id, movement_type, quantity, status')
+        .eq('branch_id', branchId)
+        .in('movement_type', ['load', 'return'])
+        .neq('status', 'rejected');
+      const map: Record<string, { loaded: number; returned: number }> = {};
+      for (const m of (data || [])) {
+        if (!m.worker_id || !m.product_id) continue;
+        const k = `${m.worker_id}__${m.product_id}`;
+        if (!map[k]) map[k] = { loaded: 0, returned: 0 };
+        const q = Number(m.quantity || 0);
+        if (m.movement_type === 'load') map[k].loaded += q;
+        else map[k].returned += q;
+      }
+      return map;
+    },
+  });
+
   const latestReceiptAtByProduct = useMemo(() => {
     const latest: Record<string, string> = {};
     for (const r of (summaryData?.receipts || [])) {
