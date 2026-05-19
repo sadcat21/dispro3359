@@ -178,30 +178,40 @@ const ManagerTreasury = () => {
   const [editReceivedBy, setEditReceivedBy] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
+  const perManagerId = role === 'branch_admin' && workerId ? workerId : null;
   const { data: remainingCounts } = useQuery({
-    queryKey: ['treasury-remaining-counts', activeBranch?.id],
+    queryKey: ['treasury-remaining-counts', activeBranch?.id, perManagerId],
     enabled: !!activeBranch?.id,
     queryFn: async () => {
+      let handoversQ = supabase
+        .from('manager_handovers')
+        .select('cash_invoice1, cash_invoice2, checks_amount, receipts_amount, transfers_amount')
+        .eq('branch_id', activeBranch!.id);
+      if (perManagerId) handoversQ = handoversQ.eq('manager_id', perManagerId);
+
+      let handedItemsQ = supabase
+        .from('handover_items')
+        .select('order_id, treasury_entry_id, payment_method, handover:manager_handovers!inner(branch_id, manager_id)')
+        .eq('handover.branch_id', activeBranch!.id);
+      if (perManagerId) handedItemsQ = handedItemsQ.eq('handover.manager_id', perManagerId);
+
+      let consolidationQ = supabase
+        .from('manager_treasury')
+        .select('id, amount, customer_name')
+        .eq('source_type', 'cash_consolidation')
+        .eq('payment_method', 'bank_receipt')
+        .eq('branch_id', activeBranch!.id);
+      if (perManagerId) consolidationQ = consolidationQ.eq('manager_id', perManagerId);
+
       const [{ data: handovers, error: handoversError }, { data: handedItems, error: handedItemsError }, { data: orders, error: ordersError }, { data: consolidationEntries, error: consolidationEntriesError }] = await Promise.all([
-        supabase
-          .from('manager_handovers')
-          .select('cash_invoice1, cash_invoice2, checks_amount, receipts_amount, transfers_amount')
-          .eq('branch_id', activeBranch!.id),
-        supabase
-          .from('handover_items')
-          .select('order_id, treasury_entry_id, payment_method, handover:manager_handovers!inner(branch_id)')
-          .eq('handover.branch_id', activeBranch!.id),
+        handoversQ,
+        handedItemsQ,
         supabase
           .from('orders')
           .select('id, customer_id, total_amount, partial_amount, payment_status, payment_type, invoice_payment_method, document_verification')
           .eq('status', 'delivered')
           .eq('branch_id', activeBranch!.id),
-        supabase
-          .from('manager_treasury')
-          .select('id, amount, customer_name')
-          .eq('source_type', 'cash_consolidation')
-          .eq('payment_method', 'bank_receipt')
-          .eq('branch_id', activeBranch!.id),
+        consolidationQ,
       ]);
 
       if (handoversError) throw handoversError;
