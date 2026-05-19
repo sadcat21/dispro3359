@@ -226,7 +226,9 @@ const WarehouseStock: React.FC = () => {
         const belongsToBranch = inferredBranchId === branchId || (!row.branch_id && !inferredBranchId);
         const lastReceiptAt = row.product_id ? latestReceiptAtByProduct[row.product_id] : null;
         const afterLastReceipt = !!lastReceiptAt && !!row.sold_at && row.sold_at >= lastReceiptAt;
-        return belongsToBranch && afterLastReceipt && (!row.order_id || order?.status === 'delivered');
+        const hasGift = Number(row.gift_boxes || 0) > 0 || Number(row.gift_pieces || 0) > 0;
+        const orderOk = !row.order_id || order?.status === 'delivered' || hasGift;
+        return belongsToBranch && afterLastReceipt && orderOk;
       }).map((row) => ({
         ...row,
         order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
