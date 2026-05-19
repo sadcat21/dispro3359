@@ -112,11 +112,11 @@ export const useManagerTreasury = (range?: TreasuryDateRange) => {
   });
 };
 
-export const useTreasurySummary = () => {
+export const useTreasurySummary = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['treasury-summary', activeBranch?.id, perManager],
+    queryKey: ['treasury-summary', activeBranch?.id, perManager, rangeKey(range)],
     queryFn: async () => {
       // Get stamp tiers
       const { data: stampTiers } = await supabase
@@ -131,6 +131,8 @@ export const useTreasurySummary = () => {
         .select('id, payment_type, invoice_payment_method, payment_status, total_amount, partial_amount, assigned_worker_id, delivery_date, created_at, document_verification, order_items(product_id, total_price, gift_quantity, gift_pieces, unit_price, pieces_per_box)')
         .eq('status', 'delivered');
       if (activeBranch?.id) oQuery = oQuery.eq('branch_id', activeBranch.id);
+      if (range?.from) oQuery = oQuery.gte('delivery_date', range.from);
+      if (range?.to) oQuery = oQuery.lte('delivery_date', range.to);
       const { data: orders, error: oErr } = await oQuery;
       if (oErr) throw oErr;
 
