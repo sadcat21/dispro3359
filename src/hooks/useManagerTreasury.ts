@@ -364,6 +364,36 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const handedReceiptsCount = (handovers || []).reduce((s: number, h: any) => s + Number(h.receipt_count || 0), 0);
       const handedTransfers = (handovers || []).reduce((s: number, h: any) => s + Number(h.transfers_amount || 0), 0);
       const handedTransfersCount = (handovers || []).reduce((s: number, h: any) => s + Number(h.transfer_count || 0), 0);
+      const accountingItemTotals = new Map<string, { amount: number; count: number }>();
+      if (perManager && (sessions || []).length > 0) {
+        const sessionIds = (sessions || []).map((s: any) => s.id).filter(Boolean);
+        const existingSessionIds = new Set<string>();
+        const { data: postedEntries, error: postedError } = await supabase
+          .from('manager_treasury')
+          .select('session_id')
+          .eq('manager_id', perManager)
+          .eq('source_type', 'accounting_session')
+          .in('session_id', sessionIds);
+        if (postedError) throw postedError;
+        for (const entry of postedEntries || []) {
+          if (entry.session_id) existingSessionIds.add(entry.session_id);
+        }
+        const unpostedSessionIds = sessionIds.filter((id: string) => !existingSessionIds.has(id));
+        if (unpostedSessionIds.length > 0) {
+          const { data: sessionItems, error: sessionItemsError } = await supabase
+            .from('accounting_session_items')
+            .select('item_type, actual_amount, session_id')
+            .in('session_id', unpostedSessionIds);
+          if (sessionItemsError) throw sessionItemsError;
+          for (const item of sessionItems || []) {
+            const amount = Number(item.actual_amount || 0);
+            const paymentMethod = accountingItemPaymentMethod(String(item.item_type || ''));
+            if (!paymentMethod || amount <= 0) continue;
+            const prev = accountingItemTotals.get(paymentMethod) || { amount: 0, count: 0 };
+            accountingItemTotals.set(paymentMethod, { amount: prev.amount + amount, count: prev.count + 1 });
+          }
+        }
+      }
 
       const summary: TreasurySummary = {
         cash_invoice1: 0, cash_invoice1_count: 0, cash_invoice1_stamp: 0, cash_invoice1_handed: (handovers || []).reduce((s: number, h: any) => s + Number(h.cash_invoice1 || 0), 0),
