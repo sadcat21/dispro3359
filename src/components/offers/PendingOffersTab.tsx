@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, Check, X, User, Package, History } from 'lucide-react';
+import { Loader2, Gift, Check, X, User, Package, History, Copy } from 'lucide-react';
 import { usePendingOfferConfirmations } from '@/hooks/usePendingOfferConfirmations';
 import { confirmPendingOffer, rejectPendingOffer } from '@/utils/pendingOfferConfirmations';
 import { supabase } from '@/integrations/supabase/client';
