@@ -509,34 +509,28 @@ const WarehouseStock: React.FC = () => {
                 return (
                   <Card key={s.productId} className="overflow-hidden border-border/60 shadow-sm">
                     {/* Product image + name + received + remaining */}
-                    <div className="w-full bg-primary/5 border-b border-border/40 px-3 py-2 flex items-center justify-between gap-2">
+                    <div className="w-full bg-primary/5 border-b border-border/40 px-3 py-2 grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                      {/* Middle column (right in RTL): name + delivery/remaining */}
                       <button
-                        className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition-opacity"
+                        className="flex flex-col gap-1 min-w-0 text-right hover:opacity-80 transition-opacity"
                         onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
                       >
-                        {(() => {
-                          const prod = products.find(p => p.id === s.productId);
-                          return prod?.image_url ? (
-                            <img src={prod.image_url} alt={s.productName} className="w-8 h-8 rounded-md object-cover shrink-0 border border-border" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
-                              <Package className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          {!isWarehouseManager && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
+                              <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
                             </div>
-                          );
-                        })()}
-                        <span className="font-semibold text-sm text-primary text-right break-words">{s.productName}</span>
-                      </button>
-                      <div className="flex items-center gap-3 shrink-0">
-                        {!isWarehouseManager && (
+                          )}
                           <div className="flex items-center gap-1">
-                           <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
-                            <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
+                            <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
+                            <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
-                          <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
                         </div>
+                      </button>
+                      {/* Middle column: action buttons stacked */}
+                      <div className="flex flex-col gap-1 shrink-0">
                         <Button
                           size="icon"
                           variant="outline"
@@ -560,6 +554,17 @@ const WarehouseStock: React.FC = () => {
                           </Button>
                         )}
                       </div>
+                      {/* Left column: product image */}
+                      {(() => {
+                        const prod = products.find(p => p.id === s.productId);
+                        return prod?.image_url ? (
+                          <img src={prod.image_url} alt={s.productName} className="w-12 h-12 rounded-md object-cover shrink-0 border border-border" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center shrink-0">
+                            <Package className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        );
+                      })()}
                     </div>
                     {expandedProduct === s.productId && (
                       <CardContent className="p-3 space-y-1.5">
