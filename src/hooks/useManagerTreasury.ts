@@ -89,6 +89,33 @@ const isPerManagerRole = (role: string | null | undefined) => role === 'branch_a
 export type TreasuryDateRange = { from?: string | null; to?: string | null };
 const rangeKey = (r?: TreasuryDateRange) => `${r?.from || ''}_${r?.to || ''}`;
 
+const parseAccountingTime = (value: unknown) => {
+  if (!value) return 0;
+  const t = Date.parse(String(value));
+  return Number.isFinite(t) ? t : 0;
+};
+
+// delivery_date is often stored as DATE only, so use created_at when it belongs to the same day.
+// This keeps same-day worker receipts inside the actual accounting window instead of pushing them to 23:59.
+const orderAccountingTime = (order: any) => {
+  const deliveryDate = order?.delivery_date ? String(order.delivery_date) : '';
+  const createdAt = order?.created_at ? String(order.created_at) : '';
+  if (deliveryDate) {
+    if (deliveryDate.length > 10) return parseAccountingTime(deliveryDate);
+    if (createdAt && createdAt.slice(0, 10) === deliveryDate) return parseAccountingTime(createdAt);
+    return parseAccountingTime(`${deliveryDate}T12:00:00`);
+  }
+  return parseAccountingTime(createdAt);
+};
+
+const accountingItemPaymentMethod = (itemType: string) => {
+  if (['invoice1_espace_cash', 'invoice1_versement_cash', 'invoice2_cash', 'debt_collections_cash'].includes(itemType)) return 'cash';
+  if (['invoice1_check', 'debt_collections_check'].includes(itemType)) return 'check';
+  if (['invoice1_receipt', 'debt_collections_receipt'].includes(itemType)) return 'bank_receipt';
+  if (['invoice1_transfer', 'debt_collections_transfer'].includes(itemType)) return 'bank_transfer';
+  return null;
+};
+
 export const useManagerTreasury = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
@@ -107,7 +134,52 @@ export const useManagerTreasury = (range?: TreasuryDateRange) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as TreasuryEntry[];
+
+      const entries = (data || []) as TreasuryEntry[];
+      if (perManager) {
+        const existingSessionIds = new Set(entries
+          .filter((entry) => entry.source_type === 'accounting_session')
+          .map((entry) => entry.session_id)
+          .filter(Boolean));
+        let sessionQuery = supabase
+          .from('accounting_sessions')
+          .select('id, manager_id, branch_id, completed_at, items:accounting_session_items(item_type, actual_amount)')
+          .eq('manager_id', perManager)
+          .eq('status', 'completed');
+        if (activeBranch?.id) sessionQuery = sessionQuery.eq('branch_id', activeBranch.id);
+        if (range?.from) sessionQuery = sessionQuery.gte('completed_at', `${range.from}T00:00:00`);
+        if (range?.to) sessionQuery = sessionQuery.lte('completed_at', `${range.to}T23:59:59`);
+        const { data: sessions, error: sessionsError } = await sessionQuery;
+        if (sessionsError) throw sessionsError;
+
+        const virtualEntries: TreasuryEntry[] = [];
+        for (const session of sessions || []) {
+          if (existingSessionIds.has(session.id)) continue;
+          for (const item of ((session as any).items || [])) {
+            const amount = Number(item.actual_amount || 0);
+            const paymentMethod = accountingItemPaymentMethod(String(item.item_type || ''));
+            if (!paymentMethod || amount <= 0) continue;
+            virtualEntries.push({
+              id: `session_${session.id}_${item.item_type}`,
+              branch_id: session.branch_id || null,
+              manager_id: session.manager_id,
+              session_id: session.id,
+              source_type: 'accounting_session',
+              payment_method: paymentMethod,
+              amount,
+              check_number: null,
+              check_bank: null,
+              receipt_number: null,
+              transfer_reference: null,
+              notes: item.item_type,
+              created_at: session.completed_at || new Date().toISOString(),
+            });
+          }
+        }
+        return [...entries, ...virtualEntries].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+      }
+
+      return entries;
     },
   });
 };
@@ -234,26 +306,16 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
 
-      // For branch managers: keep only orders covered by one of THEIR completed sessions.
-      // NOTE: delivery_date is a DATE while period_start/period_end are TIMESTAMPTZ — must compare as Dates, not as strings.
-      const orderTime = (o: any) => {
-        const raw = o.delivery_date || o.created_at;
-        if (!raw) return 0;
-        // Date-only values are treated as the END of that local day so they fall within a same-day session window.
-        const s = String(raw);
-        const t = Date.parse(s.length === 10 ? `${s}T23:59:59` : s);
-        return Number.isFinite(t) ? t : 0;
-      };
       const sessionWindows = (sessions || []).map((s: any) => ({
         worker_id: s.worker_id,
-        start: Date.parse(s.period_start),
-        end: Date.parse(s.period_end),
+        start: parseAccountingTime(s.period_start),
+        end: parseAccountingTime(s.period_end),
       }));
       let scopedOrders = orders || [];
       if (perManager) {
         scopedOrders = (orders || []).filter((o: any) => {
           if (!o.assigned_worker_id) return false;
-          const t = orderTime(o);
+          const t = orderAccountingTime(o);
           return sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         });
       }
@@ -266,7 +328,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         else if (o.payment_status === 'debt') paidAmount = 0;
         if (paidAmount <= 0 || !o.assigned_worker_id) return;
 
-        const t = orderTime(o);
+        const t = orderAccountingTime(o);
         const isCovered = sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         if (!isCovered) workerHeldAmount += paidAmount;
       });
@@ -305,7 +367,6 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const handedReceiptsCount = (handovers || []).reduce((s: number, h: any) => s + Number(h.receipt_count || 0), 0);
       const handedTransfers = (handovers || []).reduce((s: number, h: any) => s + Number(h.transfers_amount || 0), 0);
       const handedTransfersCount = (handovers || []).reduce((s: number, h: any) => s + Number(h.transfer_count || 0), 0);
-
       const summary: TreasurySummary = {
         cash_invoice1: 0, cash_invoice1_count: 0, cash_invoice1_stamp: 0, cash_invoice1_handed: (handovers || []).reduce((s: number, h: any) => s + Number(h.cash_invoice1 || 0), 0),
         cash_invoice2: 0, cash_invoice2_count: 0, cash_invoice2_handed: (handovers || []).reduce((s: number, h: any) => s + Number(h.cash_invoice2 || 0), 0),
