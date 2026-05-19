@@ -400,7 +400,14 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                          {productCodes[r.product_id] && (
+                            <span className="shrink-0 px-1.5 py-0.5 rounded bg-background border text-[10px] font-mono font-semibold">
+                              {productCodes[r.product_id]}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {r.order_id && (
                             <button
