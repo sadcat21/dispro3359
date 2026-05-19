@@ -294,18 +294,19 @@ const AccountingSessionsTimelineDialog: React.FC<{
         </DialogHeader>
         {isLoading ? (
           <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>
-        ) : sessions.length === 0 ? (
+        ) : displaySessions.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">لا توجد جلسات محاسبية لهذا العامل</p>
         ) : (
           <>
             <ol className="relative border-r-2 border-border pr-4 space-y-3">
-              {sessions.map((s: any) => {
+              {displaySessions.map((s: any) => {
                 const sl = statusLabel[s.status] || { ar: s.status, cls: 'bg-muted text-muted-foreground border-border' };
                 const checked = localSel.has(s.id);
+                const isVirtualOpen = s.__virtual;
                 return (
                   <li key={s.id} className="relative">
-                    <span className="absolute -right-[1.4rem] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
-                    <label className={`flex items-start gap-2 rounded-lg border p-2.5 shadow-sm cursor-pointer transition-colors ${checked ? 'border-primary bg-primary/5' : 'bg-card'}`}>
+                    <span className={`absolute -right-[1.4rem] top-1.5 w-3 h-3 rounded-full border-2 border-background ${isVirtualOpen ? 'bg-blue-500 animate-pulse' : 'bg-primary'}`} />
+                    <label className={`flex items-start gap-2 rounded-lg border p-2.5 shadow-sm cursor-pointer transition-colors ${checked ? 'border-primary bg-primary/5' : isVirtualOpen ? 'bg-blue-50/50 border-blue-200 border-dashed' : 'bg-card'}`}>
                       <input
                         type="checkbox"
                         checked={checked}
@@ -314,9 +315,11 @@ const AccountingSessionsTimelineDialog: React.FC<{
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${sl.cls}`}>{sl.ar}</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${isVirtualOpen ? 'bg-blue-100 text-blue-700 border-blue-300' : sl.cls}`}>
+                            {isVirtualOpen ? 'جلسة مفتوحة' : sl.ar}
+                          </span>
                           <span className="text-[10px] text-muted-foreground" dir="ltr">
-                            {s.completed_at ? format(new Date(s.completed_at), 'dd/MM/yyyy HH:mm') : '—'}
+                            {isVirtualOpen ? 'قيد الانتظار' : (s.completed_at ? format(new Date(s.completed_at), 'dd/MM/yyyy HH:mm') : '—')}
                           </span>
                         </div>
                         <div className="text-xs text-foreground/80" dir="ltr">
@@ -324,7 +327,7 @@ const AccountingSessionsTimelineDialog: React.FC<{
                           {s.period_start ? format(new Date(s.period_start), 'dd/MM HH:mm') : '—'}
                           <span className="mx-1 text-muted-foreground">←</span>
                           <span className="text-muted-foreground">إلى: </span>
-                          {s.period_end ? format(new Date(s.period_end), 'dd/MM HH:mm') : '—'}
+                          {isVirtualOpen ? <span className="text-blue-600">الآن (حتى الحفظ)</span> : (s.period_end ? format(new Date(s.period_end), 'dd/MM HH:mm') : '—')}
                         </div>
                       </div>
                     </label>
