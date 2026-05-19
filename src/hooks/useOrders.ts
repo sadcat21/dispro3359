@@ -213,11 +213,76 @@ export const useCreateOrder = () => {
         pieces_per_box: item.piecesPerBox || null,
       }));
 
-      const { error: itemsError } = await supabase
+      const { data: insertedItems, error: itemsError } = await supabase
         .from('order_items')
-        .insert(orderItems);
+        .insert(orderItems)
+        .select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box');
 
       if (itemsError) throw itemsError;
+
+      // Create pending_offer_confirmations for any line whose gift offer is
+      // marked as deferred-confirmation, so reserved/postponed orders also
+      // show up in "Offers awaiting confirmation".
+      try {
+        const giftRows = (insertedItems || []).filter(
+          (i: any) => i.gift_offer_id && (Number(i.gift_quantity || 0) > 0 || Number(i.gift_pieces || 0) > 0)
+        );
+        if (giftRows.length > 0) {
+          const offerIds = Array.from(new Set(giftRows.map((g: any) => g.gift_offer_id))) as string[];
+          const { data: offers } = await supabase
+            .from('product_offers')
+            .select('id, is_deferred_confirmation, gift_product_id, gift_product:products!product_offers_gift_product_id_fkey(name)')
+            .in('id', offerIds);
+          const deferredMap = new Map<string, any>();
+          for (const o of (offers || []) as any[]) {
+            if (o.is_deferred_confirmation) deferredMap.set(o.id, o);
+          }
+          if (deferredMap.size > 0) {
+            const productIds = Array.from(new Set(giftRows.map((g: any) => g.product_id)));
+            const { data: prods } = await supabase.from('products').select('id, name').in('id', productIds);
+            const productNameMap = new Map<string, string>(((prods || []) as any[]).map((p) => [p.id, p.name]));
+
+            let customerName: string | null = null;
+            const { data: cust } = await supabase.from('customers').select('name').eq('id', customerId).maybeSingle();
+            customerName = (cust as any)?.name || null;
+
+            const resolvedWorkerId = assignedWorkerId || workerId || null;
+            let workerName: string | null = null;
+            if (resolvedWorkerId) {
+              const { data: w } = await supabase.from('workers').select('full_name').eq('id', resolvedWorkerId).maybeSingle();
+              workerName = (w as any)?.full_name || null;
+            }
+
+            const { recordPendingOfferConfirmation } = await import('@/utils/pendingOfferConfirmations');
+            for (const g of giftRows as any[]) {
+              const offer = deferredMap.get(g.gift_offer_id);
+              if (!offer) continue;
+              await recordPendingOfferConfirmation({
+                orderId: order.id,
+                orderItemId: g.id,
+                offerId: g.gift_offer_id,
+                productId: g.product_id,
+                productName: productNameMap.get(g.product_id) || null,
+                piecesPerBox: g.pieces_per_box || 1,
+                giftProductId: offer.gift_product_id || g.product_id,
+                giftProductName: offer.gift_product?.name || productNameMap.get(g.product_id) || null,
+                giftBoxes: Number(g.gift_quantity || 0),
+                giftPieces: Number(g.gift_pieces || 0),
+                purchasedBoxes: Math.floor(Number(g.quantity || 0)),
+                purchasedPieces: Math.round((Number(g.quantity || 0) - Math.floor(Number(g.quantity || 0))) * 100),
+                customerId,
+                customerName,
+                workerId: resolvedWorkerId,
+                workerName,
+                branchId: activeBranch?.id || null,
+                source: 'order',
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[useCreateOrder] pending_offer_confirmations seed failed', e);
+      }
 
       // إذا كانت الطلبية بفاتورة → أنشئ طلب موافقة في مسار الفواتير
       // (موافقة أولية من مدير الفرع ثم نهائية من مساعد المدير العام)
@@ -238,6 +303,7 @@ export const useCreateOrder = () => {
           console.warn('[useCreateOrder] فشل إنشاء طلب موافقة الفاتورة:', invReqError);
         }
       }
+
 
       return order;
     },
