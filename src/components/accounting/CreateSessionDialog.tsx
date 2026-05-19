@@ -726,15 +726,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
             {/* Submit */}
             <div className="flex gap-2">
-              {isFrozen && selectedWorkerId && (
+              {selectedWorkerId && (
                 <Button
                   variant="outline"
-                  className="rounded-xl h-11 text-base font-bold border-destructive text-destructive hover:bg-destructive/10"
-                  onClick={handleUnfreeze}
+                  className={`rounded-xl h-11 text-base font-bold ${isFrozen ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-amber-500 text-amber-600 hover:bg-amber-500/10'}`}
+                  onClick={isFrozen ? handleUnfreeze : handleFreeze}
                   disabled={isUnfreezing}
                 >
                   {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                  فك التجميد
+                  {isFrozen ? 'فك التجميد' : 'تجميد'}
                 </Button>
               )}
               <Button
