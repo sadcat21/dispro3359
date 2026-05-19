@@ -445,6 +445,18 @@ const DataManagement: React.FC = () => {
 
       for (const category of categoriesToDelete) {
         if (category.id === 'delivered_orders') continue;
+        const wf = workerFilter[category.id];
+        if (wf && WORKER_FILTERABLE[category.id]) {
+          setDeletionProgress(`جاري حذف: ${category.label} (${wf.name})...`);
+          const results = await deleteCategoryForWorker(category.id, wf.id);
+          for (const r of results) {
+            if (r.error) {
+              hasErrors = true;
+              errors.push(`${category.label} (${r.table}) [${wf.name}]: ${r.error}`);
+            }
+          }
+          continue;
+        }
         setDeletionProgress(`جاري حذف: ${category.label}...`);
         for (const table of category.tables) {
           const result = await deleteFromTable(table);
