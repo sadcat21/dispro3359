@@ -134,11 +134,18 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           .eq('product_id', productId)
           .or(`branch_id.eq.${branchId},branch_id.is.null`)
           .order('sold_at', { ascending: false });
-        const filtered = (rows || []).filter((r: any) =>
+        const rawFiltered = (rows || []).filter((r: any) =>
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
         );
+        // Deduplicate: same worker + customer + sold_at + qty often double-recorded across direct_sale/delivery_sale
+        const seen = new Set<string>();
+        const filtered = rawFiltered.filter((r: any) => {
+          const key = `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
-        console.log('[OffersLog] worker names map:', Array.from(names.entries()), 'filtered worker_ids:', filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
