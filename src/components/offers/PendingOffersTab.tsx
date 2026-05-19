@@ -32,13 +32,17 @@ const formatQtyPlain = (boxes: number, pieces: number): string => {
   return `${b}.${piecesPart}`;
 };
 
-const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _dateFrom, dateTo: _dateTo, onCustomerCountChange }) => {
-  // Fetch ALL statuses so customer cards keep history (confirmed/rejected) and
-  // still surface any pending items that need action.
+const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateTo, onCustomerCountChange }) => {
+  // Scope to the accounting session window (date range) — matches how daily
+  // achievements are filtered. Includes all statuses so the cards stay as a
+  // record even after confirm/reject.
   const { items, isLoading } = usePendingOfferConfirmations({
     workerId,
     branchId,
+    dateFrom: dateFrom || null,
+    dateTo: dateTo || null,
   });
+
 
   const [openCustomer, setOpenCustomer] = useState<{ id: string; name: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
