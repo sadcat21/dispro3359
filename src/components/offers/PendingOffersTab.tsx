@@ -144,10 +144,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     })();
   }, [visibleItems, customerStores]);
 
-  // Fetch order statuses to freeze the Confirm button until the order is delivered.
+  // Fetch order statuses — used to gate showing pending cards until the order is delivered.
+  // Source from raw `items` (not visibleItems) so we can decide visibility from the status.
   useEffect(() => {
     const ids = Array.from(new Set(
-      visibleItems.map((r) => r.order_id).filter(Boolean) as string[]
+      items.map((r) => r.order_id).filter(Boolean) as string[]
     )).filter((id) => !(id in orderStatuses));
     if (ids.length === 0) return;
     (async () => {
@@ -160,7 +161,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         });
       }
     })();
-  }, [visibleItems, orderStatuses]);
+  }, [items, orderStatuses]);
 
   // Group by customer (include all statuses so the card stays as a record).
   const grouped = useMemo(() => {
