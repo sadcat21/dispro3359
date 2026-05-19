@@ -40,6 +40,7 @@ interface ProductSummary {
   compensation: number;
   surplus: number;
   deficit: number;
+  offers: number;
   remaining: number;
 }
 
