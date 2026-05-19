@@ -94,7 +94,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         .from('loading_sessions')
         .select('id, created_at, status, notes, manager:workers!loading_sessions_manager_id_fkey(full_name)')
         .eq('worker_id', workerId)
-        .in('status', ['completed', 'open']);
+        .eq('status', 'completed');
       if (lastAccounting) q = q.gte('created_at', lastAccounting);
       const { data: sessions } = await q;
       if (!sessions?.length) return [];
