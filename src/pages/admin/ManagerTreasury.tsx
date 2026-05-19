@@ -81,11 +81,14 @@ const ManagerTreasury = () => {
   const { t, language, dir } = useLanguage();
   const { activeBranch, workerId, role } = useAuth();
   const queryClient = useQueryClient();
-  const { data: summary, isLoading: summaryLoading } = useTreasurySummary();
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const dateRange = { from: dateFrom || null, to: dateTo || null };
+  const { data: summary, isLoading: summaryLoading } = useTreasurySummary(dateRange);
   const isInvoiceRequestHidden = useIsElementHidden('button', 'treasury_invoice_request');
   const isSettingsHidden = useIsElementHidden('button', 'treasury_settings');
-  const { data: entries } = useManagerTreasury();
-  const { data: handovers } = useManagerHandovers();
+  const { data: entries } = useManagerTreasury(dateRange);
+  const { data: handovers } = useManagerHandovers(dateRange);
   const createHandover = useCreateHandover();
   const addEntry = useAddTreasuryEntry();
 
@@ -602,6 +605,21 @@ const ManagerTreasury = () => {
             <span className="text-[11px] font-medium text-muted-foreground">تفاصيل</span>
             <Switch checked={showCardDetails} onCheckedChange={setShowCardDetails} />
           </div>
+        </div>
+        <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-muted/30 p-2">
+          <div className="flex flex-col gap-1">
+            <Label className="text-[10px] text-muted-foreground">من تاريخ</Label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-[150px] text-xs" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-[10px] text-muted-foreground">إلى تاريخ</Label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-[150px] text-xs" />
+          </div>
+          {(dateFrom || dateTo) && (
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>
+              مسح
+            </Button>
+          )}
         </div>
         <div className="flex flex-wrap gap-1.5 pb-1 sm:gap-2">
           {!isSettingsHidden && (

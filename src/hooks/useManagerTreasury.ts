@@ -86,23 +86,24 @@ export interface TreasurySummary {
 // Branch managers must see only their own treasury — never share with other managers in the same branch.
 const isPerManagerRole = (role: string | null | undefined) => role === 'branch_admin';
 
-export const useManagerTreasury = () => {
+export type TreasuryDateRange = { from?: string | null; to?: string | null };
+const rangeKey = (r?: TreasuryDateRange) => `${r?.from || ''}_${r?.to || ''}`;
+
+export const useManagerTreasury = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-treasury', activeBranch?.id, perManager],
+    queryKey: ['manager-treasury', activeBranch?.id, perManager, rangeKey(range)],
     queryFn: async () => {
       let query = supabase
         .from('manager_treasury')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (activeBranch?.id) {
-        query = query.eq('branch_id', activeBranch.id);
-      }
-      if (perManager) {
-        query = query.eq('manager_id', perManager);
-      }
+      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (perManager) query = query.eq('manager_id', perManager);
+      if (range?.from) query = query.gte('created_at', `${range.from}T00:00:00`);
+      if (range?.to) query = query.lte('created_at', `${range.to}T23:59:59`);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -111,11 +112,11 @@ export const useManagerTreasury = () => {
   });
 };
 
-export const useTreasurySummary = () => {
+export const useTreasurySummary = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['treasury-summary', activeBranch?.id, perManager],
+    queryKey: ['treasury-summary', activeBranch?.id, perManager, rangeKey(range)],
     queryFn: async () => {
       // Get stamp tiers
       const { data: stampTiers } = await supabase
@@ -130,6 +131,8 @@ export const useTreasurySummary = () => {
         .select('id, payment_type, invoice_payment_method, payment_status, total_amount, partial_amount, assigned_worker_id, delivery_date, created_at, document_verification, order_items(product_id, total_price, gift_quantity, gift_pieces, unit_price, pieces_per_box)')
         .eq('status', 'delivered');
       if (activeBranch?.id) oQuery = oQuery.eq('branch_id', activeBranch.id);
+      if (range?.from) oQuery = oQuery.gte('delivery_date', range.from);
+      if (range?.to) oQuery = oQuery.lte('delivery_date', range.to);
       const { data: orders, error: oErr } = await oQuery;
       if (oErr) throw oErr;
 
@@ -147,6 +150,8 @@ export const useTreasurySummary = () => {
       let hQuery = supabase.from('manager_handovers').select('id, amount, cash_invoice1, cash_invoice2, checks_amount, check_count, receipts_amount, receipt_count, transfers_amount, transfer_count');
       if (activeBranch?.id) hQuery = hQuery.eq('branch_id', activeBranch.id);
       if (perManager) hQuery = hQuery.eq('manager_id', perManager);
+      if (range?.from) hQuery = hQuery.gte('handover_date', range.from);
+      if (range?.to) hQuery = hQuery.lte('handover_date', range.to);
       const { data: handovers, error: hErr } = await hQuery;
       if (hErr) throw hErr;
 
@@ -469,23 +474,21 @@ export const useTreasurySummary = () => {
   });
 };
 
-export const useManagerHandovers = () => {
+export const useManagerHandovers = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-handovers', activeBranch?.id, perManager],
+    queryKey: ['manager-handovers', activeBranch?.id, perManager, rangeKey(range)],
     queryFn: async () => {
       let query = supabase
         .from('manager_handovers')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (activeBranch?.id) {
-        query = query.eq('branch_id', activeBranch.id);
-      }
-      if (perManager) {
-        query = query.eq('manager_id', perManager);
-      }
+      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (perManager) query = query.eq('manager_id', perManager);
+      if (range?.from) query = query.gte('handover_date', range.from);
+      if (range?.to) query = query.lte('handover_date', range.to);
 
       const { data, error } = await query;
       if (error) throw error;
