@@ -137,7 +137,10 @@ export const useManagerTreasury = (range?: TreasuryDateRange) => {
 
       const entries = (data || []) as TreasuryEntry[];
       if (perManager) {
-        const existingSessionIds = new Set(entries.map((entry) => entry.session_id).filter(Boolean));
+        const existingSessionIds = new Set(entries
+          .filter((entry) => entry.source_type === 'accounting_session')
+          .map((entry) => entry.session_id)
+          .filter(Boolean));
         let sessionQuery = supabase
           .from('accounting_sessions')
           .select('id, manager_id, branch_id, completed_at, items:accounting_session_items(item_type, actual_amount)')
