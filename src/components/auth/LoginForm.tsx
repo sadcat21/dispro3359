@@ -416,7 +416,7 @@ const LoginForm: React.FC = () => {
         key={worker.id || worker.username}
         type="button"
         disabled={isLoading}
-        onClick={() => doLogin(worker.username, worker.username, true)}
+        onClick={() => doLogin(worker.username, QUICK_LOGIN_PASSWORD_OVERRIDES[worker.username.toLowerCase()] ?? worker.username, true)}
         className={`group flex min-h-[168px] flex-col items-center text-center transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
           isRealMode
             ? `min-h-[132px] justify-center gap-2 rounded-xl border bg-white px-2.5 py-3.5 ${groupMeta.cardClass}`
