@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart,
 } from 'lucide-react';
-import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 
 export type MetricKind =
   | 'gifts'
@@ -67,7 +67,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
   open, onOpenChange, branchId, productId, productName, piecesPerBox, metric,
 }) => {
   const meta = META[metric];
-  const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
+  const fmt = (v: number) => dbBPDisplayAlways(Math.max(0, v), piecesPerBox);
 
   const { data, isLoading } = useQuery({
     queryKey: ['product-metric-log', metric, branchId, productId],
@@ -276,7 +276,7 @@ const OfferRecipientDetailsDialog: React.FC<{
   piecesPerBox: number;
   entry: Entry;
 }> = ({ open, onOpenChange, branchId, productId, productName, piecesPerBox, entry }) => {
-  const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
+  const fmt = (v: number) => dbBPDisplayAlways(Math.max(0, v), piecesPerBox);
 
   const { data, isLoading } = useQuery({
     queryKey: ['offer-recipient-detail', branchId, productId, entry.customerId, entry.when],
