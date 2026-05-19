@@ -84,7 +84,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     branch_id: null as string | null,
     scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
     auto_fill_quantities: true,
-    is_mandatory: false,
+    is_mandatory: true,
     is_deferred_confirmation: true,
   });
 
@@ -111,7 +111,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
         branch_id: editOffer.branch_id,
         scope_stages: (editOffer as any).scope_stages || ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'],
         auto_fill_quantities: (editOffer as any).auto_fill_quantities ?? true,
-        is_mandatory: (editOffer as any).is_mandatory ?? false,
+        is_mandatory: (editOffer as any).is_mandatory ?? true,
         is_deferred_confirmation: (editOffer as any).is_deferred_confirmation ?? false,
       });
       
@@ -169,7 +169,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     let globals = {
       scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
       auto_fill_quantities: true,
-      is_mandatory: false,
+      is_mandatory: true,
       is_deferred_confirmation: true,
     };
     try {
