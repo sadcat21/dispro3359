@@ -267,6 +267,7 @@ const WarehouseStock: React.FC = () => {
         compensation: 0,
         surplus: 0,
         deficit: 0,
+        offers: 0,
         remaining: 0,
       };
     }
