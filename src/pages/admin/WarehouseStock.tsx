@@ -750,6 +750,17 @@ const WarehouseStock: React.FC = () => {
           sinceIso={latestReceiptAtByProduct[soldForProduct.productId] || null}
         />
       )}
+      {metricLog && branchId && (
+        <ProductMetricLogDialog
+          open={!!metricLog}
+          onOpenChange={(open) => !open && setMetricLog(null)}
+          branchId={branchId}
+          productId={metricLog.product.productId}
+          productName={metricLog.product.productName}
+          piecesPerBox={products.find(p => p.id === metricLog.product.productId)?.pieces_per_box || 20}
+          metric={metricLog.metric}
+        />
+      )}
       {movementProduct && branchId && (
         <WarehouseProductMovementDialog
           open={!!movementProduct}
