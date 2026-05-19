@@ -1106,10 +1106,30 @@ const MyAchievements: React.FC = () => {
             title="ترتيب أوقات الجلسات المحاسبية"
             onClick={() => setShowSessionsTimeline(true)}
             disabled={!targetWorkerId}
-            className="flex items-center justify-center w-6 h-6 rounded-full border border-purple-300 bg-purple-100 hover:bg-purple-200 text-purple-600 disabled:opacity-40"
+            className={`relative flex items-center justify-center w-6 h-6 rounded-full border disabled:opacity-40 ${
+              selectedSessionRanges.length > 0
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-purple-300 bg-purple-100 hover:bg-purple-200 text-purple-600'
+            }`}
           >
             <Clock className="w-3 h-3" />
+            {selectedSessionRanges.length > 0 && (
+              <span className="absolute -top-1 -left-1 min-w-[14px] h-[14px] px-0.5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center border border-background">
+                {selectedSessionRanges.length}
+              </span>
+            )}
           </button>
+          {selectedSessionRanges.length > 0 && (
+            <button
+              type="button"
+              aria-label="إلغاء تصفية الجلسات"
+              title="إلغاء تصفية الجلسات"
+              onClick={() => setSelectedSessionRanges([])}
+              className="flex items-center justify-center w-6 h-6 rounded-full border border-red-300 bg-red-50 hover:bg-red-100 text-red-600"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </div>
 
 
