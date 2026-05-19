@@ -746,8 +746,16 @@ const MyAchievements: React.FC = () => {
       });
     }
 
+    if (selectedSessionRanges.length > 0) {
+      const ranges = selectedSessionRanges.map(r => ({ s: new Date(r.start).getTime(), e: new Date(r.end).getTime() }));
+      result = result.filter((visit: any) => {
+        const t = new Date(visit.created_at).getTime();
+        return ranges.some(r => t >= r.s && t <= r.e);
+      });
+    }
+
     return result;
-  }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds]);
+  }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds, selectedSessionRanges]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
 
