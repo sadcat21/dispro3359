@@ -104,9 +104,14 @@ const AccountingSessions: React.FC = () => {
   const handleWorkerClick = (workerId: string) => {
     const worker = workers.find(w => w.id === workerId);
     if (!worker) return;
-    // Show handover preview first
-    setPreviewWorker({ id: workerId, name: worker.full_name });
+    // Skip handover preview — open session directly
+    if (openSessions.some(s => s.workerId === workerId)) {
+      toast(t('accounting.session_already_open'));
+      return;
+    }
+    setOpenSessions(prev => [...prev, { workerId, workerName: worker.full_name }]);
   };
+
 
   const handleProceedToSession = () => {
     if (!previewWorker) return;
