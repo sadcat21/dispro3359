@@ -229,6 +229,37 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     }
   };
 
+  const handleFreeze = async () => {
+    if (!selectedWorkerId) return;
+    setIsUnfreezing(true);
+    try {
+      const { data: latest, error: qErr } = await supabase
+        .from('loading_sessions')
+        .select('id')
+        .eq('worker_id', selectedWorkerId)
+        .neq('status', 'review')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (qErr) throw qErr;
+      if (!latest || latest.length === 0) {
+        toast.error('لا توجد جلسة شحن لتجميدها');
+        return;
+      }
+      const { error } = await supabase
+        .from('loading_sessions')
+        .update({ status: 'review', is_final: true } as any)
+        .eq('id', latest[0].id);
+      if (error) throw error;
+      toast.success('تم تجميد العامل');
+      queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
+      queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+    } catch (e: any) {
+      toast.error(e.message || 'فشل تجميد العامل');
+    } finally {
+      setIsUnfreezing(false);
+    }
+  };
+
   const handleShowConfirmation = () => {
     if (!selectedWorkerId || !calc) { toast.error('اختر العامل'); return; }
     setShowConfirmation(true);
@@ -695,15 +726,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
             {/* Submit */}
             <div className="flex gap-2">
-              {isFrozen && selectedWorkerId && (
+              {selectedWorkerId && (
                 <Button
                   variant="outline"
-                  className="rounded-xl h-11 text-base font-bold border-destructive text-destructive hover:bg-destructive/10"
-                  onClick={handleUnfreeze}
+                  className={`rounded-xl h-11 text-base font-bold ${isFrozen ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-amber-500 text-amber-600 hover:bg-amber-500/10'}`}
+                  onClick={isFrozen ? handleUnfreeze : handleFreeze}
                   disabled={isUnfreezing}
                 >
                   {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                  فك التجميد
+                  {isFrozen ? 'فك التجميد' : 'تجميد'}
                 </Button>
               )}
               <Button
