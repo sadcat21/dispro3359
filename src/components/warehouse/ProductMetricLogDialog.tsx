@@ -142,12 +142,15 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
+          const cname = custName.get(r.customer_id) || null;
           return {
             id: r.id,
             when: r.sold_at,
             qty: piecesToDbBP(pieces, piecesPerBox),
-            who: custName.get(r.customer_id) || names.get(r.worker_id) || null,
+            who: cname || names.get(r.worker_id) || null,
             refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
+            customerId: r.customer_id || null,
+            customerName: cname,
           };
         });
       }
