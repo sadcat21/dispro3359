@@ -250,72 +250,95 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
           ) : (filteredData.length === 0) ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد سجلات</div>
-          ) : (
-            filteredData.map(e => {
-              const clickable = metric === 'offers' && !!e.customerId;
-              const inner = (
-                <>
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{e.when ? new Date(e.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</span>
-                    </div>
-                    <span className={`font-extrabold tabular-nums ${meta.accent}`}>{fmt(e.qty)}</span>
+          ) : (() => {
+            // Group entries by workerName
+            const groups = new Map<string, Entry[]>();
+            for (const e of filteredData) {
+              const k = e.workerName || 'بدون عامل';
+              if (!groups.has(k)) groups.set(k, []);
+              groups.get(k)!.push(e);
+            }
+            const palette = [
+              'bg-blue-50 text-blue-700 border-blue-300',
+              'bg-amber-50 text-amber-700 border-amber-300',
+              'bg-emerald-50 text-emerald-700 border-emerald-300',
+              'bg-purple-50 text-purple-700 border-purple-300',
+              'bg-rose-50 text-rose-700 border-rose-300',
+              'bg-cyan-50 text-cyan-700 border-cyan-300',
+              'bg-orange-50 text-orange-700 border-orange-300',
+              'bg-indigo-50 text-indigo-700 border-indigo-300',
+            ];
+            const colorFor = (name: string) => {
+              let h = 0;
+              for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+              return palette[h % palette.length];
+            };
+            return Array.from(groups.entries()).map(([workerName, entries]) => {
+              const groupTotal = entries.reduce((s, e) => s + (e.qty || 0), 0);
+              const headerCls = colorFor(workerName);
+              const isActive = workerFilter === workerName;
+              return (
+                <details key={workerName} open className="rounded-xl border overflow-hidden">
+                  <summary className={`cursor-pointer select-none flex items-center justify-between gap-2 px-3 py-2 ${headerCls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}>
+                    <span className="inline-flex items-center gap-2 text-xs font-bold">
+                      <User className="w-3.5 h-3.5" />
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          setWorkerFilter(isActive ? null : workerName);
+                        }}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        {workerName}
+                      </button>
+                      <span className="text-[10px] opacity-70">({entries.length})</span>
+                    </span>
+                    <span className="font-extrabold tabular-nums text-sm">{fmt(groupTotal)}</span>
+                  </summary>
+                  <div className="p-2 space-y-2 bg-background">
+                    {entries.map(e => {
+                      const clickable = metric === 'offers' && !!e.customerId;
+                      const inner = (
+                        <>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                              <Calendar className="w-3.5 h-3.5" />
+                              <span>{e.when ? new Date(e.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</span>
+                            </div>
+                            <span className={`font-extrabold tabular-nums ${meta.accent}`}>{fmt(e.qty)}</span>
+                          </div>
+                          {(e.who || e.refLabel || e.delivered != null) && (
+                            <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
+                              {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
+                              {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
+                              {e.delivered != null && (
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] ${e.delivered ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-orange-50 text-orange-700 border-orange-300'}`}
+                                >
+                                  {e.delivered ? 'تم التسليم' : 'لم يُسلَّم'}
+                                </Badge>
+                              )}
+                              {clickable && <ChevronLeft className="w-3 h-3 ms-auto opacity-60" />}
+                            </div>
+                          )}
+                          {e.note && (<div className="mt-1 text-[11px] text-muted-foreground break-words">{e.note}</div>)}
+                        </>
+                      );
+                      const cls = `block w-full text-right rounded-lg border px-3 py-2 ${meta.tone} bg-opacity-40 ${clickable ? 'cursor-pointer hover:ring-2 hover:ring-fuchsia-300 active:scale-[0.99] transition' : ''}`;
+                      return clickable ? (
+                        <button key={e.id} type="button" className={cls} onClick={() => setOfferDetail(e)}>{inner}</button>
+                      ) : (
+                        <div key={e.id} className={cls}>{inner}</div>
+                      );
+                    })}
                   </div>
-                  {(e.who || e.refLabel || e.delivered != null) && (
-                    <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
-                      {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
-                      {e.workerName && (() => {
-                        const palette = [
-                          'bg-blue-50 text-blue-700 border-blue-300',
-                          'bg-amber-50 text-amber-700 border-amber-300',
-                          'bg-emerald-50 text-emerald-700 border-emerald-300',
-                          'bg-purple-50 text-purple-700 border-purple-300',
-                          'bg-rose-50 text-rose-700 border-rose-300',
-                          'bg-cyan-50 text-cyan-700 border-cyan-300',
-                          'bg-orange-50 text-orange-700 border-orange-300',
-                          'bg-indigo-50 text-indigo-700 border-indigo-300',
-                        ];
-                        let h = 0;
-                        for (const ch of e.workerName) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-                        const cls = palette[h % palette.length];
-                        const isActive = workerFilter === e.workerName;
-                        return (
-                          <Badge
-                            variant="outline"
-                            onClick={(ev) => {
-                              ev.stopPropagation();
-                              setWorkerFilter(isActive ? null : e.workerName!);
-                            }}
-                            className={`text-[10px] cursor-pointer hover:ring-2 hover:ring-offset-1 ${cls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}
-                          >
-                            {e.workerName}
-                          </Badge>
-                        );
-                      })()}
-                      {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
-                      {e.delivered != null && (
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] ${e.delivered ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-orange-50 text-orange-700 border-orange-300'}`}
-                        >
-                          {e.delivered ? 'تم التسليم' : 'لم يُسلَّم'}
-                        </Badge>
-                      )}
-                      {clickable && <ChevronLeft className="w-3 h-3 ms-auto opacity-60" />}
-                    </div>
-                  )}
-                  {e.note && (<div className="mt-1 text-[11px] text-muted-foreground break-words">{e.note}</div>)}
-                </>
+                </details>
               );
-              const cls = `block w-full text-right rounded-xl border px-3 py-2 ${meta.tone} bg-opacity-40 ${clickable ? 'cursor-pointer hover:ring-2 hover:ring-fuchsia-300 active:scale-[0.99] transition' : ''}`;
-              return clickable ? (
-                <button key={e.id} type="button" className={cls} onClick={() => setOfferDetail(e)}>{inner}</button>
-              ) : (
-                <div key={e.id} className={cls}>{inner}</div>
-              );
-            })
-          )}
+            });
+          })()}
         </div>
 
         {offerDetail && (
