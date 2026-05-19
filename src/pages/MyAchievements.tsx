@@ -695,8 +695,22 @@ const MyAchievements: React.FC = () => {
     enabled: !!targetWorkerId,
   });
 
-  const visits = data?.visits || [];
-  const counts = data?.counts || {};
+  const rawVisits = data?.visits || [];
+  // عند تحديد جلسات محاسبية، قيِّد كل البيانات بأوقات الجلسات (وليس بالتاريخ فقط)
+  const visits = useMemo(() => {
+    if (selectedSessionRanges.length === 0) return rawVisits;
+    const ranges = selectedSessionRanges.map(r => ({ s: new Date(r.start).getTime(), e: new Date(r.end).getTime() }));
+    return rawVisits.filter((v: any) => {
+      const t = new Date(v.created_at).getTime();
+      return ranges.some(r => t >= r.s && t <= r.e);
+    });
+  }, [rawVisits, selectedSessionRanges]);
+  const counts = useMemo(() => {
+    if (selectedSessionRanges.length === 0) return data?.counts || {};
+    const c: Record<string, number> = {};
+    for (const v of visits) c[v.operation_type] = (c[v.operation_type] || 0) + 1;
+    return c;
+  }, [visits, selectedSessionRanges, data?.counts]);
   const isDebtNewAchievement = (visit: any) =>
     !!visit.isDebtSale || !!visit.debtStatus;
 
