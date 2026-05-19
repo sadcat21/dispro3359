@@ -488,7 +488,7 @@ const WarehouseStock: React.FC = () => {
           <div className="space-y-2 pb-2">
               {filteredSummaries.map(s => {
                 const piecesPerBox = products.find(p => p.id === s.productId)?.pieces_per_box || 20;
-                const fmt = (v: number) => dbBPDisplay(v, piecesPerBox);
+                const fmt = (v: number) => dbBPDisplayAlways(v, piecesPerBox);
                 // Format gifts: gifts are stored as total pieces, convert to boxes first
                 const giftInBoxes = s.gifts / piecesPerBox;
                 const giftFormatted = boxesToBP(giftInBoxes, piecesPerBox);
