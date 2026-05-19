@@ -9501,9 +9501,15 @@ export type Database = {
         Args: { p_receipt_id: string; p_stage: string }
         Returns: Json
       }
-      archive_cash_movements: { Args: never; Returns: Json }
-      archive_debt_movements: { Args: never; Returns: Json }
-      archive_stock_movements: { Args: never; Returns: Json }
+      archive_cash_movements:
+        | { Args: never; Returns: Json }
+        | { Args: { p_worker_id: string }; Returns: Json }
+      archive_debt_movements:
+        | { Args: never; Returns: Json }
+        | { Args: { p_worker_id: string }; Returns: Json }
+      archive_stock_movements:
+        | { Args: never; Returns: Json }
+        | { Args: { p_worker_id: string }; Returns: Json }
       calculate_worker_target_progress: {
         Args: {
           _reference_date?: string
@@ -9717,13 +9723,19 @@ export type Database = {
           sold_pieces: number
         }[]
       }
-      purge_cash_movements: { Args: never; Returns: Json }
+      purge_cash_movements:
+        | { Args: never; Returns: Json }
+        | { Args: { p_worker_id: string }; Returns: Json }
       purge_cash_movements_all: { Args: never; Returns: Json }
       purge_cash_movements_archive: { Args: never; Returns: Json }
-      purge_debt_movements: { Args: never; Returns: Json }
+      purge_debt_movements:
+        | { Args: never; Returns: Json }
+        | { Args: { p_worker_id: string }; Returns: Json }
       purge_debt_movements_all: { Args: never; Returns: Json }
       purge_debt_movements_archive: { Args: never; Returns: Json }
-      purge_stock_movements: { Args: never; Returns: Json }
+      purge_stock_movements:
+        | { Args: never; Returns: Json }
+        | { Args: { p_worker_id: string }; Returns: Json }
       purge_stock_movements_all: { Args: never; Returns: Json }
       purge_stock_movements_archive: { Args: never; Returns: Json }
       quantity_to_total_pieces: {

@@ -5,12 +5,49 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Trash2, Loader2, AlertTriangle, Database, Lock, Link2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Loader2, AlertTriangle, Database, Lock, Link2, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import { WorkerPickerDialog } from '@/components/admin/WorkerPickerDialog';
+
+// Categories that support filtering deletion by a specific worker/manager.
+// Each entry lists the tables (child-first) and which column carries the worker reference,
+// or, for child tables, the parent table to resolve ids from.
+type FilterSpec =
+  | { table: string; column: string }
+  | { table: string; via: 'parent'; parentTable: string; parentColumn: string; parentFkOnChild: string };
+
+const WORKER_FILTERABLE: Record<string, FilterSpec[]> = {
+  treasury: [
+    { table: 'handover_items', via: 'parent', parentTable: 'manager_handovers', parentColumn: 'manager_id', parentFkOnChild: 'handover_id' },
+    { table: 'manager_handovers', column: 'manager_id' },
+    { table: 'manager_treasury', column: 'manager_id' },
+  ],
+  accounting: [
+    { table: 'accounting_session_items', via: 'parent', parentTable: 'accounting_sessions', parentColumn: 'worker_id', parentFkOnChild: 'session_id' },
+    { table: 'accounting_sessions', column: 'worker_id' },
+  ],
+  liability: [{ table: 'worker_liability_adjustments', column: 'worker_id' }],
+  debts: [
+    { table: 'debt_payments', column: 'worker_id' },
+    { table: 'debt_collections', column: 'worker_id' },
+    { table: 'customer_debts', column: 'worker_id' },
+  ],
+  credits: [{ table: 'customer_credits', column: 'worker_id' }],
+  loading: [
+    { table: 'loading_session_items', via: 'parent', parentTable: 'loading_sessions', parentColumn: 'worker_id', parentFkOnChild: 'session_id' },
+    { table: 'loading_sessions', column: 'worker_id' },
+  ],
+  stock_movements: [
+    { table: 'stock_discrepancies', column: 'worker_id' },
+    { table: 'stock_movements', column: 'worker_id' },
+  ],
+  worker_stock: [{ table: 'worker_stock', column: 'worker_id' }],
+  expenses: [{ table: 'expenses', column: 'worker_id' }],
+};
 
 interface DataCategory {
   id: string;
@@ -90,6 +127,8 @@ const DataManagement: React.FC = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  // Per-category worker filter: null = "all workers" (current behavior)
+  const [workerFilter, setWorkerFilter] = useState<Record<string, { id: string; name: string } | null>>({});
 
   const needsPassword = PROTECTED_CATEGORIES.some(id => selected.has(id));
 
@@ -321,6 +360,37 @@ const DataManagement: React.FC = () => {
     return { success: true };
   };
 
+  // Worker-filtered deletion for a category. Returns array of {table, error?}.
+  const deleteCategoryForWorker = async (categoryId: string, workerId: string): Promise<{ table: string; error?: string }[]> => {
+    const specs = WORKER_FILTERABLE[categoryId];
+    if (!specs) return [{ table: categoryId, error: 'هذه الفئة لا تدعم فلترة العامل' }];
+    const results: { table: string; error?: string }[] = [];
+    for (const spec of specs) {
+      try {
+        if ('column' in spec) {
+          const { error } = await supabase.from(spec.table as any).delete().eq(spec.column, workerId);
+          if (error) results.push({ table: spec.table, error: error.message });
+          else results.push({ table: spec.table });
+        } else {
+          // resolve parent ids first, then delete children by parent fk
+          const { data: parentRows, error: pErr } = await supabase
+            .from(spec.parentTable as any)
+            .select('id')
+            .eq(spec.parentColumn, workerId);
+          if (pErr) { results.push({ table: spec.table, error: pErr.message }); continue; }
+          const ids = (parentRows || []).map((r: any) => r.id);
+          if (ids.length === 0) { results.push({ table: spec.table }); continue; }
+          const { error } = await supabase.from(spec.table as any).delete().in(spec.parentFkOnChild, ids);
+          if (error) results.push({ table: spec.table, error: error.message });
+          else results.push({ table: spec.table });
+        }
+      } catch (e: any) {
+        results.push({ table: spec.table, error: e.message || String(e) });
+      }
+    }
+    return results;
+  };
+
   const handleDelete = async () => {
     if (selected.size === 0) return;
     if (needsPassword && password !== DELETION_PASSWORD) {
@@ -333,7 +403,12 @@ const DataManagement: React.FC = () => {
     setPasswordError('');
     try {
       const categoriesToDelete = DATA_CATEGORIES.filter(c => selected.has(c.id)).sort((a, b) => b.order - a.order);
-      await nullifyFkReferences(selected);
+      // Skip cross-category nullify cleanup for categories that are being deleted with a worker filter,
+      // since those should not affect data belonging to other workers.
+      const fullDeletionIds = new Set(
+        Array.from(selected).filter(id => !(workerFilter[id] && WORKER_FILTERABLE[id]))
+      );
+      await nullifyFkReferences(fullDeletionIds);
       let hasErrors = false;
       const errors: string[] = [];
 
@@ -375,6 +450,18 @@ const DataManagement: React.FC = () => {
 
       for (const category of categoriesToDelete) {
         if (category.id === 'delivered_orders') continue;
+        const wf = workerFilter[category.id];
+        if (wf && WORKER_FILTERABLE[category.id]) {
+          setDeletionProgress(`جاري حذف: ${category.label} (${wf.name})...`);
+          const results = await deleteCategoryForWorker(category.id, wf.id);
+          for (const r of results) {
+            if (r.error) {
+              hasErrors = true;
+              errors.push(`${category.label} (${r.table}) [${wf.name}]: ${r.error}`);
+            }
+          }
+          continue;
+        }
         setDeletionProgress(`جاري حذف: ${category.label}...`);
         for (const table of category.tables) {
           const result = await deleteFromTable(table);
@@ -479,22 +566,43 @@ const DataManagement: React.FC = () => {
                 {/* Group Items */}
                 {!isCollapsed && (
                   <div className="divide-y divide-border/40">
-                    {items.map(category => (
-                      <div
-                        key={category.id}
-                        className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors ${
-                          selected.has(category.id) ? 'bg-destructive/5' : 'hover:bg-muted/30'
-                        }`}
-                        onClick={() => toggleCategory(category.id)}
-                      >
-                        <Checkbox checked={selected.has(category.id)} onCheckedChange={() => toggleCategory(category.id)} className="shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-tight">{category.label}</p>
-                          <p className="text-[11px] text-muted-foreground leading-tight">{category.description}</p>
+                    {items.map(category => {
+                      const filterable = !!WORKER_FILTERABLE[category.id];
+                      const wf = workerFilter[category.id];
+                      return (
+                        <div
+                          key={category.id}
+                          className={`px-3 py-2 transition-colors ${
+                            selected.has(category.id) ? 'bg-destructive/5' : 'hover:bg-muted/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => toggleCategory(category.id)}>
+                            <Checkbox checked={selected.has(category.id)} onCheckedChange={() => toggleCategory(category.id)} className="shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium leading-tight">{category.label}</p>
+                              <p className="text-[11px] text-muted-foreground leading-tight">{category.description}</p>
+                            </div>
+                            {PROTECTED_CATEGORIES.includes(category.id) && <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                          </div>
+                          {filterable && selected.has(category.id) && (
+                            <div className="flex items-center gap-1.5 mt-1.5 pr-7" onClick={(e) => e.stopPropagation()}>
+                              <WorkerPickerDialog
+                                value={wf?.id ?? null}
+                                onChange={(id, name) => setWorkerFilter(prev => ({ ...prev, [category.id]: id ? { id, name: name ?? '' } : null }))}
+                                triggerLabel={wf ? `العامل: ${wf.name}` : 'كل العمال (تحديد عامل)'}
+                              />
+                              {wf && (
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs"
+                                  onClick={() => setWorkerFilter(prev => ({ ...prev, [category.id]: null }))}
+                                >
+                                  <X className="w-3 h-3 ml-1" /> مسح
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {PROTECTED_CATEGORIES.includes(category.id) && <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -532,9 +640,17 @@ const DataManagement: React.FC = () => {
                 <div className="space-y-2">
                   <p className="font-bold text-destructive">أنت على وشك حذف البيانات التالية نهائياً:</p>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    {DATA_CATEGORIES.filter(c => selected.has(c.id)).map(c => (
-                      <li key={c.id}>{c.label}</li>
-                    ))}
+                    {DATA_CATEGORIES.filter(c => selected.has(c.id)).map(c => {
+                      const wf = workerFilter[c.id];
+                      return (
+                        <li key={c.id}>
+                          {c.label}
+                          {wf && WORKER_FILTERABLE[c.id] && (
+                            <span className="text-primary"> — للعامل: {wf.name}</span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                   {needsPassword && (
                     <div className="mt-3 space-y-2">
