@@ -444,9 +444,10 @@ export const useTreasurySummary = () => {
 };
 
 export const useManagerHandovers = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
+  const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-handovers', activeBranch?.id],
+    queryKey: ['manager-handovers', activeBranch?.id, perManager],
     queryFn: async () => {
       let query = supabase
         .from('manager_handovers')
@@ -455,6 +456,9 @@ export const useManagerHandovers = () => {
 
       if (activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
+      }
+      if (perManager) {
+        query = query.eq('manager_id', perManager);
       }
 
       const { data, error } = await query;
