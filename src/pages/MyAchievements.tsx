@@ -1414,7 +1414,22 @@ const MyAchievements: React.FC = () => {
 
       <WorkerHandoverPreviewDialog open={showHandoverSummary} onOpenChange={setShowHandoverSummary} />
       <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
-      <AccountingSessionsTimelineDialog open={showSessionsTimeline} onOpenChange={setShowSessionsTimeline} workerId={targetWorkerId} workerName={targetWorkerName || undefined} />
+      <AccountingSessionsTimelineDialog
+        open={showSessionsTimeline}
+        onOpenChange={setShowSessionsTimeline}
+        workerId={targetWorkerId}
+        workerName={targetWorkerName || undefined}
+        selectedIds={selectedSessionIds}
+        onApply={(ranges) => {
+          setSelectedSessionRanges(ranges);
+          if (ranges.length > 0) {
+            const minStart = ranges.reduce((m, r) => r.start < m ? r.start : m, ranges[0].start);
+            const maxEnd = ranges.reduce((m, r) => r.end > m ? r.end : m, ranges[0].end);
+            setPeriodFrom(format(new Date(minStart), 'yyyy-MM-dd'));
+            setPeriodTo(format(new Date(maxEnd), 'yyyy-MM-dd'));
+          }
+        }}
+      />
       <WorkerOrdersSummaryDialog open={showOrdersSummary} onOpenChange={setShowOrdersSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} />
       <DebtAggregatesDialog open={showDebtAggregates} onOpenChange={setShowDebtAggregates} workerId={targetWorkerId || undefined} dateFrom={dateFrom} dateTo={dateTo} />
 
