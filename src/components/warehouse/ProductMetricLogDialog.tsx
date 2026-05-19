@@ -249,11 +249,22 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                   {(e.who || e.refLabel || e.delivered != null) && (
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                       {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
-                      {e.workerName && (
-                        <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-300">
-                          العامل: {e.workerName}
-                        </Badge>
-                      )}
+                      {e.workerName && (() => {
+                        const palette = [
+                          'bg-blue-50 text-blue-700 border-blue-300',
+                          'bg-amber-50 text-amber-700 border-amber-300',
+                          'bg-emerald-50 text-emerald-700 border-emerald-300',
+                          'bg-purple-50 text-purple-700 border-purple-300',
+                          'bg-rose-50 text-rose-700 border-rose-300',
+                          'bg-cyan-50 text-cyan-700 border-cyan-300',
+                          'bg-orange-50 text-orange-700 border-orange-300',
+                          'bg-indigo-50 text-indigo-700 border-indigo-300',
+                        ];
+                        let h = 0;
+                        for (const ch of e.workerName) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+                        const cls = palette[h % palette.length];
+                        return <Badge variant="outline" className={`text-[10px] ${cls}`}>{e.workerName}</Badge>;
+                      })()}
                       {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
                       {e.delivered != null && (
                         <Badge
