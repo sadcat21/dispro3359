@@ -34,6 +34,8 @@ interface Entry {
   who?: string | null;
   note?: string | null;
   refLabel?: string | null;
+  customerId?: string | null;
+  customerName?: string | null;
 }
 
 const META: Record<MetricKind, { title: string; icon: React.ReactNode; color: string; tone: string; accent: string }> = {
