@@ -414,6 +414,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                                 r.offer_id ? `offer_id: ${r.offer_id}` : null,
                                 `created_at: ${r.created_at}`,
                                 r.order_id ? `order_id: ${r.order_id}` : null,
+                                r.customer_id ? `customer_id: ${r.customer_id}` : null,
                               ].filter(Boolean).join('\n');
                               navigator.clipboard.writeText(lines);
                               toast.success('تم نسخ المعرفات');

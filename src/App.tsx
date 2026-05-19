@@ -91,6 +91,7 @@ const WorkerRounds = lazy(() => import("./pages/admin/WorkerRounds"));
 const WorkerRolesManagement = lazy(() => import("./pages/admin/WorkerRolesManagement"));
 const AssistantPermissionsControl = lazy(() => import("./pages/admin/AssistantPermissionsControl"));
 const ProductChecklist = lazy(() => import("./pages/ProductChecklist"));
+const IdentifierInspector = lazy(() => import("./pages/admin/IdentifierInspector"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -591,6 +592,13 @@ const AppRoutes = () => {
       <Route path="/promo-splits" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <PromoSplits />
+        </ProtectedRoute>
+      } />
+
+      {/* Identifier Inspector */}
+      <Route path="/identifier-inspector" element={
+        <ProtectedRoute allowedRoles={['admin', 'admin_assistant', 'company_manager', 'branch_admin']}>
+          <IdentifierInspector />
         </ProtectedRoute>
       } />
 
