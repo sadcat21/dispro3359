@@ -37,7 +37,6 @@ interface QuickWorker {
   username: string;
   full_name: string;
   role: string;
-  password_hash?: string | null;
   functional_role?: string | null; // e.g. sales_rep, delivery_rep, warehouse_manager
   branch_id?: string | null;
   branch_name?: string | null;
@@ -311,7 +310,7 @@ const LoginForm: React.FC = () => {
   const fetchWorkers = async (isTest: boolean) => {
     const { data: workers } = await supabase
       .from('workers')
-      .select('id, username, full_name, role, branch_id, password_hash')
+      .select('id, username, full_name, role, branch_id')
       .eq('is_test', isTest)
       .eq('is_active', true)
       .order('role')
@@ -371,7 +370,6 @@ const LoginForm: React.FC = () => {
       username: w.username,
       full_name: w.full_name,
       role: w.role,
-      password_hash: w.password_hash || null,
       functional_role: funcRoleMap[w.id] || null,
       branch_id: w.branch_id || null,
       branch_name: w.branch_id ? branchMap[w.branch_id] || null : null,
@@ -413,21 +411,12 @@ const LoginForm: React.FC = () => {
     const WorkerIcon = getWorkerIcon(worker);
     const groupMeta = QUICK_GROUP_META[getQuickWorkerGroupKey(worker)] || QUICK_GROUP_META.worker;
 
-    const getQuickLoginPassword = () => {
-      if (!worker.password_hash) return worker.username;
-      try {
-        return atob(worker.password_hash);
-      } catch {
-        return worker.username;
-      }
-    };
-
     return (
       <button
         key={worker.id || worker.username}
         type="button"
         disabled={isLoading}
-        onClick={() => doLogin(worker.username, getQuickLoginPassword(), true)}
+        onClick={() => doQuickLogin(worker)}
         className={`group flex min-h-[168px] flex-col items-center text-center transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
           isRealMode
             ? `min-h-[132px] justify-center gap-2 rounded-xl border bg-white px-2.5 py-3.5 ${groupMeta.cardClass}`
