@@ -86,23 +86,24 @@ export interface TreasurySummary {
 // Branch managers must see only their own treasury — never share with other managers in the same branch.
 const isPerManagerRole = (role: string | null | undefined) => role === 'branch_admin';
 
-export const useManagerTreasury = () => {
+export type TreasuryDateRange = { from?: string | null; to?: string | null };
+const rangeKey = (r?: TreasuryDateRange) => `${r?.from || ''}_${r?.to || ''}`;
+
+export const useManagerTreasury = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-treasury', activeBranch?.id, perManager],
+    queryKey: ['manager-treasury', activeBranch?.id, perManager, rangeKey(range)],
     queryFn: async () => {
       let query = supabase
         .from('manager_treasury')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (activeBranch?.id) {
-        query = query.eq('branch_id', activeBranch.id);
-      }
-      if (perManager) {
-        query = query.eq('manager_id', perManager);
-      }
+      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (perManager) query = query.eq('manager_id', perManager);
+      if (range?.from) query = query.gte('created_at', `${range.from}T00:00:00`);
+      if (range?.to) query = query.lte('created_at', `${range.to}T23:59:59`);
 
       const { data, error } = await query;
       if (error) throw error;
