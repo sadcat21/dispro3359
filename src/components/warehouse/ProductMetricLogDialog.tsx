@@ -73,7 +73,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
       const resolveWorkers = async (ids: string[]) => {
         const uniq = Array.from(new Set(ids.filter(Boolean)));
         if (!uniq.length) return new Map<string, string>();
-        const { data } = await supabase.from('workers_safe').select('id, full_name, store_name').in('id', uniq);
+        const { data } = await supabase.from('workers_safe').select('id, full_name').in('id', uniq);
         return new Map((data || []).map((w: any) => [w.id, w.full_name]));
       };
 
