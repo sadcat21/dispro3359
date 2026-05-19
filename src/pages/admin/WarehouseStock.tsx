@@ -357,6 +357,17 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
+    // Offers (promo gift_boxes/gift_pieces) from sales_tracking
+    for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
+      const pid = s.product_id;
+      if (!pid || !summaries[pid]) continue;
+      const ppb = Number(s.pieces_per_box) || 20;
+      const giftPieces = Number(s.gift_boxes || 0) * ppb + Number(s.gift_pieces || 0);
+      if (giftPieces > 0) {
+        summaries[pid].offers += giftPieces; // pieces; converted below
+      }
+    }
+
     for (const pid of Object.keys(summaries)) {
       const received = summaries[pid].received;
       const loadT = loadByProduct[pid] || 0;
@@ -365,6 +376,7 @@ const WarehouseStock: React.FC = () => {
       const damaged = summaries[pid].damaged || 0;
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
       summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
+      summaries[pid].offers = piecesToDbBP(summaries[pid].offers || 0, ppb);
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
