@@ -286,44 +286,67 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="rounded-xl border bg-background p-2 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-                <Filter className="w-3.5 h-3.5" /> تصفية
-              </div>
-              {hasActiveFilter && (
-                <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]"
-                  onClick={() => { setDateFrom(''); setDateTo(''); setWorkerFilter('all'); setTypeFilter('all'); }}>
-                  <X className="w-3 h-3 me-1" /> مسح
+          {/* Filter trigger */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[11px] text-muted-foreground">
+              {filtered.length} حركة
+              {hasActiveFilter && <span className="ms-2 text-primary font-semibold">• مفلتر</span>}
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant={hasActiveFilter ? 'default' : 'outline'} className="h-8 gap-1 text-[11px]">
+                  <Filter className="w-3.5 h-3.5" />
+                  تصفية وترتيب
+                  {hasActiveFilter && <Badge className="ms-1 h-4 px-1 bg-background text-primary border-primary">●</Badge>}
                 </Button>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                className="h-8 text-[11px]" placeholder="من" />
-              <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                className="h-8 text-[11px]" placeholder="إلى" />
-              <Select value={workerFilter} onValueChange={setWorkerFilter}>
-                <SelectTrigger className="h-8 text-[11px]"><SelectValue placeholder="العامل" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل العمال</SelectItem>
-                  {workerOptions.map(w => (
-                    <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="h-8 text-[11px]"><SelectValue placeholder="النوع" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">كل الحركات</SelectItem>
-                  {(['receipt','load','return','factory_return','damaged'] as MvType[]).map(t => (
-                    <SelectItem key={t} value={t}>{TYPE_LABEL_AR[t]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold flex items-center gap-1"><Filter className="w-3.5 h-3.5" /> تصفية</div>
+                  {hasActiveFilter && (
+                    <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]"
+                      onClick={() => { setDateFrom(''); setDateTo(''); setWorkerFilter('all'); setTypeFilter('all'); }}>
+                      <X className="w-3 h-3 me-1" /> مسح الكل
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <div className="text-[10px] text-muted-foreground mb-1">التاريخ</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-[11px]" />
+                      <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-[11px]" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-muted-foreground mb-1">العامل</div>
+                    <Select value={workerFilter} onValueChange={setWorkerFilter}>
+                      <SelectTrigger className="h-8 text-[11px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">كل العمال</SelectItem>
+                        {workerOptions.map(w => (
+                          <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-muted-foreground mb-1">نوع الحركة</div>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="h-8 text-[11px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">كل الحركات</SelectItem>
+                        {(['receipt','load','return','factory_return','damaged'] as MvType[]).map(t => (
+                          <SelectItem key={t} value={t}>{TYPE_LABEL_AR[t]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
+
 
           <div className="flex-1 min-h-0 overflow-y-auto pr-1">
             <div className="space-y-2 pb-2">
