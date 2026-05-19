@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Users, Activity, MapPin, Gift, UserCheck, ShieldCheck, FileText, Truck,
-  ClipboardList, Trophy, Target, Receipt, LucideIcon,
+  ClipboardList, Trophy, Target, Receipt, ScanSearch, LucideIcon,
 } from 'lucide-react';
 
 interface AMItem {
