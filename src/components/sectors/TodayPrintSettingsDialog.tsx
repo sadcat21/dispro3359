@@ -50,6 +50,8 @@ const toDateStr = (d: Date) => {
 const todayStr = () => toDateStr(new Date());
 const tomorrowStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); return toDateStr(d); };
 const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return toDateStr(d); };
+const areColumnConfigsEqual = (a: PrintColumnConfig[], b: PrintColumnConfig[]) =>
+  a.length === b.length && a.every((col, index) => JSON.stringify(col) === JSON.stringify(b[index]));
 
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPreview,
@@ -71,7 +73,9 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   const [cashVanQuantities, setCashVanQuantities] = useState<Record<string, number>>({});
   const [deliveryDate, setDeliveryDate] = useState<string>(''); // '' = all dates, otherwise YYYY-MM-DD
 
-  useEffect(() => { setColumnConfig(dbColumns); }, [dbColumns]);
+  useEffect(() => {
+    setColumnConfig(prev => areColumnConfigsEqual(prev, dbColumns) ? prev : dbColumns);
+  }, [dbColumns]);
 
   // Apply delivery_date filter (when user selects a specific date)
   const dateFilteredOrders = useMemo(() => {
