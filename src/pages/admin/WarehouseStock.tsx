@@ -689,6 +689,17 @@ const WarehouseStock: React.FC = () => {
           }}
         />
       )}
+      {movementProduct && branchId && (
+        <WarehouseProductMovementDialog
+          open={!!movementProduct}
+          onOpenChange={(open) => !open && setMovementProduct(null)}
+          branchId={branchId}
+          productId={movementProduct.productId}
+          productName={movementProduct.productName}
+          productImage={products.find(p => p.id === movementProduct.productId)?.image_url || null}
+          piecesPerBox={products.find(p => p.id === movementProduct.productId)?.pieces_per_box || 20}
+        />
+      )}
     </div>
   );
 };
