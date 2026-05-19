@@ -83,10 +83,14 @@ export interface TreasurySummary {
   orderUnpaidAmount: number;
 }
 
+// Branch managers must see only their own treasury — never share with other managers in the same branch.
+const isPerManagerRole = (role: string | null | undefined) => role === 'branch_admin';
+
 export const useManagerTreasury = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
+  const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-treasury', activeBranch?.id],
+    queryKey: ['manager-treasury', activeBranch?.id, perManager],
     queryFn: async () => {
       let query = supabase
         .from('manager_treasury')
@@ -95,6 +99,9 @@ export const useManagerTreasury = () => {
 
       if (activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
+      }
+      if (perManager) {
+        query = query.eq('manager_id', perManager);
       }
 
       const { data, error } = await query;
@@ -105,9 +112,10 @@ export const useManagerTreasury = () => {
 };
 
 export const useTreasurySummary = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
+  const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['treasury-summary', activeBranch?.id],
+    queryKey: ['treasury-summary', activeBranch?.id, perManager],
     queryFn: async () => {
       // Get stamp tiers
       const { data: stampTiers } = await supabase
@@ -138,6 +146,7 @@ export const useTreasurySummary = () => {
       // Get handovers
       let hQuery = supabase.from('manager_handovers').select('id, amount, cash_invoice1, cash_invoice2, checks_amount, check_count, receipts_amount, receipt_count, transfers_amount, transfer_count');
       if (activeBranch?.id) hQuery = hQuery.eq('branch_id', activeBranch.id);
+      if (perManager) hQuery = hQuery.eq('manager_id', perManager);
       const { data: handovers, error: hErr } = await hQuery;
       if (hErr) throw hErr;
 
@@ -389,6 +398,7 @@ export const useTreasurySummary = () => {
         .select('payment_method, amount, source_type')
         .in('source_type', ['cash_consolidation', 'cash_consolidation_debit', 'receipt_cash_to_invoice2', 'receipt_cash_to_invoice2_debit', 'gap_to_invoice2']);
       if (activeBranch?.id) consolidationQuery = consolidationQuery.eq('branch_id', activeBranch.id);
+      if (perManager) consolidationQuery = consolidationQuery.eq('manager_id', perManager);
       const { data: consolidationEntries } = await consolidationQuery;
 
       for (const entry of consolidationEntries || []) {
@@ -437,9 +447,10 @@ export const useTreasurySummary = () => {
 };
 
 export const useManagerHandovers = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
+  const perManager = isPerManagerRole(role) && workerId ? workerId : null;
   return useQuery({
-    queryKey: ['manager-handovers', activeBranch?.id],
+    queryKey: ['manager-handovers', activeBranch?.id, perManager],
     queryFn: async () => {
       let query = supabase
         .from('manager_handovers')
@@ -448,6 +459,9 @@ export const useManagerHandovers = () => {
 
       if (activeBranch?.id) {
         query = query.eq('branch_id', activeBranch.id);
+      }
+      if (perManager) {
+        query = query.eq('manager_id', perManager);
       }
 
       const { data, error } = await query;
