@@ -134,7 +134,49 @@ export const useManagerTreasury = (range?: TreasuryDateRange) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as TreasuryEntry[];
+
+      const entries = (data || []) as TreasuryEntry[];
+      if (perManager) {
+        const existingSessionIds = new Set(entries.map((entry) => entry.session_id).filter(Boolean));
+        let sessionQuery = supabase
+          .from('accounting_sessions')
+          .select('id, manager_id, branch_id, completed_at, items:accounting_session_items(item_type, actual_amount)')
+          .eq('manager_id', perManager)
+          .eq('status', 'completed');
+        if (activeBranch?.id) sessionQuery = sessionQuery.eq('branch_id', activeBranch.id);
+        if (range?.from) sessionQuery = sessionQuery.gte('completed_at', `${range.from}T00:00:00`);
+        if (range?.to) sessionQuery = sessionQuery.lte('completed_at', `${range.to}T23:59:59`);
+        const { data: sessions, error: sessionsError } = await sessionQuery;
+        if (sessionsError) throw sessionsError;
+
+        const virtualEntries: TreasuryEntry[] = [];
+        for (const session of sessions || []) {
+          if (existingSessionIds.has(session.id)) continue;
+          for (const item of ((session as any).items || [])) {
+            const amount = Number(item.actual_amount || 0);
+            const paymentMethod = accountingItemPaymentMethod(String(item.item_type || ''));
+            if (!paymentMethod || amount <= 0) continue;
+            virtualEntries.push({
+              id: `session_${session.id}_${item.item_type}`,
+              branch_id: session.branch_id || null,
+              manager_id: session.manager_id,
+              session_id: session.id,
+              source_type: 'accounting_session',
+              payment_method: paymentMethod,
+              amount,
+              check_number: null,
+              check_bank: null,
+              receipt_number: null,
+              transfer_reference: null,
+              notes: item.item_type,
+              created_at: session.completed_at || new Date().toISOString(),
+            });
+          }
+        }
+        return [...entries, ...virtualEntries].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+      }
+
+      return entries;
     },
   });
 };
