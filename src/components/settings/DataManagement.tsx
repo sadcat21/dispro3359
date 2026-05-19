@@ -112,7 +112,7 @@ const DATA_CATEGORIES: DataCategory[] = [
   { id: 'workers', label: 'العمال', tables: ['navbar_preferences', 'worker_roles'], description: 'بيانات العمال (ما عدا الحالي)', order: 0, group: 'master' },
 ];
 
-const PROTECTED_CATEGORIES = ['customers', 'products', 'workers', 'offers'];
+const PROTECTED_CATEGORIES = ['customers', 'products', 'workers', 'offers', 'orders', 'delivered_orders', 'debts'];
 const DELETION_PASSWORD = 'hs0909sm';
 
 const DataManagement: React.FC = () => {
