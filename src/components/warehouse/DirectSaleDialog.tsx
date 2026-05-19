@@ -657,6 +657,32 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const finalInvoiceMethod = frozenInvoiceMethod;
       console.log('[DirectSale] SAVING WITH:', JSON.stringify({ finalPaymentType, finalInvoiceMethod }));
 
+      // 🛡️ Duplicate-order guard: reject identical order (same customer + same total)
+      // created within the last 45 seconds unless the user explicitly confirms.
+      try {
+        const sinceIso = new Date(Date.now() - 45_000).toISOString();
+        const { data: recentDup } = await supabase
+          .from('orders')
+          .select('id, created_at, total_amount')
+          .eq('customer_id', selectedCustomerId!)
+          .eq('created_by', workerId!)
+          .eq('total_amount', orderTotals.totalAmount)
+          .gte('created_at', sinceIso)
+          .limit(1);
+        if (recentDup && recentDup.length > 0) {
+          const proceed = window.confirm(
+            'تم إنشاء طلب مطابق (نفس الزبون ونفس المبلغ) خلال آخر 45 ثانية. هل تريد المتابعة وإنشاء طلب جديد؟\n\nUn ordre identique vient d\'être créé il y a moins de 45 secondes. Confirmer la création d\'un nouveau ?'
+          );
+          if (!proceed) {
+            setIsSaving(false);
+            setShowPaymentDialog(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('[DirectSale] duplicate-guard check failed', e);
+      }
+
       // Determine payment status based on invoice payment method
       let paymentStatus: string;
       if (paymentData.isNoPayment) {
@@ -673,6 +699,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       // لا نخصم المخزون ولا نطبع الوصل، الطلب يبقى pending_branch حتى الموافقة النهائية
       const requiresApprovalChain = finalPaymentType === 'with_invoice';
       const orderStatus = requiresApprovalChain ? 'pending_branch' : 'delivered';
+
 
       const { data: order, error: orderErr } = await supabase
         .from('orders')
