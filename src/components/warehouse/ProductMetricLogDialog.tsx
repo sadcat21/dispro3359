@@ -236,10 +236,18 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                     </div>
                     <span className={`font-extrabold tabular-nums ${meta.accent}`}>{fmt(e.qty)}</span>
                   </div>
-                  {(e.who || e.refLabel) && (
+                  {(e.who || e.refLabel || e.delivered != null) && (
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                       {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
                       {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
+                      {e.delivered != null && (
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${e.delivered ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-orange-50 text-orange-700 border-orange-300'}`}
+                        >
+                          {e.delivered ? 'تم التسليم' : 'لم يُسلَّم'}
+                        </Badge>
+                      )}
                       {clickable && <ChevronLeft className="w-3 h-3 ms-auto opacity-60" />}
                     </div>
                   )}
