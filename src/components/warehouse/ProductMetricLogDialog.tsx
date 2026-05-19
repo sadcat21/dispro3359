@@ -96,35 +96,28 @@ const ProductMetricLogDialog: React.FC<Props> = ({
       }
 
       if (metric === 'gifts') {
-        // Gift quantities from delivered orders' order_items.gift_quantity
-        const { data: ordRows } = await supabase
-          .from('orders')
-          .select('id, created_at, customer_id, status')
-          .eq('branch_id', branchId)
-          .eq('status', 'delivered');
-        const orderIds = (ordRows || []).map((o: any) => o.id);
-        if (!orderIds.length) return [];
-        const { data: items } = await supabase
-          .from('order_items')
-          .select('id, order_id, gift_quantity, product_id')
+        // Per-delivery breakdown from sales_tracking gift_boxes / gift_pieces
+        const { data: rows } = await supabase
+          .from('sales_tracking')
+          .select('id, sold_at, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id')
           .eq('product_id', productId)
-          .in('order_id', orderIds)
-          .gt('gift_quantity', 0);
-        const orderById = new Map((ordRows || []).map((o: any) => [o.id, o]));
-        const customerIds = Array.from(new Set((ordRows || []).map((o: any) => o.customer_id).filter(Boolean)));
-        const { data: customers } = customerIds.length
-          ? await supabase.from('customers').select('id, full_name, store_name').in('id', customerIds)
-          : { data: [] as any[] };
-        const custName = new Map((customers || []).map((c: any) => [c.id, c.store_name || c.full_name]));
-        return (items || []).map((it: any) => {
-          const ord: any = orderById.get(it.order_id) || {};
+          .or(`branch_id.eq.${branchId},branch_id.is.null`)
+          .order('sold_at', { ascending: false });
+        const filtered = (rows || []).filter((r: any) =>
+          (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
+        );
+        const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
+        return filtered.map((r: any) => {
+          const ppb = Number(r.pieces_per_box) || piecesPerBox;
+          const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           return {
-            id: it.id,
-            when: ord.created_at || null,
-            qty: piecesToDbBP(Number(it.gift_quantity || 0), piecesPerBox),
-            who: custName.get(ord.customer_id) || null,
+            id: r.id,
+            when: r.sold_at,
+            qty: piecesToDbBP(pieces, piecesPerBox),
+            who: names.get(r.worker_id) || null,
+            refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
           };
-        }).sort((a, b) => (b.when || '').localeCompare(a.when || ''));
+        });
       }
 
       if (metric === 'offers') {
