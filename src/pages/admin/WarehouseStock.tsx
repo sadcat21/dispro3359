@@ -95,6 +95,8 @@ const WarehouseStock: React.FC = () => {
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [editProduct, setEditProduct] = useState<ProductSummary | null>(null);
   const [movementProduct, setMovementProduct] = useState<ProductSummary | null>(null);
+  const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
+  const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
 
   const branchId = activeBranch?.id;
 
