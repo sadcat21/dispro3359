@@ -341,6 +341,35 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
     enabled: !!workerId && !!periodStart && !!periodEnd,
   });
 
+  // Fetch shipping (load) per product since last accounting session
+  // Uses the same method as sales: aggregates stock_movements of type 'load'
+  const { data: shippingPerProduct } = useQuery({
+    queryKey: ['shipping-per-product-map', workerId, periodStart, periodEnd],
+    queryFn: async () => {
+      const periodStartTz = toTz(periodStart, false);
+      const periodEndTz = toTz(periodEnd, true);
+
+      const { data: movements } = await supabase
+        .from('stock_movements')
+        .select('quantity, product:products(name), status')
+        .eq('worker_id', workerId)
+        .eq('movement_type', 'load')
+        .gte('created_at', periodStartTz)
+        .lte('created_at', periodEndTz);
+
+      const shippingMap: Record<string, number> = {};
+      for (const item of (movements || [])) {
+        if ((item as any).status === 'rejected') continue;
+        const name = (item as any).product?.name || '';
+        if (!name) continue;
+        if (!shippingMap[name]) shippingMap[name] = 0;
+        shippingMap[name] += Number(item.quantity || 0);
+      }
+      return shippingMap;
+    },
+    enabled: !!workerId && !!periodStart && !!periodEnd,
+  });
+
   // Fetch latest review session data for this worker
   const { data: reviewData } = useQuery({
     queryKey: ['truck-review-for-stock', workerId],
