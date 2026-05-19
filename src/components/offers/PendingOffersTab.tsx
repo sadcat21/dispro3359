@@ -46,6 +46,28 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<PendingOfferConfirmation[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const loadHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      let q = (supabase as any)
+        .from('pending_offer_confirmations')
+        .select('*')
+        .in('status', ['confirmed', 'rejected'])
+        .order('updated_at', { ascending: false })
+        .limit(200);
+      if (workerId) q = q.eq('worker_id', workerId);
+      if (branchId) q = q.eq('branch_id', branchId);
+      const { data } = await q;
+      setHistoryItems((data || []) as PendingOfferConfirmation[]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
 
   // Visible items (exclude optimistically removed)
   const visibleItems = useMemo(
