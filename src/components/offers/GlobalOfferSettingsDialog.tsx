@@ -28,7 +28,7 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [form, setForm] = useState({
     is_deferred_confirmation: true,
     auto_fill_quantities: true,
-    is_mandatory: false,
+    is_mandatory: true,
     showcase_enabled: true,
     scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
   });
