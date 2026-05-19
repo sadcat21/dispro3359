@@ -184,6 +184,19 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
     }
   };
 
+  const historyButton = (
+    <div className="flex justify-end px-1 mb-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => { setHistoryOpen(true); loadHistory(); }}
+      >
+        <History className="w-4 h-4 ml-1" />
+        السجل
+      </Button>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="py-8 flex justify-center">
@@ -192,43 +205,100 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
     );
   }
 
-  if (grouped.length === 0) {
-    return (
-      <div className="py-8 text-center text-muted-foreground">
-        <Gift className="w-10 h-10 mx-auto mb-2 opacity-40" />
-        <p className="text-sm">لا توجد عروض بانتظار التأكيد</p>
-      </div>
-    );
-  }
+  const emptyState = (
+    <div className="py-8 text-center text-muted-foreground">
+      <Gift className="w-10 h-10 mx-auto mb-2 opacity-40" />
+      <p className="text-sm">لا توجد عروض بانتظار التأكيد</p>
+    </div>
+  );
 
   return (
     <>
-      <div className="space-y-2 px-1">
-        {grouped.map((g) => (
-          <button
-            key={g.customerId}
-            type="button"
-            onClick={() => setOpenCustomer({ id: g.customerId, name: g.customerName })}
-            className="w-full text-start flex items-center gap-3 p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 hover:shadow-md transition-shadow"
-          >
-            <div className="shrink-0 w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-              <User className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+      {historyButton}
+      {grouped.length === 0 ? emptyState : (
+        <div className="space-y-2 px-1">
+          {grouped.map((g) => (
+            <button
+              key={g.customerId}
+              type="button"
+              onClick={() => setOpenCustomer({ id: g.customerId, name: g.customerName })}
+              className="w-full text-start flex items-center gap-3 p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 hover:shadow-md transition-shadow"
+            >
+              <div className="shrink-0 w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                <User className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+              </div>
+              <div className="flex-1 min-w-0">
+                {customerStores[g.customerId] ? (
+                  <>
+                    <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
+                  </>
+                ) : (
+                  <p className="text-sm font-bold truncate">{g.customerName}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{g.rows.length} عرض بانتظار التأكيد</p>
+              </div>
+              <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              سجل العروض
+            </DialogTitle>
+          </DialogHeader>
+          {historyLoading ? (
+            <div className="py-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+          ) : historyItems.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-6">لا يوجد سجل</p>
+          ) : (
+            <div className="space-y-2 mt-2">
+              {historyItems.map((r) => {
+                const isConfirmed = r.status === 'confirmed';
+                return (
+                  <div
+                    key={r.id}
+                    className={`rounded-lg border p-3 ${isConfirmed
+                      ? 'bg-green-50 border-green-300 dark:bg-green-950/20 dark:border-green-900'
+                      : 'bg-red-50 border-red-300 dark:bg-red-950/20 dark:border-red-900'}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {r.customer_name || 'بدون زبون'}{r.worker_name ? ` • ${r.worker_name}` : ''}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs font-semibold">
+                          <span className="px-2 py-0.5 rounded bg-muted">
+                            {formatQtyPlain(r.purchased_boxes, r.purchased_pieces)}
+                          </span>
+                          <span className="text-muted-foreground">+</span>
+                          <span className="px-2 py-0.5 rounded bg-red-600 text-white inline-flex items-center gap-1">
+                            <Gift className="w-3 h-3" />
+                            {formatQtyPlain(r.gift_boxes, r.gift_pieces)}
+                          </span>
+                        </div>
+                      </div>
+                      <Badge
+                        className={`shrink-0 ${isConfirmed ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                      >
+                        {isConfirmed ? 'مؤكد' : 'مرفوض'}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex-1 min-w-0">
-              {customerStores[g.customerId] ? (
-                <>
-                  <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
-                </>
-              ) : (
-                <p className="text-sm font-bold truncate">{g.customerName}</p>
-              )}
-              <p className="text-xs text-muted-foreground">{g.rows.length} عرض بانتظار التأكيد</p>
-            </div>
-            <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
-          </button>
-        ))}
-      </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+
 
       <Dialog open={!!openCustomer} onOpenChange={(o) => { if (!o) setOpenCustomer(null); }}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
