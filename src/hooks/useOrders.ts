@@ -480,7 +480,21 @@ export const useCancelOrder = () => {
         );
         const stockMovements = (movementsRes.data || []) as StockMovementForReversal[];
         if (stockMovements.length > 0) {
-          await restoreStockFromMovements(stockMovements, order.assigned_worker_id, order.branch_id, itemPiecesPerBox);
+          await restoreStockFromMovements(
+            stockMovements,
+            order.assigned_worker_id,
+            order.branch_id,
+            itemPiecesPerBox,
+            (order.assigned_worker_id && order.branch_id && (order as any).created_at)
+              ? {
+                  orderId: order.id,
+                  orderCreatedAt: (order as any).created_at,
+                  workerId: order.assigned_worker_id,
+                  branchId: order.branch_id,
+                }
+              : undefined,
+          );
+
           const { error: smDelErr } = await supabase
             .from('stock_movements').delete().eq('order_id', orderId);
           if (smDelErr) throw smDelErr;
