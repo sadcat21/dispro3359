@@ -148,19 +148,30 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
 
   const handleConfirm = async (id: string) => {
     setBusyId(id);
+    setStatusOverrides((prev) => ({ ...prev, [id]: 'confirmed' }));
     const res = await confirmPendingOffer(id);
     setBusyId(null);
-    if (!res.ok) toast.error(res.error || 'فشل تأكيد العرض');
-    else toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
+    if (!res.ok) {
+      setStatusOverrides((prev) => { const n = { ...prev }; delete n[id]; return n; });
+      toast.error(res.error || 'فشل تأكيد العرض');
+    } else {
+      toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
+    }
   };
 
   const handleReject = async (id: string) => {
     setBusyId(id);
+    setStatusOverrides((prev) => ({ ...prev, [id]: 'rejected' }));
     const res = await rejectPendingOffer(id);
     setBusyId(null);
-    if (!res.ok) toast.error(res.error || 'فشل رفض العرض');
-    else toast.success('تم رفض العرض');
+    if (!res.ok) {
+      setStatusOverrides((prev) => { const n = { ...prev }; delete n[id]; return n; });
+      toast.error(res.error || 'فشل رفض العرض');
+    } else {
+      toast.success('تم رفض العرض');
+    }
   };
+
 
 
   const historyButton = (
