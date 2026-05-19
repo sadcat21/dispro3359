@@ -81,11 +81,14 @@ const ManagerTreasury = () => {
   const { t, language, dir } = useLanguage();
   const { activeBranch, workerId, role } = useAuth();
   const queryClient = useQueryClient();
-  const { data: summary, isLoading: summaryLoading } = useTreasurySummary();
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const dateRange = { from: dateFrom || null, to: dateTo || null };
+  const { data: summary, isLoading: summaryLoading } = useTreasurySummary(dateRange);
   const isInvoiceRequestHidden = useIsElementHidden('button', 'treasury_invoice_request');
   const isSettingsHidden = useIsElementHidden('button', 'treasury_settings');
-  const { data: entries } = useManagerTreasury();
-  const { data: handovers } = useManagerHandovers();
+  const { data: entries } = useManagerTreasury(dateRange);
+  const { data: handovers } = useManagerHandovers(dateRange);
   const createHandover = useCreateHandover();
   const addEntry = useAddTreasuryEntry();
 
