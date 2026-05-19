@@ -169,7 +169,7 @@ const CreateOfferDialog: React.FC<CreateOfferDialogProps> = ({
     let globals = {
       scope_stages: ['worker_loading', 'order_creation', 'direct_sale', 'warehouse_sale'] as string[],
       auto_fill_quantities: true,
-      is_mandatory: false,
+      is_mandatory: true,
       is_deferred_confirmation: true,
     };
     try {
