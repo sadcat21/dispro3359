@@ -127,6 +127,8 @@ const DataManagement: React.FC = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  // Per-category worker filter: null = "all workers" (current behavior)
+  const [workerFilter, setWorkerFilter] = useState<Record<string, { id: string; name: string } | null>>({});
 
   const needsPassword = PROTECTED_CATEGORIES.some(id => selected.has(id));
 
