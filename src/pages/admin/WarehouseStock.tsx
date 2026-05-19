@@ -348,6 +348,8 @@ const WarehouseStock: React.FC = () => {
       if (!pid) continue;
       const lastReceiptAt = lastReceiptByProduct[pid];
       if (lastReceiptAt && s.sold_at && s.sold_at < lastReceiptAt) continue;
+      // Skip non-delivered orders for sold/warehouse counting (offers loop handles those separately)
+      if (s.order_id && (s as any).order?.status !== 'delivered') continue;
       const ppb = Number(s.pieces_per_box) || 20;
       const boxes = Number(s.total_boxes || 0);
       const pieces = Number(s.total_pieces || 0);
