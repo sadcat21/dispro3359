@@ -353,6 +353,23 @@ const LoadStock: React.FC = () => {
     enabled: !!selectedWorker,
   });
 
+  // Pending offer confirmations for the selected worker (badge on Final Review)
+  const { data: pendingOffersCount = 0 } = useQuery({
+    queryKey: ['pending-offers-count', selectedWorker],
+    queryFn: async () => {
+      const { count } = await (supabase as any)
+        .from('pending_offer_confirmations')
+        .select('id', { count: 'exact', head: true })
+        .eq('worker_id', selectedWorker!)
+        .eq('status', 'pending');
+      return count || 0;
+    },
+    enabled: !!selectedWorker,
+    refetchInterval: 15000,
+  });
+
+
+
   // Check if the last session is a review - review must separate load/unload sessions
   const hasReviewToday = useMemo(() => {
     if (sessions.length === 0) return true; // No sessions = allow first load
