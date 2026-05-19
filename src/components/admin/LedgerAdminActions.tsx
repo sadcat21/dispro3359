@@ -26,6 +26,7 @@ import { Archive, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { WorkerPickerDialog } from '@/components/admin/WorkerPickerDialog';
 
 type LedgerKind = 'cash' | 'debt' | 'stock';
 type PurgeScope = 'current' | 'archive' | 'all';
@@ -71,17 +72,22 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
   const [purgeOpen, setPurgeOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [scope, setScope] = useState<PurgeScope>('current');
+  const [workerId, setWorkerId] = useState<string | null>(null);
+  const [workerName, setWorkerName] = useState<string | null>(null);
 
   if (role !== 'admin') return null;
   const cfg = RPC_MAP[kind];
+  const workerSuffix = workerId ? ` (${workerName ?? 'عامل محدد'})` : '';
 
+  // archive: only "current" supports worker filter on the live table
   const runArchive = async () => {
     try {
       setBusy('archive');
-      const { data, error } = await supabase.rpc(cfg.archive as any);
+      const args = workerId ? { p_worker_id: workerId } : ({} as any);
+      const { data, error } = await supabase.rpc(cfg.archive as any, args);
       if (error) throw error;
       const archived = (data as any)?.archived ?? 0;
-      toast.success(`تمت أرشفة ${archived} سجل من ${cfg.label}`);
+      toast.success(`تمت أرشفة ${archived} سجل من ${cfg.label}${workerSuffix}`);
       onDone?.();
     } catch (e: any) {
       toast.error(`فشل الأرشفة: ${e.message ?? e}`);
@@ -93,10 +99,13 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
   const runPurge = async () => {
     try {
       setBusy('purge');
-      const { data, error } = await supabase.rpc(cfg.purge[scope] as any);
+      // Only the "current" purge variant supports worker filtering today
+      const args = (scope === 'current' && workerId) ? { p_worker_id: workerId } : ({} as any);
+      const { data, error } = await supabase.rpc(cfg.purge[scope] as any, args);
       if (error) throw error;
       const deleted = (data as any)?.deleted ?? 0;
-      toast.success(`تم حذف ${deleted} سجل (${SCOPE_LABEL[scope]}) من ${cfg.label}`);
+      const suffix = (scope === 'current' && workerId) ? workerSuffix : '';
+      toast.success(`تم حذف ${deleted} سجل (${SCOPE_LABEL[scope]}) من ${cfg.label}${suffix}`);
       setConfirmOpen(false);
       setPurgeOpen(false);
       onDone?.();
@@ -115,6 +124,11 @@ export const LedgerAdminActions: React.FC<Props> = ({ kind, onDone, showArchive,
           {showArchive ? 'إخفاء الأرشيف' : 'عرض من الأرشيف'}
         </Button>
       )}
+
+      <WorkerPickerDialog
+        value={workerId}
+        onChange={(id, name) => { setWorkerId(id); setWorkerName(name); }}
+      />
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
