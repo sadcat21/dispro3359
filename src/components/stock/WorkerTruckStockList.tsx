@@ -45,6 +45,19 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     try { localStorage.setItem('wtsl-view-mode', m); } catch {}
   };
 
+  const qc = useQueryClient();
+  const didSyncRef = useRef(false);
+  // مزامنة المخزون من سجل الحركات قبل القراءة — مصدر الحقيقة هو stock_movements
+  useEffect(() => {
+    if (!workerId || didSyncRef.current) return;
+    didSyncRef.current = true;
+    (async () => {
+      try { await supabase.rpc('recalibrate_worker_stock' as any, { p_worker_id: workerId }); }
+      catch (e) { console.warn('[WorkerTruckStockList] recalibrate failed', e); }
+      finally { qc.invalidateQueries({ queryKey: ['wtsl-stock', workerId] }); }
+    })();
+  }, [workerId, qc]);
+
   const { data: truckStock = [] } = useQuery({
     queryKey: ['wtsl-stock', workerId],
     queryFn: async () => {
