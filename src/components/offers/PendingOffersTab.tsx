@@ -89,9 +89,15 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         seen.add(key);
         deduped.push(r);
       }
-      return deduped;
+      // Hide pending offer cards entirely until the linked order is delivered.
+      // Confirmed/rejected rows stay visible as a record regardless of order state.
+      return deduped.filter((r) => {
+        if (r.status !== 'pending') return true;
+        if (!r.order_id) return true; // not tied to an order (e.g. direct sale)
+        return orderStatuses[r.order_id] === 'delivered';
+      });
     },
-    [items, statusOverrides]
+    [items, statusOverrides, orderStatuses]
   );
 
 
@@ -138,10 +144,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     })();
   }, [visibleItems, customerStores]);
 
-  // Fetch order statuses to freeze the Confirm button until the order is delivered.
+  // Fetch order statuses — used to gate showing pending cards until the order is delivered.
+  // Source from raw `items` (not visibleItems) so we can decide visibility from the status.
   useEffect(() => {
     const ids = Array.from(new Set(
-      visibleItems.map((r) => r.order_id).filter(Boolean) as string[]
+      items.map((r) => r.order_id).filter(Boolean) as string[]
     )).filter((id) => !(id in orderStatuses));
     if (ids.length === 0) return;
     (async () => {
@@ -154,7 +161,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         });
       }
     })();
-  }, [visibleItems, orderStatuses]);
+  }, [items, orderStatuses]);
 
   // Group by customer (include all statuses so the card stays as a record).
   const grouped = useMemo(() => {
@@ -468,37 +475,28 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                       )}
                     </div>
                   </div>
-                  {isPending && (() => {
-                    const orderStatus = r.order_id ? orderStatuses[r.order_id] : null;
-                    const isFrozen = !!r.order_id && orderStatus !== 'delivered';
-                    return (
-                      <div className="space-y-1.5">
-                        {isFrozen && (
-                          <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100/60 dark:bg-amber-950/40 rounded px-2 py-1 text-center font-medium">
-                            مجمّد — التأكيد متاح بعد تسليم الطلب
-                          </p>
-                        )}
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            disabled={busyId === r.id || isFrozen}
-                            onClick={() => handleConfirm(r.id)}
-                          >
-                            {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={busyId === r.id}
-                            onClick={() => handleReject(r.id)}
-                          >
-                            <X className="w-4 h-4 ml-1" /> رفض
-                          </Button>
-                        </div>
+                  {isPending && (
+                    <div className="space-y-1.5">
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          disabled={busyId === r.id}
+                          onClick={() => handleConfirm(r.id)}
+                        >
+                          {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 ml-1" /> تأكيد</>}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={busyId === r.id}
+                          onClick={() => handleReject(r.id)}
+                        >
+                          <X className="w-4 h-4 ml-1" /> رفض
+                        </Button>
                       </div>
-                    );
-                  })()}
+                    </div>
+                  )}
                 </div>
               );
             })}
