@@ -411,7 +411,7 @@ export const useCancelOrder = () => {
     mutationFn: async (orderId: string) => {
       // Fetch order + items + debt in parallel
       const [orderRes, itemsRes, debtRes, movementsRes] = await Promise.all([
-        supabase.from('orders').select('id, assigned_worker_id, status, branch_id').eq('id', orderId).single(),
+        supabase.from('orders').select('id, assigned_worker_id, status, branch_id, created_at').eq('id', orderId).single(),
         supabase.from('order_items').select('product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(pieces_per_box)').eq('order_id', orderId),
         supabase.from('customer_debts').select('id, remaining_amount, status').eq('order_id', orderId).maybeSingle(),
         supabase.from('stock_movements').select('product_id, branch_id, worker_id, movement_type, quantity, signed_quantity, from_location_type, from_location_id, product:products(pieces_per_box)').eq('order_id', orderId),
