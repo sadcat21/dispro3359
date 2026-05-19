@@ -170,7 +170,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
       const names = await resolveWorkers((edits || []).map((e: any) => e.worker_id));
       const out: Entry[] = [];
       for (const e of (edits || [])) {
-        const ch = (e.details && e.details.changes) || {};
+        const ch = ((e.details as any) && (e.details as any).changes) || {};
         const c = ch[changeKey];
         if (!c) continue;
         const delta = parseDisplay(c.to) - parseDisplay(c.from);
