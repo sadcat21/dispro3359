@@ -581,13 +581,22 @@ const WarehouseStock: React.FC = () => {
                             );
                           })}
                         </div>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {row2.map(st => (
-                            <div key={st.label} className={`rounded-md px-2 py-1.5 text-center ${st.value > 0 ? st.bg : 'bg-muted/30'}`}>
-                              <div className={`text-[11px] leading-tight mb-0.5 ${st.value > 0 ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>{st.label}</div>
-                              <div className={`text-sm font-bold tabular-nums ${st.value > 0 ? st.color : 'text-muted-foreground/40'}`}>{st.display}</div>
-                            </div>
-                          ))}
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {row2.map(st => {
+                            const isBtn = !!st.onClick;
+                            const cls = `rounded-md px-2 py-1.5 text-center transition-colors ${st.value > 0 ? st.bg : 'bg-muted/30'} ${isBtn ? 'cursor-pointer hover:ring-2 hover:ring-primary/40 active:scale-[0.98]' : ''}`;
+                            const content = (
+                              <>
+                                <div className={`text-[11px] leading-tight mb-0.5 ${st.value > 0 ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>{st.label}</div>
+                                <div className={`text-sm font-bold tabular-nums ${st.value > 0 ? st.color : 'text-muted-foreground/40'}`}>{st.display}</div>
+                              </>
+                            );
+                            return isBtn ? (
+                              <button key={st.label} type="button" className={cls} onClick={st.onClick}>{content}</button>
+                            ) : (
+                              <div key={st.label} className={cls}>{content}</div>
+                            );
+                          })}
                         </div>
                       </CardContent>
                     )}
