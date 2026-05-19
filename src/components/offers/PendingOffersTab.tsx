@@ -189,32 +189,50 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
       {historyButton}
       {grouped.length === 0 ? emptyState : (
         <div className="space-y-2 px-1">
-          {grouped.map((g) => (
-            <button
-              key={g.customerId}
-              type="button"
-              onClick={() => setOpenCustomer({ id: g.customerId, name: g.customerName })}
-              className="w-full text-start flex items-center gap-3 p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 hover:shadow-md transition-shadow"
-            >
-              <div className="shrink-0 w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-                <User className="w-4 h-4 text-amber-700 dark:text-amber-300" />
-              </div>
-              <div className="flex-1 min-w-0">
-                {customerStores[g.customerId] ? (
-                  <>
-                    <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
-                  </>
+          {grouped.map((g) => {
+            const hasPending = g.pendingCount > 0;
+            return (
+              <button
+                key={g.customerId}
+                type="button"
+                onClick={() => setOpenCustomer({ id: g.customerId, name: g.customerName })}
+                className={`w-full text-start flex items-center gap-3 p-3 rounded-lg border hover:shadow-md transition-shadow ${
+                  hasPending
+                    ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
+                    : 'bg-muted/30 border-border'
+                }`}
+              >
+                <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+                  hasPending ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-muted'
+                }`}>
+                  <User className={`w-4 h-4 ${hasPending ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  {customerStores[g.customerId] ? (
+                    <>
+                      <p className="text-sm font-bold truncate">{customerStores[g.customerId]}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{g.customerName}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm font-bold truncate">{g.customerName}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {hasPending
+                      ? `${g.pendingCount} بانتظار التأكيد • ${g.rows.length} إجمالي`
+                      : `${g.rows.length} عرض — تمت المعالجة`}
+                  </p>
+                </div>
+                {hasPending ? (
+                  <Badge className="shrink-0 bg-amber-500 text-white">{g.pendingCount}</Badge>
                 ) : (
-                  <p className="text-sm font-bold truncate">{g.customerName}</p>
+                  <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
                 )}
-                <p className="text-xs text-muted-foreground">{g.rows.length} عرض بانتظار التأكيد</p>
-              </div>
-              <Badge variant="secondary" className="shrink-0">{g.rows.length}</Badge>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
+
 
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
