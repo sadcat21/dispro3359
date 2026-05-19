@@ -78,7 +78,19 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
 
 
   const visibleItems = useMemo(
-    () => items.map((r) => statusOverrides[r.id] ? { ...r, status: statusOverrides[r.id] } : r),
+    () => {
+      const mapped = items.map((r) => statusOverrides[r.id] ? { ...r, status: statusOverrides[r.id] } : r);
+      // Dedupe: same order + product + offer => keep only the latest (items are ordered created_at desc)
+      const seen = new Set<string>();
+      const deduped: typeof mapped = [];
+      for (const r of mapped) {
+        const key = `${r.order_id || '_'}|${r.product_id}|${r.offer_id || '_'}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(r);
+      }
+      return deduped;
+    },
     [items, statusOverrides]
   );
 
