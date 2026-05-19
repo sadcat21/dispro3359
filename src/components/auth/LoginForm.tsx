@@ -268,11 +268,6 @@ const LoginForm: React.FC = () => {
   const [quickPasswordValue, setQuickPasswordValue] = useState('');
   const [quickPasswordError, setQuickPasswordError] = useState('');
   const QUICK_LOGIN_PASSWORD = '09091408';
-  // Override passwords for quick login when username !== password
-  const QUICK_LOGIN_PASSWORD_OVERRIDES: Record<string, string> = {
-    adjel: 'adjelaroma26',
-    hssmg27: 'Hssmg27',
-  };
 
   const openQuickPassword = (target: 'test' | 'real') => {
     setQuickPasswordTarget(target);
@@ -412,6 +407,29 @@ const LoginForm: React.FC = () => {
       .filter((group) => group.workers.length > 0);
   };
 
+  const doQuickLogin = async (worker: QuickWorker) => {
+    let password = worker.username;
+
+    if (worker.id) {
+      const { data } = await supabase
+        .from('workers')
+        .select('password_hash')
+        .eq('id', worker.id)
+        .maybeSingle();
+
+      const passwordHash = (data as { password_hash?: string | null } | null)?.password_hash;
+      if (passwordHash) {
+        try {
+          password = atob(passwordHash);
+        } catch {
+          password = worker.username;
+        }
+      }
+    }
+
+    await doLogin(worker.username, password, true);
+  };
+
   const renderQuickWorkerCard = (worker: QuickWorker, isRealMode: boolean) => {
     const WorkerIcon = getWorkerIcon(worker);
     const groupMeta = QUICK_GROUP_META[getQuickWorkerGroupKey(worker)] || QUICK_GROUP_META.worker;
@@ -421,7 +439,7 @@ const LoginForm: React.FC = () => {
         key={worker.id || worker.username}
         type="button"
         disabled={isLoading}
-        onClick={() => doLogin(worker.username, QUICK_LOGIN_PASSWORD_OVERRIDES[worker.username.toLowerCase()] ?? worker.username, true)}
+        onClick={() => doQuickLogin(worker)}
         className={`group flex min-h-[168px] flex-col items-center text-center transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
           isRealMode
             ? `min-h-[132px] justify-center gap-2 rounded-xl border bg-white px-2.5 py-3.5 ${groupMeta.cardClass}`

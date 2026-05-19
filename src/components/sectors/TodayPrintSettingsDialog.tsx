@@ -50,6 +50,8 @@ const toDateStr = (d: Date) => {
 const todayStr = () => toDateStr(new Date());
 const tomorrowStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); return toDateStr(d); };
 const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return toDateStr(d); };
+const areColumnConfigsEqual = (a: PrintColumnConfig[], b: PrintColumnConfig[]) =>
+  a.length === b.length && a.every((col, index) => JSON.stringify(col) === JSON.stringify(b[index]));
 
 const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   open, onOpenChange, orders, products, workerStock, sectors = [], zones = [], onPreview,
@@ -71,7 +73,9 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
   const [cashVanQuantities, setCashVanQuantities] = useState<Record<string, number>>({});
   const [deliveryDate, setDeliveryDate] = useState<string>(''); // '' = all dates, otherwise YYYY-MM-DD
 
-  useEffect(() => { setColumnConfig(dbColumns); }, [dbColumns]);
+  useEffect(() => {
+    setColumnConfig(prev => areColumnConfigsEqual(prev, dbColumns) ? prev : dbColumns);
+  }, [dbColumns]);
 
   // Apply delivery_date filter (when user selects a specific date)
   const dateFilteredOrders = useMemo(() => {
@@ -104,13 +108,26 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
     return Array.from(map.values());
   }, [dateFilteredOrders]);
 
+  const customerIdsSignature = useMemo(
+    () => customerList.map(c => c.id).sort().join('|'),
+    [customerList]
+  );
+
   useEffect(() => {
     if (open) {
-      setSelectedCustomerIds(new Set(customerList.map(c => c.id)));
       setCashVanQuantities({});
       setSelectedShipmentProductId(null);
     }
-  }, [open, customerList]);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const customerIds = customerList.map(c => c.id);
+    setSelectedCustomerIds((prev) => {
+      if (prev.size === customerIds.length && customerIds.every(id => prev.has(id))) return prev;
+      return new Set(customerIds);
+    });
+  }, [open, customerIdsSignature, customerList]);
 
   const allSelected = selectedCustomerIds.size === customerList.length && customerList.length > 0;
 
@@ -198,7 +215,12 @@ const TodayPrintSettingsDialog: React.FC<TodayPrintSettingsDialogProps> = ({
       const remaining = Math.max(0, stockQty - needed);
       if (remaining > 0) newCashVan[pid] = remaining;
     });
-    setCashVanQuantities(newCashVan);
+    setCashVanQuantities((prev) => {
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(newCashVan);
+      if (prevKeys.length === nextKeys.length && nextKeys.every(key => prev[key] === newCashVan[key])) return prev;
+      return newCashVan;
+    });
   }, [selectedOrders, workerStock]);
 
   const handleColumnsChange = (cols: PrintColumnConfig[]) => {
