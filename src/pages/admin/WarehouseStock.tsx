@@ -703,6 +703,27 @@ const WarehouseStock: React.FC = () => {
           }}
         />
       )}
+      {workersForProduct && branchId && (
+        <ProductWorkerMovementsDialog
+          open={!!workersForProduct}
+          onOpenChange={(open) => !open && setWorkersForProduct(null)}
+          branchId={branchId}
+          productId={workersForProduct.productId}
+          productName={workersForProduct.productName}
+          piecesPerBox={products.find(p => p.id === workersForProduct.productId)?.pieces_per_box || 20}
+        />
+      )}
+      {soldForProduct && branchId && (
+        <ProductDailySoldDialog
+          open={!!soldForProduct}
+          onOpenChange={(open) => !open && setSoldForProduct(null)}
+          branchId={branchId}
+          productId={soldForProduct.productId}
+          productName={soldForProduct.productName}
+          piecesPerBox={products.find(p => p.id === soldForProduct.productId)?.pieces_per_box || 20}
+          sinceIso={latestReceiptAtByProduct[soldForProduct.productId] || null}
+        />
+      )}
       {movementProduct && branchId && (
         <WarehouseProductMovementDialog
           open={!!movementProduct}
