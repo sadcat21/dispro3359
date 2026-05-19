@@ -89,6 +89,33 @@ const isPerManagerRole = (role: string | null | undefined) => role === 'branch_a
 export type TreasuryDateRange = { from?: string | null; to?: string | null };
 const rangeKey = (r?: TreasuryDateRange) => `${r?.from || ''}_${r?.to || ''}`;
 
+const parseAccountingTime = (value: unknown) => {
+  if (!value) return 0;
+  const t = Date.parse(String(value));
+  return Number.isFinite(t) ? t : 0;
+};
+
+// delivery_date is often stored as DATE only, so use created_at when it belongs to the same day.
+// This keeps same-day worker receipts inside the actual accounting window instead of pushing them to 23:59.
+const orderAccountingTime = (order: any) => {
+  const deliveryDate = order?.delivery_date ? String(order.delivery_date) : '';
+  const createdAt = order?.created_at ? String(order.created_at) : '';
+  if (deliveryDate) {
+    if (deliveryDate.length > 10) return parseAccountingTime(deliveryDate);
+    if (createdAt && createdAt.slice(0, 10) === deliveryDate) return parseAccountingTime(createdAt);
+    return parseAccountingTime(`${deliveryDate}T12:00:00`);
+  }
+  return parseAccountingTime(createdAt);
+};
+
+const accountingItemPaymentMethod = (itemType: string) => {
+  if (['invoice1_espace_cash', 'invoice1_versement_cash', 'invoice2_cash', 'debt_collections_cash'].includes(itemType)) return 'cash';
+  if (['invoice1_check', 'debt_collections_check'].includes(itemType)) return 'check';
+  if (['invoice1_receipt', 'debt_collections_receipt'].includes(itemType)) return 'bank_receipt';
+  if (['invoice1_transfer', 'debt_collections_transfer'].includes(itemType)) return 'bank_transfer';
+  return null;
+};
+
 export const useManagerTreasury = (range?: TreasuryDateRange) => {
   const { activeBranch, workerId, role } = useAuth();
   const perManager = isPerManagerRole(role) && workerId ? workerId : null;
