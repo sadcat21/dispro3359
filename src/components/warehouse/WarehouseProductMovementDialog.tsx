@@ -1,0 +1,260 @@
+import React, { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Package, History, TrendingUp, TrendingDown, PackageOpen, Truck, AlertTriangle, RotateCcw } from 'lucide-react';
+import { dbBPDisplay } from '@/utils/boxPieceInput';
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  branchId: string;
+  productId: string;
+  productName: string;
+  productImage?: string | null;
+  piecesPerBox: number;
+}
+
+type MvType = 'receipt' | 'load' | 'return' | 'factory_return' | 'damaged';
+
+interface Mv {
+  id: string;
+  type: MvType;
+  label: string;
+  when: string;
+  qty: number; // positive box-pieces value
+  sign: 1 | -1;
+  note?: string | null;
+  who?: string | null;
+  ref?: string | null;
+}
+
+const TYPE_STYLE: Record<MvType, { badge: string; card: string; delta: string; icon: React.ReactNode }> = {
+  receipt:        { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', card: 'bg-emerald-50 border-emerald-200', delta: 'text-emerald-700', icon: <PackageOpen className="w-3 h-3" /> },
+  load:           { badge: 'bg-blue-100 text-blue-700 border-blue-200',          card: 'bg-blue-50 border-blue-200',       delta: 'text-blue-700',    icon: <Truck className="w-3 h-3" /> },
+  return:         { badge: 'bg-cyan-100 text-cyan-700 border-cyan-200',          card: 'bg-cyan-50 border-cyan-200',       delta: 'text-cyan-700',    icon: <RotateCcw className="w-3 h-3" /> },
+  factory_return: { badge: 'bg-violet-100 text-violet-700 border-violet-200',    card: 'bg-violet-50 border-violet-200',   delta: 'text-violet-700',  icon: <TrendingDown className="w-3 h-3" /> },
+  damaged:        { badge: 'bg-red-100 text-red-700 border-red-200',             card: 'bg-red-50 border-red-200',         delta: 'text-red-700',     icon: <AlertTriangle className="w-3 h-3" /> },
+};
+
+const WarehouseProductMovementDialog: React.FC<Props> = ({
+  open, onOpenChange, branchId, productId, productName, productImage, piecesPerBox,
+}) => {
+  const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['warehouse-product-movements', branchId, productId],
+    enabled: open && !!branchId && !!productId,
+    queryFn: async () => {
+      // 1. Receipts (incoming from factory)
+      const { data: branchReceipts } = await supabase
+        .from('stock_receipts')
+        .select('id, created_at, invoice_number, notes, created_by, status')
+        .eq('branch_id', branchId)
+        .neq('status', 'rejected');
+      const receiptIds = (branchReceipts || []).map(r => r.id);
+      const receiptMap = new Map((branchReceipts || []).map(r => [r.id, r]));
+
+      const receiptItemsRes = receiptIds.length
+        ? await supabase
+            .from('stock_receipt_items')
+            .select('id, receipt_id, quantity, notes')
+            .eq('product_id', productId)
+            .in('receipt_id', receiptIds)
+        : { data: [] as any[] };
+
+      // 2 & 3. stock_movements: load / return
+      const { data: movements } = await supabase
+        .from('stock_movements')
+        .select('id, movement_type, quantity, created_at, notes, worker_id, created_by, status')
+        .eq('branch_id', branchId)
+        .eq('product_id', productId)
+        .in('movement_type', ['load', 'return'])
+        .neq('status', 'rejected');
+
+      // Worker / creator name lookup
+      const workerIds = Array.from(new Set([
+        ...((movements || []).map(m => m.worker_id).filter(Boolean) as string[]),
+        ...((movements || []).map(m => m.created_by).filter(Boolean) as string[]),
+        ...((branchReceipts || []).map(r => r.created_by).filter(Boolean) as string[]),
+      ]));
+      const workersRes = workerIds.length
+        ? await supabase.from('workers_safe').select('id, full_name').in('id', workerIds)
+        : { data: [] as any[] };
+      const workerNameById = new Map((workersRes.data || []).map((w: any) => [w.id, w.full_name]));
+
+      // 4. Manual edits → damaged / factory_return changes
+      const { data: edits } = await supabase
+        .from('activity_logs')
+        .select('id, created_at, worker_id, details')
+        .eq('branch_id', branchId)
+        .eq('entity_type', 'warehouse_stock_manual_edit')
+        .eq('entity_id', productId)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      const list: Mv[] = [];
+
+      // Receipts
+      for (const it of (receiptItemsRes.data || [])) {
+        const r: any = receiptMap.get(it.receipt_id);
+        if (!r) continue;
+        list.push({
+          id: `r-${it.id}`,
+          type: 'receipt',
+          label: 'استلام من المصنع',
+          when: r.created_at,
+          qty: Number(it.quantity || 0),
+          sign: 1,
+          note: it.notes || r.notes || (r.invoice_number ? `فاتورة: ${r.invoice_number}` : null),
+          who: workerNameById.get(r.created_by) || null,
+        });
+      }
+
+      // load / return
+      for (const m of (movements || [])) {
+        const isLoad = m.movement_type === 'load';
+        list.push({
+          id: `m-${m.id}`,
+          type: isLoad ? 'load' : 'return',
+          label: isLoad ? 'شحن للعامل' : 'تفريغ من العامل',
+          when: m.created_at,
+          qty: Number(m.quantity || 0),
+          sign: isLoad ? -1 : 1,
+          note: m.notes,
+          who: workerNameById.get(m.worker_id || m.created_by || '') || null,
+        });
+      }
+
+      // Manual edits — damaged / factoryReturn changes
+      const parseDisplay = (v: any): number => {
+        if (v == null) return 0;
+        const n = Number(String(v).replace(',', '.'));
+        return Number.isFinite(n) ? n : 0;
+      };
+      for (const e of (edits || [])) {
+        const det: any = e.details || {};
+        const ch = det.changes || {};
+        const who = workerNameById.get(e.worker_id || '') || null;
+        if (ch.damaged) {
+          const delta = parseDisplay(ch.damaged.to) - parseDisplay(ch.damaged.from);
+          if (Math.abs(delta) > 0.0001) {
+            list.push({
+              id: `e-${e.id}-d`,
+              type: 'damaged',
+              label: 'تالف',
+              when: e.created_at,
+              qty: Math.abs(delta),
+              sign: -1,
+              note: `${ch.damaged.from} ← ${ch.damaged.to}`,
+              who,
+            });
+          }
+        }
+        if (ch.factoryReturn) {
+          const delta = parseDisplay(ch.factoryReturn.to) - parseDisplay(ch.factoryReturn.from);
+          if (Math.abs(delta) > 0.0001) {
+            list.push({
+              id: `e-${e.id}-f`,
+              type: 'factory_return',
+              label: 'إرجاع للمصنع',
+              when: e.created_at,
+              qty: Math.abs(delta),
+              sign: -1,
+              note: `${ch.factoryReturn.from} ← ${ch.factoryReturn.to}`,
+              who,
+            });
+          }
+        }
+      }
+
+      list.sort((a, b) => (new Date(b.when).getTime() || 0) - (new Date(a.when).getTime() || 0));
+      return list;
+    },
+  });
+
+  const totals = useMemo(() => {
+    const t = { receipt: 0, load: 0, return: 0, factory_return: 0, damaged: 0 };
+    for (const m of (data || [])) t[m.type] += m.qty;
+    return t;
+  }, [data]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
+            <History className="w-5 h-5 text-primary" />
+            <span className="truncate">{productName}</span>
+            <span className="text-[11px] font-normal text-muted-foreground">سجل حركات المخزن</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3 flex flex-col flex-1 min-h-0">
+          <div className="flex items-center gap-3 p-3 rounded-xl border bg-muted/30">
+            <div className="w-14 h-14 rounded-xl overflow-hidden border bg-background flex items-center justify-center shrink-0">
+              {productImage ? (
+                <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+              ) : (
+                <Package className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold truncate">{productName}</p>
+              <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
+                <Badge className={TYPE_STYLE.receipt.badge}>استلام {fmt(totals.receipt)}</Badge>
+                <Badge className={TYPE_STYLE.load.badge}>شحن {fmt(totals.load)}</Badge>
+                <Badge className={TYPE_STYLE.return.badge}>تفريغ {fmt(totals.return)}</Badge>
+                {totals.factory_return > 0 && (
+                  <Badge className={TYPE_STYLE.factory_return.badge}>للمصنع {fmt(totals.factory_return)}</Badge>
+                )}
+                {totals.damaged > 0 && (
+                  <Badge className={TYPE_STYLE.damaged.badge}>تالف {fmt(totals.damaged)}</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+            <div className="space-y-2 pb-2">
+              {isLoading ? (
+                <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
+              ) : (data?.length ?? 0) === 0 ? (
+                <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد حركات مسجلة لهذا المنتج</div>
+              ) : (
+                (data || []).map((entry, index) => {
+                  const prevDay = index > 0 && data?.[index - 1]?.when ? new Date(data[index - 1].when).toDateString() : null;
+                  const currentDay = entry.when ? new Date(entry.when).toDateString() : null;
+                  const showDay = index === 0 || prevDay !== currentDay;
+                  const dateLabel = entry.when ? new Date(entry.when).toLocaleDateString('ar-DZ') : '—';
+                  const timeLabel = entry.when ? new Date(entry.when).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }) : '';
+                  const style = TYPE_STYLE[entry.type];
+                  const sign = entry.sign > 0 ? '+' : '-';
+                  return (
+                    <div key={entry.id} className="space-y-1">
+                      {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}
+                      <div className={`rounded-xl border-2 shadow-sm px-3 py-2.5 ${style.card}`}>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge className={`text-[10px] gap-1 ${style.badge}`}>{style.icon}{entry.label}</Badge>
+                          {entry.who && <span className="text-[11px] text-muted-foreground">{entry.who}</span>}
+                          <span className="text-[10px] text-muted-foreground ms-auto">{timeLabel}</span>
+                          <span className={`text-sm font-extrabold ${style.delta}`}>{sign}{fmt(entry.qty)}</span>
+                        </div>
+                        {entry.note && (
+                          <div className="mt-1.5 text-[11px] text-muted-foreground break-words">{entry.note}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default WarehouseProductMovementDialog;
