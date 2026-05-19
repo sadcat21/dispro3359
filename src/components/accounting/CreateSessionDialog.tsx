@@ -229,6 +229,37 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     }
   };
 
+  const handleFreeze = async () => {
+    if (!selectedWorkerId) return;
+    setIsUnfreezing(true);
+    try {
+      const { data: latest, error: qErr } = await supabase
+        .from('loading_sessions')
+        .select('id')
+        .eq('worker_id', selectedWorkerId)
+        .neq('status', 'review')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (qErr) throw qErr;
+      if (!latest || latest.length === 0) {
+        toast.error('لا توجد جلسة شحن لتجميدها');
+        return;
+      }
+      const { error } = await supabase
+        .from('loading_sessions')
+        .update({ status: 'review', is_final: true } as any)
+        .eq('id', latest[0].id);
+      if (error) throw error;
+      toast.success('تم تجميد العامل');
+      queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
+      queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
+    } catch (e: any) {
+      toast.error(e.message || 'فشل تجميد العامل');
+    } finally {
+      setIsUnfreezing(false);
+    }
+  };
+
   const handleShowConfirmation = () => {
     if (!selectedWorkerId || !calc) { toast.error('اختر العامل'); return; }
     setShowConfirmation(true);
