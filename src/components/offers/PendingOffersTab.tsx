@@ -417,10 +417,20 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                               cmnd: {r.order_id.slice(0, 8)}
                             </button>
                           )}
-                          {productCodes[r.product_id] && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-background border text-[10px] font-mono font-semibold">
-                              pro: {productCodes[r.product_id]}
-                            </span>
+                          {r.product_id && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(r.product_id);
+                                toast.success('تم نسخ رمز المنتج');
+                              }}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-background hover:bg-muted/70 border text-[10px] font-mono font-semibold"
+                              title="نسخ رمز المنتج"
+                            >
+                              <Copy className="w-3 h-3" />
+                              pro: {r.product_id.slice(0, 8)}
+                            </button>
                           )}
                           {isConfirmed && <Badge className="bg-green-600 text-white">مؤكد</Badge>}
                           {isRejected && <Badge className="bg-red-600 text-white">مرفوض</Badge>}
