@@ -166,6 +166,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customerStoreName: c.store,
             customerFullName: c.full || customerFallback,
             delivered,
+            workerName: names.get(r.worker_id) || null,
           };
         });
       }
