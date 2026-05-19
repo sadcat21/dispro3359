@@ -2116,7 +2116,7 @@ const LoadStock: React.FC = () => {
                           </div>
                         ) : (
                           <Button
-                            className="w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
+                            className="relative w-full bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl font-bold"
                             onClick={() => {
                               const matchCount = viewSessionItems.length - viewReviewDiscrepancies.length;
                               const deficitCount = viewReviewDiscrepancies.filter((d: any) => d.discrepancy_type === 'deficit').length;
@@ -2126,8 +2126,18 @@ const LoadStock: React.FC = () => {
                           >
                             <CheckCircle className="w-4 h-4 me-2" />
                             تقديم كمراجعة نهائية
+                            {pendingOffersCount > 0 && (
+                              <Badge
+                                variant="secondary"
+                                className="absolute -top-2 -end-2 bg-amber-500 text-white border-2 border-white shadow-md h-6 min-w-6 px-1.5 rounded-full text-xs font-bold"
+                                title="عروض في انتظار التأكيد"
+                              >
+                                {pendingOffersCount}
+                              </Badge>
+                            )}
                           </Button>
                         )}
+
                       </div>
                     )}
                     {session.status === 'review' ? (
