@@ -260,11 +260,11 @@ export const useTreasurySummary = () => {
         if (!isCovered) workerHeldAmount += paidAmount;
       });
 
-      // Calculate total sales from all delivered orders
-      const totalSales = (orders || []).reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
+      // Calculate total sales from all delivered orders (scoped to this manager when applicable)
+      const totalSales = scopedOrders.reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
 
       // Calculate actual paid amount from orders (what should be in treasury from order payments)
-      const paidFromOrders = (orders || []).reduce((s: number, o: any) => {
+      const paidFromOrders = scopedOrders.reduce((s: number, o: any) => {
         let paid = Number(o.total_amount || 0);
         if (o.payment_status === 'partial') paid = Number(o.partial_amount || 0);
         else if (o.payment_status === 'debt') paid = 0;
@@ -276,7 +276,7 @@ export const useTreasurySummary = () => {
       const orderUnpaidAmount = Math.max(0, rawOrderUnpaidAmount);
 
       // Calculate total gift value (gifts given without payment)
-      const totalGiftsValue = (orders || []).reduce((s: number, o: any) => {
+      const totalGiftsValue = scopedOrders.reduce((s: number, o: any) => {
         return s + (o.order_items || []).reduce((is: number, item: any) => {
           const giftBoxes = Number(item.gift_quantity || 0);
           const giftPieces = Number(item.gift_pieces || 0);
