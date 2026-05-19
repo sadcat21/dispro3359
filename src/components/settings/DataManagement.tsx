@@ -360,6 +360,37 @@ const DataManagement: React.FC = () => {
     return { success: true };
   };
 
+  // Worker-filtered deletion for a category. Returns array of {table, error?}.
+  const deleteCategoryForWorker = async (categoryId: string, workerId: string): Promise<{ table: string; error?: string }[]> => {
+    const specs = WORKER_FILTERABLE[categoryId];
+    if (!specs) return [{ table: categoryId, error: 'هذه الفئة لا تدعم فلترة العامل' }];
+    const results: { table: string; error?: string }[] = [];
+    for (const spec of specs) {
+      try {
+        if ('column' in spec) {
+          const { error } = await supabase.from(spec.table as any).delete().eq(spec.column, workerId);
+          if (error) results.push({ table: spec.table, error: error.message });
+          else results.push({ table: spec.table });
+        } else {
+          // resolve parent ids first, then delete children by parent fk
+          const { data: parentRows, error: pErr } = await supabase
+            .from(spec.parentTable as any)
+            .select('id')
+            .eq(spec.parentColumn, workerId);
+          if (pErr) { results.push({ table: spec.table, error: pErr.message }); continue; }
+          const ids = (parentRows || []).map((r: any) => r.id);
+          if (ids.length === 0) { results.push({ table: spec.table }); continue; }
+          const { error } = await supabase.from(spec.table as any).delete().in(spec.parentFkOnChild, ids);
+          if (error) results.push({ table: spec.table, error: error.message });
+          else results.push({ table: spec.table });
+        }
+      } catch (e: any) {
+        results.push({ table: spec.table, error: e.message || String(e) });
+      }
+    }
+    return results;
+  };
+
   const handleDelete = async () => {
     if (selected.size === 0) return;
     if (needsPassword && password !== DELETION_PASSWORD) {
