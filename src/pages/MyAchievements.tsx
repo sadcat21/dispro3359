@@ -205,12 +205,16 @@ const DebtAggregatesDialog: React.FC<{
   );
 };
 
+export interface SelectedSessionRange { id: string; start: string; end: string }
+
 const AccountingSessionsTimelineDialog: React.FC<{
   open: boolean;
   onOpenChange: (v: boolean) => void;
   workerId: string;
   workerName?: string;
-}> = ({ open, onOpenChange, workerId, workerName }) => {
+  selectedIds: Set<string>;
+  onApply: (ranges: SelectedSessionRange[]) => void;
+}> = ({ open, onOpenChange, workerId, workerName, selectedIds, onApply }) => {
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['worker-accounting-sessions-timeline', workerId],
     enabled: open && !!workerId,
@@ -226,6 +230,27 @@ const AccountingSessionsTimelineDialog: React.FC<{
     },
   });
 
+  const [localSel, setLocalSel] = useState<Set<string>>(new Set());
+  useEffect(() => { if (open) setLocalSel(new Set(selectedIds)); }, [open, selectedIds]);
+
+  const toggle = (id: string) => {
+    setLocalSel((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const apply = () => {
+    const ranges: SelectedSessionRange[] = sessions
+      .filter((s: any) => localSel.has(s.id) && s.period_start && s.period_end)
+      .map((s: any) => ({ id: s.id, start: s.period_start, end: s.period_end }));
+    onApply(ranges);
+    onOpenChange(false);
+  };
+
+  const clearAll = () => { setLocalSel(new Set()); onApply([]); onOpenChange(false); };
+
   const statusLabel: Record<string, { ar: string; cls: string }> = {
     completed: { ar: 'مكتملة', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
     open: { ar: 'مفتوحة', cls: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -235,7 +260,7 @@ const AccountingSessionsTimelineDialog: React.FC<{
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Clock className="w-4 h-4 text-primary" />
@@ -244,42 +269,72 @@ const AccountingSessionsTimelineDialog: React.FC<{
           {workerName && (
             <p className="text-xs text-muted-foreground">{workerName}</p>
           )}
+          <p className="text-[11px] text-muted-foreground">حدد جلسة أو أكثر لعرض الإنجازات والعروض المرتبطة بها فقط.</p>
         </DialogHeader>
         {isLoading ? (
           <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>
         ) : sessions.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">لا توجد جلسات محاسبية لهذا العامل</p>
         ) : (
-          <ol className="relative border-r-2 border-border pr-4 space-y-3">
-            {sessions.map((s: any) => {
-              const sl = statusLabel[s.status] || { ar: s.status, cls: 'bg-muted text-muted-foreground border-border' };
-              return (
-                <li key={s.id} className="relative">
-                  <span className="absolute -right-[1.4rem] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
-                  <div className="rounded-lg border bg-card p-2.5 shadow-sm">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${sl.cls}`}>{sl.ar}</span>
-                      <span className="text-[10px] text-muted-foreground" dir="ltr">
-                        {s.completed_at ? format(new Date(s.completed_at), 'dd/MM/yyyy HH:mm') : '—'}
-                      </span>
-                    </div>
-                    <div className="text-xs text-foreground/80" dir="ltr">
-                      <span className="text-muted-foreground">من: </span>
-                      {s.period_start ? format(new Date(s.period_start), 'dd/MM HH:mm') : '—'}
-                      <span className="mx-1 text-muted-foreground">←</span>
-                      <span className="text-muted-foreground">إلى: </span>
-                      {s.period_end ? format(new Date(s.period_end), 'dd/MM HH:mm') : '—'}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+          <>
+            <ol className="relative border-r-2 border-border pr-4 space-y-3">
+              {sessions.map((s: any) => {
+                const sl = statusLabel[s.status] || { ar: s.status, cls: 'bg-muted text-muted-foreground border-border' };
+                const checked = localSel.has(s.id);
+                return (
+                  <li key={s.id} className="relative">
+                    <span className="absolute -right-[1.4rem] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                    <label className={`flex items-start gap-2 rounded-lg border p-2.5 shadow-sm cursor-pointer transition-colors ${checked ? 'border-primary bg-primary/5' : 'bg-card'}`}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggle(s.id)}
+                        className="mt-1 accent-primary"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${sl.cls}`}>{sl.ar}</span>
+                          <span className="text-[10px] text-muted-foreground" dir="ltr">
+                            {s.completed_at ? format(new Date(s.completed_at), 'dd/MM/yyyy HH:mm') : '—'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-foreground/80" dir="ltr">
+                          <span className="text-muted-foreground">من: </span>
+                          {s.period_start ? format(new Date(s.period_start), 'dd/MM HH:mm') : '—'}
+                          <span className="mx-1 text-muted-foreground">←</span>
+                          <span className="text-muted-foreground">إلى: </span>
+                          {s.period_end ? format(new Date(s.period_end), 'dd/MM HH:mm') : '—'}
+                        </div>
+                      </div>
+                    </label>
+                  </li>
+                );
+              })}
+            </ol>
+            <div className="sticky bottom-0 mt-3 pt-2 bg-background border-t flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={clearAll}
+                className="text-xs px-3 py-1.5 rounded-md border hover:bg-muted"
+              >
+                إلغاء التحديد
+              </button>
+              <button
+                type="button"
+                onClick={apply}
+                disabled={localSel.size === 0}
+                className="text-xs px-4 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+              >
+                تطبيق ({localSel.size})
+              </button>
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
   );
 };
+
 
 
 
