@@ -729,7 +729,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               {selectedWorkerId && (
                 <Button
                   variant="outline"
-                  className={`rounded-xl h-11 text-base font-bold ${isFrozen ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-amber-500 text-amber-600 hover:bg-amber-500/10'}`}
+                  className={`rounded-xl h-11 text-base font-bold text-white ${isFrozen ? 'bg-green-600 hover:bg-green-700 border-green-600' : 'bg-red-600 hover:bg-red-700 border-red-600'}`}
                   onClick={isFrozen ? handleUnfreeze : handleFreeze}
                   disabled={isUnfreezing}
                 >
