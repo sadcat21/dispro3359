@@ -537,11 +537,11 @@ const WarehouseStock: React.FC = () => {
                       </div>
                       {/* Middle column: name + delivery/remaining */}
                       <button
-                        className="flex flex-col gap-1 min-w-0 text-right hover:opacity-80 transition-opacity"
+                        className="flex flex-col gap-1 min-w-0 items-center text-center hover:opacity-80 transition-opacity"
                         onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
                       >
                         <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
-                        <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center justify-center gap-3 flex-wrap">
                           {!isWarehouseManager && (
                             <div className="flex items-center gap-1">
                               <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
