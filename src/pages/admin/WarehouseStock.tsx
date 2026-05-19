@@ -541,7 +541,7 @@ const WarehouseStock: React.FC = () => {
                         onClick={() => setExpandedProduct(prev => prev === s.productId ? null : s.productId)}
                       >
                         <span className="font-semibold text-sm text-primary break-words">{s.productName}</span>
-                        <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center justify-center gap-3 flex-wrap">
                           {!isWarehouseManager && (
                             <div className="flex items-center gap-1">
                               <span className="text-[11px] text-muted-foreground">{t('warehouse.received')}</span>
