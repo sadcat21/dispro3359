@@ -68,20 +68,8 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom: _date
   };
 
 
-  // Visible items (exclude optimistically removed)
-  const visibleItems = useMemo(
-    () => items.filter((r) => !removedIds.has(r.id)),
-    [items, removedIds]
-  );
+  const visibleItems = items;
 
-  // Reset removed-ids when fresh data arrives that no longer contains them
-  useEffect(() => {
-    if (removedIds.size === 0) return;
-    const stillHere = new Set(items.map((i) => i.id));
-    const next = new Set<string>();
-    removedIds.forEach((id) => { if (stillHere.has(id)) next.add(id); });
-    if (next.size !== removedIds.size) setRemovedIds(next);
-  }, [items, removedIds]);
 
   // Fetch product images for visible product_ids
   useEffect(() => {
