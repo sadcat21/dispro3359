@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import {
-  Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User,
+  Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart,
 } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 
