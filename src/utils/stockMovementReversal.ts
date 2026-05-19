@@ -124,11 +124,18 @@ export const restoreStockFromMovements = async (
     const signedPieces = bpQuantityToPieces(getMovementSignedQuantity(movement), piecesPerBox);
     if (signedPieces === 0) continue;
 
-    const locationType = movement.from_location_type === 'warehouse' ? 'warehouse' : 'worker';
+    // Sale already accounted for → reversal must hit the BRANCH warehouse,
+    // never the worker's truck (truck balance was already settled).
+    const locationType: 'worker' | 'warehouse' = accounted
+      ? 'warehouse'
+      : (movement.from_location_type === 'warehouse' ? 'warehouse' : 'worker');
     const ownerId = locationType === 'warehouse'
-      ? (movement.from_location_id || movement.branch_id || fallbackBranchId)
+      ? (accounted
+          ? (accountingContext!.branchId || movement.branch_id || fallbackBranchId)
+          : (movement.from_location_id || movement.branch_id || fallbackBranchId))
       : (movement.worker_id || fallbackWorkerId);
     if (!ownerId) continue;
+
 
     const key = `${locationType}|${ownerId}|${movement.product_id}`;
     const existing = reversals.get(key);
