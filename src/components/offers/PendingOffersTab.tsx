@@ -400,15 +400,8 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
-                          {productCodes[r.product_id] && (
-                            <span className="shrink-0 px-1.5 py-0.5 rounded bg-background border text-[10px] font-mono font-semibold">
-                              {productCodes[r.product_id]}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
+                        <p className="text-sm font-medium truncate flex-1 min-w-0">{r.product_name || 'منتج'}</p>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
                           {r.order_id && (
                             <button
                               type="button"
@@ -421,8 +414,13 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                               title="نسخ رقم الطلب"
                             >
                               <Copy className="w-3 h-3" />
-                              {r.order_id.slice(0, 8)}
+                              cmnd: {r.order_id.slice(0, 8)}
                             </button>
+                          )}
+                          {productCodes[r.product_id] && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-background border text-[10px] font-mono font-semibold">
+                              pro: {productCodes[r.product_id]}
+                            </span>
                           )}
                           {isConfirmed && <Badge className="bg-green-600 text-white">مؤكد</Badge>}
                           {isRejected && <Badge className="bg-red-600 text-white">مرفوض</Badge>}
