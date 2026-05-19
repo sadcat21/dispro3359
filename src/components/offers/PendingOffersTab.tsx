@@ -406,8 +406,16 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <button
                             type="button"
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
+                              let orderCreatedBy: string | null = null;
+                              if (r.order_id) {
+                                try {
+                                  const { data } = await (supabase as any)
+                                    .from('orders').select('created_by').eq('id', r.order_id).maybeSingle();
+                                  orderCreatedBy = data?.created_by || null;
+                                } catch { /* ignore */ }
+                              }
                               const lines = [
                                 `product_id: ${r.product_id}`,
                                 r.gift_product_id ? `gift_product_id: ${r.gift_product_id}` : null,
@@ -415,12 +423,14 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                                 `created_at: ${r.created_at}`,
                                 r.order_id ? `order_id: ${r.order_id}` : null,
                                 r.customer_id ? `customer_id: ${r.customer_id}` : null,
+                                r.worker_id ? `sale_worker_id: ${r.worker_id}` : null,
+                                orderCreatedBy ? `order_created_by: ${orderCreatedBy}` : null,
                               ].filter(Boolean).join('\n');
                               navigator.clipboard.writeText(lines);
                               toast.success('تم نسخ المعرفات');
                             }}
                             className="inline-flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/70 text-[10px] font-mono border"
-                            title="نسخ المعرفات (المنتج، العرض، التوقيت، الطلبية)"
+                            title="نسخ المعرفات (المنتج، العرض، التوقيت، الطلبية، العميل، العمال)"
                           >
                             <Copy className="w-3 h-3" />
                             نسخ المعرفات
