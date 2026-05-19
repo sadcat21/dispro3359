@@ -668,12 +668,28 @@ const WarehouseStock: React.FC = () => {
                       {data.worker?.full_name || t('common.unknown')}
                     </div>
                     <div className="space-y-1">
-                      {data.items.map(item => (
-                        <div key={item.id} className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{item.product?.name}</span>
-                          <span className="font-medium">{dbBPDisplay(Number(item.quantity || 0), item.product?.pieces_per_box || 20)}</span>
-                        </div>
-                      ))}
+                      {data.items.map(item => {
+                        const ppb = item.product?.pieces_per_box || 20;
+                        const mv = workerProductMovements?.[`${workerId}__${item.product_id}`];
+                        return (
+                          <div key={item.id} className="flex items-center justify-between gap-2 text-xs flex-wrap">
+                            <span className="text-muted-foreground flex-1 min-w-0 truncate">{item.product?.name}</span>
+                            <div className="flex items-center gap-1">
+                              {mv && mv.loaded > 0 && (
+                                <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] px-1.5 py-0">
+                                  شحن {dbBPDisplay(mv.loaded, ppb)}
+                                </Badge>
+                              )}
+                              {mv && mv.returned > 0 && (
+                                <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 text-[10px] px-1.5 py-0">
+                                  تفريغ {dbBPDisplay(mv.returned, ppb)}
+                                </Badge>
+                              )}
+                              <span className="font-medium">{dbBPDisplay(Number(item.quantity || 0), ppb)}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
