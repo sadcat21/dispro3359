@@ -54,10 +54,31 @@ export async function recordPendingOfferConfirmation(input: RecordPendingOfferIn
       notes: input.notes || null,
     };
 
+    // Skip if a non-pending (confirmed/rejected) record already exists for the
+    // same order line / offer — avoids re-spawning a pending card after the
+    // manager has already responded.
+    try {
+      let existsQuery = (supabase as any)
+        .from('pending_offer_confirmations')
+        .select('id', { head: true, count: 'exact' })
+        .eq('product_id', input.productId)
+        .in('status', ['confirmed', 'rejected']);
+      if (input.orderId) existsQuery = existsQuery.eq('order_id', input.orderId);
+      else existsQuery = existsQuery.is('order_id', null);
+      if (input.orderItemId) existsQuery = existsQuery.eq('order_item_id', input.orderItemId);
+      else existsQuery = existsQuery.is('order_item_id', null);
+      if (input.offerId) existsQuery = existsQuery.eq('offer_id', input.offerId);
+      else existsQuery = existsQuery.is('offer_id', null);
+      const { count: respondedCount } = await existsQuery;
+      if ((respondedCount || 0) > 0) {
+        return; // already handled — don't recreate
+      }
+    } catch (e) {
+      console.warn('[pendingOfferConfirmations] existence check failed', e);
+    }
+
     // De-duplicate: when the same order line / offer already has a pending
     // confirmation card, refresh it in place instead of stacking a new card.
-    // This prevents "modifying a sale from 1 box to 2 boxes" from creating a
-    // second confirmation card next to the original.
     try {
       let delQuery = (supabase as any)
         .from('pending_offer_confirmations')
@@ -86,6 +107,7 @@ export async function recordPendingOfferConfirmation(input: RecordPendingOfferIn
 
     const { error } = await supabase.from('pending_offer_confirmations' as any).insert(row);
     if (error) console.warn('[pendingOfferConfirmations] insert failed', error);
+
   } catch (e) {
     console.warn('[pendingOfferConfirmations] unexpected error', e);
   }
