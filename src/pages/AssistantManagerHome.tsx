@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Users, Activity, MapPin, Gift, UserCheck, ShieldCheck, FileText, Truck,
-  ClipboardList, Trophy, Target, Receipt, LucideIcon,
+  ClipboardList, Trophy, Target, Receipt, ScanSearch, LucideIcon,
 } from 'lucide-react';
 
 interface AMItem {
@@ -89,6 +89,7 @@ const AssistantManagerHome: React.FC = () => {
         { key: 'targets', label: t('nav.targets') || 'الأهداف', icon: Target, path: '/targets' },
         { key: 'leaderboard', label: t('nav.targets_leaderboard') || 'ترتيب الأهداف', icon: Trophy, path: '/targets-leaderboard' },
         { key: 'expenses', label: t('expenses.my_expenses') || 'المصاريف', icon: Receipt, path: '/expenses' },
+        { key: 'identifier_inspector', label: 'فاحص المعرفات', icon: ScanSearch, path: '/identifier-inspector' },
       ],
     },
   ];

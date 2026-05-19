@@ -19,7 +19,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
-  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw,
+  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw, ScanSearch,
 } from 'lucide-react';
 
 interface BMItem {
@@ -183,6 +183,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'branch_inventory', label: 'مخزون الفرع', icon: PackageSearch, path: '/warehouse' },
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
+        { key: 'identifier_inspector', label: 'فاحص المعرفات', icon: ScanSearch, path: '/identifier-inspector' },
       ],
     },
   ];

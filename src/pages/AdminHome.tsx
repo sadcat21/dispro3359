@@ -8,7 +8,7 @@ import {
   Wallet, FileText, Vault, FolderOpen, MapPin, Activity, Store, UserCheck, UserCog, Settings,
   BookOpen, Shield, BarChart3, FileSpreadsheet, Split, Radar, ClipboardList, LucideIcon,
   CheckSquare, MessageSquareMore, ListTodo, TimerReset, Pencil, Database, ShieldCheck,
-  BookOpen as LedgerIcon, Coins, HandCoins, PackageSearch
+  BookOpen as LedgerIcon, Coins, HandCoins, PackageSearch, ScanSearch
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useQuery } from '@tanstack/react-query';
@@ -420,6 +420,7 @@ const AdminHome: React.FC = () => {
         { path: '/backup', icon: Database, label: t('admin_home.item.backup') },
         { path: '/guide', icon: BookOpen, label: t('nav.guide') },
         { path: '/training', icon: BookOpen, label: t('admin_home.item.training') },
+        { path: '/identifier-inspector', icon: ScanSearch, label: 'فاحص المعرفات' },
         { path: '/components-reference', icon: ClipboardList, label: t('admin_home.item.components_reference') },
       ],
     }] : []),
