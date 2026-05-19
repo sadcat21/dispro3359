@@ -3,7 +3,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import StockEmptyDialog from '@/components/warehouse/StockEmptyDialog';
 import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog';
 import { useNavigate } from 'react-router-dom';
-import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil } from 'lucide-react';
+import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil, History } from 'lucide-react';
+import WarehouseProductMovementDialog from '@/components/warehouse/WarehouseProductMovementDialog';
 import { boxesToBP, dbBPDisplay } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -91,6 +92,7 @@ const WarehouseStock: React.FC = () => {
   const [expandedWorkers, setExpandedWorkers] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [editProduct, setEditProduct] = useState<ProductSummary | null>(null);
+  const [movementProduct, setMovementProduct] = useState<ProductSummary | null>(null);
 
   const branchId = activeBranch?.id;
 
@@ -514,6 +516,16 @@ const WarehouseStock: React.FC = () => {
                           <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
                           <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
                         </div>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7"
+                          aria-label="سجل الحركات"
+                          title="سجل الحركات"
+                          onClick={(e) => { e.stopPropagation(); setMovementProduct(s); }}
+                        >
+                          <History className="w-3.5 h-3.5" />
+                        </Button>
                         {canEdit && (
                           <Button
                             size="icon"
@@ -675,6 +687,17 @@ const WarehouseStock: React.FC = () => {
             sold: editProduct.sold,
             remaining: editProduct.remaining,
           }}
+        />
+      )}
+      {movementProduct && branchId && (
+        <WarehouseProductMovementDialog
+          open={!!movementProduct}
+          onOpenChange={(open) => !open && setMovementProduct(null)}
+          branchId={branchId}
+          productId={movementProduct.productId}
+          productName={movementProduct.productName}
+          productImage={products.find(p => p.id === movementProduct.productId)?.image_url || null}
+          piecesPerBox={products.find(p => p.id === movementProduct.productId)?.pieces_per_box || 20}
         />
       )}
     </div>
