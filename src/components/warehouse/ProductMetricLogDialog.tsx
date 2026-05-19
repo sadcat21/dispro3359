@@ -38,6 +38,7 @@ interface Entry {
   customerName?: string | null;
   customerStoreName?: string | null;
   customerFullName?: string | null;
+  delivered?: boolean | null; // null = no related order
 }
 
 const META: Record<MetricKind, { title: string; icon: React.ReactNode; color: string; tone: string; accent: string }> = {
@@ -141,12 +142,18 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
         const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
+        const orderIds = Array.from(new Set(filtered.map((r: any) => r.order_id).filter(Boolean)));
+        const { data: orders } = orderIds.length
+          ? await supabase.from('orders').select('id, status').in('id', orderIds as string[])
+          : { data: [] as any[] };
+        const orderStatusMap = new Map((orders || []).map((o: any) => [o.id, o.status]));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           const c = custMap.get(r.customer_id) || { store: null, full: null };
           const customerFallback = r.customer_name || null;
           const cname = c.store || c.full || customerFallback;
+          const delivered: boolean | null = r.order_id ? orderStatusMap.get(r.order_id) === 'delivered' : null;
           return {
             id: r.id,
             when: r.sold_at,
@@ -157,6 +164,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customerName: cname,
             customerStoreName: c.store,
             customerFullName: c.full || customerFallback,
+            delivered,
           };
         });
       }
@@ -228,10 +236,18 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                     </div>
                     <span className={`font-extrabold tabular-nums ${meta.accent}`}>{fmt(e.qty)}</span>
                   </div>
-                  {(e.who || e.refLabel) && (
+                  {(e.who || e.refLabel || e.delivered != null) && (
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
                       {e.who && (<span className="inline-flex items-center gap-1"><User className="w-3 h-3" />{e.who}</span>)}
                       {e.refLabel && <Badge variant="outline" className="text-[10px]">{e.refLabel}</Badge>}
+                      {e.delivered != null && (
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${e.delivered ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-orange-50 text-orange-700 border-orange-300'}`}
+                        >
+                          {e.delivered ? 'تم التسليم' : 'لم يُسلَّم'}
+                        </Badge>
+                      )}
                       {clickable && <ChevronLeft className="w-3 h-3 ms-auto opacity-60" />}
                     </div>
                   )}
