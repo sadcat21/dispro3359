@@ -398,6 +398,7 @@ export const useTreasurySummary = () => {
         .select('payment_method, amount, source_type')
         .in('source_type', ['cash_consolidation', 'cash_consolidation_debit', 'receipt_cash_to_invoice2', 'receipt_cash_to_invoice2_debit', 'gap_to_invoice2']);
       if (activeBranch?.id) consolidationQuery = consolidationQuery.eq('branch_id', activeBranch.id);
+      if (perManager) consolidationQuery = consolidationQuery.eq('manager_id', perManager);
       const { data: consolidationEntries } = await consolidationQuery;
 
       for (const entry of consolidationEntries || []) {
