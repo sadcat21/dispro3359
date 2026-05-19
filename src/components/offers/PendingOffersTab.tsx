@@ -269,17 +269,6 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                       : `${g.rows.length} عرض — تمت المعالجة`}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-1 max-w-[40%] justify-end shrink-0">
-                  {Array.from(new Set(g.rows.map((r) => r.product_id))).slice(0, 4).map((pid) => (
-                    <span
-                      key={pid}
-                      className="px-1.5 py-0.5 rounded bg-background border text-[10px] font-mono font-semibold"
-                      title={pid}
-                    >
-                      {pid.slice(0, 8)}
-                    </span>
-                  ))}
-                </div>
                 {hasPending ? (
                   <Badge className="shrink-0 bg-amber-500 text-white">{g.pendingCount}</Badge>
                 ) : (
