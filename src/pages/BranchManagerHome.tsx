@@ -183,6 +183,7 @@ const BranchManagerHome: React.FC = () => {
         { key: 'branch_inventory', label: 'مخزون الفرع', icon: PackageSearch, path: '/warehouse' },
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
+        { key: 'identifier_inspector', label: 'فاحص المعرفات', icon: ScanSearch, path: '/identifier-inspector' },
       ],
     },
   ];
