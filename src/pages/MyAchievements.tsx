@@ -263,7 +263,7 @@ const AccountingSessionsTimelineDialog: React.FC<{
   };
 
   const apply = () => {
-    const ranges: SelectedSessionRange[] = sessions
+    const ranges: SelectedSessionRange[] = displaySessions
       .filter((s: any) => localSel.has(s.id) && s.period_start && s.period_end)
       .map((s: any) => ({ id: s.id, start: s.period_start, end: s.period_end }));
     onApply(ranges);
