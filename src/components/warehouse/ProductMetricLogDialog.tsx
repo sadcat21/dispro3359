@@ -138,6 +138,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
         );
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
+        console.log('[OffersLog] worker names map:', Array.from(names.entries()), 'filtered worker_ids:', filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
