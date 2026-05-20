@@ -3518,6 +3518,57 @@ export type Database = {
           },
         ]
       }
+      order_deletion_audit: {
+        Row: {
+          batch_id: string | null
+          deleted_at: string
+          deleted_by: string | null
+          deleted_by_name: string | null
+          id: string
+          order_id: string
+          order_snapshot: Json
+          reason: string | null
+          related_snapshots: Json | null
+        }
+        Insert: {
+          batch_id?: string | null
+          deleted_at?: string
+          deleted_by?: string | null
+          deleted_by_name?: string | null
+          id?: string
+          order_id: string
+          order_snapshot: Json
+          reason?: string | null
+          related_snapshots?: Json | null
+        }
+        Update: {
+          batch_id?: string | null
+          deleted_at?: string
+          deleted_by?: string | null
+          deleted_by_name?: string | null
+          id?: string
+          order_id?: string
+          order_snapshot?: Json
+          reason?: string | null
+          related_snapshots?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_deletion_audit_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_deletion_audit_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_events: {
         Row: {
           created_at: string
