@@ -831,6 +831,13 @@ const AdminHome: React.FC = () => {
           ))}
         </div>
       )}
+
+      <ProjectManagerSummaryDialog
+        open={!!pmDetailKind}
+        onOpenChange={(o) => { if (!o) setPmDetailKind(null); }}
+        kind={pmDetailKind}
+        branchId={activeBranch?.id}
+      />
     </div>
   );
 };
