@@ -190,16 +190,19 @@ const ProtectedRoute: React.FC<{
     return <GpsGuard><MobileLayout>{children}</MobileLayout></GpsGuard>;
   }
 
+  // Project manager has full access to every protected page (like company manager)
+  const isProjectManager = role === 'project_manager';
+
   // Check for specific allowed roles (includes custom role codes)
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     const hasCustomAccess = allowedCustomRoles && customCode && allowedCustomRoles.includes(customCode);
-    if (!hasCustomAccess && !isCompanyManager) {
+    if (!hasCustomAccess && !isCompanyManager && !isProjectManager) {
       return <Navigate to="/" replace />;
     }
   }
 
   // Legacy adminOnly check - uses isAdminRole to include admin, branch_admin, project_manager
-  if (adminOnly && !isAdminRole(role) && !isCompanyManager) {
+  if (adminOnly && !isAdminRole(role) && !isCompanyManager && !isProjectManager) {
     return <Navigate to="/" replace />;
   }
 
