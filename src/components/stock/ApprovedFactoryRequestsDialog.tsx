@@ -18,6 +18,14 @@ interface Props {
 const ApprovedFactoryRequestsDialog: React.FC<Props> = ({ open, onOpenChange, branchId, branchName }) => {
   const qc = useQueryClient();
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [detailsReq, setDetailsReq] = useState<any | null>(null);
+
+  const statusLabel = (s: string) => ({
+    approved: 'تمت الموافقة',
+    in_production: 'قيد الإنتاج',
+    ready_for_delivery: 'جاهز للتسليم',
+    delivered: 'تم التسليم',
+  } as Record<string, string>)[s] || s;
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['branch-approved-factory-requests', branchId],
