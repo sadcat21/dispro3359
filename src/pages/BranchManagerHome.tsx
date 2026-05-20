@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
+import FactoryRequestDialog from '@/components/stock/FactoryRequestDialog';
+import FactoryRequestApprovedBanner from '@/components/stock/FactoryRequestApprovedBanner';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
@@ -19,7 +21,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
-  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw, ScanSearch,
+  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw, ScanSearch, Factory,
 } from 'lucide-react';
 
 interface BMItem {
@@ -44,12 +46,24 @@ const BranchManagerHome: React.FC = () => {
 
   const branchId = activeBranch?.id;
   const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
+  const [factoryRequestOpen, setFactoryRequestOpen] = useState(false);
+  const [requestProducts, setRequestProducts] = useState<any[]>([]);
   const [finalReviewPickerOpen, setFinalReviewPickerOpen] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
   const [truckPickerOpen, setTruckPickerOpen] = useState(false);
   const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
+
+  const openFactoryRequest = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('id, name, image_url, pieces_per_box')
+      .eq('is_active', true)
+      .order('name');
+    setRequestProducts(data || []);
+    setFactoryRequestOpen(true);
+  };
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
@@ -181,6 +195,7 @@ const BranchManagerHome: React.FC = () => {
       items: [
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'branch_inventory', label: 'مخزون الفرع', icon: PackageSearch, path: '/warehouse' },
+        { key: 'factory_request', label: 'طلب من المصنع', icon: Factory, onClick: openFactoryRequest },
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'identifier_inspector', label: 'فاحص المعرفات', icon: ScanSearch, path: '/identifier-inspector' },
@@ -209,6 +224,11 @@ const BranchManagerHome: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Banner: إشعار الموافقة على طلبات المصنع + زر واتساب */}
+      {branchId && <FactoryRequestApprovedBanner branchId={branchId} branchName={activeBranch?.name} />}
+
+
 
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
       <div className="px-2 sm:px-3 py-2 space-y-2">
@@ -286,6 +306,15 @@ const BranchManagerHome: React.FC = () => {
         })}
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
+      {branchId && (
+        <FactoryRequestDialog
+          open={factoryRequestOpen}
+          onOpenChange={setFactoryRequestOpen}
+          branchId={branchId}
+          products={requestProducts}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['factory-request-approved', branchId] })}
+        />
+      )}
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
       <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
 
