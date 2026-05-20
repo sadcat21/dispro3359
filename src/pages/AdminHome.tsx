@@ -313,10 +313,15 @@ const AdminHome: React.FC = () => {
       // Distinct products sold today (any sold_pieces > 0)
       let soldTodayQuery = supabase
         .from('sales_tracking')
-        .select('product_id, branch_id, sold_pieces, sold_at')
+        .select('product_id, branch_id, worker_id, sold_pieces, sold_at')
         .gte('sold_at', startOfDay)
         .gt('sold_pieces', 0);
-      if (activeBranch?.id) soldTodayQuery = soldTodayQuery.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) {
+        const workerFilter = branchWorkerIds.length
+          ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
+          : '';
+        soldTodayQuery = soldTodayQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
+      }
       const { data: soldTodayRows } = await soldTodayQuery;
       const productsSoldToday = new Set(((soldTodayRows || []) as any[]).map((r) => r.product_id).filter(Boolean)).size;
 
