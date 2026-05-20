@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
         const summary = await fetchProjectManagerWorkerActivity(branchId);
         return {
           list: summary.list.map((worker) => ({
+            id: worker.workerId,
             name: worker.workerName,
             count: worker.count,
             last: worker.last,
@@ -137,6 +139,8 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
       return null;
     },
   });
+
+  const navigate = useNavigate();
 
   if (!kind) return null;
   const meta = titles[kind];
@@ -215,13 +219,22 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">إجمالي عمليات التسليم اليوم: <b>{(data as any).total}</b></p>
                 {((data as any).list || []).map((w: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs">
+                  <button
+                    key={w.id || i}
+                    type="button"
+                    onClick={() => {
+                      if (!w.id) return;
+                      onOpenChange(false);
+                      navigate(`/my-achievements?worker=${w.id}&name=${encodeURIComponent(w.name || '')}`);
+                    }}
+                    className="w-full flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs text-right hover:bg-accent transition-colors"
+                  >
                     <div>
                       <p className="font-medium">{w.name}</p>
                       <p className="text-[10px] text-muted-foreground">آخر نشاط: {new Date(w.last).toLocaleTimeString('ar')}</p>
                     </div>
                     <Badge variant="secondary">{w.count} تسليم</Badge>
-                  </div>
+                  </button>
                 ))}
                 {((data as any).list || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">لا يوجد نشاط اليوم</p>}
               </div>
