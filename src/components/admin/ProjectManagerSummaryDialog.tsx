@@ -140,6 +140,8 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
     },
   });
 
+  const navigate = useNavigate();
+
   if (!kind) return null;
   const meta = titles[kind];
   const Icon = meta.icon;
