@@ -370,8 +370,8 @@ const AssistantApprovals: React.FC = () => {
             <TabsTrigger value="factory_requests" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Package className="w-4 h-4 me-1" />
               طلبات المصنع
-              {(factoryRequestsQ.data || 0) > 0 && (
-                <Badge className="ms-2 bg-red-600 text-white">{factoryRequestsQ.data}</Badge>
+              {(factoryRequestsQ.data?.length || 0) > 0 && (
+                <Badge className="ms-2 bg-red-600 text-white">{factoryRequestsQ.data!.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="factory_out" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
