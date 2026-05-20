@@ -109,8 +109,26 @@ const FactoryRequestApprovedBanner: React.FC<Props> = ({ branchId, branchName })
             <MessageCircle className="w-4 h-4" />
             واتساب
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setReceiptOpen(true)}
+            className="border-emerald-400 text-emerald-700 hover:bg-emerald-50 shrink-0 gap-1.5"
+          >
+            <FileText className="w-4 h-4" />
+            وثيقة الاستلام
+          </Button>
         </div>
       ))}
+
+      <FactoryReceiptQuickDialog
+        open={receiptOpen}
+        onOpenChange={(v) => {
+          setReceiptOpen(v);
+          if (!v) qc.invalidateQueries({ queryKey: ['factory-request-approved', branchId] });
+        }}
+      />
+
     </div>
   );
 };
