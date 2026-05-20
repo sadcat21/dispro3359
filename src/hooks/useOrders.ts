@@ -315,6 +315,12 @@ export const useCreateOrder = () => {
       queryClient.invalidateQueries({ queryKey: ['branch-invoice-approvals'] });
       queryClient.invalidateQueries({ queryKey: ['bm-kpis'] });
     },
+    onError: async (error) => {
+      const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+      const { toast } = await import('sonner');
+      const info = getOrderErrorMessage(error);
+      toast.error(info.title, { description: info.description });
+    },
   });
 };
 

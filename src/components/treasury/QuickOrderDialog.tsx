@@ -279,7 +279,9 @@ const QuickOrderDialog: React.FC<Props> = ({ open, onOpenChange, onOrderCreated 
       setCreatedOrderId(order.id);
       setStep('whatsapp');
     } catch (error: any) {
-      toast.error(error.message || 'فشل إنشاء الطلب');
+      const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+      const info = getOrderErrorMessage(error);
+      toast.error(info.title, { description: info.description });
     } finally {
       setIsSubmitting(false);
     }

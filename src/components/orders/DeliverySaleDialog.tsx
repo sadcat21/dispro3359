@@ -1106,7 +1106,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           }
         } catch (err) {
           console.error('Error creating partial delivery order:', err);
-          toast.error('فشل إنشاء طلبية الفارق');
+          const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+          const info = getOrderErrorMessage(err);
+          toast.error(info.title, { description: info.description });
         }
       }
 
@@ -1202,7 +1204,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       // Don't close main dialog here — wait for receipt to be dismissed
     } catch (error: any) {
       console.error('Delivery sale error:', error);
-      toast.error(error.message || t('common.error'));
+      const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+      const info = getOrderErrorMessage(error);
+      toast.error(info.title, { description: info.description || t('common.error') });
     } finally {
       setIsSaving(false);
     }
