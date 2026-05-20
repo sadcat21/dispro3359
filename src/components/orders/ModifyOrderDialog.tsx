@@ -1397,8 +1397,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           await (supabase as any)
             .from('pending_offer_confirmations')
             .delete()
-            .eq('order_id', order.id)
-            .eq('status', 'pending');
+            .eq('order_id', order.id);
 
           // For sold/delivered orders, recordSaleTracking (called below) will
           // recreate fresh pending rows. Only handle the not-yet-sold case here
@@ -1706,8 +1705,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         await (supabase as any)
           .from('pending_offer_confirmations')
           .delete()
-          .eq('order_id', order.id)
-          .eq('status', 'pending');
+          .eq('order_id', order.id);
       } catch (e) { console.warn('[cancel] pending_offer_confirmations delete failed', e); }
 
       await supabase.from('orders')
