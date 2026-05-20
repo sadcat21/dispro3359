@@ -1083,6 +1083,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
               payment_type: order.payment_type,
               invoice_payment_method: order.invoice_payment_method,
               notes: `طلبية فارق - توصيل جزئي من الطلبية ${order.id.slice(0, 8)}`,
+              client_request_id: crypto.randomUUID(),
             })
             .select()
             .single();

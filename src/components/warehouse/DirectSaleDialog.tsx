@@ -535,6 +535,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             status: 'pending',
             payment_type: paymentType,
             notes: `طلبية تلقائية - كمية غير متوفرة: ${excessQty} ${getProductDisplayName(product)}`,
+            client_request_id: crypto.randomUUID(),
           })
           .select()
           .single();
@@ -714,6 +715,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           invoice_payment_method: finalPaymentType === 'with_invoice' ? (finalInvoiceMethod || null) : null,
           partial_amount: paymentData.isFullPayment ? null : paymentData.paidAmount,
           total_amount: orderTotals.totalAmount,
+          client_request_id: crypto.randomUUID(),
           notes: (() => {
             const defaultNote = isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة');
             const offerNotes = orderItems.filter(i => i.offerNote).map(i => i.offerNote).join(' | ');
