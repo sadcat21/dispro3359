@@ -190,6 +190,7 @@ export const useCreateOrder = () => {
           assigned_worker_id: assignedWorkerId || null,
           total_amount: totalAmount || null,
           prepaid_amount: prepaidAmount || 0,
+          client_request_id: crypto.randomUUID(),
         })
         .select()
         .single();
