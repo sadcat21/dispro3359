@@ -252,7 +252,8 @@ const WarehouseStock: React.FC = () => {
         const afterLastReceipt = !!lastReceiptAt && !!row.sold_at && row.sold_at >= lastReceiptAt;
         const hasGift = Number(row.gift_boxes || 0) > 0 || Number(row.gift_pieces || 0) > 0;
         const orderOk = !row.order_id || order?.status === 'delivered' || hasGift;
-        return belongsToBranch && afterLastReceipt && orderOk;
+        // Gift rows are cumulative (not reset by receipts) so they must match the offers dialog total.
+        return belongsToBranch && (afterLastReceipt || hasGift) && orderOk;
       }).map((row) => ({
         ...row,
         order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
