@@ -115,6 +115,7 @@ const AdminHome: React.FC = () => {
   const [warehouseDirectSaleOpen, setWarehouseDirectSaleOpen] = useState(false);
   const [replaceDamagedOpen, setReplaceDamagedOpen] = useState(false);
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
+  const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
