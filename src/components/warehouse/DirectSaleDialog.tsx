@@ -535,6 +535,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             status: 'pending',
             payment_type: paymentType,
             notes: `طلبية تلقائية - كمية غير متوفرة: ${excessQty} ${getProductDisplayName(product)}`,
+            client_request_id: crypto.randomUUID(),
           })
           .select()
           .single();
