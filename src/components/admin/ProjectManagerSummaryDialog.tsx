@@ -21,6 +21,7 @@ const titles: Record<PMSummaryKind, { title: string; desc: string; icon: React.E
   inventory: { title: 'تفاصيل المخزون', desc: 'منتجات منخفضة المخزون والكميات التالفة', icon: Warehouse },
   workers: { title: 'نشاط العمال اليوم', desc: 'عمليات التسليم المعتمدة لكل عامل اليوم', icon: Activity },
   achievements: { title: 'تفاصيل الإنجازات والمكافآت', desc: 'ترتيب الموظفين حسب النقاط لهذا الشهر', icon: Trophy },
+  offers: { title: 'العروض المسلّمة والهدايا', desc: 'العروض المُفعّلة والمنتجات المسلّمة كهدايا هذا الشهر', icon: Gift },
 };
 
 const startOfDayIso = () => {
