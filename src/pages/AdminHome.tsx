@@ -353,10 +353,15 @@ const AdminHome: React.FC = () => {
       // Delivered offers / gifts tracking (from sales_tracking)
       let offersQuery = supabase
         .from('sales_tracking')
-        .select('id, gift_pieces, gift_boxes, sold_at, branch_id, order_id, order_item_id')
+        .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
         .gte('sold_at', startOfMonth)
         .gt('gift_pieces', 0);
-      if (activeBranch?.id) offersQuery = offersQuery.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) {
+        const workerFilter = branchWorkerIds.length
+          ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
+          : '';
+        offersQuery = offersQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
+      }
       const { data: offerRows } = await offersQuery;
       const offerList = (offerRows || []) as any[];
       const monthGiftPieces = offerList.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
