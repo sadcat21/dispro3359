@@ -640,10 +640,10 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.deliveriesToday || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Achievements */}
-          <div className="rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-4 shadow-sm">
+          <button type="button" onClick={() => setPmDetailKind('achievements')} className="text-start rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-yellow-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-yellow-700">
                 <Trophy className="h-4 w-4" />
