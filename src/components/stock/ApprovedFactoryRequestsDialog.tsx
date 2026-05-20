@@ -27,7 +27,14 @@ const ApprovedFactoryRequestsDialog: React.FC<Props> = ({ open, onOpenChange, br
       const [{ data: orders }, { data: branch }] = await Promise.all([
         supabase
           .from('factory_orders')
-          .select('id, reference_no, confirmed_at, status, notes')
+          .select(`
+            id, reference_no, status, notes, created_at,
+            branch_approved_at, assistant_approved_at, system_manager_approved_at, confirmed_at,
+            creator:created_by ( full_name ),
+            branch_approver:branch_approved_by ( full_name ),
+            assistant_approver:assistant_approved_by ( full_name ),
+            system_approver:system_manager_approved_by ( full_name )
+          `)
           .eq('branch_id', branchId)
           .eq('order_type', 'factory_request')
           .in('status', ['approved', 'in_production', 'ready_for_delivery'])
