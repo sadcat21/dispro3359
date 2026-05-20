@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Calendar, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ShoppingBag, Calendar, User, BarChart3 } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
+import ProductMonthlyCompetitionDialog from './ProductMonthlyCompetitionDialog';
 
 interface Props {
   open: boolean;
@@ -21,6 +23,8 @@ const ProductDailySoldDialog: React.FC<Props> = ({
   open, onOpenChange, branchId, productId, productName, piecesPerBox, sinceIso,
 }) => {
   const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
+  const [competitionOpen, setCompetitionOpen] = useState(false);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ['product-daily-sold', branchId, productId, sinceIso],
@@ -113,6 +117,15 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm">{fmt(totalDb)}</Badge>
         </div>
 
+        <Button
+          onClick={() => setCompetitionOpen(true)}
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white gap-2"
+        >
+          <BarChart3 className="w-4 h-4" />
+          منافسة العمال الشهرية
+        </Button>
+
+
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
@@ -144,7 +157,16 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           )}
         </div>
       </DialogContent>
+      <ProductMonthlyCompetitionDialog
+        open={competitionOpen}
+        onOpenChange={setCompetitionOpen}
+        branchId={branchId}
+        productId={productId}
+        productName={productName}
+        piecesPerBox={piecesPerBox}
+      />
     </Dialog>
+
   );
 };
 
