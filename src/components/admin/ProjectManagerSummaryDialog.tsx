@@ -65,13 +65,13 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
         return { low, out, damaged };
       }
       if (kind === 'workers') {
-        let q = supabase
+        const q = supabase
           .from('stock_movements')
-          .select('worker_id, branch_id, created_at, workers(full_name)')
+          .select('worker_id, branch_id, created_at, workers!inner(full_name, branch_id)')
           .eq('movement_type', 'delivery')
           .eq('status', 'approved')
           .gte('created_at', startOfDayIso());
-        if (branchId) q = q.eq('branch_id', branchId);
+        if (branchId) q.eq('workers.branch_id', branchId);
         const { data: rows } = await q as any;
         const agg: Record<string, { name: string; count: number; last: string }> = {};
         for (const r of rows || []) {
