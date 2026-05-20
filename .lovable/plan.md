@@ -1,52 +1,38 @@
 ## الهدف
-إضافة نافذة اختيار العامل/المدير في صفحة "حذف البيانات" (DataManagement) و"إجراءات السجل" (LedgerAdminActions) بحيث يمكن تصفية الحذف لعامل واحد بدلاً من حذف بيانات الجميع.
+إضافة زر "طلب من المصنع" لمدير الفرع يسمح بإرسال طلب منتجات يمر بدورة موافقة (المساعد ← مدير النظام) وعند الموافقة يظهر زر واتساب يفتح محادثة مع مندوب المصنع برسالة جاهزة.
 
-## النطاق
+## التغييرات
 
-### 1. DataManagement.tsx — اختيار العامل لكل قسم قابل للتصفية
-لكل قسم من الأقسام التالية، أضف زر "تحديد العامل" يفتح Dialog فيه قائمة العمال (مع بحث):
+### 1) قاعدة البيانات (migration)
+- إضافة قيمة جديدة `'factory_request'` لعمود `order_type` في `factory_orders` (بجانب `sending` و`receiving` الحاليين)، أو استخدام `'receiving'` مع `status='draft'` يبدأها مدير الفرع. **القرار:** استخدام `order_type='factory_request'` لفصل المنطق.
+- إضافة جدول/إعداد `factory_sales_rep_phone` على مستوى الفرع: عمود نصي `factory_sales_phone TEXT` في `branches` (أبسط حل).
+- تعديل RPC `approve_factory_order` / `submit_factory_order_for_approval` لقبول النوع الجديد (نفس مسار الموافقة الحالي: pending_approval → assistant → system_manager → confirmed).
 
-| القسم | الحقل المستخدم للتصفية | الجدول/الجداول |
-|------|----------------------|----------------|
-| treasury (خزينة المدير) | `manager_id` / `worker_id` | manager_treasury, manager_handovers, handover_items |
-| accounting (جلسات المحاسبة) | `worker_id` | accounting_sessions (+items عبر session_id) |
-| liability (ذمة العامل) | `worker_id` | worker_liability_adjustments |
-| debts (الديون) | `collected_by` / `worker_id` | debt_payments, debt_collections |
-| credits (أرصدة) | `worker_id` | customer_credits |
-| loading (جلسات الشحن) | `worker_id` | loading_sessions (+items) |
-| stock_movements | `worker_id` | stock_movements, stock_discrepancies |
-| worker_stock | `worker_id` | worker_stock |
-| expenses | `worker_id` / `created_by` | expenses |
-| orders + deliveries | `assigned_worker_id` | orders + cascades |
+### 2) واجهة مدير الفرع
+- مكوّن جديد `FactoryRequestDialog.tsx` في `src/components/stock/` مبني على نمط `FactoryDeliveryDialog`:
+  - اختيار المنتجات والكميات (BoxPieceInput + SimpleProductPickerDialog) — نفس تجربة الإيصالات.
+  - حقل لرقم هاتف المندوب (يُحفظ في `branches.factory_sales_phone` ويُملأ تلقائياً).
+  - ملاحظات اختيارية.
+  - عند الحفظ: إنشاء `factory_orders` بـ `order_type='factory_request'`, `status='pending_approval'` + `factory_order_items`.
+- إضافة زر "📦 طلب من المصنع" في `BranchManagerHome.tsx` بجانب أزرار المصنع الحالية.
 
-- زر "كل العمال" يبقى السلوك الحالي (يحذف الكل).
-- إذا اختار عاملاً معيّناً: الحذف يتم بـ `.eq('worker_id', X)` بدلاً من `.neq('id', ...)`، ولا يتم تنظيف المراجع المرتبطة (nullifyFkReferences) إلا للسجلات المرتبطة بنفس العامل.
+### 3) صفحة الموافقات
+- في `FactoryApprovalsDialog.tsx` و`BranchManagerApprovals.tsx`: عرض الطلبات الجديدة من النوع `factory_request` بنفس آلية الموافقة متعددة المراحل (موجودة بالفعل عبر hook `useApproveFactoryOrder`).
 
-### 2. LedgerAdminActions.tsx — اختيار العامل قبل الأرشفة/الحذف
-- إضافة Select للعامل أعلى البطاقة (افتراضي: كل العمال).
-- إنشاء RPCs جديدة بتوقيع `(p_worker_id uuid DEFAULT NULL)` لكل من:
-  - `archive_cash_movements`, `archive_debt_movements`, `archive_stock_movements`
-  - `purge_cash_movements`, `purge_debt_movements`, `purge_stock_movements`
-  - النسخ `_archive` و `_all` تبقى كما هي (للحذف الكامل من جدول الأرشيف).
-- عند `p_worker_id IS NULL` السلوك القديم؛ عند تمرير id يُصفّى بـ `WHERE worker_id = p_worker_id`.
+### 4) إشعار + زر واتساب على بطاقة الطلب
+- في `BranchManagerHome.tsx`: استعلام للطلبات `order_type='factory_request' AND status IN ('confirmed','in_production','ready_for_delivery')` للفرع الحالي.
+- عرض بطاقة/شارة "تمت الموافقة على طلبك للمصنع" + زر أيقونة واتساب أخضر.
+- عند الضغط: بناء نص الرسالة `طلب من فرع {branch.name}:\n- {product.name}: {qty}\n...` ثم فتح:
+  `https://wa.me/{phone}?text={encodeURIComponent(message)}`
 
-## مكوّن مشترك جديد
-`src/components/admin/WorkerPickerDialog.tsx`:
-- يجلب العمال من `profiles` + `worker_roles` (يستثني العامل الحالي تلقائياً للأمان).
-- بحث بالاسم، عرض الدور، اختيار واحد.
-- يُستخدم من كلا الشاشتين.
-
-## السلوك عند عدم الاختيار
-- الافتراضي = "كل العمال" → نفس السلوك الحالي (لا توقّف الاستخدام الحالي).
+## الملفات
+- **migration**: إضافة `factory_sales_phone` لـ `branches` + سماح القيمة الجديدة في CHECK constraint إن وُجد.
+- **جديد**: `src/components/stock/FactoryRequestDialog.tsx`, `src/components/stock/FactoryRequestApprovedBanner.tsx`
+- **تعديل**: `src/pages/BranchManagerHome.tsx` (زر + بانر), `src/components/stock/FactoryApprovalsDialog.tsx` (دعم النوع الجديد), `src/pages/admin/BranchManagerApprovals.tsx`
 
 ## تفاصيل تقنية
-- DataManagement: تخزين `selectedWorkerId: Record<categoryId, string|null>` في state.
-- كل قسم قابل للتصفية يظهر تحته شارة: "العامل: [الاسم] (تغيير)".
-- `deleteFromTable` يُستبدل بـ `deleteFromTableFiltered(table, workerColumn?, workerId?)`.
-- migration واحدة تنشئ النسخ الجديدة من 6 RPCs مع DEFAULT NULL (متوافقة رجعياً).
+- رسالة الواتساب بالعربية، الأرقام تُنسَّق بـ `dbBPDisplay` (صناديق وقطع).
+- رقم الهاتف يُنظَّف من رموز غير الأرقام قبل تمريره لـ `wa.me`.
+- نفس نمط realtime subscription الموجود لتحديث الحالة فوراً عند الموافقة.
 
-## ملفات جديدة/معدّلة
-- جديد: `src/components/admin/WorkerPickerDialog.tsx`
-- معدّل: `src/components/settings/DataManagement.tsx`
-- معدّل: `src/components/admin/LedgerAdminActions.tsx`
-- migration: تحديث الـ 6 RPCs لقبول `p_worker_id`
+هل أتابع التنفيذ؟
