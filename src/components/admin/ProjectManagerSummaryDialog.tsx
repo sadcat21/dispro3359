@@ -4,10 +4,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ShoppingCart, Warehouse, Activity, Trophy } from 'lucide-react';
+import { Loader2, ShoppingCart, Warehouse, Activity, Trophy, Gift } from 'lucide-react';
 import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
 
-export type PMSummaryKind = 'sales' | 'inventory' | 'workers' | 'achievements';
+export type PMSummaryKind = 'sales' | 'inventory' | 'workers' | 'achievements' | 'offers';
 
 interface Props {
   open: boolean;
