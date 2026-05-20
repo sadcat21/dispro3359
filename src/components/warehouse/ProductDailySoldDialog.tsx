@@ -157,7 +157,16 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           )}
         </div>
       </DialogContent>
+      <ProductMonthlyCompetitionDialog
+        open={competitionOpen}
+        onOpenChange={setCompetitionOpen}
+        branchId={branchId}
+        productId={productId}
+        productName={productName}
+        piecesPerBox={piecesPerBox}
+      />
     </Dialog>
+
   );
 };
 
