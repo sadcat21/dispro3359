@@ -71,6 +71,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
         const summary = await fetchProjectManagerWorkerActivity(branchId);
         return {
           list: summary.list.map((worker) => ({
+            id: worker.workerId,
             name: worker.workerName,
             count: worker.count,
             last: worker.last,
