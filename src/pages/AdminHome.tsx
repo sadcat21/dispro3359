@@ -662,7 +662,7 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-yellow-900">{pmSummary?.totalPoints || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
         </div>
       )}
 
