@@ -101,7 +101,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
       if (kind === 'offers') {
         let q = supabase
           .from('sales_tracking')
-          .select('id, product_name, gift_pieces, gift_boxes, sold_pieces, sold_boxes, sold_at, worker_name, customer_name, branch_id, order_id')
+          .select('id, product_id, product_name, gift_pieces, gift_boxes, sold_pieces, sold_boxes, sold_at, worker_name, customer_name, branch_id, order_id')
           .gte('sold_at', startOfMonthIso())
           .gt('gift_pieces', 0)
           .order('sold_at', { ascending: false })
@@ -109,12 +109,25 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
         if (branchId) q = q.eq('branch_id', branchId);
         const { data: rows } = await q as any;
         const list = (rows || []) as any[];
+
+        // Fetch product images in a single batch
+        const productIds = Array.from(new Set(list.map((r) => r.product_id).filter(Boolean)));
+        const imageMap: Record<string, string | null> = {};
+        if (productIds.length) {
+          const { data: prods } = await supabase
+            .from('products')
+            .select('id, image_url')
+            .in('id', productIds);
+          for (const p of (prods || []) as any[]) imageMap[p.id] = p.image_url || null;
+        }
+        const enriched = list.map((r) => ({ ...r, image_url: imageMap[r.product_id] || null }));
+
         const today = startOfDayIso();
-        const todayRows = list.filter((r) => r.sold_at >= today);
+        const todayRows = enriched.filter((r) => r.sold_at >= today);
         const sumGifts = (arr: any[]) => arr.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
         const uniqueOrders = (arr: any[]) => new Set(arr.map((r) => r.order_id || r.id)).size;
         return {
-          rows: list,
+          rows: enriched,
           todayCount: uniqueOrders(todayRows),
           monthCount: uniqueOrders(list),
           todayGifts: sumGifts(todayRows),
