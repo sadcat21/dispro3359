@@ -196,14 +196,13 @@ export const useWarehouseStock = () => {
 
   // Realtime subscriptions for warehouse and worker stock
   useEffect(() => {
-    if (!branchId) return;
-
+    const filter = branchId ? `branch_id=eq.${branchId}` : undefined;
     const channel = supabase
-      .channel(`warehouse-stock-realtime-${branchId}-${Math.random().toString(36).slice(2)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_stock', filter: `branch_id=eq.${branchId}` }, () => {
+      .channel(`warehouse-stock-realtime-${branchId || 'all'}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_stock', ...(filter ? { filter } : {}) }, () => {
         fetchWarehouseStock();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_stock', filter: `branch_id=eq.${branchId}` }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_stock', ...(filter ? { filter } : {}) }, () => {
         fetchWorkerStocks();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_roles' }, () => {
