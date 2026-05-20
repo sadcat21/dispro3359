@@ -663,27 +663,6 @@ const AdminHome: React.FC = () => {
             </div>
           </button>
 
-          {/* Achievements */}
-          <button type="button" onClick={() => setPmDetailKind('achievements')} className="text-start rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-yellow-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-yellow-700">
-                <Trophy className="h-4 w-4" />
-                <h3 className="text-sm font-bold">الإنجازات والمكافآت</h3>
-              </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/rewards'); }}>عرض</Button>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">المتصدّر هذا الشهر</p>
-                <p className="mt-1 text-sm font-bold text-yellow-900 truncate">{pmSummary?.topName || '—'}</p>
-                <p className="text-[10px] text-muted-foreground">{pmSummary?.topPoints || 0} نقطة</p>
-              </div>
-              <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">مجموع النقاط</p>
-                <p className="mt-1 text-base font-bold text-yellow-900">{pmSummary?.totalPoints || 0}</p>
-              </div>
-            </div>
-          </button>
 
           {/* Delivered offers & gifts */}
           <button type="button" onClick={() => setPmDetailKind('offers')} className="text-start rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-rose-300 md:col-span-2">
