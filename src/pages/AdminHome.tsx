@@ -572,6 +572,100 @@ const AdminHome: React.FC = () => {
       )}
 
       {isProjectManager && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {/* Sales */}
+          <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-blue-700">
+                <ShoppingCart className="h-4 w-4" />
+                <h3 className="text-sm font-bold">ملخص المبيعات</h3>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/sales-tracking')}>عرض</Button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">مبيعات اليوم</p>
+                <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.todaySales || 0).toLocaleString()} DA</p>
+                <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} طلب</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">مبيعات الشهر</p>
+                <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.monthSales || 0).toLocaleString()} DA</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Inventory */}
+          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-emerald-700">
+                <Warehouse className="h-4 w-4" />
+                <h3 className="text-sm font-bold">ملخص المخزون</h3>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/warehouse-stock')}>عرض</Button>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">إجمالي القطع</p>
+                <p className="mt-1 text-base font-bold text-emerald-900">{(pmSummary?.totalPieces || 0).toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">منخفض</p>
+                <p className="mt-1 text-base font-bold text-amber-700">{pmSummary?.lowStockCount || 0}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">تالف</p>
+                <p className="mt-1 text-base font-bold text-rose-700">{pmSummary?.damagedTotal || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Worker activity */}
+          <div className="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 to-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-fuchsia-700">
+                <Activity className="h-4 w-4" />
+                <h3 className="text-sm font-bold">نشاط العمال اليوم</h3>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/worker-tracking')}>عرض</Button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">عمال نشطون</p>
+                <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.activeWorkersToday || 0}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">عمليات تسليم</p>
+                <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.deliveriesToday || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Achievements */}
+          <div className="rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-yellow-700">
+                <Trophy className="h-4 w-4" />
+                <h3 className="text-sm font-bold">الإنجازات والمكافآت</h3>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/rewards')}>عرض</Button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">المتصدّر هذا الشهر</p>
+                <p className="mt-1 text-sm font-bold text-yellow-900 truncate">{pmSummary?.topName || '—'}</p>
+                <p className="text-[10px] text-muted-foreground">{pmSummary?.topPoints || 0} نقطة</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">مجموع النقاط</p>
+                <p className="mt-1 text-base font-bold text-yellow-900">{pmSummary?.totalPoints || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isProjectManager && (
         <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
