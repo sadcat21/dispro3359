@@ -592,7 +592,7 @@ const AssistantApprovals: React.FC = () => {
                           onClick={() => approveFactoryReq.mutate({ orderId: o.id })}
                         >
                           <CheckCircle2 className="w-4 h-4 me-1" />
-                          موافقة وتمرير لمدير النظام
+                          موافقة نهائية وإعادة لمدير الفرع
                         </Button>
                       </div>
                     </CardContent>
