@@ -468,7 +468,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
           {/* Action icons */}
           <RefreshButton />
-          {activeRole?.custom_role_code === 'company_manager' && <BranchWilayaBadges />}
+          {(activeRole?.custom_role_code === 'company_manager' || role === 'project_manager' || role === 'admin') && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
           {(activeRole?.custom_role_code === 'delivery_rep'
