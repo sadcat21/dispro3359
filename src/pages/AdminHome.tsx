@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import AddTaskDialog from '@/components/tasks/AddTaskDialog';
 import { useTasks } from '@/hooks/useTasks';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import ProjectManagerSummaryDialog, { PMSummaryKind } from '@/components/admin/ProjectManagerSummaryDialog';
 
 // ─── Functional Group Definitions ───
 
