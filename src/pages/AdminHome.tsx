@@ -319,7 +319,22 @@ const AdminHome: React.FC = () => {
       }
       const totalPoints = Object.values(agg).reduce((s, v) => s + v, 0);
 
-      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints };
+      // Delivered offers / gifts tracking (from sales_tracking)
+      let offersQuery = supabase
+        .from('sales_tracking')
+        .select('id, gift_pieces, gift_boxes, sold_at, branch_id, order_id, order_item_id')
+        .gte('sold_at', startOfMonth)
+        .gt('gift_pieces', 0);
+      if (activeBranch?.id) offersQuery = offersQuery.eq('branch_id', activeBranch.id);
+      const { data: offerRows } = await offersQuery;
+      const offerList = (offerRows || []) as any[];
+      const monthGiftPieces = offerList.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+      const todayOfferRows = offerList.filter((r) => r.sold_at >= startOfDay);
+      const todayGiftPieces = todayOfferRows.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+      const offersDeliveredMonth = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
+      const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
+
+      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
     },
   });
 
@@ -666,6 +681,35 @@ const AdminHome: React.FC = () => {
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">مجموع النقاط</p>
                 <p className="mt-1 text-base font-bold text-yellow-900">{pmSummary?.totalPoints || 0}</p>
+              </div>
+            </div>
+          </button>
+
+          {/* Delivered offers & gifts */}
+          <button type="button" onClick={() => setPmDetailKind('offers')} className="text-start rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-rose-300 md:col-span-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-rose-700">
+                <Gift className="h-4 w-4" />
+                <h3 className="text-sm font-bold">العروض المسلّمة والهدايا</h3>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/offer-ledger'); }}>عرض</Button>
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">عروض اليوم</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredToday || 0}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">هدايا اليوم</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.todayGiftPieces || 0).toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">عروض الشهر</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredMonth || 0}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">هدايا الشهر</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.monthGiftPieces || 0).toLocaleString()}</p>
               </div>
             </div>
           </button>

@@ -4,10 +4,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ShoppingCart, Warehouse, Activity, Trophy } from 'lucide-react';
+import { Loader2, ShoppingCart, Warehouse, Activity, Trophy, Gift } from 'lucide-react';
 import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
 
-export type PMSummaryKind = 'sales' | 'inventory' | 'workers' | 'achievements';
+export type PMSummaryKind = 'sales' | 'inventory' | 'workers' | 'achievements' | 'offers';
 
 interface Props {
   open: boolean;
@@ -21,6 +21,7 @@ const titles: Record<PMSummaryKind, { title: string; desc: string; icon: React.E
   inventory: { title: 'تفاصيل المخزون', desc: 'منتجات منخفضة المخزون والكميات التالفة', icon: Warehouse },
   workers: { title: 'نشاط العمال اليوم', desc: 'عمليات التسليم المعتمدة لكل عامل اليوم', icon: Activity },
   achievements: { title: 'تفاصيل الإنجازات والمكافآت', desc: 'ترتيب الموظفين حسب النقاط لهذا الشهر', icon: Trophy },
+  offers: { title: 'العروض المسلّمة والهدايا', desc: 'العروض المُفعّلة والمنتجات المسلّمة كهدايا هذا الشهر', icon: Gift },
 };
 
 const startOfDayIso = () => {
@@ -96,6 +97,29 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
         }
         const list = Object.values(agg).sort((a, b) => b.total - a.total);
         return { list };
+      }
+      if (kind === 'offers') {
+        let q = supabase
+          .from('sales_tracking')
+          .select('id, product_name, gift_pieces, gift_boxes, sold_pieces, sold_boxes, sold_at, worker_name, customer_name, branch_id, order_id')
+          .gte('sold_at', startOfMonthIso())
+          .gt('gift_pieces', 0)
+          .order('sold_at', { ascending: false })
+          .limit(200);
+        if (branchId) q = q.eq('branch_id', branchId);
+        const { data: rows } = await q as any;
+        const list = (rows || []) as any[];
+        const today = startOfDayIso();
+        const todayRows = list.filter((r) => r.sold_at >= today);
+        const sumGifts = (arr: any[]) => arr.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+        const uniqueOrders = (arr: any[]) => new Set(arr.map((r) => r.order_id || r.id)).size;
+        return {
+          rows: list,
+          todayCount: uniqueOrders(todayRows),
+          monthCount: uniqueOrders(list),
+          todayGifts: sumGifts(todayRows),
+          monthGifts: sumGifts(list),
+        };
       }
       return null;
     },
@@ -208,6 +232,32 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
                   </div>
                 ))}
                 {((data as any).list || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">لا توجد نقاط هذا الشهر</p>}
+              </div>
+            )}
+
+            {kind === 'offers' && data && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">عروض اليوم</p><p className="mt-1 text-base font-bold">{(data as any).todayCount}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">هدايا اليوم</p><p className="mt-1 text-base font-bold">{Number((data as any).todayGifts).toLocaleString()}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">عروض الشهر</p><p className="mt-1 text-base font-bold">{(data as any).monthCount}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">هدايا الشهر</p><p className="mt-1 text-base font-bold">{Number((data as any).monthGifts).toLocaleString()}</p></div>
+                </div>
+                <div className="space-y-1">
+                  {((data as any).rows || []).slice(0, 80).map((r: any) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{r.product_name}</p>
+                        <p className="text-[10px] text-muted-foreground">{r.worker_name || '—'} · {r.customer_name || '—'} · {new Date(r.sold_at).toLocaleString('ar')}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">بيع: {r.sold_pieces}</Badge>
+                        <Badge className="text-[10px] bg-rose-600">هدية: {r.gift_pieces}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {((data as any).rows || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">لا توجد عروض مسلّمة هذا الشهر</p>}
+                </div>
               </div>
             )}
           </ScrollArea>
