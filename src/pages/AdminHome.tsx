@@ -258,6 +258,73 @@ const AdminHome: React.FC = () => {
     enabled: isAdminRole(role),
   });
 
+  // ─── Project Manager Professional Summary ───
+  const { data: pmSummary } = useQuery({
+    queryKey: ['admin-home-pm-summary', activeBranch?.id],
+    enabled: isProjectManager,
+    queryFn: async () => {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+      let salesQuery = supabase
+        .from('orders')
+        .select('total_amount, status, created_at, branch_id')
+        .eq('status', 'delivered')
+        .gte('created_at', startOfMonth);
+      if (activeBranch?.id) salesQuery = salesQuery.eq('branch_id', activeBranch.id);
+      const { data: salesRows } = await salesQuery;
+      const monthSales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const todaySales = (salesRows || [])
+        .filter((r: any) => r.created_at >= startOfDay)
+        .reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= startOfDay).length;
+
+      let stockQuery = supabase
+        .from('warehouse_stock')
+        .select('quantity, damaged_quantity, branch_id');
+      if (activeBranch?.id) stockQuery = stockQuery.eq('branch_id', activeBranch.id);
+      const { data: stockRows } = await stockQuery;
+      const totalPieces = (stockRows || []).reduce((s, r: any) => s + Number(r.quantity || 0), 0);
+      const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
+      const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
+
+      let movQuery = supabase
+        .from('stock_movements')
+        .select('id, worker_id, branch_id, created_at')
+        .eq('movement_type', 'delivery')
+        .eq('status', 'approved')
+        .gte('created_at', startOfDay);
+      if (activeBranch?.id) movQuery = movQuery.eq('branch_id', activeBranch.id);
+      const { data: movRows } = await movQuery;
+      const activeWorkersToday = new Set((movRows || []).map((r: any) => r.worker_id)).size;
+      const deliveriesToday = (movRows || []).length;
+
+      const monthStr = startOfMonth.slice(0, 10);
+      let bonusQuery = supabase
+        .from('monthly_bonus_summary')
+        .select('worker_id, total_points, branch_id, month')
+        .gte('month', monthStr);
+      if (activeBranch?.id) bonusQuery = bonusQuery.eq('branch_id', activeBranch.id);
+      const { data: bonusRows } = await bonusQuery;
+      const agg: Record<string, number> = {};
+      for (const r of (bonusRows || []) as any[]) {
+        agg[r.worker_id] = (agg[r.worker_id] || 0) + Number(r.total_points || 0);
+      }
+      const top = Object.entries(agg).sort((a, b) => b[1] - a[1])[0];
+      let topName = '—';
+      let topPoints = 0;
+      if (top) {
+        topPoints = top[1];
+        const { data: w } = await supabase.from('workers').select('full_name').eq('id', top[0]).maybeSingle();
+        topName = (w as any)?.full_name || '—';
+      }
+      const totalPoints = Object.values(agg).reduce((s, v) => s + v, 0);
+
+      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints };
+    },
+  });
+
   const managerSummaryCards = [
     {
       key: 'branches',
