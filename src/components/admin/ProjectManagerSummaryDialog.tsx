@@ -234,6 +234,32 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
                 {((data as any).list || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">لا توجد نقاط هذا الشهر</p>}
               </div>
             )}
+
+            {kind === 'offers' && data && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">عروض اليوم</p><p className="mt-1 text-base font-bold">{(data as any).todayCount}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">هدايا اليوم</p><p className="mt-1 text-base font-bold">{Number((data as any).todayGifts).toLocaleString()}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">عروض الشهر</p><p className="mt-1 text-base font-bold">{(data as any).monthCount}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">هدايا الشهر</p><p className="mt-1 text-base font-bold">{Number((data as any).monthGifts).toLocaleString()}</p></div>
+                </div>
+                <div className="space-y-1">
+                  {((data as any).rows || []).slice(0, 80).map((r: any) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{r.product_name}</p>
+                        <p className="text-[10px] text-muted-foreground">{r.worker_name || '—'} · {r.customer_name || '—'} · {new Date(r.sold_at).toLocaleString('ar')}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">بيع: {r.sold_pieces}</Badge>
+                        <Badge className="text-[10px] bg-rose-600">هدية: {r.gift_pieces}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {((data as any).rows || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">لا توجد عروض مسلّمة هذا الشهر</p>}
+                </div>
+              </div>
+            )}
           </ScrollArea>
         )}
       </DialogContent>
