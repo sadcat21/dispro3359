@@ -58,20 +58,27 @@ const AssistantApprovals: React.FC = () => {
   const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
   const [detailsReceiptId, setDetailsReceiptId] = useState<string | null>(null);
-  const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
 
   const factoryRequestsQ = useQuery({
-    queryKey: ['assistant-factory-requests-count'],
+    queryKey: ['assistant-factory-requests'],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data, error } = await supabase
         .from('factory_orders')
-        .select('id', { count: 'exact', head: true })
-        .in('order_type', ['sending', 'factory_request'])
-        .eq('status', 'pending_assistant_gm');
-      return count || 0;
+        .select(`
+          id, status, notes, created_at, branch_id,
+          branches:branch_id ( name ),
+          factory_order_items ( id, product_quantity, products:product_id ( name, pieces_per_box ) )
+        `)
+        .eq('order_type', 'factory_request')
+        .eq('status', 'pending_assistant_gm')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
     },
     refetchInterval: 30_000,
   });
+  const approveFactoryReq = useApproveFactoryOrder();
+  const rejectFactoryReq = useRejectFactoryOrder();
   const [historyType, setHistoryType] = useState<ApprovalHistoryType | null>(null);
   const branchFilter = searchParams.get('branch');
 
