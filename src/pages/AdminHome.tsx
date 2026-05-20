@@ -344,7 +344,7 @@ const AdminHome: React.FC = () => {
       const offersDeliveredMonth = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
       const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
 
-      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
+      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, productsSoldToday, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
     },
   });
 
