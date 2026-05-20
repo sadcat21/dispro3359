@@ -39,7 +39,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
       if (kind === 'sales') {
         let q = supabase
           .from('orders')
-          .select('id, order_number, total_amount, payment_status, created_at, customer_name, branch_id')
+          .select('id, total_amount, payment_status, created_at, customer_id, branch_id, customers(name)')
           .eq('status', 'delivered')
           .gte('created_at', startOfMonthIso())
           .order('created_at', { ascending: false })
