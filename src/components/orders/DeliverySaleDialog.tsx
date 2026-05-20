@@ -1106,7 +1106,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           }
         } catch (err) {
           console.error('Error creating partial delivery order:', err);
-          toast.error('فشل إنشاء طلبية الفارق');
+          const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+          const info = getOrderErrorMessage(err);
+          toast.error(info.title, { description: info.description });
         }
       }
 
