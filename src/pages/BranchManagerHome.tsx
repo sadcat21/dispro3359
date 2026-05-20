@@ -46,12 +46,24 @@ const BranchManagerHome: React.FC = () => {
 
   const branchId = activeBranch?.id;
   const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
+  const [factoryRequestOpen, setFactoryRequestOpen] = useState(false);
+  const [requestProducts, setRequestProducts] = useState<any[]>([]);
   const [finalReviewPickerOpen, setFinalReviewPickerOpen] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
   const [truckPickerOpen, setTruckPickerOpen] = useState(false);
   const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
+
+  const openFactoryRequest = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('id, name, image_url, pieces_per_box')
+      .eq('is_active', true)
+      .order('name');
+    setRequestProducts(data || []);
+    setFactoryRequestOpen(true);
+  };
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
