@@ -1,9 +1,11 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Factory, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Factory, MessageCircle, CheckCircle2, FileText } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
+import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
+
 
 interface Props {
   branchId: string;
