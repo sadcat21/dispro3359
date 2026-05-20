@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import AddTaskDialog from '@/components/tasks/AddTaskDialog';
 import { useTasks } from '@/hooks/useTasks';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import ProjectManagerSummaryDialog, { PMSummaryKind } from '@/components/admin/ProjectManagerSummaryDialog';
 
 // ─── Functional Group Definitions ───
 
@@ -114,6 +115,7 @@ const AdminHome: React.FC = () => {
   const [warehouseDirectSaleOpen, setWarehouseDirectSaleOpen] = useState(false);
   const [replaceDamagedOpen, setReplaceDamagedOpen] = useState(false);
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
+  const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
@@ -574,13 +576,13 @@ const AdminHome: React.FC = () => {
       {isProjectManager && (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
-          <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+          <button type="button" onClick={() => setPmDetailKind('sales')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-blue-700">
                 <ShoppingCart className="h-4 w-4" />
                 <h3 className="text-sm font-bold">ملخص المبيعات</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/sales-tracking')}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/sales-tracking'); }}>عرض</Button>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
@@ -593,16 +595,15 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.monthSales || 0).toLocaleString()} DA</p>
               </div>
             </div>
-          </div>
+          </button>
 
-          {/* Inventory */}
-          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+          <button type="button" onClick={() => setPmDetailKind('inventory')} className="text-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-emerald-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-700">
                 <Warehouse className="h-4 w-4" />
                 <h3 className="text-sm font-bold">ملخص المخزون</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/warehouse-stock')}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/warehouse-stock'); }}>عرض</Button>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
@@ -618,16 +619,16 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-rose-700">{pmSummary?.damagedTotal || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Worker activity */}
-          <div className="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 to-white p-4 shadow-sm">
+          <button type="button" onClick={() => setPmDetailKind('workers')} className="text-start rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-fuchsia-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-fuchsia-700">
                 <Activity className="h-4 w-4" />
                 <h3 className="text-sm font-bold">نشاط العمال اليوم</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/worker-tracking')}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/worker-tracking'); }}>عرض</Button>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
@@ -639,16 +640,16 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.deliveriesToday || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Achievements */}
-          <div className="rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-4 shadow-sm">
+          <button type="button" onClick={() => setPmDetailKind('achievements')} className="text-start rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-yellow-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-yellow-700">
                 <Trophy className="h-4 w-4" />
                 <h3 className="text-sm font-bold">الإنجازات والمكافآت</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/rewards')}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/rewards'); }}>عرض</Button>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
@@ -661,7 +662,7 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-yellow-900">{pmSummary?.totalPoints || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
         </div>
       )}
 
@@ -830,6 +831,13 @@ const AdminHome: React.FC = () => {
           ))}
         </div>
       )}
+
+      <ProjectManagerSummaryDialog
+        open={!!pmDetailKind}
+        onOpenChange={(o) => { if (!o) setPmDetailKind(null); }}
+        kind={pmDetailKind}
+        branchId={activeBranch?.id}
+      />
     </div>
   );
 };
