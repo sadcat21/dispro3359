@@ -989,7 +989,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
     } catch (error: any) {
       console.error('Direct sale error:', error);
-      toast.error(error.message || t('common.error'));
+      const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+      const info = getOrderErrorMessage(error);
+      toast.error(info.title, { description: info.description || t('common.error') });
     } finally {
       setIsSaving(false);
     }
