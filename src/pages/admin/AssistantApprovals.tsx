@@ -624,6 +624,12 @@ const AssistantApprovals: React.FC = () => {
           mode="assistant"
         />
       )}
+
+      <FactoryApprovalsDialog
+        open={factoryApprovalsOpen}
+        onOpenChange={(v) => { setFactoryApprovalsOpen(v); if (!v) qc.invalidateQueries(); }}
+        mode="assistant"
+      />
     </div>
   );
 };
