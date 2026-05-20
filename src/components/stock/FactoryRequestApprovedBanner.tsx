@@ -22,6 +22,8 @@ interface ApprovedRequest {
 }
 
 const FactoryRequestApprovedBanner: React.FC<Props> = ({ branchId, branchName }) => {
+  const qc = useQueryClient();
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const { data: requests = [] } = useQuery({
     queryKey: ['factory-request-approved', branchId],
     enabled: !!branchId,
