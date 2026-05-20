@@ -1397,8 +1397,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           await (supabase as any)
             .from('pending_offer_confirmations')
             .delete()
-            .eq('order_id', order.id)
-            .eq('status', 'pending');
+            .eq('order_id', order.id);
 
           // For sold/delivered orders, recordSaleTracking (called below) will
           // recreate fresh pending rows. Only handle the not-yet-sold case here
