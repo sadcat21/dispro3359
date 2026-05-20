@@ -39,7 +39,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
       if (kind === 'sales') {
         let q = supabase
           .from('orders')
-          .select('id, order_number, total_amount, payment_status, created_at, customer_name, branch_id')
+          .select('id, total_amount, payment_status, created_at, customer_id, branch_id, customers(name)')
           .eq('status', 'delivered')
           .gte('created_at', startOfMonthIso())
           .order('created_at', { ascending: false })
@@ -140,7 +140,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
                   {((data as any).rows || []).slice(0, 50).map((r: any) => (
                     <div key={r.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs">
                       <div className="min-w-0">
-                        <p className="truncate font-medium">{r.customer_name || `#${r.order_number || r.id.slice(0, 6)}`}</p>
+                        <p className="truncate font-medium">{r.customers?.name || `#${r.id.slice(0, 6)}`}</p>
                         <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString('ar')}</p>
                       </div>
                       <div className="flex items-center gap-2">

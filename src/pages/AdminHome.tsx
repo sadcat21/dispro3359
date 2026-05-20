@@ -31,6 +31,7 @@ import AddTaskDialog from '@/components/tasks/AddTaskDialog';
 import { useTasks } from '@/hooks/useTasks';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ProjectManagerSummaryDialog, { PMSummaryKind } from '@/components/admin/ProjectManagerSummaryDialog';
+import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 
 // ─── Functional Group Definitions ───
 
@@ -116,6 +117,7 @@ const AdminHome: React.FC = () => {
   const [replaceDamagedOpen, setReplaceDamagedOpen] = useState(false);
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
   const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
+  const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
@@ -574,6 +576,16 @@ const AdminHome: React.FC = () => {
       )}
 
       {isProjectManager && (
+        <button
+          onClick={() => setDailyTasksOpen(true)}
+          className="w-full flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 px-4 py-3 text-white shadow-md shadow-cyan-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+        >
+          <ClipboardList className="w-5 h-5" />
+          <span className="text-base font-bold">مهام العمال اليومية — عملاء اليوم</span>
+        </button>
+      )}
+
+      {isProjectManager && (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
           <button type="button" onClick={() => setPmDetailKind('sales')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
@@ -831,6 +843,8 @@ const AdminHome: React.FC = () => {
           ))}
         </div>
       )}
+
+      <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
 
       <ProjectManagerSummaryDialog
         open={!!pmDetailKind}
