@@ -336,7 +336,7 @@ const AssistantApprovals: React.FC = () => {
 
       <div className="p-4">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-red-50 border border-red-200 grid grid-cols-2 md:grid-cols-4 h-auto">
+          <TabsList className="bg-red-50 border border-red-200 grid grid-cols-2 md:grid-cols-5 h-auto">
             <TabsTrigger value="factory_in" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Truck className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_in')}
@@ -358,11 +358,19 @@ const AssistantApprovals: React.FC = () => {
                 <Badge className="ms-2 bg-red-600 text-white">{invoicesQ.data!.length}</Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="factory_requests" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
+              <Package className="w-4 h-4 me-1" />
+              طلبات المصنع
+              {(factoryRequestsQ.data || 0) > 0 && (
+                <Badge className="ms-2 bg-red-600 text-white">{factoryRequestsQ.data}</Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="factory_out" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Package className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_out')}
             </TabsTrigger>
           </TabsList>
+
 
           {/* زر سجل الموافقات يتبع التبويبة الحالية */}
           <div className="flex justify-end mt-3">
