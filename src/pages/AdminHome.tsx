@@ -310,12 +310,11 @@ const AdminHome: React.FC = () => {
       const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
       const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
 
-      // Distinct products sold today (any sold_pieces > 0)
+      // Distinct products sold today (any quantity sold — pieces OR boxes)
       let soldTodayQuery = supabase
         .from('sales_tracking')
-        .select('product_id, branch_id, worker_id, sold_pieces, sold_at')
-        .gte('sold_at', startOfDay)
-        .gt('sold_pieces', 0);
+        .select('product_id, branch_id, worker_id, sold_pieces, sold_boxes, total_price, sold_at')
+        .gte('sold_at', startOfDay);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -323,7 +322,12 @@ const AdminHome: React.FC = () => {
         soldTodayQuery = soldTodayQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
       }
       const { data: soldTodayRows } = await soldTodayQuery;
-      const productsSoldToday = new Set(((soldTodayRows || []) as any[]).map((r) => r.product_id).filter(Boolean)).size;
+      const productsSoldToday = new Set(
+        ((soldTodayRows || []) as any[])
+          .filter((r) => Number(r.sold_pieces || 0) > 0 || Number(r.sold_boxes || 0) > 0 || Number(r.total_price || 0) > 0)
+          .map((r) => r.product_id)
+          .filter(Boolean)
+      ).size;
 
       const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id);
       const activeWorkersToday = workerActivity.activeWorkersToday;
