@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Calendar, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ShoppingBag, Calendar, User, BarChart3 } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
+import ProductMonthlyCompetitionDialog from './ProductMonthlyCompetitionDialog';
 
 interface Props {
   open: boolean;
