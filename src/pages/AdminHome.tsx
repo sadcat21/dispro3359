@@ -294,6 +294,16 @@ const AdminHome: React.FC = () => {
       const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
       const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
 
+      // Distinct products sold today (any sold_pieces > 0)
+      let soldTodayQuery = supabase
+        .from('sales_tracking')
+        .select('product_id, branch_id, sold_pieces, sold_at')
+        .gte('sold_at', startOfDay)
+        .gt('sold_pieces', 0);
+      if (activeBranch?.id) soldTodayQuery = soldTodayQuery.eq('branch_id', activeBranch.id);
+      const { data: soldTodayRows } = await soldTodayQuery;
+      const productsSoldToday = new Set(((soldTodayRows || []) as any[]).map((r) => r.product_id).filter(Boolean)).size;
+
       const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id);
       const activeWorkersToday = workerActivity.activeWorkersToday;
       const deliveriesToday = workerActivity.deliveriesToday;
@@ -334,7 +344,7 @@ const AdminHome: React.FC = () => {
       const offersDeliveredMonth = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
       const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
 
-      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
+      return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, productsSoldToday, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
     },
   });
 
@@ -626,10 +636,14 @@ const AdminHome: React.FC = () => {
               </div>
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/warehouse-stock'); }}>عرض</Button>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+            <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">إجمالي القطع</p>
                 <p className="mt-1 text-base font-bold text-emerald-900">{(pmSummary?.totalPieces || 0).toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">منتجات بيعت اليوم</p>
+                <p className="mt-1 text-base font-bold text-emerald-900">{pmSummary?.productsSoldToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">منخفض</p>
