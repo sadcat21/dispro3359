@@ -90,6 +90,15 @@ const BranchManagerApprovals: React.FC = () => {
       badge: counts?.stockReceipts,
       color: 'from-emerald-500 to-teal-600',
     },
+    {
+      key: 'approved_factory_requests',
+      title: 'طلبات التموين الموافق عليها',
+      description: 'عرض طلباتك للمصنع التي تمت الموافقة عليها — إرسال واتساب وفتح وثيقة الاستلام',
+      icon: Factory,
+      onClick: () => setApprovedReqOpen(true),
+      badge: counts?.approvedReq,
+      color: 'from-green-500 to-emerald-600',
+    },
   ];
 
   return (
