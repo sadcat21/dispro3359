@@ -21,7 +21,7 @@ import {
   Building2, Users, Activity, MapPin, CalendarCheck, Gift, Eye, UserCheck,
   Route as RouteIcon, Wallet, TrendingUp, Receipt, FileText, Banknote,
   AlertTriangle, ClipboardList, ScrollText, BookOpenCheck, ShieldCheck, Truck, LucideIcon,
-  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw, ScanSearch,
+  Coins, HandCoins, PackageSearch, ClipboardCheck, HardHat, RefreshCw, ScanSearch, Factory,
 } from 'lucide-react';
 
 interface BMItem {
