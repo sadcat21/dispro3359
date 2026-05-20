@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ShoppingCart, Warehouse, Activity, Trophy } from 'lucide-react';
+import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
 
 export type PMSummaryKind = 'sales' | 'inventory' | 'workers' | 'achievements';
 
@@ -65,25 +66,15 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
         return { low, out, damaged };
       }
       if (kind === 'workers') {
-        const q = supabase
-          .from('stock_movements')
-          .select('worker_id, branch_id, created_at, workers!inner(full_name, branch_id)')
-          .eq('movement_type', 'delivery')
-          .eq('status', 'approved')
-          .gte('created_at', startOfDayIso());
-        if (branchId) q.eq('workers.branch_id', branchId);
-        const { data: rows } = await q as any;
-        const agg: Record<string, { name: string; count: number; last: string }> = {};
-        for (const r of rows || []) {
-          const id = r.worker_id;
-          if (!id) continue;
-          const name = (r as any).workers?.full_name || '—';
-          if (!agg[id]) agg[id] = { name, count: 0, last: r.created_at };
-          agg[id].count += 1;
-          if (r.created_at > agg[id].last) agg[id].last = r.created_at;
-        }
-        const list = Object.values(agg).sort((a, b) => b.count - a.count);
-        return { list, total: (rows || []).length };
+        const summary = await fetchProjectManagerWorkerActivity(branchId);
+        return {
+          list: summary.list.map((worker) => ({
+            name: worker.workerName,
+            count: worker.count,
+            last: worker.last,
+          })),
+          total: summary.deliveriesToday,
+        };
       }
       if (kind === 'achievements') {
         let q = supabase

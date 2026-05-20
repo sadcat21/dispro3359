@@ -32,6 +32,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ProjectManagerSummaryDialog, { PMSummaryKind } from '@/components/admin/ProjectManagerSummaryDialog';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
+import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
 
 // ─── Functional Group Definitions ───
 
@@ -293,16 +294,9 @@ const AdminHome: React.FC = () => {
       const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
       const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
 
-      const movQuery = supabase
-        .from('stock_movements')
-        .select('id, worker_id, branch_id, created_at, workers!inner(branch_id)')
-        .eq('movement_type', 'delivery')
-        .eq('status', 'approved')
-        .gte('created_at', startOfDay);
-      if (activeBranch?.id) movQuery.eq('workers.branch_id', activeBranch.id);
-      const { data: movRows } = await movQuery;
-      const activeWorkersToday = new Set((movRows || []).map((r: any) => r.worker_id)).size;
-      const deliveriesToday = (movRows || []).length;
+      const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id);
+      const activeWorkersToday = workerActivity.activeWorkersToday;
+      const deliveriesToday = workerActivity.deliveriesToday;
 
       const monthStr = startOfMonth.slice(0, 10);
       let bonusQuery = supabase
