@@ -636,10 +636,14 @@ const AdminHome: React.FC = () => {
               </div>
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/warehouse-stock'); }}>عرض</Button>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+            <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">إجمالي القطع</p>
                 <p className="mt-1 text-base font-bold text-emerald-900">{(pmSummary?.totalPieces || 0).toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">منتجات بيعت اليوم</p>
+                <p className="mt-1 text-base font-bold text-emerald-900">{pmSummary?.productsSoldToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">منخفض</p>
