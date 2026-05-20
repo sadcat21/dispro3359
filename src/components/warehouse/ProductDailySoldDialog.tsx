@@ -23,6 +23,8 @@ const ProductDailySoldDialog: React.FC<Props> = ({
   open, onOpenChange, branchId, productId, productName, piecesPerBox, sinceIso,
 }) => {
   const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
+  const [competitionOpen, setCompetitionOpen] = useState(false);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ['product-daily-sold', branchId, productId, sinceIso],
