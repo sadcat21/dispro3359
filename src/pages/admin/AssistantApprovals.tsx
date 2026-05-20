@@ -58,6 +58,20 @@ const AssistantApprovals: React.FC = () => {
   const [reviewRequestId, setReviewRequestId] = useState<string | null>(null);
   const [customerDialog, setCustomerDialog] = useState<{ id: string; name: string } | null>(null);
   const [detailsReceiptId, setDetailsReceiptId] = useState<string | null>(null);
+  const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
+
+  const factoryRequestsQ = useQuery({
+    queryKey: ['assistant-factory-requests-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('factory_orders')
+        .select('id', { count: 'exact', head: true })
+        .in('order_type', ['sending', 'factory_request'])
+        .eq('status', 'pending_assistant_gm');
+      return count || 0;
+    },
+    refetchInterval: 30_000,
+  });
   const [historyType, setHistoryType] = useState<ApprovalHistoryType | null>(null);
   const branchFilter = searchParams.get('branch');
 
