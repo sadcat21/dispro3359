@@ -7,10 +7,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck, Truck,
+  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck, Truck, Factory,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
+import ApprovedFactoryRequestsDialog from '@/components/stock/ApprovedFactoryRequestsDialog';
 
 interface ApprovalCard {
   key: string;
