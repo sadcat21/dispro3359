@@ -258,10 +258,17 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
                 </div>
                 <div className="space-y-1">
                   {((data as any).rows || []).slice(0, 80).map((r: any) => (
-                    <div key={r.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{r.product_name}</p>
-                        <p className="text-[10px] text-muted-foreground">{r.worker_name || '—'} · {r.customer_name || '—'} · {new Date(r.sold_at).toLocaleString('ar')}</p>
+                    <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2 text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {r.image_url ? (
+                          <img src={r.image_url} alt={r.product_name} className="h-10 w-10 rounded-md object-cover border shrink-0" loading="lazy" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-md bg-muted border flex items-center justify-center text-[10px] text-muted-foreground shrink-0">—</div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{r.product_name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{r.worker_name || '—'} · {r.customer_name || '—'} · {new Date(r.sold_at).toLocaleString('ar')}</p>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="outline" className="text-[10px]">بيع: {r.sold_pieces}</Badge>
