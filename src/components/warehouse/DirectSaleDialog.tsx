@@ -552,7 +552,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         }
       } catch (err) {
         console.error('Error creating overflow order:', err);
-        toast.error('فشل إنشاء الطلبية');
+        const { getOrderErrorMessage } = await import('@/utils/orderErrorMessages');
+        const info = getOrderErrorMessage(err);
+        toast.error(info.title, { description: info.description });
       }
     }
 
