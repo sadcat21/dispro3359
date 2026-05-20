@@ -684,6 +684,35 @@ const AdminHome: React.FC = () => {
               </div>
             </div>
           </button>
+
+          {/* Delivered offers & gifts */}
+          <button type="button" onClick={() => setPmDetailKind('offers')} className="text-start rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-rose-300 md:col-span-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-rose-700">
+                <Gift className="h-4 w-4" />
+                <h3 className="text-sm font-bold">العروض المسلّمة والهدايا</h3>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/offer-ledger'); }}>عرض</Button>
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">عروض اليوم</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredToday || 0}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">هدايا اليوم</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.todayGiftPieces || 0).toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">عروض الشهر</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredMonth || 0}</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">هدايا الشهر</p>
+                <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.monthGiftPieces || 0).toLocaleString()}</p>
+              </div>
+            </div>
+          </button>
         </div>
       )}
 
