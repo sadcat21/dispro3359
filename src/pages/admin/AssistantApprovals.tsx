@@ -336,7 +336,7 @@ const AssistantApprovals: React.FC = () => {
 
       <div className="p-4">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-red-50 border border-red-200 grid grid-cols-2 md:grid-cols-4 h-auto">
+          <TabsList className="bg-red-50 border border-red-200 grid grid-cols-2 md:grid-cols-5 h-auto">
             <TabsTrigger value="factory_in" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Truck className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_in')}
@@ -358,11 +358,19 @@ const AssistantApprovals: React.FC = () => {
                 <Badge className="ms-2 bg-red-600 text-white">{invoicesQ.data!.length}</Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="factory_requests" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
+              <Package className="w-4 h-4 me-1" />
+              طلبات المصنع
+              {(factoryRequestsQ.data || 0) > 0 && (
+                <Badge className="ms-2 bg-red-600 text-white">{factoryRequestsQ.data}</Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="factory_out" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
               <Package className="w-4 h-4 me-1" />
               {t('assistant_approvals.tab_factory_out')}
             </TabsTrigger>
           </TabsList>
+
 
           {/* زر سجل الموافقات يتبع التبويبة الحالية */}
           <div className="flex justify-end mt-3">
@@ -519,8 +527,8 @@ const AssistantApprovals: React.FC = () => {
                 ))}
           </TabsContent>
 
-          {/* تسليمات وطلبات للمصنع */}
-          <TabsContent value="factory_out" className="mt-4">
+          {/* طلبات الفرع للمصنع */}
+          <TabsContent value="factory_requests" className="mt-4">
             <Card className="border-slate-200 bg-white">
               <CardContent className="p-6 text-center space-y-4">
                 <Package className="w-12 h-12 mx-auto text-red-500" />
@@ -540,6 +548,17 @@ const AssistantApprovals: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* تسليمات للمصنع */}
+          <TabsContent value="factory_out" className="mt-4">
+            <Card className="border-slate-200 bg-white">
+              <CardContent className="p-6 text-center text-slate-500">
+                <Package className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{t('assistant_approvals.no_pending')}</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
         </Tabs>
       </div>
