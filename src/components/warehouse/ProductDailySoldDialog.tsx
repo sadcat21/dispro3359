@@ -117,6 +117,15 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm">{fmt(totalDb)}</Badge>
         </div>
 
+        <Button
+          onClick={() => setCompetitionOpen(true)}
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white gap-2"
+        >
+          <BarChart3 className="w-4 h-4" />
+          منافسة العمال الشهرية
+        </Button>
+
+
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
