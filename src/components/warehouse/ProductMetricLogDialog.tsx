@@ -273,7 +273,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
               for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
               return palette[h % palette.length];
             };
-            return Array.from(groups.entries()).map(([workerName, entries]) => {
+            return Array.from(groups.entries())
+              .sort((a, b) => b[1].reduce((s, e) => s + (e.qty || 0), 0) - a[1].reduce((s, e) => s + (e.qty || 0), 0))
+              .map(([workerName, entries]) => {
               const groupTotal = entries.reduce((s, e) => s + (e.qty || 0), 0);
               const headerCls = colorFor(workerName);
               const isActive = workerFilter === workerName;
