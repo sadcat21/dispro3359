@@ -537,26 +537,69 @@ const AssistantApprovals: React.FC = () => {
           </TabsContent>
 
           {/* طلبات الفرع للمصنع */}
-          <TabsContent value="factory_requests" className="mt-4">
-            <Card className="border-slate-200 bg-white">
-              <CardContent className="p-6 text-center space-y-4">
-                <Package className="w-12 h-12 mx-auto text-red-500" />
-                <p className="text-slate-700 font-semibold">
-                  طلبات مدير الفرع للمصنع (للموافقة عليها وتمريرها لمدير النظام)
-                </p>
-                <Button
-                  onClick={() => setFactoryApprovalsOpen(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <Eye className="w-4 h-4 me-1" />
-                  فتح طلبات المصنع
-                  {(factoryRequestsQ.data || 0) > 0 && (
-                    <Badge className="ms-2 bg-white text-red-700">{factoryRequestsQ.data}</Badge>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="factory_requests" className="mt-4 space-y-3">
+            {!factoryRequestsQ.data || factoryRequestsQ.data.length === 0
+              ? renderEmpty(factoryRequestsQ.isLoading)
+              : factoryRequestsQ.data.map((o: any) => (
+                  <Card key={o.id} className="border-slate-200 bg-white">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                            🏢 {o.branches?.name || '—'}
+                          </Badge>
+                          <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
+                            طلب من المصنع
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {new Date(o.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1">
+                        {(o.factory_order_items || []).map((it: any) => (
+                          <div key={it.id} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-700">{it.products?.name || '—'}</span>
+                            <span className="font-mono font-semibold text-slate-900">
+                              {dbBPDisplay(it.product_quantity, it.products?.pieces_per_box || 1)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      {o.notes && (
+                        <p className="text-xs text-slate-600">📝 {o.notes}</p>
+                      )}
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-700 hover:bg-red-50"
+                          disabled={rejectFactoryReq.isPending}
+                          onClick={() => {
+                            const reason = window.prompt('سبب الرفض:');
+                            if (reason && reason.trim()) {
+                              rejectFactoryReq.mutate({ orderId: o.id, reason });
+                            }
+                          }}
+                        >
+                          <XCircle className="w-4 h-4 me-1" />
+                          رفض
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          disabled={approveFactoryReq.isPending}
+                          onClick={() => approveFactoryReq.mutate({ orderId: o.id })}
+                        >
+                          <CheckCircle2 className="w-4 h-4 me-1" />
+                          موافقة وتمرير لمدير النظام
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
           </TabsContent>
+
 
           {/* تسليمات للمصنع */}
           <TabsContent value="factory_out" className="mt-4">
