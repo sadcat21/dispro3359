@@ -519,15 +519,28 @@ const AssistantApprovals: React.FC = () => {
                 ))}
           </TabsContent>
 
-          {/* تسليمات للمصنع */}
+          {/* تسليمات وطلبات للمصنع */}
           <TabsContent value="factory_out" className="mt-4">
             <Card className="border-slate-200 bg-white">
-              <CardContent className="p-6 text-center text-slate-500">
-                <Package className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                <p>{t('assistant_approvals.no_pending')}</p>
+              <CardContent className="p-6 text-center space-y-4">
+                <Package className="w-12 h-12 mx-auto text-red-500" />
+                <p className="text-slate-700 font-semibold">
+                  طلبات مدير الفرع للمصنع (للموافقة عليها وتمريرها لمدير النظام)
+                </p>
+                <Button
+                  onClick={() => setFactoryApprovalsOpen(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <Eye className="w-4 h-4 me-1" />
+                  فتح طلبات المصنع
+                  {(factoryRequestsQ.data || 0) > 0 && (
+                    <Badge className="ms-2 bg-white text-red-700">{factoryRequestsQ.data}</Badge>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
+
         </Tabs>
       </div>
 
