@@ -3708,6 +3708,7 @@ export type Database = {
           assigned_worker_id: string | null
           branch_id: string | null
           check_due_date: string | null
+          client_request_id: string | null
           created_at: string
           created_by: string
           created_by_customer: string | null
@@ -3737,6 +3738,7 @@ export type Database = {
           assigned_worker_id?: string | null
           branch_id?: string | null
           check_due_date?: string | null
+          client_request_id?: string | null
           created_at?: string
           created_by: string
           created_by_customer?: string | null
@@ -3766,6 +3768,7 @@ export type Database = {
           assigned_worker_id?: string | null
           branch_id?: string | null
           check_due_date?: string | null
+          client_request_id?: string | null
           created_at?: string
           created_by?: string
           created_by_customer?: string | null
