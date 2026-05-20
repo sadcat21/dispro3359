@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Calendar } from 'lucide-react';
+import { ShoppingBag, Calendar, User } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface Props {
@@ -35,7 +35,6 @@ const ProductDailySoldDialog: React.FC<Props> = ({
       if (sinceIso) q = q.gte('sold_at', sinceIso);
       const { data: rows } = await q;
 
-      // Filter delivered status if attached to an order
       const orderIds = Array.from(new Set((rows || []).map((r: any) => r.order_id).filter(Boolean)));
       const ordersRes = orderIds.length
         ? await supabase.from('orders').select('id, status, branch_id').in('id', orderIds as string[])
@@ -49,28 +48,45 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         return !inferred || inferred === branchId;
       });
 
-      return filtered;
+      const workerIds = Array.from(new Set(filtered.map((r: any) => r.worker_id).filter(Boolean)));
+      const namesRes = workerIds.length
+        ? await supabase.from('workers_safe').select('id, full_name').in('id', workerIds as string[])
+        : { data: [] as any[] };
+      const nameMap = new Map((namesRes.data || []).map((w: any) => [w.id, w.full_name]));
+
+      return { rows: filtered, nameMap };
     },
   });
 
   const byDay = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const r of (data || [])) {
-      const ppb = Number((r as any).pieces_per_box || piecesPerBox || 1);
-      const pieces = Number((r as any).sold_boxes || 0) * ppb + Number((r as any).sold_pieces || 0);
+    const ppb = Math.max(1, piecesPerBox);
+    const toDb = (pieces: number) => {
+      const boxes = Math.floor(pieces / ppb);
+      const rem = pieces % ppb;
+      return boxes + rem / 100;
+    };
+    const dayMap = new Map<string, { pieces: number; workers: Map<string, number> }>();
+    for (const r of ((data as any)?.rows || [])) {
+      const rppb = Number((r as any).pieces_per_box || ppb);
+      const pieces = Number((r as any).sold_boxes || 0) * rppb + Number((r as any).sold_pieces || 0);
       if (pieces <= 0) continue;
       const day = (r as any).sold_at ? new Date((r as any).sold_at).toISOString().slice(0, 10) : '—';
-      map.set(day, (map.get(day) || 0) + pieces);
+      if (!dayMap.has(day)) dayMap.set(day, { pieces: 0, workers: new Map() });
+      const entry = dayMap.get(day)!;
+      entry.pieces += pieces;
+      const wn = ((data as any)?.nameMap?.get((r as any).worker_id)) || 'بدون عامل';
+      entry.workers.set(wn, (entry.workers.get(wn) || 0) + pieces);
     }
-    // Convert to db box-piece display
-    return Array.from(map.entries())
+    return Array.from(dayMap.entries())
       .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([day, pieces]) => {
-        const ppb = Math.max(1, piecesPerBox);
-        const boxes = Math.floor(pieces / ppb);
-        const rem = pieces % ppb;
-        return { day, dbValue: boxes + rem / 100, pieces };
-      });
+      .map(([day, e]) => ({
+        day,
+        pieces: e.pieces,
+        dbValue: toDb(e.pieces),
+        workers: Array.from(e.workers.entries())
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, p]) => ({ name, pieces: p, dbValue: toDb(p) })),
+      }));
   }, [data, piecesPerBox]);
 
   const totalPieces = byDay.reduce((s, d) => s + d.pieces, 0);
@@ -103,14 +119,27 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           ) : byDay.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد مبيعات</div>
           ) : (
-            byDay.map(d => (
-              <div key={d.day} className="flex items-center justify-between gap-2 border rounded-xl px-3 py-2 bg-muted/20">
-                <div className="flex items-center gap-1.5 text-sm">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span>{d.day === '—' ? '—' : new Date(d.day).toLocaleDateString('ar-DZ')}</span>
+            byDay.map((d, idx) => (
+              <details key={d.day} open={idx === 0} className="rounded-xl border overflow-hidden bg-muted/20">
+                <summary className="cursor-pointer select-none flex items-center justify-between gap-2 px-3 py-2">
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span>{d.day === '—' ? '—' : new Date(d.day).toLocaleDateString('ar-DZ')}</span>
+                  </div>
+                  <span className="font-extrabold text-orange-700 tabular-nums">{fmt(d.dbValue)}</span>
+                </summary>
+                <div className="px-3 pb-2 pt-1 space-y-1">
+                  {d.workers.map(w => (
+                    <div key={w.name} className="flex items-center justify-between gap-2 border rounded-lg px-2 py-1 bg-background">
+                      <div className="flex items-center gap-1.5 text-xs font-bold">
+                        <User className="w-3.5 h-3.5" />
+                        <span>{w.name}</span>
+                      </div>
+                      <span className="text-xs font-extrabold text-orange-700 tabular-nums">{fmt(w.dbValue)}</span>
+                    </div>
+                  ))}
                 </div>
-                <span className="font-extrabold text-orange-700 tabular-nums">{fmt(d.dbValue)}</span>
-              </div>
+              </details>
             ))
           )}
         </div>
