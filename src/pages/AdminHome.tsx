@@ -844,6 +844,8 @@ const AdminHome: React.FC = () => {
         </div>
       )}
 
+      <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+
       <ProjectManagerSummaryDialog
         open={!!pmDetailKind}
         onOpenChange={(o) => { if (!o) setPmDetailKind(null); }}
