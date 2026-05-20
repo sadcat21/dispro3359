@@ -306,6 +306,15 @@ const BranchManagerHome: React.FC = () => {
         })}
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
+      {branchId && (
+        <FactoryRequestDialog
+          open={factoryRequestOpen}
+          onOpenChange={setFactoryRequestOpen}
+          branchId={branchId}
+          products={requestProducts}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['factory-request-approved', branchId] })}
+        />
+      )}
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
       <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
 
