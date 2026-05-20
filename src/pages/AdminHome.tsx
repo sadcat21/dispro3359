@@ -294,6 +294,16 @@ const AdminHome: React.FC = () => {
       const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
       const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
 
+      // Distinct products sold today (any sold_pieces > 0)
+      let soldTodayQuery = supabase
+        .from('sales_tracking')
+        .select('product_id, branch_id, sold_pieces, sold_at')
+        .gte('sold_at', startOfDay)
+        .gt('sold_pieces', 0);
+      if (activeBranch?.id) soldTodayQuery = soldTodayQuery.eq('branch_id', activeBranch.id);
+      const { data: soldTodayRows } = await soldTodayQuery;
+      const productsSoldToday = new Set(((soldTodayRows || []) as any[]).map((r) => r.product_id).filter(Boolean)).size;
+
       const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id);
       const activeWorkersToday = workerActivity.activeWorkersToday;
       const deliveriesToday = workerActivity.deliveriesToday;
