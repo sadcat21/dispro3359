@@ -1,9 +1,11 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Factory, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Factory, MessageCircle, CheckCircle2, FileText } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
+import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
+
 
 interface Props {
   branchId: string;
@@ -20,6 +22,8 @@ interface ApprovedRequest {
 }
 
 const FactoryRequestApprovedBanner: React.FC<Props> = ({ branchId, branchName }) => {
+  const qc = useQueryClient();
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const { data: requests = [] } = useQuery({
     queryKey: ['factory-request-approved', branchId],
     enabled: !!branchId,
@@ -105,8 +109,26 @@ const FactoryRequestApprovedBanner: React.FC<Props> = ({ branchId, branchName })
             <MessageCircle className="w-4 h-4" />
             واتساب
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setReceiptOpen(true)}
+            className="border-emerald-400 text-emerald-700 hover:bg-emerald-50 shrink-0 gap-1.5"
+          >
+            <FileText className="w-4 h-4" />
+            وثيقة الاستلام
+          </Button>
         </div>
       ))}
+
+      <FactoryReceiptQuickDialog
+        open={receiptOpen}
+        onOpenChange={(v) => {
+          setReceiptOpen(v);
+          if (!v) qc.invalidateQueries({ queryKey: ['factory-request-approved', branchId] });
+        }}
+      />
+
     </div>
   );
 };
