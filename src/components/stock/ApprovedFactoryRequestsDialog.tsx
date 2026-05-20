@@ -123,7 +123,16 @@ const ApprovedFactoryRequestsDialog: React.FC<Props> = ({ open, onOpenChange, br
                   ))}
                 </div>
                 {req.notes && <p className="text-xs text-slate-600">📝 {req.notes}</p>}
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDetailsReq(req)}
+                    className="border-blue-400 text-blue-700 hover:bg-blue-50 gap-1.5"
+                  >
+                    <Info className="w-4 h-4" />
+                    التفاصيل
+                  </Button>
                   <Button size="sm" onClick={() => openWhatsApp(req)} className="bg-[#25D366] hover:bg-[#1ebe57] text-white gap-1.5">
                     <MessageCircle className="w-4 h-4" />
                     واتساب
@@ -150,9 +159,79 @@ const ApprovedFactoryRequestsDialog: React.FC<Props> = ({ open, onOpenChange, br
             if (!v) qc.invalidateQueries({ queryKey: ['branch-approved-factory-requests', branchId] });
           }}
         />
+
+        <Dialog open={!!detailsReq} onOpenChange={(v) => { if (!v) setDetailsReq(null); }}>
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Info className="w-5 h-5 text-blue-600" />
+                تفاصيل الطلب {detailsReq?.reference_no ? `#${detailsReq.reference_no}` : ''}
+              </DialogTitle>
+            </DialogHeader>
+            {detailsReq && (
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-slate-50 p-3 text-sm space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-slate-500" />
+                    <span className="text-slate-600">مُنشئ الطلب:</span>
+                    <span className="font-semibold text-slate-900">{detailsReq.creator?.full_name || '—'}</span>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    الحالة الحالية: <span className="font-semibold text-emerald-700">{statusLabel(detailsReq.status)}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    سجل الحالات
+                  </h4>
+                  <ol className="relative border-r-2 border-blue-200 pr-4 space-y-3">
+                    {[
+                      { label: 'تم إنشاء الطلب', at: detailsReq.created_at, by: detailsReq.creator?.full_name },
+                      { label: 'موافقة مدير الفرع', at: detailsReq.branch_approved_at, by: detailsReq.branch_approver?.full_name },
+                      { label: 'موافقة المساعد', at: detailsReq.assistant_approved_at, by: detailsReq.assistant_approver?.full_name },
+                      { label: 'موافقة مدير النظام', at: detailsReq.system_manager_approved_at, by: detailsReq.system_approver?.full_name },
+                      { label: 'الاعتماد النهائي', at: detailsReq.confirmed_at, by: null },
+                    ].filter(s => s.at).map((s, i) => (
+                      <li key={i} className="relative">
+                        <span className="absolute -right-[22px] top-1 w-3 h-3 rounded-full bg-blue-500 ring-2 ring-white" />
+                        <div className="text-sm font-semibold text-slate-800">{s.label}</div>
+                        <div className="text-xs text-slate-500">{new Date(s.at).toLocaleString()}</div>
+                        {s.by && <div className="text-xs text-slate-600">بواسطة: {s.by}</div>}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-emerald-600" />
+                    المنتجات
+                  </h4>
+                  <div className="rounded-lg border border-slate-200 bg-white divide-y">
+                    {detailsReq.items.map((it: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between text-sm p-2">
+                        <span className="text-slate-700">{it.name}</span>
+                        <span className="font-mono font-semibold text-slate-900">{dbBPDisplay(it.qty, it.ppb)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {detailsReq.notes && (
+                  <div className="text-xs text-slate-600 bg-amber-50 border border-amber-200 rounded p-2">
+                    📝 {detailsReq.notes}
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
 };
+
 
 export default ApprovedFactoryRequestsDialog;
