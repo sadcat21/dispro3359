@@ -165,6 +165,14 @@ const BranchManagerApprovals: React.FC = () => {
       </div>
 
       <FactoryApprovalsDialog open={factoryOpen} onOpenChange={setFactoryOpen} />
+      {branchId && (
+        <ApprovedFactoryRequestsDialog
+          open={approvedReqOpen}
+          onOpenChange={setApprovedReqOpen}
+          branchId={branchId}
+          branchName={activeBranch?.name}
+        />
+      )}
     </div>
   );
 };
