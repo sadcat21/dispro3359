@@ -527,8 +527,8 @@ const AssistantApprovals: React.FC = () => {
                 ))}
           </TabsContent>
 
-          {/* تسليمات وطلبات للمصنع */}
-          <TabsContent value="factory_out" className="mt-4">
+          {/* طلبات الفرع للمصنع */}
+          <TabsContent value="factory_requests" className="mt-4">
             <Card className="border-slate-200 bg-white">
               <CardContent className="p-6 text-center space-y-4">
                 <Package className="w-12 h-12 mx-auto text-red-500" />
@@ -548,6 +548,17 @@ const AssistantApprovals: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* تسليمات للمصنع */}
+          <TabsContent value="factory_out" className="mt-4">
+            <Card className="border-slate-200 bg-white">
+              <CardContent className="p-6 text-center text-slate-500">
+                <Package className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{t('assistant_approvals.no_pending')}</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
         </Tabs>
       </div>
