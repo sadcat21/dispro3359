@@ -576,9 +576,9 @@ const WarehouseStock: React.FC = () => {
                               <span className="text-sm font-bold tabular-nums text-emerald-600">{fmt(s.received)}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-1">
-                            <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
+                          <div dir="ltr" className="flex items-center gap-1">
                             <span className={`text-base font-extrabold tabular-nums ${s.remaining > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>{fmt(s.remaining)}</span>
+                            <span className="text-[11px] text-muted-foreground">{t('warehouse.remaining')}</span>
                           </div>
                         </div>
                       </button>
