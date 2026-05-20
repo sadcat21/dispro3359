@@ -214,7 +214,7 @@ const BranchManagerHome: React.FC = () => {
       {/* Daily worker tasks button — below hero */}
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
-        <div className="relative px-3 py-1.5">
+        <div className="relative px-3 py-1.5 space-y-1.5">
           <button
             onClick={() => setDailyTasksOpen(true)}
             className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
@@ -222,8 +222,16 @@ const BranchManagerHome: React.FC = () => {
             <ClipboardList className="w-5 h-5" />
             <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
+          <button
+            onClick={openFactoryRequest}
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 px-4 py-2 text-white shadow-md shadow-orange-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+          >
+            <Factory className="w-5 h-5" />
+            <span className="text-base font-bold">طلب من المصنع</span>
+          </button>
         </div>
       </div>
+
 
       {/* Banner: إشعار الموافقة على طلبات المصنع + زر واتساب */}
       {branchId && <FactoryRequestApprovedBanner branchId={branchId} branchName={activeBranch?.name} />}
