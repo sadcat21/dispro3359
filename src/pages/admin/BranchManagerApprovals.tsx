@@ -30,6 +30,7 @@ const BranchManagerApprovals: React.FC = () => {
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id;
   const [factoryOpen, setFactoryOpen] = useState(false);
+  const [approvedReqOpen, setApprovedReqOpen] = useState(false);
 
   const { data: counts } = useQuery({
     queryKey: ['branch-approvals-counts', branchId],
