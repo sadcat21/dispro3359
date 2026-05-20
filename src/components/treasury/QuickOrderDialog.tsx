@@ -260,6 +260,7 @@ const QuickOrderDialog: React.FC<Props> = ({ open, onOpenChange, onOrderCreated 
         payment_type: 'with_invoice',
         invoice_payment_method: 'trigg',
         total_amount: 0,
+        client_request_id: crypto.randomUUID(),
       }).select('id').single();
 
       if (orderErr) throw orderErr;
