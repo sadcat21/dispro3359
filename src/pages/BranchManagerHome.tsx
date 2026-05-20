@@ -225,6 +225,11 @@ const BranchManagerHome: React.FC = () => {
         </div>
       </div>
 
+      {/* Banner: إشعار الموافقة على طلبات المصنع + زر واتساب */}
+      {branchId && <FactoryRequestApprovedBanner branchId={branchId} branchName={activeBranch?.name} />}
+
+
+
       {/* Sections — على نمط واجهة مدير النظام: حاويات ملوّنة مع بطاقات بيضاء وحدود ملونة */}
       <div className="px-2 sm:px-3 py-2 space-y-2">
         {sections.filter(s => s.items.length > 0).map((section, sIdx) => {
