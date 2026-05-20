@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Factory, MessageCircle, FileText, CheckCircle2, Loader2 } from 'lucide-react';
+import { Factory, MessageCircle, FileText, CheckCircle2, Loader2, Info, Clock, User, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 import FactoryReceiptQuickDialog from '@/components/stock/FactoryReceiptQuickDialog';
