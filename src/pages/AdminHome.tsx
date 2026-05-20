@@ -272,12 +272,28 @@ const AdminHome: React.FC = () => {
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
+      // Resolve worker IDs of this branch (used as fallback when orders/sales lost branch_id)
+      let branchWorkerIds: string[] = [];
+      if (activeBranch?.id) {
+        const { data: ws } = await supabase
+          .from('workers_safe')
+          .select('id')
+          .eq('branch_id', activeBranch.id);
+        branchWorkerIds = ((ws || []) as any[]).map((w) => w.id).filter(Boolean);
+      }
+
       let salesQuery = supabase
         .from('orders')
-        .select('total_amount, status, created_at, branch_id')
+        .select('total_amount, status, created_at, branch_id, assigned_worker_id')
         .eq('status', 'delivered')
         .gte('created_at', startOfMonth);
-      if (activeBranch?.id) salesQuery = salesQuery.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) {
+        // Include rows tagged with the branch OR (legacy NULL branch but worker belongs to branch)
+        const workerFilter = branchWorkerIds.length
+          ? `,and(branch_id.is.null,assigned_worker_id.in.(${branchWorkerIds.join(',')}))`
+          : '';
+        salesQuery = salesQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
+      }
       const { data: salesRows } = await salesQuery;
       const monthSales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       const todaySales = (salesRows || [])
@@ -297,10 +313,15 @@ const AdminHome: React.FC = () => {
       // Distinct products sold today (any sold_pieces > 0)
       let soldTodayQuery = supabase
         .from('sales_tracking')
-        .select('product_id, branch_id, sold_pieces, sold_at')
+        .select('product_id, branch_id, worker_id, sold_pieces, sold_at')
         .gte('sold_at', startOfDay)
         .gt('sold_pieces', 0);
-      if (activeBranch?.id) soldTodayQuery = soldTodayQuery.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) {
+        const workerFilter = branchWorkerIds.length
+          ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
+          : '';
+        soldTodayQuery = soldTodayQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
+      }
       const { data: soldTodayRows } = await soldTodayQuery;
       const productsSoldToday = new Set(((soldTodayRows || []) as any[]).map((r) => r.product_id).filter(Boolean)).size;
 
@@ -332,10 +353,15 @@ const AdminHome: React.FC = () => {
       // Delivered offers / gifts tracking (from sales_tracking)
       let offersQuery = supabase
         .from('sales_tracking')
-        .select('id, gift_pieces, gift_boxes, sold_at, branch_id, order_id, order_item_id')
+        .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
         .gte('sold_at', startOfMonth)
         .gt('gift_pieces', 0);
-      if (activeBranch?.id) offersQuery = offersQuery.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) {
+        const workerFilter = branchWorkerIds.length
+          ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
+          : '';
+        offersQuery = offersQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
+      }
       const { data: offerRows } = await offersQuery;
       const offerList = (offerRows || []) as any[];
       const monthGiftPieces = offerList.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
