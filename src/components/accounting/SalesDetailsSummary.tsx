@@ -321,14 +321,17 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
   })));
 
   const subtypeLabels: Record<string, string> = {
-    retail: 'تجزئة', gros: 'جملة', super_gros: 'سوبر جملة', invoice: 'فاتورة 1',
+    retail: t('sales_details.subtype_retail'),
+    gros: t('sales_details.subtype_gros'),
+    super_gros: t('sales_details.subtype_super_gros'),
+    invoice: t('sales_details.subtype_invoice'),
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
         <ShoppingBag className="w-4 h-4 text-primary" />
-        <span className="font-semibold text-sm">مبيعات العملاء</span>
+        <span className="font-semibold text-sm">{t('sales_details.customer_sales')}</span>
       </div>
 
       {/* Summary badges */}
