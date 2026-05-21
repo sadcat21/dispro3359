@@ -17,7 +17,7 @@ const CustomerDistanceIndicator: React.FC<CustomerDistanceIndicatorProps> = ({
 }) => {
   const { data: configuredThreshold } = useLocationThreshold();
   const thresholdMeters = thresholdProp ?? configuredThreshold ?? 100;
-  const { dir } = useLanguage();
+  const { dir, t } = useLanguage();
   const isRtl = dir === 'rtl';
   const [workerPosition, setWorkerPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
