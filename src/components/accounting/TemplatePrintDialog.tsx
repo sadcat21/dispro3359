@@ -55,7 +55,7 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <FileText className="w-4 h-4" />
-            طباعة نموذج فارغ
+            {t('template_print.title')}
           </DialogTitle>
         </DialogHeader>
 
