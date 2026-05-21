@@ -330,14 +330,14 @@ const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
 
       {/* Grand total */}
       <div className="flex items-center justify-between text-xs font-bold border-t-2 pt-2 px-1">
-        <span>الإجمالي</span>
+        <span>{t('pricing_groups.grand_total')}</span>
         <span className="text-primary">{fmt(Math.round(grandTotal))} DA</span>
       </div>
 
       {customGroup && (
         <div className="flex items-center gap-1.5 text-[10px] text-amber-600 px-1">
           <AlertTriangle className="w-3 h-3" />
-          <span>{customGroup.products.length} منتج بسعر مخصص مختلف عن الكتالوج</span>
+          <span>{customGroup.products.length} {t('pricing_groups.custom_count_suffix')}</span>
         </div>
       )}
     </div>
