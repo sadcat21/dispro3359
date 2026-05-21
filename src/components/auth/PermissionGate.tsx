@@ -22,6 +22,7 @@ const PermissionGate: React.FC<PermissionGateProps> = ({
   fallback,
   redirectTo,
 }) => {
+  const { t } = useLanguage();
   const { role, activeRole } = useAuth();
   const { data: permissions, isLoading } = useWorkerPermissions();
 
