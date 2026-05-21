@@ -90,16 +90,16 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
           <MapPin className="w-10 h-10 text-destructive" />
         </div>
-        <h2 className="text-xl font-bold">يجب تفعيل خدمة الموقع (GPS)</h2>
+        <h2 className="text-xl font-bold">{t('gps_guard.required_title')}</h2>
         <p className="text-muted-foreground max-w-sm">
-          لاستخدام التطبيق، يجب تفعيل خدمة تحديد المواقع على جهازك ومنح الإذن للتطبيق.
+          {t('gps_guard.required_message')}
         </p>
         <div className="flex gap-3">
           <Button onClick={checkGps} variant="default">
-            إعادة المحاولة
+            {t('gps_guard.retry')}
           </Button>
           <Button onClick={logout} variant="outline">
-            تسجيل الخروج
+            {t('gps_guard.logout')}
           </Button>
         </div>
       </div>
