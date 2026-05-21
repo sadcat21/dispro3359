@@ -225,7 +225,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
                   <button
                     key={i}
                     type="button"
-                    aria-label={`الشريحة ${i + 1}`}
+                    aria-label={`${t('showcase.slide_aria')} ${i + 1}`}
                     onClick={() => { setPaused(true); setIndex(i); }}
                     className={`h-1 rounded-full transition-all duration-500 ${
                       i === index ? 'w-6 bg-red-600' : 'w-1.5 bg-foreground/20'
