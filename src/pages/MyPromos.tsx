@@ -27,6 +27,8 @@ import { isOfferCurrentlyActive } from '@/utils/productOffers';
 import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
 import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 import { useAccountingDateRange } from '@/hooks/useAccountingDateRange';
+import AccountingSessionsTimelineDialog, { SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
+import { Clock } from 'lucide-react';
 
 type OfferSnapshot = {
   id: string;
