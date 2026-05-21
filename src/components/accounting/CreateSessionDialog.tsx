@@ -242,7 +242,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .limit(1);
       if (qErr) throw qErr;
       if (!latest || latest.length === 0) {
-        toast.error('لا توجد جلسة شحن لتجميدها');
+        toast.error(t('create_session.no_session_to_freeze'));
         return;
       }
       const { error } = await supabase
@@ -250,18 +250,18 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .update({ status: 'review', is_final: true } as any)
         .eq('id', latest[0].id);
       if (error) throw error;
-      toast.success('تم تجميد العامل');
+      toast.success(t('create_session.frozen'));
       queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
     } catch (e: any) {
-      toast.error(e.message || 'فشل تجميد العامل');
+      toast.error(e.message || t('create_session.freeze_failed'));
     } finally {
       setIsUnfreezing(false);
     }
   };
 
   const handleShowConfirmation = () => {
-    if (!selectedWorkerId || !calc) { toast.error('اختر العامل'); return; }
+    if (!selectedWorkerId || !calc) { toast.error(t('create_session.select_worker')); return; }
     setShowConfirmation(true);
   };
 
@@ -277,7 +277,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   };
 
   const handleSubmit = async (unloadNotes?: string) => {
-    if (!selectedWorkerId || !calc || isSubmitting) { toast.error('اختر العامل'); return; }
+    if (!selectedWorkerId || !calc || isSubmitting) { toast.error(t('create_session.select_worker')); return; }
 
     setIsSubmitting(true);
     try {
