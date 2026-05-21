@@ -544,19 +544,19 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                 {row.status === 'match' && (
                   <Badge className="text-[10px] bg-primary/80 text-primary-foreground">
                     <CheckCircle className="w-2.5 h-2.5 ml-0.5" />
-                    متوافق
+                    {t('product_stock.match')}
                   </Badge>
                 )}
                 {row.status === 'deficit' && (
                   <Badge className="text-[10px] bg-destructive text-destructive-foreground">
                     <AlertTriangle className="w-2.5 h-2.5 me-1" />
-                    عجز ({fmtQty(Math.abs(row.diff!))})
+                    {t('product_stock.deficit')} ({fmtQty(Math.abs(row.diff!))})
                   </Badge>
                 )}
                 {row.status === 'surplus' && (
                   <Badge className="text-[10px] bg-orange-500 text-white">
                     <TrendingUp className="w-2.5 h-2.5 me-1" />
-                    فائض ({fmtQty(Math.abs(row.diff!))})
+                    {t('product_stock.surplus')} ({fmtQty(Math.abs(row.diff!))})
                   </Badge>
                 )}
                 {row.status === null && (
