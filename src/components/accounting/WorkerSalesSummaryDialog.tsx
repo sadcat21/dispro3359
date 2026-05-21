@@ -307,6 +307,8 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
 };
 
 const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName, defaultPeriodFrom, defaultPeriodTo }) => {
+  const { t, language } = useLanguage();
+  const localeCode = getLocaleCode(language);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('products');
   const [periodFrom, setPeriodFrom] = useState<string>(defaultPeriodFrom || '');
