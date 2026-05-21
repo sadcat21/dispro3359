@@ -10,8 +10,11 @@ import { Bell, Check, FileEdit, Eye, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ModifyOrderDialog from '@/components/orders/ModifyOrderDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ReceiptModificationsNotification: React.FC = () => {
+  const { t, language } = useLanguage();
+  const localeCode = language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
   const { data: modifications } = useUnreviewedModifications();
   const reviewMutation = useReviewModification();
   const [open, setOpen] = useState(false);
