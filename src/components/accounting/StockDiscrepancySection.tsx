@@ -99,7 +99,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                     <Package className="w-3.5 h-3.5 text-destructive" />
                     <span className="text-sm font-semibold">{d.product?.name || '—'}</span>
                   </div>
-                  <Badge variant="destructive" className="text-xs">عجز: {fmt(d.quantity)}</Badge>
+                  <Badge variant="destructive" className="text-xs">{t('stock_discrepancy.deficit_label')}: {fmt(d.quantity)}</Badge>
                 </div>
                 
                 {/* Pricing options */}
