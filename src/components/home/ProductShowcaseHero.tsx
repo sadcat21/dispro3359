@@ -94,9 +94,9 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
             ];
           } else if (discount > 0) {
             subtitleParts = [
-              { text: 'اشترِ ' },
+              { text: `${t('showcase.buy')} ` },
               { text: `${minQty} ${unitLabel(minUnit)}`, highlight: true },
-              { text: ' واحصل على خصم ' },
+              { text: ` ${t('showcase.get')} ${t('showcase.discount')} ` },
               { text: `${discount}%`, highlight: true },
             ];
           } else if (discountAmt > 0) {
