@@ -148,7 +148,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
               <p className="font-bold text-xs">{fmt(row.totalDebt)}</p>
             </div>
             <div className="bg-muted/50 rounded p-1.5">
-              <p className="text-muted-foreground mb-0.5">المدفوع سابقاً</p>
+              <p className="text-muted-foreground mb-0.5">{t('debt_collections.paid_before')}</p>
               <p className="font-bold text-xs">{fmt(row.paidBefore)}</p>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 rounded p-1.5">
