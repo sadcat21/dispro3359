@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DebtCollectionsSummaryProps {
   workerId: string;
@@ -29,6 +30,7 @@ const extractDate = (v: string): string => {
 };
 
 const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd }) => {
+  const { t } = useLanguage();
   const { data: rows, isLoading } = useQuery({
     queryKey: ['session-debt-collections-detail', workerId, periodStart, periodEnd],
     queryFn: async () => {
@@ -104,7 +106,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
         const remainingAfter = Number(d.remaining_amount ?? (totalDebt - currentPaid));
 
         return {
-          customerName: d.customer?.name || 'غير معروف',
+          customerName: d.customer?.name || t('debt_collections.unknown_customer'),
           totalDebt,
           paidBefore: Math.max(0, paidBefore),
           collectedNow,
@@ -118,12 +120,17 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
   });
 
   if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
-  if (!rows || rows.length === 0) return <p className="text-xs text-muted-foreground text-center py-3">لا توجد تحصيلات في هذه الفترة</p>;
+  if (!rows || rows.length === 0) return <p className="text-xs text-muted-foreground text-center py-3">{t('debt_collections.no_collections')}</p>;
 
   const totalCollected = rows.reduce((s, r) => s + r.collectedNow, 0);
 
   const methodLabel = (m: string) => {
-    const map: Record<string, string> = { cash: 'نقدي', check: 'شيك', transfer: 'تحويل', receipt: 'وصل' };
+    const map: Record<string, string> = {
+      cash: t('debt_collections.method_cash'),
+      check: t('debt_collections.method_check'),
+      transfer: t('debt_collections.method_transfer'),
+      receipt: t('debt_collections.method_receipt'),
+    };
     return m.split(', ').map(x => map[x] || x).join(', ');
   };
 
@@ -137,26 +144,26 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
           </div>
           <div className="grid grid-cols-4 gap-1 text-[10px] text-center">
             <div className="bg-muted/50 rounded p-1.5">
-              <p className="text-muted-foreground mb-0.5">الدين الأصلي</p>
+              <p className="text-muted-foreground mb-0.5">{t('debt_collections.original_debt')}</p>
               <p className="font-bold text-xs">{fmt(row.totalDebt)}</p>
             </div>
             <div className="bg-muted/50 rounded p-1.5">
-              <p className="text-muted-foreground mb-0.5">المدفوع سابقاً</p>
+              <p className="text-muted-foreground mb-0.5">{t('debt_collections.paid_before')}</p>
               <p className="font-bold text-xs">{fmt(row.paidBefore)}</p>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 rounded p-1.5">
-              <p className="text-muted-foreground mb-0.5">المحصّل</p>
+              <p className="text-muted-foreground mb-0.5">{t('debt_collections.collected')}</p>
               <p className="font-bold text-xs text-green-600">{fmt(row.collectedNow)}</p>
             </div>
             <div className={`rounded p-1.5 ${row.remainingAfter > 0 ? 'bg-destructive/10' : 'bg-green-50 dark:bg-green-900/20'}`}>
-              <p className="text-muted-foreground mb-0.5">الباقي</p>
+              <p className="text-muted-foreground mb-0.5">{t('debt_collections.remaining')}</p>
               <p className={`font-bold text-xs ${row.remainingAfter > 0 ? 'text-destructive' : 'text-green-600'}`}>{fmt(row.remainingAfter)}</p>
             </div>
           </div>
         </div>
       ))}
       <div className="bg-primary/5 border border-primary/20 rounded-lg p-2.5 flex justify-between items-center">
-        <span className="text-sm font-bold">إجمالي التحصيلات</span>
+        <span className="text-sm font-bold">{t('debt_collections.total')}</span>
         <span className="font-bold text-primary">{fmt(totalCollected)} DA</span>
       </div>
     </div>

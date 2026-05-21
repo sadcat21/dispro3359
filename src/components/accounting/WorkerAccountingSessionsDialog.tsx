@@ -75,7 +75,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
           <DialogHeader className="p-4 pb-2">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Calculator className="w-5 h-5 text-primary" />
-              سجل جلسات المحاسبة — {workerName}
+              {t('worker_accounting_sessions.title')} — {workerName}
             </DialogTitle>
           </DialogHeader>
 
@@ -112,7 +112,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
                             {t(`accounting.status_${session.status}`)}
                           </Badge>
                           {session.manager?.full_name && (
-                            <span className="text-[11px] text-muted-foreground">بواسطة {session.manager.full_name}</span>
+                            <span className="text-[11px] text-muted-foreground">{t('worker_accounting_sessions.by')} {session.manager.full_name}</span>
                           )}
                         </div>
                       </div>
@@ -130,7 +130,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
                             onClick={(e) => e.stopPropagation()}
                           >
                             <ChevronDown className="w-3.5 h-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
-                            <span className="font-medium">{t('accounting.financial_summary') || 'ملخص مالي'}</span>
+                            <span className="font-medium">{t('accounting.financial_summary') || t('worker_accounting_sessions.financial_summary')}</span>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="grid grid-cols-3 gap-2 pt-2.5">
@@ -142,7 +142,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
                               <div className={`rounded-lg p-2 text-center ${cashDiff >= 0 ? 'bg-green-50' : 'bg-destructive/10'}`}>
                                 <p className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5">
                                   <AlertTriangle className="w-2.5 h-2.5" />
-                                  {cashDiff >= 0 ? t('accounting.surplus') || 'فائض' : t('accounting.deficit') || 'عجز'}
+                                  {cashDiff >= 0 ? (t('accounting.surplus') || t('worker_accounting_sessions.surplus')) : (t('accounting.deficit') || t('worker_accounting_sessions.deficit'))}
                                 </p>
                                 <p className={`text-xs font-bold ${cashDiff >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                                   {cashDiff >= 0 ? '+' : ''}{fmt(cashDiff)}

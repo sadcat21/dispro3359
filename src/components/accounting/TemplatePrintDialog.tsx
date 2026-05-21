@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Printer, Minus, Plus } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface TemplatePrintConfig {
   pageCount: number;
@@ -21,6 +22,7 @@ interface Props {
 }
 
 const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, offers, onPrint }) => {
+  const { t } = useLanguage();
   const [pageCount, setPageCount] = useState(2);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [customProduct, setCustomProduct] = useState('');
@@ -53,14 +55,14 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <FileText className="w-4 h-4" />
-            طباعة نموذج فارغ
+            {t('template_print.title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Page count */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-semibold">عدد الصفحات</Label>
+            <Label className="text-sm font-semibold">{t('template_print.page_count')}</Label>
             <div className="flex items-center gap-3">
               <Button
                 size="icon"
@@ -84,14 +86,14 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
           {/* Product selection */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-semibold">اسم المنتج (اختياري)</Label>
+            <Label className="text-sm font-semibold">{t('template_print.product_name')}</Label>
             <Select value={selectedProductId} onValueChange={(v) => { setSelectedProductId(v); setSelectedOffer(''); }}>
               <SelectTrigger className="h-9">
-                <SelectValue placeholder="اتركه فارغاً للكتابة اليدوية" />
+                <SelectValue placeholder={t('template_print.placeholder_blank')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none">فارغ (كتابة يدوية)</SelectItem>
-                <SelectItem value="__custom">إدخال يدوي...</SelectItem>
+                <SelectItem value="__none">{t('template_print.option_none')}</SelectItem>
+                <SelectItem value="__custom">{t('template_print.option_custom')}</SelectItem>
                 {products.map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
@@ -99,7 +101,7 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
             </Select>
             {selectedProductId === '__custom' && (
               <Input
-                placeholder="أدخل اسم المنتج..."
+                placeholder={t('template_print.placeholder_product')}
                 value={customProduct}
                 onChange={e => setCustomProduct(e.target.value)}
                 className="h-8 text-sm"
@@ -110,15 +112,15 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
           {/* Offer/tier selection */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-semibold">نوع العرض / الشريحة (اختياري)</Label>
+            <Label className="text-sm font-semibold">{t('template_print.offer_type')}</Label>
             {filteredOffers.length > 0 ? (
               <Select value={selectedOffer} onValueChange={setSelectedOffer}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="اتركه فارغاً للكتابة اليدوية" />
+                  <SelectValue placeholder={t('template_print.placeholder_blank')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none">فارغ (كتابة يدوية)</SelectItem>
-                  <SelectItem value="__custom">إدخال يدوي...</SelectItem>
+                  <SelectItem value="__none">{t('template_print.option_none')}</SelectItem>
+                  <SelectItem value="__custom">{t('template_print.option_custom')}</SelectItem>
                   {filteredOffers.map((o, i) => (
                     <SelectItem key={i} value={o.detail}>{o.detail}</SelectItem>
                   ))}
@@ -127,17 +129,17 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
             ) : (
               <Select value={selectedOffer} onValueChange={setSelectedOffer}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="اتركه فارغاً للكتابة اليدوية" />
+                  <SelectValue placeholder={t('template_print.placeholder_blank')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none">فارغ (كتابة يدوية)</SelectItem>
-                  <SelectItem value="__custom">إدخال يدوي...</SelectItem>
+                  <SelectItem value="__none">{t('template_print.option_none')}</SelectItem>
+                  <SelectItem value="__custom">{t('template_print.option_custom')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
             {selectedOffer === '__custom' && (
               <Input
-                placeholder="مثال: 50BOX+1BOX"
+                placeholder={t('template_print.placeholder_offer')}
                 value={customOffer}
                 onChange={e => setCustomOffer(e.target.value)}
                 className="h-8 text-sm"
@@ -149,11 +151,11 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
         <DialogFooter className="flex gap-2 pt-3">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            إلغاء
+            {t('template_print.cancel')}
           </Button>
           <Button size="sm" className="gap-1.5" onClick={handlePrint}>
             <Printer className="w-3.5 h-3.5" />
-            طباعة النموذج
+            {t('template_print.print')}
           </Button>
         </DialogFooter>
       </DialogContent>
