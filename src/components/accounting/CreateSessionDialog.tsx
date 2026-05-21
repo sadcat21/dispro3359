@@ -568,7 +568,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <span>{fmt(calc.debtCollections.cash)} DA</span>
                     </div>
                     <div className="flex justify-between text-blue-600">
-                      <span>فائض العملاء (كاش)</span>
+                      <span>{t('create_session.customer_surplus_cash')}</span>
                       <span>{calc.customerSurplusCash > 0 ? '+' : ''}{fmt(calc.customerSurplusCash)} DA</span>
                     </div>
                     <div className="flex justify-between text-destructive">
