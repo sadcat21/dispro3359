@@ -342,17 +342,41 @@ const MyPromosContent: React.FC = () => {
       <FrozenWorkerBadge workerId={workerId} />
 
       {/* Accounting period selector */}
-      <Button
-        variant="outline"
-        onClick={() => setShowPeriodDialog(true)}
-        className="w-full justify-between"
-      >
-        <span className="flex items-center gap-2">
-          <CalendarRange className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold">الفترة المحاسبية</span>
-        </span>
-        <span className="text-xs text-muted-foreground">{periodLabel}</span>
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() => setShowPeriodDialog(true)}
+          className="flex-1 justify-between"
+        >
+          <span className="flex items-center gap-2">
+            <CalendarRange className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold">الفترة المحاسبية</span>
+          </span>
+          <span className="text-xs text-muted-foreground">{periodLabel}</span>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setShowSessionsTimeline(true)}
+          className={`gap-2 ${selectedSessionRanges.length > 0 ? 'border-primary text-primary' : ''}`}
+        >
+          <Clock className="w-4 h-4" />
+          <span className="text-xs">جلسات</span>
+          {selectedSessionRanges.length > 0 && (
+            <span className="text-[10px] bg-primary text-primary-foreground rounded-full px-1.5 py-0.5">
+              {selectedSessionRanges.length}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      <AccountingSessionsTimelineDialog
+        open={showSessionsTimeline}
+        onOpenChange={setShowSessionsTimeline}
+        workerId={workerId || ''}
+        selectedIds={selectedSessionIds}
+        onApply={setSelectedSessionRanges}
+      />
+
 
       <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
         <DialogContent className="max-w-sm">
