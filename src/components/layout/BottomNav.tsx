@@ -30,10 +30,11 @@ export interface BottomNavProps {
   className?: string;
 }
 
+// Default items are placeholders; callers should pass localized labels.
 const DEFAULT_ITEMS: BottomNavItem[] = [
   { key: 'more', label: 'More', icon: MoreHorizontal },
   { key: 'finance', label: 'Finance', icon: Wallet },
-  { key: 'achievements', label: "إنجازات اليوم", icon: Trophy, activeColor: 'text-blue-500' },
+  { key: 'achievements', label: 'Achievements', icon: Trophy, activeColor: 'text-blue-500' },
   { key: 'orders', label: 'Orders', icon: ClipboardList, badge: 11 },
   { key: 'home', label: 'Home', icon: Home },
 ];

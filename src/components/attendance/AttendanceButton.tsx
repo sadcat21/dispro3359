@@ -2,13 +2,15 @@ import React from 'react';
 import { useAttendance } from '@/hooks/useAttendance';
 import { LogIn, LogOut, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AttendanceButton: React.FC = () => {
   const { isClockedIn, isChecking, toggleAttendance, lastAction } = useAttendance();
+  const { t, language } = useLanguage();
 
-  const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
-  };
+  const locale = language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US';
+  const formatTime = (dateStr: string) =>
+    new Date(dateStr).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
   return (
     <button
@@ -20,7 +22,7 @@ const AttendanceButton: React.FC = () => {
           ? 'bg-destructive/20 text-destructive hover:bg-destructive/30'
           : 'bg-emerald-500/20 text-emerald-600 hover:bg-emerald-500/30'
       )}
-      title={isClockedIn ? 'نهاية العمل' : 'بداية العمل'}
+      title={isClockedIn ? t('attendance.end_work') : t('attendance.start_work')}
     >
       {isChecking ? (
         <Loader2 className="w-4 h-4 animate-spin" />
@@ -30,7 +32,7 @@ const AttendanceButton: React.FC = () => {
         <LogIn className="w-4 h-4" />
       )}
       <span className="hidden min-[400px]:inline">
-        {isClockedIn ? 'خروج' : 'دخول'}
+        {isClockedIn ? t('attendance.clock_out_short') : t('attendance.clock_in_short')}
       </span>
       {lastAction && (
         <span className="text-[10px] opacity-70">
