@@ -44,6 +44,7 @@ const BoxPieceInput: React.FC<BoxPieceInputProps> = ({
   disabled = false,
   onFocus,
 }) => {
+  const { t } = useLanguage();
   const ppb = Math.max(1, Math.round(piecesPerBox));
   const [rawInput, setRawInput] = useState(() => boxesToBP(value, ppb));
   const [isFocused, setIsFocused] = useState(false);
