@@ -1108,7 +1108,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                 {selectedCustomer && (
                   <div className="p-2.5 bg-muted/50 rounded-lg space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-bold truncate">{selectedCustomer.name}</span>
+                      <span className="text-sm font-bold truncate">{localizedCustomerName(selectedCustomer)}</span>
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
                         {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
                           selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
