@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 
 interface BoxPieceInputProps {
   /** Current value in boxes (fractional, e.g. 5.25 = 5 boxes + 5/20 pieces) */
