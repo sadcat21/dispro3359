@@ -591,7 +591,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
-                تجميع مبيعات {workerName}
+                {t('sales_summary.title')} {workerName}
               </div>
               <div className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
