@@ -766,7 +766,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <ClipboardList className="w-5 h-5 text-primary" />
               </div>
               <div className="flex flex-col">
-                <span>ملخص التسليم</span>
+                <span>{t('create_session.handover_summary')}</span>
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
