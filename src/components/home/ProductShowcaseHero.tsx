@@ -25,6 +25,19 @@ interface ProductShowcaseHeroProps {
 }
 
 const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgImage, overlayClassName }) => {
+  const { t, language } = useLanguage();
+  const localeCode = language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
+  const formatDate = (d?: string | null) => {
+    if (!d) return '';
+    try {
+      return new Date(d).toLocaleDateString(localeCode, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch { return ''; }
+  };
+  const unitLabel = (u?: string) => {
+    if (u === 'box') return t('showcase.unit_box');
+    if (u === 'piece') return t('showcase.unit_piece');
+    return u || '';
+  };
   const { activeOffers } = useProductOffers();
   const { companyInfo } = useCompanyInfo();
   const [index, setIndex] = useState(0);
