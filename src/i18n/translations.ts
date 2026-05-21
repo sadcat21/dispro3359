@@ -2444,9 +2444,9 @@ export const translations: Translations = {
   'refresh.tooltip': { ar: 'تحديث / مزامنة (ضغطة طويلة: إعادة تحميل كاملة)', fr: 'Actualiser / synchroniser (clic long : rechargement complet)', en: 'Refresh / sync (long press: full reload)' },
   'refresh.success': { ar: 'تمت المزامنة بنجاح', fr: 'Synchronisation réussie', en: 'Sync successful' },
 
-  // Attendance button
-  'attendance.clock_in': { ar: 'دخول', fr: 'Entrée', en: 'Clock in' },
-  'attendance.clock_out': { ar: 'خروج', fr: 'Sortie', en: 'Clock out' },
+  // Attendance button (short labels)
+  'attendance.clock_in_short': { ar: 'دخول', fr: 'Entrée', en: 'In' },
+  'attendance.clock_out_short': { ar: 'خروج', fr: 'Sortie', en: 'Out' },
   'attendance.start_work': { ar: 'بداية العمل', fr: 'Début du travail', en: 'Start work' },
   'attendance.end_work': { ar: 'نهاية العمل', fr: 'Fin du travail', en: 'End work' },
 
