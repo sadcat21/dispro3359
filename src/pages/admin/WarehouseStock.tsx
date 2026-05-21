@@ -411,6 +411,18 @@ const WarehouseStock: React.FC = () => {
       summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
     }
 
+    // Fallback: if warehouse_stock table has an actual balance that the
+    // receipts-based computation missed (legacy data, manual edits, or pruned
+    // receipts), surface it so the branch doesn't appear empty.
+    for (const ws of warehouseStock) {
+      const pid = ws.product_id;
+      if (!summaries[pid]) continue;
+      const dbQty = Number(ws.quantity || 0);
+      if (dbQty > 0 && summaries[pid].remaining <= 0) {
+        summaries[pid].remaining = dbQty;
+      }
+    }
+
     // Hide products where all values are zero
     return Object.values(summaries)
       .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.offers + s.remaining > 0)
