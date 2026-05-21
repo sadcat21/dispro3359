@@ -183,7 +183,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                 disabled={resolveDiscrepancy.isPending}
               >
                 <Check className="w-3 h-3 me-1" />
-                إضافة إلى مخزون الفائض
+                {t('stock_discrepancy.add_to_surplus_stock')}
               </Button>
             </div>
           ))}
