@@ -459,7 +459,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<Layers className="w-4 h-4 text-primary" />}
-              title="مجموعات التسعير"
+              title={t('session_details.pricing_groups')}
               sectionKey="pricing"
               activeKey={activeSection}
               onToggle={toggleSection}
