@@ -768,8 +768,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             ) : !salesData?.items?.length && !expandedProduct ? (
               <div className="py-10 text-center text-muted-foreground">
                 <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                <p>لا توجد مبيعات في هذه الفترة</p>
-                <p className="text-xs mt-1">جرب تغيير الفترة الزمنية أو إعادة التعيين</p>
+                <p>{t('sales_summary.no_sales')}</p>
+                <p className="text-xs mt-1">{t('sales_summary.no_sales_hint')}</p>
               </div>
             ) : expandedProduct ? (
               <ExpandedCarousel
