@@ -2438,4 +2438,28 @@ export const translations: Translations = {
   'invoice_review.file_uploaded': { ar: 'تم رفع الفاتورة', fr: 'Facture téléversée', en: 'Invoice uploaded' },
   'invoice_review.view_order_details': { ar: 'عرض تفاصيل الطلبية', fr: 'Voir les détails de la commande', en: 'View order details' },
   'invoice_review.customer': { ar: 'العميل', fr: 'Client', en: 'Customer' },
+
+  // Refresh button
+  'refresh.aria': { ar: 'تحديث الصفحة', fr: 'Actualiser la page', en: 'Refresh page' },
+  'refresh.tooltip': { ar: 'تحديث / مزامنة (ضغطة طويلة: إعادة تحميل كاملة)', fr: 'Actualiser / synchroniser (clic long : rechargement complet)', en: 'Refresh / sync (long press: full reload)' },
+  'refresh.success': { ar: 'تمت المزامنة بنجاح', fr: 'Synchronisation réussie', en: 'Sync successful' },
+
+  // Attendance button
+  'attendance.clock_in': { ar: 'دخول', fr: 'Entrée', en: 'Clock in' },
+  'attendance.clock_out': { ar: 'خروج', fr: 'Sortie', en: 'Clock out' },
+  'attendance.start_work': { ar: 'بداية العمل', fr: 'Début du travail', en: 'Start work' },
+  'attendance.end_work': { ar: 'نهاية العمل', fr: 'Fin du travail', en: 'End work' },
+
+  // Frozen worker badge
+  'worker.frozen_short': { ar: 'مجمَّد - عجز', fr: 'Bloqué - Déficit', en: 'Frozen - Deficit' },
+  'worker.frozen_message_prefix': { ar: 'هذا الموظف مجمَّد بسبب عجز غير مسدَّد قدره', fr: 'Cet employé est bloqué en raison d\'un déficit impayé de', en: 'This worker is frozen due to an unpaid deficit of' },
+  'worker.frozen_message_suffix': { ar: 'من مراجعة المخزون. لا يمكن تعديل الطلبيات المسلَّمة أو عروض الأسعار أو تأكيدات الهدايا المعلَّقة حتى تتم تسوية المحاسبة.', fr: 'lors de la révision des stocks. Les commandes livrées, devis et confirmations de cadeaux en attente ne peuvent pas être modifiés tant que la comptabilité n\'est pas réglée.', en: 'from stock review. Delivered orders, quotes and pending gift confirmations cannot be modified until accounting is settled.' },
+
+  // Bottom navigation
+  'bottomnav.more': { ar: 'المزيد', fr: 'Plus', en: 'More' },
+  'bottomnav.finance': { ar: 'المالية', fr: 'Finance', en: 'Finance' },
+  'bottomnav.achievements_today': { ar: 'إنجازات اليوم', fr: 'Réussites du jour', en: "Today's achievements" },
+  'bottomnav.orders': { ar: 'الطلبيات', fr: 'Commandes', en: 'Orders' },
+  'bottomnav.home': { ar: 'الرئيسية', fr: 'Accueil', en: 'Home' },
+  'bottomnav.action': { ar: 'إجراء', fr: 'Action', en: 'Action' },
 };
