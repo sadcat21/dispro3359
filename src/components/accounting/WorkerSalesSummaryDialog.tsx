@@ -268,11 +268,11 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
             <CollapsibleContent>
               <div className="border-t p-1.5 space-y-1">
                 <div className="grid grid-cols-5 gap-1 text-[10px] text-muted-foreground text-center font-medium border-b pb-1">
-                  <span className="text-start">التسعير</span>
-                  <span>الكمية</span>
-                  <span>سعر الصندوق</span>
-                  <span>سعر الوحدة</span>
-                  <span>القيمة الإجمالية</span>
+                  <span className="text-start">{t('sales_summary.col_pricing')}</span>
+                  <span>{t('sales_summary.col_qty')}</span>
+                  <span>{t('sales_summary.col_box_price')}</span>
+                  <span>{t('sales_summary.col_unit_price')}</span>
+                  <span>{t('sales_summary.col_total_value')}</span>
                 </div>
                 {product.pricingRows.sort((a, b) => b.quantity - a.quantity).map((row, idx) => {
                   const unit = getUnitPrice(row);
