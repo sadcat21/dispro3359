@@ -1495,7 +1495,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                 className="h-10 px-4"
                 onClick={() => setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3)}
               >
-                السابق
+                {t('common.previous')}
               </Button>
             )}
             {currentStep < 3 ? (
@@ -1505,7 +1505,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                 onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
                 disabled={(currentStep === 1 && !selectedCustomerId) || (currentStep === 2 && orderItems.length === 0)}
               >
-                التالي
+                {t('common.next')}
               </Button>
             ) : (
               <Button
