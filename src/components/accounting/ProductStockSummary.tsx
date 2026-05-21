@@ -430,10 +430,10 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
   const untrackedCount = salesData?.untrackedCount || 0;
 
   const subtypeLabels: Record<string, string> = {
-    retail: 'تجزئة',
-    gros: 'جملة',
-    super_gros: 'سوبر جملة',
-    invoice: 'فاتورة 1',
+    retail: t('sales_details.subtype_retail'),
+    gros: t('sales_details.subtype_gros'),
+    super_gros: t('sales_details.subtype_super_gros'),
+    invoice: t('sales_details.subtype_invoice'),
   };
 
   const getUnitSalePrice = (row: SoldProductPricingRow): number | null => {
