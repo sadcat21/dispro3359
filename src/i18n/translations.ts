@@ -2225,7 +2225,7 @@ export const translations: Translations = {
   'admin_home.low_stock': { ar: 'منخفض', fr: 'Faible', en: 'Low' },
   'admin_home.damaged': { ar: 'تالف', fr: 'Endommagé', en: 'Damaged' },
   'admin_home.workers_activity_today': { ar: 'نشاط العمال اليوم', fr: 'Activité des employés aujourd\'hui', en: 'Workers activity today' },
-  'admin_home.active_workers': { ar: 'عمال نشطون', fr: 'Employés actifs', en: 'Active workers' },
+  'admin_home.active_workers_today': { ar: 'عمال نشطون', fr: 'Employés actifs', en: 'Active workers' },
   'admin_home.deliveries': { ar: 'عمليات تسليم', fr: 'Livraisons', en: 'Deliveries' },
   'admin_home.delivered_offers_gifts': { ar: 'العروض المسلّمة والهدايا', fr: 'Offres et cadeaux livrés', en: 'Delivered offers & gifts' },
   'admin_home.offers_today': { ar: 'عروض اليوم', fr: 'Offres du jour', en: 'Today\'s offers' },
