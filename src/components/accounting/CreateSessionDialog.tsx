@@ -314,7 +314,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           items,
         });
         sessionId = editSession.id;
-        toast.success(t('accounting.session_updated') || 'تم تحديث الجلسة بنجاح');
+        toast.success(t('accounting.session_updated') || t('create_session.session_updated_ok'));
       } else {
         const result = await createSession.mutateAsync({
           worker_id: selectedWorkerId,
@@ -336,7 +336,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             amount: Math.abs(cashDifference),
             debt_type: 'deficit',
             session_id: sessionId,
-            description: `عجز جلسة محاسبة ${format(new Date(), 'dd/MM/yyyy')}`,
+            description: `${t('create_session.deficit_session_desc')} ${format(new Date(), 'dd/MM/yyyy')}`,
           });
           // Always also record in surplus/deficit treasury
           await supabase.from('manager_treasury').insert({
@@ -346,10 +346,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             source_type: 'accounting_deficit',
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
-            notes: `عجز جلسة محاسبة - ${workerName || selectedWorkerId}`,
+            notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
           });
-          toast.success('تم تسجيل العجز كدين على العامل وفي خزينة الفائض والعجز');
-        } catch { toast.error('خطأ في تسجيل العجز'); }
+          toast.success(t('create_session.deficit_recorded_full'));
+        } catch { toast.error(t('create_session.deficit_error')); }
       }
 
       // Register deficit ONLY in surplus/deficit treasury (no worker debt)
@@ -362,10 +362,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             source_type: 'accounting_deficit',
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
-            notes: `عجز جلسة محاسبة (خزينة فقط) - ${workerName || selectedWorkerId}`,
+            notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
           });
-          toast.success('تم تسجيل العجز في خزينة الفائض والعجز');
-        } catch { toast.error('خطأ في تسجيل العجز في الخزينة'); }
+          toast.success(t('create_session.deficit_recorded_treasury'));
+        } catch { toast.error(t('create_session.deficit_treasury_error')); }
       }
 
       // Register surplus in manager treasury
@@ -378,10 +378,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             source_type: 'accounting_surplus',
             payment_method: 'cash',
             amount: cashDifference,
-            notes: `فائض جلسة محاسبة - ${workerName || selectedWorkerId}`,
+            notes: `${t('create_session.surplus_session_note')} - ${workerName || selectedWorkerId}`,
           });
-          toast.success('تم تسجيل الفائض في الخزينة');
-        } catch { toast.error('خطأ في تسجيل الفائض'); }
+          toast.success(t('create_session.surplus_recorded'));
+        } catch { toast.error(t('create_session.surplus_error')); }
       }
 
       setShowConfirmation(false);
