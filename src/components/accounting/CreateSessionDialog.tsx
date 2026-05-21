@@ -734,7 +734,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                   disabled={isUnfreezing}
                 >
                   {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                  {isFrozen ? 'فك التجميد' : 'تجميد'}
+                  {isFrozen ? t('create_session.unfreeze') : t('create_session.freeze')}
                 </Button>
               )}
               <Button
