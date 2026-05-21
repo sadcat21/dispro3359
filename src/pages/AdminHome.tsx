@@ -540,7 +540,7 @@ const AdminHome: React.FC = () => {
         { path: '/backup', icon: Database, label: t('admin_home.item.backup') },
         { path: '/guide', icon: BookOpen, label: t('nav.guide') },
         { path: '/training', icon: BookOpen, label: t('admin_home.item.training') },
-        { path: '/identifier-inspector', icon: ScanSearch, label: 'فاحص المعرفات' },
+        { path: '/identifier-inspector', icon: ScanSearch, label: t('admin_home.item.identifier_inspector') },
         { path: '/components-reference', icon: ClipboardList, label: t('admin_home.item.components_reference') },
       ],
     }] : []),
