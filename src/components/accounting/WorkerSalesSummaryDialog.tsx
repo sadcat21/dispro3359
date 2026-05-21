@@ -439,7 +439,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           const product = productInfoMap[item.product_id];
           agg[item.product_id] = {
             productId: item.product_id,
-            name: product?.name || 'منتج غير معروف',
+            name: product?.name || t('sales_summary.unknown_product'),
             quantity: 0,
             giftQuantity: 0,
             totalAmount: 0,
