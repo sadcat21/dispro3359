@@ -299,7 +299,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
       ))}
 
       <div className="grid grid-cols-2 gap-2 text-xs text-center font-bold border-t-2 pt-1 bg-primary/5 rounded p-1.5">
-        <span className="text-start">الإجمالي: {fmtQty(totalQty)} صندوق</span>
+        <span className="text-start">{t('sales_summary.total')}: {fmtQty(totalQty)} {t('sales_summary.box')}</span>
         <span className="text-primary">{totalValue.toLocaleString()} DA</span>
       </div>
     </div>
