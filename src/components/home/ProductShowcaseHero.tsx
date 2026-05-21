@@ -72,14 +72,14 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
         const productName = o.product.name as string;
         const image = o.product.image_url as string;
         const tiers = (o.tiers && o.tiers.length > 0) ? o.tiers : [o];
-        tiers.forEach((t: any, idx: number) => {
-          const giftName = t?.gift_product?.name || o.gift_product?.name || null;
-          const giftQty = Number(t?.gift_quantity || 0);
-          const giftUnit = t?.gift_quantity_unit || '';
-          const minQty = Number(t?.min_quantity || 0);
-          const minUnit = t?.min_quantity_unit || '';
-          const discount = Number(t?.discount_percentage || 0);
-          const discountAmt = Number(t?.discount_amount || 0);
+        tiers.forEach((tier: any, idx: number) => {
+          const giftName = tier?.gift_product?.name || o.gift_product?.name || null;
+          const giftQty = Number(tier?.gift_quantity || 0);
+          const giftUnit = tier?.gift_quantity_unit || '';
+          const minQty = Number(tier?.min_quantity || 0);
+          const minUnit = tier?.min_quantity_unit || '';
+          const discount = Number(tier?.discount_percentage || 0);
+          const discountAmt = Number(tier?.discount_amount || 0);
 
           let subtitleParts: SubtitlePart[] = [];
           if (giftQty > 0) {
