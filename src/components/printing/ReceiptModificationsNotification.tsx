@@ -65,10 +65,10 @@ const ReceiptModificationsNotification: React.FC = () => {
               <div key={mod.id} className="p-2 rounded-lg border bg-card text-sm space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-xs">
-                    {mod.modifier?.full_name || 'عامل'}
+                    {mod.modifier?.full_name || t('receipt_mods.worker_fallback')}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    {new Date(mod.created_at).toLocaleString('ar-DZ', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                    {new Date(mod.created_at).toLocaleString(localeCode, { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">{mod.changes_summary}</p>
