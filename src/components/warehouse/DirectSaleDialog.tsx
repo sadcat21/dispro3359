@@ -95,7 +95,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || user?.branch_id || null;
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
-  const { t, dir } = useLanguage();
+  const { t, dir, language } = useLanguage();
+  const localizedCustomerName = (c: any | null | undefined): string => {
+    if (!c) return '';
+    if (language === 'fr' || language === 'en') return c.name_fr || c.name || '';
+    return c.name || c.name_fr || '';
+  };
   const queryClient = useQueryClient();
   const { companyInfo } = useCompanyInfo();
   const { data: stampTiers } = useActiveStampTiers();
