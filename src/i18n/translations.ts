@@ -2462,4 +2462,24 @@ export const translations: Translations = {
   'bottomnav.orders': { ar: 'الطلبيات', fr: 'Commandes', en: 'Orders' },
   'bottomnav.home': { ar: 'الرئيسية', fr: 'Accueil', en: 'Home' },
   'bottomnav.action': { ar: 'إجراء', fr: 'Action', en: 'Action' },
+
+  // TruckUnloadDialog
+  'truck_unload.title': { ar: 'رصيد شحنة العامل', fr: 'Solde du chargement', en: 'Truck shipment balance' },
+  'truck_unload.empty': { ar: 'رصيد الشحنة فارغ — تم تفريغ الشاحنة بالكامل', fr: 'Chargement vide — camion entièrement déchargé', en: 'Shipment empty — truck fully unloaded' },
+  'truck_unload.has_remaining_prefix': { ar: 'لا يزال لدى العامل', fr: 'Il reste à l\'employé', en: 'Worker still has' },
+  'truck_unload.has_remaining_suffix': { ar: 'منتج بكميات متبقية. لا يمكن الحفظ.', fr: 'produit(s) avec des quantités restantes. Sauvegarde impossible.', en: 'product(s) with remaining quantities. Cannot save.' },
+  'truck_unload.notes_placeholder': { ar: 'ملاحظات حول التفريغ (اختياري)...', fr: 'Notes sur le déchargement (optionnel)...', en: 'Notes about unloading (optional)...' },
+  'truck_unload.close': { ar: 'إغلاق', fr: 'Fermer', en: 'Close' },
+  'truck_unload.confirm': { ar: 'تأكيد التفريغ وحفظ المحاسبة', fr: 'Confirmer le déchargement et enregistrer la comptabilité', en: 'Confirm unload and save accounting' },
+  'truck_unload.force_empty': { ar: 'تفريغ الشاحنة الآن (المدير)', fr: 'Décharger le camion maintenant (manager)', en: 'Empty truck now (manager)' },
+
+  // WorkerHandoverPreviewDialog
+  'handover_preview.title': { ar: 'ملخص التسليم اليومي', fr: 'Résumé de la remise quotidienne', en: 'Daily handover summary' },
+  'handover_preview.title_with_name': { ar: 'ملخص التسليم', fr: 'Résumé de la remise', en: 'Handover summary' },
+  'handover_preview.sessions_after_review_prefix': { ar: '⚠️ توجد', fr: '⚠️ Il existe', en: '⚠️ There are' },
+  'handover_preview.sessions_after_review_suffix': { ar: 'جلسة شحن/تفريغ بعد آخر مراجعة نهائية — المحاسبة ستكون بناءً على آخر مراجعة نهائية فقط ولن تُحتسب الجلسات اللاحقة', fr: 'session(s) de chargement/déchargement après la dernière révision finale — la comptabilité se basera uniquement sur la dernière révision finale, les sessions suivantes ne seront pas comptabilisées', en: 'loading/unloading session(s) after the last final review — accounting will be based only on the last final review; subsequent sessions will not be counted' },
+  'handover_preview.no_data': { ar: 'لا توجد بيانات لهذا العامل اليوم', fr: 'Aucune donnée pour cet employé aujourd\'hui', en: 'No data for this worker today' },
+  'handover_preview.cannot_proceed': { ar: 'لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي مراجعة نهائية للشاحنة', fr: 'Impossible de passer à la session comptable — aucune révision finale du camion', en: 'Cannot proceed to accounting session — no final truck review found' },
+  'handover_preview.back': { ar: 'العودة', fr: 'Retour', en: 'Back' },
+  'handover_preview.proceed': { ar: 'الانتقال للجلسة', fr: 'Passer à la session', en: 'Proceed to session' },
 };
