@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart, Phone } from 'lucide-react';
+import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart, Phone, CalendarRange } from 'lucide-react';
 import AddPromoDialog from '@/components/promo/AddPromoDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -26,6 +26,7 @@ import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { isOfferCurrentlyActive } from '@/utils/productOffers';
 import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
 import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
+import { useAccountingDateRange } from '@/hooks/useAccountingDateRange';
 
 type OfferSnapshot = {
   id: string;
@@ -91,7 +92,14 @@ const MyPromosContent: React.FC = () => {
   const [offers, setOffers] = useState<OfferSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
+  // Accounting Filtering — same logic as /my-achievements
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const [periodFrom, setPeriodFrom] = useState<string>(today);
+  const [periodTo, setPeriodTo] = useState<string>(today);
+  const [showPeriodDialog, setShowPeriodDialog] = useState(false);
+  const { lowerBound, upperBound, isLoading: boundsLoading } = useAccountingDateRange(workerId, periodFrom, periodTo);
+
   // Edit dialog state
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingPromo, setEditingPromo] = useState<PromoWithDetails | null>(null);
@@ -116,10 +124,10 @@ const MyPromosContent: React.FC = () => {
   const isDeletePromoHidden = true;
 
   useEffect(() => {
-    if (workerId) {
+    if (workerId && !boundsLoading) {
       fetchData();
     }
-  }, [workerId, activeBranch]);
+  }, [workerId, activeBranch, lowerBound, upperBound, boundsLoading]);
 
   const fetchData = async () => {
     try {
@@ -128,6 +136,8 @@ const MyPromosContent: React.FC = () => {
           .from('promos')
           .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity), order:orders(status)`)
           .eq('worker_id', workerId)
+          .gte('created_at', lowerBound)
+          .lte('created_at', upperBound)
           .order('promo_date', { ascending: false }),
         supabase.from('customers').select('*').order('name'),
         supabase.from('products').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('name'),
@@ -309,9 +319,53 @@ const MyPromosContent: React.FC = () => {
     );
   }
 
+  const periodLabel = periodFrom === today && periodTo === today
+    ? 'اليوم (منذ آخر جلسة محاسبية)'
+    : periodFrom === periodTo
+      ? format(new Date(`${periodFrom}T00:00:00`), 'dd/MM/yyyy')
+      : `${format(new Date(`${periodFrom}T00:00:00`), 'dd/MM')} → ${format(new Date(`${periodTo}T00:00:00`), 'dd/MM/yyyy')}`;
+
   return (
     <div className="p-4 space-y-4">
       <FrozenWorkerBadge workerId={workerId} />
+
+      {/* Accounting period selector */}
+      <Button
+        variant="outline"
+        onClick={() => setShowPeriodDialog(true)}
+        className="w-full justify-between"
+      >
+        <span className="flex items-center gap-2">
+          <CalendarRange className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold">الفترة المحاسبية</span>
+        </span>
+        <span className="text-xs text-muted-foreground">{periodLabel}</span>
+      </Button>
+
+      <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>اختر الفترة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">من</Label>
+              <Input type="date" value={periodFrom} onChange={(e) => setPeriodFrom(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">إلى</Label>
+              <Input type="date" value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setPeriodFrom(today); setPeriodTo(today); }}>
+                اليوم
+              </Button>
+              <Button className="flex-1" onClick={() => setShowPeriodDialog(false)}>تطبيق</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground">
