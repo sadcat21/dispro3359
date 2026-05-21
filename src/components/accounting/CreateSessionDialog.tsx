@@ -507,7 +507,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 3: Payment Breakdown ━━━ */}
-                <StepSection step={3} title="تفاصيل المدفوعات" color="blue">
+                <StepSection step={3} title={t('create_session.payment_details')} color="blue">
                   {/* Invoice 1 */}
                   <div className="rounded-lg border p-3 space-y-1.5 mb-2">
                     <div className="flex items-center justify-between">
