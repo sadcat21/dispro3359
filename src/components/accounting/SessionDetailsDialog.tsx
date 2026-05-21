@@ -100,12 +100,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
         amount: Math.abs(amount),
         debt_type: 'deficit',
         session_id: session.id,
-        description: `عجز جلسة محاسبة ${format(new Date(session.session_date), 'dd/MM/yyyy')}`,
+        description: `${t('create_session.deficit_session_desc')} ${format(new Date(session.session_date), 'dd/MM/yyyy')}`,
       });
       setDeficitAdded(true);
-      toast.success('تم إضافة العجز كدين على العامل');
+      toast.success(t('session_details.deficit_added'));
     } catch {
-      toast.error('خطأ في إضافة العجز');
+      toast.error(t('session_details.deficit_add_error'));
     }
   };
 
