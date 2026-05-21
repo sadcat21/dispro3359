@@ -581,7 +581,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
   const firstTime = salesData?.firstOrderTime ? new Date(salesData.firstOrderTime) : null;
   const lastTime = salesData?.lastOrderTime ? new Date(salesData.lastOrderTime) : null;
-  const todayDate = new Date().toLocaleDateString('ar-DZ', { year: 'numeric', month: 'long', day: 'numeric' });
+  const todayDate = new Date().toLocaleDateString(localeCode, { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
