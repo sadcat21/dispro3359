@@ -425,10 +425,10 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
                     <div key={order.id} className="border rounded-lg p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <Badge className={`text-[10px] ${paymentStatusColor[order.payment_status] || ''}`}>
-                          {order.payment_status === 'cash' ? '💰 كاش' :
-                           order.payment_status === 'credit' ? '📋 دين' :
-                           order.payment_status === 'check' ? '🏦 شيك' :
-                           order.payment_status === 'partial' ? '💳 جزئي' :
+                          {order.payment_status === 'cash' ? `💰 ${t('sales_details.pay_cash')}` :
+                           order.payment_status === 'credit' ? `📋 ${t('sales_details.pay_credit')}` :
+                           order.payment_status === 'check' ? `🏦 ${t('sales_details.pay_check')}` :
+                           order.payment_status === 'partial' ? `💳 ${t('sales_details.pay_partial')}` :
                            order.payment_status || '—'}
                         </Badge>
                         {/* Payment type: Invoice 1 or 2 */}
@@ -445,14 +445,14 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
                             {order.invoice_payment_method === 'check' ? 'Chèque' :
                              order.invoice_payment_method === 'transfer' ? 'Virement' :
                              order.invoice_payment_method === 'receipt' ? 'Versement' :
-                             order.invoice_payment_method === 'cash' ? 'كاش' : order.invoice_payment_method}
+                             order.invoice_payment_method === 'cash' ? t('sales_details.pay_cash') : order.invoice_payment_method}
                           </Badge>
                         )}
                         {order.payment_type !== 'with_invoice' && order.price_subtype && (
                           <Badge variant="secondary" className="text-[9px]">
-                            {order.price_subtype === 'super_gros' ? 'سوبر جملة' :
-                             order.price_subtype === 'gros' ? 'جملة' :
-                             order.price_subtype === 'retail' ? 'تجزئة' : order.price_subtype}
+                            {order.price_subtype === 'super_gros' ? t('sales_details.subtype_super_gros') :
+                             order.price_subtype === 'gros' ? t('sales_details.subtype_gros') :
+                             order.price_subtype === 'retail' ? t('sales_details.subtype_retail') : order.price_subtype}
                           </Badge>
                         )}
                       </div>
