@@ -86,11 +86,11 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
             const giftQtyText = `${giftQty} ${unitLabel(giftUnit)}`;
             const minQtyText = `${minQty} ${unitLabel(minUnit)}`;
             subtitleParts = [
-              { text: 'اشترِ ' },
+              { text: `${t('showcase.buy')} ` },
               { text: minQtyText, highlight: true },
-              { text: ' واحصل على ' },
+              { text: ` ${t('showcase.get')} ` },
               { text: giftQtyText, highlight: true },
-              { text: giftName ? ` ${giftName} هدية` : ' هدية' },
+              { text: giftName ? ` ${giftName} ${t('showcase.as_gift')}` : ` ${t('showcase.as_gift')}` },
             ];
           } else if (discount > 0) {
             subtitleParts = [
