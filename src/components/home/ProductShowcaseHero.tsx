@@ -4,6 +4,7 @@ import { useProductOffers } from '@/hooks/useProductOffers';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import heroBg from '@/assets/hero-offers-bg.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type SubtitlePart = { text: string; highlight?: boolean };
 type Slide = {
@@ -14,21 +15,8 @@ type Slide = {
   endDate?: string | null;
 };
 
-const formatDate = (d?: string | null) => {
-  if (!d) return '';
-  try {
-    const dt = new Date(d);
-    return dt.toLocaleDateString('ar-DZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  } catch { return ''; }
-};
-
-const unitLabel = (u?: string) => {
-  if (u === 'box') return 'صندوق';
-  if (u === 'piece') return 'قطعة';
-  return u || '';
-};
-
 const SLIDE_MS = 4000;
+
 
 interface ProductShowcaseHeroProps {
   children?: React.ReactNode;
