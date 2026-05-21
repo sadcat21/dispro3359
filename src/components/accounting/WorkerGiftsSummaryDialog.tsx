@@ -1005,9 +1005,9 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             </div>
 
             <div className="flex flex-wrap gap-1.5 items-center text-xs">
-              <Badge variant="secondary" className="text-xs">{giftsData?.items?.length || 0} منتج</Badge>
-              <Badge className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-0">🎁 {giftsData?.totalGifts || 0} قطعة عروض</Badge>
-              <Badge variant="outline" className="text-xs">{uniqueCustomerCount} عميل</Badge>
+              <Badge variant="secondary" className="text-xs">{giftsData?.items?.length || 0} {t('gifts_summary.product_count')}</Badge>
+              <Badge className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-0">🎁 {giftsData?.totalGifts || 0} {t('gifts_summary.gift_pieces')}</Badge>
+              <Badge variant="outline" className="text-xs">{uniqueCustomerCount} {t('gifts_summary.customer_count')}</Badge>
             </div>
 
             {/* Thermal Preview */}
