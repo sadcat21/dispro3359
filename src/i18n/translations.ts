@@ -2250,6 +2250,13 @@ export const translations: Translations = {
   'admin_home.item.backup': { ar: 'النسخ الاحتياطي', fr: 'Sauvegarde', en: 'Backup' },
   'admin_home.item.training': { ar: 'التدريب على التطبيق', fr: 'Formation à l\'application', en: 'App training' },
   'admin_home.item.components_reference': { ar: 'مرجع النوافذ', fr: 'Référence des fenêtres', en: 'Components reference' },
+  'admin_home.item.cash_ledger': { ar: 'سجل حركة الأموال', fr: 'Journal des mouvements de fonds', en: 'Cash movement ledger' },
+  'admin_home.item.debt_ledger': { ar: 'سجل حركة الديون', fr: 'Journal des dettes', en: 'Debt movement ledger' },
+  'admin_home.item.sales_tracking': { ar: 'سجل تتبع المبيعات', fr: 'Journal de suivi des ventes', en: 'Sales tracking ledger' },
+  'admin_home.item.replace_damaged': { ar: 'استبدال التالف', fr: 'Remplacer endommagés', en: 'Replace damaged' },
+  'admin_home.item.stock_movements': { ar: 'سجل حركة المخزون', fr: 'Journal des mouvements de stock', en: 'Stock movements ledger' },
+  'admin_home.item.suppliers': { ar: 'الموردون', fr: 'Fournisseurs', en: 'Suppliers' },
+  'admin_home.item.identifier_inspector': { ar: 'فاحص المعرفات', fr: 'Inspecteur d\'identifiants', en: 'Identifier inspector' },
 
   // ==================== Worker Home ====================
   'worker_home.depot_sale': { ar: 'بيع مخزن', fr: 'Vente Dépôt', en: 'Depot Sale' },
