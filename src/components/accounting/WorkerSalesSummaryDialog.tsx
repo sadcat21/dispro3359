@@ -66,6 +66,8 @@ const ExpandedCarousel: React.FC<{
   onNavigate: (id: string) => void;
   onClose: () => void;
 }> = ({ items, expandedProduct, onNavigate, onClose }) => {
+  const { t, language } = useLanguage();
+  const localeCode = getLocaleCode(language);
   const currentIdx = items.findIndex(i => i.productId === expandedProduct);
   const item = items[currentIdx];
   if (!item) return null;
