@@ -2629,4 +2629,48 @@ export const translations: Translations = {
   'showcase.slide_aria': { ar: 'الشريحة', fr: 'Diapositive', en: 'Slide' },
   'showcase.prev': { ar: 'السابق', fr: 'Précédent', en: 'Previous' },
   'showcase.next': { ar: 'التالي', fr: 'Suivant', en: 'Next' },
+
+  // Expenses details summary
+  'expenses_summary.no_expenses': { ar: 'لا توجد مصاريف في هذه الفترة', fr: 'Aucune dépense sur cette période', en: 'No expenses in this period' },
+  'expenses_summary.count': { ar: 'العدد', fr: 'Nombre', en: 'Count' },
+  'expenses_summary.counted_in_session': { ar: 'المحسوب في الجلسة', fr: 'Compté dans la session', en: 'Counted in session' },
+  'expenses_summary.fallback_label': { ar: 'مصروف', fr: 'Dépense', en: 'Expense' },
+  'expenses_summary.receipt': { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+  'expenses_summary.total_all_statuses': { ar: 'الإجمالي (كل الحالات)', fr: 'Total (tous statuts)', en: 'Total (all statuses)' },
+  'expenses_summary.status_approved': { ar: 'معتمد', fr: 'Approuvé', en: 'Approved' },
+  'expenses_summary.status_pending': { ar: 'قيد المراجعة', fr: 'En revue', en: 'Pending review' },
+  'expenses_summary.status_rejected': { ar: 'مرفوض', fr: 'Rejeté', en: 'Rejected' },
+
+  // Template print dialog
+  'template_print.title': { ar: 'طباعة نموذج فارغ', fr: 'Imprimer un modèle vierge', en: 'Print blank template' },
+  'template_print.page_count': { ar: 'عدد الصفحات', fr: 'Nombre de pages', en: 'Page count' },
+  'template_print.product_name': { ar: 'اسم المنتج (اختياري)', fr: 'Nom du produit (optionnel)', en: 'Product name (optional)' },
+  'template_print.offer_type': { ar: 'نوع العرض / الشريحة (اختياري)', fr: 'Type d\'offre / palier (optionnel)', en: 'Offer type / tier (optional)' },
+  'template_print.placeholder_blank': { ar: 'اتركه فارغاً للكتابة اليدوية', fr: 'Laisser vide pour saisie manuelle', en: 'Leave empty for handwriting' },
+  'template_print.option_none': { ar: 'فارغ (كتابة يدوية)', fr: 'Vide (saisie manuelle)', en: 'Blank (handwritten)' },
+  'template_print.option_custom': { ar: 'إدخال يدوي...', fr: 'Saisie manuelle...', en: 'Custom entry...' },
+  'template_print.placeholder_product': { ar: 'أدخل اسم المنتج...', fr: 'Saisir le nom du produit...', en: 'Enter product name...' },
+  'template_print.placeholder_offer': { ar: 'مثال: 50BOX+1BOX', fr: 'Ex: 50BOX+1BOX', en: 'Example: 50BOX+1BOX' },
+  'template_print.cancel': { ar: 'إلغاء', fr: 'Annuler', en: 'Cancel' },
+  'template_print.print': { ar: 'طباعة النموذج', fr: 'Imprimer le modèle', en: 'Print template' },
+
+  // Debt collections summary
+  'debt_collections.unknown_customer': { ar: 'غير معروف', fr: 'Inconnu', en: 'Unknown' },
+  'debt_collections.no_collections': { ar: 'لا توجد تحصيلات في هذه الفترة', fr: 'Aucun recouvrement sur cette période', en: 'No collections in this period' },
+  'debt_collections.method_cash': { ar: 'نقدي', fr: 'Espèces', en: 'Cash' },
+  'debt_collections.method_check': { ar: 'شيك', fr: 'Chèque', en: 'Check' },
+  'debt_collections.method_transfer': { ar: 'تحويل', fr: 'Virement', en: 'Transfer' },
+  'debt_collections.method_receipt': { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+  'debt_collections.original_debt': { ar: 'الدين الأصلي', fr: 'Dette initiale', en: 'Original debt' },
+  'debt_collections.paid_before': { ar: 'المدفوع سابقاً', fr: 'Déjà payé', en: 'Previously paid' },
+  'debt_collections.collected': { ar: 'المحصّل', fr: 'Encaissé', en: 'Collected' },
+  'debt_collections.remaining': { ar: 'الباقي', fr: 'Restant', en: 'Remaining' },
+  'debt_collections.total': { ar: 'إجمالي التحصيلات', fr: 'Total des recouvrements', en: 'Total collections' },
+
+  // Worker accounting sessions dialog
+  'worker_accounting_sessions.title': { ar: 'سجل جلسات المحاسبة', fr: 'Historique des sessions comptables', en: 'Accounting sessions log' },
+  'worker_accounting_sessions.by': { ar: 'بواسطة', fr: 'par', en: 'by' },
+  'worker_accounting_sessions.financial_summary': { ar: 'ملخص مالي', fr: 'Résumé financier', en: 'Financial summary' },
+  'worker_accounting_sessions.surplus': { ar: 'فائض', fr: 'Excédent', en: 'Surplus' },
+  'worker_accounting_sessions.deficit': { ar: 'عجز', fr: 'Déficit', en: 'Deficit' },
 };
