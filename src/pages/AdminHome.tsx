@@ -630,7 +630,7 @@ const AdminHome: React.FC = () => {
           className="w-full flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 px-4 py-3 text-white shadow-md shadow-cyan-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
         >
           <ClipboardList className="w-5 h-5" />
-          <span className="text-base font-bold">مهام العمال اليومية — عملاء اليوم</span>
+          <span className="text-base font-bold">{t('admin_home.daily_tasks_today')}</span>
         </button>
       )}
 
@@ -641,18 +641,18 @@ const AdminHome: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-blue-700">
                 <ShoppingCart className="h-4 w-4" />
-                <h3 className="text-sm font-bold">ملخص المبيعات</h3>
+                <h3 className="text-sm font-bold">{t('admin_home.sales_summary')}</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/sales-tracking'); }}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/sales-tracking'); }}>{t('admin_home.view')}</Button>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">مبيعات اليوم</p>
+                <p className="text-muted-foreground">{t('admin_home.today_sales')}</p>
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.todaySales || 0).toLocaleString()} DA</p>
-                <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} طلب</p>
+                <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} {t('admin_home.orders_count')}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">مبيعات الشهر</p>
+                <p className="text-muted-foreground">{t('admin_home.month_sales')}</p>
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.monthSales || 0).toLocaleString()} DA</p>
               </div>
             </div>
@@ -662,25 +662,25 @@ const AdminHome: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-700">
                 <Warehouse className="h-4 w-4" />
-                <h3 className="text-sm font-bold">ملخص المخزون</h3>
+                <h3 className="text-sm font-bold">{t('admin_home.inventory_summary')}</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/warehouse'); }}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/warehouse'); }}>{t('admin_home.view')}</Button>
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">إجمالي القطع</p>
+                <p className="text-muted-foreground">{t('admin_home.total_pieces')}</p>
                 <p className="mt-1 text-base font-bold text-emerald-900">{(pmSummary?.totalPieces || 0).toLocaleString()}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">منتجات بيعت اليوم</p>
+                <p className="text-muted-foreground">{t('admin_home.products_sold_today')}</p>
                 <p className="mt-1 text-base font-bold text-emerald-900">{pmSummary?.productsSoldToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">منخفض</p>
+                <p className="text-muted-foreground">{t('admin_home.low_stock')}</p>
                 <p className="mt-1 text-base font-bold text-amber-700">{pmSummary?.lowStockCount || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">تالف</p>
+                <p className="text-muted-foreground">{t('admin_home.damaged')}</p>
                 <p className="mt-1 text-base font-bold text-rose-700">{pmSummary?.damagedTotal || 0}</p>
               </div>
             </div>
@@ -691,17 +691,17 @@ const AdminHome: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-fuchsia-700">
                 <Activity className="h-4 w-4" />
-                <h3 className="text-sm font-bold">نشاط العمال اليوم</h3>
+                <h3 className="text-sm font-bold">{t('admin_home.workers_activity_today')}</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/worker-tracking'); }}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/worker-tracking'); }}>{t('admin_home.view')}</Button>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">عمال نشطون</p>
+                <p className="text-muted-foreground">{t('admin_home.active_workers_today')}</p>
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.activeWorkersToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">عمليات تسليم</p>
+                <p className="text-muted-foreground">{t('admin_home.deliveries')}</p>
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.deliveriesToday || 0}</p>
               </div>
             </div>
@@ -713,25 +713,25 @@ const AdminHome: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-rose-700">
                 <Gift className="h-4 w-4" />
-                <h3 className="text-sm font-bold">العروض المسلّمة والهدايا</h3>
+                <h3 className="text-sm font-bold">{t('admin_home.delivered_offers_gifts')}</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/offer-ledger'); }}>عرض</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/offer-ledger'); }}>{t('admin_home.view')}</Button>
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">عروض اليوم</p>
+                <p className="text-muted-foreground">{t('admin_home.offers_today')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">هدايا اليوم</p>
+                <p className="text-muted-foreground">{t('admin_home.gifts_today')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.todayGiftPieces || 0).toLocaleString()}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">عروض الشهر</p>
+                <p className="text-muted-foreground">{t('admin_home.offers_month')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredMonth || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">هدايا الشهر</p>
+                <p className="text-muted-foreground">{t('admin_home.gifts_month')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.monthGiftPieces || 0).toLocaleString()}</p>
               </div>
             </div>
