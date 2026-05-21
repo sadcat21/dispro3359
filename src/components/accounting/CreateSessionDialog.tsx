@@ -787,7 +787,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <div className="mt-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                 <p className="text-xs text-destructive">
-                  بعض المستندات لم يتم تأكيد استلامها. ستُسجل في ذمة العامل كمستندات غير مسلمة.
+                  {t('create_session.unconfirmed_docs_warning')}
                 </p>
               </div>
             )}
