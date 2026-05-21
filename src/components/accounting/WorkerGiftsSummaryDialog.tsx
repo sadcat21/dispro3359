@@ -15,7 +15,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, fr, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 import ThermalPreview, { ThermalLine } from '@/components/stock/ThermalPreview';
 import GiftsPrintView, { GiftPrintRow, SummaryRow } from '@/components/accounting/GiftsPrintView';
 import GiftsPrintSettingsDialog, { GiftPrintSettings } from '@/components/accounting/GiftsPrintSettingsDialog';
@@ -254,7 +255,7 @@ const GiftExpandedCarousel: React.FC<{
               🎁 {formatGiftDisplay(item.totalGiftPieces, item.piecesPerBox)}
             </div>
             <div className="flex items-center justify-center gap-1 rounded-md bg-muted py-1.5 px-2 text-xs font-semibold text-muted-foreground">
-              {item.customers.length} عميل
+              {item.customers.length} {tCard('gifts_summary.customer_label')}
             </div>
           </div>
         </div>
