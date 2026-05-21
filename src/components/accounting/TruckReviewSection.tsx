@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Loader2, Package, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TruckReviewSectionProps {
   workerId: string;
