@@ -30,6 +30,7 @@ const extractDate = (v: string): string => {
 };
 
 const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd }) => {
+  const { t } = useLanguage();
   const { data: rows, isLoading } = useQuery({
     queryKey: ['session-debt-collections-detail', workerId, periodStart, periodEnd],
     queryFn: async () => {
