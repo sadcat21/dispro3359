@@ -95,7 +95,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                     onClick={() => setSelectedMod(selectedMod === mod.id ? null : mod.id)}
                   >
                     <Eye className="w-3 h-3 ml-1" />
-                    {selectedMod === mod.id ? 'إخفاء' : 'مقارنة'}
+                    {selectedMod === mod.id ? t('receipt_mods.hide') : t('receipt_mods.compare')}
                   </Button>
                   {mod.receipt?.order_id && (
                     <Button
