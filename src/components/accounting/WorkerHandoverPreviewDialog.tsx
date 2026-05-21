@@ -9,6 +9,7 @@ import { useSessionCalculations } from '@/hooks/useSessionCalculations';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WorkerHandoverPreviewDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
   open, onOpenChange, targetWorkerId, targetWorkerName, onProceedToSession,
 }) => {
   const { workerId, activeBranch } = useAuth();
+  const { t } = useLanguage();
   const effectiveWorkerId = targetWorkerId || workerId;
 
   // Fetch the last completed accounting session to use as cutoff
@@ -102,7 +104,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
 
   if (!effectiveWorkerId) return null;
 
-  const title = targetWorkerName ? `ملخص التسليم - ${targetWorkerName}` : 'ملخص التسليم اليومي';
+  const title = targetWorkerName ? `${t('handover_preview.title_with_name')} - ${targetWorkerName}` : t('handover_preview.title');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -128,7 +130,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
                 <Alert className="rounded-xl border-orange-300 bg-orange-50 dark:bg-orange-900/10">
                   <Info className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm font-medium text-orange-800 dark:text-orange-400">
-                    ⚠️ توجد {reviewInfo!.sessionsAfterReview} جلسة شحن/تفريغ بعد آخر مراجعة نهائية — المحاسبة ستكون بناءً على آخر مراجعة نهائية فقط ولن تُحتسب الجلسات اللاحقة
+                    {t('handover_preview.sessions_after_review_prefix')} {reviewInfo!.sessionsAfterReview} {t('handover_preview.sessions_after_review_suffix')}
                   </AlertDescription>
                 </Alert>
               )}
@@ -142,7 +144,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
             </div>
           ) : (
             <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
-              لا توجد بيانات لهذا العامل اليوم
+              {t('handover_preview.no_data')}
             </div>
           )}
         </ScrollArea>
@@ -152,7 +154,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
             <Alert variant="destructive" className="rounded-xl">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-sm font-medium">
-                لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي مراجعة نهائية للشاحنة
+                {t('handover_preview.cannot_proceed')}
               </AlertDescription>
             </Alert>
           </div>
@@ -165,7 +167,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
             onClick={() => onOpenChange(false)}
           >
             <ArrowLeft className="w-4 h-4 me-1.5" />
-            العودة
+            {t('handover_preview.back')}
           </Button>
           {onProceedToSession && (
             <Button
@@ -177,7 +179,7 @@ const WorkerHandoverPreviewDialog: React.FC<WorkerHandoverPreviewDialogProps> = 
               }}
             >
               {isCheckingReview ? <Loader2 className="w-4 h-4 animate-spin me-1.5" /> : <Calculator className="w-4 h-4 me-1.5" />}
-              الانتقال للجلسة
+              {t('handover_preview.proceed')}
             </Button>
           )}
         </div>
