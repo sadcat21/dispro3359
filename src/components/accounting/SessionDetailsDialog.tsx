@@ -518,7 +518,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<CreditCard className="w-4 h-4 text-amber-600" />}
-              title="تفاصيل المصاريف"
+              title={t('session_details.expenses_details')}
               sectionKey="expenses"
               activeKey={activeSection}
               onToggle={toggleSection}
