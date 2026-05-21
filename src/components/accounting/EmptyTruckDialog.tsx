@@ -312,11 +312,11 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
             <div className="flex items-center justify-between text-sm bg-muted/50 rounded-md p-2 gap-3">
               <div className="flex items-center gap-1">
                 <Warehouse className="w-4 h-4 text-destructive" />
-                <span>إرجاع: <strong>{totalReturn}</strong></span>
+                <span>{t('empty_truck.return_label')}: <strong>{totalReturn}</strong></span>
               </div>
               <div className="flex items-center gap-1">
                 <Truck className="w-4 h-4 text-primary" />
-                <span>يبقى: <strong>{totalRemaining}</strong></span>
+                <span>{t('empty_truck.remaining_label')}: <strong>{totalRemaining}</strong></span>
               </div>
             </div>
 
