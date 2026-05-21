@@ -286,7 +286,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
                         <div className="flex-1">
                           <Label className="text-xs flex items-center gap-1">
                             <Truck className="w-3 h-3" />
-                            يبقى في الشاحنة
+                            {t('empty_truck.stays_in_truck')}
                           </Label>
                           <Input
                             type="number"
