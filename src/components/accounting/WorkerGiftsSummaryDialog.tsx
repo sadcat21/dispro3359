@@ -138,6 +138,7 @@ const GiftExpandedCarousel: React.FC<{
   onNavigate: (id: string) => void;
   onClose: () => void;
 }> = ({ items, expandedProduct, onNavigate, onClose }) => {
+  const { t: tCard } = useLanguage();
   const currentIdx = items.findIndex(i => (i.productId + '_' + i.offerName) === expandedProduct);
   const item = items[currentIdx];
   if (!item) return null;
