@@ -112,15 +112,15 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
           {/* Offer/tier selection */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-semibold">نوع العرض / الشريحة (اختياري)</Label>
+            <Label className="text-sm font-semibold">{t('template_print.offer_type')}</Label>
             {filteredOffers.length > 0 ? (
               <Select value={selectedOffer} onValueChange={setSelectedOffer}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="اتركه فارغاً للكتابة اليدوية" />
+                  <SelectValue placeholder={t('template_print.placeholder_blank')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none">فارغ (كتابة يدوية)</SelectItem>
-                  <SelectItem value="__custom">إدخال يدوي...</SelectItem>
+                  <SelectItem value="__none">{t('template_print.option_none')}</SelectItem>
+                  <SelectItem value="__custom">{t('template_print.option_custom')}</SelectItem>
                   {filteredOffers.map((o, i) => (
                     <SelectItem key={i} value={o.detail}>{o.detail}</SelectItem>
                   ))}
@@ -129,17 +129,17 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
             ) : (
               <Select value={selectedOffer} onValueChange={setSelectedOffer}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="اتركه فارغاً للكتابة اليدوية" />
+                  <SelectValue placeholder={t('template_print.placeholder_blank')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none">فارغ (كتابة يدوية)</SelectItem>
-                  <SelectItem value="__custom">إدخال يدوي...</SelectItem>
+                  <SelectItem value="__none">{t('template_print.option_none')}</SelectItem>
+                  <SelectItem value="__custom">{t('template_print.option_custom')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
             {selectedOffer === '__custom' && (
               <Input
-                placeholder="مثال: 50BOX+1BOX"
+                placeholder={t('template_print.placeholder_offer')}
                 value={customOffer}
                 onChange={e => setCustomOffer(e.target.value)}
                 className="h-8 text-sm"
