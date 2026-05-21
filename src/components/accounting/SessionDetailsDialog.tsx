@@ -533,8 +533,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             {liveCalc && liveCalc.promoTracking.length > 0 && (
               <CollapsibleSection
                 icon={<Tag className="w-4 h-4 text-purple-600" />}
-                title="تتبع العروض"
-                summary={`${liveCalc.promoTracking.length} عروض`}
+                title={t('create_session.promo_tracking')}
+                summary={`${liveCalc.promoTracking.length} ${t('session_details.promos_count')}`}
                 sectionKey="promos"
                 activeKey={activeSection}
                 onToggle={toggleSection}
