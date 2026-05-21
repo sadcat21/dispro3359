@@ -473,7 +473,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<Package className="w-4 h-4 text-primary" />}
-              title={t('accounting.truck_stock') || 'تتبع المنتجات'}
+              title={t('accounting.truck_stock') || t('create_session.product_tracking')}
               sectionKey="stock"
               activeKey={activeSection}
               onToggle={toggleSection}
