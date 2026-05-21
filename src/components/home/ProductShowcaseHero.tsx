@@ -195,7 +195,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
           <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
             <div className="inline-flex items-center gap-1.5 bg-gradient-to-l from-red-700 to-red-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow-md ring-1 ring-white/40 mb-1.5">
               <Gift className="w-3 h-3" />
-              <span>عرض خاص</span>
+              <span>{t('showcase.special_offer')}</span>
               {current.endDate && (
                 <span className="border-r border-white/40 ps-2 pe-0.5 font-semibold whitespace-nowrap">
                   {formatDate(current.endDate)}
