@@ -612,7 +612,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               onChange={e => setPeriodFrom(e.target.value)}
             />
 
-            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodTo">إلى</label>
+            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodTo">{t('sales_summary.to')}</label>
             <input
               id="workerPeriodTo"
               type="date"
