@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, TrendingUp, TrendingDown, Check, Package, DollarSign } from 'lucide-react';
 import { StockDiscrepancy, useResolveDiscrepancy } from '@/hooks/useStockDiscrepancies';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StockDiscrepancySectionProps {
   discrepancies: StockDiscrepancy[];
@@ -15,6 +16,7 @@ interface StockDiscrepancySectionProps {
 const fmt = (n: number) => n.toLocaleString();
 
 const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discrepancies, accountingSessionId }) => {
+  const { t } = useLanguage();
   const resolveDiscrepancy = useResolveDiscrepancy();
   const [pricingSelections, setPricingSelections] = useState<Record<string, { method: string; manualPrice: string }>>({});
 
