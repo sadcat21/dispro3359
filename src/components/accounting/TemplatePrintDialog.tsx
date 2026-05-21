@@ -22,6 +22,7 @@ interface Props {
 }
 
 const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, offers, onPrint }) => {
+  const { t } = useLanguage();
   const [pageCount, setPageCount] = useState(2);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [customProduct, setCustomProduct] = useState('');
