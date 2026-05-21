@@ -81,11 +81,11 @@ const piecesToDbBP = (pieces: number, piecesPerBox: number) => {
 const WarehouseStock: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { activeBranch, role, activeRole } = useAuth();
+  const { role, activeRole } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const isCompanyManager = activeRole?.custom_role_code === 'company_manager';
   const canEdit = isAdminRole(role) || isCompanyManager;
-  const { warehouseStock, workerStocksByWorker, isLoading, products, workers, createReceipt, loadToWorker, refresh } = useWarehouseStock();
+  const { warehouseStock, workerStocksByWorker, isLoading, products, workers, createReceipt, loadToWorker, refresh, branchId } = useWarehouseStock();
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   const [showLoadWorkerDialog, setShowLoadWorkerDialog] = useState(false);
@@ -100,8 +100,6 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
-
-  const branchId = activeBranch?.id;
 
   // Fetch aggregated data for summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
