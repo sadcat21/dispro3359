@@ -162,23 +162,23 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="text-muted-foreground">الحالة:</div>
+        <div className="text-muted-foreground">{t('truck_review.status')}:</div>
         <div>
-          <Badge className="text-xs bg-primary text-primary-foreground">مراجعة</Badge>
+          <Badge className="text-xs bg-primary text-primary-foreground">{t('truck_review.review')}</Badge>
         </div>
 
-        <div className="text-muted-foreground">التاريخ:</div>
-        <div className="text-sm">{new Date(reviewSession!.created_at).toLocaleString('ar-DZ')}</div>
+        <div className="text-muted-foreground">{t('truck_review.date')}:</div>
+        <div className="text-sm">{new Date(reviewSession!.created_at).toLocaleString(localeCode)}</div>
 
-        <div className="text-muted-foreground">المصدر:</div>
+        <div className="text-muted-foreground">{t('truck_review.source')}:</div>
         <div className="text-sm flex items-center gap-1">
           <User className="w-3.5 h-3.5 text-muted-foreground" />
-          {reviewSession?.manager?.full_name || 'مدير النظام'}
+          {reviewSession?.manager?.full_name || t('truck_review.system_manager')}
         </div>
 
         {reviewSession?.notes && (
           <>
-            <div className="text-muted-foreground">ملاحظات:</div>
+            <div className="text-muted-foreground">{t('truck_review.notes')}:</div>
             <div className="text-sm">{reviewSession.notes}</div>
           </>
         )}
@@ -187,13 +187,13 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
       <div className="border-t pt-3 space-y-2">
         <h4 className="text-sm font-semibold flex items-center gap-1">
           <Package className="w-4 h-4" />
-          المنتجات المراجعة ({data.items.length})
+          {t('truck_review.reviewed_products')} ({data.items.length})
         </h4>
 
         {data.items.length === 0 && data.discrepancies.length === 0 ? (
           <div className="text-center py-3">
             <CheckCircle className="w-6 h-6 text-primary mx-auto mb-1" />
-            <p className="text-sm font-medium">لا توجد منتجات مسجلة في الجلسة</p>
+            <p className="text-sm font-medium">{t('truck_review.no_products')}</p>
           </div>
         ) : (
           <ScrollArea className="max-h-[38vh]">
@@ -202,7 +202,7 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-destructive flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    الفوارق ({data.discrepancies.length})
+                    {t('truck_review.discrepancies')} ({data.discrepancies.length})
                   </p>
 
                   {data.discrepancies.map((disc) => (
