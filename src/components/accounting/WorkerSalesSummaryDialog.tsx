@@ -16,6 +16,10 @@ import PricingGroupsSummary from './PricingGroupsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const getLocaleCode = (language: string): string =>
+  language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
 /** Format quantity as boxes.pieces (e.g. 1.05 = 1 box + 5 pieces) */
 const formatBoxPieces = (qty: number, piecesPerBox: number | null): string => {
   if (!piecesPerBox || piecesPerBox <= 0) return String(qty);
