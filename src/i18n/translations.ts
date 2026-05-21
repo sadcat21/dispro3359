@@ -775,6 +775,7 @@ export const translations: Translations = {
   'sales.step_summary': { ar: 'الملخص', fr: 'Récapitulatif', en: 'Summary' },
   'common.previous': { ar: 'السابق', fr: 'Précédent', en: 'Previous' },
   'sales.warehouse_sale_title': { ar: 'بيع من المخزن', fr: 'Vente Dépôt', en: 'Warehouse Sale' },
+  'sales.not_at_customer_location': { ar: 'لست في موقع العميل', fr: "Vous n'êtes pas à l'emplacement du client", en: 'You are not at the customer location' },
   'orders.confirm_delivery': { ar: 'تأكيد التوصيل', fr: 'Confirmer la livraison', en: 'Confirm Delivery' },
   'orders.select_delivery_worker': { ar: 'اختر عامل التوصيل', fr: 'Choisir le livreur', en: 'Select delivery worker' },
   'orders.auto_assign': { ar: 'إسناد تلقائي', fr: 'Attribution automatique', en: 'Auto assign' },
