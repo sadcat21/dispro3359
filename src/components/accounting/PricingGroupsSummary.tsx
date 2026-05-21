@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Package, AlertTriangle } from 'lucide-react';
 import { inferPricingSubtype, PricingSubtype } from '@/utils/pricingSubtype';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PricingGroupsSummaryProps {
   workerId: string;
@@ -188,7 +189,17 @@ export function buildPricingGroups(items: any[], orders: any[]): PricingGroupDat
 }
 
 const PricingGroupCard: React.FC<{ group: PricingGroupData }> = ({ group }) => {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
+
+  const labelMap: Record<string, string> = {
+    invoice: t('pricing_groups.invoice1'),
+    super_gros: t('pricing_groups.super_gros'),
+    gros: t('pricing_groups.gros'),
+    retail: t('pricing_groups.retail'),
+    custom: t('pricing_groups.custom_prices'),
+  };
+  const translatedLabel = labelMap[group.subtype] || group.label;
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -197,9 +208,9 @@ const PricingGroupCard: React.FC<{ group: PricingGroupData }> = ({ group }) => {
           <Badge className={`${group.colorClass} text-xs font-bold px-2 py-0.5 shrink-0`}>
             {group.abbr}
           </Badge>
-          <span className="font-semibold text-sm flex-1 text-start">{group.label}</span>
+          <span className="font-semibold text-sm flex-1 text-start">{translatedLabel}</span>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground">{fmtQty(group.totalQuantity)} صندوق</span>
+            <span className="text-xs text-muted-foreground">{fmtQty(group.totalQuantity)} {t('pricing_groups.box')}</span>
             <span className="text-xs font-bold">{fmt(Math.round(group.totalValue))} DA</span>
           </div>
           <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -209,10 +220,10 @@ const PricingGroupCard: React.FC<{ group: PricingGroupData }> = ({ group }) => {
           <div className="border-t px-2 py-1.5 space-y-0.5">
             {/* Header */}
             <div className="grid grid-cols-4 gap-1 text-[10px] text-muted-foreground font-medium pb-1 border-b px-1">
-              <span>المنتج</span>
-              <span className="text-center">الكمية</span>
-              <span className="text-center">السعر</span>
-              <span className="text-center">المجموع</span>
+              <span>{t('pricing_groups.product')}</span>
+              <span className="text-center">{t('pricing_groups.quantity')}</span>
+              <span className="text-center">{t('pricing_groups.price')}</span>
+              <span className="text-center">{t('pricing_groups.total')}</span>
             </div>
             {group.products.map((product, idx) => (
               <div key={idx} className="grid grid-cols-4 gap-1 text-xs items-center py-1.5 px-1 border-b border-dashed last:border-0">
@@ -242,6 +253,7 @@ const PricingGroupCard: React.FC<{ group: PricingGroupData }> = ({ group }) => {
 const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
   workerId, periodStart, periodEnd, preloadedData,
 }) => {
+  const { t } = useLanguage();
   const { data: fetchedData, isLoading } = useQuery({
     queryKey: ['pricing-groups', workerId, periodStart, periodEnd],
     queryFn: async () => {
@@ -294,7 +306,7 @@ const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
   }
 
   if (!groups || groups.length === 0) {
-    return <p className="text-center text-muted-foreground py-6 text-sm">لا توجد بيانات</p>;
+    return <p className="text-center text-muted-foreground py-6 text-sm">{t('pricing_groups.no_data')}</p>;
   }
 
   const grandTotal = groups.filter(g => g.subtype !== 'custom').reduce((s, g) => s + g.totalValue, 0);
@@ -318,14 +330,14 @@ const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
 
       {/* Grand total */}
       <div className="flex items-center justify-between text-xs font-bold border-t-2 pt-2 px-1">
-        <span>الإجمالي</span>
+        <span>{t('pricing_groups.grand_total')}</span>
         <span className="text-primary">{fmt(Math.round(grandTotal))} DA</span>
       </div>
 
       {customGroup && (
         <div className="flex items-center gap-1.5 text-[10px] text-amber-600 px-1">
           <AlertTriangle className="w-3 h-3" />
-          <span>{customGroup.products.length} منتج بسعر مخصص مختلف عن الكتالوج</span>
+          <span>{customGroup.products.length} {t('pricing_groups.custom_count_suffix')}</span>
         </div>
       )}
     </div>

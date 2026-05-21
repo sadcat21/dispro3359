@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Loader2, Package, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TruckReviewSectionProps {
   workerId: string;
@@ -34,6 +35,8 @@ type ReviewDiscrepancy = {
 };
 
 const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => {
+  const { t, language } = useLanguage();
+  const localeCode = language === 'ar' ? 'ar-DZ' : language === 'fr' ? 'fr-FR' : 'en-US';
   const { data, isLoading } = useQuery({
     queryKey: ['truck-review-section', workerId],
     queryFn: async () => {
@@ -131,8 +134,8 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
           <AlertTriangle className="w-4 h-4 text-muted-foreground" />
         </div>
         <div>
-          <p className="text-sm font-bold">لا توجد جلسات شاحنة</p>
-          <p className="text-[11px] text-muted-foreground">لم يتم تسجيل أي جلسة شحن/تفريغ/مراجعة لهذا العامل بعد</p>
+          <p className="text-sm font-bold">{t('truck_review.no_sessions')}</p>
+          <p className="text-[11px] text-muted-foreground">{t('truck_review.no_sessions_desc')}</p>
         </div>
       </div>
     );
@@ -145,8 +148,8 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
           <AlertTriangle className="w-4 h-4 text-destructive" />
         </div>
         <div>
-          <p className="text-sm font-bold text-destructive">لم تتم مراجعة الشاحنة</p>
-          <p className="text-[11px] text-muted-foreground">آخر جلسة ليست جلسة مراجعة - يجب إجراء مراجعة قبل المحاسبة</p>
+          <p className="text-sm font-bold text-destructive">{t('truck_review.not_reviewed')}</p>
+          <p className="text-[11px] text-muted-foreground">{t('truck_review.not_reviewed_desc')}</p>
         </div>
       </div>
     );
@@ -159,23 +162,23 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="text-muted-foreground">الحالة:</div>
+        <div className="text-muted-foreground">{t('truck_review.status')}:</div>
         <div>
-          <Badge className="text-xs bg-primary text-primary-foreground">مراجعة</Badge>
+          <Badge className="text-xs bg-primary text-primary-foreground">{t('truck_review.review')}</Badge>
         </div>
 
-        <div className="text-muted-foreground">التاريخ:</div>
-        <div className="text-sm">{new Date(reviewSession!.created_at).toLocaleString('ar-DZ')}</div>
+        <div className="text-muted-foreground">{t('truck_review.date')}:</div>
+        <div className="text-sm">{new Date(reviewSession!.created_at).toLocaleString(localeCode)}</div>
 
-        <div className="text-muted-foreground">المصدر:</div>
+        <div className="text-muted-foreground">{t('truck_review.source')}:</div>
         <div className="text-sm flex items-center gap-1">
           <User className="w-3.5 h-3.5 text-muted-foreground" />
-          {reviewSession?.manager?.full_name || 'مدير النظام'}
+          {reviewSession?.manager?.full_name || t('truck_review.system_manager')}
         </div>
 
         {reviewSession?.notes && (
           <>
-            <div className="text-muted-foreground">ملاحظات:</div>
+            <div className="text-muted-foreground">{t('truck_review.notes')}:</div>
             <div className="text-sm">{reviewSession.notes}</div>
           </>
         )}
@@ -184,13 +187,13 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
       <div className="border-t pt-3 space-y-2">
         <h4 className="text-sm font-semibold flex items-center gap-1">
           <Package className="w-4 h-4" />
-          المنتجات المراجعة ({data.items.length})
+          {t('truck_review.reviewed_products')} ({data.items.length})
         </h4>
 
         {data.items.length === 0 && data.discrepancies.length === 0 ? (
           <div className="text-center py-3">
             <CheckCircle className="w-6 h-6 text-primary mx-auto mb-1" />
-            <p className="text-sm font-medium">لا توجد منتجات مسجلة في الجلسة</p>
+            <p className="text-sm font-medium">{t('truck_review.no_products')}</p>
           </div>
         ) : (
           <ScrollArea className="max-h-[38vh]">
@@ -199,7 +202,7 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-destructive flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    الفوارق ({data.discrepancies.length})
+                    {t('truck_review.discrepancies')} ({data.discrepancies.length})
                   </p>
 
                   {data.discrepancies.map((disc) => (
@@ -220,11 +223,11 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                               : 'bg-orange-500 text-white'
                           }`}
                         >
-                          {disc.discrepancy_type === 'deficit' ? 'عجز' : 'فائض'}
+                          {disc.discrepancy_type === 'deficit' ? t('truck_review.deficit') : t('truck_review.surplus')}
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        الفارق: <span className="font-bold">{Number(disc.quantity).toFixed(2)}</span>
+                        {t('truck_review.difference')}: <span className="font-bold">{Number(disc.quantity).toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
@@ -235,7 +238,7 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                 <div className="space-y-1.5 mt-2">
                   <p className="text-xs font-semibold text-primary flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" />
-                    مطابق ({matchedItems.length})
+                    {t('truck_review.matched')} ({matchedItems.length})
                   </p>
 
                   {matchedItems.map((item) => (
@@ -244,7 +247,7 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                         <span className="text-sm">{item.product?.name || '—'}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">{Number(item.previous_quantity || 0)}</span>
-                          <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                          <Badge className="bg-primary/80 text-primary-foreground text-[10px]">{t('truck_review.matched')}</Badge>
                         </div>
                       </div>
                     </div>

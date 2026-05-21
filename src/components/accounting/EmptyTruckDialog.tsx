@@ -104,7 +104,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
     try {
       const itemsToReturn = items.filter(it => it.returnQty > 0);
       if (itemsToReturn.length === 0) {
-        toast.error('لم يتم تحديد أي كمية للإرجاع');
+        toast.error(t('empty_truck.no_qty_selected'));
         setIsEmptying(false);
         return;
       }
@@ -127,7 +127,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
           manager_id: currentWorkerId,
           branch_id: branchId,
           status: 'unloaded',
-          notes: isFullUnload ? 'تفريغ كلي للشاحنة' : 'تفريغ جزئي للشاحنة',
+          notes: isFullUnload ? t('empty_truck.full_unload_note') : t('empty_truck.partial_unload_note'),
           completed_at: new Date().toISOString(),
           unloading_details: unloadingDetails,
         } as any)
@@ -231,16 +231,16 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
             <PackageX className="w-5 h-5 text-destructive" />
             {t('stock.empty_truck')}
           </DialogTitle>
-          <DialogDescription>حدد الكمية المراد إرجاعها لكل منتج. الباقي يبقى في الشاحنة.</DialogDescription>
+          <DialogDescription>{t('empty_truck.choose_quantities')}</DialogDescription>
         </DialogHeader>
 
         {/* أزرار سريعة */}
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="flex-1" onClick={setFullUnload}>
-            تفريغ كلي
+            {t('empty_truck.full_unload')}
           </Button>
           <Button variant="outline" size="sm" className="flex-1" onClick={setZeroUnload}>
-            تصفير الكل
+            {t('empty_truck.zero_all')}
           </Button>
         </div>
 
@@ -268,7 +268,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
                         <div className="flex-1">
                           <Label className="text-xs flex items-center gap-1">
                             <Warehouse className="w-3 h-3" />
-                            إرجاع للمخزن
+                            {t('empty_truck.return_to_warehouse')}
                           </Label>
                           <Input
                             type="number"
@@ -286,7 +286,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
                         <div className="flex-1">
                           <Label className="text-xs flex items-center gap-1">
                             <Truck className="w-3 h-3" />
-                            يبقى في الشاحنة
+                            {t('empty_truck.stays_in_truck')}
                           </Label>
                           <Input
                             type="number"
@@ -312,11 +312,11 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
             <div className="flex items-center justify-between text-sm bg-muted/50 rounded-md p-2 gap-3">
               <div className="flex items-center gap-1">
                 <Warehouse className="w-4 h-4 text-destructive" />
-                <span>إرجاع: <strong>{totalReturn}</strong></span>
+                <span>{t('empty_truck.return_label')}: <strong>{totalReturn}</strong></span>
               </div>
               <div className="flex items-center gap-1">
                 <Truck className="w-4 h-4 text-primary" />
-                <span>يبقى: <strong>{totalRemaining}</strong></span>
+                <span>{t('empty_truck.remaining_label')}: <strong>{totalRemaining}</strong></span>
               </div>
             </div>
 

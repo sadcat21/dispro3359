@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, TrendingUp, TrendingDown, Check, Package, DollarSign } from 'lucide-react';
 import { StockDiscrepancy, useResolveDiscrepancy } from '@/hooks/useStockDiscrepancies';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StockDiscrepancySectionProps {
   discrepancies: StockDiscrepancy[];
@@ -15,6 +16,7 @@ interface StockDiscrepancySectionProps {
 const fmt = (n: number) => n.toLocaleString();
 
 const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discrepancies, accountingSessionId }) => {
+  const { t } = useLanguage();
   const resolveDiscrepancy = useResolveDiscrepancy();
   const [pricingSelections, setPricingSelections] = useState<Record<string, { method: string; manualPrice: string }>>({});
 
@@ -41,7 +43,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
   const handleResolveDeficit = async (d: StockDiscrepancy) => {
     const selection = pricingSelections[d.id];
     if (!selection?.method) {
-      toast.error('اختر طريقة التسعير');
+      toast.error(t('stock_discrepancy.choose_pricing_method'));
       return;
     }
     const pricePerUnit = getPriceByMethod(d, selection.method, selection.manualPrice);
@@ -55,9 +57,9 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         total_value: totalValue,
         status: 'resolved',
         accounting_session_id: accountingSessionId,
-        notes: `تسعير العجز: ${selection.method}`,
+        notes: `${t('stock_discrepancy.deficit_pricing_note')}: ${selection.method}`,
       });
-      toast.success('تم تسجيل العجز على حساب العامل');
+      toast.success(t('stock_discrepancy.deficit_recorded'));
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -69,9 +71,9 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         id: d.id,
         status: 'added_to_stock',
         accounting_session_id: accountingSessionId,
-        notes: 'تمت إضافة الفائض إلى مخزون الفائض',
+        notes: t('stock_discrepancy.surplus_added_note'),
       });
-      toast.success('تمت إضافة الفائض');
+      toast.success(t('stock_discrepancy.surplus_added'));
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -84,7 +86,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-destructive">
             <TrendingDown className="w-4 h-4" />
-            <span className="text-sm font-bold">عجز في المنتجات ({deficitItems.length})</span>
+            <span className="text-sm font-bold">{t('stock_discrepancy.deficit_in_products')} ({deficitItems.length})</span>
           </div>
           {deficitItems.map(d => {
             const selection = pricingSelections[d.id] || { method: '', manualPrice: '' };
@@ -97,7 +99,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                     <Package className="w-3.5 h-3.5 text-destructive" />
                     <span className="text-sm font-semibold">{d.product?.name || '—'}</span>
                   </div>
-                  <Badge variant="destructive" className="text-xs">عجز: {fmt(d.quantity)}</Badge>
+                  <Badge variant="destructive" className="text-xs">{t('stock_discrepancy.deficit_label')}: {fmt(d.quantity)}</Badge>
                 </div>
                 
                 {/* Pricing options */}
@@ -110,21 +112,21 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                     }))}
                   >
                     <SelectTrigger className="h-8 text-xs w-[140px]">
-                      <SelectValue placeholder="طريقة التسعير" />
+                      <SelectValue placeholder={t('stock_discrepancy.pricing_method')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="invoice2">Facture 2</SelectItem>
                        <SelectItem value="invoice1_gros">Gros</SelectItem>
                        <SelectItem value="invoice1_super_gros">Super Gros</SelectItem>
                        <SelectItem value="invoice1_retail">Détail</SelectItem>
-                      <SelectItem value="manual">إدخال يدوي</SelectItem>
+                      <SelectItem value="manual">{t('stock_discrepancy.manual')}</SelectItem>
                     </SelectContent>
                   </Select>
                   
                   {selection.method === 'manual' && (
                     <Input
                       type="number"
-                      placeholder="السعر"
+                      placeholder={t('stock_discrepancy.price')}
                       value={selection.manualPrice}
                       onChange={(e) => setPricingSelections(prev => ({
                         ...prev,
@@ -150,7 +152,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                   disabled={!selection.method || resolveDiscrepancy.isPending}
                 >
                   <AlertTriangle className="w-3 h-3 me-1" />
-                  تسجيل العجز على حساب العامل
+                  {t('stock_discrepancy.record_deficit')}
                 </Button>
               </div>
             );
@@ -163,7 +165,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-amber-600">
             <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-bold">فائض في المنتجات ({surplusItems.length})</span>
+            <span className="text-sm font-bold">{t('stock_discrepancy.surplus_in_products')} ({surplusItems.length})</span>
           </div>
           {surplusItems.map(d => (
             <div key={d.id} className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
@@ -172,7 +174,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                   <Package className="w-3.5 h-3.5 text-amber-600" />
                   <span className="text-sm font-semibold">{d.product?.name || '—'}</span>
                 </div>
-                <Badge className="bg-amber-500 text-white text-xs">فائض: {fmt(d.quantity)}</Badge>
+                <Badge className="bg-amber-500 text-white text-xs">{t('stock_discrepancy.surplus_label')}: {fmt(d.quantity)}</Badge>
               </div>
               <Button
                 size="sm"
@@ -181,7 +183,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                 disabled={resolveDiscrepancy.isPending}
               >
                 <Check className="w-3 h-3 me-1" />
-                إضافة إلى مخزون الفائض
+                {t('stock_discrepancy.add_to_surplus_stock')}
               </Button>
             </div>
           ))}
