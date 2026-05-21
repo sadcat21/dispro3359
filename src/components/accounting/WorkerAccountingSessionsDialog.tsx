@@ -112,7 +112,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
                             {t(`accounting.status_${session.status}`)}
                           </Badge>
                           {session.manager?.full_name && (
-                            <span className="text-[11px] text-muted-foreground">بواسطة {session.manager.full_name}</span>
+                            <span className="text-[11px] text-muted-foreground">{t('worker_accounting_sessions.by')} {session.manager.full_name}</span>
                           )}
                         </div>
                       </div>
