@@ -884,7 +884,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             <Users className="w-4 h-4" />
             تحديد العملاء ({selectedCustomerIds.size}/{uniqueCustomers.length})
             {selectedCustomerIds.size < uniqueCustomers.length && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 h-5">محدد</Badge>
+              <Badge variant="secondary" className="text-[10px] px-1.5 h-5">{t('orders_summary.partial')}</Badge>
             )}
           </Button>
 
