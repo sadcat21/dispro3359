@@ -81,7 +81,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                     </div>
                     <Separator />
                     <div>
-                      <span className="font-semibold">المعدل:</span>
+                      <span className="font-semibold">{t('receipt_mods.modified')}:</span>
                       <div className="mt-1">{JSON.stringify(mod.modified_data?.total_amount)} DA</div>
                     </div>
                   </div>
