@@ -247,7 +247,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
               <div className="flex items-center justify-between w-full">
                 <span className="font-medium text-sm text-wrap">{product.productName}</span>
                 <span className="flex items-center gap-1.5 shrink-0 ms-2">
-                  <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} صندوق</span>
+                  <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} {t('sales_summary.box')}</span>
                   <span className="text-xs font-bold">{product.totalValue.toLocaleString()} DA</span>
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                 </span>
