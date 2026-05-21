@@ -71,8 +71,8 @@ const PermissionGate: React.FC<PermissionGateProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <ShieldX className="w-16 h-16 mb-4 opacity-50" />
-        <h2 className="text-xl font-bold mb-2">غير مصرح</h2>
-        <p className="text-sm">ليس لديك صلاحية الوصول لهذه الصفحة</p>
+        <h2 className="text-xl font-bold mb-2">{t('permission_gate.title')}</h2>
+        <p className="text-sm">{t('permission_gate.message')}</p>
       </div>
     );
   }
