@@ -253,6 +253,7 @@ const PricingGroupCard: React.FC<{ group: PricingGroupData }> = ({ group }) => {
 const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
   workerId, periodStart, periodEnd, preloadedData,
 }) => {
+  const { t } = useLanguage();
   const { data: fetchedData, isLoading } = useQuery({
     queryKey: ['pricing-groups', workerId, periodStart, periodEnd],
     queryFn: async () => {
