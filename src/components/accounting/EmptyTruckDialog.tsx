@@ -127,7 +127,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
           manager_id: currentWorkerId,
           branch_id: branchId,
           status: 'unloaded',
-          notes: isFullUnload ? 'تفريغ كلي للشاحنة' : 'تفريغ جزئي للشاحنة',
+          notes: isFullUnload ? t('empty_truck.full_unload_note') : t('empty_truck.partial_unload_note'),
           completed_at: new Date().toISOString(),
           unloading_details: unloadingDetails,
         } as any)
