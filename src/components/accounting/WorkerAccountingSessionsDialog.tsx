@@ -130,7 +130,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
                             onClick={(e) => e.stopPropagation()}
                           >
                             <ChevronDown className="w-3.5 h-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
-                            <span className="font-medium">{t('accounting.financial_summary') || 'ملخص مالي'}</span>
+                            <span className="font-medium">{t('accounting.financial_summary') || t('worker_accounting_sessions.financial_summary')}</span>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="grid grid-cols-3 gap-2 pt-2.5">
