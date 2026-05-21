@@ -446,13 +446,16 @@ const WarehouseStock: React.FC = () => {
     enabled: !!branchId,
   });
 
-  if (isLoading || summaryLoading || soldLoading || warehouseSalesLoading || movementsLoading) {
+  // Only block on essential queries; sales_tracking & stock_movements aggregations
+  // populate progressively in the background to avoid freezing the page.
+  if (isLoading || summaryLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
+  const isAggregating = soldLoading || warehouseSalesLoading || movementsLoading;
 
   const hasStock = warehouseStock.length > 0;
   const stockItemsForSale = warehouseStock.map(s => ({
