@@ -219,11 +219,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .in('id', frozenRows.map(r => r.id));
       if (error) throw error;
-      toast.success('تم فك تجميد العامل');
+      toast.success(t('create_session.unfrozen'));
       queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
     } catch (e: any) {
-      toast.error(e.message || 'فشل فك التجميد');
+      toast.error(e.message || t('create_session.unfreeze_failed'));
     } finally {
       setIsUnfreezing(false);
     }
