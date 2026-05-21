@@ -136,6 +136,8 @@ const MyPromosContent: React.FC = () => {
           .from('promos')
           .select(`*, customer:customers(*), product:products(*), offer:product_offers(id, name, min_quantity_unit, gift_quantity_unit, min_quantity, gift_quantity), order:orders(status)`)
           .eq('worker_id', workerId)
+          .gte('created_at', lowerBound)
+          .lte('created_at', upperBound)
           .order('promo_date', { ascending: false }),
         supabase.from('customers').select('*').order('name'),
         supabase.from('products').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('name'),
