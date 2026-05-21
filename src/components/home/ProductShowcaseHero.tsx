@@ -101,10 +101,10 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
             ];
           } else if (discountAmt > 0) {
             subtitleParts = [
-              { text: 'اشترِ ' },
+              { text: `${t('showcase.buy')} ` },
               { text: `${minQty} ${unitLabel(minUnit)}`, highlight: true },
-              { text: ' واحصل على خصم ' },
-              { text: `${discountAmt} دج`, highlight: true },
+              { text: ` ${t('showcase.get')} ${t('showcase.discount')} ` },
+              { text: `${discountAmt} ${t('showcase.currency_da')}`, highlight: true },
             ];
           } else if (o.description) {
             subtitleParts = [{ text: o.description }];
