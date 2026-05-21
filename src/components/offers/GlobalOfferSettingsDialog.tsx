@@ -122,11 +122,13 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       if (error) throw error;
 
       // Propagate aggregate flags + scope to existing offers
+      // Note: showcase_enabled lives only on product_offer_settings, not product_offers
+      const { showcase_enabled: _ignored, ...offerAgg } = agg;
       const { error: e2 } = await (supabase as any)
         .from('product_offers')
         .update({
           is_deferred_confirmation: isDeferred,
-          ...agg,
+          ...offerAgg,
           scope_stages,
         })
         .not('id', 'is', null);
