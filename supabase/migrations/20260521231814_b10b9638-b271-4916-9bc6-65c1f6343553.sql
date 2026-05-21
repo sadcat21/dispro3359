@@ -1,0 +1,1 @@
+ALTER TABLE public.product_offer_settings ADD COLUMN IF NOT EXISTS stage_settings jsonb NOT NULL DEFAULT '{}'::jsonb;
