@@ -2482,4 +2482,23 @@ export const translations: Translations = {
   'handover_preview.cannot_proceed': { ar: 'لا يمكن الانتقال لجلسة المحاسبة — لا توجد أي مراجعة نهائية للشاحنة', fr: 'Impossible de passer à la session comptable — aucune révision finale du camion', en: 'Cannot proceed to accounting session — no final truck review found' },
   'handover_preview.back': { ar: 'العودة', fr: 'Retour', en: 'Back' },
   'handover_preview.proceed': { ar: 'الانتقال للجلسة', fr: 'Passer à la session', en: 'Proceed to session' },
+
+  // WorkerGiftsSummaryDialog
+  'gifts_summary.all_workers': { ar: 'جميع العمال', fr: 'Tous les employés', en: 'All workers' },
+  'gifts_summary.title_all': { ar: 'تجميع العروض - جميع العمال', fr: 'Récap des cadeaux - Tous les employés', en: 'Gifts summary - All workers' },
+  'gifts_summary.title_one': { ar: 'تجميع العروض', fr: 'Récap des cadeaux', en: 'Gifts summary' },
+  'gifts_summary.print_a4': { ar: 'طباعة A4', fr: 'Impression A4', en: 'Print A4' },
+  'gifts_summary.hide': { ar: 'إخفاء', fr: 'Masquer', en: 'Hide' },
+  'gifts_summary.thermal': { ar: 'حرارية', fr: 'Thermique', en: 'Thermal' },
+  'gifts_summary.pick_worker': { ar: 'اختر العامل', fr: 'Choisir l\'employé', en: 'Pick worker' },
+  'gifts_summary.product_count': { ar: 'منتج', fr: 'produit(s)', en: 'product(s)' },
+  'gifts_summary.gift_pieces': { ar: 'قطعة عروض', fr: 'pièce(s) cadeau', en: 'gift piece(s)' },
+  'gifts_summary.customer_count': { ar: 'عميل', fr: 'client(s)', en: 'customer(s)' },
+  'gifts_summary.printing': { ar: 'جاري الطباعة...', fr: 'Impression en cours...', en: 'Printing...' },
+  'gifts_summary.thermal_48': { ar: 'طباعة حرارية 48mm', fr: 'Impression thermique 48mm', en: 'Thermal print 48mm' },
+  'gifts_summary.empty': { ar: 'لا توجد عروض في هذه الفترة', fr: 'Aucun cadeau dans cette période', en: 'No gifts in this period' },
+  'gifts_summary.customer_label': { ar: 'عميل', fr: 'client', en: 'customer' },
+  'gifts_summary.pieces': { ar: 'قطعة', fr: 'pièces', en: 'pieces' },
+  'gifts_summary.print_success': { ar: 'تمت الطباعة بنجاح', fr: 'Impression réussie', en: 'Print successful' },
+  'gifts_summary.print_failed': { ar: 'فشل الطباعة:', fr: 'Échec de l\'impression :', en: 'Print failed:' },
 };
