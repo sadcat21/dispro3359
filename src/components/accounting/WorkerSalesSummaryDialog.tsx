@@ -603,7 +603,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && (
           <div className="flex flex-wrap gap-1.5 items-center text-xs mb-3">
-            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodFrom">من</label>
+            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodFrom">{t('sales_summary.from')}</label>
             <input
               id="workerPeriodFrom"
               type="date"
