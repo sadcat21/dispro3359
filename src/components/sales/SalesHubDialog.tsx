@@ -58,20 +58,22 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
 
   // Fetch warehouse stock when warehouse tab is active
   useEffect(() => {
-    if (!open || activeTab !== 'warehouse' || !warehouseBranchId) return;
+    if (!open || activeTab !== 'warehouse') return;
     const fetchWarehouseStock = async () => {
       setIsLoadingWarehouseStock(true);
       try {
-        const { data } = await supabase
+        let query = supabase
           .from('warehouse_stock')
-          .select('id, product_id, quantity, product:products(*)')
-          .eq('branch_id', warehouseBranchId)
+          .select('id, product_id, quantity, branch_id, product:products(*)')
           .gt('quantity', 0);
+        if (warehouseBranchId) query = query.eq('branch_id', warehouseBranchId);
+        const { data, error } = await query;
+        if (error) console.error('warehouse_stock fetch error', error);
         setWarehouseStockItems((data || []).map((s: any) => ({
           id: s.id,
           product_id: s.product_id,
           quantity: s.quantity,
-          product: s.product,
+          product: Array.isArray(s.product) ? s.product[0] : s.product,
         })));
       } catch (e) {
         console.error('Failed to load warehouse stock', e);
