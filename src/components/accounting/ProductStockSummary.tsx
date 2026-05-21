@@ -411,7 +411,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
         sessionInfo: {
           status: session.status,
           created_at: session.created_at,
-          manager_name: session.manager?.full_name || 'مدير النظام',
+          manager_name: session.manager?.full_name || t('product_stock.system_manager'),
           deficitCount,
           surplusCount,
           matchCount,
@@ -430,10 +430,10 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
   const untrackedCount = salesData?.untrackedCount || 0;
 
   const subtypeLabels: Record<string, string> = {
-    retail: 'تجزئة',
-    gros: 'جملة',
-    super_gros: 'سوبر جملة',
-    invoice: 'فاتورة 1',
+    retail: t('sales_details.subtype_retail'),
+    gros: t('sales_details.subtype_gros'),
+    super_gros: t('sales_details.subtype_super_gros'),
+    invoice: t('sales_details.subtype_invoice'),
   };
 
   const getUnitSalePrice = (row: SoldProductPricingRow): number | null => {
@@ -495,11 +495,11 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
           {/* Session Counts */}
           {loadingData && (
             <div className="flex items-center gap-2 flex-wrap text-xs bg-muted/30 border rounded-lg px-3 py-1.5">
-              <span className="whitespace-nowrap">شحن: <span className="font-bold text-green-600">{loadingData.loadCount}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.load_count')}: <span className="font-bold text-green-600">{loadingData.loadCount}</span></span>
               <span className="text-muted-foreground/40">|</span>
-              <span className="whitespace-nowrap">تفريغ: <span className="font-bold text-destructive">{loadingData.unloadCount}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.unload_count')}: <span className="font-bold text-destructive">{loadingData.unloadCount}</span></span>
               <span className="text-muted-foreground/40">|</span>
-              <span className="whitespace-nowrap">مراجعة: <span className="font-bold text-primary">{loadingData.reviewCount}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.review_count')}: <span className="font-bold text-primary">{loadingData.reviewCount}</span></span>
             </div>
           )}
 
@@ -512,22 +512,22 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                 <span className="text-primary font-bold">{new Date(reviewData.sessionInfo.created_at).toLocaleTimeString('ar-DZ', { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
               </span>
               <span className="text-muted-foreground/40 whitespace-nowrap">|</span>
-              <span className="whitespace-nowrap">المراجع: <span className="font-semibold">{reviewData.sessionInfo.manager_name}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.reviewer')}: <span className="font-semibold">{reviewData.sessionInfo.manager_name}</span></span>
               <span className="text-muted-foreground/40 whitespace-nowrap">|</span>
-              <span className="whitespace-nowrap font-semibold text-destructive">عجز ({reviewData.sessionInfo.deficitCount ?? 0})</span>
-              <span className="whitespace-nowrap font-semibold text-orange-600">فائض ({reviewData.sessionInfo.surplusCount ?? 0})</span>
-              <span className="whitespace-nowrap font-semibold text-green-600">متوافق ({reviewData.sessionInfo.matchCount ?? 0})</span>
+              <span className="whitespace-nowrap font-semibold text-destructive">{t('product_stock.deficit')} ({reviewData.sessionInfo.deficitCount ?? 0})</span>
+              <span className="whitespace-nowrap font-semibold text-orange-600">{t('product_stock.surplus')} ({reviewData.sessionInfo.surplusCount ?? 0})</span>
+              <span className="whitespace-nowrap font-semibold text-green-600">{t('product_stock.match')} ({reviewData.sessionInfo.matchCount ?? 0})</span>
             </div>
           )}
 
           <div className="grid grid-cols-7 gap-1 text-xs text-muted-foreground text-center font-medium border-b pb-1">
             <span className="text-start">{t('stock.product')}</span>
-            <span>الشحن</span>
-            <span>التفريغ</span>
-            <span>المبيعات</span>
-            <span>كمية النظام</span>
-            <span>الكمية الفعلية</span>
-            <span>المراجعة</span>
+            <span>{t('product_stock.loaded')}</span>
+            <span>{t('product_stock.unloaded')}</span>
+            <span>{t('product_stock.sold')}</span>
+            <span>{t('product_stock.system_qty')}</span>
+            <span>{t('product_stock.actual_qty')}</span>
+            <span>{t('product_stock.review')}</span>
           </div>
 
           {productRows.map((row) => (
@@ -544,19 +544,19 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                 {row.status === 'match' && (
                   <Badge className="text-[10px] bg-primary/80 text-primary-foreground">
                     <CheckCircle className="w-2.5 h-2.5 ml-0.5" />
-                    متوافق
+                    {t('product_stock.match')}
                   </Badge>
                 )}
                 {row.status === 'deficit' && (
                   <Badge className="text-[10px] bg-destructive text-destructive-foreground">
                     <AlertTriangle className="w-2.5 h-2.5 me-1" />
-                    عجز ({fmtQty(Math.abs(row.diff!))})
+                    {t('product_stock.deficit')} ({fmtQty(Math.abs(row.diff!))})
                   </Badge>
                 )}
                 {row.status === 'surplus' && (
                   <Badge className="text-[10px] bg-orange-500 text-white">
                     <TrendingUp className="w-2.5 h-2.5 me-1" />
-                    فائض ({fmtQty(Math.abs(row.diff!))})
+                    {t('product_stock.surplus')} ({fmtQty(Math.abs(row.diff!))})
                   </Badge>
                 )}
                 {row.status === null && (
@@ -600,7 +600,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                   <div className="flex items-center justify-between w-full">
                     <span className="font-medium text-sm text-wrap">{row.product_name}</span>
                     <span className="flex items-center gap-1.5 shrink-0 ms-2">
-                      <span className="text-xs text-muted-foreground">{fmtQty(row.quantity)} صندوق</span>
+                      <span className="text-xs text-muted-foreground">{fmtQty(row.quantity)} {t('product_stock.box')}</span>
                       <span className="text-xs font-bold">{row.total_value.toLocaleString()} DA</span>
                       <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </span>
@@ -631,10 +631,10 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                 <CollapsibleContent>
                   <div className="border-t p-1.5 space-y-1">
                     <div className="grid grid-cols-5 gap-1 text-[10px] text-muted-foreground text-center font-medium border-b pb-1">
-                      <span className="text-start">التسعير</span>
+                      <span className="text-start">{t('product_stock.pricing')}</span>
                       <span>{t('stock.quantity')}</span>
-                      <span>سعر الصندوق</span>
-                      <span>سعر الوحدة</span>
+                      <span>{t('product_stock.box_price')}</span>
+                      <span>{t('product_stock.unit_price')}</span>
                       <span>{t('accounting.total_value')}</span>
                     </div>
 
@@ -670,7 +670,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                         <div className="border-t p-1.5 bg-purple-50/50 dark:bg-purple-900/10">
                           <div className="flex items-center gap-1.5 text-[10px] text-purple-700 dark:text-purple-400">
                             <Gift className="w-3 h-3" />
-                            <span className="font-semibold">هدايا: {promo.giftQuantity} قطعة</span>
+                            <span className="font-semibold">{t('product_stock.gifts')}: {promo.giftQuantity} {t('product_stock.pieces')}</span>
                             {promo.offerName && <Badge variant="outline" className="text-[9px] px-1 py-0">{promo.offerName}</Badge>}
                           </div>
                         </div>
@@ -683,7 +683,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
           ))}
 
           <div className="grid grid-cols-2 gap-2 text-xs text-center font-bold border-t-2 pt-1 bg-primary/5 rounded p-1.5">
-            <span className="text-start">{t('common.total')}: {fmtQty(totalSoldQty)} صندوق</span>
+            <span className="text-start">{t('common.total')}: {fmtQty(totalSoldQty)} {t('product_stock.box')}</span>
             <span className="text-primary">{trackedSoldValue.toLocaleString()} DA</span>
           </div>
 

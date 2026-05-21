@@ -219,11 +219,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .in('id', frozenRows.map(r => r.id));
       if (error) throw error;
-      toast.success('تم فك تجميد العامل');
+      toast.success(t('create_session.unfrozen'));
       queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
     } catch (e: any) {
-      toast.error(e.message || 'فشل فك التجميد');
+      toast.error(e.message || t('create_session.unfreeze_failed'));
     } finally {
       setIsUnfreezing(false);
     }
@@ -242,7 +242,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .limit(1);
       if (qErr) throw qErr;
       if (!latest || latest.length === 0) {
-        toast.error('لا توجد جلسة شحن لتجميدها');
+        toast.error(t('create_session.no_session_to_freeze'));
         return;
       }
       const { error } = await supabase
@@ -250,18 +250,18 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .update({ status: 'review', is_final: true } as any)
         .eq('id', latest[0].id);
       if (error) throw error;
-      toast.success('تم تجميد العامل');
+      toast.success(t('create_session.frozen'));
       queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
     } catch (e: any) {
-      toast.error(e.message || 'فشل تجميد العامل');
+      toast.error(e.message || t('create_session.freeze_failed'));
     } finally {
       setIsUnfreezing(false);
     }
   };
 
   const handleShowConfirmation = () => {
-    if (!selectedWorkerId || !calc) { toast.error('اختر العامل'); return; }
+    if (!selectedWorkerId || !calc) { toast.error(t('create_session.select_worker')); return; }
     setShowConfirmation(true);
   };
 
@@ -277,7 +277,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   };
 
   const handleSubmit = async (unloadNotes?: string) => {
-    if (!selectedWorkerId || !calc || isSubmitting) { toast.error('اختر العامل'); return; }
+    if (!selectedWorkerId || !calc || isSubmitting) { toast.error(t('create_session.select_worker')); return; }
 
     setIsSubmitting(true);
     try {
@@ -314,7 +314,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           items,
         });
         sessionId = editSession.id;
-        toast.success(t('accounting.session_updated') || 'تم تحديث الجلسة بنجاح');
+        toast.success(t('accounting.session_updated') || t('create_session.session_updated_ok'));
       } else {
         const result = await createSession.mutateAsync({
           worker_id: selectedWorkerId,
@@ -336,7 +336,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             amount: Math.abs(cashDifference),
             debt_type: 'deficit',
             session_id: sessionId,
-            description: `عجز جلسة محاسبة ${format(new Date(), 'dd/MM/yyyy')}`,
+            description: `${t('create_session.deficit_session_desc')} ${format(new Date(), 'dd/MM/yyyy')}`,
           });
           // Always also record in surplus/deficit treasury
           await supabase.from('manager_treasury').insert({
@@ -346,10 +346,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             source_type: 'accounting_deficit',
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
-            notes: `عجز جلسة محاسبة - ${workerName || selectedWorkerId}`,
+            notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
           });
-          toast.success('تم تسجيل العجز كدين على العامل وفي خزينة الفائض والعجز');
-        } catch { toast.error('خطأ في تسجيل العجز'); }
+          toast.success(t('create_session.deficit_recorded_full'));
+        } catch { toast.error(t('create_session.deficit_error')); }
       }
 
       // Register deficit ONLY in surplus/deficit treasury (no worker debt)
@@ -362,10 +362,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             source_type: 'accounting_deficit',
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
-            notes: `عجز جلسة محاسبة (خزينة فقط) - ${workerName || selectedWorkerId}`,
+            notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
           });
-          toast.success('تم تسجيل العجز في خزينة الفائض والعجز');
-        } catch { toast.error('خطأ في تسجيل العجز في الخزينة'); }
+          toast.success(t('create_session.deficit_recorded_treasury'));
+        } catch { toast.error(t('create_session.deficit_treasury_error')); }
       }
 
       // Register surplus in manager treasury
@@ -378,10 +378,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             source_type: 'accounting_surplus',
             payment_method: 'cash',
             amount: cashDifference,
-            notes: `فائض جلسة محاسبة - ${workerName || selectedWorkerId}`,
+            notes: `${t('create_session.surplus_session_note')} - ${workerName || selectedWorkerId}`,
           });
-          toast.success('تم تسجيل الفائض في الخزينة');
-        } catch { toast.error('خطأ في تسجيل الفائض'); }
+          toast.success(t('create_session.surplus_recorded'));
+        } catch { toast.error(t('create_session.surplus_error')); }
       }
 
       setShowConfirmation(false);
@@ -418,12 +418,12 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <Calculator className="w-5 h-5 text-primary" />
               </div>
               <div className="flex flex-col">
-                <span>{isEditMode ? (t('accounting.edit_session') || 'تعديل الجلسة') : t('accounting.new_session')}</span>
+                <span>{isEditMode ? (t('accounting.edit_session') || t('common.edit')) : t('accounting.new_session')}</span>
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
             <div className="flex items-center gap-1.5">
-              <Label className="text-[10px] text-muted-foreground">حسب المنتج</Label>
+              <Label className="text-[10px] text-muted-foreground">{t('create_session.by_product')}</Label>
               <Switch checked={viewByProduct} onCheckedChange={setViewByProduct} />
             </div>
           </div>
@@ -451,7 +451,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </div>
               </div>
               <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                يتم تحديد الفترة تلقائياً منذ آخر جلسة محاسبة. استخدم زر "تحديث" لجلب آخر البيانات.
+                {t('create_session.period_auto_note')}
               </p>
             </StepSection>
 
@@ -460,7 +460,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Alert className="rounded-xl border-orange-300 bg-orange-50 dark:bg-orange-900/10">
                 <Info className="h-4 w-4 text-orange-600" />
                 <AlertDescription className="text-sm font-medium text-orange-800 dark:text-orange-400">
-                  ⚠️ توجد {postReviewInfo!.count} جلسة شحن/تفريغ بعد آخر جلسة مراجعة — المحاسبة مبنية على آخر جلسة مراجعة فقط
+                  ⚠️ {postReviewInfo!.count} {t('create_session.post_review_warning')}
                 </AlertDescription>
               </Alert>
             )}
@@ -476,7 +476,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Alert className="rounded-xl border-destructive/30 bg-destructive/5">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
                 <AlertDescription className="text-sm text-destructive">
-                  {calcError instanceof Error ? calcError.message : (t('common.error') || 'تعذر تحميل الحسابات')}
+                  {calcError instanceof Error ? calcError.message : (t('common.error') || t('create_session.calc_load_error'))}
                 </AlertDescription>
               </Alert>
             )}
@@ -484,7 +484,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {calc && (
               <>
                 {/* ━━━ Step 2: Sales Overview ━━━ */}
-                <StepSection step={2} title="ملخص المبيعات" color="primary">
+                <StepSection step={2} title={t('create_session.sales_summary')} color="primary">
                   <div className="bg-primary/5 rounded-xl p-3 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -507,7 +507,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 3: Payment Breakdown ━━━ */}
-                <StepSection step={3} title="تفاصيل المدفوعات" color="blue">
+                <StepSection step={3} title={t('create_session.payment_details')} color="blue">
                   {/* Invoice 1 */}
                   <div className="rounded-lg border p-3 space-y-1.5 mb-2">
                     <div className="flex items-center justify-between">
@@ -568,7 +568,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <span>{fmt(calc.debtCollections.cash)} DA</span>
                     </div>
                     <div className="flex justify-between text-blue-600">
-                      <span>فائض العملاء (كاش)</span>
+                      <span>{t('create_session.customer_surplus_cash')}</span>
                       <span>{calc.customerSurplusCash > 0 ? '+' : ''}{fmt(calc.customerSurplusCash)} DA</span>
                     </div>
                     <div className="flex justify-between text-destructive">
@@ -600,13 +600,13 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10">
                         <Checkbox id="register-deficit" checked={registerDeficit} onCheckedChange={(v) => { setRegisterDeficit(!!v); if (!!v) setRegisterDeficitTreasury(false); }} />
                         <label htmlFor="register-deficit" className="text-xs font-medium text-destructive cursor-pointer">
-                          تسجيل العجز كدين على العامل + في خزينة الفائض والعجز ({fmt(Math.abs(cashDifference))} DA)
+                          {t('create_session.deficit_as_debt_and_treasury')} ({fmt(Math.abs(cashDifference))} DA)
                         </label>
                       </div>
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
                         <Checkbox id="register-deficit-treasury" checked={registerDeficitTreasury} onCheckedChange={(v) => { setRegisterDeficitTreasury(!!v); if (!!v) setRegisterDeficit(false); }} />
                         <label htmlFor="register-deficit-treasury" className="text-xs font-medium text-orange-700 dark:text-orange-400 cursor-pointer">
-                          تسجيل العجز فقط في خزينة الفائض والعجز ({fmt(Math.abs(cashDifference))} DA)
+                          {t('create_session.deficit_treasury_only')} ({fmt(Math.abs(cashDifference))} DA)
                         </label>
                       </div>
                     </div>
@@ -616,7 +616,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     <div className="flex items-center gap-2 mt-2 p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
                       <Checkbox id="register-surplus" checked={registerSurplus} onCheckedChange={(v) => setRegisterSurplus(!!v)} />
                       <label htmlFor="register-surplus" className="text-xs font-medium text-green-700 dark:text-green-400 cursor-pointer">
-                        تسجيل الفائض في الخزينة ({fmt(cashDifference)} DA)
+                        {t('create_session.surplus_in_treasury')} ({fmt(cashDifference)} DA)
                       </label>
                     </div>
                   )}
@@ -637,7 +637,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 6: Expenses & Gifts ━━━ */}
-                <StepSection step={6} title="المصاريف" color="muted">
+                <StepSection step={6} title={t('create_session.expenses_title')} color="muted">
                   <div className="rounded-lg border p-2.5 text-center">
                     <div className="flex items-center justify-center gap-1.5 mb-1">
                       <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
@@ -664,7 +664,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
             {/* ━━━ Step 8: Worker Handover ━━━ */}
             {selectedWorkerId && periodStart && periodEnd && calc && (
-              <StepSection step={8} title="تسليم العامل" color="primary">
+              <StepSection step={8} title={t('create_session.worker_handover')} color="primary">
                 <WorkerHandoverSummary
                   workerId={selectedWorkerId}
                   periodStart={periodStart}
@@ -678,7 +678,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {/* ━━━ Step 9: Stock & Sales Tracking ━━━ */}
             {selectedWorkerId && periodStart && periodEnd && (
               <>
-                <StepSection step={9} title={t('accounting.truck_stock') || 'تتبع المنتجات'} color="primary" badge="A">
+                <StepSection step={9} title={t('accounting.truck_stock') || t('create_session.product_tracking')} color="primary" badge="A">
                   <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
                 </StepSection>
                 {!viewByProduct && (
@@ -687,7 +687,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <SalesDetailsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                     </StepSection>
                     {calc && calc.promoTracking.length > 0 && (
-                      <StepSection step={9} title="تتبع العروض" color="purple" badge="C">
+                      <StepSection step={9} title={t('create_session.promo_tracking')} color="purple" badge="C">
                         <PromoTrackingSummary items={calc.promoTracking} periodStart={periodStart} periodEnd={periodEnd} />
                       </StepSection>
                     )}
@@ -695,23 +695,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 )}
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
-                <StepSection step={10} title="تفاصيل الديون المحصلة" color="orange">
+                <StepSection step={10} title={t('create_session.collected_debts_details')} color="orange">
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
                 {/* ━━━ Step 11: Document Collections ━━━ */}
-                <StepSection step={11} title="المستندات المحصلة (شيكات / وصولات)" color="blue">
+                <StepSection step={11} title={t('create_session.collected_documents')} color="blue">
                   <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} />
                 </StepSection>
 
                 {/* ━━━ Step 12: Exceptional Actions ━━━ */}
-                <StepSection step={12} title="إجراءات استثنائية" color="amber">
+                <StepSection step={12} title={t('create_session.exceptional_actions')} color="amber">
                   <ExceptionalActionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
                 {pendingDiscrepancies.length > 0 && (
-                  <StepSection step={13} title="فوارق المخزون (فائض / عجز)" color="red">
+                  <StepSection step={13} title={t('create_session.stock_discrepancies')} color="red">
                     <StockDiscrepancySection discrepancies={pendingDiscrepancies} />
                   </StepSection>
                 )}
@@ -734,7 +734,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                   disabled={isUnfreezing}
                 >
                   {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                  {isFrozen ? 'فك التجميد' : 'تجميد'}
+                  {isFrozen ? t('create_session.unfreeze') : t('create_session.freeze')}
                 </Button>
               )}
               <Button
@@ -742,14 +742,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 onClick={handleShowConfirmation}
                 disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen)}
               >
-                {isEditMode ? (t('accounting.update_session') || 'حفظ التعديلات') : t('accounting.save_session')}
+                {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
               </Button>
             </div>
             {!isEditMode && !isFrozen && selectedWorkerId && (
               <Alert className="mt-2">
                 <Info className="w-4 h-4" />
                 <AlertDescription className="text-xs">
-                  لا يمكن حفظ الجلسة حتى يقوم مدير المخزن بإجراء مراجعة نهائية جديدة للعامل.
+                  {t('create_session.cannot_save_until_review')}
                 </AlertDescription>
               </Alert>
             )}
@@ -766,7 +766,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <ClipboardList className="w-5 h-5 text-primary" />
               </div>
               <div className="flex flex-col">
-                <span>ملخص التسليم</span>
+                <span>{t('create_session.handover_summary')}</span>
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
@@ -787,7 +787,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <div className="mt-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                 <p className="text-xs text-destructive">
-                  بعض المستندات لم يتم تأكيد استلامها. ستُسجل في ذمة العامل كمستندات غير مسلمة.
+                  {t('create_session.unconfirmed_docs_warning')}
                 </p>
               </div>
             )}
@@ -798,7 +798,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               className="flex-1 rounded-xl h-11"
               onClick={() => setShowConfirmation(false)}
             >
-              العودة للمراجعة
+              {t('create_session.back_to_review')}
             </Button>
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
@@ -806,7 +806,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               disabled={isSubmitting || createSession.isPending || updateSession.isPending}
             >
               {(isSubmitting || createSession.isPending || updateSession.isPending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              {isEditMode ? 'تأكيد الحفظ' : 'متابعة إلى التفريغ'}
+              {isEditMode ? t('create_session.confirm_save') : t('create_session.continue_to_unload')}
             </Button>
           </div>
         </DialogContent>

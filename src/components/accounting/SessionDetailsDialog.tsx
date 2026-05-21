@@ -100,12 +100,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
         amount: Math.abs(amount),
         debt_type: 'deficit',
         session_id: session.id,
-        description: `عجز جلسة محاسبة ${format(new Date(session.session_date), 'dd/MM/yyyy')}`,
+        description: `${t('create_session.deficit_session_desc')} ${format(new Date(session.session_date), 'dd/MM/yyyy')}`,
       });
       setDeficitAdded(true);
-      toast.success('تم إضافة العجز كدين على العامل');
+      toast.success(t('session_details.deficit_added'));
     } catch {
-      toast.error('خطأ في إضافة العجز');
+      toast.error(t('session_details.deficit_add_error'));
     }
   };
 
@@ -232,7 +232,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               const csVal = customerSurplusItem ? Number(customerSurplusItem.expected_amount || 0) : 0;
               return (
                 <div className="flex justify-between text-blue-600">
-                  <span>فائض العملاء (كاش)</span>
+                  <span>{t('create_session.customer_surplus_cash')}</span>
                   <span>{csVal > 0 ? '+' : ''}{fmt(csVal)} DA</span>
                 </div>
               );
@@ -274,11 +274,11 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               ) : (
                 <AlertTriangle className="w-3 h-3 ml-1" />
               )}
-              تسجيل العجز كدين على العامل ({fmt(Math.abs(cashDiff))} DA)
+              {t('session_details.deficit_recorded_as_debt')} ({fmt(Math.abs(cashDiff))} DA)
             </Button>
           )}
            {deficitAdded && (
-             <p className="text-xs text-center text-green-600 mt-2 font-medium">✓ تم تسجيل العجز كدين على العامل</p>
+             <p className="text-xs text-center text-green-600 mt-2 font-medium">{t('session_details.deficit_done')}</p>
            )}
            {/* Surplus Button - records in treasury */}
            {cashDiff > 0 && !surplusAdded && (
@@ -294,21 +294,21 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                      source_type: 'accounting_surplus',
                      payment_method: 'cash',
                      amount: cashDiff,
-                     notes: `فائض جلسة محاسبة - ${session.worker?.full_name || session.worker_id}`,
+                     notes: `${t('create_session.surplus_session_note')} - ${session.worker?.full_name || session.worker_id}`,
                    });
                    setSurplusAdded(true);
-                   toast.success('تم تسجيل الفائض في الخزينة');
+                   toast.success(t('create_session.surplus_recorded'));
                  } catch {
-                   toast.error('خطأ في تسجيل الفائض');
+                   toast.error(t('create_session.surplus_error'));
                  }
                }}
              >
                <ArrowUpCircle className="w-3 h-3 ml-1" />
-               تسجيل الفائض في الخزينة ({fmt(cashDiff)} DA)
+               {t('create_session.surplus_in_treasury')} ({fmt(cashDiff)} DA)
              </Button>
            )}
            {surplusAdded && (
-             <p className="text-xs text-center text-green-600 mt-2 font-medium">✓ تم تسجيل الفائض في الخزينة</p>
+             <p className="text-xs text-center text-green-600 mt-2 font-medium">{t('session_details.surplus_done')}</p>
            )}
          </div>
 
@@ -427,7 +427,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             {/* Financial Items */}
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
-              title="ملخص مالي"
+              title={t('session_details.financial_summary')}
               sectionKey="financial"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -439,13 +439,13 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               ) : items && items.length > 0 ? (
                 isNewFormat ? renderNewFormat() : renderOldFormat()
               ) : (
-                <p className="text-center text-muted-foreground py-6">لا توجد بنود</p>
+                <p className="text-center text-muted-foreground py-6">{t('session_details.no_items')}</p>
               )}
             </CollapsibleSection>
 
             <CollapsibleSection
               icon={<ShoppingBag className="w-4 h-4 text-primary" />}
-              title="مبيعات العملاء"
+              title={t('session_details.customer_sales')}
               sectionKey="sales"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -459,7 +459,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<Layers className="w-4 h-4 text-primary" />}
-              title="مجموعات التسعير"
+              title={t('session_details.pricing_groups')}
               sectionKey="pricing"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -473,7 +473,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<Package className="w-4 h-4 text-primary" />}
-              title={t('accounting.truck_stock') || 'تتبع المنتجات'}
+              title={t('accounting.truck_stock') || t('create_session.product_tracking')}
               sectionKey="stock"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -488,7 +488,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<HandCoins className="w-4 h-4 text-orange-600" />}
-              title="تفاصيل الديون المحصلة"
+              title={t('create_session.collected_debts_details')}
               sectionKey="debts"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -502,7 +502,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<FileCheck2 className="w-4 h-4 text-blue-600" />}
-              title="استلام المستندات"
+              title={t('session_details.documents_received')}
               sectionKey="docs"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -518,7 +518,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<CreditCard className="w-4 h-4 text-amber-600" />}
-              title="تفاصيل المصاريف"
+              title={t('session_details.expenses_details')}
               sectionKey="expenses"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -533,8 +533,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             {liveCalc && liveCalc.promoTracking.length > 0 && (
               <CollapsibleSection
                 icon={<Tag className="w-4 h-4 text-purple-600" />}
-                title="تتبع العروض"
-                summary={`${liveCalc.promoTracking.length} عروض`}
+                title={t('create_session.promo_tracking')}
+                summary={`${liveCalc.promoTracking.length} ${t('session_details.promos_count')}`}
                 sectionKey="promos"
                 activeKey={activeSection}
                 onToggle={toggleSection}
