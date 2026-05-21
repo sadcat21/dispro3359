@@ -62,7 +62,7 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
         <div className="space-y-4">
           {/* Page count */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-semibold">عدد الصفحات</Label>
+            <Label className="text-sm font-semibold">{t('template_print.page_count')}</Label>
             <div className="flex items-center gap-3">
               <Button
                 size="icon"
