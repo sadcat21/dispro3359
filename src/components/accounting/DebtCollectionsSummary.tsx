@@ -156,7 +156,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
               <p className="font-bold text-xs text-green-600">{fmt(row.collectedNow)}</p>
             </div>
             <div className={`rounded p-1.5 ${row.remainingAfter > 0 ? 'bg-destructive/10' : 'bg-green-50 dark:bg-green-900/20'}`}>
-              <p className="text-muted-foreground mb-0.5">الباقي</p>
+              <p className="text-muted-foreground mb-0.5">{t('debt_collections.remaining')}</p>
               <p className={`font-bold text-xs ${row.remainingAfter > 0 ? 'text-destructive' : 'text-green-600'}`}>{fmt(row.remainingAfter)}</p>
             </div>
           </div>
