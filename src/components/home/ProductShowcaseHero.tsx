@@ -114,7 +114,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
             title: productName,
             subtitleParts,
             image,
-            tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
+            tierLabel: tiers.length > 1 ? `${t('showcase.tier_label')} ${idx + 1}/${tiers.length}` : undefined,
             endDate: o.end_date || null,
           });
         });
