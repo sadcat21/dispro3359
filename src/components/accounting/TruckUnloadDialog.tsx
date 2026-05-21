@@ -17,6 +17,7 @@ import { Loader2, Package, Truck, CheckCircle2, AlertTriangle, PackageX } from '
 import { Badge } from '@/components/ui/badge';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import EmptyTruckDialog from './EmptyTruckDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Props {
   open: boolean;
@@ -28,6 +29,7 @@ interface Props {
 }
 
 const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isPending, workerId, workerName }) => {
+  const { t } = useLanguage();
   const [notes, setNotes] = useState('');
   const [emptyOpen, setEmptyOpen] = useState(false);
   const qc = useQueryClient();
@@ -70,12 +72,12 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 flex-wrap">
             <Truck className="w-5 h-5 text-orange-600" />
-            <span>رصيد شحنة العامل</span>
+            <span>{t('truck_unload.title')}</span>
             {workerName && (
               <span className="text-destructive font-bold">— {workerName}</span>
             )}
           </AlertDialogTitle>
-          <AlertDialogDescription className="sr-only">رصيد شحنة العامل</AlertDialogDescription>
+          <AlertDialogDescription className="sr-only">{t('truck_unload.title')}</AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto border rounded-md p-2 my-2 bg-muted/30">
@@ -86,13 +88,13 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
           ) : isEmpty ? (
             <div className="flex flex-col items-center justify-center py-8 text-green-600">
               <CheckCircle2 className="w-10 h-10 mb-2" />
-              <p className="text-sm font-medium">رصيد الشحنة فارغ — تم تفريغ الشاحنة بالكامل</p>
+              <p className="text-sm font-medium">{t('truck_unload.empty')}</p>
             </div>
           ) : (
             <>
               <div className="flex items-center gap-2 px-1 pb-2 text-sm text-destructive">
                 <AlertTriangle className="w-4 h-4" />
-                لا يزال لدى العامل {data!.length} منتج بكميات متبقية. لا يمكن الحفظ.
+                {t('truck_unload.has_remaining_prefix')} {data!.length} {t('truck_unload.has_remaining_suffix')}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {data!.map((it: any) => {
@@ -129,21 +131,21 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
 
         {isEmpty && (
           <Textarea
-            placeholder="ملاحظات حول التفريغ (اختياري)..."
+            placeholder={t('truck_unload.notes_placeholder')}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
         )}
 
         <AlertDialogFooter className="flex-row justify-end gap-2 sm:gap-2">
-          <AlertDialogCancel disabled={isPending}>إغلاق</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('truck_unload.close')}</AlertDialogCancel>
           {isEmpty ? (
             <AlertDialogAction
               onClick={() => onConfirm(notes)}
               disabled={isPending}
               className="bg-orange-600 hover:bg-orange-700"
             >
-              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد التفريغ وحفظ المحاسبة'}
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('truck_unload.confirm')}
             </AlertDialogAction>
           ) : (
             workerId && (
@@ -153,7 +155,7 @@ const TruckUnloadDialog: React.FC<Props> = ({ open, onOpenChange, onConfirm, isP
                 disabled={isPending || isLoading}
               >
                 <PackageX className="w-4 h-4 ml-2" />
-                تفريغ الشاحنة الآن (المدير)
+                {t('truck_unload.force_empty')}
               </Button>
             )
           )}
