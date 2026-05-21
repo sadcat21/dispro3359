@@ -460,7 +460,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         } else {
           agg[item.product_id].customers.push({
             customerId: String(customerId),
-            customerName: String(customerNameMap.get(String(customerId)) || 'عميل غير معروف'),
+            customerName: String(customerNameMap.get(String(customerId)) || t('sales_summary.unknown_customer')),
             storeName: String(customerStoreMap.get(String(customerId)) || '') || null,
             phone: String(customerPhoneMap.get(String(customerId)) || '') || null,
             deliveryTime: String(orderTimeMap.get(item.order_id) || '') || null,
