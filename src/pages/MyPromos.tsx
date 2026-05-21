@@ -92,7 +92,14 @@ const MyPromosContent: React.FC = () => {
   const [offers, setOffers] = useState<OfferSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
+  // Accounting Filtering — same logic as /my-achievements
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const [periodFrom, setPeriodFrom] = useState<string>(today);
+  const [periodTo, setPeriodTo] = useState<string>(today);
+  const [showPeriodDialog, setShowPeriodDialog] = useState(false);
+  const { lowerBound, upperBound, isLoading: boundsLoading } = useAccountingDateRange(workerId, periodFrom, periodTo);
+
   // Edit dialog state
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingPromo, setEditingPromo] = useState<PromoWithDetails | null>(null);
@@ -117,10 +124,10 @@ const MyPromosContent: React.FC = () => {
   const isDeletePromoHidden = true;
 
   useEffect(() => {
-    if (workerId) {
+    if (workerId && !boundsLoading) {
       fetchData();
     }
-  }, [workerId, activeBranch]);
+  }, [workerId, activeBranch, lowerBound, upperBound, boundsLoading]);
 
   const fetchData = async () => {
     try {
