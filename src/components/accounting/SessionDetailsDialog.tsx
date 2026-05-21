@@ -427,7 +427,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             {/* Financial Items */}
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
-              title="ملخص مالي"
+              title={t('session_details.financial_summary')}
               sectionKey="financial"
               activeKey={activeSection}
               onToggle={toggleSection}
@@ -439,7 +439,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               ) : items && items.length > 0 ? (
                 isNewFormat ? renderNewFormat() : renderOldFormat()
               ) : (
-                <p className="text-center text-muted-foreground py-6">لا توجد بنود</p>
+                <p className="text-center text-muted-foreground py-6">{t('session_details.no_items')}</p>
               )}
             </CollapsibleSection>
 
