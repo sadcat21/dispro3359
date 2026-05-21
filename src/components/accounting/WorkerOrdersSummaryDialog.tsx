@@ -22,6 +22,7 @@ import { useWorkerPrintInfo } from '@/hooks/useWorkerPrintInfo';
 import GiftsPrintView from '@/components/accounting/GiftsPrintView';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { isAdminRole } from '@/lib/utils';
 
 interface Props {
@@ -230,6 +231,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const [loadedFromDb, setLoadedFromDb] = useState(false);
 
   const { activeBranch, role, activeRole } = useAuth();
+  const { t } = useLanguage();
   const canSeeCashVan = isAdminRole(role) || role === 'supervisor' || activeRole?.custom_role_code === 'warehouse_manager';
   const { columns: columnConfig, saveColumns } = usePrintColumnsConfig();
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
@@ -290,10 +292,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       } else {
         await supabase.from('app_settings').insert({ key: cashVanKey, value: JSON.stringify(cashVanProducts), branch_id: activeBranch?.id || null });
       }
-      toast.success('تم حفظ كميات CASH VAN');
+      toast.success(t('orders_summary.cashvan_saved'));
     } catch (e) {
       console.error(e);
-      toast.error('حدث خطأ أثناء الحفظ');
+      toast.error(t('orders_summary.save_error'));
     } finally {
       setCashVanSaving(false);
     }
@@ -316,10 +318,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       } else {
         await supabase.from('app_settings').insert({ key: customerSelKey, value, branch_id: activeBranch?.id || null });
       }
-      toast.success('تم حفظ تحديد العملاء');
+      toast.success(t('orders_summary.customers_saved'));
     } catch (e) {
       console.error(e);
-      toast.error('حدث خطأ أثناء الحفظ');
+      toast.error(t('orders_summary.save_error'));
     } finally {
       setCustomersSaving(false);
     }
@@ -529,7 +531,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       }
       
       if (fetchedOrders.length === 0) {
-        toast.info('لا توجد طلبيات للطباعة');
+        toast.info(t('orders_summary.no_orders_to_print'));
         setIsPrintLoading(false);
         return;
       }
@@ -641,7 +643,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       }, 800);
     } catch (err) {
       console.error('Print error:', err);
-      toast.error('حدث خطأ أثناء تحضير الطباعة');
+      toast.error(t('orders_summary.print_prep_error'));
     } finally {
       setIsPrintLoading(false);
     }
@@ -695,7 +697,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <ClipboardList className="w-5 h-5 text-primary" />
               </div>
-              <span className="flex-1">{isDeliveryMode ? 'تجميع التوصيلات' : 'تجميع الطلبيات'} {workerName ? `- ${workerName}` : ''}</span>
+              <span className="flex-1">{isDeliveryMode ? t('orders_summary.title_delivery') : t('orders_summary.title_orders')} {workerName ? `- ${workerName}` : ''}</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -716,7 +718,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
                       onClick={() => { setSelectedDate(todayStr); setExpandedProduct(null); }}
                     >
                       <Calendar className="w-3.5 h-3.5" />
-                      اليوم
+                      {t('orders_summary.today')}
                     </Button>
                     <Button
                       size="sm"
@@ -725,7 +727,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
                       onClick={() => { setSelectedDate(tomorrowStr); setExpandedProduct(null); }}
                     >
                       <Calendar className="w-3.5 h-3.5" />
-                      غدًا
+                      {t('orders_summary.tomorrow')}
                     </Button>
                     <span className="text-[11px] text-muted-foreground ms-1">
                       {format(new Date(selectedDate), 'dd/MM/yyyy')}
@@ -757,11 +759,11 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               <TabsList className="grid grid-cols-2 h-9 bg-muted/60 rounded-lg p-0.5">
                <TabsTrigger value="assigned" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
                   <UserCheck className="w-3.5 h-3.5" />
-                  معيّنة ({assignedCustomers})
+                  {t('orders_summary.assigned')} ({assignedCustomers})
                 </TabsTrigger>
                 <TabsTrigger value="created" className="text-[11px] rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1 h-full">
                   <ShoppingCart className="w-3.5 h-3.5" />
-                  طلبياته ({createdCustomers})
+                  {t('orders_summary.created')} ({createdCustomers})
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -772,14 +774,14 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             <div className="flex items-center justify-center gap-4 px-3 py-2 shrink-0">
               <span className="text-[11px] font-semibold flex items-center gap-1 text-primary">
                 <Package className="w-3.5 h-3.5" />
-                {currentData.length} منتج
+                {currentData.length} {t('orders_summary.product')}
               </span>
               <span className="text-[11px] font-semibold flex items-center gap-1 text-foreground">
-                {totalQuantity} صندوق
+                {totalQuantity} {t('orders_summary.box')}
               </span>
               <span className="text-[11px] font-semibold flex items-center gap-1 text-muted-foreground">
                 <User className="w-3.5 h-3.5" />
-                {totalCustomers} عميل
+                {totalCustomers} {t('orders_summary.customer')}
               </span>
             </div>
           )}
@@ -792,7 +794,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             ) : currentData.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <ClipboardList className="w-12 h-12 opacity-30 mb-2" />
-                <p className="text-sm">لا توجد طلبيات في هذا التاريخ</p>
+                <p className="text-sm">{t('orders_summary.no_orders')}</p>
               </div>
             ) : expandedProduct ? (
               <ScrollArea className="h-full px-3">
@@ -828,7 +830,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
                         <p className="text-[10px] font-semibold leading-tight line-clamp-2">{product.name}</p>
                         <p className="text-[9px] text-muted-foreground mt-0.5">
                           <User className="w-2.5 h-2.5 inline me-0.5" />
-                          {product.customerCount} عميل
+                          {product.customerCount} {t('orders_summary.customer')}
                         </p>
                       </div>
                     </div>
@@ -848,7 +850,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
             disabled={isPrintLoading || currentData.length === 0}
           >
             {isPrintLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
-            طباعة
+            {t('orders_summary.print')}
           </Button>
         </div>
       </DialogContent>
@@ -860,7 +862,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Printer className="w-4 h-4" />
-            إعدادات الطباعة
+            {t('orders_summary.print_settings')}
           </DialogTitle>
         </DialogHeader>
         <AdaptiveScrollContainer
@@ -869,8 +871,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         >
           {/* Summary */}
           <div className="bg-primary/10 p-3 rounded-lg text-center">
-            <p className="text-base font-bold">{selectedCustomerIds.size} عميل • {totalQuantity} صندوق</p>
-            <p className="text-xs text-muted-foreground">{activeTab === 'created' ? 'طلبياته' : 'معيّنة'} - {format(new Date(selectedDate), 'dd/MM/yyyy')}</p>
+            <p className="text-base font-bold">{selectedCustomerIds.size} {t('orders_summary.customer')} • {totalQuantity} {t('orders_summary.box')}</p>
+            <p className="text-xs text-muted-foreground">{activeTab === 'created' ? t('orders_summary.created') : t('orders_summary.assigned')} - {format(new Date(selectedDate), 'dd/MM/yyyy')}</p>
           </div>
 
           {/* Customer Selection */}
