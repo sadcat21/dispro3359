@@ -75,7 +75,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
           <DialogHeader className="p-4 pb-2">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Calculator className="w-5 h-5 text-primary" />
-              سجل جلسات المحاسبة — {workerName}
+              {t('worker_accounting_sessions.title')} — {workerName}
             </DialogTitle>
           </DialogHeader>
 
