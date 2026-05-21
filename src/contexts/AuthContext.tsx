@@ -85,6 +85,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  useEffect(() => {
+    if (activeBranch?.id || !activeRole?.branch_id) return;
+
+    let cancelled = false;
+
+    supabase
+      .from('branches')
+      .select('*')
+      .eq('id', activeRole.branch_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data) {
+          setActiveBranch(data);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeBranch?.id, activeRole?.branch_id]);
+
   const ensureSupabaseSession = async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {

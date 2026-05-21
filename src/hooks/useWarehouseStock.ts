@@ -56,7 +56,7 @@ export interface StockReceiptItem {
 }
 
 export const useWarehouseStock = () => {
-  const { workerId, activeBranch } = useAuth();
+  const { workerId, activeBranch, activeRole } = useAuth();
   const [warehouseStock, setWarehouseStock] = useState<WarehouseStockItem[]>([]);
   const [workerStocks, setWorkerStocks] = useState<WorkerStockItem[]>([]);
   const [receipts, setReceipts] = useState<StockReceipt[]>([]);
@@ -68,7 +68,7 @@ export const useWarehouseStock = () => {
 
   // Fallback: fetch worker's branch_id if activeBranch is not set
   useEffect(() => {
-    if (activeBranch?.id || !workerId) return;
+    if (activeBranch?.id || activeRole?.branch_id || !workerId) return;
     const fetchWorkerBranch = async () => {
       const { data } = await supabase
         .from('workers')
@@ -78,9 +78,9 @@ export const useWarehouseStock = () => {
       if (data?.branch_id) setWorkerBranchId(data.branch_id);
     };
     fetchWorkerBranch();
-  }, [workerId, activeBranch?.id]);
+  }, [workerId, activeBranch?.id, activeRole?.branch_id]);
 
-  const branchId = activeBranch?.id || workerBranchId;
+  const branchId = activeBranch?.id || activeRole?.branch_id || workerBranchId;
 
   const fetchProducts = useCallback(async () => {
     const { data } = await supabase
