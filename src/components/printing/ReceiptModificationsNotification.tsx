@@ -116,7 +116,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                     disabled={reviewMutation.isPending}
                   >
                     <Check className="w-3 h-3 ml-1" />
-                    تمت المراجعة
+                    {t('receipt_mods.reviewed')}
                   </Button>
                 </div>
               </div>
