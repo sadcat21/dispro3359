@@ -16,6 +16,10 @@ import PricingGroupsSummary from './PricingGroupsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const getLocaleCode = (language: string): string =>
+  language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
 /** Format quantity as boxes.pieces (e.g. 1.05 = 1 box + 5 pieces) */
 const formatBoxPieces = (qty: number, piecesPerBox: number | null): string => {
   if (!piecesPerBox || piecesPerBox <= 0) return String(qty);
@@ -62,6 +66,8 @@ const ExpandedCarousel: React.FC<{
   onNavigate: (id: string) => void;
   onClose: () => void;
 }> = ({ items, expandedProduct, onNavigate, onClose }) => {
+  const { t, language } = useLanguage();
+  const localeCode = getLocaleCode(language);
   const currentIdx = items.findIndex(i => i.productId === expandedProduct);
   const item = items[currentIdx];
   if (!item) return null;
@@ -149,7 +155,7 @@ const ExpandedCarousel: React.FC<{
                         <span className="truncate font-medium">{c.storeName || c.customerName}</span>
                         {c.deliveryTime && (
                           <span className="text-[10px] text-muted-foreground shrink-0">
-                            {new Date(c.deliveryTime).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(c.deliveryTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         )}
                       </div>
@@ -184,7 +190,7 @@ const ExpandedCarousel: React.FC<{
             )}
           </div>
           <div className="flex items-center justify-center rounded-md bg-muted py-1.5 text-xs font-semibold text-muted-foreground">
-            {item.totalAmount.toLocaleString('ar-DZ')} د.ج
+            {item.totalAmount.toLocaleString(localeCode)} {t('sales_summary.currency')}
           </div>
         </div>
       </div>
@@ -201,9 +207,6 @@ const fmtQty = (v: number): string => {
   return rounded.toFixed(2).replace(/0+$/, '');
 };
 
-const subtypeLabelsMap: Record<string, string> = {
-  retail: 'تجزئة', gros: 'جملة', super_gros: 'سوبر جملة', invoice: 'فاتورة 1',
-};
 const subtypeAbbrMap: Record<string, string> = { retail: 'D', gros: 'G', super_gros: 'SG', invoice: 'F1' };
 const subtypeColorMap: Record<string, string> = {
   retail: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -213,8 +216,15 @@ const subtypeColorMap: Record<string, string> = {
 };
 
 const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ priceTracking }) => {
+  const { t } = useLanguage();
+  const subtypeLabelsMap: Record<string, string> = {
+    retail: t('sales_summary.subtype_retail'),
+    gros: t('sales_summary.subtype_gros'),
+    super_gros: t('sales_summary.subtype_super_gros'),
+    invoice: t('sales_summary.subtype_invoice'),
+  };
   if (!priceTracking.length) {
-    return <p className="text-center text-muted-foreground py-6 text-sm">لا توجد بيانات</p>;
+    return <p className="text-center text-muted-foreground py-6 text-sm">{t('sales_summary.no_data')}</p>;
   }
 
   const totalQty = priceTracking.reduce((s, r) => s + r.quantity, 0);
@@ -237,7 +247,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
               <div className="flex items-center justify-between w-full">
                 <span className="font-medium text-sm text-wrap">{product.productName}</span>
                 <span className="flex items-center gap-1.5 shrink-0 ms-2">
-                  <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} صندوق</span>
+                  <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} {t('sales_summary.box')}</span>
                   <span className="text-xs font-bold">{product.totalValue.toLocaleString()} DA</span>
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                 </span>
@@ -258,11 +268,11 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
             <CollapsibleContent>
               <div className="border-t p-1.5 space-y-1">
                 <div className="grid grid-cols-5 gap-1 text-[10px] text-muted-foreground text-center font-medium border-b pb-1">
-                  <span className="text-start">التسعير</span>
-                  <span>الكمية</span>
-                  <span>سعر الصندوق</span>
-                  <span>سعر الوحدة</span>
-                  <span>القيمة الإجمالية</span>
+                  <span className="text-start">{t('sales_summary.col_pricing')}</span>
+                  <span>{t('sales_summary.col_qty')}</span>
+                  <span>{t('sales_summary.col_box_price')}</span>
+                  <span>{t('sales_summary.col_unit_price')}</span>
+                  <span>{t('sales_summary.col_total_value')}</span>
                 </div>
                 {product.pricingRows.sort((a, b) => b.quantity - a.quantity).map((row, idx) => {
                   const unit = getUnitPrice(row);
@@ -289,7 +299,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
       ))}
 
       <div className="grid grid-cols-2 gap-2 text-xs text-center font-bold border-t-2 pt-1 bg-primary/5 rounded p-1.5">
-        <span className="text-start">الإجمالي: {fmtQty(totalQty)} صندوق</span>
+        <span className="text-start">{t('sales_summary.total')}: {fmtQty(totalQty)} {t('sales_summary.box')}</span>
         <span className="text-primary">{totalValue.toLocaleString()} DA</span>
       </div>
     </div>
@@ -297,6 +307,8 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
 };
 
 const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName, defaultPeriodFrom, defaultPeriodTo }) => {
+  const { t, language } = useLanguage();
+  const localeCode = getLocaleCode(language);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('products');
   const [periodFrom, setPeriodFrom] = useState<string>(defaultPeriodFrom || '');
@@ -427,7 +439,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           const product = productInfoMap[item.product_id];
           agg[item.product_id] = {
             productId: item.product_id,
-            name: product?.name || 'منتج غير معروف',
+            name: product?.name || t('sales_summary.unknown_product'),
             quantity: 0,
             giftQuantity: 0,
             totalAmount: 0,
@@ -448,7 +460,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         } else {
           agg[item.product_id].customers.push({
             customerId: String(customerId),
-            customerName: String(customerNameMap.get(String(customerId)) || 'عميل غير معروف'),
+            customerName: String(customerNameMap.get(String(customerId)) || t('sales_summary.unknown_customer')),
             storeName: String(customerStoreMap.get(String(customerId)) || '') || null,
             phone: String(customerPhoneMap.get(String(customerId)) || '') || null,
             deliveryTime: String(orderTimeMap.get(item.order_id) || '') || null,
@@ -569,7 +581,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
   const firstTime = salesData?.firstOrderTime ? new Date(salesData.firstOrderTime) : null;
   const lastTime = salesData?.lastOrderTime ? new Date(salesData.lastOrderTime) : null;
-  const todayDate = new Date().toLocaleDateString('ar-DZ', { year: 'numeric', month: 'long', day: 'numeric' });
+  const todayDate = new Date().toLocaleDateString(localeCode, { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -579,7 +591,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
-                تجميع مبيعات {workerName}
+                {t('sales_summary.title')} {workerName}
               </div>
               <div className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
@@ -591,7 +603,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && (
           <div className="flex flex-wrap gap-1.5 items-center text-xs mb-3">
-            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodFrom">من</label>
+            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodFrom">{t('sales_summary.from')}</label>
             <input
               id="workerPeriodFrom"
               type="date"
@@ -600,7 +612,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               onChange={e => setPeriodFrom(e.target.value)}
             />
 
-            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodTo">إلى</label>
+            <label className="text-xs font-medium text-slate-700" htmlFor="workerPeriodTo">{t('sales_summary.to')}</label>
             <input
               id="workerPeriodTo"
               type="date"
@@ -609,41 +621,41 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               onChange={e => setPeriodTo(e.target.value)}
             />
 
-            <Button onClick={resetFilters} size="sm" variant="outline" className="text-xs px-2 py-1 h-auto">إعادة تعيين</Button>
+            <Button onClick={resetFilters} size="sm" variant="outline" className="text-xs px-2 py-1 h-auto">{t('sales_summary.reset')}</Button>
           </div>
         )}
 
         {!expandedProduct && (
           <div className="flex flex-wrap gap-1.5 items-center text-xs">
             <Badge variant="secondary" className="text-xs">
-              {salesData?.orderCount || 0} طلبية
+              {salesData?.orderCount || 0} {t('sales_summary.orders_count')}
             </Badge>
             <Badge variant="outline" className="text-xs">
-              {totalQty} وحدة
+              {totalQty} {t('sales_summary.units')}
             </Badge>
             <Badge className="text-xs bg-primary/10 text-primary border-0">
-              {totalAmount.toLocaleString('ar-DZ')} د.ج
+              {totalAmount.toLocaleString(localeCode)} {t('sales_summary.currency')}
             </Badge>
             {promoData && promoData.promoTracking.length > 0 && (
               <Badge variant="outline" className="text-xs">
-                {promoData.promoTracking.length} عروض
+                {promoData.promoTracking.length} {t('sales_summary.promos')}
               </Badge>
             )}
             {lastAccounting && (
               <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                منذ آخر محاسبة
+                {t('sales_summary.since_last_accounting')}
               </Badge>
             )}
             {firstTime && (
               <span className="flex items-center gap-1 rounded-full px-2 py-0.5 bg-[hsl(var(--success)/0.18)] text-[hsl(var(--success-foreground))] font-semibold text-[11px]">
                 <Clock className="w-3 h-3" />
-                {firstTime.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                {firstTime.toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
             {lastTime && (
               <span className="flex items-center gap-1 rounded-full px-2 py-0.5 bg-destructive/15 text-destructive font-semibold text-[11px]">
                 <Clock className="w-3 h-3" />
-                {lastTime.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                {lastTime.toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
           </div>
@@ -652,17 +664,17 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         {!expandedProduct && salesData?.items?.length ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <TabsList className="w-full shrink-0 grid grid-cols-4">
-              <TabsTrigger value="products" className="text-xs">المنتجات</TabsTrigger>
+              <TabsTrigger value="products" className="text-xs">{t('sales_summary.tab_products')}</TabsTrigger>
               <TabsTrigger value="promos" className="text-xs">
-                العروض
+                {t('sales_summary.tab_promos')}
                 {promoData?.promoTracking?.length ? (
                   <Badge variant="secondary" className="ms-1 h-4 min-w-4 rounded-full px-1 text-[9px]">
                     {promoData.promoTracking.length}
                   </Badge>
                 ) : null}
               </TabsTrigger>
-              <TabsTrigger value="pricing" className="text-xs">المتابعة السعرية</TabsTrigger>
-              <TabsTrigger value="groups" className="text-xs">مجموعات التسعير</TabsTrigger>
+              <TabsTrigger value="pricing" className="text-xs">{t('sales_summary.tab_pricing')}</TabsTrigger>
+              <TabsTrigger value="groups" className="text-xs">{t('sales_summary.tab_groups')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -701,7 +713,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                           )}
                         </div>
                         <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
-                          {item.totalAmount.toLocaleString('ar-DZ')} د.ج
+                          {item.totalAmount.toLocaleString(localeCode)} {t('sales_summary.currency')}
                         </div>
                       </div>
                     </div>
@@ -724,7 +736,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-muted-foreground">
                     <Tag className="h-8 w-8 opacity-40" />
                     <p className="text-center text-sm">
-                      لا توجد عروض مطبقة{workerName ? ` للعامل ${workerName}` : ''} في هذه الفترة
+                      {t('sales_summary.no_promos_applied')}{workerName ? ` ${t('sales_summary.for_worker')} ${workerName}` : ''} {t('sales_summary.in_this_period')}
                     </p>
                   </div>
                 )}
@@ -756,8 +768,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             ) : !salesData?.items?.length && !expandedProduct ? (
               <div className="py-10 text-center text-muted-foreground">
                 <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                <p>لا توجد مبيعات في هذه الفترة</p>
-                <p className="text-xs mt-1">جرب تغيير الفترة الزمنية أو إعادة التعيين</p>
+                <p>{t('sales_summary.no_sales')}</p>
+                <p className="text-xs mt-1">{t('sales_summary.no_sales_hint')}</p>
               </div>
             ) : expandedProduct ? (
               <ExpandedCarousel
