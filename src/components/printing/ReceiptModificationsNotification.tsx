@@ -105,7 +105,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                       onClick={() => handleEditOrder(mod)}
                     >
                       <Pencil className="w-3 h-3 ml-1" />
-                      تعديل
+                      {t('receipt_mods.edit')}
                     </Button>
                   )}
                   <Button
