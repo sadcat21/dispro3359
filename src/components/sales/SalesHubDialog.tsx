@@ -44,7 +44,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   hideDirectTab = false,
 }) => {
   const { t, dir } = useLanguage();
-  const { workerId, activeBranch, activeRole } = useAuth();
+  const { workerId, activeBranch, activeRole, user } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const { data: assignedOrders = [], isLoading } = useAssignedOrders();
   const [activeTab, setActiveTab] = useState<'direct' | 'delivery' | 'warehouse'>(initialTab);
@@ -54,24 +54,26 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   const [headerInfo, setHeaderInfo] = useState<{ customerName: string | null; totalAmount: number }>({ customerName: null, totalAmount: 0 });
   const handleHeaderInfo = useCallback((info: { customerName: string | null; totalAmount: number }) => setHeaderInfo(info), []);
 
-  const warehouseBranchId = activeBranch?.id || (activeRole as any)?.branch_id || null;
+  const warehouseBranchId = activeBranch?.id || (activeRole as any)?.branch_id || (user as any)?.branch_id || null;
 
   // Fetch warehouse stock when warehouse tab is active
   useEffect(() => {
-    if (!open || activeTab !== 'warehouse' || !warehouseBranchId) return;
+    if (!open || activeTab !== 'warehouse') return;
     const fetchWarehouseStock = async () => {
       setIsLoadingWarehouseStock(true);
       try {
-        const { data } = await supabase
+        let query = supabase
           .from('warehouse_stock')
-          .select('id, product_id, quantity, product:products(*)')
-          .eq('branch_id', warehouseBranchId)
+          .select('id, product_id, quantity, branch_id, product:products(*)')
           .gt('quantity', 0);
+        if (warehouseBranchId) query = query.eq('branch_id', warehouseBranchId);
+        const { data, error } = await query;
+        if (error) console.error('warehouse_stock fetch error', error);
         setWarehouseStockItems((data || []).map((s: any) => ({
           id: s.id,
           product_id: s.product_id,
           quantity: s.quantity,
-          product: s.product,
+          product: Array.isArray(s.product) ? s.product[0] : s.product,
         })));
       } catch (e) {
         console.error('Failed to load warehouse stock', e);
