@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart, Phone } from 'lucide-react';
+import { Package, Calendar, User, Loader2, Search, Pencil, Trash2, Activity, Plus, Store, Gift, ShoppingCart, Phone, CalendarRange } from 'lucide-react';
 import AddPromoDialog from '@/components/promo/AddPromoDialog';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -26,6 +26,7 @@ import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import { isOfferCurrentlyActive } from '@/utils/productOffers';
 import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
 import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
+import { useAccountingDateRange } from '@/hooks/useAccountingDateRange';
 
 type OfferSnapshot = {
   id: string;
