@@ -223,11 +223,11 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                               : 'bg-orange-500 text-white'
                           }`}
                         >
-                          {disc.discrepancy_type === 'deficit' ? 'عجز' : 'فائض'}
+                          {disc.discrepancy_type === 'deficit' ? t('truck_review.deficit') : t('truck_review.surplus')}
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        الفارق: <span className="font-bold">{Number(disc.quantity).toFixed(2)}</span>
+                        {t('truck_review.difference')}: <span className="font-bold">{Number(disc.quantity).toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
