@@ -267,6 +267,8 @@ const GiftExpandedCarousel: React.FC<{
 
 const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerId, workerName }) => {
   const { activeBranch } = useAuth();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'fr' ? fr : language === 'en' ? enUS : ar;
   const { isConnected, scanAndConnect } = useBluetoothPrinter();
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [allWorkers, setAllWorkers] = useState(false);
@@ -312,7 +314,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
     enabled: open,
   });
 
-  const effectiveWorkerName = allWorkers ? 'جميع العمال' : (workersMap[effectiveWorkerId || ''] || workerName || '');
+  const effectiveWorkerName = allWorkers ? t('gifts_summary.all_workers') : (workersMap[effectiveWorkerId || ''] || workerName || '');
   const workersList = useMemo(() => Object.entries(workersMap).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)), [workersMap]);
 
   const { data: giftsData, isLoading } = useQuery({
@@ -929,11 +931,11 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       await bluetoothPrinter.print(merged);
 
       const { toast } = await import('sonner');
-      toast.success('تمت الطباعة بنجاح');
+      toast.success(t('gifts_summary.print_success'));
       setShowPreview(false);
     } catch (err: any) {
       const { toast } = await import('sonner');
-      toast.error('فشل الطباعة: ' + (err.message || ''));
+      toast.error(t('gifts_summary.print_failed') + ' ' + (err.message || ''));
     } finally {
       setIsPrinting(false);
     }
@@ -946,7 +948,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Gift className="w-5 h-5 text-purple-600" />
-              {allWorkers ? 'تجميع العروض - جميع العمال' : `تجميع العروض - ${effectiveWorkerName || ''}`}
+              {allWorkers ? t('gifts_summary.title_all') : `${t('gifts_summary.title_one')} - ${effectiveWorkerName || ''}`}
             </DialogTitle>
           </DialogHeader>
         )}
@@ -960,17 +962,17 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                   <Switch id="all-workers" checked={allWorkers} onCheckedChange={setAllWorkers} />
                   <Label htmlFor="all-workers" className="text-xs cursor-pointer flex items-center gap-1">
                     <Users className="w-3.5 h-3.5" />
-                    جميع العمال
+                    {t('gifts_summary.all_workers')}
                   </Label>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button size="sm" variant="outline" className="gap-1 text-[10px] h-7" onClick={() => setShowPrintSettings(true)} disabled={!giftsData?.items?.length}>
                     <FileText className="w-3 h-3" />
-                    طباعة A4
+                    {t('gifts_summary.print_a4')}
                   </Button>
                   <Button size="sm" variant="outline" className="gap-1 text-[10px] h-7" onClick={() => setShowPreview(prev => !prev)} disabled={!giftsData?.items?.length}>
                     <Printer className="w-3 h-3" />
-                    {showPreview ? 'إخفاء' : 'حرارية'}
+                    {showPreview ? t('gifts_summary.hide') : t('gifts_summary.thermal')}
                   </Button>
                 </div>
               </div>
@@ -978,7 +980,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               {!allWorkers && workersList.length > 0 && (
                 <Select value={selectedWorkerId || workerId || ''} onValueChange={setSelectedWorkerId}>
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="اختر العامل" />
+                    <SelectValue placeholder={t('gifts_summary.pick_worker')} />
                   </SelectTrigger>
                   <SelectContent>
                     {workersList.map(w => (
@@ -994,7 +996,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                 </Button>
                 <div className="flex items-center gap-1.5 min-w-[140px] justify-center">
                   <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm font-medium">{format(currentMonth, 'MMMM yyyy', { locale: ar })}</span>
+                  <span className="text-sm font-medium">{format(currentMonth, 'MMMM yyyy', { locale: dateLocale })}</span>
                 </div>
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setCurrentMonth(m => subMonths(m, 1))}>
                   <ChevronLeft className="w-4 h-4" />
@@ -1014,7 +1016,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                 <ThermalPreview lines={thermalLines} showLegendToggle={false} />
                 <Button size="sm" className="w-full gap-1.5" onClick={handleThermalPrint} disabled={isPrinting}>
                   <Printer className="w-3.5 h-3.5" />
-                  {isPrinting ? 'جاري الطباعة...' : 'طباعة حرارية 48mm'}
+                  {isPrinting ? t('gifts_summary.printing') : t('gifts_summary.thermal_48')}
                 </Button>
               </div>
             )}
@@ -1029,7 +1031,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           ) : !giftsData?.items?.length && !expandedProduct ? (
             <div className="py-10 text-center text-muted-foreground">
               <Gift className="w-10 h-10 mx-auto mb-2 opacity-40" />
-              <p>لا توجد عروض في هذه الفترة</p>
+              <p>{t('gifts_summary.empty')}</p>
             </div>
           ) : expandedProduct ? (
             <GiftExpandedCarousel
@@ -1072,7 +1074,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                         </div>
                       </div>
                       <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
-                        عميل {item.customers.length} • ({item.totalGiftPieces} قطعة)
+                        {t('gifts_summary.customer_label')} {item.customers.length} • ({item.totalGiftPieces} {t('gifts_summary.pieces')})
                       </div>
                     </div>
                   </div>
