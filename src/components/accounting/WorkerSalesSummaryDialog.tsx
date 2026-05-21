@@ -190,7 +190,7 @@ const ExpandedCarousel: React.FC<{
             )}
           </div>
           <div className="flex items-center justify-center rounded-md bg-muted py-1.5 text-xs font-semibold text-muted-foreground">
-            {item.totalAmount.toLocaleString('ar-DZ')} د.ج
+            {item.totalAmount.toLocaleString(localeCode)} {t('sales_summary.currency')}
           </div>
         </div>
       </div>
