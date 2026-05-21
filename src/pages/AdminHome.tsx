@@ -504,7 +504,7 @@ const AdminHome: React.FC = () => {
         { path: '/promo-splits', icon: Split, label: t('admin_home.item.promo_splits') },
         { path: '/manual-promo', icon: Gift, label: t('admin.manual_promo'), action: () => setManualPromoOpen(true) },
         { path: '/promo-tracking', icon: Gift, label: t('admin.promo_tracking') },
-        ...(isAdminRole(role) || activeRole?.custom_role_code === 'company_manager' ? [{ path: '/suppliers', icon: Truck, label: 'الموردون' }] : []),
+        ...(isAdminRole(role) || activeRole?.custom_role_code === 'company_manager' ? [{ path: '/suppliers', icon: Truck, label: t('admin_home.item.suppliers') }] : []),
       ],
     },
     // 6. الموارد البشرية
