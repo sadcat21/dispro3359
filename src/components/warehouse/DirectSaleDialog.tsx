@@ -1072,7 +1072,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                           {t('common.loading')}
                         </span>
                       ) : selectedCustomer ? (
-                        <span className="truncate text-sm font-medium">{selectedCustomer.name}</span>
+                        <span className="truncate text-sm font-medium">{localizedCustomerName(selectedCustomer)}</span>
                       ) : (
                         <span className="text-muted-foreground">{t('orders.select_customer')}</span>
                       )}
