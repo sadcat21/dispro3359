@@ -274,11 +274,11 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               ) : (
                 <AlertTriangle className="w-3 h-3 ml-1" />
               )}
-              تسجيل العجز كدين على العامل ({fmt(Math.abs(cashDiff))} DA)
+              {t('session_details.deficit_recorded_as_debt')} ({fmt(Math.abs(cashDiff))} DA)
             </Button>
           )}
            {deficitAdded && (
-             <p className="text-xs text-center text-green-600 mt-2 font-medium">✓ تم تسجيل العجز كدين على العامل</p>
+             <p className="text-xs text-center text-green-600 mt-2 font-medium">{t('session_details.deficit_done')}</p>
            )}
            {/* Surplus Button - records in treasury */}
            {cashDiff > 0 && !surplusAdded && (
@@ -294,21 +294,21 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                      source_type: 'accounting_surplus',
                      payment_method: 'cash',
                      amount: cashDiff,
-                     notes: `فائض جلسة محاسبة - ${session.worker?.full_name || session.worker_id}`,
+                     notes: `${t('create_session.surplus_session_note')} - ${session.worker?.full_name || session.worker_id}`,
                    });
                    setSurplusAdded(true);
-                   toast.success('تم تسجيل الفائض في الخزينة');
+                   toast.success(t('create_session.surplus_recorded'));
                  } catch {
-                   toast.error('خطأ في تسجيل الفائض');
+                   toast.error(t('create_session.surplus_error'));
                  }
                }}
              >
                <ArrowUpCircle className="w-3 h-3 ml-1" />
-               تسجيل الفائض في الخزينة ({fmt(cashDiff)} DA)
+               {t('create_session.surplus_in_treasury')} ({fmt(cashDiff)} DA)
              </Button>
            )}
            {surplusAdded && (
-             <p className="text-xs text-center text-green-600 mt-2 font-medium">✓ تم تسجيل الفائض في الخزينة</p>
+             <p className="text-xs text-center text-green-600 mt-2 font-medium">{t('session_details.surplus_done')}</p>
            )}
          </div>
 
