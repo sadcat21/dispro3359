@@ -165,7 +165,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-amber-600">
             <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-bold">فائض في المنتجات ({surplusItems.length})</span>
+            <span className="text-sm font-bold">{t('stock_discrepancy.surplus_in_products')} ({surplusItems.length})</span>
           </div>
           {surplusItems.map(d => (
             <div key={d.id} className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
