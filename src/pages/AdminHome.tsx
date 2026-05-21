@@ -475,8 +475,8 @@ const AdminHome: React.FC = () => {
         { path: '/factory-receipt', icon: ArrowDownToLine, label: t('admin_home.item.factory_receipt'), action: () => setFactoryReceiptOpen(true) },
         { path: '/factory-delivery', icon: Truck, label: t('admin_home.item.factory_delivery'), action: () => setFactoryDeliveryOpen(true) },
         ...(isWarehouseManager ? [{ path: '/warehouse-direct-sale', icon: ShoppingCart, label: t('admin_home.item.warehouse_direct_sale'), action: () => setWarehouseDirectSaleOpen(true) }] : []),
-        ...(isWarehouseManager ? [{ path: '/replace-damaged', icon: PackageSearch, label: 'استبدال التالف', action: () => setReplaceDamagedOpen(true) }] : []),
-        { path: '/stock-movements', icon: PackageSearch, label: 'سجل حركة المخزون' },
+        ...(isWarehouseManager ? [{ path: '/replace-damaged', icon: PackageSearch, label: t('admin_home.item.replace_damaged'), action: () => setReplaceDamagedOpen(true) }] : []),
+        { path: '/stock-movements', icon: PackageSearch, label: t('admin_home.item.stock_movements') },
       ],
     }] : []),
     // 4. العملاء
