@@ -105,7 +105,7 @@ const CustomerDistanceIndicator: React.FC<CustomerDistanceIndicatorProps> = ({
       )}
       <span className="font-medium">
         {formatDistance(distanceKm)}
-        {isFar && ' — لست في موقع العميل'}
+        {isFar && ` — ${t('sales.not_at_customer_location')}`}
       </span>
     </div>
   );
