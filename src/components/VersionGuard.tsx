@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertTriangle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // رقم إصدار التطبيق الحالي - يجب تحديثه مع كل APK جديد
 export const APP_VERSION = 1;
 
 const VersionGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useLanguage();
   const [needsUpdate, setNeedsUpdate] = useState(false);
   const [updateUrl, setUpdateUrl] = useState('');
   const [isChecking, setIsChecking] = useState(true);
@@ -64,12 +66,12 @@ const VersionGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
             <AlertTriangle className="w-10 h-10 text-destructive" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">تحديث مطلوب</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('version_guard.update_required')}</h1>
           <p className="text-muted-foreground leading-relaxed">
-            يوجد إصدار جديد من التطبيق. يرجى تحديث التطبيق للاستمرار في الاستخدام.
+            {t('version_guard.update_message')}
           </p>
           <p className="text-sm text-muted-foreground">
-            الإصدار الحالي: <span className="font-mono">{APP_VERSION}</span>
+            {t('version_guard.current_version')}: <span className="font-mono">{APP_VERSION}</span>
           </p>
           {updateUrl && (
             <Button
@@ -78,7 +80,7 @@ const VersionGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
               onClick={() => window.open(updateUrl, '_blank')}
             >
               <Download className="w-5 h-5" />
-              تحميل التحديث
+              {t('version_guard.download_update')}
             </Button>
           )}
           <Button
@@ -86,7 +88,7 @@ const VersionGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             size="sm"
             onClick={() => checkVersion()}
           >
-            إعادة المحاولة
+            {t('version_guard.retry')}
           </Button>
         </div>
       </div>

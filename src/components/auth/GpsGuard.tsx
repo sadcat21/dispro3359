@@ -4,6 +4,8 @@ import { useHasPermission, useWorkerPermissions } from '@/hooks/usePermissions';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 
 /**
  * For worker (non-admin) accounts:
@@ -11,6 +13,7 @@ import { toast } from 'sonner';
  * - Monitors GPS status and forces logout when GPS is turned off
  */
 const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useLanguage();
   const { role, activeRole, isAuthenticated, logout } = useAuth();
   const [gpsStatus, setGpsStatus] = useState<'checking' | 'granted' | 'denied' | 'unavailable'>('checking');
   const { isLoading: workerPermsLoading } = useWorkerPermissions();
@@ -61,7 +64,7 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Force logout when GPS denied
   useEffect(() => {
     if (canCheckGps && gpsStatus === 'denied') {
-      toast.error('تم تعطيل خدمة الموقع. سيتم تسجيل الخروج.');
+      toast.error(t('gps_guard.disabled_logout'));
       const timer = setTimeout(() => logout(), 2000);
       return () => clearTimeout(timer);
     }
@@ -75,7 +78,7 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4 p-6 text-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-lg font-medium">جاري التحقق من خدمة الموقع...</p>
+        <p className="text-lg font-medium">{t('gps_guard.checking')}</p>
       </div>
     );
   }
@@ -87,16 +90,16 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
           <MapPin className="w-10 h-10 text-destructive" />
         </div>
-        <h2 className="text-xl font-bold">يجب تفعيل خدمة الموقع (GPS)</h2>
+        <h2 className="text-xl font-bold">{t('gps_guard.required_title')}</h2>
         <p className="text-muted-foreground max-w-sm">
-          لاستخدام التطبيق، يجب تفعيل خدمة تحديد المواقع على جهازك ومنح الإذن للتطبيق.
+          {t('gps_guard.required_message')}
         </p>
         <div className="flex gap-3">
           <Button onClick={checkGps} variant="default">
-            إعادة المحاولة
+            {t('gps_guard.retry')}
           </Button>
           <Button onClick={logout} variant="outline">
-            تسجيل الخروج
+            {t('gps_guard.logout')}
           </Button>
         </div>
       </div>

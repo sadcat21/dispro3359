@@ -2582,4 +2582,51 @@ export const translations: Translations = {
   'sales_summary.subtype_gros': { ar: 'جملة', fr: 'Gros', en: 'Wholesale' },
   'sales_summary.subtype_super_gros': { ar: 'سوبر جملة', fr: 'Super gros', en: 'Super wholesale' },
   'sales_summary.subtype_invoice': { ar: 'فاتورة 1', fr: 'Facture 1', en: 'Invoice 1' },
+
+  // VersionGuard
+  'version_guard.update_required': { ar: 'تحديث مطلوب', fr: 'Mise à jour requise', en: 'Update required' },
+  'version_guard.update_message': { ar: 'يوجد إصدار جديد من التطبيق. يرجى تحديث التطبيق للاستمرار في الاستخدام.', fr: 'Une nouvelle version de l\'application est disponible. Veuillez mettre à jour pour continuer.', en: 'A new version of the app is available. Please update to continue using it.' },
+  'version_guard.current_version': { ar: 'الإصدار الحالي', fr: 'Version actuelle', en: 'Current version' },
+  'version_guard.download_update': { ar: 'تحميل التحديث', fr: 'Télécharger la mise à jour', en: 'Download update' },
+  'version_guard.retry': { ar: 'إعادة المحاولة', fr: 'Réessayer', en: 'Retry' },
+
+  // GpsGuard
+  'gps_guard.disabled_logout': { ar: 'تم تعطيل خدمة الموقع. سيتم تسجيل الخروج.', fr: 'Service de localisation désactivé. Déconnexion imminente.', en: 'Location service disabled. Logging out.' },
+  'gps_guard.checking': { ar: 'جاري التحقق من خدمة الموقع...', fr: 'Vérification du service de localisation...', en: 'Checking location service...' },
+  'gps_guard.required_title': { ar: 'يجب تفعيل خدمة الموقع (GPS)', fr: 'Le service de localisation (GPS) doit être activé', en: 'Location service (GPS) must be enabled' },
+  'gps_guard.required_message': { ar: 'لاستخدام التطبيق، يجب تفعيل خدمة تحديد المواقع على جهازك ومنح الإذن للتطبيق.', fr: 'Pour utiliser l\'application, activez la géolocalisation et accordez la permission.', en: 'To use the app, enable location services on your device and grant permission to the app.' },
+  'gps_guard.retry': { ar: 'إعادة المحاولة', fr: 'Réessayer', en: 'Retry' },
+  'gps_guard.logout': { ar: 'تسجيل الخروج', fr: 'Se déconnecter', en: 'Log out' },
+
+  // PermissionGate
+  'permission_gate.title': { ar: 'غير مصرح', fr: 'Non autorisé', en: 'Unauthorized' },
+  'permission_gate.message': { ar: 'ليس لديك صلاحية الوصول لهذه الصفحة', fr: 'Vous n\'avez pas l\'autorisation d\'accéder à cette page', en: 'You do not have permission to access this page' },
+
+  // BoxPieceInput
+  'box_piece.box_short': { ar: 'ص', fr: 'C', en: 'B' },
+  'box_piece.piece_short': { ar: 'ق', fr: 'p', en: 'pc' },
+
+  // ReceiptModificationsNotification
+  'receipt_mods.title': { ar: 'تعديلات الفواتير', fr: 'Modifications de factures', en: 'Receipt modifications' },
+  'receipt_mods.worker_fallback': { ar: 'عامل', fr: 'Employé', en: 'Worker' },
+  'receipt_mods.original': { ar: 'الأصلي', fr: 'Original', en: 'Original' },
+  'receipt_mods.modified': { ar: 'المعدل', fr: 'Modifié', en: 'Modified' },
+  'receipt_mods.hide': { ar: 'إخفاء', fr: 'Masquer', en: 'Hide' },
+  'receipt_mods.compare': { ar: 'مقارنة', fr: 'Comparer', en: 'Compare' },
+  'receipt_mods.edit': { ar: 'تعديل', fr: 'Modifier', en: 'Edit' },
+  'receipt_mods.reviewed': { ar: 'تمت المراجعة', fr: 'Examiné', en: 'Reviewed' },
+
+  // ProductShowcaseHero
+  'showcase.special_offer': { ar: 'عرض خاص', fr: 'Offre spéciale', en: 'Special offer' },
+  'showcase.buy': { ar: 'اشترِ', fr: 'Achetez', en: 'Buy' },
+  'showcase.get': { ar: 'واحصل على', fr: 'et recevez', en: 'and get' },
+  'showcase.as_gift': { ar: 'هدية', fr: 'en cadeau', en: 'as a gift' },
+  'showcase.discount': { ar: 'خصم', fr: 'remise', en: 'discount' },
+  'showcase.unit_box': { ar: 'صندوق', fr: 'carton', en: 'box' },
+  'showcase.unit_piece': { ar: 'قطعة', fr: 'pièce', en: 'piece' },
+  'showcase.currency_da': { ar: 'دج', fr: 'DA', en: 'DA' },
+  'showcase.tier_label': { ar: 'الشريحة', fr: 'Palier', en: 'Tier' },
+  'showcase.slide_aria': { ar: 'الشريحة', fr: 'Diapositive', en: 'Slide' },
+  'showcase.prev': { ar: 'السابق', fr: 'Précédent', en: 'Previous' },
+  'showcase.next': { ar: 'التالي', fr: 'Suivant', en: 'Next' },
 };

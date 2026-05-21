@@ -10,8 +10,11 @@ import { Bell, Check, FileEdit, Eye, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ModifyOrderDialog from '@/components/orders/ModifyOrderDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ReceiptModificationsNotification: React.FC = () => {
+  const { t, language } = useLanguage();
+  const localeCode = language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
   const { data: modifications } = useUnreviewedModifications();
   const reviewMutation = useReviewModification();
   const [open, setOpen] = useState(false);
@@ -53,7 +56,7 @@ const ReceiptModificationsNotification: React.FC = () => {
         <div className="p-3 border-b">
           <h4 className="font-semibold text-sm flex items-center gap-2">
             <FileEdit className="w-4 h-4" />
-            تعديلات الفواتير ({count})
+            {t('receipt_mods.title')} ({count})
           </h4>
         </div>
         <ScrollArea className="max-h-[300px]">
@@ -62,10 +65,10 @@ const ReceiptModificationsNotification: React.FC = () => {
               <div key={mod.id} className="p-2 rounded-lg border bg-card text-sm space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-xs">
-                    {mod.modifier?.full_name || 'عامل'}
+                    {mod.modifier?.full_name || t('receipt_mods.worker_fallback')}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    {new Date(mod.created_at).toLocaleString('ar-DZ', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                    {new Date(mod.created_at).toLocaleString(localeCode, { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">{mod.changes_summary}</p>
@@ -73,12 +76,12 @@ const ReceiptModificationsNotification: React.FC = () => {
                 {selectedMod === mod.id && (
                   <div className="space-y-2 mt-2 p-2 bg-muted/50 rounded text-[11px]">
                     <div>
-                      <span className="font-semibold">الأصلي:</span>
+                      <span className="font-semibold">{t('receipt_mods.original')}:</span>
                       <div className="mt-1">{JSON.stringify(mod.original_data?.total_amount)} DA</div>
                     </div>
                     <Separator />
                     <div>
-                      <span className="font-semibold">المعدل:</span>
+                      <span className="font-semibold">{t('receipt_mods.modified')}:</span>
                       <div className="mt-1">{JSON.stringify(mod.modified_data?.total_amount)} DA</div>
                     </div>
                   </div>
@@ -92,7 +95,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                     onClick={() => setSelectedMod(selectedMod === mod.id ? null : mod.id)}
                   >
                     <Eye className="w-3 h-3 ml-1" />
-                    {selectedMod === mod.id ? 'إخفاء' : 'مقارنة'}
+                    {selectedMod === mod.id ? t('receipt_mods.hide') : t('receipt_mods.compare')}
                   </Button>
                   {mod.receipt?.order_id && (
                     <Button
@@ -102,7 +105,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                       onClick={() => handleEditOrder(mod)}
                     >
                       <Pencil className="w-3 h-3 ml-1" />
-                      تعديل
+                      {t('receipt_mods.edit')}
                     </Button>
                   )}
                   <Button
@@ -113,7 +116,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                     disabled={reviewMutation.isPending}
                   >
                     <Check className="w-3 h-3 ml-1" />
-                    تمت المراجعة
+                    {t('receipt_mods.reviewed')}
                   </Button>
                 </div>
               </div>

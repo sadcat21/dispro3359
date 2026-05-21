@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { parseBP, boxesToBP } from '@/utils/boxPieceInput';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 
 interface BoxPieceInputProps {
   /** Current value in boxes (fractional, e.g. 5.25 = 5 boxes + 5/20 pieces) */
@@ -42,6 +44,7 @@ const BoxPieceInput: React.FC<BoxPieceInputProps> = ({
   disabled = false,
   onFocus,
 }) => {
+  const { t } = useLanguage();
   const ppb = Math.max(1, Math.round(piecesPerBox));
   const [rawInput, setRawInput] = useState(() => boxesToBP(value, ppb));
   const [isFocused, setIsFocused] = useState(false);
@@ -98,7 +101,7 @@ const BoxPieceInput: React.FC<BoxPieceInputProps> = ({
       />
       {showHint && parsed.pieces > 0 && (
         <span className="text-[9px] text-muted-foreground mt-0.5 leading-none">
-          {parsed.boxes}ص + {parsed.pieces}ق
+          {parsed.boxes}{t('box_piece.box_short')} + {parsed.pieces}{t('box_piece.piece_short')}
         </span>
       )}
     </div>

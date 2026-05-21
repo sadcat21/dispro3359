@@ -4,6 +4,7 @@ import { useProductOffers } from '@/hooks/useProductOffers';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import heroBg from '@/assets/hero-offers-bg.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type SubtitlePart = { text: string; highlight?: boolean };
 type Slide = {
@@ -14,21 +15,8 @@ type Slide = {
   endDate?: string | null;
 };
 
-const formatDate = (d?: string | null) => {
-  if (!d) return '';
-  try {
-    const dt = new Date(d);
-    return dt.toLocaleDateString('ar-DZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  } catch { return ''; }
-};
-
-const unitLabel = (u?: string) => {
-  if (u === 'box') return 'صندوق';
-  if (u === 'piece') return 'قطعة';
-  return u || '';
-};
-
 const SLIDE_MS = 4000;
+
 
 interface ProductShowcaseHeroProps {
   children?: React.ReactNode;
@@ -37,6 +25,19 @@ interface ProductShowcaseHeroProps {
 }
 
 const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgImage, overlayClassName }) => {
+  const { t, language } = useLanguage();
+  const localeCode = language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
+  const formatDate = (d?: string | null) => {
+    if (!d) return '';
+    try {
+      return new Date(d).toLocaleDateString(localeCode, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch { return ''; }
+  };
+  const unitLabel = (u?: string) => {
+    if (u === 'box') return t('showcase.unit_box');
+    if (u === 'piece') return t('showcase.unit_piece');
+    return u || '';
+  };
   const { activeOffers } = useProductOffers();
   const { companyInfo } = useCompanyInfo();
   const [index, setIndex] = useState(0);
@@ -85,25 +86,25 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
             const giftQtyText = `${giftQty} ${unitLabel(giftUnit)}`;
             const minQtyText = `${minQty} ${unitLabel(minUnit)}`;
             subtitleParts = [
-              { text: 'اشترِ ' },
+              { text: `${t('showcase.buy')} ` },
               { text: minQtyText, highlight: true },
-              { text: ' واحصل على ' },
+              { text: ` ${t('showcase.get')} ` },
               { text: giftQtyText, highlight: true },
-              { text: giftName ? ` ${giftName} هدية` : ' هدية' },
+              { text: giftName ? ` ${giftName} ${t('showcase.as_gift')}` : ` ${t('showcase.as_gift')}` },
             ];
           } else if (discount > 0) {
             subtitleParts = [
-              { text: 'اشترِ ' },
+              { text: `${t('showcase.buy')} ` },
               { text: `${minQty} ${unitLabel(minUnit)}`, highlight: true },
-              { text: ' واحصل على خصم ' },
+              { text: ` ${t('showcase.get')} ${t('showcase.discount')} ` },
               { text: `${discount}%`, highlight: true },
             ];
           } else if (discountAmt > 0) {
             subtitleParts = [
-              { text: 'اشترِ ' },
+              { text: `${t('showcase.buy')} ` },
               { text: `${minQty} ${unitLabel(minUnit)}`, highlight: true },
-              { text: ' واحصل على خصم ' },
-              { text: `${discountAmt} دج`, highlight: true },
+              { text: ` ${t('showcase.get')} ${t('showcase.discount')} ` },
+              { text: `${discountAmt} ${t('showcase.currency_da')}`, highlight: true },
             ];
           } else if (o.description) {
             subtitleParts = [{ text: o.description }];
@@ -113,7 +114,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
             title: productName,
             subtitleParts,
             image,
-            tierLabel: tiers.length > 1 ? `الشريحة ${idx + 1}/${tiers.length}` : undefined,
+            tierLabel: tiers.length > 1 ? `${t('showcase.tier_label')} ${idx + 1}/${tiers.length}` : undefined,
             endDate: o.end_date || null,
           });
         });
@@ -194,7 +195,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
           <div key={`txt-${index}`} className="animate-[heroTextRise_0.6s_ease-out]">
             <div className="inline-flex items-center gap-1.5 bg-gradient-to-l from-red-700 to-red-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow-md ring-1 ring-white/40 mb-1.5">
               <Gift className="w-3 h-3" />
-              <span>عرض خاص</span>
+              <span>{t('showcase.special_offer')}</span>
               {current.endDate && (
                 <span className="border-r border-white/40 ps-2 pe-0.5 font-semibold whitespace-nowrap">
                   {formatDate(current.endDate)}
@@ -224,7 +225,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
                   <button
                     key={i}
                     type="button"
-                    aria-label={`الشريحة ${i + 1}`}
+                    aria-label={`${t('showcase.slide_aria')} ${i + 1}`}
                     onClick={() => { setPaused(true); setIndex(i); }}
                     className={`h-1 rounded-full transition-all duration-500 ${
                       i === index ? 'w-6 bg-red-600' : 'w-1.5 bg-foreground/20'
@@ -253,7 +254,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
         <>
           <button
             type="button"
-            aria-label="السابق"
+            aria-label={t('showcase.prev')}
             onClick={() => { setPaused(true); goPrev(); }}
             className="hidden lg:flex absolute right-1.5 top-1/2 -translate-y-1/2 z-40 h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
@@ -261,7 +262,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
           </button>
           <button
             type="button"
-            aria-label="التالي"
+            aria-label={t('showcase.next')}
             onClick={() => { setPaused(true); goNext(); }}
             className="hidden lg:flex absolute left-1.5 top-1/2 -translate-y-1/2 z-40 h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
