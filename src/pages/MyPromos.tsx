@@ -319,9 +319,53 @@ const MyPromosContent: React.FC = () => {
     );
   }
 
+  const periodLabel = periodFrom === today && periodTo === today
+    ? 'اليوم (منذ آخر جلسة محاسبية)'
+    : periodFrom === periodTo
+      ? format(new Date(`${periodFrom}T00:00:00`), 'dd/MM/yyyy')
+      : `${format(new Date(`${periodFrom}T00:00:00`), 'dd/MM')} → ${format(new Date(`${periodTo}T00:00:00`), 'dd/MM/yyyy')}`;
+
   return (
     <div className="p-4 space-y-4">
       <FrozenWorkerBadge workerId={workerId} />
+
+      {/* Accounting period selector */}
+      <Button
+        variant="outline"
+        onClick={() => setShowPeriodDialog(true)}
+        className="w-full justify-between"
+      >
+        <span className="flex items-center gap-2">
+          <CalendarRange className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold">الفترة المحاسبية</span>
+        </span>
+        <span className="text-xs text-muted-foreground">{periodLabel}</span>
+      </Button>
+
+      <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>اختر الفترة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">من</Label>
+              <Input type="date" value={periodFrom} onChange={(e) => setPeriodFrom(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">إلى</Label>
+              <Input type="date" value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setPeriodFrom(today); setPeriodTo(today); }}>
+                اليوم
+              </Button>
+              <Button className="flex-1" onClick={() => setShowPeriodDialog(false)}>تطبيق</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-gradient-to-l from-primary to-primary/80 text-primary-foreground">
