@@ -174,7 +174,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                   <Package className="w-3.5 h-3.5 text-amber-600" />
                   <span className="text-sm font-semibold">{d.product?.name || '—'}</span>
                 </div>
-                <Badge className="bg-amber-500 text-white text-xs">فائض: {fmt(d.quantity)}</Badge>
+                <Badge className="bg-amber-500 text-white text-xs">{t('stock_discrepancy.surplus_label')}: {fmt(d.quantity)}</Badge>
               </div>
               <Button
                 size="sm"
