@@ -262,7 +262,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
           </button>
           <button
             type="button"
-            aria-label="التالي"
+            aria-label={t('showcase.next')}
             onClick={() => { setPaused(true); goNext(); }}
             className="hidden lg:flex absolute left-1.5 top-1/2 -translate-y-1/2 z-40 h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
