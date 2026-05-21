@@ -627,8 +627,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
   // Report header info to parent
   useEffect(() => {
-    onHeaderInfo?.({ customerName: selectedCustomer?.name || null, totalAmount: orderTotals.totalAmount });
-  }, [selectedCustomer?.name, orderTotals.totalAmount, onHeaderInfo]);
+    onHeaderInfo?.({ customerName: localizedCustomerName(selectedCustomer) || null, totalAmount: orderTotals.totalAmount });
+  }, [selectedCustomer, language, orderTotals.totalAmount, onHeaderInfo]);
 
   // Show payment dialog before completing
   const handleSave = () => {
