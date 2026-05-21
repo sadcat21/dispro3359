@@ -106,7 +106,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
         const remainingAfter = Number(d.remaining_amount ?? (totalDebt - currentPaid));
 
         return {
-          customerName: d.customer?.name || 'غير معروف',
+          customerName: d.customer?.name || t('debt_collections.unknown_customer'),
           totalDebt,
           paidBefore: Math.max(0, paidBefore),
           collectedNow,
