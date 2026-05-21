@@ -1012,7 +1012,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         <DialogHeader className="p-4 pb-2 border-b">
             <DialogTitle className="flex items-center gap-2">
               <Truck className="w-5 h-5" />
-              {isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : t('stock.direct_sale')}
+              {isWarehouseManager ? t('sales.warehouse_sale_title') : t('stock.direct_sale')}
             </DialogTitle>
         </DialogHeader>
       )}
@@ -1020,9 +1020,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       <div className="px-4 pt-2 pb-1.5 border-b bg-background shrink-0">
         <div className="grid grid-cols-3 gap-1">
           {[
-            { n: 1 as const, label: 'العميل' },
-            { n: 2 as const, label: 'المنتجات' },
-            { n: 3 as const, label: 'الملخص' },
+            { n: 1 as const, label: t('sales.step_customer') },
+            { n: 2 as const, label: t('sales.step_products') },
+            { n: 3 as const, label: t('sales.step_summary') },
           ].map((s) => {
             const reached = s.n <= currentStep;
             return (
