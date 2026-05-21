@@ -157,11 +157,17 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const productsMap = new Map<string, Product>();
 
     stockItems
-      .filter(s => s.quantity > 0 && s.product)
+      .filter((s) => s.quantity > 0)
       .forEach((s) => {
-        const fullProduct = allProducts.find(p => p.id === s.product_id);
-        const product = fullProduct || s.product;
-        if (product) productsMap.set(product.id, product);
+        const embeddedProduct = Array.isArray((s as any).product)
+          ? (s as any).product[0]
+          : s.product;
+        const fullProduct = allProducts.find((p) => p.id === s.product_id);
+        const product = fullProduct || embeddedProduct;
+
+        if (product?.id) {
+          productsMap.set(product.id, product as Product);
+        }
       });
 
     return Array.from(productsMap.values()).sort((a, b) => {
@@ -238,8 +244,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
   // Pricing group logic
   const getEffectiveProduct = useCallback((productId: string): Product | undefined => {
-    const directProduct = allProducts.find(p => p.id === productId) ||
-      stockItems.find(s => s.product_id === productId)?.product;
+    const stockProduct = stockItems.find((s) => s.product_id === productId)?.product;
+    const normalizedStockProduct = Array.isArray(stockProduct)
+      ? stockProduct[0]
+      : stockProduct;
+    const directProduct = allProducts.find((p) => p.id === productId) || normalizedStockProduct;
     if (!directProduct) return undefined;
 
     const mapping = pricingGroupMappings.find(m => m.product_id === productId);
