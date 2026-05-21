@@ -78,7 +78,7 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4 p-6 text-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-lg font-medium">جاري التحقق من خدمة الموقع...</p>
+        <p className="text-lg font-medium">{t('gps_guard.checking')}</p>
       </div>
     );
   }
