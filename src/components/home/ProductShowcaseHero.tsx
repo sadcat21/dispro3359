@@ -254,7 +254,7 @@ const ProductShowcaseHero: React.FC<ProductShowcaseHeroProps> = ({ children, bgI
         <>
           <button
             type="button"
-            aria-label="السابق"
+            aria-label={t('showcase.prev')}
             onClick={() => { setPaused(true); goPrev(); }}
             className="hidden lg:flex absolute right-1.5 top-1/2 -translate-y-1/2 z-40 h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-700 text-white items-center justify-center shadow-lg ring-2 ring-white/70 active:scale-95 transition-transform"
           >
