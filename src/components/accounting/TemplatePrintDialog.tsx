@@ -151,11 +151,11 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
         <DialogFooter className="flex gap-2 pt-3">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            إلغاء
+            {t('template_print.cancel')}
           </Button>
           <Button size="sm" className="gap-1.5" onClick={handlePrint}>
             <Printer className="w-3.5 h-3.5" />
-            طباعة النموذج
+            {t('template_print.print')}
           </Button>
         </DialogFooter>
       </DialogContent>
