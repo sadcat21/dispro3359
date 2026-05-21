@@ -152,7 +152,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                   disabled={!selection.method || resolveDiscrepancy.isPending}
                 >
                   <AlertTriangle className="w-3 h-3 me-1" />
-                  تسجيل العجز على حساب العامل
+                  {t('stock_discrepancy.record_deficit')}
                 </Button>
               </div>
             );
