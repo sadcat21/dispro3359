@@ -54,16 +54,18 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   const [headerInfo, setHeaderInfo] = useState<{ customerName: string | null; totalAmount: number }>({ customerName: null, totalAmount: 0 });
   const handleHeaderInfo = useCallback((info: { customerName: string | null; totalAmount: number }) => setHeaderInfo(info), []);
 
+  const warehouseBranchId = activeBranch?.id || (activeRole as any)?.branch_id || null;
+
   // Fetch warehouse stock when warehouse tab is active
   useEffect(() => {
-    if (!open || activeTab !== 'warehouse' || !activeBranch?.id) return;
+    if (!open || activeTab !== 'warehouse' || !warehouseBranchId) return;
     const fetchWarehouseStock = async () => {
       setIsLoadingWarehouseStock(true);
       try {
         const { data } = await supabase
           .from('warehouse_stock')
           .select('id, product_id, quantity, product:products(*)')
-          .eq('branch_id', activeBranch.id)
+          .eq('branch_id', warehouseBranchId)
           .gt('quantity', 0);
         setWarehouseStockItems((data || []).map((s: any) => ({
           id: s.id,
@@ -78,7 +80,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
       }
     };
     fetchWarehouseStock();
-  }, [open, activeTab, activeBranch?.id]);
+  }, [open, activeTab, warehouseBranchId]);
 
   useEffect(() => {
     if (!open) {
