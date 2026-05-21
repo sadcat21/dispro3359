@@ -306,7 +306,7 @@ const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
   }
 
   if (!groups || groups.length === 0) {
-    return <p className="text-center text-muted-foreground py-6 text-sm">لا توجد بيانات</p>;
+    return <p className="text-center text-muted-foreground py-6 text-sm">{t('pricing_groups.no_data')}</p>;
   }
 
   const grandTotal = groups.filter(g => g.subtype !== 'custom').reduce((s, g) => s + g.totalValue, 0);
