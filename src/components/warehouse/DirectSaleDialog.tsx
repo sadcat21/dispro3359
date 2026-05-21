@@ -173,13 +173,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   }, [stockItems, allProducts]);
 
   useEffect(() => {
-    if (open && workerId) {
+    if (open && (workerId || isWarehouseManager)) {
       fetchData();
       if (initialCustomerId) {
         setSelectedCustomerId(initialCustomerId);
       }
     }
-  }, [open, workerId, effectiveBranchId, initialCustomerId]);
+  }, [open, workerId, isWarehouseManager, effectiveBranchId, initialCustomerId]);
 
   // Apply customer defaults when selectedCustomer changes (e.g. from initialCustomerId)
   useEffect(() => {
