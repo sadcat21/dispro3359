@@ -207,9 +207,6 @@ const fmtQty = (v: number): string => {
   return rounded.toFixed(2).replace(/0+$/, '');
 };
 
-const subtypeLabelsMap: Record<string, string> = {
-  retail: 'تجزئة', gros: 'جملة', super_gros: 'سوبر جملة', invoice: 'فاتورة 1',
-};
 const subtypeAbbrMap: Record<string, string> = { retail: 'D', gros: 'G', super_gros: 'SG', invoice: 'F1' };
 const subtypeColorMap: Record<string, string> = {
   retail: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -219,8 +216,15 @@ const subtypeColorMap: Record<string, string> = {
 };
 
 const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ priceTracking }) => {
+  const { t } = useLanguage();
+  const subtypeLabelsMap: Record<string, string> = {
+    retail: t('sales_summary.subtype_retail'),
+    gros: t('sales_summary.subtype_gros'),
+    super_gros: t('sales_summary.subtype_super_gros'),
+    invoice: t('sales_summary.subtype_invoice'),
+  };
   if (!priceTracking.length) {
-    return <p className="text-center text-muted-foreground py-6 text-sm">لا توجد بيانات</p>;
+    return <p className="text-center text-muted-foreground py-6 text-sm">{t('sales_summary.no_data')}</p>;
   }
 
   const totalQty = priceTracking.reduce((s, r) => s + r.quantity, 0);
