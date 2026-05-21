@@ -64,7 +64,7 @@ const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Force logout when GPS denied
   useEffect(() => {
     if (canCheckGps && gpsStatus === 'denied') {
-      toast.error('تم تعطيل خدمة الموقع. سيتم تسجيل الخروج.');
+      toast.error(t('gps_guard.disabled_logout'));
       const timer = setTimeout(() => logout(), 2000);
       return () => clearTimeout(timer);
     }
