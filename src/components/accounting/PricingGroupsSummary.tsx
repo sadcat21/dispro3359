@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Package, AlertTriangle } from 'lucide-react';
 import { inferPricingSubtype, PricingSubtype } from '@/utils/pricingSubtype';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PricingGroupsSummaryProps {
   workerId: string;
