@@ -90,10 +90,13 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         deduped.push(r);
       }
       // Hide pending offer cards entirely until the linked order is delivered.
+      // Only gate by order delivery for "order" source (regular order flow).
+      // Direct/delivery/warehouse sales are already finalized at creation.
       // Confirmed/rejected rows stay visible as a record regardless of order state.
       return deduped.filter((r) => {
         if (r.status !== 'pending') return true;
-        if (!r.order_id) return true; // not tied to an order (e.g. direct sale)
+        if (!r.order_id) return true; // not tied to an order
+        if (r.source !== 'order') return true; // sale-based sources are already finalized
         return orderStatuses[r.order_id] === 'delivered';
       });
     },
