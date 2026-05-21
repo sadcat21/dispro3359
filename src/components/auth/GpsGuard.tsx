@@ -13,6 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
  * - Monitors GPS status and forces logout when GPS is turned off
  */
 const GpsGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useLanguage();
   const { role, activeRole, isAuthenticated, logout } = useAuth();
   const [gpsStatus, setGpsStatus] = useState<'checking' | 'granted' | 'denied' | 'unavailable'>('checking');
   const { isLoading: workerPermsLoading } = useWorkerPermissions();
