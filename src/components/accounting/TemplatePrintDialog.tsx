@@ -86,14 +86,14 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
 
           {/* Product selection */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-semibold">اسم المنتج (اختياري)</Label>
+            <Label className="text-sm font-semibold">{t('template_print.product_name')}</Label>
             <Select value={selectedProductId} onValueChange={(v) => { setSelectedProductId(v); setSelectedOffer(''); }}>
               <SelectTrigger className="h-9">
-                <SelectValue placeholder="اتركه فارغاً للكتابة اليدوية" />
+                <SelectValue placeholder={t('template_print.placeholder_blank')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none">فارغ (كتابة يدوية)</SelectItem>
-                <SelectItem value="__custom">إدخال يدوي...</SelectItem>
+                <SelectItem value="__none">{t('template_print.option_none')}</SelectItem>
+                <SelectItem value="__custom">{t('template_print.option_custom')}</SelectItem>
                 {products.map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
@@ -101,7 +101,7 @@ const TemplatePrintDialog: React.FC<Props> = ({ open, onOpenChange, products, of
             </Select>
             {selectedProductId === '__custom' && (
               <Input
-                placeholder="أدخل اسم المنتج..."
+                placeholder={t('template_print.placeholder_product')}
                 value={customProduct}
                 onChange={e => setCustomProduct(e.target.value)}
                 className="h-8 text-sm"
