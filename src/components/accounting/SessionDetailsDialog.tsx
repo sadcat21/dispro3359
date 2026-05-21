@@ -502,7 +502,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<FileCheck2 className="w-4 h-4 text-blue-600" />}
-              title="استلام المستندات"
+              title={t('session_details.documents_received')}
               sectionKey="docs"
               activeKey={activeSection}
               onToggle={toggleSection}
