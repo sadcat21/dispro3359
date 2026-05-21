@@ -4,6 +4,8 @@ import { useWorkerPermissions } from '@/hooks/usePermissions';
 import { isAdminRole, isCompanyManagerRole, isInternalSupervisorRole } from '@/lib/utils';
 import { Navigate } from 'react-router-dom';
 import { Loader2, ShieldX } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 
 interface PermissionGateProps {
   children: React.ReactNode;
