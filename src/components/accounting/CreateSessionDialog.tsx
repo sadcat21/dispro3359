@@ -687,7 +687,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <SalesDetailsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                     </StepSection>
                     {calc && calc.promoTracking.length > 0 && (
-                      <StepSection step={9} title="تتبع العروض" color="purple" badge="C">
+                      <StepSection step={9} title={t('create_session.promo_tracking')} color="purple" badge="C">
                         <PromoTrackingSummary items={calc.promoTracking} periodStart={periodStart} periodEnd={periodEnd} />
                       </StepSection>
                     )}
@@ -695,23 +695,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 )}
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
-                <StepSection step={10} title="تفاصيل الديون المحصلة" color="orange">
+                <StepSection step={10} title={t('create_session.collected_debts_details')} color="orange">
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
                 {/* ━━━ Step 11: Document Collections ━━━ */}
-                <StepSection step={11} title="المستندات المحصلة (شيكات / وصولات)" color="blue">
+                <StepSection step={11} title={t('create_session.collected_documents')} color="blue">
                   <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} />
                 </StepSection>
 
                 {/* ━━━ Step 12: Exceptional Actions ━━━ */}
-                <StepSection step={12} title="إجراءات استثنائية" color="amber">
+                <StepSection step={12} title={t('create_session.exceptional_actions')} color="amber">
                   <ExceptionalActionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
                 {pendingDiscrepancies.length > 0 && (
-                  <StepSection step={13} title="فوارق المخزون (فائض / عجز)" color="red">
+                  <StepSection step={13} title={t('create_session.stock_discrepancies')} color="red">
                     <StockDiscrepancySection discrepancies={pendingDiscrepancies} />
                   </StepSection>
                 )}
