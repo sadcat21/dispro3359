@@ -441,9 +441,9 @@ const AdminHome: React.FC = () => {
         ...(isAdminRole(role) ? [{ path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') }] : []),
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
         ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
-        { path: '/cash-ledger', icon: Coins, label: 'سجل حركة الأموال' },
-        { path: '/debt-ledger', icon: HandCoins, label: 'سجل حركة الديون' },
-        { path: '/sales-tracking', icon: BarChart3, label: 'سجل تتبع المبيعات' },
+        { path: '/cash-ledger', icon: Coins, label: t('admin_home.item.cash_ledger') },
+        { path: '/debt-ledger', icon: HandCoins, label: t('admin_home.item.debt_ledger') },
+        { path: '/sales-tracking', icon: BarChart3, label: t('admin_home.item.sales_tracking') },
       ],
     },
     // 2. الطلبات والتوصيل
