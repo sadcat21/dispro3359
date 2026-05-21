@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Printer, Minus, Plus } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface TemplatePrintConfig {
   pageCount: number;
