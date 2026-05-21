@@ -120,12 +120,17 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
   });
 
   if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
-  if (!rows || rows.length === 0) return <p className="text-xs text-muted-foreground text-center py-3">لا توجد تحصيلات في هذه الفترة</p>;
+  if (!rows || rows.length === 0) return <p className="text-xs text-muted-foreground text-center py-3">{t('debt_collections.no_collections')}</p>;
 
   const totalCollected = rows.reduce((s, r) => s + r.collectedNow, 0);
 
   const methodLabel = (m: string) => {
-    const map: Record<string, string> = { cash: 'نقدي', check: 'شيك', transfer: 'تحويل', receipt: 'وصل' };
+    const map: Record<string, string> = {
+      cash: t('debt_collections.method_cash'),
+      check: t('debt_collections.method_check'),
+      transfer: t('debt_collections.method_transfer'),
+      receipt: t('debt_collections.method_receipt'),
+    };
     return m.split(', ').map(x => map[x] || x).join(', ');
   };
 
