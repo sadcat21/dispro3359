@@ -631,10 +631,10 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                 <CollapsibleContent>
                   <div className="border-t p-1.5 space-y-1">
                     <div className="grid grid-cols-5 gap-1 text-[10px] text-muted-foreground text-center font-medium border-b pb-1">
-                      <span className="text-start">التسعير</span>
+                      <span className="text-start">{t('product_stock.pricing')}</span>
                       <span>{t('stock.quantity')}</span>
-                      <span>سعر الصندوق</span>
-                      <span>سعر الوحدة</span>
+                      <span>{t('product_stock.box_price')}</span>
+                      <span>{t('product_stock.unit_price')}</span>
                       <span>{t('accounting.total_value')}</span>
                     </div>
 
