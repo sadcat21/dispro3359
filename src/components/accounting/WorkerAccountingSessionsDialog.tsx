@@ -142,7 +142,7 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
                               <div className={`rounded-lg p-2 text-center ${cashDiff >= 0 ? 'bg-green-50' : 'bg-destructive/10'}`}>
                                 <p className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5">
                                   <AlertTriangle className="w-2.5 h-2.5" />
-                                  {cashDiff >= 0 ? t('accounting.surplus') || 'فائض' : t('accounting.deficit') || 'عجز'}
+                                  {cashDiff >= 0 ? (t('accounting.surplus') || t('worker_accounting_sessions.surplus')) : (t('accounting.deficit') || t('worker_accounting_sessions.deficit'))}
                                 </p>
                                 <p className={`text-xs font-bold ${cashDiff >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                                   {cashDiff >= 0 ? '+' : ''}{fmt(cashDiff)}
