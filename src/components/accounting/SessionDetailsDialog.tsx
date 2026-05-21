@@ -445,7 +445,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             <CollapsibleSection
               icon={<ShoppingBag className="w-4 h-4 text-primary" />}
-              title="مبيعات العملاء"
+              title={t('session_details.customer_sales')}
               sectionKey="sales"
               activeKey={activeSection}
               onToggle={toggleSection}
