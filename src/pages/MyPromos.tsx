@@ -293,18 +293,25 @@ const MyPromosContent: React.FC = () => {
     }
   };
 
-  // Filter promos based on search query
+  // Filter promos based on search query + selected accounting sessions
   const filteredPromos = useMemo(() => {
-    if (!searchQuery.trim()) return promos;
-    
+    let list = promos;
+    if (selectedSessionRanges.length > 0) {
+      const ranges = selectedSessionRanges.map(r => ({ s: new Date(r.start).getTime(), e: new Date(r.end).getTime() }));
+      list = list.filter((p: any) => {
+        const t = new Date(p.created_at).getTime();
+        return ranges.some(r => t >= r.s && t <= r.e);
+      });
+    }
+    if (!searchQuery.trim()) return list;
     const query = searchQuery.toLowerCase();
-    return promos.filter((promo) => 
+    return list.filter((promo) =>
       promo.customer?.name?.toLowerCase().includes(query) ||
       promo.product?.name?.toLowerCase().includes(query) ||
       promo.customer?.wilaya?.toLowerCase().includes(query) ||
       promo.notes?.toLowerCase().includes(query)
     );
-  }, [promos, searchQuery]);
+  }, [promos, searchQuery, selectedSessionRanges]);
 
   const totalVente = useMemo(() => 
     filteredPromos.reduce((sum, p) => sum + p.vente_quantity, 0), 
