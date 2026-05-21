@@ -126,7 +126,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
                   {selection.method === 'manual' && (
                     <Input
                       type="number"
-                      placeholder="السعر"
+                      placeholder={t('stock_discrepancy.price')}
                       value={selection.manualPrice}
                       onChange={(e) => setPricingSelections(prev => ({
                         ...prev,
