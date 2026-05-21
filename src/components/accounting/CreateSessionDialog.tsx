@@ -600,13 +600,13 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10">
                         <Checkbox id="register-deficit" checked={registerDeficit} onCheckedChange={(v) => { setRegisterDeficit(!!v); if (!!v) setRegisterDeficitTreasury(false); }} />
                         <label htmlFor="register-deficit" className="text-xs font-medium text-destructive cursor-pointer">
-                          تسجيل العجز كدين على العامل + في خزينة الفائض والعجز ({fmt(Math.abs(cashDifference))} DA)
+                          {t('create_session.deficit_as_debt_and_treasury')} ({fmt(Math.abs(cashDifference))} DA)
                         </label>
                       </div>
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
                         <Checkbox id="register-deficit-treasury" checked={registerDeficitTreasury} onCheckedChange={(v) => { setRegisterDeficitTreasury(!!v); if (!!v) setRegisterDeficit(false); }} />
                         <label htmlFor="register-deficit-treasury" className="text-xs font-medium text-orange-700 dark:text-orange-400 cursor-pointer">
-                          تسجيل العجز فقط في خزينة الفائض والعجز ({fmt(Math.abs(cashDifference))} DA)
+                          {t('create_session.deficit_treasury_only')} ({fmt(Math.abs(cashDifference))} DA)
                         </label>
                       </div>
                     </div>
@@ -616,7 +616,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     <div className="flex items-center gap-2 mt-2 p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
                       <Checkbox id="register-surplus" checked={registerSurplus} onCheckedChange={(v) => setRegisterSurplus(!!v)} />
                       <label htmlFor="register-surplus" className="text-xs font-medium text-green-700 dark:text-green-400 cursor-pointer">
-                        تسجيل الفائض في الخزينة ({fmt(cashDifference)} DA)
+                        {t('create_session.surplus_in_treasury')} ({fmt(cashDifference)} DA)
                       </label>
                     </div>
                   )}
