@@ -76,7 +76,7 @@ const ReceiptModificationsNotification: React.FC = () => {
                 {selectedMod === mod.id && (
                   <div className="space-y-2 mt-2 p-2 bg-muted/50 rounded text-[11px]">
                     <div>
-                      <span className="font-semibold">الأصلي:</span>
+                      <span className="font-semibold">{t('receipt_mods.original')}:</span>
                       <div className="mt-1">{JSON.stringify(mod.original_data?.total_amount)} DA</div>
                     </div>
                     <Separator />
