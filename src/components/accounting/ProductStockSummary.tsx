@@ -683,7 +683,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
           ))}
 
           <div className="grid grid-cols-2 gap-2 text-xs text-center font-bold border-t-2 pt-1 bg-primary/5 rounded p-1.5">
-            <span className="text-start">{t('common.total')}: {fmtQty(totalSoldQty)} صندوق</span>
+            <span className="text-start">{t('common.total')}: {fmtQty(totalSoldQty)} {t('product_stock.box')}</span>
             <span className="text-primary">{trackedSoldValue.toLocaleString()} DA</span>
           </div>
 
