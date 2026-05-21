@@ -670,7 +670,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                         <div className="border-t p-1.5 bg-purple-50/50 dark:bg-purple-900/10">
                           <div className="flex items-center gap-1.5 text-[10px] text-purple-700 dark:text-purple-400">
                             <Gift className="w-3 h-3" />
-                            <span className="font-semibold">هدايا: {promo.giftQuantity} قطعة</span>
+                            <span className="font-semibold">{t('product_stock.gifts')}: {promo.giftQuantity} {t('product_stock.pieces')}</span>
                             {promo.offerName && <Badge variant="outline" className="text-[9px] px-1 py-0">{promo.offerName}</Badge>}
                           </div>
                         </div>
