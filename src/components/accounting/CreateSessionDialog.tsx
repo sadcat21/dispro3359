@@ -418,12 +418,12 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <Calculator className="w-5 h-5 text-primary" />
               </div>
               <div className="flex flex-col">
-                <span>{isEditMode ? (t('accounting.edit_session') || 'تعديل الجلسة') : t('accounting.new_session')}</span>
+                <span>{isEditMode ? (t('accounting.edit_session') || t('common.edit')) : t('accounting.new_session')}</span>
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
             <div className="flex items-center gap-1.5">
-              <Label className="text-[10px] text-muted-foreground">حسب المنتج</Label>
+              <Label className="text-[10px] text-muted-foreground">{t('create_session.by_product')}</Label>
               <Switch checked={viewByProduct} onCheckedChange={setViewByProduct} />
             </div>
           </div>
@@ -451,7 +451,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </div>
               </div>
               <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                يتم تحديد الفترة تلقائياً منذ آخر جلسة محاسبة. استخدم زر "تحديث" لجلب آخر البيانات.
+                {t('create_session.period_auto_note')}
               </p>
             </StepSection>
 
@@ -460,7 +460,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Alert className="rounded-xl border-orange-300 bg-orange-50 dark:bg-orange-900/10">
                 <Info className="h-4 w-4 text-orange-600" />
                 <AlertDescription className="text-sm font-medium text-orange-800 dark:text-orange-400">
-                  ⚠️ توجد {postReviewInfo!.count} جلسة شحن/تفريغ بعد آخر جلسة مراجعة — المحاسبة مبنية على آخر جلسة مراجعة فقط
+                  ⚠️ {postReviewInfo!.count} {t('create_session.post_review_warning')}
                 </AlertDescription>
               </Alert>
             )}
@@ -476,7 +476,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Alert className="rounded-xl border-destructive/30 bg-destructive/5">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
                 <AlertDescription className="text-sm text-destructive">
-                  {calcError instanceof Error ? calcError.message : (t('common.error') || 'تعذر تحميل الحسابات')}
+                  {calcError instanceof Error ? calcError.message : (t('common.error') || t('create_session.calc_load_error'))}
                 </AlertDescription>
               </Alert>
             )}
@@ -484,7 +484,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {calc && (
               <>
                 {/* ━━━ Step 2: Sales Overview ━━━ */}
-                <StepSection step={2} title="ملخص المبيعات" color="primary">
+                <StepSection step={2} title={t('create_session.sales_summary')} color="primary">
                   <div className="bg-primary/5 rounded-xl p-3 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
