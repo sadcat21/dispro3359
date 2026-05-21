@@ -713,7 +713,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                           )}
                         </div>
                         <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
-                          {item.totalAmount.toLocaleString('ar-DZ')} د.ج
+                          {item.totalAmount.toLocaleString(localeCode)} {t('sales_summary.currency')}
                         </div>
                       </div>
                     </div>
