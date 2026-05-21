@@ -495,11 +495,11 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
           {/* Session Counts */}
           {loadingData && (
             <div className="flex items-center gap-2 flex-wrap text-xs bg-muted/30 border rounded-lg px-3 py-1.5">
-              <span className="whitespace-nowrap">شحن: <span className="font-bold text-green-600">{loadingData.loadCount}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.load_count')}: <span className="font-bold text-green-600">{loadingData.loadCount}</span></span>
               <span className="text-muted-foreground/40">|</span>
-              <span className="whitespace-nowrap">تفريغ: <span className="font-bold text-destructive">{loadingData.unloadCount}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.unload_count')}: <span className="font-bold text-destructive">{loadingData.unloadCount}</span></span>
               <span className="text-muted-foreground/40">|</span>
-              <span className="whitespace-nowrap">مراجعة: <span className="font-bold text-primary">{loadingData.reviewCount}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.review_count')}: <span className="font-bold text-primary">{loadingData.reviewCount}</span></span>
             </div>
           )}
 
@@ -512,22 +512,22 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                 <span className="text-primary font-bold">{new Date(reviewData.sessionInfo.created_at).toLocaleTimeString('ar-DZ', { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
               </span>
               <span className="text-muted-foreground/40 whitespace-nowrap">|</span>
-              <span className="whitespace-nowrap">المراجع: <span className="font-semibold">{reviewData.sessionInfo.manager_name}</span></span>
+              <span className="whitespace-nowrap">{t('product_stock.reviewer')}: <span className="font-semibold">{reviewData.sessionInfo.manager_name}</span></span>
               <span className="text-muted-foreground/40 whitespace-nowrap">|</span>
-              <span className="whitespace-nowrap font-semibold text-destructive">عجز ({reviewData.sessionInfo.deficitCount ?? 0})</span>
-              <span className="whitespace-nowrap font-semibold text-orange-600">فائض ({reviewData.sessionInfo.surplusCount ?? 0})</span>
-              <span className="whitespace-nowrap font-semibold text-green-600">متوافق ({reviewData.sessionInfo.matchCount ?? 0})</span>
+              <span className="whitespace-nowrap font-semibold text-destructive">{t('product_stock.deficit')} ({reviewData.sessionInfo.deficitCount ?? 0})</span>
+              <span className="whitespace-nowrap font-semibold text-orange-600">{t('product_stock.surplus')} ({reviewData.sessionInfo.surplusCount ?? 0})</span>
+              <span className="whitespace-nowrap font-semibold text-green-600">{t('product_stock.match')} ({reviewData.sessionInfo.matchCount ?? 0})</span>
             </div>
           )}
 
           <div className="grid grid-cols-7 gap-1 text-xs text-muted-foreground text-center font-medium border-b pb-1">
             <span className="text-start">{t('stock.product')}</span>
-            <span>الشحن</span>
-            <span>التفريغ</span>
-            <span>المبيعات</span>
-            <span>كمية النظام</span>
-            <span>الكمية الفعلية</span>
-            <span>المراجعة</span>
+            <span>{t('product_stock.loaded')}</span>
+            <span>{t('product_stock.unloaded')}</span>
+            <span>{t('product_stock.sold')}</span>
+            <span>{t('product_stock.system_qty')}</span>
+            <span>{t('product_stock.actual_qty')}</span>
+            <span>{t('product_stock.review')}</span>
           </div>
 
           {productRows.map((row) => (
