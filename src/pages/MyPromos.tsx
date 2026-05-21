@@ -27,6 +27,8 @@ import { isOfferCurrentlyActive } from '@/utils/productOffers';
 import { useWorkerFrozenStatus } from '@/hooks/useWorkerFrozenStatus';
 import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 import { useAccountingDateRange } from '@/hooks/useAccountingDateRange';
+import AccountingSessionsTimelineDialog, { SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
+import { Clock } from 'lucide-react';
 
 type OfferSnapshot = {
   id: string;
@@ -98,6 +100,9 @@ const MyPromosContent: React.FC = () => {
   const [periodFrom, setPeriodFrom] = useState<string>(today);
   const [periodTo, setPeriodTo] = useState<string>(today);
   const [showPeriodDialog, setShowPeriodDialog] = useState(false);
+  const [showSessionsTimeline, setShowSessionsTimeline] = useState(false);
+  const [selectedSessionRanges, setSelectedSessionRanges] = useState<SelectedSessionRange[]>([]);
+  const selectedSessionIds = useMemo(() => new Set(selectedSessionRanges.map(r => r.id)), [selectedSessionRanges]);
   const { lowerBound, upperBound, isLoading: boundsLoading } = useAccountingDateRange(workerId, periodFrom, periodTo);
 
   // Edit dialog state
@@ -288,18 +293,25 @@ const MyPromosContent: React.FC = () => {
     }
   };
 
-  // Filter promos based on search query
+  // Filter promos based on search query + selected accounting sessions
   const filteredPromos = useMemo(() => {
-    if (!searchQuery.trim()) return promos;
-    
+    let list = promos;
+    if (selectedSessionRanges.length > 0) {
+      const ranges = selectedSessionRanges.map(r => ({ s: new Date(r.start).getTime(), e: new Date(r.end).getTime() }));
+      list = list.filter((p: any) => {
+        const t = new Date(p.created_at).getTime();
+        return ranges.some(r => t >= r.s && t <= r.e);
+      });
+    }
+    if (!searchQuery.trim()) return list;
     const query = searchQuery.toLowerCase();
-    return promos.filter((promo) => 
+    return list.filter((promo) =>
       promo.customer?.name?.toLowerCase().includes(query) ||
       promo.product?.name?.toLowerCase().includes(query) ||
       promo.customer?.wilaya?.toLowerCase().includes(query) ||
       promo.notes?.toLowerCase().includes(query)
     );
-  }, [promos, searchQuery]);
+  }, [promos, searchQuery, selectedSessionRanges]);
 
   const totalVente = useMemo(() => 
     filteredPromos.reduce((sum, p) => sum + p.vente_quantity, 0), 
@@ -330,17 +342,41 @@ const MyPromosContent: React.FC = () => {
       <FrozenWorkerBadge workerId={workerId} />
 
       {/* Accounting period selector */}
-      <Button
-        variant="outline"
-        onClick={() => setShowPeriodDialog(true)}
-        className="w-full justify-between"
-      >
-        <span className="flex items-center gap-2">
-          <CalendarRange className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold">الفترة المحاسبية</span>
-        </span>
-        <span className="text-xs text-muted-foreground">{periodLabel}</span>
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() => setShowPeriodDialog(true)}
+          className="flex-1 justify-between"
+        >
+          <span className="flex items-center gap-2">
+            <CalendarRange className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold">الفترة المحاسبية</span>
+          </span>
+          <span className="text-xs text-muted-foreground">{periodLabel}</span>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setShowSessionsTimeline(true)}
+          className={`gap-2 ${selectedSessionRanges.length > 0 ? 'border-primary text-primary' : ''}`}
+        >
+          <Clock className="w-4 h-4" />
+          <span className="text-xs">جلسات</span>
+          {selectedSessionRanges.length > 0 && (
+            <span className="text-[10px] bg-primary text-primary-foreground rounded-full px-1.5 py-0.5">
+              {selectedSessionRanges.length}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      <AccountingSessionsTimelineDialog
+        open={showSessionsTimeline}
+        onOpenChange={setShowSessionsTimeline}
+        workerId={workerId || ''}
+        selectedIds={selectedSessionIds}
+        onApply={setSelectedSessionRanges}
+      />
+
 
       <Dialog open={showPeriodDialog} onOpenChange={setShowPeriodDialog}>
         <DialogContent className="max-w-sm">
