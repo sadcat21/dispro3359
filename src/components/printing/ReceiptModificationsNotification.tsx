@@ -56,7 +56,7 @@ const ReceiptModificationsNotification: React.FC = () => {
         <div className="p-3 border-b">
           <h4 className="font-semibold text-sm flex items-center gap-2">
             <FileEdit className="w-4 h-4" />
-            تعديلات الفواتير ({count})
+            {t('receipt_mods.title')} ({count})
           </h4>
         </div>
         <ScrollArea className="max-h-[300px]">
