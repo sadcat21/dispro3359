@@ -411,7 +411,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
         sessionInfo: {
           status: session.status,
           created_at: session.created_at,
-          manager_name: session.manager?.full_name || 'مدير النظام',
+          manager_name: session.manager?.full_name || t('product_stock.system_manager'),
           deficitCount,
           surplusCount,
           matchCount,
