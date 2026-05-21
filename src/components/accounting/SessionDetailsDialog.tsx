@@ -232,7 +232,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               const csVal = customerSurplusItem ? Number(customerSurplusItem.expected_amount || 0) : 0;
               return (
                 <div className="flex justify-between text-blue-600">
-                  <span>فائض العملاء (كاش)</span>
+                  <span>{t('create_session.customer_surplus_cash')}</span>
                   <span>{csVal > 0 ? '+' : ''}{fmt(csVal)} DA</span>
                 </div>
               );
