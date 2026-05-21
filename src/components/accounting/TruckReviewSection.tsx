@@ -238,7 +238,7 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                 <div className="space-y-1.5 mt-2">
                   <p className="text-xs font-semibold text-primary flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" />
-                    مطابق ({matchedItems.length})
+                    {t('truck_review.matched')} ({matchedItems.length})
                   </p>
 
                   {matchedItems.map((item) => (
@@ -247,7 +247,7 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
                         <span className="text-sm">{item.product?.name || '—'}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">{Number(item.previous_quantity || 0)}</span>
-                          <Badge className="bg-primary/80 text-primary-foreground text-[10px]">مطابق</Badge>
+                          <Badge className="bg-primary/80 text-primary-foreground text-[10px]">{t('truck_review.matched')}</Badge>
                         </div>
                       </div>
                     </div>
