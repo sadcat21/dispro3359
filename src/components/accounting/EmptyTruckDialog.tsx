@@ -231,16 +231,16 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
             <PackageX className="w-5 h-5 text-destructive" />
             {t('stock.empty_truck')}
           </DialogTitle>
-          <DialogDescription>حدد الكمية المراد إرجاعها لكل منتج. الباقي يبقى في الشاحنة.</DialogDescription>
+          <DialogDescription>{t('empty_truck.choose_quantities')}</DialogDescription>
         </DialogHeader>
 
         {/* أزرار سريعة */}
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="flex-1" onClick={setFullUnload}>
-            تفريغ كلي
+            {t('empty_truck.full_unload')}
           </Button>
           <Button variant="outline" size="sm" className="flex-1" onClick={setZeroUnload}>
-            تصفير الكل
+            {t('empty_truck.zero_all')}
           </Button>
         </div>
 
