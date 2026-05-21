@@ -163,7 +163,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
         </div>
       ))}
       <div className="bg-primary/5 border border-primary/20 rounded-lg p-2.5 flex justify-between items-center">
-        <span className="text-sm font-bold">إجمالي التحصيلات</span>
+        <span className="text-sm font-bold">{t('debt_collections.total')}</span>
         <span className="font-bold text-primary">{fmt(totalCollected)} DA</span>
       </div>
     </div>
