@@ -155,7 +155,7 @@ const ExpandedCarousel: React.FC<{
                         <span className="truncate font-medium">{c.storeName || c.customerName}</span>
                         {c.deliveryTime && (
                           <span className="text-[10px] text-muted-foreground shrink-0">
-                            {new Date(c.deliveryTime).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(c.deliveryTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         )}
                       </div>
