@@ -350,7 +350,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
       {/* Collapsible Customer List */}
       <Collapsible>
         <CollapsibleTrigger className="w-full flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm font-medium">
-          <span>عرض قائمة العملاء ({totalCustomersCount})</span>
+          <span>{t('sales_details.show_customers')} ({totalCustomersCount})</span>
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </CollapsibleTrigger>
         <CollapsibleContent>
