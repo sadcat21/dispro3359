@@ -95,7 +95,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || user?.branch_id || null;
   const { data: workerPrintInfo } = useWorkerPrintInfo(workerId);
-  const { t, dir } = useLanguage();
+  const { t, dir, language } = useLanguage();
+  const localizedCustomerName = (c: any | null | undefined): string => {
+    if (!c) return '';
+    if (language === 'fr' || language === 'en') return c.name_fr || c.name || '';
+    return c.name || c.name_fr || '';
+  };
   const queryClient = useQueryClient();
   const { companyInfo } = useCompanyInfo();
   const { data: stampTiers } = useActiveStampTiers();
@@ -622,8 +627,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
   // Report header info to parent
   useEffect(() => {
-    onHeaderInfo?.({ customerName: selectedCustomer?.name || null, totalAmount: orderTotals.totalAmount });
-  }, [selectedCustomer?.name, orderTotals.totalAmount, onHeaderInfo]);
+    onHeaderInfo?.({ customerName: localizedCustomerName(selectedCustomer) || null, totalAmount: orderTotals.totalAmount });
+  }, [selectedCustomer, language, orderTotals.totalAmount, onHeaderInfo]);
 
   // Show payment dialog before completing
   const handleSave = () => {
@@ -1067,7 +1072,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                           {t('common.loading')}
                         </span>
                       ) : selectedCustomer ? (
-                        <span className="truncate text-sm font-medium">{selectedCustomer.name}</span>
+                        <span className="truncate text-sm font-medium">{localizedCustomerName(selectedCustomer)}</span>
                       ) : (
                         <span className="text-muted-foreground">{t('orders.select_customer')}</span>
                       )}
@@ -1103,7 +1108,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                 {selectedCustomer && (
                   <div className="p-2.5 bg-muted/50 rounded-lg space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-bold truncate">{selectedCustomer.name}</span>
+                      <span className="text-sm font-bold truncate">{localizedCustomerName(selectedCustomer)}</span>
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
                         {selectedCustomer.default_payment_type === 'with_invoice' ? t('orders.with_invoice') :
                           selectedCustomer.default_price_subtype === 'super_gros' ? t('products.price_super_gros') :
