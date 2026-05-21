@@ -35,6 +35,7 @@ type ReviewDiscrepancy = {
 };
 
 const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => {
+  const { t, localeCode } = useLanguage();
   const { data, isLoading } = useQuery({
     queryKey: ['truck-review-section', workerId],
     queryFn: async () => {
