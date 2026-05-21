@@ -664,17 +664,17 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         {!expandedProduct && salesData?.items?.length ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <TabsList className="w-full shrink-0 grid grid-cols-4">
-              <TabsTrigger value="products" className="text-xs">المنتجات</TabsTrigger>
+              <TabsTrigger value="products" className="text-xs">{t('sales_summary.tab_products')}</TabsTrigger>
               <TabsTrigger value="promos" className="text-xs">
-                العروض
+                {t('sales_summary.tab_promos')}
                 {promoData?.promoTracking?.length ? (
                   <Badge variant="secondary" className="ms-1 h-4 min-w-4 rounded-full px-1 text-[9px]">
                     {promoData.promoTracking.length}
                   </Badge>
                 ) : null}
               </TabsTrigger>
-              <TabsTrigger value="pricing" className="text-xs">المتابعة السعرية</TabsTrigger>
-              <TabsTrigger value="groups" className="text-xs">مجموعات التسعير</TabsTrigger>
+              <TabsTrigger value="pricing" className="text-xs">{t('sales_summary.tab_pricing')}</TabsTrigger>
+              <TabsTrigger value="groups" className="text-xs">{t('sales_summary.tab_groups')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
