@@ -44,7 +44,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   hideDirectTab = false,
 }) => {
   const { t, dir } = useLanguage();
-  const { workerId, activeBranch, activeRole } = useAuth();
+  const { workerId, activeBranch, activeRole, user } = useAuth();
   const isWarehouseManager = activeRole?.custom_role_code === 'warehouse_manager';
   const { data: assignedOrders = [], isLoading } = useAssignedOrders();
   const [activeTab, setActiveTab] = useState<'direct' | 'delivery' | 'warehouse'>(initialTab);
@@ -54,7 +54,7 @@ const SalesHubDialog: React.FC<SalesHubDialogProps> = ({
   const [headerInfo, setHeaderInfo] = useState<{ customerName: string | null; totalAmount: number }>({ customerName: null, totalAmount: 0 });
   const handleHeaderInfo = useCallback((info: { customerName: string | null; totalAmount: number }) => setHeaderInfo(info), []);
 
-  const warehouseBranchId = activeBranch?.id || (activeRole as any)?.branch_id || null;
+  const warehouseBranchId = activeBranch?.id || (activeRole as any)?.branch_id || (user as any)?.branch_id || null;
 
   // Fetch warehouse stock when warehouse tab is active
   useEffect(() => {
