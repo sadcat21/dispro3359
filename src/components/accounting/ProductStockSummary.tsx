@@ -600,7 +600,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
                   <div className="flex items-center justify-between w-full">
                     <span className="font-medium text-sm text-wrap">{row.product_name}</span>
                     <span className="flex items-center gap-1.5 shrink-0 ms-2">
-                      <span className="text-xs text-muted-foreground">{fmtQty(row.quantity)} صندوق</span>
+                      <span className="text-xs text-muted-foreground">{fmtQty(row.quantity)} {t('product_stock.box')}</span>
                       <span className="text-xs font-bold">{row.total_value.toLocaleString()} DA</span>
                       <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </span>
