@@ -742,14 +742,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 onClick={handleShowConfirmation}
                 disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen)}
               >
-                {isEditMode ? (t('accounting.update_session') || 'حفظ التعديلات') : t('accounting.save_session')}
+                {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
               </Button>
             </div>
             {!isEditMode && !isFrozen && selectedWorkerId && (
               <Alert className="mt-2">
                 <Info className="w-4 h-4" />
                 <AlertDescription className="text-xs">
-                  لا يمكن حفظ الجلسة حتى يقوم مدير المخزن بإجراء مراجعة نهائية جديدة للعامل.
+                  {t('create_session.cannot_save_until_review')}
                 </AlertDescription>
               </Alert>
             )}
