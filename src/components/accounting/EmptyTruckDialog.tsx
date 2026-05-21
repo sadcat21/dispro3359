@@ -104,7 +104,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
     try {
       const itemsToReturn = items.filter(it => it.returnQty > 0);
       if (itemsToReturn.length === 0) {
-        toast.error('لم يتم تحديد أي كمية للإرجاع');
+        toast.error(t('empty_truck.no_qty_selected'));
         setIsEmptying(false);
         return;
       }
