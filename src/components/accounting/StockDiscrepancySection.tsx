@@ -43,7 +43,7 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
   const handleResolveDeficit = async (d: StockDiscrepancy) => {
     const selection = pricingSelections[d.id];
     if (!selection?.method) {
-      toast.error('اختر طريقة التسعير');
+      toast.error(t('stock_discrepancy.choose_pricing_method'));
       return;
     }
     const pricePerUnit = getPriceByMethod(d, selection.method, selection.manualPrice);
@@ -57,9 +57,9 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         total_value: totalValue,
         status: 'resolved',
         accounting_session_id: accountingSessionId,
-        notes: `تسعير العجز: ${selection.method}`,
+        notes: `${t('stock_discrepancy.deficit_pricing_note')}: ${selection.method}`,
       });
-      toast.success('تم تسجيل العجز على حساب العامل');
+      toast.success(t('stock_discrepancy.deficit_recorded'));
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -71,9 +71,9 @@ const StockDiscrepancySection: React.FC<StockDiscrepancySectionProps> = ({ discr
         id: d.id,
         status: 'added_to_stock',
         accounting_session_id: accountingSessionId,
-        notes: 'تمت إضافة الفائض إلى مخزون الفائض',
+        notes: t('stock_discrepancy.surplus_added_note'),
       });
-      toast.success('تمت إضافة الفائض');
+      toast.success(t('stock_discrepancy.surplus_added'));
     } catch (err: any) {
       toast.error(err.message);
     }
