@@ -798,7 +798,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               className="flex-1 rounded-xl h-11"
               onClick={() => setShowConfirmation(false)}
             >
-              العودة للمراجعة
+              {t('create_session.back_to_review')}
             </Button>
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
@@ -806,7 +806,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               disabled={isSubmitting || createSession.isPending || updateSession.isPending}
             >
               {(isSubmitting || createSession.isPending || updateSession.isPending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              {isEditMode ? 'تأكيد الحفظ' : 'متابعة إلى التفريغ'}
+              {isEditMode ? t('create_session.confirm_save') : t('create_session.continue_to_unload')}
             </Button>
           </div>
         </DialogContent>
