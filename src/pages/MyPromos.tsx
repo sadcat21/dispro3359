@@ -100,6 +100,9 @@ const MyPromosContent: React.FC = () => {
   const [periodFrom, setPeriodFrom] = useState<string>(today);
   const [periodTo, setPeriodTo] = useState<string>(today);
   const [showPeriodDialog, setShowPeriodDialog] = useState(false);
+  const [showSessionsTimeline, setShowSessionsTimeline] = useState(false);
+  const [selectedSessionRanges, setSelectedSessionRanges] = useState<SelectedSessionRange[]>([]);
+  const selectedSessionIds = useMemo(() => new Set(selectedSessionRanges.map(r => r.id)), [selectedSessionRanges]);
   const { lowerBound, upperBound, isLoading: boundsLoading } = useAccountingDateRange(workerId, periodFrom, periodTo);
 
   // Edit dialog state
