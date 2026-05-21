@@ -17,7 +17,7 @@ interface Props {
  * في مراجعة المخزون. يُخفى تلقائياً عند سداد الدين.
  */
 export const FrozenWorkerBadge: React.FC<Props> = ({ workerId, variant = 'alert', className }) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { data } = useWorkerFrozenStatus(workerId);
   if (!data?.isFrozen) return null;
 
@@ -25,7 +25,7 @@ export const FrozenWorkerBadge: React.FC<Props> = ({ workerId, variant = 'alert'
     return (
       <Badge variant="destructive" className={className}>
         <Lock className="w-3 h-3 me-1" />
-        مجمَّد - عجز {formatNumber(data.totalRemaining, language)} دج
+        {t('worker.frozen_short')} {formatNumber(data.totalRemaining, language)} دج
       </Badge>
     );
   }
@@ -34,10 +34,9 @@ export const FrozenWorkerBadge: React.FC<Props> = ({ workerId, variant = 'alert'
     <Alert variant="destructive" className={className}>
       <AlertTriangle className="h-4 w-4" />
       <AlertDescription>
-        هذا الموظف مجمَّد بسبب عجز غير مسدَّد قدره{' '}
+        {t('worker.frozen_message_prefix')}{' '}
         <strong>{formatNumber(data.totalRemaining, language)} دج</strong>{' '}
-        من مراجعة المخزون. لا يمكن تعديل الطلبيات المسلَّمة أو عروض الأسعار أو
-        تأكيدات الهدايا المعلَّقة حتى تتم تسوية المحاسبة.
+        {t('worker.frozen_message_suffix')}
       </AlertDescription>
     </Alert>
   );

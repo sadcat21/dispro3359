@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /**
  * زر مزامنة مميز في الهيدر — مفيد بشكل خاص في وضع PWA/التطبيق
@@ -10,17 +11,16 @@ import { toast } from 'sonner';
  */
 const RefreshButton: React.FC = () => {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [spinning, setSpinning] = useState(false);
 
   const handleRefresh = async () => {
     if (spinning) return;
     setSpinning(true);
     try {
-      // إبطال جميع استعلامات React Query لإعادة جلب البيانات
       await queryClient.invalidateQueries();
-      toast.success('تمت المزامنة بنجاح', { duration: 1500 });
+      toast.success(t('refresh.success'), { duration: 1500 });
     } catch (e) {
-      // كحل احتياطي: إعادة تحميل كاملة للصفحة
       window.location.reload();
       return;
     } finally {
@@ -40,7 +40,7 @@ const RefreshButton: React.FC = () => {
         <button
           onClick={handleRefresh}
           onContextMenu={handleHardReload}
-          aria-label="تحديث الصفحة"
+          aria-label={t('refresh.aria')}
           className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-gradient-to-br from-emerald-400/90 to-teal-500/90 hover:from-emerald-400 hover:to-teal-500 transition-colors shadow-md ring-1 ring-white/30"
         >
           <RefreshCw
@@ -49,7 +49,7 @@ const RefreshButton: React.FC = () => {
         </button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>تحديث / مزامنة (ضغطة طويلة: إعادة تحميل كاملة)</p>
+        <p>{t('refresh.tooltip')}</p>
       </TooltipContent>
     </Tooltip>
   );
