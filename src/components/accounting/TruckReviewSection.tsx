@@ -134,8 +134,8 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
           <AlertTriangle className="w-4 h-4 text-muted-foreground" />
         </div>
         <div>
-          <p className="text-sm font-bold">لا توجد جلسات شاحنة</p>
-          <p className="text-[11px] text-muted-foreground">لم يتم تسجيل أي جلسة شحن/تفريغ/مراجعة لهذا العامل بعد</p>
+          <p className="text-sm font-bold">{t('truck_review.no_sessions')}</p>
+          <p className="text-[11px] text-muted-foreground">{t('truck_review.no_sessions_desc')}</p>
         </div>
       </div>
     );
@@ -148,8 +148,8 @@ const TruckReviewSection: React.FC<TruckReviewSectionProps> = ({ workerId }) => 
           <AlertTriangle className="w-4 h-4 text-destructive" />
         </div>
         <div>
-          <p className="text-sm font-bold text-destructive">لم تتم مراجعة الشاحنة</p>
-          <p className="text-[11px] text-muted-foreground">آخر جلسة ليست جلسة مراجعة - يجب إجراء مراجعة قبل المحاسبة</p>
+          <p className="text-sm font-bold text-destructive">{t('truck_review.not_reviewed')}</p>
+          <p className="text-[11px] text-muted-foreground">{t('truck_review.not_reviewed_desc')}</p>
         </div>
       </div>
     );
