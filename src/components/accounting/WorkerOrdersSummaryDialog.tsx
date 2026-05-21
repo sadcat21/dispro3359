@@ -894,8 +894,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               <Label htmlFor="groupCustomersOS" className="flex items-center gap-2 cursor-pointer flex-1">
                 <Layers className="w-3.5 h-3.5 text-primary shrink-0" />
                 <div>
-                  <div className="text-sm font-medium">تجميع طلبات نفس العميل</div>
-                  <p className="text-xs text-muted-foreground">دمج الطلبات المتعددة لنفس العميل</p>
+                  <div className="text-sm font-medium">{t('orders_summary.group_customers')}</div>
+                  <p className="text-xs text-muted-foreground">{t('orders_summary.group_customers_desc')}</p>
                 </div>
               </Label>
               <Switch id="groupCustomersOS" checked={groupCustomers} onCheckedChange={setGroupCustomers} />
@@ -904,8 +904,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               <Label htmlFor="groupProductsOS" className="flex items-center gap-2 cursor-pointer flex-1">
                 <Package className="w-3.5 h-3.5 text-primary shrink-0" />
                 <div>
-                  <div className="text-sm font-medium">تجميع كميات المنتجات</div>
-                  <p className="text-xs text-muted-foreground">جمع كميات نفس المنتج من طلبات مختلفة</p>
+                  <div className="text-sm font-medium">{t('orders_summary.group_products')}</div>
+                  <p className="text-xs text-muted-foreground">{t('orders_summary.group_products_desc')}</p>
                 </div>
               </Label>
               <Switch id="groupProductsOS" checked={groupProducts} onCheckedChange={setGroupProducts} />
@@ -915,7 +915,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
                 <Gift className="w-3.5 h-3.5 text-primary shrink-0" />
                 <div>
                   <div className="text-sm font-medium">Registre des promotions</div>
-                  <p className="text-xs text-muted-foreground">إضافة صفحة سجل العروض الترويجية</p>
+                  <p className="text-xs text-muted-foreground">{t('orders_summary.promo_register_desc')}</p>
                 </div>
               </Label>
               <Switch id="includePromoOS" checked={includePromoRegistre} onCheckedChange={setIncludePromoRegistre} />
@@ -930,10 +930,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               onClick={() => setShowCashVanDialog(true)}
             >
               <Truck className="w-4 h-4" />
-              CASH VAN - منتجات احتياطية
+              {t('orders_summary.cashvan')}
               {Object.values(cashVanProducts).some(q => q > 0) && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
-                  {Object.values(cashVanProducts).filter(q => q > 0).length} منتج
+                  {Object.values(cashVanProducts).filter(q => q > 0).length} {t('orders_summary.product')}
                 </Badge>
               )}
             </Button>
@@ -942,7 +942,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           {/* Column Config Button */}
           <Button variant="outline" className="w-full gap-2" onClick={() => setShowColumnsConfig(true)}>
             <Settings2 className="w-4 h-4" />
-            إعدادات الأعمدة
+            {t('orders_summary.column_settings')}
           </Button>
 
           {/* Extra Products Button + سويتش لإضافة كل المنتجات المتبقية كأعمدة */}
@@ -954,18 +954,18 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               disabled={includeAllRemainingProducts}
             >
               <Plus className="w-4 h-4" />
-              إضافة أعمدة منتجات
+              {t('orders_summary.add_product_columns')}
               {extraPrintProductIds.size > 0 && !includeAllRemainingProducts && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 h-5 bg-accent text-accent-foreground">
-                  {extraPrintProductIds.size} منتج
+                  {extraPrintProductIds.size} {t('orders_summary.product')}
                 </Badge>
               )}
             </Button>
             <div
               className="flex flex-col items-center justify-center px-2 py-1 rounded-lg border bg-muted/40 shrink-0"
-              title="إضافة كل المنتجات المتبقية"
+              title={t('orders_summary.all_remaining_title')}
             >
-              <span className="text-[9px] text-muted-foreground mb-1 leading-none">الكل</span>
+              <span className="text-[9px] text-muted-foreground mb-1 leading-none">{t('orders_summary.all')}</span>
               <Switch
                 checked={includeAllRemainingProducts}
                 onCheckedChange={setIncludeAllRemainingProducts}
@@ -977,10 +977,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <div className="grid grid-cols-2 gap-2 border-t bg-background pt-3 mt-3">
           <Button variant="destructive" size="lg" onClick={handlePrint} disabled={selectedCustomerIds.size === 0 || isPrintLoading} className="gap-2 font-bold shadow-md">
             {isPrintLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
-            طباعة
+            {t('orders_summary.print')}
           </Button>
           <Button size="lg" variant="outline" onClick={() => setShowPrintSettings(false)}>
-            إلغاء
+            {t('orders_summary.cancel')}
           </Button>
         </div>
       </DialogContent>
@@ -992,12 +992,12 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <DialogHeader className="pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Users className="w-4 h-4" />
-            تحديد العملاء للطباعة
+            {t('orders_summary.pick_customers_print')}
           </DialogTitle>
         </DialogHeader>
         <div className="flex items-center justify-between gap-2 pb-2 shrink-0">
           <span className="text-xs text-muted-foreground">
-            {selectedCustomerIds.size}/{uniqueCustomers.length} عميل محدد
+            {selectedCustomerIds.size}/{uniqueCustomers.length} {t('orders_summary.customer_selected')}
           </span>
           <div className="flex gap-1.5">
             <Button
@@ -1007,7 +1007,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               onClick={() => setSelectedCustomerIds(new Set(uniqueCustomers.map(c => c.id)))}
             >
               <Check className="w-3 h-3" />
-              تحديد الكل
+              {t('orders_summary.select_all')}
             </Button>
             <Button
               size="sm"
@@ -1015,7 +1015,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               className="h-7 text-[11px]"
               onClick={() => setSelectedCustomerIds(new Set())}
             >
-              إلغاء الكل
+              {t('orders_summary.unselect_all')}
             </Button>
           </div>
         </div>
@@ -1060,7 +1060,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <div className="pt-2 shrink-0">
           <Button className="w-full gap-1.5" size="sm" onClick={async () => { await saveCustomerSelection(); setShowCustomerPicker(false); }} disabled={customersSaving}>
             <Save className="w-3.5 h-3.5" />
-            {customersSaving ? 'جاري الحفظ...' : `حفظ (${selectedCustomerIds.size} عميل)`}
+            {customersSaving ? t('orders_summary.saving') : `${t('orders_summary.save_n')} (${selectedCustomerIds.size} ${t('orders_summary.customer')})`}
           </Button>
         </div>
       </DialogContent>
@@ -1072,10 +1072,10 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <DialogHeader className="pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Truck className="w-4 h-4" />
-            CASH VAN - منتجات احتياطية
+            {t('orders_summary.cashvan')}
           </DialogTitle>
         </DialogHeader>
-        <p className="text-xs text-muted-foreground shrink-0">أضف كميات احتياطية لكل منتج. ستظهر كصف خاص في الطباعة.</p>
+        <p className="text-xs text-muted-foreground shrink-0">{t('orders_summary.cashvan_hint')}</p>
         <AdaptiveScrollContainer
           className="flex-1 mt-2"
           maxHeightClassName="flex-1"
@@ -1104,7 +1104,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-semibold truncate">{product.name}</p>
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                      <span>طلبيات: <span className="font-bold text-foreground">{product.totalQuantity}</span></span>
+                      <span>{t('orders_summary.orders_label')} <span className="font-bold text-foreground">{product.totalQuantity}</span></span>
                       {reserveQty > 0 && (
                         <>
                           <span>+</span>
@@ -1167,14 +1167,14 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <div className="grid grid-cols-2 gap-2 pt-2 shrink-0">
           <Button size="sm" onClick={async () => { await saveCashVan(); setShowCashVanDialog(false); }} disabled={cashVanSaving} className="gap-1.5">
             <Save className="w-3.5 h-3.5" />
-            {cashVanSaving ? 'جاري الحفظ...' : 'حفظ'}
+            {cashVanSaving ? t('orders_summary.saving') : t('orders_summary.save_n')}
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => { setCashVanProducts({}); }}
           >
-            مسح الكل
+            {t('orders_summary.clear_all')}
           </Button>
         </div>
       </DialogContent>
@@ -1194,22 +1194,22 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <DialogHeader className="p-4 border-b shrink-0">
           <DialogTitle className="text-base flex items-center gap-2">
             <Plus className="w-5 h-5 text-primary" />
-            إضافة أعمدة منتجات للطباعة
+            {t('orders_summary.add_columns_title')}
           </DialogTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            اختر منتجات غير موجودة في الطلبيات لتظهر كأعمدة فارغة في ورقة الطباعة (تحديد متعدد)
+            {t('orders_summary.add_columns_hint')}
           </p>
         </DialogHeader>
         <div className="p-3 border-b shrink-0">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">{extraPrintProductIds.size} منتج محدد</span>
+            <span className="text-muted-foreground">{extraPrintProductIds.size} {t('orders_summary.selected_count')}</span>
             <Button
               size="sm"
               variant="ghost"
               className="h-7 text-xs"
               onClick={() => setExtraPrintProductIds(new Set())}
             >
-              مسح التحديد
+              {t('orders_summary.clear_selection')}
             </Button>
           </div>
         </div>
@@ -1219,7 +1219,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
               const orderedIds = new Set(currentData.map(p => p.productId));
               const candidates = (allProducts || []).filter(p => !orderedIds.has(p.id));
               if (candidates.length === 0) {
-                return <p className="text-center text-sm text-muted-foreground py-8">لا توجد منتجات مطابقة</p>;
+                return <p className="text-center text-sm text-muted-foreground py-8">{t('orders_summary.no_matching_products')}</p>;
               }
               return (
                 <div className="grid grid-cols-4 gap-2">
@@ -1264,7 +1264,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
         <div className="p-3 border-t shrink-0">
           <Button className="w-full" onClick={() => setShowExtraProductsPicker(false)}>
             <Check className="w-4 h-4 ml-2" />
-            تم ({extraPrintProductIds.size})
+            {t('orders_summary.done')} ({extraPrintProductIds.size})
           </Button>
         </div>
       </DialogContent>
