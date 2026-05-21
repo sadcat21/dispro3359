@@ -4209,6 +4209,7 @@ export type Database = {
           is_mandatory: boolean
           scope_stages: string[]
           showcase_enabled: boolean
+          stage_settings: Json
           updated_at: string
           updated_by: string | null
         }
@@ -4219,6 +4220,7 @@ export type Database = {
           is_mandatory?: boolean
           scope_stages?: string[]
           showcase_enabled?: boolean
+          stage_settings?: Json
           updated_at?: string
           updated_by?: string | null
         }
@@ -4229,6 +4231,7 @@ export type Database = {
           is_mandatory?: boolean
           scope_stages?: string[]
           showcase_enabled?: boolean
+          stage_settings?: Json
           updated_at?: string
           updated_by?: string | null
         }
