@@ -618,6 +618,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   )}
                 </div>
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDetailsOrderId(stampDialog.orderId)}
+                className="w-full gap-2"
+              >
+                <Package className="w-4 h-4" />
+                عرض تفاصيل الطلب
+              </Button>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
