@@ -736,7 +736,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             </div>
 
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Sticky footer with action buttons */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
