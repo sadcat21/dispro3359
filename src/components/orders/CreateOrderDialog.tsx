@@ -602,6 +602,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         deliveryDate: deliveryDate ? (deliveryTime ? `${deliveryDate}T${deliveryTime}` : deliveryDate) : undefined,
         paymentType,
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
+        invoiceNumber: paymentType === 'with_invoice' ? invoiceNumber : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
         assignedWorkerId: selectedDeliveryWorker || defaultWorkerId || undefined,
