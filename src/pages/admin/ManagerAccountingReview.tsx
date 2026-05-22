@@ -74,7 +74,7 @@ export const calcTotals = (sessions: any[]) => {
 
 const ManagerAccountingReview: React.FC = () => {
   const navigate = useNavigate();
-  const { workerId: managerId, activeBranch } = useAuth();
+  const { workerId: managerId, activeBranch, user } = useAuth() as any;
   const [activeTab, setActiveTab] = useState('pending');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
@@ -161,6 +161,7 @@ const ManagerAccountingReview: React.FC = () => {
       totals: displayTotals,
       sessions: displaySessions,
       branchName: activeBranch?.name || '',
+      accountantName: user?.full_name || user?.fullName || user?.username || '',
     }));
     frameDocument.close();
 
@@ -547,12 +548,15 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 
 const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
 
-export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string }) => {
+export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
   const today = format(new Date(), 'yyyy-MM-dd HH:mm');
+  const sessionDates = sessions.map((s: any) => s.completed_at).filter(Boolean).map((d: string) => new Date(d).getTime());
+  const periodFrom = sessionDates.length ? format(new Date(Math.min(...sessionDates)), 'yyyy-MM-dd HH:mm') : '—';
+  const periodTo = sessionDates.length ? format(new Date(Math.max(...sessionDates)), 'yyyy-MM-dd HH:mm') : '—';
   const row = (label: string, value: number | string, color = '#0f172a') => `
     <div class="row">
       <span>${escapeHtml(label)}</span>
@@ -658,6 +662,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <div style="flex:1">
         <div class="title">Rapport de Révision des Comptes du Gérant</div>
         <div class="subtitle"><b>Agence :</b> ${escapeHtml(branchName || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
+        <div class="subtitle"><b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> ${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</div>
       </div>
       ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
     </header>
