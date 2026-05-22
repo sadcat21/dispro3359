@@ -49,7 +49,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
         .filter((d: any) => d.status !== 'paid')
         .reduce((s, d: any) => s + Number(d.remaining_amount || 0), 0);
 
-      const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= startISO);
+      const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= periodISO);
       const newDebtsCount = todayNewDebts.length;
       const newDebtsAmount = todayNewDebts.reduce(
         (s, d: any) => s + Number(d.total_amount || 0),
@@ -68,7 +68,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
         0,
       );
       const todayCollections = (payments || [])
-        .filter((p: any) => p.collected_at >= startISO)
+        .filter((p: any) => p.collected_at >= periodISO)
         .reduce((s, p: any) => s + Number(p.amount || 0), 0);
 
       return {
