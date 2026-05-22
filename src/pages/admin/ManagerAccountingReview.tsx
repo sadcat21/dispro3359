@@ -351,7 +351,7 @@ const ManagerAccountingReview: React.FC = () => {
 };
 
 // Summary Component
-const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ totals, sessions }) => {
+export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ totals, sessions }) => {
   const totalCashReceived = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
@@ -431,7 +431,7 @@ const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ totals, s
 };
 
 // Worker Breakdown Component
-const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => (
+export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => (
   <div className="space-y-2">
     <h3 className="text-sm font-bold flex items-center gap-2">
       <User className="w-4 h-4 text-primary" />
@@ -529,7 +529,7 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 
 const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
 
-const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals: any; sessions: any[]; branchName: string }) => {
+export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals: any; sessions: any[]; branchName: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
