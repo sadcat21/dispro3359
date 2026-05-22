@@ -631,14 +631,9 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <body>
   <main class="sheet">
     <header class="header">
-      <div>
+      <div style="flex:1">
         <div class="title">Rapport de Révision des Comptes du Gérant</div>
-        <div class="subtitle">Synthèse quotidienne — Tournées des vendeurs</div>
-      </div>
-      <div class="meta">
-        <div><b>Agence :</b> ${escapeHtml(branchName || '—')}</div>
-        <div><b>Date d'impression :</b> ${escapeHtml(today)}</div>
-        <div><b>Nombre de sessions :</b> ${sessions.length}</div>
+        <div class="subtitle"><b>Agence :</b> ${escapeHtml(branchName || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
       </div>
     </header>
 
