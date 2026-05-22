@@ -107,54 +107,6 @@ const ManagerAccountingReview: React.FC = () => {
 
   const confirmMutation = useConfirmManagerReview();
 
-  // Aggregate totals
-  const calcTotals = (sessions: any[]) => {
-    const result = {
-      totalSales: 0, physicalCashExpected: 0, physicalCashActual: 0,
-      newDebts: 0, debtCollectionsCash: 0, debtCollectionsCheck: 0,
-      debtCollectionsReceipt: 0, debtCollectionsTransfer: 0, debtCollectionsTotal: 0,
-      expenses: 0, invoice1EspaceCash: 0, invoice1VersementCash: 0,
-      invoice1Check: 0, invoice1Receipt: 0, invoice1Transfer: 0,
-      invoice2Cash: 0, coinAmount: 0, cashDifference: 0,
-      surplus: 0, deficit: 0, workersCount: sessions.length,
-    };
-
-    for (const session of sessions) {
-      const items = session.items || [];
-      const get = (type: string, field: 'actual_amount' | 'expected_amount' = 'actual_amount') => {
-        const item = items.find((i: any) => i.item_type === type);
-        return item ? Number(item[field]) : 0;
-      };
-
-      result.totalSales += get('total_sales');
-      result.physicalCashExpected += get('physical_cash', 'expected_amount');
-      result.physicalCashActual += get('physical_cash');
-      result.newDebts += get('new_debts');
-      result.debtCollectionsCash += get('debt_collections_cash');
-      result.debtCollectionsCheck += get('debt_collections_check');
-      result.debtCollectionsReceipt += get('debt_collections_receipt');
-      result.debtCollectionsTransfer += get('debt_collections_transfer');
-      result.debtCollectionsTotal += get('debt_collections_total');
-      result.expenses += get('expenses');
-      result.invoice1EspaceCash += get('invoice1_espace_cash');
-      result.invoice1VersementCash += get('invoice1_versement_cash');
-      result.invoice1Check += get('invoice1_check');
-      result.invoice1Receipt += get('invoice1_receipt');
-      result.invoice1Transfer += get('invoice1_transfer');
-      result.invoice2Cash += get('invoice2_cash');
-      result.coinAmount += get('coin_amount');
-
-      const cashExp = get('physical_cash', 'expected_amount');
-      const cashAct = get('physical_cash');
-      const diff = cashAct - cashExp;
-      if (diff >= 0) result.surplus += diff;
-      else result.deficit += Math.abs(diff);
-    }
-
-    result.cashDifference = result.physicalCashActual - result.physicalCashExpected;
-    return result;
-  };
-
   const pendingTotals = useMemo(() => calcTotals(pendingSessions), [pendingSessions]);
 
   const handleConfirmReview = () => {
@@ -162,10 +114,11 @@ const ManagerAccountingReview: React.FC = () => {
     confirmMutation.mutate(
       { notes: reviewNotes || undefined, sessionIds },
       {
-        onSuccess: () => {
+        onSuccess: (review: any) => {
           toast.success('تم تأكيد المراجعة وإدراج المبالغ في الخزينة');
           setShowConfirmDialog(false);
           setReviewNotes('');
+          if (review?.id) navigate(`/manager-accounting-review/${review.id}`);
         },
         onError: () => toast.error('حدث خطأ أثناء تأكيد المراجعة'),
       }
