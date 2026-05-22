@@ -129,13 +129,15 @@ const ManagerAccountingReview: React.FC = () => {
   const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? pendingSessions : []);
   const displayTotals = useMemo(() => calcTotals(displaySessions), [displaySessions]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (typeof document === 'undefined') return;
 
     if (displaySessions.length === 0) {
       toast.error('لا توجد جلسات متاحة للطباعة');
       return;
     }
+
+    const productMatrix = await fetchProductMatrix(displaySessions);
 
     const iframe = document.createElement('iframe');
     iframe.title = 'manager-review-print';
@@ -162,6 +164,7 @@ const ManagerAccountingReview: React.FC = () => {
       sessions: displaySessions,
       branchName: activeBranch?.name || '',
       accountantName: user?.full_name || user?.fullName || user?.username || '',
+      productMatrix,
     }));
     frameDocument.close();
 
