@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
+import DebtSummaryCard from '@/components/admin/DebtSummaryCard';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { useNavigate } from 'react-router-dom';
@@ -154,6 +155,14 @@ const CompanyManagerHome: React.FC = () => {
           })}
         </div>
       </div>
+
+
+      {/* Debt summary */}
+      <div className="px-2 sm:px-3 pb-2">
+        <DebtSummaryCard />
+      </div>
+
+
 
       {/* Dialogs */}
       <ManualPromoEntryDialog open={manualPromoOpen} onOpenChange={setManualPromoOpen} />
