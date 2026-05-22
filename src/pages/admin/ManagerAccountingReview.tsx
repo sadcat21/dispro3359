@@ -635,6 +635,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <div class="title">Rapport de Révision des Comptes du Gérant</div>
         <div class="subtitle"><b>Agence :</b> ${escapeHtml(branchName || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
       </div>
+      ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
     </header>
 
     <section class="kpis">
@@ -697,10 +698,6 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <div class="sign">Signature du Comptable</div>
     </footer>
 
-    ${qrDataUrl ? `
-    <section style="margin-top:14px;padding-top:10px;display:flex;justify-content:center;page-break-inside:avoid">
-      <img src="${qrDataUrl}" alt="QR" style="width:90px;height:90px" />
-    </section>` : ''}
   </main>
 </body>
 </html>`;
