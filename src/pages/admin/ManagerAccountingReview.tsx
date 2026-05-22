@@ -784,6 +784,28 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       </table>
     </div>
 
+    ${(() => {
+      if (!productMatrix || !productMatrix.products.length) return '';
+      const rowLabels: [string, string][] = [
+        ['sold', 'Quantités Vendues'],
+        ['offered', 'Quantités Offertes'],
+        ['invoice1', 'Facture 1'],
+        ['super_gros', 'Super Gros'],
+        ['gros', 'Gros'],
+        ['retail', 'Détail'],
+      ];
+      const head = `<tr><th style="text-align:left;padding-left:8px">Métrique</th>${productMatrix.products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total</th></tr>`;
+      const body = rowLabels.map(([key, label]) => {
+        const cells = productMatrix.products.map(p => Number(productMatrix.rows[key]?.[p.id] || 0));
+        const total = cells.reduce((a, b) => a + b, 0);
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map(v => `<td>${v.toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${total.toLocaleString()}</td></tr>`;
+      }).join('');
+      return `<div class="block">
+        <div class="block-title" style="background:#fef2f2">Produits</div>
+        <table><thead>${head}</thead><tbody>${body}</tbody></table>
+      </div>`;
+    })()}
+
     <footer class="signatures">
       <div class="sign">Signature du Gérant</div>
       <div class="sign">Signature du Comptable</div>
