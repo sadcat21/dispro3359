@@ -120,6 +120,7 @@ const AdminHome: React.FC = () => {
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
   const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [pmRange, setPmRange] = useState<'day' | 'week' | '2weeks' | 'month'>('day');
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
@@ -266,12 +267,19 @@ const AdminHome: React.FC = () => {
 
   // ─── Project Manager Professional Summary ───
   const { data: pmSummary } = useQuery({
-    queryKey: ['admin-home-pm-summary', activeBranch?.id],
+    queryKey: ['admin-home-pm-summary', activeBranch?.id, pmRange],
     enabled: isProjectManager,
     queryFn: async () => {
       const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const startOfDayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfDay = startOfDayDate.toISOString();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const periodStartDate = new Date(startOfDayDate);
+      if (pmRange === 'week') periodStartDate.setDate(periodStartDate.getDate() - 6);
+      else if (pmRange === '2weeks') periodStartDate.setDate(periodStartDate.getDate() - 13);
+      else if (pmRange === 'month') periodStartDate.setDate(1);
+      const periodStart = periodStartDate.toISOString();
+      const queryStart = periodStart < startOfMonth ? periodStart : startOfMonth;
 
       // Resolve worker IDs of this branch (used as fallback when orders/sales lost branch_id)
       let branchWorkerIds: string[] = [];
@@ -287,7 +295,7 @@ const AdminHome: React.FC = () => {
         .from('orders')
         .select('total_amount, status, created_at, branch_id, assigned_worker_id')
         .eq('status', 'delivered')
-        .gte('created_at', startOfMonth);
+        .gte('created_at', queryStart);
       if (activeBranch?.id) {
         // Include rows tagged with the branch OR (legacy NULL branch but worker belongs to branch)
         const workerFilter = branchWorkerIds.length
@@ -296,11 +304,11 @@ const AdminHome: React.FC = () => {
         salesQuery = salesQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
       }
       const { data: salesRows } = await salesQuery;
-      const monthSales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const monthSales = (salesRows || []).filter((r: any) => r.created_at >= startOfMonth).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       const todaySales = (salesRows || [])
-        .filter((r: any) => r.created_at >= startOfDay)
+        .filter((r: any) => r.created_at >= periodStart)
         .reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
-      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= startOfDay).length;
+      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= periodStart).length;
 
       let stockQuery = supabase
         .from('warehouse_stock')
@@ -315,7 +323,7 @@ const AdminHome: React.FC = () => {
       let soldTodayQuery = supabase
         .from('sales_tracking')
         .select('product_id, branch_id, worker_id, sold_pieces, sold_boxes, total_price, sold_at')
-        .gte('sold_at', startOfDay);
+        .gte('sold_at', periodStart);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -330,7 +338,7 @@ const AdminHome: React.FC = () => {
           .filter(Boolean)
       ).size;
 
-      const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id);
+      const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id, periodStart);
       const activeWorkersToday = workerActivity.activeWorkersToday;
       const deliveriesToday = workerActivity.deliveriesToday;
 
@@ -359,7 +367,7 @@ const AdminHome: React.FC = () => {
       let offersQuery = supabase
         .from('sales_tracking')
         .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
-        .gte('sold_at', startOfMonth)
+        .gte('sold_at', queryStart)
         .gt('gift_pieces', 0);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
@@ -369,10 +377,10 @@ const AdminHome: React.FC = () => {
       }
       const { data: offerRows } = await offersQuery;
       const offerList = (offerRows || []) as any[];
-      const monthGiftPieces = offerList.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
-      const todayOfferRows = offerList.filter((r) => r.sold_at >= startOfDay);
+      const monthGiftPieces = offerList.filter((r) => r.sold_at >= startOfMonth).reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+      const todayOfferRows = offerList.filter((r) => r.sold_at >= periodStart);
       const todayGiftPieces = todayOfferRows.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
-      const offersDeliveredMonth = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
+      const offersDeliveredMonth = new Set(offerList.filter((r) => r.sold_at >= startOfMonth).map((r) => r.order_id || r.order_item_id || r.id)).size;
       const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
 
       return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, productsSoldToday, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
@@ -635,7 +643,33 @@ const AdminHome: React.FC = () => {
         </button>
       )}
 
-      {isProjectManager && (
+      {isProjectManager && (() => {
+        const rangeOptions: { key: typeof pmRange; label: string }[] = [
+          { key: 'day', label: t('admin_home.range_day') || 'يوم' },
+          { key: 'week', label: t('admin_home.range_week') || 'أسبوع' },
+          { key: '2weeks', label: t('admin_home.range_2weeks') || 'أسبوعان' },
+          { key: 'month', label: t('admin_home.range_month') || 'شهر' },
+        ];
+        const periodLabel = rangeOptions.find((o) => o.key === pmRange)?.label || '';
+        return (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card p-1.5 w-fit">
+            {rangeOptions.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => setPmRange(o.key)}
+                className={cn(
+                  'px-3 py-1 rounded-lg text-xs font-semibold transition',
+                  pmRange === o.key
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted',
+                )}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
           <button type="button" onClick={() => setPmDetailKind('sales')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
@@ -648,7 +682,7 @@ const AdminHome: React.FC = () => {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.today_sales')}</p>
+                <p className="text-muted-foreground">{periodLabel}</p>
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.todaySales || 0).toLocaleString()} DA</p>
                 <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} {t('admin_home.orders_count')}</p>
               </div>
@@ -659,7 +693,7 @@ const AdminHome: React.FC = () => {
             </div>
           </button>
 
-          {!isDebtsHidden && <DebtSummaryCard />}
+          {!isDebtsHidden && <DebtSummaryCard periodStart={pmRange === 'day' ? undefined : (() => { const d = new Date(); d.setHours(0,0,0,0); if (pmRange === 'week') d.setDate(d.getDate()-6); else if (pmRange === '2weeks') d.setDate(d.getDate()-13); else if (pmRange === 'month') d.setDate(1); return d.toISOString(); })()} periodLabel={periodLabel} />}
 
           <button type="button" onClick={() => setPmDetailKind('inventory')} className="text-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-emerald-300">
             <div className="flex items-center justify-between">
@@ -675,7 +709,7 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-emerald-900">{(pmSummary?.totalPieces || 0).toLocaleString()}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.products_sold_today')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.products_sold_today')}</p>
                 <p className="mt-1 text-base font-bold text-emerald-900">{pmSummary?.productsSoldToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
@@ -700,11 +734,11 @@ const AdminHome: React.FC = () => {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.active_workers_today')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.active_workers_today')}</p>
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.activeWorkersToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.deliveries')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.deliveries')}</p>
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.deliveriesToday || 0}</p>
               </div>
             </div>
@@ -722,11 +756,11 @@ const AdminHome: React.FC = () => {
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.offers_today')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.offers_today')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.gifts_today')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.gifts_today')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.todayGiftPieces || 0).toLocaleString()}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
@@ -740,7 +774,9 @@ const AdminHome: React.FC = () => {
             </div>
           </button>
         </div>
-      )}
+        </div>
+        );
+      })()}
 
       {isProjectManager && (
         <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">

@@ -9,7 +9,12 @@ import { Banknote, HandCoins, CalendarDays, TrendingUp, Loader2 } from 'lucide-r
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
-const DebtSummaryCard: React.FC = () => {
+interface DebtSummaryCardProps {
+  periodStart?: string;
+  periodLabel?: string;
+}
+
+const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLabel }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
@@ -22,16 +27,16 @@ const DebtSummaryCard: React.FC = () => {
       { table: 'debt_payments' },
       { table: 'debt_collections' },
     ],
-    [['debt-summary-card', branchId || undefined]],
+    [['debt-summary-card', branchId || undefined, periodStart || undefined]],
     true,
   );
 
   const { data, isLoading } = useQuery({
-    queryKey: ['debt-summary-card', branchId],
+    queryKey: ['debt-summary-card', branchId, periodStart],
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      const startISO = startOfDay.toISOString();
+      const periodISO = periodStart || startOfDay.toISOString();
 
       // Active debts (principal remaining)
       let debtsQ = supabase
@@ -44,7 +49,7 @@ const DebtSummaryCard: React.FC = () => {
         .filter((d: any) => d.status !== 'paid')
         .reduce((s, d: any) => s + Number(d.remaining_amount || 0), 0);
 
-      const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= startISO);
+      const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= periodISO);
       const newDebtsCount = todayNewDebts.length;
       const newDebtsAmount = todayNewDebts.reduce(
         (s, d: any) => s + Number(d.total_amount || 0),
@@ -63,7 +68,7 @@ const DebtSummaryCard: React.FC = () => {
         0,
       );
       const todayCollections = (payments || [])
-        .filter((p: any) => p.collected_at >= startISO)
+        .filter((p: any) => p.collected_at >= periodISO)
         .reduce((s, p: any) => s + Number(p.amount || 0), 0);
 
       return {
@@ -113,7 +118,7 @@ const DebtSummaryCard: React.FC = () => {
         <div className="rounded-xl bg-teal-100/70 dark:bg-teal-950/40 p-3 border border-teal-200/60 dark:border-teal-900/60">
           <div className="flex items-center gap-1 text-[10px] text-teal-700 dark:text-teal-400 font-semibold">
             <CalendarDays className="h-3 w-3" />
-            {t('admin_home.today_collections')}
+            {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.today_collections')}
           </div>
           <p className="mt-1 text-base font-bold text-teal-900 dark:text-teal-200">
             {fmt(data?.todayCollections || 0)} DA
@@ -123,7 +128,7 @@ const DebtSummaryCard: React.FC = () => {
         <div className="rounded-xl bg-amber-100/70 dark:bg-amber-950/40 p-3 border border-amber-200/60 dark:border-amber-900/60">
           <div className="flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
             <TrendingUp className="h-3 w-3" />
-            {t('admin_home.new_debts_today')}
+            {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.new_debts_today')}
           </div>
           <p className="mt-1 text-base font-bold text-amber-900 dark:text-amber-200">
             {fmt(data?.newDebtsAmount || 0)} DA
