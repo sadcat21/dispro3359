@@ -961,7 +961,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
       const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
       const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-      const grandBlock = gHeader + gMethodRows + gOfferedRow + gAmountRow + gTotalRow;
+      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow + gAmountRow;
 
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
