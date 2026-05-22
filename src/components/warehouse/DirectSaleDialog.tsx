@@ -712,10 +712,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         paymentStatus = 'cash';
       }
 
-      // ⚠️ كل بيع بفاتورة من البيع المباشر يجب أن يمر بسلسلة موافقات: مدير الفرع → الإدارة العليا
-      // لا نخصم المخزون ولا نطبع الوصل، الطلب يبقى pending_branch حتى الموافقة النهائية
+      // البيع المباشر بفاتورة يُسجَّل ويُحتسب فوراً (خصم مخزون + رصيد + إنجاز)
+      // طلب الفاتورة يُنشأ تلقائياً عبر trigger ويُحوَّل مباشرة إلى مساعد المدير العام
       const requiresApprovalChain = finalPaymentType === 'with_invoice';
-      const orderStatus = requiresApprovalChain ? 'pending_branch' : 'delivered';
+      const orderStatus = 'delivered';
 
 
       const { data: order, error: orderErr } = await supabase
