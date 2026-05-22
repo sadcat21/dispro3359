@@ -9,7 +9,12 @@ import { Banknote, HandCoins, CalendarDays, TrendingUp, Loader2 } from 'lucide-r
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
-const DebtSummaryCard: React.FC = () => {
+interface DebtSummaryCardProps {
+  periodStart?: string;
+  periodLabel?: string;
+}
+
+const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLabel }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
@@ -22,12 +27,12 @@ const DebtSummaryCard: React.FC = () => {
       { table: 'debt_payments' },
       { table: 'debt_collections' },
     ],
-    [['debt-summary-card', branchId || undefined]],
+    [['debt-summary-card', branchId || undefined, periodStart || undefined]],
     true,
   );
 
   const { data, isLoading } = useQuery({
-    queryKey: ['debt-summary-card', branchId],
+    queryKey: ['debt-summary-card', branchId, periodStart],
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
