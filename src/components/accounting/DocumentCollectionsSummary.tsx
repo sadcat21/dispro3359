@@ -286,6 +286,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         return {
           orderId: o.id,
           customerName: o.customer?.name || 'غير معروف',
+          storeName: o.customer?.store_name || null,
+          customerPhone: o.customer?.phone || null,
           orderTotal: Number(o.total_amount || 0),
           paymentMethod: o.invoice_payment_method || 'cash',
           bucket,
