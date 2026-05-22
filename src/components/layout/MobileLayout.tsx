@@ -203,6 +203,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
   const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [invoice1Open, setInvoice1Open] = useState(false);
   const showInvoiceButton = isAdminRole(role);
   const { totalUnread } = useChat();
   const { startTracking } = useLocationBroadcast();
