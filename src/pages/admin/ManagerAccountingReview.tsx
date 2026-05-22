@@ -571,6 +571,8 @@ export type ProductMatrix = {
   workers: { id: string; name: string }[];
   workerRows: Record<string, Record<string, number>>;
   workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
+  workerMethodProductQty: Record<string, { invoice1: Record<string, number>; super_gros: Record<string, number>; gros: Record<string, number>; retail: Record<string, number> }>;
+
 };
 
 
