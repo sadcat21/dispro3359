@@ -235,6 +235,10 @@ const InvoiceRequestDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
   const saveManualRequest = async (whatsappContact: string) => {
     if (!selectedCustomer || !workerId) return;
+    if (cart.length === 0) {
+      toast.error('السلة فارغة — أضف منتجات قبل الإرسال');
+      return false;
+    }
     const { error } = await supabase.from('manual_invoice_requests').insert({
       customer_id: selectedCustomer.id,
       worker_id: workerId,
@@ -244,8 +248,9 @@ const InvoiceRequestDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       whatsapp_contact: whatsappContact,
       status: 'pending_branch',
     } as any);
-    if (error) console.error('Failed to save manual request:', error);
-    else queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
+    if (error) { console.error('Failed to save manual request:', error); return false; }
+    queryClient.invalidateQueries({ queryKey: ['manual-invoice-requests'] });
+    return true;
   };
 
   const markManualAsReceived = async (requestId: string, invoiceNumber: string) => {
