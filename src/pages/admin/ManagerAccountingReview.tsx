@@ -567,13 +567,15 @@ const translateBranchToFr = (name: string) => {
 export type ProductMatrix = {
   products: { id: string; name: string }[];
   rows: Record<string, Record<string, number>>;
+  workers: { id: string; name: string }[];
+  workerRows: Record<string, Record<string, number>>; // workerId -> productId -> qty
 };
 
 export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
   const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
   const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
-  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {} };
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
@@ -584,14 +586,25 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     .gte('created_at', from)
     .lte('created_at', to);
   const productMap = new Map<string, string>();
+  const workerMap = new Map<string, string>();
+  sessions.forEach((s: any) => {
+    const wid = s.worker_id ?? s.worker?.id;
+    const wname = s.worker?.full_name || s.worker?.username || '—';
+    if (wid) workerMap.set(wid, wname);
+  });
   const rows: Record<string, Record<string, number>> = {
     sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {}, amount: {},
   };
+  const workerRows: Record<string, Record<string, number>> = {};
   const bump = (row: string, pid: string, n: number) => {
     if (!n) return;
     rows[row][pid] = (rows[row][pid] || 0) + n;
   };
-  // Build per-worker time windows from sessions
+  const bumpWorker = (wid: string, pid: string, n: number) => {
+    if (!n) return;
+    if (!workerRows[wid]) workerRows[wid] = {};
+    workerRows[wid][pid] = (workerRows[wid][pid] || 0) + n;
+  };
   const workerWindows = new Map<string, Array<[number, number]>>();
   sessions.forEach((s: any) => {
     const wid = s.worker_id ?? s.worker?.id;
@@ -624,6 +637,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
       bump('amount', it.product_id, qty * unitPrice);
+      bumpWorker(o.assigned_worker_id, it.product_id, qty);
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
       } else if (sub.includes('super')) {
@@ -636,7 +650,10 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     });
   });
   const products = Array.from(productMap.entries()).map(([id, name]) => ({ id, name }));
-  return { products, rows };
+  const workers = Array.from(workerMap.entries())
+    .filter(([id]) => workerRows[id])
+    .map(([id, name]) => ({ id, name }));
+  return { products, rows, workers, workerRows };
 };
 
 export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName, productMatrix }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string; productMatrix?: ProductMatrix }) => {
