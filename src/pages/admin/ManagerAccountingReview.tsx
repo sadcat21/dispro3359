@@ -573,8 +573,7 @@ export type ProductMatrix = {
   workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
   workerMethodProductQty: Record<string, { invoice1: Record<string, number>; super_gros: Record<string, number>; gros: Record<string, number>; retail: Record<string, number> }>;
   workerOfferedQty: Record<string, Record<string, number>>;
-
-
+  workerProductAmount: Record<string, Record<string, number>>;
 };
 
 
@@ -582,7 +581,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
   const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
   const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
-  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {} };
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {}, workerProductAmount: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
@@ -630,6 +629,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerOfferedQty[wid]) workerOfferedQty[wid] = {};
     workerOfferedQty[wid][pid] = (workerOfferedQty[wid][pid] || 0) + n;
   };
+  const workerProductAmount: Record<string, Record<string, number>> = {};
+  const bumpWorkerAmount = (wid: string, pid: string, n: number) => {
+    if (!n) return;
+    if (!workerProductAmount[wid]) workerProductAmount[wid] = {};
+    workerProductAmount[wid][pid] = (workerProductAmount[wid][pid] || 0) + n;
+  };
 
 
 
@@ -675,6 +680,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('amount', it.product_id, qty * unitPrice);
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
       bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
+      bumpWorkerAmount(o.assigned_worker_id, it.product_id, qty * unitPrice);
       const lineAmount = qty * unitPrice;
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
@@ -699,7 +705,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty };
+  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount };
 
 
 
@@ -932,11 +938,15 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         }).join('');
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const offeredCells = products.map(p => Number(offered[p.id] || 0));
-        const offeredRow = `<tr style="background:#fffbeb"><td style="text-align:left;padding-left:8px;font-weight:700;color:#92400e">Offert</td>${offeredCells.map((v, i) => `<td style="color:#b45309">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
+        const offeredRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">Offert</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
         const totalAmt = methods.reduce((a, [k]) => a + (mAmt[k] || 0), 0);
         const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
+        const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
+        const amountCells = products.map(p => Number(wAmt[p.id] || 0));
+        const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
-        return headerRow + methodRows + offeredRow + totalRow;
+        return headerRow + methodRows + offeredRow + amountRow + totalRow;
+
 
       }).join('');
       return `<div class="block">
