@@ -595,6 +595,37 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   onChange={(e) => setStampIssueDate(e.target.value)}
                 />
               </div>
+              {(() => {
+                const m = (stampDialog.paymentMethod || '').toLowerCase();
+                if (m === 'cash') return null;
+                const docType: 'check' | 'receipt' | 'transfer' =
+                  m === 'check' ? 'check' : (m === 'transfer' || m === 'virement') ? 'transfer' : 'receipt';
+                const label = m === 'check' ? 'إرفاق الشيك' : docType === 'transfer' ? 'إرفاق التحويل (Virement)' : 'إرفاق الوصل (Versement)';
+                const v = stampDialog.documentVerification && typeof stampDialog.documentVerification === 'object' ? stampDialog.documentVerification : {};
+                const attached = !!(v.check_number || v.checkNumber || v.receipt_number || v.receiptNumber || v.transfer_reference || v.transferReference);
+                return (
+                  <Button
+                    type="button"
+                    variant={attached ? 'outline' : 'default'}
+                    className="w-full gap-2"
+                    onClick={() => {
+                      setVerifyDoc({
+                        orderId: stampDialog.orderId,
+                        customerName: stampDialog.customerName,
+                        documentType: docType,
+                        orderTotal: stampDialog.orderTotal,
+                        source: 'delivery',
+                        documentStatus: stampDialog.documentStatus,
+                        verification: parseVerification(stampDialog.documentVerification, docType),
+                      });
+                      setStampDialog(null);
+                    }}
+                  >
+                    <ClipboardCheck className="w-4 h-4" />
+                    {attached ? `${label} ✓ مُرفق` : label}
+                  </Button>
+                );
+              })()}
             </div>
           )}
           <DialogFooter className="gap-2">
