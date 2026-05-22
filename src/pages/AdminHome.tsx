@@ -322,7 +322,7 @@ const AdminHome: React.FC = () => {
       let soldTodayQuery = supabase
         .from('sales_tracking')
         .select('product_id, branch_id, worker_id, sold_pieces, sold_boxes, total_price, sold_at')
-        .gte('sold_at', startOfDay);
+        .gte('sold_at', periodStart);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
