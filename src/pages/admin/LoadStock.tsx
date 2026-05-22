@@ -717,18 +717,29 @@ const LoadStock: React.FC = () => {
 
   const fetchProductOffer = async (productId: string) => {
     if (productOffers[productId]) return productOffers[productId];
-    const { data: offers } = await supabase
-      .from('product_offers')
-      .select('id, name, scope_stages, is_mandatory')
-      .eq('product_id', productId)
-      .eq('is_active', true)
-      .limit(5);
+    const [{ data: offers }, { data: settings }] = await Promise.all([
+      supabase
+        .from('product_offers')
+        .select('id, name, scope_stages, is_mandatory')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .limit(5),
+      (supabase as any)
+        .from('product_offer_settings')
+        .select('stage_settings')
+        .eq('id', 'global')
+        .maybeSingle(),
+    ]);
     const matching = (offers || []).find((o: any) => {
       const stages = o.scope_stages;
       return !stages || stages.length === 0 || stages.includes('worker_loading');
     });
     if (!matching) return null;
     const offerRow = matching;
+    const stageCfg = (settings as any)?.stage_settings?.worker_loading;
+    // Per-stage override: aggregate is_mandatory may be true because another
+    // stage requires it; honor the worker_loading stage flag when present.
+    const stageMandatory = stageCfg ? !!stageCfg.is_mandatory : !!(offerRow as any).is_mandatory;
     const { data: tiers } = await supabase
       .from('product_offer_tiers')
       .select('min_quantity, max_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, gift_type')
@@ -743,7 +754,7 @@ const LoadStock: React.FC = () => {
       giftUnit: firstTier.gift_quantity_unit || 'piece',
       minQty: firstTier.min_quantity,
       minUnit: firstTier.min_quantity_unit || 'piece',
-      isMandatory: !!(offerRow as any).is_mandatory,
+      isMandatory: stageMandatory,
       tiers: tiers.map(t => ({
         minQty: t.min_quantity,
         maxQty: t.max_quantity,
