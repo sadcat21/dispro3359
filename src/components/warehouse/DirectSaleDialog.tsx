@@ -3,6 +3,7 @@ import { resolveDeferredOfferIds } from '@/utils/deferredGiftStock';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
+import { SaleSuccessDialog, SaleSuccessInfo } from '@/components/sales/SaleSuccessDialog';
 import AddCustomerDialog from '@/components/promo/AddCustomerDialog';
 import { ReceiptItem, ReceiptType } from '@/types/receipt';
 import { Button } from '@/components/ui/button';
