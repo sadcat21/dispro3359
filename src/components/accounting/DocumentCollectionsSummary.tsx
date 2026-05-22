@@ -148,6 +148,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [stampInvoiceNumber, setStampInvoiceNumber] = useState('');
   const [stampIssueDate, setStampIssueDate] = useState('');
   const [stampSaving, setStampSaving] = useState(false);
+  const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
+
+  const { data: orderDetailsItems, isLoading: orderDetailsLoading } = useQuery({
+    queryKey: ['order-details-items', detailsOrderId],
+    enabled: !!detailsOrderId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('order_items')
+        .select('id, quantity, gift_quantity, gift_pieces, pricing_unit, product:products(id, name, image_url, product_code)')
+        .eq('order_id', detailsOrderId!);
+      return data || [];
+    },
+  });
 
   useEffect(() => {
     if (stampDialog) {
