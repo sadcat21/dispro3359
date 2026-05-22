@@ -652,14 +652,19 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('offered', it.product_id, gift);
       bump('amount', it.product_id, qty * unitPrice);
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
+      const lineAmount = qty * unitPrice;
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
       } else if (sub.includes('super')) {
         bump('super_gros', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
       } else if (sub.includes('gros')) {
         bump('gros', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
       } else {
         bump('retail', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
       }
     });
   });
@@ -667,7 +672,8 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows };
+  return { products, rows, workers, workerRows, workerMethodAmounts };
+
 };
 
 export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName, productMatrix }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string; productMatrix?: ProductMatrix }) => {
