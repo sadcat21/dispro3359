@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift } from 'lucide-react';
+import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift, Paperclip } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -511,11 +511,27 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className="text-end shrink-0">
-                  <span className="font-bold text-xs">{fmt(inv.orderTotal)} DA</span>
-                  <p className={`text-[10px] font-medium ${inv.received ? 'text-green-600' : 'text-destructive'}`}>
-                    {inv.received ? 'تم الاستلام ✓' : 'لم تُستلم'}
-                  </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  {(() => {
+                    const m = (inv.paymentMethod || '').toLowerCase();
+                    if (m === 'cash') return null;
+                    const v = inv.documentVerification && typeof inv.documentVerification === 'object' ? inv.documentVerification : {};
+                    const attached = (v as any).attached_to_invoice === true;
+                    return (
+                      <div
+                        title={attached ? 'المستند مرفق بالفاتورة' : 'المستند غير مرفق'}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center ${attached ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-destructive/10 text-destructive'}`}
+                      >
+                        <Paperclip className="w-3.5 h-3.5" />
+                      </div>
+                    );
+                  })()}
+                  <div className="text-end">
+                    <span className="font-bold text-xs">{fmt(inv.orderTotal)} DA</span>
+                    <p className={`text-[10px] font-medium ${inv.received ? 'text-green-600' : 'text-destructive'}`}>
+                      {inv.received ? 'تم الاستلام ✓' : 'لم تُستلم'}
+                    </p>
+                  </div>
                 </div>
               </div>
             );
