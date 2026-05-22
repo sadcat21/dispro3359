@@ -83,6 +83,29 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
                 </Badge>
               </div>
             </div>
+            {info.paymentStatus && (
+              <div className="pt-1">
+                <div className="text-muted-foreground text-xs mb-1">حالة الدفع</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge
+                    className={
+                      info.paymentStatus === 'paid'
+                        ? 'bg-green-100 text-green-800 border border-green-300'
+                        : info.paymentStatus === 'partial'
+                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : 'bg-red-100 text-red-800 border border-red-300'
+                    }
+                  >
+                    {info.paymentStatus === 'paid' ? 'دفع كامل' : info.paymentStatus === 'partial' ? 'دفع جزئي' : 'دين كامل'}
+                  </Badge>
+                  {info.paymentStatus === 'partial' && (
+                    <span className="text-xs text-muted-foreground">
+                      المدفوع: {Number(info.paidAmount || 0).toLocaleString()} دج · المتبقي: {Number(info.remainingAmount || 0).toLocaleString()} دج
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {isInvoice1 && (
