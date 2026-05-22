@@ -129,7 +129,7 @@ const BranchInvoiceApprovals: React.FC = () => {
   });
 
   const requestsQ = useQuery({
-    queryKey: ['branch-invoice-approvals', branchId],
+    queryKey: ['branch-invoice-approvals', branchId, 'v2-source'],
     enabled: !!branchId,
     queryFn: async () => {
       // 1) جلب كل العمال المرتبطين بهذا الفرع
