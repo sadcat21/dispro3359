@@ -31,7 +31,8 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
           *,
           customers(name, name_fr, store_name, phone),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name),
-          branches(name)
+          branches(name),
+          order:orders!manual_invoice_requests_order_id_fkey(notes)
         `)
         .eq('id', requestId!)
         .maybeSingle();
