@@ -431,7 +431,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 px-4 py-3">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-3">
 
             {/* ━━━ Step 1: Period ━━━ */}
