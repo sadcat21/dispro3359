@@ -668,8 +668,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                             className={cn(
                               'flex h-11 items-center justify-center rounded-lg transition-colors',
                               hasActive
-                                ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                                : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                                ? 'bg-yellow-400/20 text-yellow-400'
+                                : 'text-yellow-400 hover:bg-yellow-400/10'
                             )}
                           >
                             <representative.icon className="h-5 w-5 shrink-0" />
