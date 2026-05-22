@@ -570,13 +570,15 @@ export type ProductMatrix = {
   rows: Record<string, Record<string, number>>;
   workers: { id: string; name: string }[];
   workerRows: Record<string, Record<string, number>>;
+  workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
 };
+
 
 export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
   const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
   const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
-  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {} };
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
@@ -597,6 +599,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {}, amount: {},
   };
   const workerRows: Record<string, Record<string, number>> = {};
+  const workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }> = {};
   const bump = (row: string, pid: string, n: number) => {
     if (!n) return;
     rows[row][pid] = (rows[row][pid] || 0) + n;
@@ -606,6 +609,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerRows[wid]) workerRows[wid] = {};
     workerRows[wid][pid] = (workerRows[wid][pid] || 0) + n;
   };
+  const bumpWorkerMethod = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', n: number) => {
+    if (!n) return;
+    if (!workerMethodAmounts[wid]) workerMethodAmounts[wid] = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
+    workerMethodAmounts[wid][method] += n;
+  };
+
   const workerWindows = new Map<string, Array<[number, number]>>();
   sessions.forEach((s: any) => {
     const wid = s.worker_id ?? s.worker?.id;
@@ -643,14 +652,19 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('offered', it.product_id, gift);
       bump('amount', it.product_id, qty * unitPrice);
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
+      const lineAmount = qty * unitPrice;
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
       } else if (sub.includes('super')) {
         bump('super_gros', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
       } else if (sub.includes('gros')) {
         bump('gros', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
       } else {
         bump('retail', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
       }
     });
   });
@@ -658,7 +672,8 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows };
+  return { products, rows, workers, workerRows, workerMethodAmounts };
+
 };
 
 export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName, productMatrix }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string; productMatrix?: ProductMatrix }) => {
@@ -867,6 +882,31 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <table><thead>${head}</thead><tbody>${body}${separator}${workerBody}</tbody></table>
       </div>`;
     })()}
+
+    ${(() => {
+      if (!productMatrix || !productMatrix.workers?.length) return '';
+      const methods: Array<['invoice1' | 'super_gros' | 'gros' | 'retail', string]> = [
+        ['invoice1', 'Facture 1'],
+        ['super_gros', 'Super Gros'],
+        ['gros', 'Gros'],
+        ['retail', 'Détail'],
+      ];
+      const head = `<tr><th style="text-align:left;padding-left:8px">Vendeur</th>${methods.map(([, l]) => `<th>${l}</th>`).join('')}<th>Total</th></tr>`;
+      const rowsHtml = productMatrix.workers.map(w => {
+        const m = productMatrix.workerMethodAmounts?.[w.id] || { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
+        const total = methods.reduce((a, [k]) => a + (m[k] || 0), 0);
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(w.name)}</td>${methods.map(([k]) => `<td>${Math.round(m[k] || 0).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(total).toLocaleString()}</td></tr>`;
+      }).join('');
+      const totals = methods.map(([k]) => productMatrix.workers.reduce((a, w) => a + (productMatrix.workerMethodAmounts?.[w.id]?.[k] || 0), 0));
+      const grand = totals.reduce((a, b) => a + b, 0);
+      const totalRowHtml = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totals.map(v => `<td>${Math.round(v).toLocaleString()}</td>`).join('')}<td style="color:#0369a1">${Math.round(grand).toLocaleString()}</td></tr>`;
+      return `<div class="block">
+        <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode (DA)</div>
+        <table><thead>${head}</thead><tbody>${rowsHtml}${totalRowHtml}</tbody></table>
+      </div>`;
+    })()}
+
+
 
     <footer class="signatures">
       <div class="sign">Signature du Comptable</div>
