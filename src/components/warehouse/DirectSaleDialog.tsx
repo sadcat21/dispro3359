@@ -977,32 +977,6 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const combinedNotes = [notes, offerNotes].filter(Boolean).join(' | ');
 
       const isWarehouseSrcReceipt = stockSource === 'warehouse' || isWarehouseManager;
-      setReceiptData({
-        receiptType: 'direct_sale' as ReceiptType,
-        orderId: order.id,
-        debtId: null,
-        customerId: selectedCustomerId,
-        customerName: selectedCustomer?.name || '',
-        customerPhone: selectedCustomer?.phone || null,
-        workerId: workerId!,
-        workerName: workerPrintInfo?.printName || user?.full_name || '',
-        workerPhone: workerPrintInfo?.workPhone || null,
-        branchId: activeBranch?.id || null,
-        items: receiptItems,
-        totalAmount: orderTotals.totalAmount,
-        discountAmount: 0,
-        paidAmount: paymentData.paidAmount,
-        remainingAmount: paymentData.remainingAmount,
-        paymentMethod: paymentData.paymentMethod,
-        notes: combinedNotes || null,
-        orderPaymentType: frozenPaymentType,
-        orderPriceSubtype: priceSubType,
-        orderInvoicePaymentMethod: frozenInvoiceMethod || undefined,
-        stampAmount: orderTotals.stampAmount > 0 ? orderTotals.stampAmount : undefined,
-        stampPercentage: orderTotals.stampPercentage > 0 ? orderTotals.stampPercentage : undefined,
-        isWarehouseSale: isWarehouseSrcReceipt,
-        receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
-      });
       // Check if a manual invoice request was created (for invoice 1 only).
       let invoiceRequestSent: boolean | null = null;
       if (frozenPaymentType === 'with_invoice') {
