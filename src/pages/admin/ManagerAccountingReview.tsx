@@ -22,6 +22,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSummary';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, Receipt } from 'lucide-react';
 
 const fmt = (n: number) => n.toLocaleString();
 
