@@ -688,10 +688,10 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
   <meta charset="utf-8" />
   <title>Rapport de Révision des Comptes du Gérant</title>
   <style>
-    @page { size: A4 portrait; margin: 10mm; }
+    @page { size: A4 portrait; margin: 5mm 4mm; }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: 'Helvetica Neue', Arial, sans-serif; }
-    body { width: 190mm; min-height: 277mm; }
+    body { width: 202mm; min-height: 287mm; }
     .sheet { width: 100%; padding: 0; }
     .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
     .title { font-size: 18px; font-weight: 800; letter-spacing: 0.3px; }
