@@ -1003,7 +1003,58 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         isWarehouseSale: isWarehouseSrcReceipt,
         receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
       });
-      setShowReceiptDialog(true);
+      // Check if a manual invoice request was created (for invoice 1 only).
+      let invoiceRequestSent: boolean | null = null;
+      if (frozenPaymentType === 'with_invoice') {
+        try {
+          const { data: req } = await supabase
+            .from('manual_invoice_requests')
+            .select('id')
+            .eq('order_id', order.id)
+            .maybeSingle();
+          invoiceRequestSent = !!req;
+        } catch {
+          invoiceRequestSent = false;
+        }
+      }
+
+      // Show success window before the receipt dialog.
+      setPendingReceiptData({
+        receiptType: 'direct_sale' as ReceiptType,
+        orderId: order.id,
+        debtId: null,
+        customerId: selectedCustomerId,
+        customerName: selectedCustomer?.name || '',
+        customerPhone: selectedCustomer?.phone || null,
+        workerId: workerId!,
+        workerName: workerPrintInfo?.printName || user?.full_name || '',
+        workerPhone: workerPrintInfo?.workPhone || null,
+        branchId: activeBranch?.id || null,
+        items: receiptItems,
+        totalAmount: orderTotals.totalAmount,
+        discountAmount: 0,
+        paidAmount: paymentData.paidAmount,
+        remainingAmount: paymentData.remainingAmount,
+        paymentMethod: paymentData.paymentMethod,
+        notes: combinedNotes || null,
+        orderPaymentType: frozenPaymentType,
+        orderPriceSubtype: priceSubType,
+        orderInvoicePaymentMethod: frozenInvoiceMethod || undefined,
+        stampAmount: orderTotals.stampAmount > 0 ? orderTotals.stampAmount : undefined,
+        stampPercentage: orderTotals.stampPercentage > 0 ? orderTotals.stampPercentage : undefined,
+        isWarehouseSale: isWarehouseSrcReceipt,
+        receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
+      });
+      setSuccessInfo({
+        amount: orderTotals.totalAmount,
+        customerName: selectedCustomer?.name || '',
+        productNames: orderItems.map(i => getProductName(i.productId)),
+        paymentMethod: paymentData.paymentMethod,
+        paymentType: frozenPaymentType,
+        invoiceMethod: frozenInvoiceMethod,
+        invoiceRequestSent,
+      });
+      setShowSuccessDialog(true);
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
     } catch (error: any) {
       console.error('Direct sale error:', error);
