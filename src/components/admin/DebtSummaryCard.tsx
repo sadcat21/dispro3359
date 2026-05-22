@@ -118,7 +118,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
         <div className="rounded-xl bg-teal-100/70 dark:bg-teal-950/40 p-3 border border-teal-200/60 dark:border-teal-900/60">
           <div className="flex items-center gap-1 text-[10px] text-teal-700 dark:text-teal-400 font-semibold">
             <CalendarDays className="h-3 w-3" />
-            {t('admin_home.today_collections')}
+            {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.today_collections')}
           </div>
           <p className="mt-1 text-base font-bold text-teal-900 dark:text-teal-200">
             {fmt(data?.todayCollections || 0)} DA
