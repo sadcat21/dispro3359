@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { Banknote, HandCoins, CalendarDays, TrendingUp, Loader2 } from 'lucide-react';
+import { Banknote, HandCoins, CalendarDays, TrendingUp, Loader2, X } from 'lucide-react';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
+const DISMISS_KEY = 'debt-summary-card-dismissed';
 
 interface DebtSummaryCardProps {
   periodStart?: string;
@@ -19,6 +20,15 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id || null;
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    try {
+      if (dismissed) localStorage.setItem(DISMISS_KEY, '1');
+      else localStorage.removeItem(DISMISS_KEY);
+    } catch {}
+  }, [dismissed]);
 
   useRealtimeSubscription(
     `debt-summary-card-${branchId || 'all'}`,
