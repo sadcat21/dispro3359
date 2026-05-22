@@ -3726,6 +3726,7 @@ export type Database = {
           invoice_sent_at: string | null
           notes: string | null
           partial_amount: number | null
+          payment_method_resolved: string | null
           payment_status: string | null
           payment_type: string | null
           postpone_count: number
@@ -3756,6 +3757,7 @@ export type Database = {
           invoice_sent_at?: string | null
           notes?: string | null
           partial_amount?: number | null
+          payment_method_resolved?: string | null
           payment_status?: string | null
           payment_type?: string | null
           postpone_count?: number
@@ -3786,6 +3788,7 @@ export type Database = {
           invoice_sent_at?: string | null
           notes?: string | null
           partial_amount?: number | null
+          payment_method_resolved?: string | null
           payment_status?: string | null
           payment_type?: string | null
           postpone_count?: number
