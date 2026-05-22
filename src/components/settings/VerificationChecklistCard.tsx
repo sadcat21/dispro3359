@@ -103,7 +103,7 @@ const VerificationChecklistCard: React.FC = () => {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="check">شيك</TabsTrigger>
-            <TabsTrigger value="receipt">وصل دفع</TabsTrigger>
+            <TabsTrigger value="receipt">Versement</TabsTrigger>
             <TabsTrigger value="transfer">تحويل</TabsTrigger>
           </TabsList>
 
