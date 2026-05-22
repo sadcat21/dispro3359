@@ -77,7 +77,7 @@ export function useProductOffersMap(productIds: string[], stage: string = 'worke
           giftUnit: first.gift_quantity_unit || 'piece',
           minQty: first.min_quantity,
           minUnit: first.min_quantity_unit || 'piece',
-          isMandatory: !!o.is_mandatory,
+          isMandatory: stageMandatory !== undefined ? stageMandatory : !!o.is_mandatory,
           tiers: ts.map((t: any) => ({
             minQty: t.min_quantity,
             maxQty: t.max_quantity,
