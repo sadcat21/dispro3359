@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Receipt, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
+import ReceiptViewerDialog from '@/components/expenses/ReceiptViewerDialog';
 
 interface Props {
   workerId: string;
@@ -15,6 +16,8 @@ const fmt = (n: number) => Number(n || 0).toLocaleString();
 
 const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, periodEnd }) => {
   const { t } = useLanguage();
+  const [viewerUrls, setViewerUrls] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
     approved: { label: t('expenses_summary.status_approved'), cls: 'bg-green-100 text-green-700' },
     pending: { label: t('expenses_summary.status_pending'), cls: 'bg-amber-100 text-amber-700' },
@@ -94,16 +97,15 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
               {receipts.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {receipts.map((url, i) => (
-                    <a
+                    <button
                       key={i}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      type="button"
+                      onClick={() => { setViewerUrls(receipts); setViewerOpen(true); }}
                       className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
                     >
                       <Image className="w-3 h-3" />
                       {t('expenses_summary.receipt')} {receipts.length > 1 ? i + 1 : ''}
-                    </a>
+                    </button>
                   ))}
                 </div>
               )}
@@ -116,6 +118,12 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
         <span className="text-muted-foreground">{t('expenses_summary.total_all_statuses')}</span>
         <span className="font-bold">{fmt(total)} DA</span>
       </div>
+
+      <ReceiptViewerDialog
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        receiptUrls={viewerUrls}
+      />
     </div>
   );
 };
