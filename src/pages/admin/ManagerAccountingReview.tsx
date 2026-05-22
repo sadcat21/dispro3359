@@ -74,7 +74,7 @@ export const calcTotals = (sessions: any[]) => {
 
 const ManagerAccountingReview: React.FC = () => {
   const navigate = useNavigate();
-  const { workerId: managerId, activeBranch } = useAuth();
+  const { workerId: managerId, activeBranch, user } = useAuth() as any;
   const [activeTab, setActiveTab] = useState('pending');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
