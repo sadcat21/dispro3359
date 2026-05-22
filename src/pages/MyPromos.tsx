@@ -168,7 +168,7 @@ const MyPromosContent: React.FC = () => {
         ...((offersRes.data || []).map((o: any) => o.id)),
         ...((promosRes.data || []).map((p: any) => p.offer?.id).filter(Boolean)),
       ]));
-      let tiersByOffer: Record<string, any> = {};
+      let tiersByOffer: Record<string, any[]> = {};
       if (allOfferIds.length > 0) {
         const { data: tiersData } = await supabase
           .from('product_offer_tiers')
@@ -176,19 +176,22 @@ const MyPromosContent: React.FC = () => {
           .in('offer_id', allOfferIds)
           .order('tier_order', { ascending: true });
         (tiersData || []).forEach((t: any) => {
-          if (!tiersByOffer[t.offer_id]) tiersByOffer[t.offer_id] = t;
+          if (!tiersByOffer[t.offer_id]) tiersByOffer[t.offer_id] = [];
+          tiersByOffer[t.offer_id].push(t);
         });
       }
       const applyTier = (o: any) => {
         if (!o) return o;
-        const t = tiersByOffer[o.id];
-        if (!t) return o;
+        const tiers = tiersByOffer[o.id] || [];
+        const t = tiers[0];
+        if (!t) return { ...o, __tiers: tiers };
         return {
           ...o,
           min_quantity: t.min_quantity ?? o.min_quantity,
           min_quantity_unit: t.min_quantity_unit ?? o.min_quantity_unit,
           gift_quantity: t.gift_quantity ?? o.gift_quantity,
           gift_quantity_unit: t.gift_quantity_unit ?? o.gift_quantity_unit,
+          __tiers: tiers,
         };
       };
 
