@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSummary';
+import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 
