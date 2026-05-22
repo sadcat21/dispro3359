@@ -517,12 +517,17 @@ const BranchInvoiceApprovals: React.FC = () => {
                               <span className="text-slate-400">{t('branch_invoice_approvals.products_count')}:</span>
                               <span className="font-semibold text-slate-700">{productCount}</span>
                             </span>
-                            {r.payment_method && (
-                              <span className="inline-flex items-center gap-1">
-                                <span className="text-slate-400">{t('branch_invoice_approvals.payment')}:</span>
-                                <span className="font-semibold text-slate-700">{r.payment_method === 'cash' ? 'Espèces' : r.payment_method === 'check' ? 'Chèque' : r.payment_method === 'transfer' ? 'Virement' : r.payment_method === 'receipt' ? 'Versement' : r.payment_method}</span>
-                              </span>
-                            )}
+                            {r.payment_method && (() => {
+                              const paidByCash = !!(r as any).order?.document_verification?.paid_by_cash;
+                              const baseLabel = r.payment_method === 'cash' ? 'Espèces' : r.payment_method === 'check' ? 'Chèque' : r.payment_method === 'transfer' ? 'Virement' : r.payment_method === 'receipt' ? 'Versement' : r.payment_method;
+                              const label = paidByCash && r.payment_method !== 'cash' ? `${baseLabel} (نقدًا)` : baseLabel;
+                              return (
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="text-slate-400">{t('branch_invoice_approvals.payment')}:</span>
+                                  <span className={`font-semibold ${paidByCash ? 'text-emerald-700' : 'text-slate-700'}`}>{label}</span>
+                                </span>
+                              );
+                            })()}
                             <span className="ml-auto text-slate-400 text-[10px]">
                               {new Date(r.created_at).toLocaleString(language === 'ar' ? 'ar' : language)}
                             </span>
