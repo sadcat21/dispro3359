@@ -698,10 +698,6 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <div class="sign">Signature du Comptable</div>
     </footer>
 
-    ${qrDataUrl ? `
-    <section style="margin-top:14px;padding-top:10px;display:flex;justify-content:center;page-break-inside:avoid">
-      <img src="${qrDataUrl}" alt="QR" style="width:90px;height:90px" />
-    </section>` : ''}
   </main>
 </body>
 </html>`;
