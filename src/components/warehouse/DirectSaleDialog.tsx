@@ -659,7 +659,32 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       invoiceMethod: invoicePaymentMethod,
     }));
 
-    setShowPaymentDialog(true);
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer')) {
+      setShowReceiptPaymentDialog(true);
+    } else {
+      setShowPaymentDialog(true);
+    }
+  };
+
+  // معالج خاص بنافذة ReceiptPaymentDialog لتحويل بياناتها إلى صيغة handlePaymentConfirm
+  const handleReceiptPaymentConfirm = async (data: {
+    receiptReceived: boolean;
+    paidByCash: boolean;
+    receiptAmount: number;
+    cashAmount: number;
+    remainingDebt: number;
+  }) => {
+    const paid = data.receiptAmount + data.cashAmount;
+    const total = orderTotals.totalAmount;
+    const effective = Math.min(paid, total);
+    await handlePaymentConfirm({
+      paidAmount: effective,
+      remainingAmount: data.remainingDebt,
+      paymentMethod: data.paidByCash ? 'cash' : (frozenInvoiceMethod || 'receipt'),
+      isFullPayment: effective >= total,
+      isNoPayment: paid === 0,
+    });
+    setShowReceiptPaymentDialog(false);
   };
 
   const handlePaymentConfirm = async (paymentData: {
