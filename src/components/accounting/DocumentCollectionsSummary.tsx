@@ -639,7 +639,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     className={`w-full flex items-center justify-center gap-2 rounded-md border-2 px-3 py-2.5 text-sm font-semibold transition-colors ${
                       attached
                         ? 'bg-green-600 border-green-600 text-white hover:bg-green-700'
-                        : 'bg-background border-input hover:bg-muted text-foreground'
+                        : 'bg-destructive/10 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground'
                     }`}
                   >
                     {attached ? <CheckCircle className="w-4 h-4" /> : <ClipboardCheck className="w-4 h-4" />}
@@ -649,12 +649,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               })()}
             </div>
           )}
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setStampDialog(null)} disabled={stampSaving}>إلغاء</Button>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setStampDialog(null)}
+              disabled={stampSaving}
+              className="flex-1"
+            >
+              إغلاق
+            </Button>
             <Button
               onClick={handleConfirmStamp}
               disabled={stampSaving || !stampInvoiceNumber.trim() || !stampIssueDate}
-              className="bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-green-600 hover:bg-green-700"
             >
               {stampSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
             </Button>
