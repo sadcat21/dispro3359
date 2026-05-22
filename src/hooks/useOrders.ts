@@ -285,30 +285,9 @@ export const useCreateOrder = () => {
         console.warn('[useCreateOrder] pending_offer_confirmations seed failed', e);
       }
 
-      // مسار الفاتورة 1: يُنشأ طلب الفاتورة تلقائياً ومعتمد فوراً
-      // (بدون أي موافقة من مدير الفرع أو مساعد المدير العام)
-      if (paymentType === 'with_invoice') {
-        const nowIso = new Date().toISOString();
-        const { error: invReqError } = await supabase
-          .from('manual_invoice_requests')
-          .insert({
-            order_id: order.id,
-            customer_id: customerId,
-            worker_id: workerId!,
-            branch_id: activeBranch?.id || null,
-            status: 'approved',
-            payment_method: invoicePaymentMethod || null,
-            products: items as any,
-            branch_approved_by: workerId!,
-            branch_approved_at: nowIso,
-            assistant_approved_by: workerId!,
-            assistant_approved_at: nowIso,
-          } as any);
-
-        if (invReqError) {
-          console.warn('[useCreateOrder] فشل إنشاء طلب الفاتورة:', invReqError);
-        }
-      }
+      // مسار الفاتورة 1: يُنشأ طلب الفاتورة تلقائياً عبر trigger قاعدة البيانات
+      // (auto_create_manual_invoice_request على جدول order_items) بحالة approved
+      // مع تعبئة قائمة المنتجات الفعلية — لا حاجة لأي إدراج من الكود هنا.
 
 
       return order;
