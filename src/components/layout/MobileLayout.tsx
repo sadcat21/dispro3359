@@ -1084,6 +1084,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {todayCustomersOpen && <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />}
         </React.Suspense>
       )}
+
+      <React.Suspense fallback={null}>
+        {invoice1Open && <Invoice1StatusDialog open={invoice1Open} onOpenChange={setInvoice1Open} branchId={activeBranch?.id} />}
+      </React.Suspense>
     </div>
   );
 };
