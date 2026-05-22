@@ -380,7 +380,7 @@ const AdminHome: React.FC = () => {
       const monthGiftPieces = offerList.filter((r) => r.sold_at >= startOfMonth).reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
       const todayOfferRows = offerList.filter((r) => r.sold_at >= periodStart);
       const todayGiftPieces = todayOfferRows.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
-      const offersDeliveredMonth = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
+      const offersDeliveredMonth = new Set(offerList.filter((r) => r.sold_at >= startOfMonth).map((r) => r.order_id || r.order_item_id || r.id)).size;
       const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
 
       return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, productsSoldToday, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
