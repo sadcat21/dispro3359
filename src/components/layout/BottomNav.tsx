@@ -130,9 +130,9 @@ const NavButton: React.FC<{
       aria-current={isActive ? 'page' : undefined}
       className={cn(
         'relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 active:scale-95',
-        isAchievements ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-white/5',
+        isAchievements ? 'bg-green-500 hover:bg-green-600' : 'hover:bg-white/5',
       )}
-      style={isAchievements ? { boxShadow: '0 6px 16px rgba(239,68,68,0.35)' } : undefined}
+      style={isAchievements ? { boxShadow: '0 6px 16px rgba(34,197,94,0.35)' } : undefined}
     >
       <Icon
         size={22}
