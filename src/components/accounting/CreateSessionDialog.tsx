@@ -639,14 +639,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                 {/* ━━━ Step 6: Expenses & Gifts ━━━ */}
                 <StepSection step={6} title={t('create_session.expenses_title')} color="muted">
-                  <div className="rounded-lg border p-2.5 text-center">
-                    <div className="flex items-center justify-center gap-1.5 mb-1">
-                      <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">{t('accounting.expenses')}</span>
+                  {selectedWorkerId && periodStart && periodEnd ? (
+                    <ExpensesDetailsSummary
+                      workerId={selectedWorkerId}
+                      periodStart={periodStart}
+                      periodEnd={periodEnd}
+                    />
+                  ) : (
+                    <div className="rounded-lg border p-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5 mb-1">
+                        <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-[10px] text-muted-foreground">{t('accounting.expenses')}</span>
+                      </div>
+                      <p className="font-bold text-lg">{fmt(calc.expenses)} DA</p>
                     </div>
-                    <p className="font-bold text-lg">{fmt(calc.expenses)} DA</p>
-                  </div>
+                  )}
                 </StepSection>
+
 
                 {/* ━━━ Step 7: Grand Summary ━━━ */}
                 <StepSection step={7} title={t('accounting.grand_summary')} color="primary" important>
