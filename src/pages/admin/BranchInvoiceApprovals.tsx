@@ -470,6 +470,14 @@ const BranchInvoiceApprovals: React.FC = () => {
                                     {t('branch_manual_invoice.scope_public')}
                                   </Badge>
                                 ) : null}
+                                {(() => {
+                                  const src = getRequestSource(r.order?.notes);
+                                  return (
+                                    <Badge className={`border gap-1 text-[10px] px-1.5 py-0 ${SOURCE_BADGE_CLASS[src]}`}>
+                                      {SOURCE_LABEL_AR[src]}
+                                    </Badge>
+                                  );
+                                })()}
                               </div>
                               {r.customers?.store_name && (
                                 <div className="text-xs text-slate-500 mt-0.5 truncate">{r.customers.store_name}</div>
