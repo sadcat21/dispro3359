@@ -17,10 +17,13 @@ interface StampedInvoice {
   customerName: string;
   orderTotal: number;
   paymentMethod: string;
+  bucket: 'cash' | 'doc' | null;
   received: boolean;
   receivedAt: string | null;
   invoiceNumber: string | null;
   issueDate: string | null;
+  documentVerification: any;
+  documentStatus: string | null;
 }
 
 interface DocumentCollectionsSummaryProps {
