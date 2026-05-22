@@ -795,6 +795,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['super_gros', 'Super Gros'],
         ['gros', 'Gros'],
         ['retail', 'Détail'],
+        ['amount', 'Montant (DA)'],
       ];
       const head = `<tr><th style="text-align:left;padding-left:8px">Métrique</th>${productMatrix.products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total</th></tr>`;
       const body = rowLabels.map(([key, label]) => {
