@@ -154,6 +154,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successInfo, setSuccessInfo] = useState<SaleSuccessInfo | null>(null);
   const [pendingReceiptData, setPendingReceiptData] = useState<any>(null);
+  const [pendingDocVerification, setPendingDocVerification] = useState<{ verification: any; status: string } | null>(null);
   const [showOverflowDialog, setShowOverflowDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [overflowData, setOverflowData] = useState<any>(null);
