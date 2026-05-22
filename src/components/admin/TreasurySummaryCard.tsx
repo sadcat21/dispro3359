@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTreasurySummary } from '@/hooks/useManagerTreasury';
 import { Wallet, Loader2, X, UserCog } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 const DISMISS_KEY = 'treasury-summary-card-dismissed';
@@ -31,6 +32,7 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
   const [dismissed, setDismissed] = useState<boolean>(() => {
     try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
   });
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     try {
       if (dismissed) localStorage.setItem(DISMISS_KEY, '1');
@@ -43,6 +45,7 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
 
   const { data: perManager, isLoading: pmLoading } = useQuery({
     queryKey: ['treasury-summary-card-managers', branchId],
+    enabled: open && !!branchId,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_branch_manager_treasury_balances', {
         p_branch_id: branchId,
@@ -65,7 +68,6 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
   if (dismissed) return null;
 
   const rows = perManager || [];
-  const isLoading = aggLoading || pmLoading;
 
   const aggTotal = aggregate?.total || 0;
   const aggHanded = aggregate?.handedOver || 0;
@@ -81,61 +83,19 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
       >
         <X className="h-4 w-4" />
       </button>
-      <div
-        onClick={() => navigate('/manager-treasury')}
-        className="flex items-center justify-between mb-3 pe-6 cursor-pointer"
-      >
+      <div className="flex items-center justify-between mb-3 pe-6">
         <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
           <Wallet className="h-5 w-5" />
           <h3 className="text-sm font-bold">
             {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.treasury_summary')}
           </h3>
         </div>
-        {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+        {aggLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
 
-      {rows.length > 0 && (
-        <div className="space-y-2 mb-2">
-          {rows.map((r) => (
-            <div
-              key={r.manager_id}
-              onClick={() => navigate('/manager-treasury')}
-              className="cursor-pointer rounded-xl border border-emerald-200/60 bg-white/70 dark:bg-background/40 dark:border-emerald-900/60 p-2 hover:shadow-sm transition"
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <UserCog className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
-                <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 truncate">
-                  {r.name || r.manager_id.slice(0, 8)}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                <div className="rounded-lg bg-emerald-100/70 dark:bg-emerald-950/40 px-2 py-1">
-                  <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-semibold">
-                    {t('admin_home.treasury_total')}
-                  </div>
-                  <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">{fmt(r.total)} DA</p>
-                </div>
-                <div className="rounded-lg bg-sky-100/70 dark:bg-sky-950/40 px-2 py-1">
-                  <div className="text-[9px] text-sky-700 dark:text-sky-400 font-semibold">
-                    {t('admin_home.treasury_handed')}
-                  </div>
-                  <p className="text-xs font-bold text-sky-900 dark:text-sky-200">{fmt(r.handed)} DA</p>
-                </div>
-                <div className="rounded-lg bg-amber-100/70 dark:bg-amber-950/40 px-2 py-1">
-                  <div className="text-[9px] text-amber-700 dark:text-amber-400 font-semibold">
-                    {t('admin_home.treasury_remaining')}
-                  </div>
-                  <p className="text-xs font-bold text-amber-900 dark:text-amber-200">{fmt(r.remaining)} DA</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div
-        onClick={() => navigate('/manager-treasury')}
-        className="cursor-pointer rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-800 p-2"
+        onClick={() => setOpen(true)}
+        className="cursor-pointer rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-800 p-2 hover:shadow-md transition"
       >
         <div className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 mb-1">
           {t('admin_home.treasury_branch_total') || 'إجمالي الفرع'}
@@ -155,6 +115,61 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
           </div>
         </div>
       </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              {t('admin_home.treasury_summary')}
+            </DialogTitle>
+          </DialogHeader>
+          {pmLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="text-center text-sm text-muted-foreground py-6">—</div>
+          ) : (
+            <div className="space-y-2">
+              {rows.map((r) => (
+                <div
+                  key={r.manager_id}
+                  onClick={() => { setOpen(false); navigate('/manager-treasury'); }}
+                  className="cursor-pointer rounded-xl border border-emerald-200/60 bg-white/70 dark:bg-background/40 dark:border-emerald-900/60 p-2 hover:shadow-sm transition"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <UserCog className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 truncate">
+                      {r.name || r.manager_id.slice(0, 8)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <div className="rounded-lg bg-emerald-100/70 dark:bg-emerald-950/40 px-2 py-1">
+                      <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                        {t('admin_home.treasury_total')}
+                      </div>
+                      <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">{fmt(r.total)} DA</p>
+                    </div>
+                    <div className="rounded-lg bg-sky-100/70 dark:bg-sky-950/40 px-2 py-1">
+                      <div className="text-[9px] text-sky-700 dark:text-sky-400 font-semibold">
+                        {t('admin_home.treasury_handed')}
+                      </div>
+                      <p className="text-xs font-bold text-sky-900 dark:text-sky-200">{fmt(r.handed)} DA</p>
+                    </div>
+                    <div className="rounded-lg bg-amber-100/70 dark:bg-amber-950/40 px-2 py-1">
+                      <div className="text-[9px] text-amber-700 dark:text-amber-400 font-semibold">
+                        {t('admin_home.treasury_remaining')}
+                      </div>
+                      <p className="text-xs font-bold text-amber-900 dark:text-amber-200">{fmt(r.remaining)} DA</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
