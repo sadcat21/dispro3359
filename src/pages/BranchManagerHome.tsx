@@ -306,6 +306,7 @@ const BranchManagerHome: React.FC = () => {
 
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
       <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
+      <Invoice1StatusDialog open={invoice1StatusOpen} onOpenChange={setInvoice1StatusOpen} branchId={branchId} />
 
       <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
         <DialogContent className="max-w-md">
