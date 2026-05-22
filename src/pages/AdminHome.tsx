@@ -31,6 +31,7 @@ import AddTaskDialog from '@/components/tasks/AddTaskDialog';
 import { useTasks } from '@/hooks/useTasks';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ProjectManagerSummaryDialog, { PMSummaryKind } from '@/components/admin/ProjectManagerSummaryDialog';
+import DebtSummaryCard from '@/components/admin/DebtSummaryCard';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
 
