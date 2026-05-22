@@ -594,7 +594,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     const isInvoice1 = o.payment_type === 'with_invoice';
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
-      productMap.set(it.product_id, it.products?.name || '—');
+      productMap.set(it.product_id, it.products?.app_name || it.products?.name || '—');
       const qty = Number(it.quantity || 0);
       const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
       bump('sold', it.product_id, qty);
