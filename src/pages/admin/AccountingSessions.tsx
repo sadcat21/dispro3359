@@ -41,6 +41,7 @@ const AccountingSessions: React.FC = () => {
   const [workerFilter, setWorkerFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [invoice1Open, setInvoice1Open] = useState(false);
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedSession, setSelectedSession] = useState<AccountingSession | null>(null);
