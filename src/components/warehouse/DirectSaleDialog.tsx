@@ -120,6 +120,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [paymentType, setPaymentType] = useState<PaymentType>('without_invoice');
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [productViewMode, setProductViewMode] = useState<'cards' | 'list'>('list');
