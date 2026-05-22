@@ -51,6 +51,7 @@ const BranchManagerHome: React.FC = () => {
   const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
+  const [invoice1StatusOpen, setInvoice1StatusOpen] = useState(false);
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
