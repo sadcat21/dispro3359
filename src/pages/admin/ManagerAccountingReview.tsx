@@ -907,6 +907,9 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['retail', 'Détail'],
       ];
       const products = productMatrix.products;
+      const pctMethode = 12;
+      const pctProduct = (100 - pctMethode) / Math.max(1, products.length);
+      const colgroup = `<colgroup><col style="width:${pctMethode}%" />${products.map(() => `<col style="width:${pctProduct}%" />`).join('')}</colgroup>`;
       const head = `<tr><th style="text-align:left;padding-left:8px">Méthode</th>${products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}</tr>`;
       const colspan = products.length + 1;
       const blocks = productMatrix.workers.map(w => {
