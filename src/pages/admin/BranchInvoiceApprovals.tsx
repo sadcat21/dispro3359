@@ -498,7 +498,10 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 })()}
                               </div>
                               {r.customers?.store_name && (
-                                <div className="text-xs text-slate-500 mt-0.5 truncate">{r.customers.store_name}</div>
+                                <div className="text-xs text-slate-500 mt-0.5 truncate inline-flex items-center gap-1">
+                                  <Store className="w-3 h-3 shrink-0" />
+                                  {r.customers.store_name}
+                                </div>
                               )}
                             </div>
                             <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition shrink-0" />
