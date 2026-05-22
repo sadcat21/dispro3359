@@ -34,6 +34,7 @@ import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethod
 import ProductPriceBadge from '@/components/orders/ProductPriceBadge';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import DeliveryPaymentDialog from '@/components/orders/DeliveryPaymentDialog';
+import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
 import StockOverflowDialog from '@/components/warehouse/StockOverflowDialog';
 import { cn } from '@/lib/utils';
 import CustomerDistanceIndicator from '@/components/orders/CustomerDistanceIndicator';
@@ -146,6 +147,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [editingInitialCustomUnitPrice, setEditingInitialCustomUnitPrice] = useState<number | undefined>(undefined);
   const [editingInitialGiftOfferId, setEditingInitialGiftOfferId] = useState<string | undefined>(undefined);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showReceiptPaymentDialog, setShowReceiptPaymentDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -657,7 +659,32 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       invoiceMethod: invoicePaymentMethod,
     }));
 
-    setShowPaymentDialog(true);
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer')) {
+      setShowReceiptPaymentDialog(true);
+    } else {
+      setShowPaymentDialog(true);
+    }
+  };
+
+  // معالج خاص بنافذة ReceiptPaymentDialog لتحويل بياناتها إلى صيغة handlePaymentConfirm
+  const handleReceiptPaymentConfirm = async (data: {
+    receiptReceived: boolean;
+    paidByCash: boolean;
+    receiptAmount: number;
+    cashAmount: number;
+    remainingDebt: number;
+  }) => {
+    const paid = data.receiptAmount + data.cashAmount;
+    const total = orderTotals.totalAmount;
+    const effective = Math.min(paid, total);
+    await handlePaymentConfirm({
+      paidAmount: effective,
+      remainingAmount: data.remainingDebt,
+      paymentMethod: data.paidByCash ? 'cash' : (frozenInvoiceMethod || 'receipt'),
+      isFullPayment: effective >= total,
+      isNoPayment: paid === 0,
+    });
+    setShowReceiptPaymentDialog(false);
   };
 
   const handlePaymentConfirm = async (paymentData: {
@@ -1630,6 +1657,16 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         frozenPaymentType={frozenPaymentType}
         frozenInvoiceMethod={frozenInvoiceMethod}
         onConfirm={handlePaymentConfirm}
+      />
+
+      {/* Receipt / Transfer Payment Dialog (Versement / Virement) */}
+      <ReceiptPaymentDialog
+        open={showReceiptPaymentDialog}
+        onOpenChange={setShowReceiptPaymentDialog}
+        orderTotal={orderTotals.totalAmount}
+        customerName={selectedCustomer?.name || ''}
+        paymentMethod={(frozenInvoiceMethod === 'transfer' ? 'transfer' : 'receipt') as 'receipt' | 'transfer'}
+        onConfirm={handleReceiptPaymentConfirm}
       />
 
       {/* Stock Overflow Dialog */}
