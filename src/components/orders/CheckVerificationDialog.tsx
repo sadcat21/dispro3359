@@ -270,7 +270,7 @@ const CheckVerificationDialog: React.FC<CheckVerificationDialogProps> = ({
                   {completedChecks}/{totalChecks}
                 </Badge>
                 <h3 className="text-sm font-bold">
-                  {documentType === 'check' ? 'التحقق من مطابقة الشيك' : documentType === 'receipt' ? 'التحقق من مطابقة الوصل' : 'التحقق من مطابقة التحويل'}
+                  {documentType === 'check' ? 'التحقق من مطابقة Chèque' : documentType === 'receipt' ? 'التحقق من مطابقة Versement' : 'التحقق من مطابقة Virement'}
                 </h3>
               </div>
 
