@@ -519,6 +519,12 @@ const AccountingSessions: React.FC = () => {
           onProceedToSession={handleProceedToSession}
         />
       )}
+
+      <Invoice1StatusDialog
+        open={invoice1Open}
+        onOpenChange={setInvoice1Open}
+        branchId={activeBranch?.id}
+      />
     </div>
   );
 };
