@@ -31,7 +31,8 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
           *,
           customers(name, name_fr, store_name, phone),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name),
-          branches(name)
+          branches(name),
+          order:orders!manual_invoice_requests_order_id_fkey(notes)
         `)
         .eq('id', requestId!)
         .maybeSingle();
@@ -164,7 +165,15 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
   const fileUrl = r?.invoice_file_url as string | undefined;
   const customerDisplayName = r?.customers?.name_fr || r?.customers?.name || '—';
   const products: any[] = Array.isArray(r?.products) ? r.products : [];
-  const isPrivate = r?.invoice_scope === 'private';
+  // الطلبات الصادرة من البيع (طلب/بيع مباشر/بيع من مخزن) تُعتبر "خاصة" دائماً
+  const _notes = (r?.order?.notes || '').toLowerCase();
+  const _isSaleSource = !!r?.order_id
+    && r?.created_by_role !== 'branch_manager'
+    && r?.created_by_role !== 'manager';
+  const resolvedScope: 'public' | 'private' = _isSaleSource
+    ? 'private'
+    : (r?.invoice_scope === 'public' || r?.invoice_scope === 'private' ? r.invoice_scope : 'public');
+  const isPrivate = resolvedScope === 'private';
   const headerClass = isPrivate
     ? 'bg-amber-100 border-amber-300 text-amber-900'
     : 'bg-emerald-100 border-emerald-300 text-emerald-900';
@@ -224,7 +233,7 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                         💰 {r.payment_method}
                       </Badge>
                     )}
-                    {r.invoice_scope === 'private' ? (
+                    {isPrivate ? (
                       <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px]">
                         <Lock className="w-3 h-3" />
                         {t('branch_manual_invoice.scope_private')}
