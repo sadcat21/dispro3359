@@ -564,12 +564,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-base font-bold leading-tight truncate">{stampDialog.customerName}</p>
-                    {stampDialog.storeName && (
-                      <p className="text-xs font-semibold text-primary truncate flex items-center gap-1 mt-0.5">
-                        <Stamp className="w-3 h-3 shrink-0" />
-                        {stampDialog.storeName}
-                      </p>
-                    )}
+                    <p className="text-xs font-semibold text-primary truncate flex items-center gap-1 mt-0.5">
+                      <Stamp className="w-3 h-3 shrink-0" />
+                      {stampDialog.storeName || <span className="text-muted-foreground font-normal">بدون اسم محل</span>}
+                    </p>
                     {stampDialog.customerPhone && (
                       <p className="text-[11px] text-muted-foreground mt-0.5" dir="ltr">{stampDialog.customerPhone}</p>
                     )}
@@ -580,7 +578,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 </div>
                 <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-primary/10">
                   <span className="text-[10px] text-muted-foreground font-mono">#{stampDialog.orderId.slice(0, 8)}</span>
-                  <span className="text-sm font-black text-primary">{fmt(stampDialog.orderTotal)} DA</span>
+                  <span className="text-sm font-black text-primary" dir="ltr">{fmt(stampDialog.orderTotal)} DA</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {stampDialog.received ? (
