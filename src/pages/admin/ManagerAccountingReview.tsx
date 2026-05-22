@@ -578,7 +578,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, unit_price, total_price, products(id, name, app_name))')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
     .in('assigned_worker_id', workerIds)
     .gte('created_at', from)
     .lte('created_at', to);
@@ -594,15 +594,21 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     const isInvoice1 = o.payment_type === 'with_invoice';
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
-      productMap.set(it.product_id, it.products?.app_name || it.products?.name || '—');
+      const p = it.products || {};
+      productMap.set(it.product_id, p.app_name || p.name || '—');
       const qty = Number(it.quantity || 0);
       const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
-      const amount = Number(it.total_price ?? (Number(it.unit_price || 0) * qty)) || 0;
+      const sub = (it.price_subtype || '').toLowerCase();
+      let unitPrice = 0;
+      if (sub.includes('super')) unitPrice = Number(p.price_super_gros || 0);
+      else if (sub.includes('gros')) unitPrice = Number(p.price_gros || 0);
+      else if (sub.includes('retail') || sub.includes('detail')) unitPrice = Number(p.price_retail || 0);
+      else if (isInvoice1) unitPrice = Number(p.price_invoice || 0);
+      else unitPrice = Number(p.price_no_invoice || p.price_retail || 0);
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
-      bump('amount', it.product_id, amount);
+      bump('amount', it.product_id, qty * unitPrice);
       if (isInvoice1) bump('invoice1', it.product_id, qty);
-      const sub = (it.price_subtype || '').toLowerCase();
       if (sub.includes('super')) bump('super_gros', it.product_id, qty);
       else if (sub.includes('gros')) bump('gros', it.product_id, qty);
       else if (sub.includes('retail') || sub.includes('detail')) bump('retail', it.product_id, qty);
