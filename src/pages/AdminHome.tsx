@@ -267,12 +267,18 @@ const AdminHome: React.FC = () => {
 
   // ─── Project Manager Professional Summary ───
   const { data: pmSummary } = useQuery({
-    queryKey: ['admin-home-pm-summary', activeBranch?.id],
+    queryKey: ['admin-home-pm-summary', activeBranch?.id, pmRange],
     enabled: isProjectManager,
     queryFn: async () => {
       const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const startOfDayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfDay = startOfDayDate.toISOString();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const periodStartDate = new Date(startOfDayDate);
+      if (pmRange === 'week') periodStartDate.setDate(periodStartDate.getDate() - 6);
+      else if (pmRange === '2weeks') periodStartDate.setDate(periodStartDate.getDate() - 13);
+      else if (pmRange === 'month') periodStartDate.setDate(1);
+      const periodStart = periodStartDate.toISOString();
 
       // Resolve worker IDs of this branch (used as fallback when orders/sales lost branch_id)
       let branchWorkerIds: string[] = [];
