@@ -161,14 +161,14 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     .lte('created_at', periodEndTz);
   ensureNoError(collectedDocumentsError, 'collected documents');
 
-  // 3. Fetch expenses
+  // 3. Fetch expenses (filter by created_at to avoid date-boundary duplication across sessions)
   const { data: expenseData, error: expensesError } = await supabase
     .from('expenses')
     .select('amount, payment_method, category:expense_categories(name)')
     .eq('worker_id', workerId)
     .in('status', ['approved', 'pending'])
-    .gte('expense_date', periodStart)
-    .lte('expense_date', periodEnd);
+    .gt('created_at', periodStartTz)
+    .lte('created_at', periodEndTz);
   ensureNoError(expensesError, 'expenses');
 
   // 4. Fetch promos / free gifts during the same period
