@@ -163,17 +163,24 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       return;
     }
     setStampSaving(true);
-    const { error } = await supabase
+    const { data: updatedRows, error } = await supabase
       .from('orders')
       .update({
         invoice_number: stampInvoiceNumber.trim(),
         invoice_sent_at: new Date(stampIssueDate + 'T00:00:00').toISOString(),
         invoice_received_at: new Date().toISOString(),
       })
-      .eq('id', stampDialog.orderId);
+      .eq('id', stampDialog.orderId)
+      .select('id');
     setStampSaving(false);
     if (error) {
-      toast.error('فشل تأكيد استلام الفاتورة');
+      console.error('[stamp confirm] update error', error);
+      toast.error('فشل تأكيد استلام الفاتورة: ' + error.message);
+      return;
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      console.warn('[stamp confirm] 0 rows updated (RLS blocked)', stampDialog.orderId);
+      toast.error('لا تملك صلاحية تحديث هذه الفاتورة (RLS)');
       return;
     }
     toast.success('تم تأكيد استلام الفاتورة');
