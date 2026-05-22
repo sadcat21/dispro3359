@@ -586,7 +586,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
     .in('assigned_worker_id', workerIds)
     .eq('status', 'delivered')
     .gte('created_at', from)
@@ -666,22 +666,32 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
       const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
-      let unitPrice = 0;
-      if (sub.includes('super')) unitPrice = Number(p.price_super_gros || 0);
-      else if (sub.includes('gros')) unitPrice = Number(p.price_gros || 0);
-      else if (sub.includes('retail') || sub.includes('detail')) unitPrice = Number(p.price_retail || 0);
-      else if (isInvoice1) unitPrice = Number(p.price_invoice || 0);
-      else unitPrice = Number(p.price_no_invoice || p.price_retail || 0);
+      // Use stored total_price when available (already accounts for pricing_unit box/piece).
+      // Fallback: derive from unit_price * (qty in boxes or pieces depending on pricing_unit).
+      let lineAmount = Number(it.total_price || 0);
+      if (!lineAmount) {
+        const unitPrice = Number(it.unit_price || 0);
+        const itemPricingUnit = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
+        if (unitPrice > 0) {
+          lineAmount = itemPricingUnit === 'unit' || itemPricingUnit === 'piece'
+            ? unitPrice * (qty * ppb)
+            : unitPrice * qty;
+        } else {
+          let boxPrice = 0;
+          if (sub.includes('super')) boxPrice = Number(p.price_super_gros || 0);
+          else if (sub.includes('gros')) boxPrice = Number(p.price_gros || 0);
+          else if (sub.includes('retail') || sub.includes('detail')) boxPrice = Number(p.price_retail || 0);
+          else if (isInvoice1) boxPrice = Number(p.price_invoice || 0);
+          else boxPrice = Number(p.price_no_invoice || p.price_retail || 0);
+          lineAmount = boxPrice * qty;
+        }
+      }
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
-      bump('amount', it.product_id, qty * unitPrice);
-      bump('sold', it.product_id, qty);
-      bump('offered', it.product_id, gift);
-      bump('amount', it.product_id, qty * unitPrice);
+      bump('amount', it.product_id, lineAmount);
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
       bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
-      bumpWorkerAmount(o.assigned_worker_id, it.product_id, qty * unitPrice);
-      const lineAmount = qty * unitPrice;
+      bumpWorkerAmount(o.assigned_worker_id, it.product_id, lineAmount);
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
