@@ -556,7 +556,7 @@ const WILAYA_FR: Record<string, string> = {
   'بومرداس': 'Boumerdès', 'تيزي وزو': 'Tizi Ouzou', 'ورقلة': 'Ouargla',
 };
 const translateBranchToFr = (name: string) => {
-  let out = (name || '').replace(/فرع/g, 'Agence de').trim();
+  let out = (name || '').replace(/فرع/g, 'Dépôt de').trim();
   Object.entries(WILAYA_FR).forEach(([ar, fr]) => { out = out.replace(new RegExp(ar, 'g'), fr); });
   return out.replace(/\s+/g, ' ').trim();
 };
