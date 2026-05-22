@@ -367,7 +367,7 @@ const AdminHome: React.FC = () => {
       let offersQuery = supabase
         .from('sales_tracking')
         .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
-        .gte('sold_at', startOfMonth)
+        .gte('sold_at', queryStart)
         .gt('gift_pieces', 0);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
