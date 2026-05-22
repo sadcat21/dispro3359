@@ -802,7 +802,7 @@ const AdminHome: React.FC = () => {
         </div>
       )}
 
-
+      {!isDebtsHidden && <DebtSummaryCard />}
 
 
       {/* Functional Groups - Mobile: grid cards, Desktop: collapsible accordion */}
