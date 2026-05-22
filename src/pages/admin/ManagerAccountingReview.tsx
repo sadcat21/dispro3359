@@ -899,27 +899,34 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     })()}
 
     ${(() => {
-      if (!productMatrix || !productMatrix.workers?.length) return '';
+      if (!productMatrix || !productMatrix.workers?.length || !productMatrix.products.length) return '';
       const methods: Array<['invoice1' | 'super_gros' | 'gros' | 'retail', string]> = [
         ['invoice1', 'Facture 1'],
         ['super_gros', 'Super Gros'],
         ['gros', 'Gros'],
         ['retail', 'Détail'],
       ];
-      const head = `<tr><th style="text-align:left;padding-left:8px">Vendeur</th>${methods.map(([, l]) => `<th>${l}</th>`).join('')}<th>Total</th></tr>`;
-      const rowsHtml = productMatrix.workers.map(w => {
-        const m = productMatrix.workerMethodAmounts?.[w.id] || { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
-        const total = methods.reduce((a, [k]) => a + (m[k] || 0), 0);
-        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(w.name)}</td>${methods.map(([k]) => `<td>${Math.round(m[k] || 0).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(total).toLocaleString()}</td></tr>`;
+      const products = productMatrix.products;
+      const head = `<tr><th style="text-align:left;padding-left:8px">Méthode</th>${products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total Montant (DA)</th></tr>`;
+      const blocks = productMatrix.workers.map(w => {
+        const mAmt = productMatrix.workerMethodAmounts?.[w.id] || { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+        const headerRow = `<tr><td colspan="${products.length + 2}" style="background:#0f172a;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)}</td></tr>`;
+        const methodRows = methods.map(([k, label]) => {
+          const cells = products.map(p => Number(mQty[k]?.[p.id] || 0));
+          return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${Math.round(mAmt[k] || 0).toLocaleString()}</td></tr>`;
+        }).join('');
+        const totalAmt = methods.reduce((a, [k]) => a + (mAmt[k] || 0), 0);
+        const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
+        const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
+        return headerRow + methodRows + totalRow;
       }).join('');
-      const totals = methods.map(([k]) => productMatrix.workers.reduce((a, w) => a + (productMatrix.workerMethodAmounts?.[w.id]?.[k] || 0), 0));
-      const grand = totals.reduce((a, b) => a + b, 0);
-      const totalRowHtml = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totals.map(v => `<td>${Math.round(v).toLocaleString()}</td>`).join('')}<td style="color:#0369a1">${Math.round(grand).toLocaleString()}</td></tr>`;
       return `<div class="block">
-        <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode (DA)</div>
-        <table><thead>${head}</thead><tbody>${rowsHtml}${totalRowHtml}</tbody></table>
+        <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
+        <table><thead>${head}</thead><tbody>${blocks}</tbody></table>
       </div>`;
     })()}
+
 
 
 
