@@ -32,6 +32,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   const [mode, setMode] = useState<'choose' | 'receipt' | 'cash'>('choose');
   const [receiptAmount, setReceiptAmount] = useState('');
   const [cashAmount, setCashAmount] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const methodLabel = paymentMethod === 'receipt' ? 'Versement' : 'Virement';
@@ -41,11 +42,14 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   const remainingDebt = Math.max(0, orderTotal - enteredAmount);
   const hasDebt = remainingDebt > 0 && enteredAmount > 0;
   const isOverpayment = enteredAmount > orderTotal;
+  const trimmedInvoice = invoiceNumber.trim();
+  const hasInvoiceNumber = trimmedInvoice.length > 0;
 
   const handleReset = () => {
     setMode('choose');
     setReceiptAmount('');
     setCashAmount('');
+    setInvoiceNumber('');
   };
 
   const handleOpenChange = (isOpen: boolean) => {
