@@ -207,19 +207,11 @@ const BranchManagerHome: React.FC = () => {
             <ClipboardList className="w-5 h-5" />
             <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
-          <button
-            onClick={openFactoryRequest}
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 px-4 py-2 text-white shadow-md shadow-orange-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
-          >
-            <Factory className="w-5 h-5" />
-            <span className="text-base font-bold">طلب من المصنع</span>
-          </button>
         </div>
       </div>
 
 
-      {/* Banner: إشعار الموافقة على طلبات المصنع + زر واتساب */}
-      {branchId && <FactoryRequestApprovedBanner branchId={branchId} branchName={activeBranch?.name} />}
+
 
 
 
