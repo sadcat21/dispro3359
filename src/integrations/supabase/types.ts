@@ -9998,6 +9998,10 @@ export type Database = {
           order_id: string
         }[]
       }
+      set_invoice_document_attached: {
+        Args: { p_attached: boolean; p_order_id: string }
+        Returns: Json
+      }
       set_worker_review_pin: {
         Args: { _pin: string; _worker_id: string }
         Returns: undefined
