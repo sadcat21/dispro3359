@@ -40,7 +40,29 @@ interface InvoiceRequestRow {
   merged_request_ids?: string[] | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
+  order?: { created_at?: string; notes?: string | null } | null;
 }
+
+type RequestSource = 'order' | 'direct_sale' | 'warehouse_sale';
+
+const getRequestSource = (notes?: string | null): RequestSource => {
+  const n = (notes || '').toLowerCase();
+  if (n.includes('vente dépôt') || n.includes('vente depot') || n.includes('بيع مخزن') || n.includes('بيع مباشر من المخزن')) return 'warehouse_sale';
+  if (n.includes('بيع مباشر') || n.includes('vente directe')) return 'direct_sale';
+  return 'order';
+};
+
+const SOURCE_LABEL_AR: Record<RequestSource, string> = {
+  order: 'طلبية',
+  direct_sale: 'بيع مباشر',
+  warehouse_sale: 'بيع من المخزن',
+};
+
+const SOURCE_BADGE_CLASS: Record<RequestSource, string> = {
+  order: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+  direct_sale: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  warehouse_sale: 'bg-purple-100 text-purple-800 border-purple-300',
+};
 
 const BranchInvoiceApprovals: React.FC = () => {
   const { t, language } = useLanguage();
@@ -129,7 +151,7 @@ const BranchInvoiceApprovals: React.FC = () => {
           id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role, customer_id, worker_id, branch_id, postponed_at, is_merged_parent, merged_request_ids,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name),
-          order:orders!manual_invoice_requests_order_id_fkey(created_at)
+          order:orders!manual_invoice_requests_order_id_fkey(created_at, notes)
         `)
         .or(orFilter)
         .in('status', ['pending_branch', 'pending_assistant', 'approved', 'postponed']);
@@ -448,6 +470,14 @@ const BranchInvoiceApprovals: React.FC = () => {
                                     {t('branch_manual_invoice.scope_public')}
                                   </Badge>
                                 ) : null}
+                                {(() => {
+                                  const src = getRequestSource(r.order?.notes);
+                                  return (
+                                    <Badge className={`border gap-1 text-[10px] px-1.5 py-0 ${SOURCE_BADGE_CLASS[src]}`}>
+                                      {SOURCE_LABEL_AR[src]}
+                                    </Badge>
+                                  );
+                                })()}
                               </div>
                               {r.customers?.store_name && (
                                 <div className="text-xs text-slate-500 mt-0.5 truncate">{r.customers.store_name}</div>
