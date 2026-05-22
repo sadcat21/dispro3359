@@ -6,6 +6,7 @@ import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
+import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -50,6 +51,7 @@ const BranchManagerHome: React.FC = () => {
   const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
+  const [invoice1StatusOpen, setInvoice1StatusOpen] = useState(false);
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
@@ -200,13 +202,23 @@ const BranchManagerHome: React.FC = () => {
       <div className="relative overflow-hidden border-b border-blue-200 bg-white">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-sky-50/60 to-blue-50/40" />
         <div className="relative px-3 py-1.5 space-y-1.5">
-          <button
-            onClick={() => setDailyTasksOpen(true)}
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
-          >
-            <ClipboardList className="w-5 h-5" />
-            <span className="text-base font-bold">مهام العمال اليومية</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDailyTasksOpen(true)}
+              className="flex-1 flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 px-4 py-2 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+            >
+              <ClipboardList className="w-5 h-5" />
+              <span className="text-base font-bold">مهام العمال اليومية</span>
+            </button>
+            <button
+              onClick={() => setInvoice1StatusOpen(true)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+              title="حالة فاتورة 1 والوثائق"
+            >
+              <Receipt className="w-5 h-5" />
+              <span className="text-sm font-bold whitespace-nowrap">فاتورة 1</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -294,6 +306,7 @@ const BranchManagerHome: React.FC = () => {
 
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
       <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
+      <Invoice1StatusDialog open={invoice1StatusOpen} onOpenChange={setInvoice1StatusOpen} branchId={branchId} />
 
       <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
         <DialogContent className="max-w-md">
