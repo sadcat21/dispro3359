@@ -84,17 +84,11 @@ const BranchManagerApprovals: React.FC = () => {
       badge: counts?.stockReceipts,
       color: 'from-emerald-500 to-teal-600',
     },
-    {
-      key: 'approved_factory_requests',
-      title: 'طلبات التموين الموافق عليها',
-      description: 'عرض طلباتك للمصنع التي تمت الموافقة عليها — إرسال واتساب وفتح وثيقة الاستلام',
-      icon: Factory,
-      onClick: () => setApprovedReqOpen(true),
-      badge: counts?.approvedReq,
-      color: 'from-green-500 to-emerald-600',
-    },
   ];
+
+  return (
     <div className="min-h-screen bg-slate-50 pb-24 overflow-y-auto max-h-screen">
+
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="px-4 py-4 flex items-center gap-3">
