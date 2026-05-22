@@ -129,13 +129,15 @@ const ManagerAccountingReview: React.FC = () => {
   const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? pendingSessions : []);
   const displayTotals = useMemo(() => calcTotals(displaySessions), [displaySessions]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (typeof document === 'undefined') return;
 
     if (displaySessions.length === 0) {
       toast.error('لا توجد جلسات متاحة للطباعة');
       return;
     }
+
+    const productMatrix = await fetchProductMatrix(displaySessions);
 
     const iframe = document.createElement('iframe');
     iframe.title = 'manager-review-print';
@@ -162,6 +164,7 @@ const ManagerAccountingReview: React.FC = () => {
       sessions: displaySessions,
       branchName: activeBranch?.name || '',
       accountantName: user?.full_name || user?.fullName || user?.username || '',
+      productMatrix,
     }));
     frameDocument.close();
 
@@ -561,7 +564,53 @@ const translateBranchToFr = (name: string) => {
   return out.replace(/\s+/g, ' ').trim();
 };
 
-export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string }) => {
+export type ProductMatrix = {
+  products: { id: string; name: string }[];
+  rows: Record<string, Record<string, number>>;
+};
+
+export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
+  const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
+  const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
+  const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {} };
+  const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
+  const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name))')
+    .in('assigned_worker_id', workerIds)
+    .gte('created_at', from)
+    .lte('created_at', to);
+  const productMap = new Map<string, string>();
+  const rows: Record<string, Record<string, number>> = {
+    sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {},
+  };
+  const bump = (row: string, pid: string, n: number) => {
+    if (!n) return;
+    rows[row][pid] = (rows[row][pid] || 0) + n;
+  };
+  (orders || []).forEach((o: any) => {
+    const isInvoice1 = o.payment_type === 'with_invoice';
+    (o.order_items || []).forEach((it: any) => {
+      if (!it.product_id) return;
+      productMap.set(it.product_id, it.products?.name || '—');
+      const qty = Number(it.quantity || 0);
+      const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
+      bump('sold', it.product_id, qty);
+      bump('offered', it.product_id, gift);
+      if (isInvoice1) bump('invoice1', it.product_id, qty);
+      const sub = (it.price_subtype || '').toLowerCase();
+      if (sub.includes('super')) bump('super_gros', it.product_id, qty);
+      else if (sub.includes('gros')) bump('gros', it.product_id, qty);
+      else if (sub.includes('retail') || sub.includes('detail')) bump('retail', it.product_id, qty);
+    });
+  });
+  const products = Array.from(productMap.entries()).map(([id, name]) => ({ id, name }));
+  return { products, rows };
+};
+
+export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName, productMatrix }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string; productMatrix?: ProductMatrix }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
@@ -734,6 +783,28 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <tbody>${workerRows}${totalRow}</tbody>
       </table>
     </div>
+
+    ${(() => {
+      if (!productMatrix || !productMatrix.products.length) return '';
+      const rowLabels: [string, string][] = [
+        ['sold', 'Quantités Vendues'],
+        ['offered', 'Quantités Offertes'],
+        ['invoice1', 'Facture 1'],
+        ['super_gros', 'Super Gros'],
+        ['gros', 'Gros'],
+        ['retail', 'Détail'],
+      ];
+      const head = `<tr><th style="text-align:left;padding-left:8px">Métrique</th>${productMatrix.products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total</th></tr>`;
+      const body = rowLabels.map(([key, label]) => {
+        const cells = productMatrix.products.map(p => Number(productMatrix.rows[key]?.[p.id] || 0));
+        const total = cells.reduce((a, b) => a + b, 0);
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map(v => `<td>${v.toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${total.toLocaleString()}</td></tr>`;
+      }).join('');
+      return `<div class="block">
+        <div class="block-title" style="background:#fef2f2">Produits</div>
+        <table><thead>${head}</thead><tbody>${body}</tbody></table>
+      </div>`;
+    })()}
 
     <footer class="signatures">
       <div class="sign">Signature du Gérant</div>
