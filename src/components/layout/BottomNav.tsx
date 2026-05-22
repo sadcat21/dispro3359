@@ -34,7 +34,7 @@ export interface BottomNavProps {
 const DEFAULT_ITEMS: BottomNavItem[] = [
   { key: 'more', label: 'More', icon: MoreHorizontal },
   { key: 'finance', label: 'Finance', icon: Wallet },
-  { key: 'achievements', label: 'Achievements', icon: Trophy, activeColor: 'text-blue-500' },
+  { key: 'achievements', label: 'Achievements', icon: Trophy, activeColor: 'text-red-500' },
   { key: 'orders', label: 'Orders', icon: ClipboardList, badge: 11 },
   { key: 'home', label: 'Home', icon: Home },
 ];
@@ -130,9 +130,9 @@ const NavButton: React.FC<{
       aria-current={isActive ? 'page' : undefined}
       className={cn(
         'relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 active:scale-95',
-        isAchievements ? 'bg-blue-500 hover:bg-blue-600' : 'hover:bg-white/5',
+        isAchievements ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-white/5',
       )}
-      style={isAchievements ? { boxShadow: '0 6px 16px rgba(59,130,246,0.35)' } : undefined}
+      style={isAchievements ? { boxShadow: '0 6px 16px rgba(239,68,68,0.35)' } : undefined}
     >
       <Icon
         size={22}
