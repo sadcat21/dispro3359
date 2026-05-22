@@ -264,10 +264,10 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
             {kind === 'offers' && data && (
               <div className="space-y-3">
                 <div className="grid grid-cols-4 gap-2 text-xs">
-                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">عروض اليوم</p><p className="mt-1 text-base font-bold">{(data as any).todayCount}</p></div>
-                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">هدايا اليوم</p><p className="mt-1 text-base font-bold">{Number((data as any).todayGifts).toLocaleString()}</p></div>
-                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">عروض الشهر</p><p className="mt-1 text-base font-bold">{(data as any).monthCount}</p></div>
-                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">هدايا الشهر</p><p className="mt-1 text-base font-bold">{Number((data as any).monthGifts).toLocaleString()}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">طلبات اليوم بهدايا</p><p className="mt-1 text-base font-bold">{(data as any).todayCount}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">قطع الهدايا اليوم</p><p className="mt-1 text-base font-bold">{Number((data as any).todayGifts).toLocaleString()}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">طلبات الشهر بهدايا</p><p className="mt-1 text-base font-bold">{(data as any).monthCount}</p></div>
+                  <div className="rounded-xl bg-rose-50 p-3"><p className="text-muted-foreground">قطع الهدايا الشهر</p><p className="mt-1 text-base font-bold">{Number((data as any).monthGifts).toLocaleString()}</p></div>
                 </div>
                 <div className="space-y-1">
                   {((data as any).rows || []).slice(0, 80).map((r: any) => (
