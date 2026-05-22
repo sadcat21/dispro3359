@@ -590,7 +590,22 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!n) return;
     rows[row][pid] = (rows[row][pid] || 0) + n;
   };
+  // Build per-worker time windows from sessions
+  const workerWindows = new Map<string, Array<[number, number]>>();
+  sessions.forEach((s: any) => {
+    const wid = s.worker_id ?? s.worker?.id;
+    const ps = s.period_start ? new Date(s.period_start).getTime() : null;
+    const pe = (s.period_end || s.completed_at) ? new Date(s.period_end || s.completed_at).getTime() : null;
+    if (!wid || ps == null || pe == null) return;
+    const arr = workerWindows.get(wid) || [];
+    arr.push([ps, pe]);
+    workerWindows.set(wid, arr);
+  });
   (orders || []).forEach((o: any) => {
+    const wins = workerWindows.get(o.assigned_worker_id);
+    if (!wins) return;
+    const t = new Date(o.created_at).getTime();
+    if (!wins.some(([s, e]) => t >= s && t <= e)) return;
     const isInvoice1 = o.payment_type === 'with_invoice';
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
