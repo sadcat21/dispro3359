@@ -136,10 +136,10 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
                   <span>الإجمالي: <strong className="text-foreground">{Number(orderData.order.total_amount).toLocaleString()} د.ج</strong></span>
                   {orderData.order.invoice_payment_method && (
                     <Badge variant="outline" className="text-[10px]">
-                      {orderData.order.invoice_payment_method === 'cash' ? 'نقدي' :
-                       orderData.order.invoice_payment_method === 'check' ? 'شيك' :
-                       orderData.order.invoice_payment_method === 'transfer' ? 'تحويل' :
-                       orderData.order.invoice_payment_method === 'receipt' ? 'وصل' : orderData.order.invoice_payment_method}
+                      {orderData.order.invoice_payment_method === 'cash' ? 'Espèces' :
+                       orderData.order.invoice_payment_method === 'check' ? 'Chèque' :
+                       orderData.order.invoice_payment_method === 'transfer' ? 'Virement' :
+                       orderData.order.invoice_payment_method === 'receipt' ? 'Versement' : orderData.order.invoice_payment_method}
                     </Badge>
                   )}
                 </div>
