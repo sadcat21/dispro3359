@@ -605,8 +605,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     .sheet { width: 100%; padding: 0; }
     .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
     .title { font-size: 18px; font-weight: 800; letter-spacing: 0.3px; }
-    .subtitle { font-size: 10px; color: #64748b; margin-top: 2px; }
-    .meta { font-size: 10px; color: #475569; text-align: right; line-height: 1.5; }
+    .subtitle { font-size: 10px; color: #000; margin-top: 4px; }
+    .meta { font-size: 10px; color: #000; text-align: right; line-height: 1.5; }
     .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
     .kpi { border: 1px solid #cbd5e1; border-radius: 6px; padding: 7px; text-align: center; background: linear-gradient(180deg,#f8fafc,#fff); }
     .kpi span { display: block; font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -631,14 +631,9 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <body>
   <main class="sheet">
     <header class="header">
-      <div>
+      <div style="flex:1">
         <div class="title">Rapport de Révision des Comptes du Gérant</div>
-        <div class="subtitle">Synthèse quotidienne — Tournées des vendeurs</div>
-      </div>
-      <div class="meta">
-        <div><b>Agence :</b> ${escapeHtml(branchName || '—')}</div>
-        <div><b>Date d'impression :</b> ${escapeHtml(today)}</div>
-        <div><b>Nombre de sessions :</b> ${sessions.length}</div>
+        <div class="subtitle"><b>Agence :</b> ${escapeHtml(branchName || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
       </div>
     </header>
 
