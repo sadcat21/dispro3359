@@ -88,6 +88,7 @@ export const useManagerConfirmations = () => {
           previous_items: orig.items,
           amendment_note: note,
           status: 'amended',
+          rejection_note: null,
           responded_at: null,
         } as any)
         .eq('id', confirmationId)
@@ -98,17 +99,50 @@ export const useManagerConfirmations = () => {
       // approval (which reads from loading_session_items via RPC) reflects
       // the amended quantities — not the original ones.
       if (orig.operation_type === 'load' && orig.source_session_id) {
-        for (const it of newItems as any[]) {
-          const { error: updErr } = await supabase
+        const { data: existingItems, error: existingErr } = await supabase
+          .from('loading_session_items')
+          .select('id, product_id')
+          .eq('session_id', orig.source_session_id);
+        if (existingErr) throw existingErr;
+
+        const existingMap = new Map((existingItems || []).map((item: any) => [item.product_id, item]));
+        const nextProductIds = new Set((newItems || []).map((item: any) => item.product_id));
+        const removedIds = (existingItems || [])
+          .filter((item: any) => !nextProductIds.has(item.product_id))
+          .map((item: any) => item.id);
+
+        if (removedIds.length > 0) {
+          const { error: deleteErr } = await supabase
             .from('loading_session_items')
-            .update({
-              quantity: it.quantity,
-              gift_quantity: it.gift_quantity ?? 0,
-              gift_unit: it.gift_unit ?? 'piece',
-            })
-            .eq('session_id', orig.source_session_id)
-            .eq('product_id', it.product_id);
-          if (updErr) throw updErr;
+            .delete()
+            .in('id', removedIds);
+          if (deleteErr) throw deleteErr;
+        }
+
+        for (const it of newItems as any[]) {
+          const existingRow = existingMap.get(it.product_id);
+          if (existingRow) {
+            const { error: updErr } = await supabase
+              .from('loading_session_items')
+              .update({
+                quantity: it.quantity,
+                gift_quantity: it.gift_quantity ?? 0,
+                gift_unit: it.gift_unit ?? 'piece',
+              })
+              .eq('id', existingRow.id);
+            if (updErr) throw updErr;
+          } else {
+            const { error: insertErr } = await supabase
+              .from('loading_session_items')
+              .insert({
+                session_id: orig.source_session_id,
+                product_id: it.product_id,
+                quantity: it.quantity,
+                gift_quantity: it.gift_quantity ?? 0,
+                gift_unit: it.gift_unit ?? 'piece',
+              });
+            if (insertErr) throw insertErr;
+          }
         }
       }
     },

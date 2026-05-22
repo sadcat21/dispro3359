@@ -430,7 +430,7 @@ const OutgoingTab: React.FC<{
       {confirmations.map(conf => {
         const isExpanded = expandedId === conf.id;
         const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
-        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected') && !conf.frozen_at;
+        const canAmend = allowAmend && (conf.status === 'pending' || conf.status === 'rejected' || conf.status === 'amended') && !conf.frozen_at;
         const mismatches = parseMismatches(conf.rejection_note);
 
         return (
