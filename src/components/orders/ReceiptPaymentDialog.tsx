@@ -21,6 +21,7 @@ interface ReceiptPaymentDialogProps {
     receiptAmount: number;
     cashAmount: number;
     remainingDebt: number;
+    invoiceNumber?: string;
   }) => Promise<void>;
 }
 
