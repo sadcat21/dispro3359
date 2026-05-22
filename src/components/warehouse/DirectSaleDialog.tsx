@@ -679,6 +679,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const paid = data.receiptAmount + data.cashAmount;
     const total = orderTotals.totalAmount;
     const effective = Math.min(paid, total);
+    const docStatus = data.receiptReceived ? 'received' : (data.paidByCash ? 'none' : 'pending');
+    setPendingDocVerification({
+      verification: {
+        type: frozenInvoiceMethod,
+        receipt_received: data.receiptReceived,
+        paid_by_cash: data.paidByCash,
+        receipt_amount: data.receiptAmount,
+        cash_amount: data.cashAmount,
+        verified_at: new Date().toISOString(),
+      },
+      status: docStatus,
+    });
     await handlePaymentConfirm({
       paidAmount: effective,
       remainingAmount: data.remainingDebt,
