@@ -163,26 +163,29 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       return;
     }
     setStampSaving(true);
-    const { data: updatedRows, error } = await supabase
-      .from('orders')
-      .update({
-        invoice_number: stampInvoiceNumber.trim(),
-        invoice_sent_at: new Date(stampIssueDate + 'T00:00:00').toISOString(),
-        invoice_received_at: new Date().toISOString(),
-      })
-      .eq('id', stampDialog.orderId)
-      .select('id');
+    const { data, error } = await (supabase as any).rpc('confirm_order_invoice_receipt', {
+      p_order_id: stampDialog.orderId,
+      p_invoice_number: stampInvoiceNumber.trim(),
+      p_issue_date: stampIssueDate,
+    });
     setStampSaving(false);
     if (error) {
-      console.error('[stamp confirm] update error', error);
-      toast.error('فشل تأكيد استلام الفاتورة: ' + error.message);
+      console.error('[stamp confirm] rpc error', error);
+      const msg = String(error.message || '');
+      if (msg.includes('permission_denied')) {
+        toast.error('لا تملك صلاحية تأكيد استلام هذه الفاتورة');
+      } else if (msg.includes('order_not_invoice_based')) {
+        toast.error('هذا الطلب ليس بفاتورة');
+      } else if (msg.includes('order_not_found')) {
+        toast.error('الطلب غير موجود');
+      } else if (msg.includes('invoice_number_required')) {
+        toast.error('يرجى إدخال رقم الفاتورة');
+      } else {
+        toast.error('فشل تأكيد استلام الفاتورة: ' + msg);
+      }
       return;
     }
-    if (!updatedRows || updatedRows.length === 0) {
-      console.warn('[stamp confirm] 0 rows updated (RLS blocked)', stampDialog.orderId);
-      toast.error('لا تملك صلاحية تحديث هذه الفاتورة (RLS)');
-      return;
-    }
+    console.info('[stamp confirm] rpc ok', data);
     toast.success('تم تأكيد استلام الفاتورة');
     if (onReceivedDocsChange) {
       onReceivedDocsChange({ ...(receivedDocs || {}), [`stamp_${stampDialog.orderId}`]: true });

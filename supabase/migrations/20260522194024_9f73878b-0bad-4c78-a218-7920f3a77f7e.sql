@@ -1,0 +1,105 @@
+CREATE OR REPLACE FUNCTION public.confirm_order_invoice_receipt(
+  p_order_id uuid,
+  p_invoice_number text,
+  p_issue_date date
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_order public.orders%ROWTYPE;
+  v_actor_worker_id uuid := public.get_worker_id();
+  v_invoice_number text := btrim(coalesce(p_invoice_number, ''));
+  v_is_global_manager boolean := false;
+  v_can_manage_order boolean := false;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'unauthenticated';
+  END IF;
+
+  IF p_order_id IS NULL THEN
+    RAISE EXCEPTION 'order_id_required';
+  END IF;
+
+  IF v_invoice_number = '' THEN
+    RAISE EXCEPTION 'invoice_number_required';
+  END IF;
+
+  IF p_issue_date IS NULL THEN
+    RAISE EXCEPTION 'issue_date_required';
+  END IF;
+
+  SELECT * INTO v_order
+  FROM public.orders
+  WHERE id = p_order_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'order_not_found';
+  END IF;
+
+  IF coalesce(v_order.payment_type, '') <> 'with_invoice' THEN
+    RAISE EXCEPTION 'order_not_invoice_based';
+  END IF;
+
+  v_is_global_manager := (
+    public.is_admin()
+    OR public.has_custom_role('company_manager')
+    OR public.has_custom_role('assistant_manager')
+    OR public.has_custom_role('assistant_gm')
+    OR public.has_custom_role('project_manager')
+    OR public.has_custom_role('system_manager')
+    OR public.has_custom_role('internal_supervisor')
+    OR public.has_custom_role('warehouse_manager')
+    OR public.get_user_role() = 'supervisor'::public.app_role
+  );
+
+  v_can_manage_order := (
+    v_is_global_manager
+    OR (
+      public.is_branch_admin()
+      AND v_actor_worker_id IS NOT NULL
+      AND v_order.branch_id IN (
+        SELECT b.id
+        FROM public.branches b
+        WHERE b.admin_id = v_actor_worker_id
+      )
+    )
+    OR (
+      v_order.branch_id IS NOT NULL
+      AND public.current_worker_manages_branch(v_order.branch_id)
+    )
+  );
+
+  IF NOT v_can_manage_order THEN
+    RAISE EXCEPTION 'permission_denied';
+  END IF;
+
+  UPDATE public.orders
+  SET
+    invoice_number = v_invoice_number,
+    invoice_sent_at = (p_issue_date::timestamp AT TIME ZONE 'UTC'),
+    invoice_received_at = now(),
+    document_status = CASE
+      WHEN coalesce(document_status, 'pending') = 'pending' THEN 'received'
+      ELSE document_status
+    END,
+    updated_at = now()
+  WHERE id = p_order_id;
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'order_id', v_order.id,
+    'invoice_number', v_invoice_number,
+    'document_status', CASE
+      WHEN coalesce(v_order.document_status, 'pending') = 'pending' THEN 'received'
+      ELSE v_order.document_status
+    END,
+    'invoice_received_at', now()
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.confirm_order_invoice_receipt(uuid, text, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.confirm_order_invoice_receipt(uuid, text, date) TO authenticated;

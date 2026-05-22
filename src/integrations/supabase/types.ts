@@ -9629,6 +9629,14 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: Json
       }
+      confirm_order_invoice_receipt: {
+        Args: {
+          p_invoice_number: string
+          p_issue_date: string
+          p_order_id: string
+        }
+        Returns: Json
+      }
       confirm_pending_offer: { Args: { p_id: string }; Returns: undefined }
       current_worker_branch_ids: { Args: never; Returns: string[] }
       current_worker_manages_branch: {
