@@ -529,7 +529,7 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 
 const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
 
-export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName }: { totals: any; sessions: any[]; branchName: string }) => {
+export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
