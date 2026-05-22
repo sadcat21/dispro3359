@@ -197,17 +197,28 @@ const AccountingSessions: React.FC = () => {
                 <p className="text-xs text-muted-foreground">{t('accounting.select_worker')}</p>
               </div>
             </div>
-            {isAdminOrBranchAdmin && (
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                onClick={() => navigate('/manager-accounting-review')}
+                className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                onClick={() => setInvoice1Open(true)}
               >
-                <ClipboardList className="w-3.5 h-3.5" />
-                {t('accounting.my_review')}
+                <Receipt className="w-3.5 h-3.5" />
+                فاتورة 1
               </Button>
-            )}
+              {isAdminOrBranchAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                  onClick={() => navigate('/manager-accounting-review')}
+                >
+                  <ClipboardList className="w-3.5 h-3.5" />
+                  {t('accounting.my_review')}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Worker Buttons Grid */}
