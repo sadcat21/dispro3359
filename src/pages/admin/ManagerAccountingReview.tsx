@@ -938,11 +938,15 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         }).join('');
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const offeredCells = products.map(p => Number(offered[p.id] || 0));
-        const offeredRow = `<tr style="background:#fffbeb"><td style="text-align:left;padding-left:8px;font-weight:700;color:#92400e">Offert</td>${offeredCells.map((v, i) => `<td style="color:#b45309">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
+        const offeredRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">Offert</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
         const totalAmt = methods.reduce((a, [k]) => a + (mAmt[k] || 0), 0);
         const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
+        const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
+        const amountCells = products.map(p => Number(wAmt[p.id] || 0));
+        const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
-        return headerRow + methodRows + offeredRow + totalRow;
+        return headerRow + methodRows + offeredRow + amountRow + totalRow;
+
 
       }).join('');
       return `<div class="block">
