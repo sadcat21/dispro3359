@@ -548,6 +548,19 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 
 const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
 
+const WILAYA_FR: Record<string, string> = {
+  'مستغانم': 'Mostaganem', 'وهران': 'Oran', 'الجزائر': 'Alger', 'قسنطينة': 'Constantine',
+  'عنابة': 'Annaba', 'سطيف': 'Sétif', 'باتنة': 'Batna', 'بجاية': 'Béjaïa',
+  'تلمسان': 'Tlemcen', 'تيارت': 'Tiaret', 'البليدة': 'Blida', 'سيدي بلعباس': 'Sidi Bel Abbès',
+  'غليزان': 'Relizane', 'معسكر': 'Mascara', 'الشلف': 'Chlef', 'تيبازة': 'Tipaza',
+  'بومرداس': 'Boumerdès', 'تيزي وزو': 'Tizi Ouzou', 'ورقلة': 'Ouargla',
+};
+const translateBranchToFr = (name: string) => {
+  let out = (name || '').replace(/فرع/g, 'Agence de').trim();
+  Object.entries(WILAYA_FR).forEach(([ar, fr]) => { out = out.replace(new RegExp(ar, 'g'), fr); });
+  return out.replace(/\s+/g, ' ').trim();
+};
+
 export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
