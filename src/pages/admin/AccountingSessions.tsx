@@ -220,7 +220,7 @@ const AccountingSessions: React.FC = () => {
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
                 {[...workers].sort((a, b) => {
                   const aRank = reviewedWorkerIds.has(a.id) ? 0 : ((allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0) > 0 ? 1 : 2);
                   const bRank = reviewedWorkerIds.has(b.id) ? 0 : ((allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0) > 0 ? 1 : 2);
