@@ -965,7 +965,11 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
       return `<div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-        <table><thead>${head}</thead><tbody>${blocks}${grandBlock}</tbody></table>
+        <table><thead>${head}</thead><tbody>${blocks}</tbody></table>
+      </div>
+      <div class="block">
+        <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
+        <table><thead>${head}</thead><tbody>${grandBlock}</tbody></table>
       </div>`;
     })()}
 
