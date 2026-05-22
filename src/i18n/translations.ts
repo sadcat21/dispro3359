@@ -1483,7 +1483,7 @@ export const translations: Translations = {
   'treasury.accounting': { ar: 'محاسبة', fr: 'Comptabilité', en: 'Accounting' },
   'treasury.manual': { ar: 'يدوي', fr: 'Manuel', en: 'Manual' },
   'treasury.invoice': { ar: 'فاتورة', fr: 'Facture', en: 'Invoice' },
-  'treasury.receipt': { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+  'treasury.receipt': { ar: 'Versement', fr: 'Versement', en: 'Versement' },
   'treasury.cash_f1': { ar: 'كاش ف1', fr: 'Esp. F1', en: 'Cash I1' },
   'treasury.cash_f2': { ar: 'كاش ف2', fr: 'Esp. F2', en: 'Cash I2' },
   'treasury.currency': { ar: 'DA', fr: 'DA', en: 'DZD' },
