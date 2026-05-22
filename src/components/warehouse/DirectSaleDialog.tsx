@@ -778,6 +778,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           partial_amount: paymentData.isFullPayment ? null : paymentData.paidAmount,
           total_amount: orderTotals.totalAmount,
           client_request_id: crypto.randomUUID(),
+          document_verification: pendingDocVerification?.verification ?? null,
+          document_status: pendingDocVerification?.status ?? null,
           notes: (() => {
             const defaultNote = isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة');
             const offerNotes = orderItems.filter(i => i.offerNote).map(i => i.offerNote).join(' | ');
