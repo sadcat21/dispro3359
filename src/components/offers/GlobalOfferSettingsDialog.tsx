@@ -186,20 +186,22 @@ const GlobalOfferSettingsDialog: React.FC<Props> = ({ open, onOpenChange }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsDeferred(false)}
+                  disabled
+                  aria-disabled
+                  title="هذا الخيار معطّل مؤقتاً"
                   className={cn(
-                    'text-right rounded-xl border-2 p-3 transition-all',
-                    !isDeferred ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' : 'border-border bg-card hover:border-emerald-300',
+                    'text-right rounded-xl border-2 p-3 transition-all cursor-not-allowed opacity-60',
+                    'border-border bg-muted',
                   )}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-emerald-600" />
+                      <Sparkles className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-semibold">خصم تلقائي</span>
                     </div>
-                    {!isDeferred && <Badge variant="secondary" className="text-[10px]">مفعّل</Badge>}
+                    <Badge variant="outline" className="text-[10px]">قريباً</Badge>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">تُخصم الهدية فوراً</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">معطّل مؤقتاً — سيتم تفعيله لاحقاً</p>
                 </button>
               </div>
             </div>
