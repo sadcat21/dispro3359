@@ -1659,6 +1659,16 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         onConfirm={handlePaymentConfirm}
       />
 
+      {/* Receipt / Transfer Payment Dialog (Versement / Virement) */}
+      <ReceiptPaymentDialog
+        open={showReceiptPaymentDialog}
+        onOpenChange={setShowReceiptPaymentDialog}
+        orderTotal={orderTotals.totalAmount}
+        customerName={selectedCustomer?.name || ''}
+        paymentMethod={(frozenInvoiceMethod === 'transfer' ? 'transfer' : 'receipt') as 'receipt' | 'transfer'}
+        onConfirm={handleReceiptPaymentConfirm}
+      />
+
       {/* Stock Overflow Dialog */}
       <StockOverflowDialog
         open={showOverflowDialog}
