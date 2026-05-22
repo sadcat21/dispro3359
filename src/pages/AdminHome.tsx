@@ -760,7 +760,7 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.gifts_today')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.gifts_today')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{(pmSummary?.todayGiftPieces || 0).toLocaleString()}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
