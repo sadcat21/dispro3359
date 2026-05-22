@@ -462,13 +462,17 @@ const BranchInvoiceApprovals: React.FC = () => {
                                       e.stopPropagation();
                                       setCustomerDialog({ id: r.customer_id!, name: customerName });
                                     }}
-                                    className="font-bold text-base text-primary hover:underline truncate"
+                                    className="font-bold text-base text-primary hover:underline truncate inline-flex items-center gap-1"
                                     title="عرض كل طلبات الفاتورة المعلقة لهذا العميل"
                                   >
+                                    <User className="w-3.5 h-3.5 shrink-0" />
                                     {customerName}
                                   </button>
                                 ) : (
-                                  <span className="font-bold text-base text-slate-800 truncate">{customerName}</span>
+                                  <span className="font-bold text-base text-slate-800 truncate inline-flex items-center gap-1">
+                                    <User className="w-3.5 h-3.5 shrink-0" />
+                                    {customerName}
+                                  </span>
                                 )}
                                 {(() => {
                                   const src = getRequestSource(r);
