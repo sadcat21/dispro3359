@@ -94,8 +94,6 @@ const BranchManagerApprovals: React.FC = () => {
       color: 'from-green-500 to-emerald-600',
     },
   ];
-
-  return (
     <div className="min-h-screen bg-slate-50 pb-24 overflow-y-auto max-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
