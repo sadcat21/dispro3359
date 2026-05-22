@@ -479,21 +479,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               return (
               <div
                 key={inv.orderId}
-                onClick={() => {
-                  if (inv.paymentMethod === 'check') {
-                    setVerifyDoc({
-                      orderId: inv.orderId,
-                      customerName: inv.customerName,
-                      documentType: 'check',
-                      orderTotal: inv.orderTotal,
-                      source: 'delivery',
-                      documentStatus: inv.documentStatus,
-                      verification: parseVerification(inv.documentVerification, 'check'),
-                    });
-                  } else {
-                    setStampDialog(inv);
-                  }
-                }}
+                onClick={() => setStampDialog(inv)}
                 className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors hover:bg-muted/40 ${
                   inv.received
                     ? 'border-green-300 dark:border-green-800 bg-green-50/60 dark:bg-green-900/20'
