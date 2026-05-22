@@ -556,9 +556,25 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           </DialogHeader>
           {stampDialog && (
             <div className="space-y-3 text-right">
-              <div className="bg-muted/40 rounded-lg p-2.5 text-sm">
-                <p className="font-semibold">{stampDialog.customerName}</p>
+              <div className="bg-muted/40 rounded-lg p-2.5 text-sm space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">{stampDialog.customerName}</p>
+                  <Badge className={`${docTypeColor(stampDialog.paymentMethod)} text-[10px] px-2 py-0.5`}>
+                    {stampedMethodLabel(stampDialog.paymentMethod, stampDialog.bucket)}
+                  </Badge>
+                </div>
                 <p className="text-xs text-muted-foreground">#{stampDialog.orderId.slice(0, 8)} • {fmt(stampDialog.orderTotal)} DA</p>
+                <div className="flex items-center gap-1.5 pt-1">
+                  {stampDialog.received ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-green-600">
+                      <CheckCircle className="w-3.5 h-3.5" /> تم الاستلام
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-destructive">
+                      <XCircle className="w-3.5 h-3.5" /> لم تُستلم
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
