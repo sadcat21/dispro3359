@@ -112,6 +112,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [prepaidAmount, setPrepaidAmount] = useState('');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [selectedDeliveryWorker, setSelectedDeliveryWorker] = useState('');
   const [showAssignWorkerDialog, setShowAssignWorkerDialog] = useState(false);
   const [savedOrderId, setSavedOrderId] = useState('');
@@ -601,6 +602,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         deliveryDate: deliveryDate ? (deliveryTime ? `${deliveryDate}T${deliveryTime}` : deliveryDate) : undefined,
         paymentType,
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
+        invoiceNumber: paymentType === 'with_invoice' ? invoiceNumber : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
         assignedWorkerId: selectedDeliveryWorker || defaultWorkerId || undefined,
@@ -875,10 +877,22 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                     )}
 
                     {paymentType === 'with_invoice' && (
-                      <InvoicePaymentMethodSelect
-                        value={invoicePaymentMethod}
-                        onChange={setInvoicePaymentMethod}
-                      />
+                      <>
+                        <InvoicePaymentMethodSelect
+                          value={invoicePaymentMethod}
+                          onChange={setInvoicePaymentMethod}
+                        />
+                        <div className="mt-2 space-y-1">
+                          <Label className="text-xs text-slate-600">رقم الفاتورة (اختياري)</Label>
+                          <Input
+                            value={invoiceNumber}
+                            onChange={(e) => setInvoiceNumber(e.target.value)}
+                            placeholder="أدخل رقم الفاتورة"
+                            dir="ltr"
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                      </>
                     )}
                   </section>
                 </>

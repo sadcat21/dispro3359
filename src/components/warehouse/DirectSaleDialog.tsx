@@ -120,6 +120,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [paymentType, setPaymentType] = useState<PaymentType>('without_invoice');
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [productViewMode, setProductViewMode] = useState<'cards' | 'list'>('list');
@@ -659,7 +660,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       invoiceMethod: invoicePaymentMethod,
     }));
 
-    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer')) {
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check')) {
       setShowReceiptPaymentDialog(true);
     } else {
       setShowPaymentDialog(true);
@@ -760,6 +761,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           payment_type: finalPaymentType,
           payment_status: paymentStatus,
           invoice_payment_method: finalPaymentType === 'with_invoice' ? (finalInvoiceMethod || null) : null,
+          invoice_number: finalPaymentType === 'with_invoice' ? (invoiceNumber.trim() || null) : null,
           partial_amount: paymentData.isFullPayment ? null : paymentData.paidAmount,
           total_amount: orderTotals.totalAmount,
           client_request_id: crypto.randomUUID(),
@@ -1221,10 +1223,22 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
                 {/* Invoice Payment Method for with_invoice */}
                 {paymentType === 'with_invoice' && (
-                  <InvoicePaymentMethodSelect
-                    value={invoicePaymentMethod}
-                    onChange={setInvoicePaymentMethod}
-                  />
+                  <>
+                    <InvoicePaymentMethodSelect
+                      value={invoicePaymentMethod}
+                      onChange={setInvoicePaymentMethod}
+                    />
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium">رقم الفاتورة (اختياري)</Label>
+                      <Input
+                        value={invoiceNumber}
+                        onChange={(e) => setInvoiceNumber(e.target.value)}
+                        placeholder="أدخل رقم الفاتورة"
+                        dir="ltr"
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </>
                 )}
 
                 {/* Price Sub-Type - only for without_invoice */}
