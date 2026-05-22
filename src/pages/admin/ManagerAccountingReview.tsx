@@ -363,7 +363,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
       <CardContent className="p-4 space-y-4">
         <h3 className="font-bold text-sm text-emerald-800 flex items-center gap-2">
           <Wallet className="w-4 h-4" />
-          الملخص الإجمالي — {sessions.length} عامل
+          الملخص الإجمالي — {new Set(sessions.map((s: any) => s.worker?.id ?? s.worker_id).filter(Boolean)).size} عامل ({sessions.length} جلسة)
         </h3>
 
         <div className="space-y-2">
