@@ -436,7 +436,21 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               return (
               <div
                 key={inv.orderId}
-                onClick={() => setStampDialog(inv)}
+                onClick={() => {
+                  if (inv.paymentMethod === 'check') {
+                    setVerifyDoc({
+                      orderId: inv.orderId,
+                      customerName: inv.customerName,
+                      documentType: 'check',
+                      orderTotal: inv.orderTotal,
+                      source: 'delivery',
+                      documentStatus: inv.documentStatus,
+                      verification: parseVerification(inv.documentVerification, 'check'),
+                    });
+                  } else {
+                    setStampDialog(inv);
+                  }
+                }}
                 className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors hover:bg-muted/40 ${
                   inv.received
                     ? 'border-green-300 dark:border-green-800 bg-green-50/60 dark:bg-green-900/20'
@@ -460,7 +474,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
-                        {inv.paymentMethod === 'check' ? 'Chèque' : 'كاش'}
+                        {stampedMethodLabel(inv.paymentMethod, inv.bucket)}
                       </Badge>
                       {inv.invoiceNumber && (
                         <span className="text-[10px] text-muted-foreground">فاتورة: {inv.invoiceNumber}</span>
