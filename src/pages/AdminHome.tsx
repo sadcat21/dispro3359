@@ -643,7 +643,33 @@ const AdminHome: React.FC = () => {
         </button>
       )}
 
-      {isProjectManager && (
+      {isProjectManager && (() => {
+        const rangeOptions: { key: typeof pmRange; label: string }[] = [
+          { key: 'day', label: t('admin_home.range_day') || 'يوم' },
+          { key: 'week', label: t('admin_home.range_week') || 'أسبوع' },
+          { key: '2weeks', label: t('admin_home.range_2weeks') || 'أسبوعان' },
+          { key: 'month', label: t('admin_home.range_month') || 'شهر' },
+        ];
+        const periodLabel = rangeOptions.find((o) => o.key === pmRange)?.label || '';
+        return (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card p-1.5 w-fit">
+            {rangeOptions.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => setPmRange(o.key)}
+                className={cn(
+                  'px-3 py-1 rounded-lg text-xs font-semibold transition',
+                  pmRange === o.key
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted',
+                )}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
           <button type="button" onClick={() => setPmDetailKind('sales')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
