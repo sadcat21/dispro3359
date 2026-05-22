@@ -2682,7 +2682,7 @@ export const translations: Translations = {
   'expenses_summary.count': { ar: 'العدد', fr: 'Nombre', en: 'Count' },
   'expenses_summary.counted_in_session': { ar: 'المحسوب في الجلسة', fr: 'Compté dans la session', en: 'Counted in session' },
   'expenses_summary.fallback_label': { ar: 'مصروف', fr: 'Dépense', en: 'Expense' },
-  'expenses_summary.receipt': { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+  'expenses_summary.receipt': { ar: 'Versement', fr: 'Versement', en: 'Versement' },
   'expenses_summary.total_all_statuses': { ar: 'الإجمالي (كل الحالات)', fr: 'Total (tous statuts)', en: 'Total (all statuses)' },
   'expenses_summary.status_approved': { ar: 'معتمد', fr: 'Approuvé', en: 'Approved' },
   'expenses_summary.status_pending': { ar: 'قيد المراجعة', fr: 'En revue', en: 'Pending review' },
