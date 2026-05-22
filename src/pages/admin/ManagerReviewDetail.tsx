@@ -58,20 +58,27 @@ const ManagerReviewDetail: React.FC = () => {
 
   const totals = useMemo(() => calcTotals(sessions), [sessions]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (typeof document === 'undefined') return;
     if (sessions.length === 0) { toast.error('لا توجد جلسات متاحة للطباعة'); return; }
+    const qrUrl = `${window.location.origin}/manager-accounting-review/${reviewId}`;
+    let qrDataUrl: string | undefined;
+    try {
+      qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 300, margin: 1 });
+    } catch (e) {
+      console.error('QR generation failed', e);
+    }
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
     document.body.appendChild(iframe);
     const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
     if (!w || !d) { iframe.remove(); return; }
     d.open();
-    d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '' }));
+    d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', qrDataUrl, qrUrl }));
     d.close();
     const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
     w.onafterprint = remove;
-    setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 250);
+    setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 400);
   };
 
   if (loadingReview || loadingSessions) {
