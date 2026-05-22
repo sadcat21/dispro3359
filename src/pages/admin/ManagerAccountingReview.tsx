@@ -580,7 +580,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
   const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
   const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
-  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {} };
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
