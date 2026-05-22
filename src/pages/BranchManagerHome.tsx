@@ -6,6 +6,7 @@ import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
+import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
