@@ -876,10 +876,22 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                     )}
 
                     {paymentType === 'with_invoice' && (
-                      <InvoicePaymentMethodSelect
-                        value={invoicePaymentMethod}
-                        onChange={setInvoicePaymentMethod}
-                      />
+                      <>
+                        <InvoicePaymentMethodSelect
+                          value={invoicePaymentMethod}
+                          onChange={setInvoicePaymentMethod}
+                        />
+                        <div className="mt-2 space-y-1">
+                          <Label className="text-xs text-slate-600">رقم الفاتورة (اختياري)</Label>
+                          <Input
+                            value={invoiceNumber}
+                            onChange={(e) => setInvoiceNumber(e.target.value)}
+                            placeholder="أدخل رقم الفاتورة"
+                            dir="ltr"
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                      </>
                     )}
                   </section>
                 </>
