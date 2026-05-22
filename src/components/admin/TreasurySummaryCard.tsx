@@ -44,47 +44,20 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
   const { data: perManager, isLoading: pmLoading } = useQuery({
     queryKey: ['treasury-summary-card-managers', branchId],
     queryFn: async () => {
-      // Per-manager balances are cumulative (not filtered by period) so they always reflect the real balance.
-      let mtQ = supabase.from('manager_treasury').select('manager_id, amount');
-      if (branchId) mtQ = mtQ.eq('branch_id', branchId);
-      const { data: mt, error: mtErr } = await mtQ;
-      if (mtErr) console.warn('manager_treasury fetch error', mtErr);
-
-      let mhQ = supabase.from('manager_handovers').select('manager_id, amount');
-      if (branchId) mhQ = mhQ.eq('branch_id', branchId);
-      const { data: mh, error: mhErr } = await mhQ;
-      if (mhErr) console.warn('manager_handovers fetch error', mhErr);
-
-      // Fetch all branch managers (so they appear with 0 even without activity)
-      let mgrQ = supabase
-        .from('workers_safe')
-        .select('id, full_name, role, branch_id')
-        .eq('is_active', true)
-        .eq('role', 'branch_admin');
-      if (branchId) mgrQ = mgrQ.eq('branch_id', branchId);
-      const { data: managers } = await mgrQ;
-
-      const map = new Map<string, ManagerRow>();
-      const ensure = (id: string, name = '') => {
-        if (!map.has(id)) map.set(id, { manager_id: id, name, total: 0, handed: 0, remaining: 0 });
-        const row = map.get(id)!;
-        if (name && !row.name) row.name = name;
-        return row;
-      };
-      (managers || []).forEach((m: any) => ensure(m.id, m.full_name || ''));
-      (mt || []).forEach((r: any) => { if (r.manager_id) ensure(r.manager_id).total += Number(r.amount || 0); });
-      (mh || []).forEach((r: any) => { if (r.manager_id) ensure(r.manager_id).handed += Number(r.amount || 0); });
-
-      const missingNames = Array.from(map.values()).filter((r) => !r.name).map((r) => r.manager_id);
-      if (missingNames.length > 0) {
-        const { data: ws } = await supabase.from('workers_safe').select('id, full_name').in('id', missingNames);
-        (ws || []).forEach((w: any) => {
-          const row = map.get(w.id);
-          if (row) row.name = w.full_name || '';
-        });
+      const { data, error } = await supabase.rpc('get_branch_manager_treasury_balances', {
+        p_branch_id: branchId,
+      });
+      if (error) {
+        console.warn('get_branch_manager_treasury_balances error', error);
+        return [] as ManagerRow[];
       }
-      const rows = Array.from(map.values()).map((r) => ({ ...r, remaining: r.total - r.handed }));
-      rows.sort((a, b) => b.total - a.total);
+      const rows: ManagerRow[] = (data || []).map((r: any) => ({
+        manager_id: r.manager_id,
+        name: r.full_name || '',
+        total: Number(r.total_in || 0),
+        handed: Number(r.handed_over || 0),
+        remaining: Number(r.remaining || 0),
+      }));
       return rows;
     },
   });
