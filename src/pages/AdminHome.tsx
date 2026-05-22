@@ -659,6 +659,8 @@ const AdminHome: React.FC = () => {
             </div>
           </button>
 
+          {!isDebtsHidden && <DebtSummaryCard />}
+
           <button type="button" onClick={() => setPmDetailKind('inventory')} className="text-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-emerald-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-700">
