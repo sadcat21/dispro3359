@@ -705,7 +705,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty };
+  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount };
 
 
 
