@@ -738,7 +738,7 @@ const AdminHome: React.FC = () => {
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.activeWorkersToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.deliveries')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.deliveries')}</p>
                 <p className="mt-1 text-base font-bold text-fuchsia-900">{pmSummary?.deliveriesToday || 0}</p>
               </div>
             </div>
