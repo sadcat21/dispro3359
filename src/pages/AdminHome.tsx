@@ -337,7 +337,7 @@ const AdminHome: React.FC = () => {
           .filter(Boolean)
       ).size;
 
-      const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id);
+      const workerActivity = await fetchProjectManagerWorkerActivity(activeBranch?.id, periodStart);
       const activeWorkersToday = workerActivity.activeWorkersToday;
       const deliveriesToday = workerActivity.deliveriesToday;
 
