@@ -807,8 +807,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     })()}
 
     <footer class="signatures">
-      <div class="sign">Signature du Gérant</div>
       <div class="sign">Signature du Comptable</div>
+      <div class="sign">Signature du Gérant</div>
     </footer>
 
   </main>
