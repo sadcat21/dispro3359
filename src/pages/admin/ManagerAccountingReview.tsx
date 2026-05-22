@@ -629,6 +629,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerOfferedQty[wid]) workerOfferedQty[wid] = {};
     workerOfferedQty[wid][pid] = (workerOfferedQty[wid][pid] || 0) + n;
   };
+  const workerProductAmount: Record<string, Record<string, number>> = {};
+  const bumpWorkerAmount = (wid: string, pid: string, n: number) => {
+    if (!n) return;
+    if (!workerProductAmount[wid]) workerProductAmount[wid] = {};
+    workerProductAmount[wid][pid] = (workerProductAmount[wid][pid] || 0) + n;
+  };
 
 
 
