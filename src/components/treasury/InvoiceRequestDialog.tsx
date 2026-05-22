@@ -285,7 +285,8 @@ const InvoiceRequestDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       setSelectedWorkerOrder(null);
     } else {
       // Manual request - save to DB
-      await saveManualRequest(phone);
+      const ok = await saveManualRequest(phone);
+      if (ok === false) return;
       toast.success('تم فتح واتساب وحفظ الطلب ✅');
       onOpenChange(false);
       resetState();
