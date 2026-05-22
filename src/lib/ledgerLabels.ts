@@ -55,8 +55,9 @@ export const DEBTOR_TYPE_LABELS: Record<string, string> = {
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   cash: 'نقداً',
-  check: 'شيك',
-  transfer: 'تحويل',
+  check: 'Chèque',
+  transfer: 'Virement',
+  receipt: 'Versement',
   card: 'بطاقة',
   credit: 'آجل',
   other: 'أخرى',
