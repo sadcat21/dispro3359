@@ -17,10 +17,13 @@ interface StampedInvoice {
   customerName: string;
   orderTotal: number;
   paymentMethod: string;
+  bucket: 'cash' | 'doc' | null;
   received: boolean;
   receivedAt: string | null;
   invoiceNumber: string | null;
   issueDate: string | null;
+  documentVerification: any;
+  documentStatus: string | null;
 }
 
 interface DocumentCollectionsSummaryProps {
@@ -56,6 +59,15 @@ const extractDate = (v: string): string => v.replace('T', ' ').substring(0, 10);
 const docTypeLabel = (t: string) => {
   const map: Record<string, string> = { check: 'Chèque', receipt: 'Versement', transfer: 'Virement', versement: 'Versement', virement: 'Virement' };
   return map[t] || t;
+};
+
+const stampedMethodLabel = (method: string, bucket: 'cash' | 'doc' | null): string => {
+  const m = (method || '').toLowerCase();
+  if (m === 'check') return 'Chèque';
+  if (m === 'cash') return 'كاش';
+  if (m === 'receipt' || m === 'versement') return bucket === 'cash' ? 'Versement Cash' : 'Versement Doc';
+  if (m === 'transfer' || m === 'virement') return bucket === 'cash' ? 'Virement Cash' : 'Virement Doc';
+  return m;
 };
 
 const docTypeColor = (t: string) => {
@@ -163,7 +175,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       return;
     }
     toast.success('تم تأكيد استلام الفاتورة');
-    queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+    await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+    await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
     setStampDialog(null);
   };
 
@@ -254,24 +267,34 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, payment_type, customer:customers!orders_customer_id_fkey(name)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, payment_type, document_status, document_verification, customer:customers!orders_customer_id_fkey(name)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .in('invoice_payment_method', ['check', 'cash'])
+        .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement'])
         .gte('updated_at', startTz)
         .lte('updated_at', endTz);
 
-      return (data || []).map((o: any): StampedInvoice => ({
-        orderId: o.id,
-        customerName: o.customer?.name || 'غير معروف',
-        orderTotal: Number(o.total_amount || 0),
-        paymentMethod: o.invoice_payment_method || 'cash',
-        received: !!o.invoice_received_at,
-        receivedAt: o.invoice_received_at,
-        invoiceNumber: o.invoice_number || null,
-        issueDate: o.invoice_sent_at ? String(o.invoice_sent_at).substring(0, 10) : null,
-      }));
+      return (data || []).map((o: any): StampedInvoice => {
+        const v = o.document_verification && typeof o.document_verification === 'object' ? o.document_verification : {};
+        const bucket: 'cash' | 'doc' | null =
+          v.manager_receipt_bucket === 'cash' || v.manager_receipt_bucket === 'doc'
+            ? v.manager_receipt_bucket
+            : (v.paid_by_cash === true ? 'cash' : null);
+        return {
+          orderId: o.id,
+          customerName: o.customer?.name || 'غير معروف',
+          orderTotal: Number(o.total_amount || 0),
+          paymentMethod: o.invoice_payment_method || 'cash',
+          bucket,
+          received: !!o.invoice_received_at,
+          receivedAt: o.invoice_received_at,
+          invoiceNumber: o.invoice_number || null,
+          issueDate: o.invoice_sent_at ? String(o.invoice_sent_at).substring(0, 10) : null,
+          documentVerification: o.document_verification,
+          documentStatus: o.document_status,
+        };
+      });
     },
   });
 
@@ -423,7 +446,21 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               return (
               <div
                 key={inv.orderId}
-                onClick={() => setStampDialog(inv)}
+                onClick={() => {
+                  if (inv.paymentMethod === 'check') {
+                    setVerifyDoc({
+                      orderId: inv.orderId,
+                      customerName: inv.customerName,
+                      documentType: 'check',
+                      orderTotal: inv.orderTotal,
+                      source: 'delivery',
+                      documentStatus: inv.documentStatus,
+                      verification: parseVerification(inv.documentVerification, 'check'),
+                    });
+                  } else {
+                    setStampDialog(inv);
+                  }
+                }}
                 className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors hover:bg-muted/40 ${
                   inv.received
                     ? 'border-green-300 dark:border-green-800 bg-green-50/60 dark:bg-green-900/20'
@@ -447,7 +484,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
-                        {inv.paymentMethod === 'check' ? 'Chèque' : 'كاش'}
+                        {stampedMethodLabel(inv.paymentMethod, inv.bucket)}
                       </Badge>
                       {inv.invoiceNumber && (
                         <span className="text-[10px] text-muted-foreground">فاتورة: {inv.invoiceNumber}</span>
@@ -495,13 +532,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               .update({
                 document_verification: data.verification,
                 document_status: data.skippedVerification ? 'received' : 'verified',
+                invoice_received_at: new Date().toISOString(),
               })
               .eq('id', verifyDoc.orderId);
             if (error) {
               toast.error('فشل حفظ التحقق');
             } else {
               toast.success('تم حفظ التحقق بنجاح');
-              queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+              await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+              await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+              await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
             }
             setVerifyDoc(null);
           }}
