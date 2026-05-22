@@ -58,7 +58,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   };
 
   const handleConfirm = async () => {
-    if (enteredAmount <= 0) return;
+    if (enteredAmount <= 0 || !hasInvoiceNumber) return;
     setIsSubmitting(true);
     try {
       const effectiveAmount = Math.min(enteredAmount, orderTotal);
@@ -68,6 +68,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
         receiptAmount: mode === 'receipt' ? effectiveAmount : 0,
         cashAmount: mode === 'cash' ? effectiveAmount : 0,
         remainingDebt: Math.max(0, orderTotal - effectiveAmount),
+        invoiceNumber: trimmedInvoice,
       });
       handleReset();
     } finally {
@@ -76,6 +77,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   };
 
   const handleNoReceipt = async () => {
+    if (!hasInvoiceNumber) return;
     setIsSubmitting(true);
     try {
       await onConfirm({
@@ -84,6 +86,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
         receiptAmount: 0,
         cashAmount: 0,
         remainingDebt: orderTotal,
+        invoiceNumber: trimmedInvoice,
       });
       handleReset();
     } finally {
