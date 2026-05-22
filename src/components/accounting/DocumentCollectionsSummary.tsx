@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -148,6 +148,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [stampInvoiceNumber, setStampInvoiceNumber] = useState('');
   const [stampIssueDate, setStampIssueDate] = useState('');
   const [stampSaving, setStampSaving] = useState(false);
+  const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
+
+  const { data: orderDetailsItems, isLoading: orderDetailsLoading } = useQuery({
+    queryKey: ['order-details-items', detailsOrderId],
+    enabled: !!detailsOrderId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('order_items')
+        .select('id, quantity, gift_quantity, gift_pieces, pricing_unit, product:products(id, name, image_url, product_code)')
+        .eq('order_id', detailsOrderId!);
+      return data || [];
+    },
+  });
 
   useEffect(() => {
     if (stampDialog) {
@@ -605,6 +618,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   )}
                 </div>
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDetailsOrderId(stampDialog.orderId)}
+                className="w-full gap-2"
+              >
+                <Package className="w-4 h-4" />
+                عرض تفاصيل الطلب
+              </Button>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
@@ -678,6 +700,59 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             >
               {stampSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order details dialog */}
+      <Dialog open={!!detailsOrderId} onOpenChange={(open) => { if (!open) setDetailsOrderId(null); }}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-right flex items-center gap-2 justify-end">
+              <span>تفاصيل المنتجات</span>
+              <Package className="w-4 h-4" />
+            </DialogTitle>
+          </DialogHeader>
+          {orderDetailsLoading ? (
+            <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+          ) : !orderDetailsItems || orderDetailsItems.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-6">لا توجد منتجات</p>
+          ) : (
+            <div className="space-y-2">
+              {orderDetailsItems.map((it: any) => {
+                const p = it.product || {};
+                const unit = it.pricing_unit === 'piece' ? 'قطعة' : 'صندوق';
+                return (
+                  <div key={it.id} className="flex items-center gap-3 border rounded-lg p-2.5 bg-card">
+                    <div className="w-14 h-14 rounded-md bg-muted shrink-0 overflow-hidden flex items-center justify-center">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <p className="text-sm font-semibold truncate">{p.name || 'منتج'}</p>
+                      {p.product_code && <p className="text-[10px] text-muted-foreground">#{p.product_code}</p>}
+                      <div className="flex items-center gap-2 mt-1 justify-end flex-wrap">
+                        <Badge variant="secondary" className="text-[10px]">
+                          {it.quantity} {unit}
+                        </Badge>
+                        {(it.gift_quantity > 0 || it.gift_pieces > 0) && (
+                          <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1">
+                            <Gift className="w-3 h-3" />
+                            {it.gift_quantity > 0 ? `${it.gift_quantity} هدية` : `${it.gift_pieces} قطعة هدية`}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsOrderId(null)} className="w-full">إغلاق</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
