@@ -548,6 +548,19 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 
 const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
 
+const WILAYA_FR: Record<string, string> = {
+  'مستغانم': 'Mostaganem', 'وهران': 'Oran', 'الجزائر': 'Alger', 'قسنطينة': 'Constantine',
+  'عنابة': 'Annaba', 'سطيف': 'Sétif', 'باتنة': 'Batna', 'بجاية': 'Béjaïa',
+  'تلمسان': 'Tlemcen', 'تيارت': 'Tiaret', 'البليدة': 'Blida', 'سيدي بلعباس': 'Sidi Bel Abbès',
+  'غليزان': 'Relizane', 'معسكر': 'Mascara', 'الشلف': 'Chlef', 'تيبازة': 'Tipaza',
+  'بومرداس': 'Boumerdès', 'تيزي وزو': 'Tizi Ouzou', 'ورقلة': 'Ouargla',
+};
+const translateBranchToFr = (name: string) => {
+  let out = (name || '').replace(/فرع/g, 'Agence de').trim();
+  Object.entries(WILAYA_FR).forEach(([ar, fr]) => { out = out.replace(new RegExp(ar, 'g'), fr); });
+  return out.replace(/\s+/g, ' ').trim();
+};
+
 export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
@@ -661,7 +674,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     <header class="header">
       <div style="flex:1">
         <div class="title">Rapport de Révision des Comptes du Gérant</div>
-        <div class="subtitle"><b>Agence :</b> ${escapeHtml(branchName || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
+        <div class="subtitle"><b>Agence :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
         <div class="subtitle" dir="ltr" style="text-align:left"><b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
       </div>
       ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
