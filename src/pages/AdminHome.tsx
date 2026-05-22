@@ -295,7 +295,7 @@ const AdminHome: React.FC = () => {
         .from('orders')
         .select('total_amount, status, created_at, branch_id, assigned_worker_id')
         .eq('status', 'delivered')
-        .gte('created_at', startOfMonth);
+        .gte('created_at', queryStart);
       if (activeBranch?.id) {
         // Include rows tagged with the branch OR (legacy NULL branch but worker belongs to branch)
         const workerFilter = branchWorkerIds.length
