@@ -680,6 +680,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('amount', it.product_id, qty * unitPrice);
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
       bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
+      bumpWorkerAmount(o.assigned_worker_id, it.product_id, qty * unitPrice);
       const lineAmount = qty * unitPrice;
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
