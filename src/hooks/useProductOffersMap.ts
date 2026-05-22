@@ -24,17 +24,34 @@ export function useProductOffersMap(productIds: string[], stage: string = 'worke
 
     let cancelled = false;
     (async () => {
-      const { data: offers } = await supabase
-        .from('product_offers')
-        .select('id, name, scope_stages, is_mandatory, product_id')
-        .in('product_id', ids)
-        .eq('is_active', true);
+      const [{ data: offers }, { data: settings }] = await Promise.all([
+        supabase
+          .from('product_offers')
+          .select('id, name, scope_stages, is_mandatory, product_id')
+          .in('product_id', ids)
+          .eq('is_active', true),
+        (supabase as any)
+          .from('product_offer_settings')
+          .select('stage_settings')
+          .eq('id', 'global')
+          .maybeSingle(),
+      ]);
+
+      const stageCfg = (settings as any)?.stage_settings?.[stage];
+      // If showcase is disabled for this stage, do not expose offers here so
+      // gift-related UI stays hidden.
+      if (stageCfg && stageCfg.showcase_enabled === false) {
+        if (!cancelled) setOffersMap({});
+        return;
+      }
+      const stageMandatory = stageCfg ? !!stageCfg.is_mandatory : undefined;
 
       const matched = (offers || []).filter((o: any) => {
         const stages = o.scope_stages;
         return !stages || stages.length === 0 || stages.includes(stage);
       });
       if (matched.length === 0) { if (!cancelled) setOffersMap({}); return; }
+
 
       const offerIds = matched.map((o: any) => o.id);
       const { data: tiers } = await supabase
