@@ -584,7 +584,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     .lte('created_at', to);
   const productMap = new Map<string, string>();
   const rows: Record<string, Record<string, number>> = {
-    sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {},
+    sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {}, amount: {},
   };
   const bump = (row: string, pid: string, n: number) => {
     if (!n) return;
@@ -597,8 +597,10 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       productMap.set(it.product_id, it.products?.app_name || it.products?.name || '—');
       const qty = Number(it.quantity || 0);
       const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
+      const amount = Number(it.total_price ?? (Number(it.unit_price || 0) * qty)) || 0;
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
+      bump('amount', it.product_id, amount);
       if (isInvoice1) bump('invoice1', it.product_id, qty);
       const sub = (it.price_subtype || '').toLowerCase();
       if (sub.includes('super')) bump('super_gros', it.product_id, qty);
@@ -793,6 +795,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['super_gros', 'Super Gros'],
         ['gros', 'Gros'],
         ['retail', 'Détail'],
+        ['amount', 'Montant (DA)'],
       ];
       const head = `<tr><th style="text-align:left;padding-left:8px">Métrique</th>${productMatrix.products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total</th></tr>`;
       const body = rowLabels.map(([key, label]) => {
