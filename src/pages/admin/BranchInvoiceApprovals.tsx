@@ -129,7 +129,7 @@ const BranchInvoiceApprovals: React.FC = () => {
           id, order_id, invoice_number, status, payment_method, whatsapp_contact, created_at, products, invoice_file_url, invoice_file_name, invoice_scope, created_by_role, customer_id, worker_id, branch_id, postponed_at, is_merged_parent, merged_request_ids,
           customers!manual_invoice_requests_customer_id_fkey(name, name_fr, store_name),
           worker:workers!manual_invoice_requests_worker_id_fkey(full_name),
-          order:orders!manual_invoice_requests_order_id_fkey(created_at)
+          order:orders!manual_invoice_requests_order_id_fkey(created_at, notes)
         `)
         .or(orFilter)
         .in('status', ['pending_branch', 'pending_assistant', 'approved', 'postponed']);
