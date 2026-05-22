@@ -609,7 +609,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     .meta { font-size: 10px; color: #000; text-align: right; line-height: 1.5; }
     .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
     .kpi { border: 1px solid #cbd5e1; border-radius: 6px; padding: 7px; text-align: center; background: linear-gradient(180deg,#f8fafc,#fff); }
-    .kpi span { display: block; font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi span { display: block; font-size: 9px; color: #000; text-transform: uppercase; letter-spacing: 0.5px; }
     .kpi strong { display: block; font-size: 14px; margin-top: 3px; font-weight: 800; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
     .block { border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 6px; page-break-inside: avoid; }
@@ -617,14 +617,14 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     .block-body { padding: 2px 0; }
     .row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 10px; border-bottom: 1px solid #f1f5f9; font-size: 10px; }
     .row:last-child { border-bottom: none; }
-    .row span { color: #475569; }
-    .row strong { font-variant-numeric: tabular-nums; }
+    .row span { color: #000; }
+    .row strong { font-variant-numeric: tabular-nums; color: #000; }
     table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 9px; }
     thead th { background: #0f172a; color: #fff; font-weight: 700; padding: 5px 4px; text-transform: uppercase; letter-spacing: 0.3px; font-size: 9px; }
-    td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; }
+    td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; color: #000; }
     tbody tr:nth-child(even) td { background: #f8fafc; }
     td:nth-child(2) { text-align: left; font-weight: 700; color: #0f172a; }
-    .signatures { margin-top: 14px; display: flex; justify-content: space-between; gap: 30px; font-size: 10px; color: #475569; }
+    .signatures { margin-top: 14px; display: flex; justify-content: space-between; gap: 30px; font-size: 10px; color: #000; }
     .sign { flex: 1; border-top: 1px solid #0f172a; padding-top: 4px; text-align: center; }
   </style>
 </head>
