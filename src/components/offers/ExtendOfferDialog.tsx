@@ -203,7 +203,7 @@ const ExtendOfferDialog: React.FC<ExtendOfferDialogProps> = ({
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label>تاريخ بداية الفترة الجديدة</Label>
-            <Popover open={startOpen} onOpenChange={setStartOpen} modal>
+            <Popover open={startOpen} onOpenChange={setStartOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
@@ -231,7 +231,7 @@ const ExtendOfferDialog: React.FC<ExtendOfferDialogProps> = ({
 
           <div className="space-y-2">
             <Label>تاريخ نهاية الفترة الجديدة</Label>
-            <Popover open={endOpen} onOpenChange={setEndOpen} modal>
+            <Popover open={endOpen} onOpenChange={setEndOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
