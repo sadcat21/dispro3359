@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTreasurySummary } from '@/hooks/useManagerTreasury';
-import { Wallet, Banknote, ArrowDownToLine, TrendingUp, Loader2, X } from 'lucide-react';
+import { Wallet, Loader2, X, UserCog } from 'lucide-react';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 const DISMISS_KEY = 'treasury-summary-card-dismissed';
@@ -12,9 +14,19 @@ interface Props {
   periodLabel?: string;
 }
 
+interface ManagerRow {
+  manager_id: string;
+  name: string;
+  total: number;
+  handed: number;
+  remaining: number;
+}
+
 const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { activeBranch } = useAuth();
+  const branchId = activeBranch?.id || null;
   const [dismissed, setDismissed] = useState<boolean>(() => {
     try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
   });
@@ -25,21 +37,53 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
     } catch {}
   }, [dismissed]);
 
-  const range = periodStart ? { from: periodStart.slice(0, 10) } : undefined;
-  const { data, isLoading } = useTreasurySummary(range);
+  const { data, isLoading } = useQuery({
+    queryKey: ['treasury-summary-card', branchId, periodStart],
+    queryFn: async () => {
+      let mtQ = supabase.from('manager_treasury').select('manager_id, amount, created_at');
+      if (branchId) mtQ = mtQ.eq('branch_id', branchId);
+      if (periodStart) mtQ = mtQ.gte('created_at', periodStart);
+      const { data: mt } = await mtQ;
+
+      let mhQ = supabase.from('manager_handovers').select('manager_id, amount, handover_date');
+      if (branchId) mhQ = mhQ.eq('branch_id', branchId);
+      if (periodStart) mhQ = mhQ.gte('handover_date', periodStart.slice(0, 10));
+      const { data: mh } = await mhQ;
+
+      const map = new Map<string, ManagerRow>();
+      const ensure = (id: string) => {
+        if (!map.has(id)) map.set(id, { manager_id: id, name: '', total: 0, handed: 0, remaining: 0 });
+        return map.get(id)!;
+      };
+      (mt || []).forEach((r: any) => { if (r.manager_id) ensure(r.manager_id).total += Number(r.amount || 0); });
+      (mh || []).forEach((r: any) => { if (r.manager_id) ensure(r.manager_id).handed += Number(r.amount || 0); });
+
+      const ids = Array.from(map.keys());
+      if (ids.length > 0) {
+        const { data: workers } = await supabase.from('workers').select('id, full_name').in('id', ids);
+        (workers || []).forEach((w: any) => {
+          const row = map.get(w.id);
+          if (row) row.name = w.full_name || '';
+        });
+      }
+      const rows = Array.from(map.values()).map((r) => ({ ...r, remaining: r.total - r.handed }));
+      rows.sort((a, b) => b.total - a.total);
+
+      const totals = rows.reduce(
+        (acc, r) => ({ total: acc.total + r.total, handed: acc.handed + r.handed, remaining: acc.remaining + r.remaining }),
+        { total: 0, handed: 0, remaining: 0 },
+      );
+      return { rows, totals };
+    },
+  });
 
   if (dismissed) return null;
 
-  const total = data?.total || 0;
-  const handedOver = data?.handedOver || 0;
-  const remaining = data?.remaining || 0;
-  const totalSales = data?.totalSales || 0;
+  const rows = data?.rows || [];
+  const totals = data?.totals || { total: 0, handed: 0, remaining: 0 };
 
   return (
-    <div
-      onClick={() => navigate('/manager-treasury')}
-      className="relative cursor-pointer rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4 shadow-sm transition hover:shadow-md dark:border-emerald-900 dark:from-emerald-950/30 dark:via-background dark:to-sky-950/20"
-    >
+    <div className="relative rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4 shadow-sm dark:border-emerald-900 dark:from-emerald-950/30 dark:via-background dark:to-sky-950/20">
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
@@ -48,49 +92,72 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
       >
         <X className="h-4 w-4" />
       </button>
-      <div className="flex items-center justify-between mb-3 pe-6">
+      <div
+        onClick={() => navigate('/manager-treasury')}
+        className="flex items-center justify-between mb-3 pe-6 cursor-pointer"
+      >
         <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
           <Wallet className="h-5 w-5" />
           <h3 className="text-sm font-bold">
-            {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.treasury_summary') || 'ملخص خزينة الفرع'}
+            {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.treasury_summary')}
           </h3>
         </div>
         {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <div className="rounded-xl bg-emerald-100/70 dark:bg-emerald-950/40 p-3 border border-emerald-200/60 dark:border-emerald-900/60">
-          <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
-            <Wallet className="h-3 w-3" />
-            {t('admin_home.treasury_total') || 'الإجمالي'}
-          </div>
-          <p className="mt-1 text-base font-bold text-emerald-900 dark:text-emerald-200">{fmt(total)} DA</p>
-        </div>
+      {rows.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-3">—</p>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((r) => (
+            <div
+              key={r.manager_id}
+              onClick={() => navigate('/manager-treasury')}
+              className="cursor-pointer rounded-xl border border-emerald-200/60 bg-white/70 dark:bg-background/40 dark:border-emerald-900/60 p-2 hover:shadow-sm transition"
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <UserCog className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+                <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 truncate">
+                  {r.name || r.manager_id.slice(0, 8)}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="rounded-lg bg-emerald-100/70 dark:bg-emerald-950/40 px-2 py-1">
+                  <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                    {t('admin_home.treasury_total')}
+                  </div>
+                  <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">{fmt(r.total)} DA</p>
+                </div>
+                <div className="rounded-lg bg-sky-100/70 dark:bg-sky-950/40 px-2 py-1">
+                  <div className="text-[9px] text-sky-700 dark:text-sky-400 font-semibold">
+                    {t('admin_home.treasury_handed')}
+                  </div>
+                  <p className="text-xs font-bold text-sky-900 dark:text-sky-200">{fmt(r.handed)} DA</p>
+                </div>
+                <div className="rounded-lg bg-amber-100/70 dark:bg-amber-950/40 px-2 py-1">
+                  <div className="text-[9px] text-amber-700 dark:text-amber-400 font-semibold">
+                    {t('admin_home.treasury_remaining')}
+                  </div>
+                  <p className="text-xs font-bold text-amber-900 dark:text-amber-200">{fmt(r.remaining)} DA</p>
+                </div>
+              </div>
+            </div>
+          ))}
 
-        <div className="rounded-xl bg-sky-100/70 dark:bg-sky-950/40 p-3 border border-sky-200/60 dark:border-sky-900/60">
-          <div className="flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-400 font-semibold">
-            <ArrowDownToLine className="h-3 w-3" />
-            {t('admin_home.treasury_handed') || 'المُسلَّم'}
-          </div>
-          <p className="mt-1 text-base font-bold text-sky-900 dark:text-sky-200">{fmt(handedOver)} DA</p>
+          {rows.length > 1 && (
+            <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-800 p-2">
+              <div className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 mb-1">
+                {t('admin_home.treasury_branch_total') || 'إجمالي الفرع'}
+              </div>
+              <div className="grid grid-cols-3 gap-1.5 text-xs font-bold">
+                <span className="text-emerald-900 dark:text-emerald-200">{fmt(totals.total)} DA</span>
+                <span className="text-sky-900 dark:text-sky-200">{fmt(totals.handed)} DA</span>
+                <span className="text-amber-900 dark:text-amber-200">{fmt(totals.remaining)} DA</span>
+              </div>
+            </div>
+          )}
         </div>
-
-        <div className="rounded-xl bg-amber-100/70 dark:bg-amber-950/40 p-3 border border-amber-200/60 dark:border-amber-900/60">
-          <div className="flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
-            <Banknote className="h-3 w-3" />
-            {t('admin_home.treasury_remaining') || 'المتبقي'}
-          </div>
-          <p className="mt-1 text-base font-bold text-amber-900 dark:text-amber-200">{fmt(remaining)} DA</p>
-        </div>
-
-        <div className="rounded-xl bg-violet-100/70 dark:bg-violet-950/40 p-3 border border-violet-200/60 dark:border-violet-900/60">
-          <div className="flex items-center gap-1 text-[10px] text-violet-700 dark:text-violet-400 font-semibold">
-            <TrendingUp className="h-3 w-3" />
-            {periodLabel ? `${periodLabel} · ` : ''}{t('admin_home.treasury_sales') || 'المبيعات'}
-          </div>
-          <p className="mt-1 text-base font-bold text-violet-900 dark:text-violet-200">{fmt(totalSales)} DA</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
