@@ -295,13 +295,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, payment_type, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
         .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement'])
-        .gte('updated_at', startTz)
-        .lte('updated_at', endTz);
+        .gte('created_at', startTz)
+        .lte('created_at', endTz);
 
       return (data || []).map((o: any): StampedInvoice => {
         const v = o.document_verification && typeof o.document_verification === 'object' ? o.document_verification : {};
