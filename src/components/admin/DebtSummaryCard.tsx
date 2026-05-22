@@ -36,7 +36,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      const startISO = startOfDay.toISOString();
+      const periodISO = periodStart || startOfDay.toISOString();
 
       // Active debts (principal remaining)
       let debtsQ = supabase
