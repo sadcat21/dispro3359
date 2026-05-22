@@ -531,6 +531,13 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/manager-accounting-review/:reviewId" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
+          <ManagerReviewDetail />
+        </ProtectedRoute>
+      } />
+
+
       <Route path="/shared-invoices" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <SharedInvoices />
