@@ -147,6 +147,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [editingInitialCustomUnitPrice, setEditingInitialCustomUnitPrice] = useState<number | undefined>(undefined);
   const [editingInitialGiftOfferId, setEditingInitialGiftOfferId] = useState<string | undefined>(undefined);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showReceiptPaymentDialog, setShowReceiptPaymentDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
