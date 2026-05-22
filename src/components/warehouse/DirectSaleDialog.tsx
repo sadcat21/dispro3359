@@ -154,6 +154,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successInfo, setSuccessInfo] = useState<SaleSuccessInfo | null>(null);
   const [pendingReceiptData, setPendingReceiptData] = useState<any>(null);
+  const [pendingDocVerification, setPendingDocVerification] = useState<{ verification: any; status: string } | null>(null);
   const [showOverflowDialog, setShowOverflowDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [overflowData, setOverflowData] = useState<any>(null);
@@ -678,6 +679,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const paid = data.receiptAmount + data.cashAmount;
     const total = orderTotals.totalAmount;
     const effective = Math.min(paid, total);
+    const docStatus = data.receiptReceived ? 'received' : (data.paidByCash ? 'none' : 'pending');
+    setPendingDocVerification({
+      verification: {
+        type: frozenInvoiceMethod,
+        receipt_received: data.receiptReceived,
+        paid_by_cash: data.paidByCash,
+        receipt_amount: data.receiptAmount,
+        cash_amount: data.cashAmount,
+        verified_at: new Date().toISOString(),
+      },
+      status: docStatus,
+    });
     await handlePaymentConfirm({
       paidAmount: effective,
       remainingAmount: data.remainingDebt,
@@ -765,6 +778,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           partial_amount: paymentData.isFullPayment ? null : paymentData.paidAmount,
           total_amount: orderTotals.totalAmount,
           client_request_id: crypto.randomUUID(),
+          document_verification: pendingDocVerification?.verification ?? null,
+          document_status: pendingDocVerification?.status ?? null,
           notes: (() => {
             const defaultNote = isWarehouseManager ? 'بيع مخزن - Vente Dépôt' : (stockSource === 'warehouse' ? 'بيع مباشر من المخزن' : 'بيع مباشر من الشاحنة');
             const offerNotes = orderItems.filter(i => i.offerNote).map(i => i.offerNote).join(' | ');
