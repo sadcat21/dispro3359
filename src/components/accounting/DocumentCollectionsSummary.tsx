@@ -61,6 +61,15 @@ const docTypeLabel = (t: string) => {
   return map[t] || t;
 };
 
+const stampedMethodLabel = (method: string, bucket: 'cash' | 'doc' | null): string => {
+  const m = (method || '').toLowerCase();
+  if (m === 'check') return 'Chèque';
+  if (m === 'cash') return 'كاش';
+  if (m === 'receipt' || m === 'versement') return bucket === 'cash' ? 'Versement Cash' : 'Versement Doc';
+  if (m === 'transfer' || m === 'virement') return bucket === 'cash' ? 'Virement Cash' : 'Virement Doc';
+  return m;
+};
+
 const docTypeColor = (t: string) => {
   switch (t) {
     case 'check': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
