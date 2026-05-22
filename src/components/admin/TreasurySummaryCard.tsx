@@ -42,17 +42,16 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
   const { data: aggregate, isLoading: aggLoading } = useTreasurySummary(range);
 
   const { data: perManager, isLoading: pmLoading } = useQuery({
-    queryKey: ['treasury-summary-card-managers', branchId, periodStart],
+    queryKey: ['treasury-summary-card-managers', branchId],
     queryFn: async () => {
-      let mtQ = supabase.from('manager_treasury').select('manager_id, amount, created_at');
+      // Per-manager balances are cumulative (not filtered by period) so they always reflect the real balance.
+      let mtQ = supabase.from('manager_treasury').select('manager_id, amount');
       if (branchId) mtQ = mtQ.eq('branch_id', branchId);
-      if (periodStart) mtQ = mtQ.gte('created_at', periodStart);
       const { data: mt, error: mtErr } = await mtQ;
       if (mtErr) console.warn('manager_treasury fetch error', mtErr);
 
-      let mhQ = supabase.from('manager_handovers').select('manager_id, amount, handover_date');
+      let mhQ = supabase.from('manager_handovers').select('manager_id, amount');
       if (branchId) mhQ = mhQ.eq('branch_id', branchId);
-      if (periodStart) mhQ = mhQ.gte('handover_date', periodStart.slice(0, 10));
       const { data: mh, error: mhErr } = await mhQ;
       if (mhErr) console.warn('manager_handovers fetch error', mhErr);
 
