@@ -623,7 +623,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     thead th { background: #0f172a; color: #fff; font-weight: 700; padding: 5px 4px; text-transform: uppercase; letter-spacing: 0.3px; font-size: 9px; }
     td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; }
     tbody tr:nth-child(even) td { background: #f8fafc; }
-    td:first-child { text-align: left; font-weight: 700; color: #0f172a; }
+    td:nth-child(2) { text-align: left; font-weight: 700; color: #0f172a; }
     .signatures { margin-top: 14px; display: flex; justify-content: space-between; gap: 30px; font-size: 10px; color: #475569; }
     .sign { flex: 1; border-top: 1px solid #0f172a; padding-top: 4px; text-align: center; }
   </style>
