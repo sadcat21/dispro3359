@@ -2512,6 +2512,7 @@ const LoadStock: React.FC = () => {
               onClick={() => {
                 setPostConfirmDialog({ open: false, workerName: '' });
                 setSelectedWorker('');
+                navigate('/');
               }}
             >
               <X className="w-4 h-4 me-1.5" />
