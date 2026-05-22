@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import DocumentFlowDialog from '@/components/documents/DocumentFlowDialog';
 import { toast } from 'sonner';
 
@@ -16,6 +19,8 @@ interface StampedInvoice {
   paymentMethod: string;
   received: boolean;
   receivedAt: string | null;
+  invoiceNumber: string | null;
+  issueDate: string | null;
 }
 
 interface DocumentCollectionsSummaryProps {
@@ -125,6 +130,43 @@ const isCollectedDuringDelivery = (order: any) => {
 const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange }) => {
   const queryClient = useQueryClient();
   const [verifyDoc, setVerifyDoc] = useState<CollectedDoc | null>(null);
+  const [stampDialog, setStampDialog] = useState<StampedInvoice | null>(null);
+  const [stampInvoiceNumber, setStampInvoiceNumber] = useState('');
+  const [stampIssueDate, setStampIssueDate] = useState('');
+  const [stampSaving, setStampSaving] = useState(false);
+
+  useEffect(() => {
+    if (stampDialog) {
+      setStampInvoiceNumber(stampDialog.invoiceNumber || '');
+      setStampIssueDate(stampDialog.issueDate || new Date().toISOString().substring(0, 10));
+    }
+  }, [stampDialog]);
+
+  const handleConfirmStamp = async () => {
+    if (!stampDialog) return;
+    if (!stampInvoiceNumber.trim() || !stampIssueDate) {
+      toast.error('يرجى إدخال رقم الفاتورة وتاريخ إصدارها');
+      return;
+    }
+    setStampSaving(true);
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        invoice_number: stampInvoiceNumber.trim(),
+        invoice_sent_at: new Date(stampIssueDate + 'T00:00:00').toISOString(),
+        invoice_received_at: new Date().toISOString(),
+      })
+      .eq('id', stampDialog.orderId);
+    setStampSaving(false);
+    if (error) {
+      toast.error('فشل تأكيد استلام الفاتورة');
+      return;
+    }
+    toast.success('تم تأكيد استلام الفاتورة');
+    queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+    setStampDialog(null);
+  };
+
   const { data: docs, isLoading } = useQuery({
     queryKey: ['session-document-collections', workerId, periodStart, periodEnd],
     queryFn: async () => {
@@ -212,7 +254,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, updated_at, payment_type, customer:customers!orders_customer_id_fkey(name)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, payment_type, customer:customers!orders_customer_id_fkey(name)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
@@ -227,6 +269,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         paymentMethod: o.invoice_payment_method || 'cash',
         received: !!o.invoice_received_at,
         receivedAt: o.invoice_received_at,
+        invoiceNumber: o.invoice_number || null,
+        issueDate: o.invoice_sent_at ? String(o.invoice_sent_at).substring(0, 10) : null,
       }));
     },
   });
@@ -377,11 +421,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               const stampKey = `stamp_${inv.orderId}`;
               const isStampReceived = receivedDocs ? receivedDocs[stampKey] !== false : true;
               return (
-              <div key={inv.orderId} className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 ${!isStampReceived ? 'border-destructive/40 bg-destructive/5' : ''}`}>
+              <div
+                key={inv.orderId}
+                onClick={() => setStampDialog(inv)}
+                className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors hover:bg-muted/40 ${
+                  inv.received
+                    ? 'border-green-300 dark:border-green-800 bg-green-50/60 dark:bg-green-900/20'
+                    : !isStampReceived ? 'border-destructive/40 bg-destructive/5' : ''
+                }`}
+              >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   {onReceivedDocsChange && (
                     <button
-                      onClick={() => onReceivedDocsChange({ ...receivedDocs, [stampKey]: !isStampReceived })}
+                      onClick={(e) => { e.stopPropagation(); onReceivedDocsChange({ ...receivedDocs, [stampKey]: !isStampReceived }); }}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isStampReceived ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-destructive/10 text-destructive'}`}
                     >
                       {isStampReceived ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
@@ -392,11 +444,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{inv.customerName}</p>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
                         {inv.paymentMethod === 'check' ? 'Chèque' : 'كاش'}
                       </Badge>
+                      {inv.invoiceNumber && (
+                        <span className="text-[10px] text-muted-foreground">فاتورة: {inv.invoiceNumber}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -452,6 +507,52 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           }}
         />
       )}
+
+      {/* Stamped invoice receipt confirmation */}
+      <Dialog open={!!stampDialog} onOpenChange={(open) => { if (!open) setStampDialog(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-right">تأكيد استلام الفاتورة المختومة</DialogTitle>
+          </DialogHeader>
+          {stampDialog && (
+            <div className="space-y-3 text-right">
+              <div className="bg-muted/40 rounded-lg p-2.5 text-sm">
+                <p className="font-semibold">{stampDialog.customerName}</p>
+                <p className="text-xs text-muted-foreground">#{stampDialog.orderId.slice(0, 8)} • {fmt(stampDialog.orderTotal)} DA</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
+                <Input
+                  id="stamp-inv-num"
+                  value={stampInvoiceNumber}
+                  onChange={(e) => setStampInvoiceNumber(e.target.value)}
+                  placeholder="أدخل رقم الفاتورة"
+                  className="text-right"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="stamp-inv-date">تاريخ إصدار الفاتورة *</Label>
+                <Input
+                  id="stamp-inv-date"
+                  type="date"
+                  value={stampIssueDate}
+                  onChange={(e) => setStampIssueDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setStampDialog(null)} disabled={stampSaving}>إلغاء</Button>
+            <Button
+              onClick={handleConfirmStamp}
+              disabled={stampSaving || !stampInvoiceNumber.trim() || !stampIssueDate}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {stampSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
