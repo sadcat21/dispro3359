@@ -580,7 +580,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 </div>
                 <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-primary/10">
                   <span className="text-[10px] text-muted-foreground font-mono">#{stampDialog.orderId.slice(0, 8)}</span>
-                  <span className="text-sm font-black text-primary">{fmt(stampDialog.orderTotal)} DA</span>
+                  <span className="text-sm font-black text-primary" dir="ltr">{fmt(stampDialog.orderTotal)} DA</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {stampDialog.received ? (
