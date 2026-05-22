@@ -67,7 +67,9 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
             <div className="grid grid-cols-2 gap-2 pt-1">
               <div>
                 <div className="text-muted-foreground text-xs mb-1">طريقة الدفع</div>
-                <div className="font-medium">{paymentMethodLabel(info.paymentMethod)}</div>
+                <div className="font-medium">
+                  {paymentMethodLabel(isInvoice1 ? (info.invoiceMethod || info.paymentMethod) : info.paymentMethod)}
+                </div>
               </div>
               <div>
                 <div className="text-muted-foreground text-xs mb-1">نوع الفاتورة</div>
@@ -76,12 +78,6 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
                 </Badge>
               </div>
             </div>
-            {isInvoice1 && info.invoiceMethod && (
-              <div>
-                <div className="text-muted-foreground text-xs mb-1">طريقة دفع الفاتورة</div>
-                <div className="font-medium">{paymentMethodLabel(info.invoiceMethod)}</div>
-              </div>
-            )}
           </div>
 
           {isInvoice1 && (
