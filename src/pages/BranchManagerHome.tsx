@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
-import FactoryRequestDialog from '@/components/stock/FactoryRequestDialog';
-import FactoryRequestApprovedBanner from '@/components/stock/FactoryRequestApprovedBanner';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
