@@ -130,6 +130,43 @@ const isCollectedDuringDelivery = (order: any) => {
 const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange }) => {
   const queryClient = useQueryClient();
   const [verifyDoc, setVerifyDoc] = useState<CollectedDoc | null>(null);
+  const [stampDialog, setStampDialog] = useState<StampedInvoice | null>(null);
+  const [stampInvoiceNumber, setStampInvoiceNumber] = useState('');
+  const [stampIssueDate, setStampIssueDate] = useState('');
+  const [stampSaving, setStampSaving] = useState(false);
+
+  useEffect(() => {
+    if (stampDialog) {
+      setStampInvoiceNumber(stampDialog.invoiceNumber || '');
+      setStampIssueDate(stampDialog.issueDate || new Date().toISOString().substring(0, 10));
+    }
+  }, [stampDialog]);
+
+  const handleConfirmStamp = async () => {
+    if (!stampDialog) return;
+    if (!stampInvoiceNumber.trim() || !stampIssueDate) {
+      toast.error('يرجى إدخال رقم الفاتورة وتاريخ إصدارها');
+      return;
+    }
+    setStampSaving(true);
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        invoice_number: stampInvoiceNumber.trim(),
+        invoice_sent_at: new Date(stampIssueDate + 'T00:00:00').toISOString(),
+        invoice_received_at: new Date().toISOString(),
+      })
+      .eq('id', stampDialog.orderId);
+    setStampSaving(false);
+    if (error) {
+      toast.error('فشل تأكيد استلام الفاتورة');
+      return;
+    }
+    toast.success('تم تأكيد استلام الفاتورة');
+    queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+    setStampDialog(null);
+  };
+
   const { data: docs, isLoading } = useQuery({
     queryKey: ['session-document-collections', workerId, periodStart, periodEnd],
     queryFn: async () => {
