@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2, Clock, ChevronDown, ChevronUp, Layers, Package } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, FileText, ArrowLeft, Info, ArrowUpRight, Clock3, Download, Plus, Lock, Globe2, Clock, ChevronDown, ChevronUp, Layers, Package, User, Store } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
@@ -462,13 +462,17 @@ const BranchInvoiceApprovals: React.FC = () => {
                                       e.stopPropagation();
                                       setCustomerDialog({ id: r.customer_id!, name: customerName });
                                     }}
-                                    className="font-bold text-base text-primary hover:underline truncate"
+                                    className="font-bold text-base text-primary hover:underline truncate inline-flex items-center gap-1"
                                     title="عرض كل طلبات الفاتورة المعلقة لهذا العميل"
                                   >
+                                    <User className="w-3.5 h-3.5 shrink-0" />
                                     {customerName}
                                   </button>
                                 ) : (
-                                  <span className="font-bold text-base text-slate-800 truncate">{customerName}</span>
+                                  <span className="font-bold text-base text-slate-800 truncate inline-flex items-center gap-1">
+                                    <User className="w-3.5 h-3.5 shrink-0" />
+                                    {customerName}
+                                  </span>
                                 )}
                                 {(() => {
                                   const src = getRequestSource(r);
@@ -494,7 +498,10 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 })()}
                               </div>
                               {r.customers?.store_name && (
-                                <div className="text-xs text-slate-500 mt-0.5 truncate">{r.customers.store_name}</div>
+                                <div className="text-xs text-slate-500 mt-0.5 truncate inline-flex items-center gap-1">
+                                  <Store className="w-3 h-3 shrink-0" />
+                                  {r.customers.store_name}
+                                </div>
                               )}
                             </div>
                             <ArrowUpRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition shrink-0" />
