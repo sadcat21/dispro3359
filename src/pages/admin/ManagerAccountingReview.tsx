@@ -907,27 +907,25 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['retail', 'Détail'],
       ];
       const products = productMatrix.products;
-      const head = `<tr><th style="text-align:left;padding-left:8px">Méthode</th>${products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total Montant (DA)</th></tr>`;
+      const head = `<tr><th style="text-align:left;padding-left:8px">Méthode</th>${products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}</tr>`;
+      const colspan = products.length + 1;
       const blocks = productMatrix.workers.map(w => {
         const mAmt = productMatrix.workerMethodAmounts?.[w.id] || { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
         const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
-        const headerRow = `<tr><td colspan="${products.length + 2}" style="background:#0f172a;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)}</td></tr>`;
+        const headerRow = `<tr><td colspan="${colspan}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)}</td></tr>`;
         const methodRows = methods.map(([k, label]) => {
           const cells = products.map(p => Number(mQty[k]?.[p.id] || 0));
-          return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${Math.round(mAmt[k] || 0).toLocaleString()}</td></tr>`;
+          return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
         }).join('');
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const offeredCells = products.map(p => Number(offered[p.id] || 0));
-        const offeredRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
-        const totalAmt = methods.reduce((a, [k]) => a + (mAmt[k] || 0), 0);
+        const offeredRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
         const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const amountCells = products.map(p => Number(wAmt[p.id] || 0));
-        const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
-        const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
+        const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
+        const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
         return headerRow + methodRows + offeredRow + amountRow + totalRow;
-
-
       }).join('');
 
       // Aggregate totals across all workers
@@ -949,27 +947,26 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           aggAmount[p.id] = (aggAmount[p.id] || 0) + Number(amt[p.id] || 0);
         });
       });
-      const gHeader = `<tr><td colspan="${products.length + 2}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
+      const gHeader = `<tr><td colspan="${colspan}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
       const gMethodRows = methods.map(([k, label]) => {
         const cells = products.map(p => Number(aggMQty[k]?.[p.id] || 0));
-        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${Math.round(aggMAmt[k] || 0).toLocaleString()}</td></tr>`;
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
       }).join('');
       const gOfferedCells = products.map(p => Number(aggOffered[p.id] || 0));
-      const gOfferedRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${gOfferedCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
-      const gTotalAmt = methods.reduce((a, [k]) => a + (aggMAmt[k] || 0), 0);
+      const gOfferedRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${gOfferedCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
       const gTotalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(aggMQty[k]?.[p.id] || 0), 0));
       const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
-      const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(gTotalAmt).toLocaleString()}</td></tr>`;
-      const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(gTotalAmt).toLocaleString()}</td></tr>`;
+      const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
+      const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
       const grandBlock = gHeader + gMethodRows + gOfferedRow + gAmountRow + gTotalRow;
 
       return `<div class="block">
-        <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-        <table><thead>${head}</thead><tbody>${blocks}</tbody></table>
-      </div>
-      <div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
         <table><thead>${head}</thead><tbody>${grandBlock}</tbody></table>
+      </div>
+      <div class="block">
+        <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
+        <table><thead>${head}</thead><tbody>${blocks}</tbody></table>
       </div>`;
     })()}
 
