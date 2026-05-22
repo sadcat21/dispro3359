@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
-import FactoryRequestDialog from '@/components/stock/FactoryRequestDialog';
-import FactoryRequestApprovedBanner from '@/components/stock/FactoryRequestApprovedBanner';
 import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
 import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
@@ -46,24 +44,12 @@ const BranchManagerHome: React.FC = () => {
 
   const branchId = activeBranch?.id;
   const [factoryApprovalsOpen, setFactoryApprovalsOpen] = useState(false);
-  const [factoryRequestOpen, setFactoryRequestOpen] = useState(false);
-  const [requestProducts, setRequestProducts] = useState<any[]>([]);
   const [finalReviewPickerOpen, setFinalReviewPickerOpen] = useState(false);
   const [finalReviewWorker, setFinalReviewWorker] = useState<{ id: string; name: string } | null>(null);
   const [truckPickerOpen, setTruckPickerOpen] = useState(false);
   const [truckBalanceWorker, setTruckBalanceWorker] = useState<{ id: string; name: string } | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
   const [sectorCoverageOpen, setSectorCoverageOpen] = useState(false);
-
-  const openFactoryRequest = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('id, name, image_url, pieces_per_box')
-      .eq('is_active', true)
-      .order('name');
-    setRequestProducts(data || []);
-    setFactoryRequestOpen(true);
-  };
 
   const { data: deliveryWorkers = [] } = useQuery({
     queryKey: ['bm-delivery-workers', branchId],
@@ -195,7 +181,6 @@ const BranchManagerHome: React.FC = () => {
       items: [
         { key: 'customer_debts', label: t('branch_manager.debts_management'), icon: Banknote, path: '/customer-debts' },
         { key: 'branch_inventory', label: 'مخزون الفرع', icon: PackageSearch, path: '/warehouse' },
-        { key: 'factory_request', label: 'طلب من المصنع', icon: Factory, onClick: openFactoryRequest },
         { key: 'accounting_sessions', label: t('worker_actions.accounting_sessions'), icon: ScrollText, path: '/accounting-sessions' },
         { key: 'surplus_deficit', label: t('nav.surplus_deficit'), icon: AlertTriangle, path: '/surplus-deficit' },
         { key: 'identifier_inspector', label: 'فاحص المعرفات', icon: ScanSearch, path: '/identifier-inspector' },
@@ -222,19 +207,11 @@ const BranchManagerHome: React.FC = () => {
             <ClipboardList className="w-5 h-5" />
             <span className="text-base font-bold">مهام العمال اليومية</span>
           </button>
-          <button
-            onClick={openFactoryRequest}
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 px-4 py-2 text-white shadow-md shadow-orange-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
-          >
-            <Factory className="w-5 h-5" />
-            <span className="text-base font-bold">طلب من المصنع</span>
-          </button>
         </div>
       </div>
 
 
-      {/* Banner: إشعار الموافقة على طلبات المصنع + زر واتساب */}
-      {branchId && <FactoryRequestApprovedBanner branchId={branchId} branchName={activeBranch?.name} />}
+
 
 
 
@@ -314,15 +291,7 @@ const BranchManagerHome: React.FC = () => {
         })}
       </div>
       <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
-      {branchId && (
-        <FactoryRequestDialog
-          open={factoryRequestOpen}
-          onOpenChange={setFactoryRequestOpen}
-          branchId={branchId}
-          products={requestProducts}
-          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['factory-request-approved', branchId] })}
-        />
-      )}
+
       <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
       <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
 

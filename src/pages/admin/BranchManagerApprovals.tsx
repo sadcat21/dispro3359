@@ -7,11 +7,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck, Truck, Factory,
+  ShieldCheck, FileText, ClipboardCheck, ArrowLeft, ChevronLeft, LucideIcon, PackageCheck, Truck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
-import ApprovedFactoryRequestsDialog from '@/components/stock/ApprovedFactoryRequestsDialog';
 
 interface ApprovalCard {
   key: string;
@@ -30,13 +29,12 @@ const BranchManagerApprovals: React.FC = () => {
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id;
   const [factoryOpen, setFactoryOpen] = useState(false);
-  const [approvedReqOpen, setApprovedReqOpen] = useState(false);
 
   const { data: counts } = useQuery({
     queryKey: ['branch-approvals-counts', branchId],
     enabled: !!branchId,
     queryFn: async () => {
-      const [invoices, warehouseReviews, stockReceipts, factory, approvedReq] = await Promise.all([
+      const [invoices, warehouseReviews, stockReceipts, factory] = await Promise.all([
         supabase.from('manual_invoice_requests').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('status', 'pending_branch'),
         supabase.from('warehouse_review_items').select('id', { count: 'exact', head: true })
@@ -45,16 +43,12 @@ const BranchManagerApprovals: React.FC = () => {
           .eq('branch_id', branchId!).in('status', ['pending_approval', 'pending_branch']),
         supabase.from('factory_orders').select('id', { count: 'exact', head: true })
           .eq('branch_id', branchId!).eq('order_type', 'sending').eq('status', 'pending_approval'),
-        supabase.from('factory_orders').select('id', { count: 'exact', head: true })
-          .eq('branch_id', branchId!).eq('order_type', 'factory_request')
-          .in('status', ['approved', 'in_production', 'ready_for_delivery']),
       ]);
       return {
         invoices: invoices.count || 0,
         warehouseReviews: warehouseReviews.count || 0,
         stockReceipts: stockReceipts.count || 0,
         factory: factory.count || 0,
-        approvedReq: approvedReq.count || 0,
       };
     },
     staleTime: 30_000,
@@ -90,19 +84,11 @@ const BranchManagerApprovals: React.FC = () => {
       badge: counts?.stockReceipts,
       color: 'from-emerald-500 to-teal-600',
     },
-    {
-      key: 'approved_factory_requests',
-      title: 'طلبات التموين الموافق عليها',
-      description: 'عرض طلباتك للمصنع التي تمت الموافقة عليها — إرسال واتساب وفتح وثيقة الاستلام',
-      icon: Factory,
-      onClick: () => setApprovedReqOpen(true),
-      badge: counts?.approvedReq,
-      color: 'from-green-500 to-emerald-600',
-    },
   ];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 overflow-y-auto max-h-screen">
+
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="px-4 py-4 flex items-center gap-3">
@@ -165,14 +151,6 @@ const BranchManagerApprovals: React.FC = () => {
       </div>
 
       <FactoryApprovalsDialog open={factoryOpen} onOpenChange={setFactoryOpen} />
-      {branchId && (
-        <ApprovedFactoryRequestsDialog
-          open={approvedReqOpen}
-          onOpenChange={setApprovedReqOpen}
-          branchId={branchId}
-          branchName={activeBranch?.name}
-        />
-      )}
     </div>
   );
 };

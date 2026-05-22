@@ -726,7 +726,7 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
         .from('factory_orders')
         .select('*')
         .eq('branch_id', branchId)
-        .in('order_type', ['sending', 'factory_request'])
+        .eq('order_type', 'sending')
         .in('status', ['pending_approval', 'pending_branch_manager', 'pending_assistant_gm', 'pending_system_manager'])
         .order('created_at', { ascending: false });
 
