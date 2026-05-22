@@ -5,6 +5,9 @@ const IGNORED_RUNTIME_PATTERNS = [
   "طلب المستخدم",
   "[respond and provide all suggestions in arabic]",
   "respond and provide all suggestions in arabic",
+  "not fully deleted",
+  "record remaining",
+  "records remaining",
 ];
 
 const appendText = (bucket: string[], value: unknown) => {
