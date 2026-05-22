@@ -1084,6 +1084,21 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                               )}
                             </div>
                             <div className="flex items-center gap-1.5">
+                              {(() => {
+                                const effPt = (item.itemPaymentType as PaymentType | undefined) || paymentType;
+                                const effPst = (item.itemPriceSubType as PriceSubType | undefined) || priceSubType;
+                                const effPm = (item.itemInvoicePaymentMethod as InvoicePaymentMethod | undefined) || invoicePaymentMethod;
+                                const subMap: Record<string, string> = { gros: 'G', super_gros: 'SG', retail: 'D' };
+                                const methodMap: Record<string, string> = { receipt: 'VRST', check: 'CHK', cash: 'ESP', transfer: 'VRMT' };
+                                const code = effPt === 'with_invoice'
+                                  ? `F1${effPm ? '-' + methodMap[effPm] : ''}`
+                                  : `F2-${subMap[effPst] || ''}`;
+                                return (
+                                  <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground hover:bg-primary border-transparent font-bold">
+                                    {code}
+                                  </Badge>
+                                );
+                              })()}
                               <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
                                 {item.isUnitSale ? item.quantity : Math.max(0, item.quantity - (item.giftQuantity || 0))}
                               </span>
