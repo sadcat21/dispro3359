@@ -663,17 +663,21 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     type="button"
                     onClick={async () => {
                       const newAttached = !attached;
-                      const newVerification = { ...v, attached_to_invoice: newAttached };
-                      const { error } = await supabase
-                        .from('orders')
-                        .update({ document_verification: newVerification })
-                        .eq('id', stampDialog.orderId);
+                      const { error } = await (supabase as any).rpc('set_invoice_document_attached', {
+                        p_order_id: stampDialog.orderId,
+                        p_attached: newAttached,
+                      });
                       if (error) {
-                        toast.error('فشل تحديث الإرفاق');
+                        const msg = String(error.message || '');
+                        if (msg.includes('permission_denied')) toast.error('لا تملك صلاحية تعديل الإرفاق');
+                        else toast.error('فشل تحديث الإرفاق: ' + msg);
                         return;
                       }
+                      const newVerification = { ...v, attached_to_invoice: newAttached };
                       setStampDialog({ ...stampDialog, documentVerification: newVerification });
+                      toast.success(newAttached ? 'تم تسجيل إرفاق المستند' : 'تم إلغاء الإرفاق');
                       await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+                      await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
                     }}
                     className={`w-full flex items-center justify-center gap-2 rounded-md border-2 px-3 py-2.5 text-sm font-semibold transition-colors ${
                       attached
