@@ -165,7 +165,15 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
   const fileUrl = r?.invoice_file_url as string | undefined;
   const customerDisplayName = r?.customers?.name_fr || r?.customers?.name || '—';
   const products: any[] = Array.isArray(r?.products) ? r.products : [];
-  const isPrivate = r?.invoice_scope === 'private';
+  // الطلبات الصادرة من البيع (طلب/بيع مباشر/بيع من مخزن) تُعتبر "خاصة" دائماً
+  const _notes = (r?.order?.notes || '').toLowerCase();
+  const _isSaleSource = !!r?.order_id
+    && r?.created_by_role !== 'branch_manager'
+    && r?.created_by_role !== 'manager';
+  const resolvedScope: 'public' | 'private' = _isSaleSource
+    ? 'private'
+    : (r?.invoice_scope === 'public' || r?.invoice_scope === 'private' ? r.invoice_scope : 'public');
+  const isPrivate = resolvedScope === 'private';
   const headerClass = isPrivate
     ? 'bg-amber-100 border-amber-300 text-amber-900'
     : 'bg-emerald-100 border-emerald-300 text-emerald-900';
