@@ -566,10 +566,10 @@ const translateBranchToFr = (name: string) => {
 };
 
 export type ProductMatrix = {
-  products: { id: string; name: string }[];
+  products: { id: string; name: string; piecesPerBox: number }[];
   rows: Record<string, Record<string, number>>;
   workers: { id: string; name: string }[];
-  workerRows: Record<string, Record<string, number>>; // workerId -> productId -> qty
+  workerRows: Record<string, Record<string, number>>;
 };
 
 export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
@@ -581,12 +581,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
     .in('assigned_worker_id', workerIds)
     .eq('status', 'delivered')
     .gte('created_at', from)
     .lte('created_at', to);
-  const productMap = new Map<string, string>();
+  const productMap = new Map<string, { name: string; ppb: number }>();
   const workerMap = new Map<string, string>();
   sessions.forEach((s: any) => {
     const wid = s.worker_id ?? s.worker?.id;
@@ -625,9 +625,13 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
       const p = it.products || {};
-      productMap.set(it.product_id, p.app_name || p.name || '—');
-      const qty = Number(it.quantity || 0);
-      const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
+      const ppb = Math.max(1, Number(p.pieces_per_box || 1));
+      productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
+      // Convert DB-stored B.P quantities to fractional boxes so aggregation is correct
+      const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const giftBoxes = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
+      const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
       let unitPrice = 0;
       if (sub.includes('super')) unitPrice = Number(p.price_super_gros || 0);
@@ -650,7 +654,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       }
     });
   });
-  const products = Array.from(productMap.entries()).map(([id, name]) => ({ id, name }));
+  const products = Array.from(productMap.entries()).map(([id, v]) => ({ id, name: v.name, piecesPerBox: v.ppb }));
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
