@@ -825,9 +825,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   to={item.path}
                   className={cn(
                     'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
-                    isActive
-                      ? 'bg-sidebar-primary/15 text-sidebar-primary'
-                      : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                    item.path === '/'
+                      ? (isActive ? 'bg-yellow-400/15 text-yellow-400' : 'text-yellow-400 hover:bg-yellow-400/10')
+                      : isActive
+                        ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                        : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                   )}
                   title={item.label}
                 >
