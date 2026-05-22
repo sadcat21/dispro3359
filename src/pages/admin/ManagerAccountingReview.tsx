@@ -570,7 +570,9 @@ export type ProductMatrix = {
   rows: Record<string, Record<string, number>>;
   workers: { id: string; name: string }[];
   workerRows: Record<string, Record<string, number>>;
+  workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
 };
+
 
 export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
