@@ -97,16 +97,15 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
               {receipts.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {receipts.map((url, i) => (
-                    <a
+                    <button
                       key={i}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      type="button"
+                      onClick={() => { setViewerUrls(receipts); setViewerOpen(true); }}
                       className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
                     >
                       <Image className="w-3 h-3" />
                       {t('expenses_summary.receipt')} {receipts.length > 1 ? i + 1 : ''}
-                    </a>
+                    </button>
                   ))}
                 </div>
               )}
