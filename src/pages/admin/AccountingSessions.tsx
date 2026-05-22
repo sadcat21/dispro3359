@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw } from 'lucide-react';
+import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt } from 'lucide-react';
+import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccountingSessions, AccountingSession, AccountingSessionItem, useDeleteSession, useCancelSession } from '@/hooks/useAccountingSessions';
@@ -40,6 +41,7 @@ const AccountingSessions: React.FC = () => {
   const [workerFilter, setWorkerFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [invoice1Open, setInvoice1Open] = useState(false);
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedSession, setSelectedSession] = useState<AccountingSession | null>(null);
@@ -195,17 +197,28 @@ const AccountingSessions: React.FC = () => {
                 <p className="text-xs text-muted-foreground">{t('accounting.select_worker')}</p>
               </div>
             </div>
-            {isAdminOrBranchAdmin && (
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                onClick={() => navigate('/manager-accounting-review')}
+                className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                onClick={() => setInvoice1Open(true)}
               >
-                <ClipboardList className="w-3.5 h-3.5" />
-                {t('accounting.my_review')}
+                <Receipt className="w-3.5 h-3.5" />
+                فاتورة 1
               </Button>
-            )}
+              {isAdminOrBranchAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                  onClick={() => navigate('/manager-accounting-review')}
+                >
+                  <ClipboardList className="w-3.5 h-3.5" />
+                  {t('accounting.my_review')}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Worker Buttons Grid */}
@@ -506,6 +519,12 @@ const AccountingSessions: React.FC = () => {
           onProceedToSession={handleProceedToSession}
         />
       )}
+
+      <Invoice1StatusDialog
+        open={invoice1Open}
+        onOpenChange={setInvoice1Open}
+        branchId={activeBranch?.id}
+      />
     </div>
   );
 };
