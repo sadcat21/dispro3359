@@ -74,45 +74,29 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
 
       <div className="space-y-1.5">
         {data.map((e: any) => {
-          const status = STATUS_LABEL[e.status] || STATUS_LABEL.pending;
           const receipts: string[] = e.receipt_urls?.length ? e.receipt_urls : (e.receipt_url ? [e.receipt_url] : []);
+          const hasReceipt = receipts.length > 0;
           return (
-            <div key={e.id} className="border rounded-lg p-2.5 space-y-1.5 bg-card">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-base shrink-0">{e.category?.icon || '🧾'}</span>
-                  <span className="text-xs font-semibold truncate">
-                    {e.category?.name_fr || e.category?.name || t('expenses_summary.fallback_label')}
-                  </span>
-                </div>
-                <span className="font-bold text-sm text-destructive shrink-0">-{fmt(Number(e.amount))} DA</span>
+            <div
+              key={e.id}
+              onClick={() => { if (hasReceipt) { setViewerUrls(receipts); setViewerOpen(true); } }}
+              className={`border rounded-lg p-2.5 bg-card flex items-center justify-between gap-2 ${hasReceipt ? 'cursor-pointer hover:bg-muted/40' : ''}`}
+            >
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-xs font-semibold truncate">
+                  {e.category?.name_fr || e.category?.name || t('expenses_summary.fallback_label')}
+                </span>
+                <span className="text-[10px] text-muted-foreground shrink-0">
+                  {format(new Date(e.expense_date), 'dd/MM/yyyy')}
+                </span>
+                {hasReceipt && <Image className="w-3.5 h-3.5 text-primary shrink-0" />}
               </div>
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                <span>{format(new Date(e.expense_date), 'dd/MM/yyyy')}</span>
-                <span className={`px-1.5 py-0.5 rounded-full ${status.cls}`}>{status.label}</span>
-              </div>
-              {e.description && (
-                <p className="text-[11px] text-foreground/80 bg-muted/40 rounded p-1.5">{e.description}</p>
-              )}
-              {receipts.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {receipts.map((url, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => { setViewerUrls(receipts); setViewerOpen(true); }}
-                      className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
-                    >
-                      <Image className="w-3 h-3" />
-                      {t('expenses_summary.receipt')} {receipts.length > 1 ? i + 1 : ''}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <span className="font-bold text-sm text-destructive shrink-0">-{fmt(Number(e.amount))} DA</span>
             </div>
           );
         })}
       </div>
+
 
       <div className="flex items-center justify-between border-t pt-2 mt-2 text-xs">
         <span className="text-muted-foreground">{t('expenses_summary.total_all_statuses')}</span>
