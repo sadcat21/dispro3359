@@ -43,10 +43,12 @@ interface InvoiceRequestRow {
   order?: { created_at?: string; notes?: string | null } | null;
 }
 
-type RequestSource = 'order' | 'direct_sale' | 'warehouse_sale';
+type RequestSource = 'order' | 'direct_sale' | 'warehouse_sale' | 'manual';
 
-const getRequestSource = (notes?: string | null): RequestSource => {
-  const n = (notes || '').toLowerCase();
+const getRequestSource = (row: { order_id?: string | null; created_by_role?: string | null; order?: { notes?: string | null } | null }): RequestSource => {
+  // طلب يدوي من مدير الفرع (لا يوجد order مرتبط)
+  if (!row.order_id || row.created_by_role === 'branch_manager' || row.created_by_role === 'manager') return 'manual';
+  const n = (row.order?.notes || '').toLowerCase();
   if (n.includes('vente dépôt') || n.includes('vente depot') || n.includes('بيع مخزن') || n.includes('بيع مباشر من المخزن')) return 'warehouse_sale';
   if (n.includes('بيع مباشر') || n.includes('vente directe')) return 'direct_sale';
   return 'order';
@@ -56,12 +58,21 @@ const SOURCE_LABEL_AR: Record<RequestSource, string> = {
   order: 'طلبية',
   direct_sale: 'بيع مباشر',
   warehouse_sale: 'بيع من المخزن',
+  manual: 'يدوي',
 };
 
 const SOURCE_BADGE_CLASS: Record<RequestSource, string> = {
   order: 'bg-indigo-100 text-indigo-800 border-indigo-300',
   direct_sale: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   warehouse_sale: 'bg-purple-100 text-purple-800 border-purple-300',
+  manual: 'bg-rose-100 text-rose-800 border-rose-300',
+};
+
+/** الطلبات الصادرة من البيع تُعتبر "خاصة" افتراضياً ما لم يُحدَّد غير ذلك */
+const resolveInvoiceScope = (row: { invoice_scope?: 'public' | 'private' | null }, source: RequestSource): 'public' | 'private' => {
+  if (row.invoice_scope === 'public' || row.invoice_scope === 'private') return row.invoice_scope;
+  if (source === 'order' || source === 'direct_sale' || source === 'warehouse_sale') return 'private';
+  return 'public';
 };
 
 const BranchInvoiceApprovals: React.FC = () => {
@@ -459,23 +470,26 @@ const BranchInvoiceApprovals: React.FC = () => {
                                 ) : (
                                   <span className="font-bold text-base text-slate-800 truncate">{customerName}</span>
                                 )}
-                                {r.invoice_scope === 'private' ? (
-                                  <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px] px-1.5 py-0">
-                                    <Lock className="w-3 h-3" />
-                                    {t('branch_manual_invoice.scope_private')}
-                                  </Badge>
-                                ) : r.invoice_scope === 'public' ? (
-                                  <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px] px-1.5 py-0">
-                                    <Globe2 className="w-3 h-3" />
-                                    {t('branch_manual_invoice.scope_public')}
-                                  </Badge>
-                                ) : null}
                                 {(() => {
-                                  const src = getRequestSource(r.order?.notes);
+                                  const src = getRequestSource(r);
+                                  const scope = resolveInvoiceScope(r, src);
                                   return (
-                                    <Badge className={`border gap-1 text-[10px] px-1.5 py-0 ${SOURCE_BADGE_CLASS[src]}`}>
-                                      {SOURCE_LABEL_AR[src]}
-                                    </Badge>
+                                    <>
+                                      {scope === 'private' ? (
+                                        <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px] px-1.5 py-0">
+                                          <Lock className="w-3 h-3" />
+                                          {t('branch_manual_invoice.scope_private')}
+                                        </Badge>
+                                      ) : (
+                                        <Badge className="bg-blue-100 text-blue-800 border border-blue-300 gap-1 text-[10px] px-1.5 py-0">
+                                          <Globe2 className="w-3 h-3" />
+                                          {t('branch_manual_invoice.scope_public')}
+                                        </Badge>
+                                      )}
+                                      <Badge className={`border gap-1 text-[10px] px-1.5 py-0 ${SOURCE_BADGE_CLASS[src]}`}>
+                                        {SOURCE_LABEL_AR[src]}
+                                      </Badge>
+                                    </>
                                   );
                                 })()}
                               </div>
