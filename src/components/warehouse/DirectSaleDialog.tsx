@@ -1019,6 +1019,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         isWarehouseSale: isWarehouseSrcReceipt,
         receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
       });
+      const saleStatus: 'paid' | 'partial' | 'debt' = paymentData.isNoPayment
+        ? 'debt'
+        : !paymentData.isFullPayment
+          ? 'partial'
+          : 'paid';
       setSuccessInfo({
         amount: orderTotals.totalAmount,
         customerName: selectedCustomer?.name || '',
@@ -1027,6 +1032,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         paymentType: frozenPaymentType,
         invoiceMethod: frozenInvoiceMethod,
         invoiceRequestSent,
+        paymentStatus: saleStatus,
+        paidAmount: paymentData.paidAmount,
+        remainingAmount: paymentData.remainingAmount,
       });
       setShowSuccessDialog(true);
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
