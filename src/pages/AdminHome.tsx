@@ -305,9 +305,9 @@ const AdminHome: React.FC = () => {
       const { data: salesRows } = await salesQuery;
       const monthSales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       const todaySales = (salesRows || [])
-        .filter((r: any) => r.created_at >= startOfDay)
+        .filter((r: any) => r.created_at >= periodStart)
         .reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
-      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= startOfDay).length;
+      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= periodStart).length;
 
       let stockQuery = supabase
         .from('warehouse_stock')
