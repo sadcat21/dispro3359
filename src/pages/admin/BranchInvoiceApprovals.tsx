@@ -40,7 +40,29 @@ interface InvoiceRequestRow {
   merged_request_ids?: string[] | null;
   customers?: { name: string; name_fr?: string | null; store_name?: string | null } | null;
   worker?: { full_name: string } | null;
+  order?: { created_at?: string; notes?: string | null } | null;
 }
+
+type RequestSource = 'order' | 'direct_sale' | 'warehouse_sale';
+
+const getRequestSource = (notes?: string | null): RequestSource => {
+  const n = (notes || '').toLowerCase();
+  if (n.includes('vente dépôt') || n.includes('vente depot') || n.includes('بيع مخزن') || n.includes('بيع مباشر من المخزن')) return 'warehouse_sale';
+  if (n.includes('بيع مباشر') || n.includes('vente directe')) return 'direct_sale';
+  return 'order';
+};
+
+const SOURCE_LABEL_AR: Record<RequestSource, string> = {
+  order: 'طلبية',
+  direct_sale: 'بيع مباشر',
+  warehouse_sale: 'بيع من المخزن',
+};
+
+const SOURCE_BADGE_CLASS: Record<RequestSource, string> = {
+  order: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+  direct_sale: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  warehouse_sale: 'bg-purple-100 text-purple-800 border-purple-300',
+};
 
 const BranchInvoiceApprovals: React.FC = () => {
   const { t, language } = useLanguage();
