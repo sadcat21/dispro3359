@@ -153,8 +153,14 @@ const CompanyManagerHome: React.FC = () => {
               </Card>
             );
           })}
-        </div>
       </div>
+
+      {/* Debt summary */}
+      <div className="px-2 sm:px-3 pb-2">
+        <DebtSummaryCard />
+      </div>
+
+
 
       {/* Dialogs */}
       <ManualPromoEntryDialog open={manualPromoOpen} onOpenChange={setManualPromoOpen} />
