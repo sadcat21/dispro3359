@@ -682,7 +682,7 @@ const AdminHome: React.FC = () => {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.today_sales')}</p>
+                <p className="text-muted-foreground">{periodLabel}</p>
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.todaySales || 0).toLocaleString()} DA</p>
                 <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} {t('admin_home.orders_count')}</p>
               </div>
