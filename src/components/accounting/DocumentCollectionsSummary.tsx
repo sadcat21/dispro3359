@@ -598,32 +598,35 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               {(() => {
                 const m = (stampDialog.paymentMethod || '').toLowerCase();
                 if (m === 'cash') return null;
-                const docType: 'check' | 'receipt' | 'transfer' =
-                  m === 'check' ? 'check' : (m === 'transfer' || m === 'virement') ? 'transfer' : 'receipt';
-                const label = m === 'check' ? 'إرفاق الشيك' : docType === 'transfer' ? 'إرفاق التحويل (Virement)' : 'إرفاق الوصل (Versement)';
+                const label = m === 'check' ? 'إرفاق الشيك' : (m === 'transfer' || m === 'virement') ? 'إرفاق التحويل (Virement)' : 'إرفاق الوصل (Versement)';
                 const v = stampDialog.documentVerification && typeof stampDialog.documentVerification === 'object' ? stampDialog.documentVerification : {};
-                const attached = !!(v.check_number || v.checkNumber || v.receipt_number || v.receiptNumber || v.transfer_reference || v.transferReference);
+                const attached = v.attached_to_invoice === true;
                 return (
-                  <Button
+                  <button
                     type="button"
-                    variant={attached ? 'outline' : 'default'}
-                    className="w-full gap-2"
-                    onClick={() => {
-                      setVerifyDoc({
-                        orderId: stampDialog.orderId,
-                        customerName: stampDialog.customerName,
-                        documentType: docType,
-                        orderTotal: stampDialog.orderTotal,
-                        source: 'delivery',
-                        documentStatus: stampDialog.documentStatus,
-                        verification: parseVerification(stampDialog.documentVerification, docType),
-                      });
-                      setStampDialog(null);
+                    onClick={async () => {
+                      const newAttached = !attached;
+                      const newVerification = { ...v, attached_to_invoice: newAttached };
+                      const { error } = await supabase
+                        .from('orders')
+                        .update({ document_verification: newVerification })
+                        .eq('id', stampDialog.orderId);
+                      if (error) {
+                        toast.error('فشل تحديث الإرفاق');
+                        return;
+                      }
+                      setStampDialog({ ...stampDialog, documentVerification: newVerification });
+                      await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
                     }}
+                    className={`w-full flex items-center justify-center gap-2 rounded-md border-2 px-3 py-2.5 text-sm font-semibold transition-colors ${
+                      attached
+                        ? 'bg-green-600 border-green-600 text-white hover:bg-green-700'
+                        : 'bg-background border-input hover:bg-muted text-foreground'
+                    }`}
                   >
-                    <ClipboardCheck className="w-4 h-4" />
-                    {attached ? `${label} ✓ مُرفق` : label}
-                  </Button>
+                    {attached ? <CheckCircle className="w-4 h-4" /> : <ClipboardCheck className="w-4 h-4" />}
+                    {attached ? `${label} ✓` : label}
+                  </button>
                 );
               })()}
             </div>
