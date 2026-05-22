@@ -2226,6 +2226,7 @@ export const translations: Translations = {
   'admin_home.treasury_handed': { ar: 'المُسلَّم', fr: 'Remis', en: 'Handed over' },
   'admin_home.treasury_remaining': { ar: 'المتبقي في الخزينة', fr: 'Reste en caisse', en: 'Remaining' },
   'admin_home.treasury_sales': { ar: 'المبيعات', fr: 'Ventes', en: 'Sales' },
+  'admin_home.treasury_branch_total': { ar: 'إجمالي الفرع', fr: 'Total filiale', en: 'Branch total' },
   'admin_home.open_accounting_sessions': { ar: 'جلسات محاسبة مفتوحة', fr: 'Sessions comptables ouvertes', en: 'Open accounting sessions' },
   'admin_home.use_sidebar_hint': { ar: 'استخدم الشريط الجانبي للتنقل بين الأقسام', fr: 'Utilisez la barre latérale pour naviguer entre les sections', en: 'Use the sidebar to navigate between sections' },
   'admin_home.current_branch': { ar: 'الفرع الحالي', fr: 'Filiale actuelle', en: 'Current branch' },
