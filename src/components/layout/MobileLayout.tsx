@@ -927,14 +927,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </Link>
             ) : <div />}
 
-            {/* زر إنجازات اليوم — أزرق */}
+            {/* زر إنجازات اليوم — أحمر */}
             <Link
               to="/my-achievements"
               className={cn(
                 'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
                 location.pathname === '/my-achievements'
-                  ? 'bg-blue-500/15 text-blue-500'
-                  : 'text-blue-500/80 hover:bg-blue-500/10 hover:text-blue-500'
+                  ? 'bg-red-500/15 text-red-500'
+                  : 'text-red-500/80 hover:bg-red-500/10 hover:text-red-500'
               )}
               title={t('worker_home.today_achievements') || 'إنجازات اليوم'}
               aria-label={t('worker_home.today_achievements') || 'إنجازات اليوم'}
