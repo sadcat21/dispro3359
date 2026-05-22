@@ -761,6 +761,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           payment_type: finalPaymentType,
           payment_status: paymentStatus,
           invoice_payment_method: finalPaymentType === 'with_invoice' ? (finalInvoiceMethod || null) : null,
+          invoice_number: finalPaymentType === 'with_invoice' ? (invoiceNumber.trim() || null) : null,
           partial_amount: paymentData.isFullPayment ? null : paymentData.paidAmount,
           total_amount: orderTotals.totalAmount,
           client_request_id: crypto.randomUUID(),
