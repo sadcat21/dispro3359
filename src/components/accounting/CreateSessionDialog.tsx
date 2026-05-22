@@ -431,7 +431,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-6rem)] px-4 py-3">
+        <ScrollArea className="flex-1 max-h-[calc(90vh-10rem)] px-4 py-3">
           <div className="space-y-3">
 
             {/* ━━━ Step 1: Period ━━━ */}
