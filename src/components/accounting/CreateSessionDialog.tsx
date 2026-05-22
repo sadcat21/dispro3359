@@ -412,7 +412,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 overflow-hidden" dir={dir}>
+      <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col" dir={dir}>
         <DialogHeader className="p-4 pb-3 border-b bg-muted/30">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2.5">
@@ -431,7 +431,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-6rem)] px-4 py-3">
+        <ScrollArea className="flex-1 max-h-[calc(90vh-10rem)] px-4 py-3">
           <div className="space-y-3">
 
             {/* ━━━ Step 1: Period ━━━ */}
@@ -735,37 +735,40 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Textarea value={sessionNotes} onChange={e => setSessionNotes(e.target.value)} rows={2} className="rounded-lg" />
             </div>
 
-            {/* Submit */}
-            <div className="flex gap-2">
-              {selectedWorkerId && (
-                <Button
-                  variant="outline"
-                  className={`rounded-xl h-11 text-base font-bold text-white ${isFrozen ? 'bg-green-600 hover:bg-green-700 border-green-600' : 'bg-red-600 hover:bg-red-700 border-red-600'}`}
-                  onClick={isFrozen ? handleUnfreeze : handleFreeze}
-                  disabled={isUnfreezing}
-                >
-                  {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                  {isFrozen ? t('create_session.unfreeze') : t('create_session.freeze')}
-                </Button>
-              )}
-              <Button
-                className="flex-1 rounded-xl h-11 text-base font-bold"
-                onClick={handleShowConfirmation}
-                disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen)}
-              >
-                {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
-              </Button>
-            </div>
-            {!isEditMode && !isFrozen && selectedWorkerId && (
-              <Alert className="mt-2">
-                <Info className="w-4 h-4" />
-                <AlertDescription className="text-xs">
-                  {t('create_session.cannot_save_until_review')}
-                </AlertDescription>
-              </Alert>
-            )}
           </div>
         </ScrollArea>
+
+        {/* Sticky footer with action buttons */}
+        <div className="border-t bg-background p-3 space-y-2 shrink-0">
+          {!isEditMode && !isFrozen && selectedWorkerId && (
+            <Alert>
+              <Info className="w-4 h-4" />
+              <AlertDescription className="text-xs">
+                {t('create_session.cannot_save_until_review')}
+              </AlertDescription>
+            </Alert>
+          )}
+          <div className="flex gap-2">
+            {selectedWorkerId && (
+              <Button
+                variant="outline"
+                className={`rounded-xl h-11 text-base font-bold text-white ${isFrozen ? 'bg-green-600 hover:bg-green-700 border-green-600' : 'bg-red-600 hover:bg-red-700 border-red-600'}`}
+                onClick={isFrozen ? handleUnfreeze : handleFreeze}
+                disabled={isUnfreezing}
+              >
+                {isUnfreezing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+                {isFrozen ? t('create_session.unfreeze') : t('create_session.freeze')}
+              </Button>
+            )}
+            <Button
+              className="flex-1 rounded-xl h-11 text-base font-bold"
+              onClick={handleShowConfirmation}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen)}
+            >
+              {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
 
       {/* Confirmation Dialog */}
