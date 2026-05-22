@@ -32,6 +32,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ProjectManagerSummaryDialog, { PMSummaryKind } from '@/components/admin/ProjectManagerSummaryDialog';
 import DebtSummaryCard from '@/components/admin/DebtSummaryCard';
+import TreasurySummaryCard from '@/components/admin/TreasurySummaryCard';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
 
@@ -693,7 +694,15 @@ const AdminHome: React.FC = () => {
             </div>
           </button>
 
-          {!isDebtsHidden && <DebtSummaryCard periodStart={pmRange === 'day' ? undefined : (() => { const d = new Date(); d.setHours(0,0,0,0); if (pmRange === 'week') d.setDate(d.getDate()-6); else if (pmRange === '2weeks') d.setDate(d.getDate()-13); else if (pmRange === 'month') d.setDate(1); return d.toISOString(); })()} periodLabel={periodLabel} />}
+          {(() => {
+            const periodStartIso = pmRange === 'day' ? undefined : (() => { const d = new Date(); d.setHours(0,0,0,0); if (pmRange === 'week') d.setDate(d.getDate()-6); else if (pmRange === '2weeks') d.setDate(d.getDate()-13); else if (pmRange === 'month') d.setDate(1); return d.toISOString(); })();
+            return (
+              <>
+                {!isDebtsHidden && <DebtSummaryCard periodStart={periodStartIso} periodLabel={periodLabel} />}
+                <TreasurySummaryCard periodStart={periodStartIso} periodLabel={periodLabel} />
+              </>
+            );
+          })()}
 
           <button type="button" onClick={() => setPmDetailKind('inventory')} className="text-start rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-emerald-300">
             <div className="flex items-center justify-between">
