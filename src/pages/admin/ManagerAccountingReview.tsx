@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerReview } from '@/hooks/useManagerReview';
 import { toast } from 'sonner';
+import { boxesToBPAlways, dbBPToBoxes } from '@/utils/boxPieceInput';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -565,10 +566,10 @@ const translateBranchToFr = (name: string) => {
 };
 
 export type ProductMatrix = {
-  products: { id: string; name: string }[];
+  products: { id: string; name: string; piecesPerBox: number }[];
   rows: Record<string, Record<string, number>>;
   workers: { id: string; name: string }[];
-  workerRows: Record<string, Record<string, number>>; // workerId -> productId -> qty
+  workerRows: Record<string, Record<string, number>>;
 };
 
 export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
@@ -580,12 +581,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
     .in('assigned_worker_id', workerIds)
     .eq('status', 'delivered')
     .gte('created_at', from)
     .lte('created_at', to);
-  const productMap = new Map<string, string>();
+  const productMap = new Map<string, { name: string; ppb: number }>();
   const workerMap = new Map<string, string>();
   sessions.forEach((s: any) => {
     const wid = s.worker_id ?? s.worker?.id;
@@ -624,9 +625,13 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
       const p = it.products || {};
-      productMap.set(it.product_id, p.app_name || p.name || '—');
-      const qty = Number(it.quantity || 0);
-      const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
+      const ppb = Math.max(1, Number(p.pieces_per_box || 1));
+      productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
+      // Convert DB-stored B.P quantities to fractional boxes so aggregation is correct
+      const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const giftBoxes = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
+      const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
       let unitPrice = 0;
       if (sub.includes('super')) unitPrice = Number(p.price_super_gros || 0);
@@ -649,7 +654,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       }
     });
   });
-  const products = Array.from(productMap.entries()).map(([id, name]) => ({ id, name }));
+  const products = Array.from(productMap.entries()).map(([id, v]) => ({ id, name: v.name, piecesPerBox: v.ppb }));
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
@@ -843,15 +848,18 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['amount', 'Montant (DA)'],
       ];
       const head = `<tr><th style="text-align:left;padding-left:8px">Métrique</th>${productMatrix.products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}<th>Total</th></tr>`;
+      const fmtCell = (v: number, ppb: number, isAmount: boolean) =>
+        isAmount ? Math.round(v).toLocaleString() : (v ? boxesToBPAlways(v, ppb) : '0');
       const body = rowLabels.map(([key, label]) => {
+        const isAmount = key === 'amount';
         const cells = productMatrix.products.map(p => Number(productMatrix.rows[key]?.[p.id] || 0));
         const total = cells.reduce((a, b) => a + b, 0);
-        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map(v => `<td>${v.toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${total.toLocaleString()}</td></tr>`;
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${fmtCell(v, productMatrix.products[i].piecesPerBox, isAmount)}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${isAmount ? Math.round(total).toLocaleString() : total.toLocaleString()}</td></tr>`;
       }).join('');
       const workerBody = (productMatrix.workers || []).map(w => {
         const cells = productMatrix.products.map(p => Number(productMatrix.workerRows?.[w.id]?.[p.id] || 0));
         const total = cells.reduce((a, b) => a + b, 0);
-        return `<tr><td style="text-align:left;padding-left:8px;font-weight:600;color:#334155;background:#f1f5f9">${escapeHtml(w.name)}</td>${cells.map(v => `<td>${v ? v.toLocaleString() : 0}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${total.toLocaleString()}</td></tr>`;
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:600;color:#334155;background:#f1f5f9">${escapeHtml(w.name)}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, productMatrix.products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${total.toLocaleString()}</td></tr>`;
       }).join('');
       const separator = workerBody ? `<tr><td colspan="${productMatrix.products.length + 2}" style="background:#0f172a;color:#fff;text-align:left;padding:4px 8px;font-weight:700;text-transform:uppercase;font-size:9px">Par Vendeur</td></tr>` : '';
       return `<div class="block">
