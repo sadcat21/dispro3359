@@ -659,7 +659,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       invoiceMethod: invoicePaymentMethod,
     }));
 
-    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer')) {
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check')) {
       setShowReceiptPaymentDialog(true);
     } else {
       setShowPaymentDialog(true);
