@@ -285,8 +285,8 @@ export const useCreateOrder = () => {
         console.warn('[useCreateOrder] pending_offer_confirmations seed failed', e);
       }
 
-      // إذا كانت الطلبية بفاتورة → أنشئ طلب موافقة معتمد تلقائياً من مدير الفرع
-      // ويُحوَّل مباشرة إلى مساعد المدير العام للموافقة النهائية
+      // مسار الفاتورة 1: يُنشأ طلب الفاتورة تلقائياً ومعتمد فوراً
+      // (بدون أي موافقة من مدير الفرع أو مساعد المدير العام)
       if (paymentType === 'with_invoice') {
         const nowIso = new Date().toISOString();
         const { error: invReqError } = await supabase
@@ -296,15 +296,17 @@ export const useCreateOrder = () => {
             customer_id: customerId,
             worker_id: workerId!,
             branch_id: activeBranch?.id || null,
-            status: 'pending_assistant',
+            status: 'approved',
             payment_method: invoicePaymentMethod || null,
             products: items as any,
             branch_approved_by: workerId!,
             branch_approved_at: nowIso,
+            assistant_approved_by: workerId!,
+            assistant_approved_at: nowIso,
           } as any);
 
         if (invReqError) {
-          console.warn('[useCreateOrder] فشل إنشاء طلب موافقة الفاتورة:', invReqError);
+          console.warn('[useCreateOrder] فشل إنشاء طلب الفاتورة:', invReqError);
         }
       }
 
