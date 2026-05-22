@@ -118,6 +118,12 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
         <span className="text-muted-foreground">{t('expenses_summary.total_all_statuses')}</span>
         <span className="font-bold">{fmt(total)} DA</span>
       </div>
+
+      <ReceiptViewerDialog
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        receiptUrls={viewerUrls}
+      />
     </div>
   );
 };
