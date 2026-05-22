@@ -421,11 +421,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               const stampKey = `stamp_${inv.orderId}`;
               const isStampReceived = receivedDocs ? receivedDocs[stampKey] !== false : true;
               return (
-              <div key={inv.orderId} className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 ${!isStampReceived ? 'border-destructive/40 bg-destructive/5' : ''}`}>
+              <div
+                key={inv.orderId}
+                onClick={() => setStampDialog(inv)}
+                className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors hover:bg-muted/40 ${
+                  inv.received
+                    ? 'border-green-300 dark:border-green-800 bg-green-50/60 dark:bg-green-900/20'
+                    : !isStampReceived ? 'border-destructive/40 bg-destructive/5' : ''
+                }`}
+              >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   {onReceivedDocsChange && (
                     <button
-                      onClick={() => onReceivedDocsChange({ ...receivedDocs, [stampKey]: !isStampReceived })}
+                      onClick={(e) => { e.stopPropagation(); onReceivedDocsChange({ ...receivedDocs, [stampKey]: !isStampReceived }); }}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isStampReceived ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-destructive/10 text-destructive'}`}
                     >
                       {isStampReceived ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
@@ -436,11 +444,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{inv.customerName}</p>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
                         {inv.paymentMethod === 'check' ? 'Chèque' : 'كاش'}
                       </Badge>
+                      {inv.invoiceNumber && (
+                        <span className="text-[10px] text-muted-foreground">فاتورة: {inv.invoiceNumber}</span>
+                      )}
                     </div>
                   </div>
                 </div>
