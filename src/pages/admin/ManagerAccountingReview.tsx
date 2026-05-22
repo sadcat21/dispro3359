@@ -580,6 +580,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     .from('orders')
     .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice))')
     .in('assigned_worker_id', workerIds)
+    .eq('status', 'delivered')
     .gte('created_at', from)
     .lte('created_at', to);
   const productMap = new Map<string, string>();
