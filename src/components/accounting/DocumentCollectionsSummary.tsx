@@ -257,24 +257,34 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, payment_type, customer:customers!orders_customer_id_fkey(name)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, payment_type, document_status, document_verification, customer:customers!orders_customer_id_fkey(name)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .in('invoice_payment_method', ['check', 'cash'])
+        .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement'])
         .gte('updated_at', startTz)
         .lte('updated_at', endTz);
 
-      return (data || []).map((o: any): StampedInvoice => ({
-        orderId: o.id,
-        customerName: o.customer?.name || 'غير معروف',
-        orderTotal: Number(o.total_amount || 0),
-        paymentMethod: o.invoice_payment_method || 'cash',
-        received: !!o.invoice_received_at,
-        receivedAt: o.invoice_received_at,
-        invoiceNumber: o.invoice_number || null,
-        issueDate: o.invoice_sent_at ? String(o.invoice_sent_at).substring(0, 10) : null,
-      }));
+      return (data || []).map((o: any): StampedInvoice => {
+        const v = o.document_verification && typeof o.document_verification === 'object' ? o.document_verification : {};
+        const bucket: 'cash' | 'doc' | null =
+          v.manager_receipt_bucket === 'cash' || v.manager_receipt_bucket === 'doc'
+            ? v.manager_receipt_bucket
+            : (v.paid_by_cash === true ? 'cash' : null);
+        return {
+          orderId: o.id,
+          customerName: o.customer?.name || 'غير معروف',
+          orderTotal: Number(o.total_amount || 0),
+          paymentMethod: o.invoice_payment_method || 'cash',
+          bucket,
+          received: !!o.invoice_received_at,
+          receivedAt: o.invoice_received_at,
+          invoiceNumber: o.invoice_number || null,
+          issueDate: o.invoice_sent_at ? String(o.invoice_sent_at).substring(0, 10) : null,
+          documentVerification: o.document_verification,
+          documentStatus: o.document_status,
+        };
+      });
     },
   });
 
