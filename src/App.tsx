@@ -87,6 +87,7 @@ const BackupRestore = lazy(() => import("./pages/admin/BackupRestore"));
 const ManagerSalesSummaryPage = lazy(() => import("./pages/admin/ManagerSalesSummaryPage"));
 const PromoTracking = lazy(() => import("./pages/admin/PromoTracking"));
 const ManagerAccountingReview = lazy(() => import("./pages/admin/ManagerAccountingReview"));
+const ManagerReviewDetail = lazy(() => import("./pages/admin/ManagerReviewDetail"));
 const WorkerRounds = lazy(() => import("./pages/admin/WorkerRounds"));
 const WorkerRolesManagement = lazy(() => import("./pages/admin/WorkerRolesManagement"));
 const AssistantPermissionsControl = lazy(() => import("./pages/admin/AssistantPermissionsControl"));
