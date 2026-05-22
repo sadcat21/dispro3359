@@ -30,7 +30,8 @@ import TruckReviewSection from './TruckReviewSection';
 import TruckUnloadDialog from './TruckUnloadDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Info } from 'lucide-react';
+import { Info, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface CreateSessionDialogProps {
   open: boolean;
