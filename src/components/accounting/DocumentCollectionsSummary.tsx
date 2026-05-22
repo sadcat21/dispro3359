@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import DocumentFlowDialog from '@/components/documents/DocumentFlowDialog';
 import { toast } from 'sonner';
 
@@ -16,6 +19,8 @@ interface StampedInvoice {
   paymentMethod: string;
   received: boolean;
   receivedAt: string | null;
+  invoiceNumber: string | null;
+  issueDate: string | null;
 }
 
 interface DocumentCollectionsSummaryProps {
