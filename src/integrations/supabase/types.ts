@@ -9669,6 +9669,16 @@ export type Database = {
           to_status: string
         }[]
       }
+      get_branch_manager_treasury_balances: {
+        Args: { p_branch_id?: string }
+        Returns: {
+          full_name: string
+          handed_over: number
+          manager_id: string
+          remaining: number
+          total_in: number
+        }[]
+      }
       get_customer_account_id: { Args: never; Returns: string }
       get_customer_sales_rep_statuses: {
         Args: {
