@@ -450,6 +450,7 @@ const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => (
       const cashExp = get('physical_cash', 'expected_amount');
       const cashAct = get('physical_cash');
       const diff = cashAct - cashExp;
+      const expensesTotal = get('expenses');
 
       return (
         <Card key={session.id} className="rounded-xl border">
@@ -471,8 +472,26 @@ const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => (
               <MiniBox label={diff >= 0 ? 'فائض' : 'عجز'} value={diff} color={diff >= 0 ? 'green' : 'red'} showSign />
               <MiniBox label="ديون جديدة" value={get('new_debts')} color="red" />
               <MiniBox label="تحصيل ديون" value={get('debt_collections_total')} color="orange" />
-              <MiniBox label="مصاريف" value={get('expenses')} />
+              <MiniBox label="مصاريف" value={expensesTotal} color="orange" />
             </div>
+            {expensesTotal > 0 && session.worker?.id && session.period_start && session.period_end && (
+              <Collapsible>
+                <CollapsibleTrigger className="w-full flex items-center justify-between text-[11px] font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg px-2.5 py-1.5 transition">
+                  <span className="flex items-center gap-1.5">
+                    <Receipt className="w-3.5 h-3.5" />
+                    تفاصيل المصاريف ({fmt(expensesTotal)} د.ج)
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <ExpensesDetailsSummary
+                    workerId={session.worker.id}
+                    periodStart={session.period_start}
+                    periodEnd={session.period_end}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </CardContent>
         </Card>
       );
