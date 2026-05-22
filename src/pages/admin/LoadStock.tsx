@@ -737,6 +737,8 @@ const LoadStock: React.FC = () => {
     if (!matching) return null;
     const offerRow = matching;
     const stageCfg = (settings as any)?.stage_settings?.worker_loading;
+    // If the offers showcase is disabled for this stage, hide gift UI entirely.
+    if (stageCfg && stageCfg.showcase_enabled === false) return null;
     // Per-stage override: aggregate is_mandatory may be true because another
     // stage requires it; honor the worker_loading stage flag when present.
     const stageMandatory = stageCfg ? !!stageCfg.is_mandatory : !!(offerRow as any).is_mandatory;
