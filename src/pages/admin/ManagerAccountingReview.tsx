@@ -599,6 +599,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {}, amount: {},
   };
   const workerRows: Record<string, Record<string, number>> = {};
+  const workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }> = {};
   const bump = (row: string, pid: string, n: number) => {
     if (!n) return;
     rows[row][pid] = (rows[row][pid] || 0) + n;
@@ -608,6 +609,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerRows[wid]) workerRows[wid] = {};
     workerRows[wid][pid] = (workerRows[wid][pid] || 0) + n;
   };
+  const bumpWorkerMethod = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', n: number) => {
+    if (!n) return;
+    if (!workerMethodAmounts[wid]) workerMethodAmounts[wid] = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
+    workerMethodAmounts[wid][method] += n;
+  };
+
   const workerWindows = new Map<string, Array<[number, number]>>();
   sessions.forEach((s: any) => {
     const wid = s.worker_id ?? s.worker?.id;
