@@ -774,7 +774,9 @@ const AdminHome: React.FC = () => {
             </div>
           </button>
         </div>
-      )}
+        </div>
+        );
+      })()}
 
       {isProjectManager && (
         <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
