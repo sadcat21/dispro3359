@@ -490,10 +490,41 @@ const MyPromosContent: React.FC = () => {
                           .filter((offer) => offer.product_id === first.product_id)
                           .find((offer) => isOfferCurrentlyActive(offer, new Date(first.promo_date)))
                       : null;
-                    const offer = explicitOffer || inferredOffer;
+                    const baseOffer = explicitOffer || inferredOffer;
+                    const ppb = Number(first.product?.pieces_per_box || 0);
+
+                    // Resolve the actual tier applied to this promo from DB tiers,
+                    // by matching the promo's vente_quantity (converted to pieces)
+                    // against the largest tier whose min_quantity (in pieces) ≤ sold.
+                    const tiers: any[] = (baseOffer as any)?.__tiers || [];
+                    const soldPieces = (() => {
+                      const u = (promoSaleUnit || baseOffer?.min_quantity_unit || 'piece') as 'box' | 'piece';
+                      const q = Number(first.vente_quantity || 0);
+                      return u === 'box' ? q * ppb : q;
+                    })();
+                    const matchedTier = tiers.length > 0
+                      ? [...tiers]
+                          .map((t) => {
+                            const u = (t.min_quantity_unit || 'piece') as 'box' | 'piece';
+                            const minPieces = u === 'box' ? Number(t.min_quantity || 0) * ppb : Number(t.min_quantity || 0);
+                            return { ...t, __minPieces: minPieces };
+                          })
+                          .filter((t) => t.__minPieces <= soldPieces || soldPieces === 0)
+                          .sort((a, b) => b.__minPieces - a.__minPieces)[0] || tiers[0]
+                      : null;
+
+                    const offer = matchedTier
+                      ? {
+                          ...baseOffer,
+                          min_quantity: matchedTier.min_quantity,
+                          min_quantity_unit: matchedTier.min_quantity_unit,
+                          gift_quantity: matchedTier.gift_quantity,
+                          gift_quantity_unit: matchedTier.gift_quantity_unit,
+                        }
+                      : baseOffer;
+
                     const saleUnit = (promoSaleUnit || offer?.min_quantity_unit || 'piece') as 'box' | 'piece';
                     const giftUnit = (promoGiftUnit || offer?.gift_quantity_unit || 'piece') as 'box' | 'piece';
-                    const ppb = Number(first.product?.pieces_per_box || 0);
                      const offerSaleBP = offer ? formatBP(saleUnit === 'box' ? Number(offer.min_quantity || 0) * ppb : Number(offer.min_quantity || 0), ppb) : '';
                      const offerGiftBP = offer ? formatBP(giftUnit === 'box' ? Number(offer.gift_quantity || 0) * ppb : Number(offer.gift_quantity || 0), ppb) : '';
                      // Totals across all customers in this product group
