@@ -592,24 +592,26 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   )}
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
-                <Input
-                  id="stamp-inv-num"
-                  value={stampInvoiceNumber}
-                  onChange={(e) => setStampInvoiceNumber(e.target.value)}
-                  placeholder="أدخل رقم الفاتورة"
-                  className="text-right"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="stamp-inv-date">تاريخ إصدار الفاتورة *</Label>
-                <Input
-                  id="stamp-inv-date"
-                  type="date"
-                  value={stampIssueDate}
-                  onChange={(e) => setStampIssueDate(e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
+                  <Input
+                    id="stamp-inv-num"
+                    value={stampInvoiceNumber}
+                    onChange={(e) => setStampInvoiceNumber(e.target.value)}
+                    placeholder="أدخل رقم الفاتورة"
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="stamp-inv-date">تاريخ إصدار الفاتورة *</Label>
+                  <Input
+                    id="stamp-inv-date"
+                    type="date"
+                    value={stampIssueDate}
+                    onChange={(e) => setStampIssueDate(e.target.value)}
+                  />
+                </div>
               </div>
               {(() => {
                 const m = (stampDialog.paymentMethod || '').toLowerCase();
