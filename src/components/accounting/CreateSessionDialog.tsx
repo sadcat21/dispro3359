@@ -24,6 +24,7 @@ import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
 import ExceptionalActionsSummary from './ExceptionalActionsSummary';
 import WorkerHandoverSummary from './WorkerHandoverSummary';
+import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
 import TruckReviewSection from './TruckReviewSection';
 import TruckUnloadDialog from './TruckUnloadDialog';
