@@ -112,6 +112,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [prepaidAmount, setPrepaidAmount] = useState('');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [selectedDeliveryWorker, setSelectedDeliveryWorker] = useState('');
   const [showAssignWorkerDialog, setShowAssignWorkerDialog] = useState(false);
   const [savedOrderId, setSavedOrderId] = useState('');
