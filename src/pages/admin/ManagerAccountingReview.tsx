@@ -929,9 +929,43 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
 
       }).join('');
+
+      // Aggregate totals across all workers
+      const aggMAmt = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 } as Record<string, number>;
+      const aggMQty: Record<string, Record<string, number>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+      const aggOffered: Record<string, number> = {};
+      const aggAmount: Record<string, number> = {};
+      productMatrix.workers.forEach(w => {
+        const mAmt = productMatrix.workerMethodAmounts?.[w.id] || { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+        const off = productMatrix.workerOfferedQty?.[w.id] || {};
+        const amt = productMatrix.workerProductAmount?.[w.id] || {};
+        methods.forEach(([k]) => {
+          aggMAmt[k] += mAmt[k] || 0;
+          products.forEach(p => { aggMQty[k][p.id] = (aggMQty[k][p.id] || 0) + Number(mQty[k]?.[p.id] || 0); });
+        });
+        products.forEach(p => {
+          aggOffered[p.id] = (aggOffered[p.id] || 0) + Number(off[p.id] || 0);
+          aggAmount[p.id] = (aggAmount[p.id] || 0) + Number(amt[p.id] || 0);
+        });
+      });
+      const gHeader = `<tr><td colspan="${products.length + 2}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
+      const gMethodRows = methods.map(([k, label]) => {
+        const cells = products.map(p => Number(aggMQty[k]?.[p.id] || 0));
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${Math.round(aggMAmt[k] || 0).toLocaleString()}</td></tr>`;
+      }).join('');
+      const gOfferedCells = products.map(p => Number(aggOffered[p.id] || 0));
+      const gOfferedRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${gOfferedCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td>—</td></tr>`;
+      const gTotalAmt = methods.reduce((a, [k]) => a + (aggMAmt[k] || 0), 0);
+      const gTotalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(aggMQty[k]?.[p.id] || 0), 0));
+      const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
+      const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(gTotalAmt).toLocaleString()}</td></tr>`;
+      const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(gTotalAmt).toLocaleString()}</td></tr>`;
+      const grandBlock = gHeader + gMethodRows + gOfferedRow + gAmountRow + gTotalRow;
+
       return `<div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-        <table><thead>${head}</thead><tbody>${blocks}</tbody></table>
+        <table><thead>${head}</thead><tbody>${blocks}${grandBlock}</tbody></table>
       </div>`;
     })()}
 
