@@ -122,11 +122,12 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
     return (
       <div className="space-y-2">
         {list.map(r => (
-          <div key={r.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white">
+          <div key={r.id} className={`flex items-center justify-between p-3 rounded-lg border bg-white ${r.unloadConfirmedAt ? 'border-emerald-300' : 'border-slate-200'}`}>
             <div className="min-w-0">
               <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
               <p className="text-[11px] text-slate-500">
                 {new Date(r.createdAt).toLocaleDateString('ar-DZ')}
+                {r.unloadConfirmedAt && <span className="ms-2 text-emerald-600">• مؤكَّد في الجلسة</span>}
               </p>
             </div>
             <Badge variant="secondary" className="text-xs">{formatMoney(r.total)} دج</Badge>
