@@ -564,12 +564,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-base font-bold leading-tight truncate">{stampDialog.customerName}</p>
-                    {stampDialog.storeName && (
-                      <p className="text-xs font-semibold text-primary truncate flex items-center gap-1 mt-0.5">
-                        <Stamp className="w-3 h-3 shrink-0" />
-                        {stampDialog.storeName}
-                      </p>
-                    )}
+                    <p className="text-xs font-semibold text-primary truncate flex items-center gap-1 mt-0.5">
+                      <Stamp className="w-3 h-3 shrink-0" />
+                      {stampDialog.storeName || <span className="text-muted-foreground font-normal">بدون اسم محل</span>}
+                    </p>
                     {stampDialog.customerPhone && (
                       <p className="text-[11px] text-muted-foreground mt-0.5" dir="ltr">{stampDialog.customerPhone}</p>
                     )}
