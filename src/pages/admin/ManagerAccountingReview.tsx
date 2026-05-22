@@ -547,12 +547,15 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 
 const amount = (value: number | string) => typeof value === 'number' ? value.toLocaleString() : escapeHtml(value);
 
-export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string }) => {
+export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
   const today = format(new Date(), 'yyyy-MM-dd HH:mm');
+  const sessionDates = sessions.map((s: any) => s.completed_at).filter(Boolean).map((d: string) => new Date(d).getTime());
+  const periodFrom = sessionDates.length ? format(new Date(Math.min(...sessionDates)), 'yyyy-MM-dd HH:mm') : '—';
+  const periodTo = sessionDates.length ? format(new Date(Math.max(...sessionDates)), 'yyyy-MM-dd HH:mm') : '—';
   const row = (label: string, value: number | string, color = '#0f172a') => `
     <div class="row">
       <span>${escapeHtml(label)}</span>
