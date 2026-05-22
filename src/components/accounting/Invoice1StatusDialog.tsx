@@ -22,6 +22,8 @@ interface Row {
   bucket: Bucket;
   documentStatus: string | null;
   invoiceReceivedAt: string | null;
+  /** Timestamp of unload confirmation by loading manager for the matching session, if any */
+  unloadConfirmedAt: string | null;
 }
 
 const formatMoney = (n: number) => new Intl.NumberFormat('ar-DZ').format(n);
