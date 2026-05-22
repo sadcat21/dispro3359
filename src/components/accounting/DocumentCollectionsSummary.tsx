@@ -532,13 +532,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               .update({
                 document_verification: data.verification,
                 document_status: data.skippedVerification ? 'received' : 'verified',
+                invoice_received_at: new Date().toISOString(),
               })
               .eq('id', verifyDoc.orderId);
             if (error) {
               toast.error('فشل حفظ التحقق');
             } else {
               toast.success('تم حفظ التحقق بنجاح');
-              queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+              await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+              await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+              await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
             }
             setVerifyDoc(null);
           }}
