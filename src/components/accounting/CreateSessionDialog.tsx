@@ -859,7 +859,7 @@ const StepSection: React.FC<{
   children: React.ReactNode;
 }> = ({ step, title, color = 'primary', badge, important, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className={`rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : 'border-border'}`}>
       <CollapsibleTrigger className="flex items-center gap-2.5 w-full text-right">
