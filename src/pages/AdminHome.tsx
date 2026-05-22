@@ -279,6 +279,7 @@ const AdminHome: React.FC = () => {
       else if (pmRange === '2weeks') periodStartDate.setDate(periodStartDate.getDate() - 13);
       else if (pmRange === 'month') periodStartDate.setDate(1);
       const periodStart = periodStartDate.toISOString();
+      const queryStart = periodStart < startOfMonth ? periodStart : startOfMonth;
 
       // Resolve worker IDs of this branch (used as fallback when orders/sales lost branch_id)
       let branchWorkerIds: string[] = [];
