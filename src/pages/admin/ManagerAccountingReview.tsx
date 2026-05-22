@@ -666,15 +666,19 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
+        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty);
       } else if (sub.includes('super')) {
         bump('super_gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
+        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty);
       } else if (sub.includes('gros')) {
         bump('gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
+        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty);
       } else {
         bump('retail', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
+        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty);
       }
     });
   });
@@ -682,7 +686,8 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows, workerMethodAmounts };
+  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty };
+
 
 };
 
