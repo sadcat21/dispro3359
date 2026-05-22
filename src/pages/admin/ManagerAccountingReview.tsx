@@ -713,7 +713,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th>Total</th>
           </tr>
         </thead>
-        <tbody>${workerRows}</tbody>
+        <tbody>${workerRows}${totalRow}</tbody>
       </table>
     </div>
 
