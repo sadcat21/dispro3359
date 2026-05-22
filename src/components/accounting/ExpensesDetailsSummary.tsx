@@ -16,6 +16,8 @@ const fmt = (n: number) => Number(n || 0).toLocaleString();
 
 const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, periodEnd }) => {
   const { t } = useLanguage();
+  const [viewerUrls, setViewerUrls] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
     approved: { label: t('expenses_summary.status_approved'), cls: 'bg-green-100 text-green-700' },
     pending: { label: t('expenses_summary.status_pending'), cls: 'bg-amber-100 text-amber-700' },
