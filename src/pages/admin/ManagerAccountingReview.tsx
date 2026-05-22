@@ -907,6 +907,9 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['retail', 'Détail'],
       ];
       const products = productMatrix.products;
+      const pctMethode = 12;
+      const pctProduct = (100 - pctMethode) / Math.max(1, products.length);
+      const colgroup = `<colgroup><col style="width:${pctMethode}%" />${products.map(() => `<col style="width:${pctProduct}%" />`).join('')}</colgroup>`;
       const head = `<tr><th style="text-align:left;padding-left:8px">Méthode</th>${products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}</tr>`;
       const colspan = products.length + 1;
       const blocks = productMatrix.workers.map(w => {
@@ -925,7 +928,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const amountCells = products.map(p => Number(wAmt[p.id] || 0));
         const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        return headerRow + methodRows + offeredRow + amountRow + totalRow;
+        return headerRow + methodRows + offeredRow + totalRow + amountRow;
       }).join('');
 
       // Aggregate totals across all workers
@@ -958,15 +961,15 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
       const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
       const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-      const grandBlock = gHeader + gMethodRows + gOfferedRow + gAmountRow + gTotalRow;
+      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow + gAmountRow;
 
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
-        <table><thead>${head}</thead><tbody>${grandBlock}</tbody></table>
+        <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${grandBlock}</tbody></table>
       </div>
       <div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-        <table><thead>${head}</thead><tbody>${blocks}</tbody></table>
+        <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${blocks}</tbody></table>
       </div>`;
     })()}
 
