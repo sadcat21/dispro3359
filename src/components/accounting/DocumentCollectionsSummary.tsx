@@ -177,6 +177,9 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       return;
     }
     toast.success('تم تأكيد استلام الفاتورة');
+    if (onReceivedDocsChange) {
+      onReceivedDocsChange({ ...(receivedDocs || {}), [`stamp_${stampDialog.orderId}`]: true });
+    }
     await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
     await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
     setStampDialog(null);
