@@ -91,12 +91,22 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
     },
   });
 
+  if (dismissed) return null;
+
   return (
     <div
       onClick={() => navigate('/customer-debts')}
-      className="cursor-pointer rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-4 shadow-sm transition hover:shadow-md dark:border-rose-900 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20"
+      className="relative cursor-pointer rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-4 shadow-sm transition hover:shadow-md dark:border-rose-900 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20"
     >
-      <div className="flex items-center justify-between mb-3">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+        aria-label={t('common.dismiss') || 'إغلاق'}
+        className="absolute top-2 end-2 rounded-full p-1 text-rose-600/70 hover:bg-rose-100 hover:text-rose-800 dark:hover:bg-rose-950/60 transition"
+      >
+        <X className="h-4 w-4" />
+      </button>
+      <div className="flex items-center justify-between mb-3 pe-6">
         <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400">
           <Banknote className="h-5 w-5" />
           <h3 className="text-sm font-bold">{t('admin_home.debt_summary')}</h3>
