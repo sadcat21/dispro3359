@@ -7,10 +7,9 @@ import AddExpenseDialog from '@/components/expenses/AddExpenseDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Loader2, Receipt, Image, Filter, GitBranch } from 'lucide-react';
+import { Plus, Trash2, Loader2, Receipt, Image, Filter } from 'lucide-react';
 import { getCategoryName } from '@/utils/categoryName';
 import { formatDate, formatNumber } from '@/utils/formatters';
-import ExpenseJourneyDialog from '@/components/expenses/ExpenseJourneyDialog';
 import {
   Select,
   SelectContent,
@@ -119,7 +118,6 @@ const ExpenseCard: React.FC<{
   const status = STATUS_MAP_KEYS[expense.status] || STATUS_MAP_KEYS.pending;
   const receiptUrls = expense.receipt_urls?.length ? expense.receipt_urls : (expense.receipt_url ? [expense.receipt_url] : []);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [showJourney, setShowJourney] = useState(false);
 
   return (
     <>
@@ -171,10 +169,6 @@ const ExpenseCard: React.FC<{
         )}
 
         <div className="flex gap-2 pt-1">
-          <Button variant="outline" size="sm" onClick={() => setShowJourney(true)}>
-            <GitBranch className="w-3 h-3 me-1" />
-            {t('expenses.view_journey')}
-          </Button>
           {isOwner && expense.status === 'pending' && !hideDelete && (
             <Button variant="destructive" size="sm" onClick={onDelete}>
               <Trash2 className="w-3 h-3 me-1" />
@@ -188,11 +182,6 @@ const ExpenseCard: React.FC<{
         open={showReceipt}
         onOpenChange={setShowReceipt}
         receiptUrls={receiptUrls}
-      />
-      <ExpenseJourneyDialog
-        open={showJourney}
-        onOpenChange={setShowJourney}
-        expense={expense}
       />
     </>
   );
