@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSummary';
+import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 
@@ -431,7 +432,9 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
 };
 
 // Worker Breakdown Component
-export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => (
+export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => {
+  const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  return (
   <div className="space-y-2">
     <h3 className="text-sm font-bold flex items-center gap-2">
       <User className="w-4 h-4 text-primary" />
@@ -449,7 +452,11 @@ export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => 
       const expensesTotal = get('expenses');
 
       return (
-        <Card key={session.id} className="rounded-xl border">
+        <Card
+          key={session.id}
+          className="rounded-xl border cursor-pointer hover:border-primary/60 hover:shadow-sm transition"
+          onClick={() => setSelectedSession(session)}
+        >
           <CardContent className="p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -472,14 +479,17 @@ export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => 
             </div>
             {expensesTotal > 0 && session.worker?.id && session.period_start && session.period_end && (
               <Collapsible>
-                <CollapsibleTrigger className="w-full flex items-center justify-between text-[11px] font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg px-2.5 py-1.5 transition">
+                <CollapsibleTrigger
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full flex items-center justify-between text-[11px] font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg px-2.5 py-1.5 transition"
+                >
                   <span className="flex items-center gap-1.5">
                     <Receipt className="w-3.5 h-3.5" />
                     تفاصيل المصاريف ({fmt(expensesTotal)} د.ج)
                   </span>
                   <ChevronDown className="w-3.5 h-3.5" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2">
+                <CollapsibleContent className="pt-2" onClick={(e) => e.stopPropagation()}>
                   <ExpensesDetailsSummary
                     workerId={session.worker.id}
                     periodStart={session.period_start}
@@ -492,8 +502,16 @@ export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => 
         </Card>
       );
     })}
+    {selectedSession && (
+      <SessionDetailsDialog
+        open={!!selectedSession}
+        onOpenChange={(o) => !o && setSelectedSession(null)}
+        session={selectedSession}
+      />
+    )}
   </div>
-);
+  );
+};
 
 const SummaryRow: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color }) => {
   const bg = color === 'red' ? 'bg-red-50' : color === 'green' ? 'bg-green-50' : color === 'blue' ? 'bg-blue-50' : color === 'purple' ? 'bg-purple-50' : color === 'cyan' ? 'bg-cyan-50' : color === 'orange' ? 'bg-orange-50' : color === 'slate' ? 'bg-slate-50' : 'bg-muted/30';
