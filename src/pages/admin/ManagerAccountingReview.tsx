@@ -677,6 +677,16 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <div class="sign">Signature du Gérant</div>
       <div class="sign">Signature du Comptable</div>
     </footer>
+
+    ${qrDataUrl ? `
+    <section style="margin-top:14px;border-top:1px dashed #94a3b8;padding-top:10px;display:flex;align-items:center;gap:14px;justify-content:center;page-break-inside:avoid">
+      <img src="${qrDataUrl}" alt="QR" style="width:90px;height:90px;border:1px solid #cbd5e1;border-radius:4px;padding:3px;background:#fff" />
+      <div style="font-size:10px;color:#334155;line-height:1.5;max-width:300px">
+        <div style="font-weight:800;color:#0f172a;margin-bottom:2px">Scannez pour ouvrir la révision</div>
+        <div>Accès réservé au gérant du projet.</div>
+        ${qrUrl ? `<div style="font-family:monospace;font-size:8px;color:#64748b;word-break:break-all;margin-top:3px">${escapeHtml(qrUrl)}</div>` : ''}
+      </div>
+    </section>` : ''}
   </main>
 </body>
 </html>`;
