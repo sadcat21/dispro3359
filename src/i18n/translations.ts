@@ -2707,7 +2707,7 @@ export const translations: Translations = {
   'debt_collections.method_cash': { ar: 'نقدي', fr: 'Espèces', en: 'Cash' },
   'debt_collections.method_check': { ar: 'شيك', fr: 'Chèque', en: 'Check' },
   'debt_collections.method_transfer': { ar: 'تحويل', fr: 'Virement', en: 'Transfer' },
-  'debt_collections.method_receipt': { ar: 'وصل', fr: 'Reçu', en: 'Receipt' },
+  'debt_collections.method_receipt': { ar: 'Versement', fr: 'Versement', en: 'Versement' },
   'debt_collections.original_debt': { ar: 'الدين الأصلي', fr: 'Dette initiale', en: 'Original debt' },
   'debt_collections.paid_before': { ar: 'المدفوع سابقاً', fr: 'Déjà payé', en: 'Previously paid' },
   'debt_collections.collected': { ar: 'المحصّل', fr: 'Encaissé', en: 'Collected' },
