@@ -141,7 +141,9 @@ const NavButton: React.FC<{
           'transition-colors duration-200',
           isAchievements
             ? 'text-white'
-            : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
+            : item.key === 'home'
+              ? 'text-yellow-400'
+              : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
       {item.badge ? (
