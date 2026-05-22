@@ -324,6 +324,9 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           documentVerification: o.document_verification,
           documentStatus: o.document_status,
         };
+      }).sort((a, b) => {
+        if (a.received !== b.received) return a.received ? 1 : -1;
+        return 0;
       });
     },
   });
