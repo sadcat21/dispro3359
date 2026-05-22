@@ -377,7 +377,7 @@ const AdminHome: React.FC = () => {
       const { data: offerRows } = await offersQuery;
       const offerList = (offerRows || []) as any[];
       const monthGiftPieces = offerList.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
-      const todayOfferRows = offerList.filter((r) => r.sold_at >= startOfDay);
+      const todayOfferRows = offerList.filter((r) => r.sold_at >= periodStart);
       const todayGiftPieces = todayOfferRows.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
       const offersDeliveredMonth = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
       const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
