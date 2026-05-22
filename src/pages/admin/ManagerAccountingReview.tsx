@@ -564,7 +564,53 @@ const translateBranchToFr = (name: string) => {
   return out.replace(/\s+/g, ' ').trim();
 };
 
-export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string }) => {
+export type ProductMatrix = {
+  products: { id: string; name: string }[];
+  rows: Record<string, Record<string, number>>;
+};
+
+export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix> => {
+  const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
+  const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
+  const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {} };
+  const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
+  const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, gift_quantity, gift_pieces, price_subtype, products(id, name))')
+    .in('assigned_worker_id', workerIds)
+    .gte('created_at', from)
+    .lte('created_at', to);
+  const productMap = new Map<string, string>();
+  const rows: Record<string, Record<string, number>> = {
+    sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {},
+  };
+  const bump = (row: string, pid: string, n: number) => {
+    if (!n) return;
+    rows[row][pid] = (rows[row][pid] || 0) + n;
+  };
+  (orders || []).forEach((o: any) => {
+    const isInvoice1 = o.payment_type === 'with_invoice';
+    (o.order_items || []).forEach((it: any) => {
+      if (!it.product_id) return;
+      productMap.set(it.product_id, it.products?.name || '—');
+      const qty = Number(it.quantity || 0);
+      const gift = Number(it.gift_quantity || 0) + Number(it.gift_pieces || 0);
+      bump('sold', it.product_id, qty);
+      bump('offered', it.product_id, gift);
+      if (isInvoice1) bump('invoice1', it.product_id, qty);
+      const sub = (it.price_subtype || '').toLowerCase();
+      if (sub.includes('super')) bump('super_gros', it.product_id, qty);
+      else if (sub.includes('gros')) bump('gros', it.product_id, qty);
+      else if (sub.includes('retail') || sub.includes('detail')) bump('retail', it.product_id, qty);
+    });
+  });
+  const products = Array.from(productMap.entries()).map(([id, name]) => ({ id, name }));
+  return { products, rows };
+};
+
+export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDataUrl, qrUrl, accountantName, productMatrix }: { totals: any; sessions: any[]; branchName: string; qrDataUrl?: string; qrUrl?: string; accountantName?: string; productMatrix?: ProductMatrix }) => {
   const totalCash = totals.invoice1EspaceCash + totals.invoice1VersementCash + totals.invoice2Cash + totals.debtCollectionsCash;
   const totalChecks = totals.invoice1Check + totals.debtCollectionsCheck;
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
