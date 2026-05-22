@@ -161,7 +161,7 @@ const ManagerAccountingReview: React.FC = () => {
       totals: displayTotals,
       sessions: displaySessions,
       branchName: activeBranch?.name || '',
-      accountantName: (authState as any)?.user?.full_name || (authState as any)?.user?.fullName || '',
+      accountantName: user?.full_name || user?.fullName || user?.username || '',
     }));
     frameDocument.close();
 
