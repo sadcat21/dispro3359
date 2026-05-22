@@ -233,7 +233,7 @@ const InvoiceRequestReviewDialog: React.FC<Props> = ({ open, onOpenChange, reque
                         💰 {r.payment_method}
                       </Badge>
                     )}
-                    {r.invoice_scope === 'private' ? (
+                    {isPrivate ? (
                       <Badge className="bg-amber-100 text-amber-800 border border-amber-300 gap-1 text-[10px]">
                         <Lock className="w-3 h-3" />
                         {t('branch_manual_invoice.scope_private')}
