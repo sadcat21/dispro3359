@@ -3,6 +3,7 @@ import { resolveDeferredOfferIds } from '@/utils/deferredGiftStock';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReceiptDialog from '@/components/printing/ReceiptDialog';
+import { SaleSuccessDialog, SaleSuccessInfo } from '@/components/sales/SaleSuccessDialog';
 import AddCustomerDialog from '@/components/promo/AddCustomerDialog';
 import { ReceiptItem, ReceiptType } from '@/types/receipt';
 import { Button } from '@/components/ui/button';
@@ -147,6 +148,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successInfo, setSuccessInfo] = useState<SaleSuccessInfo | null>(null);
+  const [pendingReceiptData, setPendingReceiptData] = useState<any>(null);
   const [showOverflowDialog, setShowOverflowDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [overflowData, setOverflowData] = useState<any>(null);
@@ -894,9 +898,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           paid_amount: 0,
           notes: paymentData.notes,
         });
-        toast.success(t('debts.debt_recorded'));
+        // Note: success window will replace this toast at the end of the flow.
       } else {
-        toast.success(t('stock.direct_sale_success'));
+        // Note: success window will replace this toast at the end of the flow.
       }
 
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
@@ -973,7 +977,23 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const combinedNotes = [notes, offerNotes].filter(Boolean).join(' | ');
 
       const isWarehouseSrcReceipt = stockSource === 'warehouse' || isWarehouseManager;
-      setReceiptData({
+      // Check if a manual invoice request was created (for invoice 1 only).
+      let invoiceRequestSent: boolean | null = null;
+      if (frozenPaymentType === 'with_invoice') {
+        try {
+          const { data: req } = await supabase
+            .from('manual_invoice_requests')
+            .select('id')
+            .eq('order_id', order.id)
+            .maybeSingle();
+          invoiceRequestSent = !!req;
+        } catch {
+          invoiceRequestSent = false;
+        }
+      }
+
+      // Show success window before the receipt dialog.
+      setPendingReceiptData({
         receiptType: 'direct_sale' as ReceiptType,
         orderId: order.id,
         debtId: null,
@@ -999,7 +1019,16 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         isWarehouseSale: isWarehouseSrcReceipt,
         receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
       });
-      setShowReceiptDialog(true);
+      setSuccessInfo({
+        amount: orderTotals.totalAmount,
+        customerName: selectedCustomer?.name || '',
+        productNames: orderItems.map(i => getProductName(i.productId)),
+        paymentMethod: paymentData.paymentMethod,
+        paymentType: frozenPaymentType,
+        invoiceMethod: frozenInvoiceMethod,
+        invoiceRequestSent,
+      });
+      setShowSuccessDialog(true);
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
     } catch (error: any) {
       console.error('Direct sale error:', error);
@@ -1619,6 +1648,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           receiptData={receiptData}
         />
       )}
+
+      <SaleSuccessDialog
+        open={showSuccessDialog}
+        info={successInfo}
+        onClose={() => {
+          setShowSuccessDialog(false);
+          if (pendingReceiptData) {
+            setReceiptData(pendingReceiptData);
+            setPendingReceiptData(null);
+            setShowReceiptDialog(true);
+          }
+        }}
+      />
 
       {/* Add Customer Dialog */}
       <AddCustomerDialog
