@@ -1222,10 +1222,22 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
                 {/* Invoice Payment Method for with_invoice */}
                 {paymentType === 'with_invoice' && (
-                  <InvoicePaymentMethodSelect
-                    value={invoicePaymentMethod}
-                    onChange={setInvoicePaymentMethod}
-                  />
+                  <>
+                    <InvoicePaymentMethodSelect
+                      value={invoicePaymentMethod}
+                      onChange={setInvoicePaymentMethod}
+                    />
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium">رقم الفاتورة (اختياري)</Label>
+                      <Input
+                        value={invoiceNumber}
+                        onChange={(e) => setInvoiceNumber(e.target.value)}
+                        placeholder="أدخل رقم الفاتورة"
+                        dir="ltr"
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </>
                 )}
 
                 {/* Price Sub-Type - only for without_invoice */}
