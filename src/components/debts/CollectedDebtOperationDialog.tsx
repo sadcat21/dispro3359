@@ -150,6 +150,7 @@ const CollectedDebtOperationDialog: React.FC<Props> = ({ open, onOpenChange, col
       queryClient.invalidateQueries({ queryKey: ['customer-debt-summary'] }),
       queryClient.invalidateQueries({ queryKey: ['customer-debts-summary-all'] }),
       queryClient.invalidateQueries({ queryKey: ['debt-payments'] }),
+      queryClient.invalidateQueries({ queryKey: ['debt-payments-group'] }),
       queryClient.invalidateQueries({ queryKey: ['pending-collections'] }),
       queryClient.invalidateQueries({ queryKey: ['due-debts'] }),
       queryClient.invalidateQueries({ queryKey: ['today-debt-collections-dialog'] }),
