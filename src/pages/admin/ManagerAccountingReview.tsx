@@ -716,6 +716,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; color: #000; }
     tbody tr:nth-child(even) td { background: #f8fafc; }
     td:nth-child(2) { text-align: left; font-weight: 700; color: #0f172a; }
+    th:last-child, td:last-child { white-space: nowrap; padding-left: 6px; padding-right: 6px; }
     .signatures { margin-top: 14px; display: flex; justify-content: space-between; gap: 30px; font-size: 10px; color: #000; }
     .sign { flex: 1; border-top: 1px solid #0f172a; padding-top: 4px; text-align: center; }
   </style>
