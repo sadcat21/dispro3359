@@ -34,6 +34,7 @@ import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethod
 import ProductPriceBadge from '@/components/orders/ProductPriceBadge';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import DeliveryPaymentDialog from '@/components/orders/DeliveryPaymentDialog';
+import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
 import StockOverflowDialog from '@/components/warehouse/StockOverflowDialog';
 import { cn } from '@/lib/utils';
 import CustomerDistanceIndicator from '@/components/orders/CustomerDistanceIndicator';
