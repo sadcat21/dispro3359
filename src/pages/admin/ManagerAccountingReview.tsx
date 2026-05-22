@@ -848,9 +848,15 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const total = cells.reduce((a, b) => a + b, 0);
         return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map(v => `<td>${v.toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${total.toLocaleString()}</td></tr>`;
       }).join('');
+      const workerBody = (productMatrix.workers || []).map(w => {
+        const cells = productMatrix.products.map(p => Number(productMatrix.workerRows?.[w.id]?.[p.id] || 0));
+        const total = cells.reduce((a, b) => a + b, 0);
+        return `<tr><td style="text-align:left;padding-left:8px;font-weight:600;color:#334155;background:#f1f5f9">${escapeHtml(w.name)}</td>${cells.map(v => `<td>${v ? v.toLocaleString() : 0}</td>`).join('')}<td style="font-weight:700;color:#0369a1">${total.toLocaleString()}</td></tr>`;
+      }).join('');
+      const separator = workerBody ? `<tr><td colspan="${productMatrix.products.length + 2}" style="background:#0f172a;color:#fff;text-align:left;padding:4px 8px;font-weight:700;text-transform:uppercase;font-size:9px">Par Vendeur</td></tr>` : '';
       return `<div class="block">
         <div class="block-title" style="background:#fef2f2">Produits</div>
-        <table><thead>${head}</thead><tbody>${body}</tbody></table>
+        <table><thead>${head}</thead><tbody>${body}${separator}${workerBody}</tbody></table>
       </div>`;
     })()}
 
