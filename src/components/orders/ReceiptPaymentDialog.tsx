@@ -113,11 +113,35 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                 <Badge variant="outline" className="text-xs">{methodLabel} - Facture 1</Badge>
               </div>
 
+              <div>
+                <Label className="text-sm font-semibold">
+                  رقم الفاتورة <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  placeholder="أدخل رقم الفاتورة"
+                  className="h-11 mt-1 text-base font-semibold"
+                  autoFocus
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  إذا لم يكن لديك رقم فاتورة، أدخل <strong>1</strong>.
+                </p>
+                {trimmedInvoice === '1' && (
+                  <div className="mt-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>تم تسجيل العملية بدون رقم فاتورة (القيمة 1). يُرجى إضافة الرقم الفعلي لاحقاً.</span>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 gap-3">
                 <Button
                   className="h-14 text-base bg-green-600 hover:bg-green-700"
                   onClick={() => setMode('receipt')}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !hasInvoiceNumber}
                 >
                   <FileText className="w-5 h-5 me-2" />
                   استلام {docLabel}
@@ -126,7 +150,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                   variant="outline"
                   className="h-14 text-base"
                   onClick={() => setMode('cash')}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !hasInvoiceNumber}
                 >
                   <Banknote className="w-5 h-5 me-2" />
                   دفع كاش
@@ -135,7 +159,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                   variant="destructive"
                   className="h-14 text-base"
                   onClick={handleNoReceipt}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !hasInvoiceNumber}
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -145,6 +169,12 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                   بدون استلام (تسجيل دين)
                 </Button>
               </div>
+
+              {!hasInvoiceNumber && (
+                <div className="bg-muted/40 border border-border rounded-lg p-2 text-xs text-muted-foreground text-center">
+                  أدخل رقم الفاتورة لتفعيل الأزرار.
+                </div>
+              )}
 
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300">
                 <AlertTriangle className="w-4 h-4 inline me-1" />
