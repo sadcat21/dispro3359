@@ -15,6 +15,7 @@ import {
   SessionsSummary,
   WorkerBreakdown,
   buildManagerReviewPrintHtml,
+  fetchProductMatrix,
 } from './ManagerAccountingReview';
 
 const ManagerReviewDetail: React.FC = () => {
