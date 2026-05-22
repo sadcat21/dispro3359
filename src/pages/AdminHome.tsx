@@ -756,7 +756,7 @@ const AdminHome: React.FC = () => {
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.offers_today')}</p>
+                <p className="text-muted-foreground">{periodLabel} · {t('admin_home.offers_today')}</p>
                 <p className="mt-1 text-base font-bold text-rose-900">{pmSummary?.offersDeliveredToday || 0}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-2">
