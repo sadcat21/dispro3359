@@ -120,6 +120,7 @@ const AdminHome: React.FC = () => {
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
   const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
+  const [pmRange, setPmRange] = useState<'day' | 'week' | '2weeks' | 'month'>('day');
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
