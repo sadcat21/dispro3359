@@ -304,7 +304,7 @@ const AdminHome: React.FC = () => {
         salesQuery = salesQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
       }
       const { data: salesRows } = await salesQuery;
-      const monthSales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const monthSales = (salesRows || []).filter((r: any) => r.created_at >= startOfMonth).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
       const todaySales = (salesRows || [])
         .filter((r: any) => r.created_at >= periodStart)
         .reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
