@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+export type SalePaymentStatus = 'paid' | 'partial' | 'debt';
+
 export interface SaleSuccessInfo {
   amount: number;
   customerName: string;
@@ -11,6 +13,9 @@ export interface SaleSuccessInfo {
   paymentType?: 'with_invoice' | 'without_invoice' | string | null;
   invoiceMethod?: string | null;
   invoiceRequestSent?: boolean | null; // null = unknown / not applicable
+  paymentStatus?: SalePaymentStatus | null;
+  paidAmount?: number | null;
+  remainingAmount?: number | null;
 }
 
 interface Props {
