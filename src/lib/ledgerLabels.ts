@@ -85,7 +85,7 @@ export const REASON_LABELS: Record<string, string> = {
 
 export const STATUS_LABELS: Record<string, string> = {
   pending: 'قيد الانتظار',
-  pending_branch: 'بانتظار الفرع',
+  pending_branch: 'بانتظار اعتماد مدير الفرع ⏳',
   pending_assistant: 'بانتظار مساعد المدير',
   approved: 'معتمد',
   rejected: 'مرفوض',
