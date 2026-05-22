@@ -194,13 +194,6 @@ const ExpenseCard: React.FC<{
         onOpenChange={setShowJourney}
         expense={expense}
       />
-      </Card>
-
-      <ReceiptViewerDialog
-        open={showReceipt}
-        onOpenChange={setShowReceipt}
-        receiptUrls={receiptUrls}
-      />
     </>
   );
 };
