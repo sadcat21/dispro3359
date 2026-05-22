@@ -556,7 +556,7 @@ const WILAYA_FR: Record<string, string> = {
   'بومرداس': 'Boumerdès', 'تيزي وزو': 'Tizi Ouzou', 'ورقلة': 'Ouargla',
 };
 const translateBranchToFr = (name: string) => {
-  let out = (name || '').replace(/فرع/g, 'Agence de').trim();
+  let out = (name || '').replace(/فرع/g, 'Dépôt de').trim();
   Object.entries(WILAYA_FR).forEach(([ar, fr]) => { out = out.replace(new RegExp(ar, 'g'), fr); });
   return out.replace(/\s+/g, ' ').trim();
 };
@@ -674,7 +674,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     <header class="header">
       <div style="flex:1">
         <div class="title">Rapport de Révision des Comptes du Gérant</div>
-        <div class="subtitle"><b>Agence :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
+        <div class="subtitle"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
         <div class="subtitle" dir="ltr" style="text-align:left"><b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
       </div>
       ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
