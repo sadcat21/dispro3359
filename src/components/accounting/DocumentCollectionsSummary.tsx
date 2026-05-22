@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 interface StampedInvoice {
   orderId: string;
   customerName: string;
+  storeName: string | null;
+  customerPhone: string | null;
   orderTotal: number;
   paymentMethod: string;
   bucket: 'cash' | 'doc' | null;
