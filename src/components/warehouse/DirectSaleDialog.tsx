@@ -898,9 +898,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           paid_amount: 0,
           notes: paymentData.notes,
         });
-        toast.success(t('debts.debt_recorded'));
+        // Note: success window will replace this toast at the end of the flow.
       } else {
-        toast.success(t('stock.direct_sale_success'));
+        // Note: success window will replace this toast at the end of the flow.
       }
 
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
