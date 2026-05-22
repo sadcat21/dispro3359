@@ -567,8 +567,13 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     };
     const diff = get('physical_cash') - get('physical_cash', 'expected_amount');
     const sessionTotal = get('total_sales') + get('debt_collections_total') - get('expenses') - get('new_debts') + diff;
+    const ts = session.completed_at ? new Date(session.completed_at) : null;
+    const tsCell = ts
+      ? `<div style="color:#b91c1c;font-weight:800">${format(ts, 'HH:mm')}</div><div style="color:#0f172a;font-size:8px">${format(ts, 'yyyy-MM-dd')}</div>`
+      : '—';
     return `
       <tr>
+        <td style="white-space:nowrap">${tsCell}</td>
         <td>${escapeHtml(session.worker?.full_name || session.worker?.username || '—')}</td>
         <td>${get('total_sales').toLocaleString()}</td>
         <td>${get('physical_cash').toLocaleString()}</td>
@@ -618,7 +623,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     thead th { background: #0f172a; color: #fff; font-weight: 700; padding: 5px 4px; text-transform: uppercase; letter-spacing: 0.3px; font-size: 9px; }
     td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; }
     tbody tr:nth-child(even) td { background: #f8fafc; }
-    td:first-child { text-align: left; font-weight: 700; color: #0f172a; }
+    td:nth-child(2) { text-align: left; font-weight: 700; color: #0f172a; }
     .signatures { margin-top: 14px; display: flex; justify-content: space-between; gap: 30px; font-size: 10px; color: #475569; }
     .sign { flex: 1; border-top: 1px solid #0f172a; padding-top: 4px; text-align: center; }
   </style>
@@ -677,6 +682,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <table>
         <thead>
           <tr>
+            <th>Horodatage</th>
             <th style="text-align:left;padding-left:8px">Vendeur</th>
             <th>Ventes</th>
             <th>Espèces</th>
