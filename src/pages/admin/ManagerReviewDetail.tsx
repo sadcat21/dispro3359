@@ -122,7 +122,8 @@ const ManagerReviewDetail: React.FC = () => {
       <Card>
         <CardContent className="p-3 text-xs space-y-1">
           <div className="flex justify-between"><span className="text-muted-foreground">تاريخ الإكمال</span><span className="font-semibold">{review.completed_at ? format(new Date(review.completed_at), 'yyyy-MM-dd HH:mm') : '—'}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">عدد العمال</span><span className="font-semibold">{sessions.length}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">عدد العمال</span><span className="font-semibold">{new Set(sessions.map((s: any) => s.worker?.id).filter(Boolean)).size}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">عدد الجلسات</span><span className="font-semibold">{sessions.length}</span></div>
           {review.notes && <p className="mt-2 bg-muted/30 rounded p-2 text-muted-foreground">{review.notes}</p>}
         </CardContent>
       </Card>
