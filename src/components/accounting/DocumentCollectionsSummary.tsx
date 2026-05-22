@@ -560,22 +560,36 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           </DialogHeader>
           {stampDialog && (
             <div className="space-y-3 text-right">
-              <div className="bg-muted/40 rounded-lg p-2.5 text-sm space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-semibold">{stampDialog.customerName}</p>
-                  <Badge className={`${docTypeColor(stampDialog.paymentMethod)} text-[10px] px-2 py-0.5`}>
+              <div className="rounded-xl border-2 border-primary/15 bg-gradient-to-br from-primary/5 to-primary/0 p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-base font-bold leading-tight truncate">{stampDialog.customerName}</p>
+                    {stampDialog.storeName && (
+                      <p className="text-xs font-semibold text-primary truncate flex items-center gap-1 mt-0.5">
+                        <Stamp className="w-3 h-3 shrink-0" />
+                        {stampDialog.storeName}
+                      </p>
+                    )}
+                    {stampDialog.customerPhone && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5" dir="ltr">{stampDialog.customerPhone}</p>
+                    )}
+                  </div>
+                  <Badge className={`${docTypeColor(stampDialog.paymentMethod)} text-[10px] px-2 py-0.5 shrink-0`}>
                     {stampedMethodLabel(stampDialog.paymentMethod, stampDialog.bucket)}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">#{stampDialog.orderId.slice(0, 8)} • {fmt(stampDialog.orderTotal)} DA</p>
-                <div className="flex items-center gap-1.5 pt-1">
+                <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-primary/10">
+                  <span className="text-[10px] text-muted-foreground font-mono">#{stampDialog.orderId.slice(0, 8)}</span>
+                  <span className="text-sm font-black text-primary">{fmt(stampDialog.orderTotal)} DA</span>
+                </div>
+                <div className="flex items-center gap-1.5">
                   {stampDialog.received ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-green-600">
-                      <CheckCircle className="w-3.5 h-3.5" /> تم الاستلام
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">
+                      <CheckCircle className="w-3 h-3" /> تم الاستلام
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-destructive">
-                      <XCircle className="w-3.5 h-3.5" /> لم تُستلم
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
+                      <XCircle className="w-3 h-3" /> لم تُستلم
                     </span>
                   )}
                 </div>
