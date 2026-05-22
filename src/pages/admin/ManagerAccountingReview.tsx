@@ -585,6 +585,30 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       </tr>`;
   }).join('');
 
+  const sumField = (type: string, field: 'actual_amount' | 'expected_amount' = 'actual_amount') =>
+    sessions.reduce((acc: number, s: any) => {
+      const it = (s.items || []).find((i: any) => i.item_type === type);
+      return acc + (it ? Number(it[field]) : 0);
+    }, 0);
+  const tSales = sumField('total_sales');
+  const tCash = sumField('physical_cash');
+  const tDiff = tCash - sumField('physical_cash', 'expected_amount');
+  const tNewDebts = sumField('new_debts');
+  const tRecov = sumField('debt_collections_total');
+  const tExp = sumField('expenses');
+  const tTotal = tSales + tRecov - tExp - tNewDebts + tDiff;
+  const totalRow = `
+    <tr class="total-row" style="background:#fef2f2;font-weight:900;color:#000">
+      <td colspan="2" style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>
+      <td>${tSales.toLocaleString()}</td>
+      <td>${tCash.toLocaleString()}</td>
+      <td style="color:${tDiff >= 0 ? '#15803d' : '#b91c1c'}">${tDiff >= 0 ? '+' : ''}${tDiff.toLocaleString()}</td>
+      <td>${tNewDebts.toLocaleString()}</td>
+      <td>${tRecov.toLocaleString()}</td>
+      <td>${tExp.toLocaleString()}</td>
+      <td style="color:#0369a1">${tTotal.toLocaleString()}</td>
+    </tr>`;
+
   const twoCol = (left: string, right: string) => `<div class="two-col">${left}${right}</div>`;
   const block = (title: string, color: string, rowsHtml: string) => `
     <div class="block">
@@ -689,7 +713,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th>Total</th>
           </tr>
         </thead>
-        <tbody>${workerRows}</tbody>
+        <tbody>${workerRows}${totalRow}</tbody>
       </table>
     </div>
 
