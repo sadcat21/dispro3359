@@ -507,6 +507,52 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           }}
         />
       )}
+
+      {/* Stamped invoice receipt confirmation */}
+      <Dialog open={!!stampDialog} onOpenChange={(open) => { if (!open) setStampDialog(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-right">تأكيد استلام الفاتورة المختومة</DialogTitle>
+          </DialogHeader>
+          {stampDialog && (
+            <div className="space-y-3 text-right">
+              <div className="bg-muted/40 rounded-lg p-2.5 text-sm">
+                <p className="font-semibold">{stampDialog.customerName}</p>
+                <p className="text-xs text-muted-foreground">#{stampDialog.orderId.slice(0, 8)} • {fmt(stampDialog.orderTotal)} DA</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="stamp-inv-num">رقم الفاتورة *</Label>
+                <Input
+                  id="stamp-inv-num"
+                  value={stampInvoiceNumber}
+                  onChange={(e) => setStampInvoiceNumber(e.target.value)}
+                  placeholder="أدخل رقم الفاتورة"
+                  className="text-right"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="stamp-inv-date">تاريخ إصدار الفاتورة *</Label>
+                <Input
+                  id="stamp-inv-date"
+                  type="date"
+                  value={stampIssueDate}
+                  onChange={(e) => setStampIssueDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setStampDialog(null)} disabled={stampSaving}>إلغاء</Button>
+            <Button
+              onClick={handleConfirmStamp}
+              disabled={stampSaving || !stampInvoiceNumber.trim() || !stampIssueDate}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {stampSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
