@@ -276,7 +276,7 @@ const ManagerAccountingReview: React.FC = () => {
               <Card
                 key={review.id}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => { setSelectedReview(review.id); }}
+                onClick={() => { navigate(`/manager-accounting-review/${review.id}`); }}
               >
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
