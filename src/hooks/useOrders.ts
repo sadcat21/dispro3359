@@ -162,6 +162,7 @@ export const useCreateOrder = () => {
       deliveryDate,
       paymentType = 'with_invoice',
       invoicePaymentMethod,
+      invoiceNumber,
       assignedWorkerId,
       totalAmount,
       prepaidAmount
@@ -172,6 +173,7 @@ export const useCreateOrder = () => {
       deliveryDate?: string;
       paymentType?: 'with_invoice' | 'without_invoice';
       invoicePaymentMethod?: 'receipt' | 'check' | 'cash' | 'transfer' | null;
+      invoiceNumber?: string | null;
       assignedWorkerId?: string;
       totalAmount?: number;
       prepaidAmount?: number;
@@ -186,12 +188,13 @@ export const useCreateOrder = () => {
           delivery_date: deliveryDate || null,
           payment_type: paymentType,
           invoice_payment_method: invoicePaymentMethod || null,
+          invoice_number: invoiceNumber?.trim() || null,
           status: assignedWorkerId ? 'assigned' : 'pending',
           assigned_worker_id: assignedWorkerId || null,
           total_amount: totalAmount || null,
           prepaid_amount: prepaidAmount || 0,
           client_request_id: crypto.randomUUID(),
-        })
+        } as any)
         .select()
         .single();
 
