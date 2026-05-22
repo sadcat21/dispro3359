@@ -1649,6 +1649,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         />
       )}
 
+      <SaleSuccessDialog
+        open={showSuccessDialog}
+        info={successInfo}
+        onClose={() => {
+          setShowSuccessDialog(false);
+          if (pendingReceiptData) {
+            setReceiptData(pendingReceiptData);
+            setPendingReceiptData(null);
+            setShowReceiptDialog(true);
+          }
+        }}
+      />
+
       {/* Add Customer Dialog */}
       <AddCustomerDialog
         open={showAddCustomerDialog}
