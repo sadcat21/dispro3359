@@ -955,7 +955,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const amountCells = products.map(p => Number(wAmt[p.id] || 0));
         const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}<td style="color:#0369a1">${Math.round(totalAmt).toLocaleString()}</td></tr>`;
-        return headerRow + methodRows + offeredRow + totalRow + amountRow;
+        return headerRow + methodRows + offeredRow + amountRow + totalRow;
 
 
       }).join('');
