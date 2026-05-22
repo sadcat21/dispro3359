@@ -217,7 +217,7 @@ const ExtendOfferDialog: React.FC<ExtendOfferDialogProps> = ({
                   {startDate ? format(startDate, 'dd MMM yyyy', { locale: ar }) : 'اختر التاريخ'}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[100]" align="start">
+              <PopoverContent className="w-auto p-0 z-[10000]" align="start">
                 <Calendar
                   mode="single"
                   selected={startDate}
@@ -245,7 +245,7 @@ const ExtendOfferDialog: React.FC<ExtendOfferDialogProps> = ({
                   {endDate ? format(endDate, 'dd MMM yyyy', { locale: ar }) : 'اختر التاريخ'}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[100]" align="start">
+              <PopoverContent className="w-auto p-0 z-[10000]" align="start">
                 <Calendar
                   mode="single"
                   selected={endDate}
