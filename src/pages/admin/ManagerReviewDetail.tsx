@@ -20,7 +20,7 @@ import {
 const ManagerReviewDetail: React.FC = () => {
   const { reviewId } = useParams<{ reviewId: string }>();
   const navigate = useNavigate();
-  const { activeBranch } = useAuth();
+  const { activeBranch, user } = useAuth() as any;
 
   const { data: review, isLoading: loadingReview } = useQuery({
     queryKey: ['manager-review-session', reviewId],
