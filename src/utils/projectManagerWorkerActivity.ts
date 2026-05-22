@@ -20,6 +20,7 @@ const startOfTodayIso = () => {
 
 export async function fetchProjectManagerWorkerActivity(
   branchId?: string | null,
+  sinceIso?: string,
 ): Promise<ProjectManagerWorkerActivitySummary> {
   let branchWorkerIds: string[] | null = null;
 
@@ -43,7 +44,7 @@ export async function fetchProjectManagerWorkerActivity(
     .select('worker_id, created_at')
     .eq('movement_type', 'delivery')
     .eq('status', 'approved')
-    .gte('created_at', startOfTodayIso());
+    .gte('created_at', sinceIso || startOfTodayIso());
 
   if (branchWorkerIds) {
     movementsQuery = movementsQuery.in('worker_id', branchWorkerIds);
