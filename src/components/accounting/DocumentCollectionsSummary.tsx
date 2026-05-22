@@ -653,7 +653,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               </div>
               {(() => {
                 const m = (stampDialog.paymentMethod || '').toLowerCase();
-                if (m === 'cash') return null;
                 const label = m === 'check' ? 'إرفاق الشيك' : (m === 'transfer' || m === 'virement') ? 'إرفاق التحويل (Virement)' : 'إرفاق الوصل (Versement)';
                 const v = stampDialog.documentVerification && typeof stampDialog.documentVerification === 'object' ? stampDialog.documentVerification : {};
                 const attached = v.attached_to_invoice === true;
