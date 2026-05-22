@@ -420,7 +420,6 @@ export type Database = {
           address: string | null
           admin_id: string | null
           created_at: string
-          factory_sales_phone: string | null
           id: string
           is_active: boolean
           name: string
@@ -431,7 +430,6 @@ export type Database = {
           address?: string | null
           admin_id?: string | null
           created_at?: string
-          factory_sales_phone?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -442,7 +440,6 @@ export type Database = {
           address?: string | null
           admin_id?: string | null
           created_at?: string
-          factory_sales_phone?: string | null
           id?: string
           is_active?: boolean
           name?: string
