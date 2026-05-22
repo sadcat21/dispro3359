@@ -470,6 +470,16 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
           {/* Action icons */}
           <RefreshButton />
+          {(role === 'admin' || role === 'project_manager' || activeRole?.custom_role_code === 'company_manager' || activeRole?.custom_role_code === 'branch_manager' || activeRole?.custom_role_code === 'assistant_manager' || activeRole?.custom_role_code === 'accountant') && (
+            <button
+              onClick={() => setInvoice1Open(true)}
+              className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-emerald-500/30 hover:bg-emerald-500/50 transition-colors"
+              title="حالة فاتورة 1 والوثائق"
+              aria-label="حالة فاتورة 1 والوثائق"
+            >
+              <Receipt className="w-4 h-4 text-white" />
+            </button>
+          )}
           {(activeRole?.custom_role_code === 'company_manager' || role === 'project_manager' || role === 'admin') && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
