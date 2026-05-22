@@ -68,10 +68,10 @@ const SOURCE_BADGE_CLASS: Record<RequestSource, string> = {
   manual: 'bg-rose-100 text-rose-800 border-rose-300',
 };
 
-/** الطلبات الصادرة من البيع تُعتبر "خاصة" افتراضياً ما لم يُحدَّد غير ذلك */
+/** الطلبات الصادرة من البيع تُعتبر "خاصة" دائماً؛ غيرها يستخدم القيمة المخزّنة أو "عامة" افتراضياً */
 const resolveInvoiceScope = (row: { invoice_scope?: 'public' | 'private' | null }, source: RequestSource): 'public' | 'private' => {
-  if (row.invoice_scope === 'public' || row.invoice_scope === 'private') return row.invoice_scope;
   if (source === 'order' || source === 'direct_sale' || source === 'warehouse_sale') return 'private';
+  if (row.invoice_scope === 'public' || row.invoice_scope === 'private') return row.invoice_scope;
   return 'public';
 };
 
