@@ -74,7 +74,7 @@ const ManagerReviewDetail: React.FC = () => {
     const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
     if (!w || !d) { iframe.remove(); return; }
     d.open();
-    d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', qrDataUrl, qrUrl }));
+    d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', qrDataUrl, qrUrl, accountantName: user?.full_name || user?.fullName || user?.username || '' }));
     d.close();
     const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
     w.onafterprint = remove;
