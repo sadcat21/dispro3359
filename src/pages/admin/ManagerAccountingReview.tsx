@@ -670,7 +670,11 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
       bump('amount', it.product_id, qty * unitPrice);
+      bump('sold', it.product_id, qty);
+      bump('offered', it.product_id, gift);
+      bump('amount', it.product_id, qty * unitPrice);
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
+      bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
       const lineAmount = qty * unitPrice;
       if (isInvoice1) {
         bump('invoice1', it.product_id, qty);
@@ -695,7 +699,8 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workers = Array.from(workerMap.entries())
     .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty };
+  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty };
+
 
 
 };
