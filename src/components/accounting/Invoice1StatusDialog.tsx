@@ -37,7 +37,7 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
         .from('orders')
         .select(`
           id, total_amount, created_at, document_status, document_verification,
-          invoice_received_at, invoice_payment_method,
+          invoice_received_at, invoice_payment_method, assigned_worker_id,
           customer:customers!orders_customer_id_fkey(name)
         `)
         .eq('branch_id', branchId!)
@@ -47,7 +47,31 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
         .limit(500);
       if (error) throw error;
 
-      return (data || []).map((o: any): Row => {
+      // Fetch accounting sessions for this branch to determine unload confirmation
+      const { data: sessions } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, period_start, period_end, unload_confirmed, unload_confirmed_at')
+        .eq('branch_id', branchId!)
+        .eq('unload_confirmed', true)
+        .order('unload_confirmed_at', { ascending: false });
+
+      const sessionList = (sessions || []) as Array<{
+        worker_id: string; period_start: string; period_end: string;
+        unload_confirmed_at: string | null;
+      }>;
+
+      const findUnloadAt = (workerId: string | null, createdAt: string): string | null => {
+        if (!workerId) return null;
+        const t = new Date(createdAt).getTime();
+        const match = sessionList.find(s =>
+          s.worker_id === workerId &&
+          t >= new Date(s.period_start).getTime() &&
+          t <= new Date(s.period_end).getTime()
+        );
+        return match?.unload_confirmed_at || null;
+      };
+
+      const mapped: Row[] = (data || []).map((o: any) => {
         const dv = (o.document_verification && typeof o.document_verification === 'object')
           ? o.document_verification : {};
         const docReceived = o.document_status === 'received';
@@ -68,8 +92,21 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
           bucket,
           documentStatus: o.document_status,
           invoiceReceivedAt: o.invoice_received_at,
+          unloadConfirmedAt: findUnloadAt(o.assigned_worker_id, o.created_at),
         };
       });
+
+      // Sort: confirmed first (most recent confirmation), unconfirmed last by created_at desc
+      mapped.sort((a, b) => {
+        if (a.unloadConfirmedAt && b.unloadConfirmedAt) {
+          return new Date(b.unloadConfirmedAt).getTime() - new Date(a.unloadConfirmedAt).getTime();
+        }
+        if (a.unloadConfirmedAt) return -1;
+        if (b.unloadConfirmedAt) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+      return mapped;
     },
   });
 
