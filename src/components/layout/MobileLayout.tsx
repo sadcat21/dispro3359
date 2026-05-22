@@ -42,6 +42,7 @@ const InvoiceRequestDialog = React.lazy(() => import('@/components/treasury/Invo
 const TodayCustomersDialog = React.lazy(() => import('@/components/sectors/TodayCustomersDialog'));
 const StockConfirmationsPopover = React.lazy(() => import('@/components/stock/StockConfirmationsPopover'));
 const RecalibrateBalanceButton = React.lazy(() => import('@/components/stock/RecalibrateBalanceButton'));
+const Invoice1StatusDialog = React.lazy(() => import('@/components/accounting/Invoice1StatusDialog'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -202,6 +203,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [invoiceRequestOpen, setInvoiceRequestOpen] = useState(false);
   const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [invoice1Open, setInvoice1Open] = useState(false);
   const showInvoiceButton = isAdminRole(role);
   const { totalUnread } = useChat();
   const { startTracking } = useLocationBroadcast();
@@ -468,6 +470,16 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
           {/* Action icons */}
           <RefreshButton />
+          {(role === 'admin' || role === 'project_manager' || activeRole?.custom_role_code === 'company_manager' || activeRole?.custom_role_code === 'branch_manager' || activeRole?.custom_role_code === 'assistant_manager' || activeRole?.custom_role_code === 'accountant') && (
+            <button
+              onClick={() => setInvoice1Open(true)}
+              className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-emerald-500/30 hover:bg-emerald-500/50 transition-colors"
+              title="حالة فاتورة 1 والوثائق"
+              aria-label="حالة فاتورة 1 والوثائق"
+            >
+              <Receipt className="w-4 h-4 text-white" />
+            </button>
+          )}
           {(activeRole?.custom_role_code === 'company_manager' || role === 'project_manager' || role === 'admin') && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
           {/* Truck icon: stock confirmations for delivery reps & warehouse managers */}
@@ -1082,6 +1094,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {todayCustomersOpen && <TodayCustomersDialog open={todayCustomersOpen} onOpenChange={setTodayCustomersOpen} />}
         </React.Suspense>
       )}
+
+      <React.Suspense fallback={null}>
+        {invoice1Open && <Invoice1StatusDialog open={invoice1Open} onOpenChange={setInvoice1Open} branchId={activeBranch?.id} />}
+      </React.Suspense>
     </div>
   );
 };
