@@ -626,7 +626,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (isInvoice1) bump('invoice1', it.product_id, qty);
       if (sub.includes('super')) bump('super_gros', it.product_id, qty);
       else if (sub.includes('gros')) bump('gros', it.product_id, qty);
-      else if (sub.includes('retail') || sub.includes('detail')) bump('retail', it.product_id, qty);
+      else bump('retail', it.product_id, qty);
     });
   });
   const products = Array.from(productMap.entries()).map(([id, name]) => ({ id, name }));
