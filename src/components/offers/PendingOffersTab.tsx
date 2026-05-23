@@ -48,6 +48,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
   const [busyId, setBusyId] = useState<string | null>(null);
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [productCodes, setProductCodes] = useState<Record<string, string>>({});
+  const [productNames, setProductNames] = useState<Record<string, string>>({});
   const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
   const [orderStatuses, setOrderStatuses] = useState<Record<string, string>>({});
   const [historyOpen, setHistoryOpen] = useState(false);
