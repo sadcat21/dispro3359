@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<PendingOfferConfirmation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const qc = useQueryClient();
   // Optimistic status overrides keyed by id — applied immediately to prevent double-press.
   const [statusOverrides, setStatusOverrides] = useState<Record<string, 'confirmed' | 'rejected'>>({});
 
@@ -213,6 +215,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
       toast.error(res.error || 'فشل تأكيد العرض');
     } else {
       toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
+      await qc.invalidateQueries();
     }
   };
 
@@ -226,6 +229,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
       toast.error(res.error || 'فشل رفض العرض');
     } else {
       toast.success('تم رفض العرض');
+      await qc.invalidateQueries();
     }
   };
 
