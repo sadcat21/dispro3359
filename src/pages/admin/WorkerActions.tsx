@@ -815,12 +815,12 @@ const WorkerActions: React.FC = () => {
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
-    // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
-    const totalAvailable = totalLoaded;
-    const discrepancy = (totalSold + totalGift + totalUnloaded + storedQty) - totalLoaded;
+    // المجموع = الرصيد الافتتاحي (قبل الشحن) + ما تم تحميله. أي فرق يُعرض كتباين صريح.
     const hasTrueReset = rawMovements.some((movement) => movement.type === 'empty' && movement.note?.includes('رصيد صفر فعلي'));
-    const openingBalance = hasTrueReset ? 0 : discrepancy > 0.001 ? discrepancy : 0;
-    const shortage = discrepancy < -0.001 ? -discrepancy : 0;
+    const discrepancyRaw = (totalSold + totalGift + totalUnloaded + storedQty) - totalLoaded;
+    const openingBalance = hasTrueReset ? 0 : discrepancyRaw > 0.001 ? discrepancyRaw : 0;
+    const shortage = discrepancyRaw < -0.001 ? -discrepancyRaw : 0;
+    const totalAvailable = openingBalance + totalLoaded;
     // Piece-based arithmetic to avoid floating-point drift.
     // Note: values here are already in *fractional boxes* (converted via bpStoredToBoxes upstream),
     // so we convert to integer pieces, accumulate, then convert back to fractional boxes
@@ -848,8 +848,8 @@ const WorkerActions: React.FC = () => {
     });
     // Display newest first.
     const historyEntries = [...forwardEntries].reverse();
-    // الرصيد المعروض = إجمالي ما تم تحميله (المجموع). الحركات تظهر منفصلة في السجل.
-    const computedCurrent = totalAvailable;
+    // الباقي = المجموع − (المباع + الهدايا + التفريغ).
+    const computedCurrent = Math.max(0, totalAvailable - totalSold - totalGift - totalUnloaded);
 
     return {
       productId,
@@ -1108,9 +1108,12 @@ const WorkerActions: React.FC = () => {
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.deliveredGiftQty || 0;
-                      const totalAvailable = loaded + loadedGiftQty;
-                      // الباقي = المجموع المتاح (لا نخصم منه المبيع/التفريغ/الهدايا، الحركات معروضة منفصلة).
-                      const currentQty = totalAvailable;
+                      const storedQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+                      // الرصيد قبل الشحن = نستنتجه من (المخزون الحالي + المستهلك − المُحمَّل) إن كان موجبًا.
+                      const discrepancy = storedQty + sold + giftQty + unloaded - (loaded + loadedGiftQty);
+                      const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
+                      const totalAvailable = openingBalance + loaded + loadedGiftQty;
+                      const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
                       const saleCount = stats?.saleOrderIds?.size || 0;
