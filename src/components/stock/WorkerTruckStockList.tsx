@@ -486,7 +486,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
             const remaining = getRemaining(item);
             const isZero = remaining === 0;
             const s = stats[item.product_id] || {};
-            const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
+            const deliveredGiftQty = s.deliveredGiftQty || 0;
+            const totalQty = balanceByProduct[item.product_id]?.total ?? ((s.loaded || 0) + (s.loadedGiftQty || 0));
+            const hasSales = (s.sold || 0) > 0 || deliveredGiftQty > 0;
             return (
               <button
                 key={item.id}
@@ -521,7 +523,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
           const remaining = getRemaining(item);
           const isZero = remaining === 0;
-          const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
+          const deliveredGiftQty = s.deliveredGiftQty || 0;
+          const totalQty = balanceByProduct[item.product_id]?.total ?? ((s.loaded || 0) + (s.loadedGiftQty || 0));
+          const hasSales = (s.sold || 0) > 0 || deliveredGiftQty > 0;
           return (
             <button
               key={item.id}
@@ -552,7 +556,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <Package className="w-3 h-3" /> الباقي {fmtBP(remaining, ppb)}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> المجموع {fmtBP((s.loaded || 0) + (s.unloaded || 0) + (s.sold || 0) + (s.giftQty || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                  <Package className="w-3 h-3" /> المجموع {fmtBP(totalQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                   <TrendingUp className="w-3 h-3" /> شحن {fmtBP(s.lastLoaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
@@ -566,9 +570,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <TrendingDown className="w-3 h-3" /> مباع {fmtBP(s.sold || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.saleCount?.size > 0 && <span className="font-bold">×{s.saleCount.size}</span>}
                 </span>
-                {s.giftQty > 0 && (
+                {deliveredGiftQty > 0 && (
                   <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full">
-                    <Gift className="w-3 h-3" /> هدايا {fmtBP(s.giftQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                    <Gift className="w-3 h-3" /> هدايا {fmtBP(deliveredGiftQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   </span>
                 )}
               </div>
