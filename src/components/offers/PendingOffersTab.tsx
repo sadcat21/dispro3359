@@ -55,6 +55,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<PendingOfferConfirmation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const qc = useQueryClient();
   // Optimistic status overrides keyed by id — applied immediately to prevent double-press.
   const [statusOverrides, setStatusOverrides] = useState<Record<string, 'confirmed' | 'rejected'>>({});
 
