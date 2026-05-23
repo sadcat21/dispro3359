@@ -137,14 +137,34 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const rawFiltered = (rows || []).filter((r: any) =>
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
         );
-        // Deduplicate: same worker + customer + sold_at + qty often double-recorded across direct_sale/delivery_sale
+        // Deduplicate: same order often has two sales_tracking rows (direct_sale + delivery_sale)
+        // representing the same offer. Collapse them per order_id, preferring the delivered row.
+        // Fallback key (no order_id): worker+customer+sold_at+qty.
+        const orderIds0 = Array.from(new Set(rawFiltered.map((r: any) => r.order_id).filter(Boolean)));
+        const { data: ordersPre } = orderIds0.length
+          ? await supabase.from('orders').select('id, status').in('id', orderIds0 as string[])
+          : { data: [] as any[] };
+        const statusPre = new Map((ordersPre || []).map((o: any) => [o.id, o.status]));
+        const byOrder = new Map<string, any>();
         const seen = new Set<string>();
-        const filtered = rawFiltered.filter((r: any) => {
-          const key = `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
+        const filtered: any[] = [];
+        for (const r of rawFiltered) {
+          if (r.order_id) {
+            const prev = byOrder.get(r.order_id);
+            if (!prev) {
+              byOrder.set(r.order_id, r);
+            } else {
+              // Prefer the delivered one, otherwise the latest sold_at
+              const prevDelivered = statusPre.get(prev.order_id) === 'delivered';
+              const curDelivered = statusPre.get(r.order_id) === 'delivered';
+              if (curDelivered && !prevDelivered) byOrder.set(r.order_id, r);
+            }
+          } else {
+            const key = `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`;
+            if (!seen.has(key)) { seen.add(key); filtered.push(r); }
+          }
+        }
+        filtered.push(...byOrder.values());
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
