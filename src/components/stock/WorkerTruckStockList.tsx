@@ -7,6 +7,7 @@ import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, Calendar
 import { Button } from '@/components/ui/button';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
