@@ -114,7 +114,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     ])).filter((id) => id && !(id in productImages));
     if (ids.length === 0) return;
     (async () => {
-      const { data } = await supabase.from('products').select('id, image_url, product_code').in('id', ids);
+      const { data } = await supabase.from('products').select('id, image_url, product_code, app_name, name').in('id', ids);
       if (data) {
         setProductImages((prev) => {
           const next = { ...prev };
@@ -124,6 +124,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         setProductCodes((prev) => {
           const next = { ...prev };
           for (const p of data as any[]) next[p.id] = p.product_code || '';
+          return next;
+        });
+        setProductNames((prev) => {
+          const next = { ...prev };
+          for (const p of data as any[]) next[p.id] = p.app_name || p.name || '';
           return next;
         });
       }
