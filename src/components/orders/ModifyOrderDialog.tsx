@@ -1406,7 +1406,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             const { recordPendingOfferConfirmation } = await import('@/utils/pendingOfferConfirmations');
             const { data: freshGiftItems } = await supabase
               .from('order_items')
-              .select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(name)')
+              .select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box, product:products(name, app_name)')
               .eq('order_id', order.id);
 
             const giftRows = (freshGiftItems || []).filter(
@@ -1417,7 +1417,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               const offerIds = Array.from(new Set(giftRows.map((g: any) => g.gift_offer_id))) as string[];
               const { data: offers } = await supabase
                 .from('product_offers')
-                .select('id, is_deferred_confirmation, gift_product_id, gift_product:products!product_offers_gift_product_id_fkey(name)')
+                .select('id, is_deferred_confirmation, gift_product_id, gift_product:products!product_offers_gift_product_id_fkey(name, app_name)')
                 .in('id', offerIds);
               const deferredMap = new Map<string, any>();
               for (const o of (offers || []) as any[]) {
@@ -1443,10 +1443,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
                   orderItemId: g.id,
                   offerId: g.gift_offer_id,
                   productId: g.product_id,
-                  productName: g.product?.name || null,
+                  productName: g.product?.app_name || g.product?.name || null,
                   piecesPerBox: g.pieces_per_box || 1,
                   giftProductId: offer.gift_product_id || g.product_id,
-                  giftProductName: offer.gift_product?.name || g.product?.name || null,
+                  giftProductName: offer.gift_product?.app_name || offer.gift_product?.name || g.product?.app_name || g.product?.name || null,
                   giftBoxes: Number(g.gift_quantity || 0),
                   giftPieces: Number(g.gift_pieces || 0),
                   purchasedBoxes: Math.max(0, Math.floor(Number(g.quantity || 0) - Number(g.gift_quantity || 0))),

@@ -48,6 +48,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
   const [busyId, setBusyId] = useState<string | null>(null);
   const [productImages, setProductImages] = useState<Record<string, string>>({});
   const [productCodes, setProductCodes] = useState<Record<string, string>>({});
+  const [productNames, setProductNames] = useState<Record<string, string>>({});
   const [customerStores, setCustomerStores] = useState<Record<string, string>>({});
   const [orderStatuses, setOrderStatuses] = useState<Record<string, string>>({});
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -113,7 +114,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
     ])).filter((id) => id && !(id in productImages));
     if (ids.length === 0) return;
     (async () => {
-      const { data } = await supabase.from('products').select('id, image_url, product_code').in('id', ids);
+      const { data } = await supabase.from('products').select('id, image_url, product_code, app_name, name').in('id', ids);
       if (data) {
         setProductImages((prev) => {
           const next = { ...prev };
@@ -123,6 +124,11 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
         setProductCodes((prev) => {
           const next = { ...prev };
           for (const p of data as any[]) next[p.id] = p.product_code || '';
+          return next;
+        });
+        setProductNames((prev) => {
+          const next = { ...prev };
+          for (const p of data as any[]) next[p.id] = p.app_name || p.name || '';
           return next;
         });
       }
@@ -328,7 +334,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{r.product_name || 'منتج'}</p>
+                        <p className="text-sm font-medium truncate">{productNames[r.product_id] || r.product_name || 'منتج'}</p>
                         <p className="text-[11px] text-muted-foreground truncate">
                           {r.customer_name || 'بدون زبون'}{r.worker_name ? ` • ${r.worker_name}` : ''}
                         </p>
@@ -412,7 +418,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium truncate flex-1 min-w-0">{r.product_name || 'منتج'}</p>
+                        <p className="text-sm font-medium truncate flex-1 min-w-0">{productNames[r.product_id] || r.product_name || 'منتج'}</p>
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <button
                             type="button"
@@ -468,9 +474,9 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                           <span className="text-[10px] font-bold opacity-90">(PROMO)</span>
                         </span>
                       </div>
-                      {r.gift_product_name && r.gift_product_id !== r.product_id && (
+                      {r.gift_product_id && r.gift_product_id !== r.product_id && (
                         <p className="text-[11px] text-muted-foreground truncate mt-1">
-                          المنتج المُهدى: {r.gift_product_name}
+                          المنتج المُهدى: {productNames[r.gift_product_id] || r.gift_product_name || ''}
                         </p>
                       )}
                       {r.worker_name && (
