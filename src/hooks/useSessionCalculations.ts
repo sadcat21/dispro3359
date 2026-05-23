@@ -469,6 +469,9 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
       // Now add any promos that aren't fully covered by order_items
       for (const [productId, promoAgg] of Object.entries(promosByProduct)) {
         const alreadyTrackedGifts = orderItemsGiftByProduct[productId] || 0;
+        // If order_items already tracks this product's gifts (with its proper offer),
+        // skip adding a generic "عرض ترويجي" fallback card to avoid duplicate/inflated counts.
+        if (alreadyTrackedGifts > 0) continue;
         const extraGifts = promoAgg.totalGiftPieces - alreadyTrackedGifts;
         if (extraGifts <= 0) continue; // Already fully tracked via order_items
 
