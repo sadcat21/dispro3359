@@ -632,7 +632,7 @@ const WorkerActions: React.FC = () => {
     const productName = selectedTruckProduct.product?.name || 'المنتج';
     const productImage = selectedTruckProduct.product?.image_url || null;
     const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
-    const currentQty = bpStoredToBoxes(Number(selectedTruckProduct.quantity || 0), ppb);
+    const storedQty = bpStoredToBoxes(Number(selectedTruckProduct.quantity || 0), ppb);
     const lastAccountingLabel = lastWorkerAccounting
       ? new Date(lastWorkerAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
@@ -817,7 +817,7 @@ const WorkerActions: React.FC = () => {
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
     // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
     const totalAvailable = totalLoaded;
-    const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
+    const discrepancy = (totalSold + totalGift + totalUnloaded + storedQty) - totalLoaded;
     const hasTrueReset = rawMovements.some((movement) => movement.type === 'empty' && movement.note?.includes('رصيد صفر فعلي'));
     const openingBalance = hasTrueReset ? 0 : discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
@@ -848,13 +848,16 @@ const WorkerActions: React.FC = () => {
     });
     // Display newest first.
     const historyEntries = [...forwardEntries].reverse();
+    const computedCurrent = forwardEntries.length
+      ? Math.max(0, Number(forwardEntries[forwardEntries.length - 1].after || 0))
+      : Math.max(0, totalAvailable - totalSold - totalGift - totalUnloaded);
 
     return {
       productId,
       productName,
       productImage,
-      currentQty,
-      computedCurrent: currentQty,
+      currentQty: computedCurrent,
+      computedCurrent,
       entries: historyEntries,
       totalLoaded,
       lastLoadedQty,
@@ -870,7 +873,7 @@ const WorkerActions: React.FC = () => {
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
       lastAccountingLabel,
-      hasMismatch: Math.abs(discrepancy) > 0.001,
+      hasMismatch: Math.abs(storedQty - computedCurrent) > 0.001,
     };
   }, [selectedTruckProduct, truckLoadedData, truckSoldData, truckUnloadedData, truckLoadSessions, truckUnloadSessions, t]);
 
