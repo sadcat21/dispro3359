@@ -44,6 +44,37 @@ interface CreateSessionDialogProps {
 
 const fmt = (n: number) => n.toLocaleString();
 
+const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode }> = ({ enabled, children }) => {
+  const items = React.Children.toArray(children).filter(Boolean) as React.ReactNode[];
+  const [index, setIndex] = React.useState(0);
+  const startX = React.useRef<number | null>(null);
+  React.useEffect(() => { if (index >= items.length) setIndex(0); }, [items.length, index]);
+  if (!enabled) return <div className="space-y-3">{children}</div>;
+  const safeIndex = items.length ? ((index % items.length) + items.length) % items.length : 0;
+  const go = (delta: number) => { if (!items.length) return; setIndex((safeIndex + delta + items.length) % items.length); };
+  return (
+    <div
+      className="relative"
+      onTouchStart={(e) => { startX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        if (startX.current == null) return;
+        const dx = e.changedTouches[0].clientX - startX.current;
+        if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+        startX.current = null;
+      }}
+    >
+      <div className="sticky top-0 z-10 flex items-center justify-between mb-2 bg-background/95 backdrop-blur py-1.5 rounded-lg border px-2">
+        <button type="button" onClick={() => go(-1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">‹</button>
+        <span className="text-xs text-muted-foreground font-semibold">{safeIndex + 1} / {items.length}</span>
+        <button type="button" onClick={() => go(1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">›</button>
+      </div>
+      {items.map((child, i) => (
+        <div key={i} style={{ display: i === safeIndex ? 'block' : 'none' }}>{child}</div>
+      ))}
+    </div>
+  );
+};
+
 const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenChange, preselectedWorkerId, workerName, editSession }) => {
   const { t, dir } = useLanguage();
   const { activeBranch, workerId: currentWorkerId } = useAuth();
@@ -52,6 +83,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const createWorkerDebt = useCreateWorkerDebt();
   const [registerDeficit, setRegisterDeficit] = useState(false);
   const [viewByProduct, setViewByProduct] = useState(false);
+  const [swipeMode, setSwipeMode] = useState(false);
   const [registerDeficitTreasury, setRegisterDeficitTreasury] = useState(false);
   const [registerSurplus, setRegisterSurplus] = useState(false);
   const nowLocal = () => {
@@ -425,15 +457,21 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
-            <div className="flex items-center gap-1.5">
-              <Label className="text-[10px] text-muted-foreground">{t('create_session.by_product')}</Label>
-              <Switch checked={viewByProduct} onCheckedChange={setViewByProduct} />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] text-muted-foreground">تمرير</Label>
+                <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] text-muted-foreground">{t('create_session.by_product')}</Label>
+                <Switch checked={viewByProduct} onCheckedChange={setViewByProduct} />
+              </div>
             </div>
           </div>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <div className="space-y-3">
+          <SwipeStack enabled={swipeMode}>
 
             {/* ━━━ Step 1: Period ━━━ */}
             <StepSection step={1} title={t('accounting.period') || 'الفترة'} color="primary">
@@ -739,7 +777,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Textarea value={sessionNotes} onChange={e => setSessionNotes(e.target.value)} rows={2} className="rounded-lg" />
             </div>
 
-          </div>
+          </SwipeStack>
+
         </div>
 
         {/* Sticky footer with action buttons */}
