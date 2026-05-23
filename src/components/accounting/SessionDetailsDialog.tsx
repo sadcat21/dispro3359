@@ -47,7 +47,8 @@ const CollapsibleSection: React.FC<{
   activeKey?: string | null;
   onToggle?: (key: string) => void;
   forceOpen?: boolean;
-}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen }) => {
+  hideHeader?: boolean;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen, hideHeader }) => {
   const controlled = sectionKey !== undefined && onToggle !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const baseOpen = controlled ? activeKey === sectionKey : uncontrolledOpen;
@@ -58,17 +59,19 @@ const CollapsibleSection: React.FC<{
   };
   return (
     <Collapsible open={open} onOpenChange={handleChange}>
-      <div className={`border-2 rounded-xl overflow-hidden ${className}`}>
-        <CollapsibleTrigger className="w-full flex items-center gap-2.5 p-3.5 hover:bg-muted/30 transition-colors">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            {icon}
-          </div>
-          <h3 className="font-bold text-sm flex-1 text-start">{title}</h3>
-          {summary && <span className="text-xs text-muted-foreground shrink-0">{summary}</span>}
-          <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
+      <div className={`${hideHeader ? '' : 'border-2 rounded-xl overflow-hidden'} ${className}`}>
+        {!hideHeader && (
+          <CollapsibleTrigger className="w-full flex items-center gap-2.5 p-3.5 hover:bg-muted/30 transition-colors">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              {icon}
+            </div>
+            <h3 className="font-bold text-sm flex-1 text-start">{title}</h3>
+            {summary && <span className="text-xs text-muted-foreground shrink-0">{summary}</span>}
+            <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+        )}
         <CollapsibleContent>
-          <div className="px-3.5 pb-3.5">
+          <div className={hideHeader ? '' : 'px-3.5 pb-3.5'}>
             {children}
           </div>
         </CollapsibleContent>
