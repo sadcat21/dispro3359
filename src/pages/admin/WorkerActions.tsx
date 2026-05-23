@@ -558,8 +558,8 @@ const WorkerActions: React.FC = () => {
         lastLoadedAt: number;
         unloaded: number;
         sold: number;
-        giftQty: number;
-        giftUnit: string;
+        loadedGiftQty: number;
+        deliveredGiftQty: number;
         loadSessionIds: Set<string>;
         unloadSessionIds: Set<string>;
         saleOrderIds: Set<string>;
@@ -574,8 +574,8 @@ const WorkerActions: React.FC = () => {
           lastLoadedAt: 0,
           unloaded: 0,
           sold: 0,
-          giftQty: 0,
-          giftUnit: 'piece',
+          loadedGiftQty: 0,
+          deliveredGiftQty: 0,
           loadSessionIds: new Set(),
           unloadSessionIds: new Set(),
           saleOrderIds: new Set(),
@@ -600,9 +600,7 @@ const WorkerActions: React.FC = () => {
         stat.lastLoaded = paidQty;
       }
       if ((paidQty + giftQty) > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
-      if ((item.gift_quantity || 0) > 0) {
-        stat.giftQty += giftQty;
-      }
+      if ((item.gift_quantity || 0) > 0) stat.loadedGiftQty += giftQty;
     }
 
     for (const item of (truckUnloadedData || [])) {
@@ -622,9 +620,7 @@ const WorkerActions: React.FC = () => {
       const giftBoxes = Number(item.gift_quantity || 0);
       const giftPieces = Number(item.gift_pieces || 0);
       const totalGift = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
-      if (giftBoxes > 0 || giftPieces > 0) {
-        stat.giftQty += totalGift;
-      }
+      if (giftBoxes > 0 || giftPieces > 0) stat.deliveredGiftQty += totalGift;
     }
 
     return stats;
