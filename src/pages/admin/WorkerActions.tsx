@@ -856,6 +856,7 @@ const WorkerActions: React.FC = () => {
       productId,
       productName,
       productImage,
+      storedQty,
       currentQty: computedCurrent,
       computedCurrent,
       entries: historyEntries,
@@ -1113,7 +1114,7 @@ const WorkerActions: React.FC = () => {
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
                       const saleCount = stats?.saleOrderIds?.size || 0;
-                      const isZero = item.quantity === 0;
+                      const isZero = currentQty === 0;
                       return (
                         <button
                           key={item.id}
