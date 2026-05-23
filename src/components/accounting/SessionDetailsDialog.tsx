@@ -46,10 +46,12 @@ const CollapsibleSection: React.FC<{
   sectionKey?: string;
   activeKey?: string | null;
   onToggle?: (key: string) => void;
-}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle }) => {
+  forceOpen?: boolean;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen }) => {
   const controlled = sectionKey !== undefined && onToggle !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const open = controlled ? activeKey === sectionKey : uncontrolledOpen;
+  const baseOpen = controlled ? activeKey === sectionKey : uncontrolledOpen;
+  const open = forceOpen || baseOpen;
   const handleChange = (v: boolean) => {
     if (controlled) onToggle!(v ? sectionKey! : '');
     else setUncontrolledOpen(v);
@@ -382,15 +384,15 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden" dir={dir}>
-        <DialogHeader className="p-4 pb-3 border-b bg-muted/30">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Calculator className="w-4 h-4 text-primary" />
+        <DialogHeader className="p-3 pb-2.5 border-b bg-muted/30 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Calculator className="w-3.5 h-3.5 text-primary" />
               </div>
-              {t('accounting.session_details')}
+              <span className="truncate text-sm">{t('accounting.session_details')}</span>
             </DialogTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <div className="flex items-center gap-1.5">
                 <Label className="text-[10px] text-muted-foreground">تمرير</Label>
                 <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
@@ -398,43 +400,38 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-1.5 rounded-lg"
+                className="gap-1.5 rounded-lg h-7 px-2 text-xs"
                 onClick={() => setShowEdit(true)}
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <Pencil className="w-3 h-3" />
                 {t('common.edit') || 'تعديل'}
               </Button>
             </div>
+          </div>
+          <div className="flex items-center flex-wrap gap-1.5 text-[10px]">
+            <Badge className={`${statusColor(session.status)} text-[10px] px-2 py-0 rounded-full`}>{t(`accounting.status_${session.status}`)}</Badge>
+            <span className="flex items-center gap-1 bg-background/60 rounded-full px-2 py-0.5 text-muted-foreground">
+              <Calendar className="w-2.5 h-2.5" />
+              {format(new Date(session.session_date), 'dd/MM/yyyy')}
+            </span>
+            <span className="flex items-center gap-1 bg-background/60 rounded-full px-2 py-0.5 font-semibold">
+              <User className="w-2.5 h-2.5 text-primary" />
+              {session.worker?.full_name}
+            </span>
+            <span className="bg-background/60 rounded-full px-2 py-0.5 text-muted-foreground font-mono" dir="ltr">
+              {session.period_start} → {session.period_end}
+            </span>
           </div>
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-6rem)] px-4 py-3">
           <div className="space-y-4">
-            {/* Session Info */}
-            <div className="bg-muted/40 rounded-xl p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <Badge className={`${statusColor(session.status)} text-[11px] px-2.5 py-0.5 rounded-full`}>{t(`accounting.status_${session.status}`)}</Badge>
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5 bg-background/60 rounded-full px-2.5 py-1">
-                  <Calendar className="w-3 h-3" />
-                  {format(new Date(session.session_date), 'dd/MM/yyyy')}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5 text-sm">
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <span className="font-semibold">{session.worker?.full_name}</span>
-              </div>
-              <p className="text-xs text-muted-foreground bg-background/60 rounded-lg px-2.5 py-1.5">
-                {t('accounting.period')}: {session.period_start} → {session.period_end}
-              </p>
-              {session.notes && (
-                <p className="text-sm bg-background rounded-lg p-2.5 border">{session.notes}</p>
-              )}
-            </div>
+            {session.notes && (
+              <p className="text-sm bg-background rounded-lg p-2.5 border">{session.notes}</p>
+            )}
 
             {/* Financial Items */}
-            <SwipeStack enabled={swipeMode}>
+            <SwipeStack enabled={swipeMode} onActiveSectionChange={setActiveSection}>
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
               title={t('session_details.financial_summary')}

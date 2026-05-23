@@ -63,15 +63,23 @@ const isSectionEl = (el: React.ReactNode): el is React.ReactElement => {
   return props && (props.step !== undefined || props.sectionKey !== undefined);
 };
 
-export const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode }> = ({ enabled, children }) => {
+export const SwipeStack: React.FC<{
+  enabled: boolean;
+  children: React.ReactNode;
+  onActiveSectionChange?: (key: string | null) => void;
+}> = ({ enabled, children, onActiveSectionChange }) => {
   const all = flattenChildren(children);
   const sections = all.filter(isSectionEl);
   const others = all.filter((c) => !isSectionEl(c));
   const [index, setIndex] = React.useState(0);
   const startX = React.useRef<number | null>(null);
   React.useEffect(() => { if (index >= sections.length) setIndex(0); }, [sections.length, index]);
-  if (!enabled) return <div className="space-y-3">{children}</div>;
   const safeIndex = sections.length ? ((index % sections.length) + sections.length) % sections.length : 0;
+  const activeKey = sections[safeIndex] && (sections[safeIndex] as any).props?.sectionKey;
+  React.useEffect(() => {
+    if (enabled && onActiveSectionChange) onActiveSectionChange(activeKey ?? null);
+  }, [enabled, activeKey, onActiveSectionChange]);
+  if (!enabled) return <div className="space-y-3">{children}</div>;
   const go = (delta: number) => { if (!sections.length) return; setIndex((safeIndex + delta + sections.length) % sections.length); };
   return (
     <div
@@ -90,7 +98,11 @@ export const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode 
         <button type="button" onClick={() => go(1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">›</button>
       </div>
       {sections.map((child, i) => (
-        <div key={i} style={{ display: i === safeIndex ? 'block' : 'none' }}>{child}</div>
+        <div key={i} style={{ display: i === safeIndex ? 'block' : 'none' }}>
+          {i === safeIndex && React.isValidElement(child)
+            ? React.cloneElement(child as React.ReactElement<any>, { forceOpen: true })
+            : child}
+        </div>
       ))}
       {others.length > 0 && <div className="space-y-3 mt-3">{others}</div>}
     </div>
@@ -924,10 +936,12 @@ const StepSection: React.FC<{
   color?: string;
   badge?: string;
   important?: boolean;
+  forceOpen?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
   const [open, setOpen] = React.useState(false);
+  React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className={`rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : 'border-border'}`}>
       <CollapsibleTrigger className="flex items-center gap-2.5 w-full text-right">
