@@ -48,7 +48,8 @@ const CollapsibleSection: React.FC<{
   onToggle?: (key: string) => void;
   forceOpen?: boolean;
   hideHeader?: boolean;
-}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen, hideHeader }) => {
+  onEmptyChange?: (key: string, empty: boolean) => void;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen, hideHeader, onEmptyChange }) => {
   const controlled = sectionKey !== undefined && onToggle !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const baseOpen = controlled ? activeKey === sectionKey : uncontrolledOpen;
@@ -57,6 +58,19 @@ const CollapsibleSection: React.FC<{
     if (controlled) onToggle!(v ? sectionKey! : '');
     else setUncontrolledOpen(v);
   };
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!sectionKey || !onEmptyChange) return;
+    const check = () => {
+      const el = contentRef.current;
+      if (!el) return;
+      if (el.querySelector('[data-empty="true"]')) onEmptyChange(sectionKey, true);
+    };
+    check();
+    const obs = new MutationObserver(check);
+    if (contentRef.current) obs.observe(contentRef.current, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, [sectionKey, onEmptyChange]);
   return (
     <Collapsible open={open} onOpenChange={handleChange}>
       <div className={`${hideHeader ? '' : 'border-2 rounded-xl overflow-hidden'} ${className}`}>
@@ -70,8 +84,8 @@ const CollapsibleSection: React.FC<{
             <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
         )}
-        <CollapsibleContent>
-          <div className={hideHeader ? '' : 'px-3.5 pb-3.5'}>
+        <CollapsibleContent forceMount>
+          <div ref={contentRef} className={hideHeader ? '' : 'px-3.5 pb-3.5'} style={open ? undefined : { display: 'none' }}>
             {children}
           </div>
         </CollapsibleContent>
@@ -91,6 +105,16 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [swipeMode, setSwipeMode] = useState(false);
+  const [emptyKeys, setEmptyKeys] = useState<Set<string>>(new Set());
+  const handleEmptyChange = React.useCallback((key: string, empty: boolean) => {
+    setEmptyKeys(prev => {
+      if (empty && prev.has(key)) return prev;
+      if (!empty && !prev.has(key)) return prev;
+      const next = new Set(prev);
+      if (empty) next.add(key); else next.delete(key);
+      return next;
+    });
+  }, []);
   const toggleSection = (key: string) => setActiveSection(prev => (prev === key || key === '' ? null : key));
   
   // Fetch live calculations for promo tracking
@@ -439,12 +463,14 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
 
             {/* Financial Items */}
             <SwipeStack enabled={swipeMode} onActiveSectionChange={setActiveSection}>
+            {!emptyKeys.has('financial') && (
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
               title={t('session_details.financial_summary')}
               sectionKey="financial"
               activeKey={activeSection}
               onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
             >
               {isLoading ? (
                 <div className="flex justify-center py-6">
@@ -453,16 +479,19 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               ) : items && items.length > 0 ? (
                 isNewFormat ? renderNewFormat() : renderOldFormat()
               ) : (
-                <p className="text-center text-muted-foreground py-6">{t('session_details.no_items')}</p>
+                <p data-empty="true" className="text-center text-muted-foreground py-6">{t('session_details.no_items')}</p>
               )}
             </CollapsibleSection>
+            )}
 
+            {!emptyKeys.has('sales') && (
             <CollapsibleSection
               icon={<ShoppingBag className="w-4 h-4 text-primary" />}
               title={t('session_details.customer_sales')}
               sectionKey="sales"
               activeKey={activeSection}
               onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
             >
               <SalesDetailsSummary
                 workerId={session.worker_id}
@@ -470,13 +499,16 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 periodEnd={session.period_end}
               />
             </CollapsibleSection>
+            )}
 
+            {!emptyKeys.has('pricing') && (
             <CollapsibleSection
               icon={<Layers className="w-4 h-4 text-primary" />}
               title={t('session_details.pricing_groups')}
               sectionKey="pricing"
               activeKey={activeSection}
               onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
             >
               <PricingGroupsSummary
                 workerId={session.worker_id}
@@ -484,6 +516,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 periodEnd={session.period_end}
               />
             </CollapsibleSection>
+            )}
 
             <CollapsibleSection
               icon={<Package className="w-4 h-4 text-primary" />}
@@ -500,12 +533,14 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
 
+            {!emptyKeys.has('debts') && (
             <CollapsibleSection
               icon={<HandCoins className="w-4 h-4 text-orange-600" />}
               title={t('create_session.collected_debts_details')}
               sectionKey="debts"
               activeKey={activeSection}
               onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
             >
               <DebtCollectionsSummary
                 workerId={session.worker_id}
@@ -513,13 +548,16 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 periodEnd={session.period_end}
               />
             </CollapsibleSection>
+            )}
 
+            {!emptyKeys.has('docs') && (
             <CollapsibleSection
               icon={<FileCheck2 className="w-4 h-4 text-blue-600" />}
               title={t('session_details.documents_received')}
               sectionKey="docs"
               activeKey={activeSection}
               onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
             >
               <DocumentCollectionsSummary
                 workerId={session.worker_id}
@@ -529,13 +567,16 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 onReceivedDocsChange={setReceivedDocs}
               />
             </CollapsibleSection>
+            )}
 
+            {!emptyKeys.has('expenses') && (
             <CollapsibleSection
               icon={<CreditCard className="w-4 h-4 text-amber-600" />}
               title={t('session_details.expenses_details')}
               sectionKey="expenses"
               activeKey={activeSection}
               onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
             >
               <ExpensesDetailsSummary
                 workerId={session.worker_id}
@@ -543,6 +584,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 periodEnd={session.period_end}
               />
             </CollapsibleSection>
+            )}
+
 
             {liveCalc && liveCalc.promoTracking.length > 0 && (
               <CollapsibleSection

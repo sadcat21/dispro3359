@@ -332,7 +332,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   });
 
   if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
-  if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
+  if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
 
   const allDocs = docs || [];
   const deliveryDocs = allDocs.filter(d => d.source === 'delivery');
