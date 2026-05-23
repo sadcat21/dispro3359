@@ -485,25 +485,56 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           <span className="truncate">آخر محاسبة: {new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}</span>
         </div>
       )}
-      <div className="flex items-center justify-end gap-1 mb-2">
-        <Button
-          type="button"
-          size="sm"
-          variant={viewMode === 'list' ? 'default' : 'outline'}
-          className="h-7 px-2 gap-1 text-[11px]"
-          onClick={() => setMode('list')}
-        >
-          <List className="w-3.5 h-3.5" /> قائمة
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={viewMode === 'grid' ? 'default' : 'outline'}
-          className="h-7 px-2 gap-1 text-[11px]"
-          onClick={() => setMode('grid')}
-        >
-          <LayoutGrid className="w-3.5 h-3.5" /> شبكة
-        </Button>
+      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Button
+            type="button"
+            size="sm"
+            variant={selectedRanges.length ? 'default' : 'outline'}
+            className="h-7 px-2 gap-1 text-[11px]"
+            onClick={() => setSessionsOpen(true)}
+            title="تصفية حسب الجلسات المحاسبية"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            {selectedRanges.length ? `جلسات (${selectedRanges.length})` : 'الجلسات المحاسبية'}
+          </Button>
+          {selectedRanges.length > 0 && (
+            <>
+              <span className="text-[10px] text-muted-foreground" dir="ltr">
+                {format(new Date(effFrom!), 'dd/MM HH:mm')} ← {format(new Date(effTo!), 'dd/MM HH:mm')}
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 px-1.5 gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+                onClick={() => setSelectedRanges([])}
+              >
+                <X className="w-3 h-3" /> إلغاء
+              </Button>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            className="h-7 px-2 gap-1 text-[11px]"
+            onClick={() => setMode('list')}
+          >
+            <List className="w-3.5 h-3.5" /> قائمة
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            className="h-7 px-2 gap-1 text-[11px]"
+            onClick={() => setMode('grid')}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" /> شبكة
+          </Button>
+        </div>
       </div>
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-3 gap-1.5">
