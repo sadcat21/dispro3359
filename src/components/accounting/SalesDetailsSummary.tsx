@@ -270,7 +270,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
 
   if (!customerSummaries || customerSummaries.length === 0) {
     return (
-      <p className="text-center text-muted-foreground py-3 text-sm">
+      <p data-empty="true" className="text-center text-muted-foreground py-3 text-sm">
         {t('accounting.no_sales_details')}
       </p>
     );
