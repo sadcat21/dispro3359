@@ -530,6 +530,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 branchId={session.branch_id || undefined}
                 periodStart={session.period_start}
                 periodEnd={session.period_end}
+                viewByProduct
+                promoTracking={liveCalc?.promoTracking}
               />
             </CollapsibleSection>
 
