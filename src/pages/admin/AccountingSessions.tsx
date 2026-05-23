@@ -66,7 +66,24 @@ const AccountingSessions: React.FC = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       setLoadingWorkers(true);
-      let query = supabase.from('workers_safe').select('id, full_name').eq('is_active', true);
+      const allowedRoleCodes = ['delivery_rep', 'sales_rep', 'warehouse_manager', 'internal_supervisor', 'external_supervisor'];
+      const now = new Date().toISOString();
+
+      let rolesQuery = supabase
+        .from('worker_roles')
+        .select('worker_id, branch_id, valid_from, valid_until, custom_roles!inner(code)')
+        .eq('is_active', true)
+        .in('custom_roles.code', allowedRoleCodes);
+      const { data: roleRows } = await rolesQuery;
+      const eligible = (roleRows || []).filter((r: any) =>
+        (!activeBranch?.id || r.branch_id === activeBranch.id || r.branch_id === null)
+        && (!r.valid_from || r.valid_from <= now)
+        && (!r.valid_until || r.valid_until >= now)
+      );
+      const eligibleIds = Array.from(new Set(eligible.map((r: any) => r.worker_id).filter(Boolean)));
+      if (eligibleIds.length === 0) { setWorkers([]); setLoadingWorkers(false); return; }
+
+      let query = supabase.from('workers_safe').select('id, full_name').eq('is_active', true).in('id', eligibleIds);
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
       const { data } = await query;
       setWorkers((data || []).map(w => ({ id: w.id!, full_name: w.full_name! })));
