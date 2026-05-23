@@ -919,7 +919,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const amountCells = products.map(p => Number(wAmt[p.id] || 0));
         const workerTotalAmount = amountCells.reduce((a, b) => a + b, 0);
-        const headerRow = `<tr><td colspan="${colspan}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#000;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
+        const headerRow = `<tr><td colspan="${colspan}" style="background:#0f172a;color:#dc2626;text-align:left;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;border-top:3px solid #dc2626;border-bottom:2px solid #dc2626;letter-spacing:0.5px">${escapeHtml(w.name)} <span style="color:#fff;background:#000;float:right;padding:2px 8px;border-radius:3px;font-size:11px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
         const methodRows = methods.map(([k, label]) => {
           const cells = products.map(p => Number(mQty[k]?.[p.id] || 0));
           if (cells.reduce((a, b) => a + b, 0) === 0) return '';
