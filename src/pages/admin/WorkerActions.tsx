@@ -848,9 +848,8 @@ const WorkerActions: React.FC = () => {
     });
     // Display newest first.
     const historyEntries = [...forwardEntries].reverse();
-    const computedCurrent = forwardEntries.length
-      ? Math.max(0, Number(forwardEntries[forwardEntries.length - 1].after || 0))
-      : Math.max(0, totalAvailable - totalSold - totalGift - totalUnloaded);
+    // الرصيد المعروض = إجمالي ما تم تحميله (المجموع). الحركات تظهر منفصلة في السجل.
+    const computedCurrent = totalAvailable;
 
     return {
       productId,
