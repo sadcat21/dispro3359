@@ -813,7 +813,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     .kpi span { display: block; font-size: 9px; color: #000; text-transform: uppercase; letter-spacing: 0.5px; }
     .kpi strong { display: block; font-size: 14px; margin-top: 3px; font-weight: 800; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-    .block { border: 2px solid #dc2626; border-radius: 6px; overflow: hidden; margin-top: 6px; page-break-inside: avoid; }
+    .block { border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 6px; page-break-inside: avoid; }
     .block-title { color: #dc2626 !important; background: #fef2f2 !important; padding: 5px 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; }
     .block-body { padding: 2px 0; }
     .row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 10px; border-bottom: 1px solid #f1f5f9; font-size: 10px; }
@@ -919,7 +919,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const amountCells = products.map(p => Number(wAmt[p.id] || 0));
         const workerTotalAmount = amountCells.reduce((a, b) => a + b, 0);
-        const headerRow = `<tr><td colspan="${colspan}" style="background:#fee2e2;color:#0f172a;text-align:left;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;border-top:3px double #dc2626;border-bottom:2px solid #dc2626;letter-spacing:0.5px">${escapeHtml(w.name)} <span style="color:#000;float:right;padding-right:8px;font-weight:900">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
+        const headerRow = `<tr><td colspan="${colspan}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#000;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
         const methodRows = methods.map(([k, label]) => {
           const cells = products.map(p => Number(mQty[k]?.[p.id] || 0));
           if (cells.reduce((a, b) => a + b, 0) === 0) return '';
