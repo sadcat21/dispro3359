@@ -47,7 +47,8 @@ const CollapsibleSection: React.FC<{
   activeKey?: string | null;
   onToggle?: (key: string) => void;
   forceOpen?: boolean;
-}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen }) => {
+  hideHeader?: boolean;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen, hideHeader }) => {
   const controlled = sectionKey !== undefined && onToggle !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const baseOpen = controlled ? activeKey === sectionKey : uncontrolledOpen;
@@ -58,17 +59,19 @@ const CollapsibleSection: React.FC<{
   };
   return (
     <Collapsible open={open} onOpenChange={handleChange}>
-      <div className={`border-2 rounded-xl overflow-hidden ${className}`}>
-        <CollapsibleTrigger className="w-full flex items-center gap-2.5 p-3.5 hover:bg-muted/30 transition-colors">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            {icon}
-          </div>
-          <h3 className="font-bold text-sm flex-1 text-start">{title}</h3>
-          {summary && <span className="text-xs text-muted-foreground shrink-0">{summary}</span>}
-          <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
+      <div className={`${hideHeader ? '' : 'border-2 rounded-xl overflow-hidden'} ${className}`}>
+        {!hideHeader && (
+          <CollapsibleTrigger className="w-full flex items-center gap-2.5 p-3.5 hover:bg-muted/30 transition-colors">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              {icon}
+            </div>
+            <h3 className="font-bold text-sm flex-1 text-start">{title}</h3>
+            {summary && <span className="text-xs text-muted-foreground shrink-0">{summary}</span>}
+            <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+        )}
         <CollapsibleContent>
-          <div className="px-3.5 pb-3.5">
+          <div className={hideHeader ? '' : 'px-3.5 pb-3.5'}>
             {children}
           </div>
         </CollapsibleContent>
@@ -418,8 +421,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               <User className="w-2.5 h-2.5 text-primary" />
               {session.worker?.full_name}
             </span>
-            <span className="bg-background/60 rounded-full px-2 py-0.5 text-muted-foreground font-mono" dir="ltr">
-              {session.period_start} → {session.period_end}
+            <span className="bg-background/60 rounded-full px-2 py-0.5 font-mono inline-flex items-center gap-1" dir="ltr">
+              <span className="text-foreground">{format(new Date(session.period_start), 'yyyy-MM-dd')}</span>
+              <span className="text-destructive">/ {format(new Date(session.period_start), 'HH:mm')}</span>
+              <span className="text-muted-foreground">→</span>
+              <span className="text-foreground">{format(new Date(session.period_end), 'yyyy-MM-dd')}</span>
+              <span className="text-destructive">/ {format(new Date(session.period_end), 'HH:mm')}</span>
             </span>
           </div>
         </DialogHeader>
