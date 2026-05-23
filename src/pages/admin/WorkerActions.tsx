@@ -707,7 +707,7 @@ const WorkerActions: React.FC = () => {
           id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${totalQty}-${item.gift_quantity || 0}`,
           type: 'load' as const,
           label: 'شحن',
-          quantity: paidQty,
+          quantity: totalQty,
           when: session?.created_at || '',
           note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
