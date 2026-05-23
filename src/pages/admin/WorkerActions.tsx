@@ -815,12 +815,12 @@ const WorkerActions: React.FC = () => {
     const totalUnloaded = unloadItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalSold = soldItems.flat().filter((item) => item?.type === 'sale').reduce((sum, item: any) => sum + item.quantity, 0);
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
-    // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
-    const totalAvailable = totalLoaded;
-    const discrepancy = (totalSold + totalGift + totalUnloaded + storedQty) - totalLoaded;
+    // المجموع = الرصيد الافتتاحي (قبل الشحن) + ما تم تحميله. أي فرق يُعرض كتباين صريح.
     const hasTrueReset = rawMovements.some((movement) => movement.type === 'empty' && movement.note?.includes('رصيد صفر فعلي'));
-    const openingBalance = hasTrueReset ? 0 : discrepancy > 0.001 ? discrepancy : 0;
-    const shortage = discrepancy < -0.001 ? -discrepancy : 0;
+    const discrepancyRaw = (totalSold + totalGift + totalUnloaded + storedQty) - totalLoaded;
+    const openingBalance = hasTrueReset ? 0 : discrepancyRaw > 0.001 ? discrepancyRaw : 0;
+    const shortage = discrepancyRaw < -0.001 ? -discrepancyRaw : 0;
+    const totalAvailable = openingBalance + totalLoaded;
     // Piece-based arithmetic to avoid floating-point drift.
     // Note: values here are already in *fractional boxes* (converted via bpStoredToBoxes upstream),
     // so we convert to integer pieces, accumulate, then convert back to fractional boxes
