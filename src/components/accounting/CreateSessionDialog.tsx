@@ -44,14 +44,35 @@ interface CreateSessionDialogProps {
 
 const fmt = (n: number) => n.toLocaleString();
 
+const flattenChildren = (children: React.ReactNode): React.ReactNode[] => {
+  const out: React.ReactNode[] = [];
+  React.Children.forEach(children, (child) => {
+    if (child == null || child === false || child === true) return;
+    if (React.isValidElement(child) && child.type === React.Fragment) {
+      out.push(...flattenChildren((child.props as any).children));
+    } else {
+      out.push(child);
+    }
+  });
+  return out;
+};
+
+const isSectionEl = (el: React.ReactNode): el is React.ReactElement => {
+  if (!React.isValidElement(el)) return false;
+  const props = el.props as any;
+  return props && (props.step !== undefined || props.sectionKey !== undefined);
+};
+
 export const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode }> = ({ enabled, children }) => {
-  const items = React.Children.toArray(children).filter(Boolean) as React.ReactNode[];
+  const all = flattenChildren(children);
+  const sections = all.filter(isSectionEl);
+  const others = all.filter((c) => !isSectionEl(c));
   const [index, setIndex] = React.useState(0);
   const startX = React.useRef<number | null>(null);
-  React.useEffect(() => { if (index >= items.length) setIndex(0); }, [items.length, index]);
+  React.useEffect(() => { if (index >= sections.length) setIndex(0); }, [sections.length, index]);
   if (!enabled) return <div className="space-y-3">{children}</div>;
-  const safeIndex = items.length ? ((index % items.length) + items.length) % items.length : 0;
-  const go = (delta: number) => { if (!items.length) return; setIndex((safeIndex + delta + items.length) % items.length); };
+  const safeIndex = sections.length ? ((index % sections.length) + sections.length) % sections.length : 0;
+  const go = (delta: number) => { if (!sections.length) return; setIndex((safeIndex + delta + sections.length) % sections.length); };
   return (
     <div
       className="relative"
@@ -65,12 +86,13 @@ export const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode 
     >
       <div className="sticky top-0 z-10 flex items-center justify-between mb-2 bg-background/95 backdrop-blur py-1.5 rounded-lg border px-2">
         <button type="button" onClick={() => go(-1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">‹</button>
-        <span className="text-xs text-muted-foreground font-semibold">{safeIndex + 1} / {items.length}</span>
+        <span className="text-xs text-muted-foreground font-semibold">{safeIndex + 1} / {sections.length}</span>
         <button type="button" onClick={() => go(1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">›</button>
       </div>
-      {items.map((child, i) => (
+      {sections.map((child, i) => (
         <div key={i} style={{ display: i === safeIndex ? 'block' : 'none' }}>{child}</div>
       ))}
+      {others.length > 0 && <div className="space-y-3 mt-3">{others}</div>}
     </div>
   );
 };
