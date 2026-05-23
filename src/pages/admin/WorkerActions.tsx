@@ -1103,12 +1103,12 @@ const WorkerActions: React.FC = () => {
                       const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 1);
                       const stats = truckMovementStats[item.product_id];
                       const loaded = stats?.loaded || 0;
+                      const loadedGiftQty = stats?.loadedGiftQty || 0;
                       const lastLoaded = stats?.lastLoaded || 0;
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.deliveredGiftQty || 0;
-                      const loadedGiftQty = stats?.loadedGiftQty || 0;
-                      const currentQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+                      const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
                       const totalAvailable = loaded + loadedGiftQty;
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
