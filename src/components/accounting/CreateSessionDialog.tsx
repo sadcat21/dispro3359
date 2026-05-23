@@ -253,11 +253,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     enabled: !!selectedWorkerId,
   });
 
-  useEffect(() => {
-    if (calc && !isEditMode) {
-      setActualCash(String(calc.physicalCash));
-    }
-  }, [calc, isEditMode]);
+  // Do not auto-fill actual cash amount — let the worker enter it manually.
 
   const cashDifference = calc ? Number(actualCash || 0) - calc.physicalCash : 0;
 
