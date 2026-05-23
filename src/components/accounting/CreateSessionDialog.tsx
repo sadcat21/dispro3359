@@ -122,7 +122,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const createWorkerDebt = useCreateWorkerDebt();
   const [registerDeficit, setRegisterDeficit] = useState(false);
   const [viewByProduct, setViewByProduct] = useState(false);
-  const [swipeMode, setSwipeMode] = useState(false);
+  const [swipeMode, setSwipeMode] = useState(true);
   const [registerDeficitTreasury, setRegisterDeficitTreasury] = useState(false);
   const [registerSurplus, setRegisterSurplus] = useState(false);
   const nowLocal = () => {
@@ -253,11 +253,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     enabled: !!selectedWorkerId,
   });
 
-  useEffect(() => {
-    if (calc && !isEditMode) {
-      setActualCash(String(calc.physicalCash));
-    }
-  }, [calc, isEditMode]);
+  // Do not auto-fill actual cash amount — let the worker enter it manually.
 
   const cashDifference = calc ? Number(actualCash || 0) - calc.physicalCash : 0;
 
