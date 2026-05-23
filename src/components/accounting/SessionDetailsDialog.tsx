@@ -15,7 +15,9 @@ import { supabase } from '@/integrations/supabase/client';
 import ProductStockSummary from './ProductStockSummary';
 import SalesDetailsSummary from './SalesDetailsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
-import CreateSessionDialog from './CreateSessionDialog';
+import CreateSessionDialog, { SwipeStack } from './CreateSessionDialog';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import PricingGroupsSummary from './PricingGroupsSummary';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
@@ -83,6 +85,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [showEdit, setShowEdit] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [swipeMode, setSwipeMode] = useState(false);
   const toggleSection = (key: string) => setActiveSection(prev => (prev === key || key === '' ? null : key));
   
   // Fetch live calculations for promo tracking
@@ -387,15 +390,21 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               </div>
               {t('accounting.session_details')}
             </DialogTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5 rounded-lg"
-              onClick={() => setShowEdit(true)}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              {t('common.edit') || 'تعديل'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] text-muted-foreground">تمرير</Label>
+                <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 rounded-lg"
+                onClick={() => setShowEdit(true)}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                {t('common.edit') || 'تعديل'}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -425,6 +434,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             </div>
 
             {/* Financial Items */}
+            <SwipeStack enabled={swipeMode}>
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
               title={t('session_details.financial_summary')}
@@ -547,6 +557,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 />
               </CollapsibleSection>
             )}
+            </SwipeStack>
           </div>
         </ScrollArea>
       </DialogContent>

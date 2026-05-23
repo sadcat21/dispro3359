@@ -44,7 +44,7 @@ interface CreateSessionDialogProps {
 
 const fmt = (n: number) => n.toLocaleString();
 
-const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode }> = ({ enabled, children }) => {
+export const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode }> = ({ enabled, children }) => {
   const items = React.Children.toArray(children).filter(Boolean) as React.ReactNode[];
   const [index, setIndex] = React.useState(0);
   const startX = React.useRef<number | null>(null);
