@@ -92,15 +92,20 @@ export const SwipeStack: React.FC<{
         startX.current = null;
       }}
     >
-      <div className="sticky top-0 z-10 flex items-center justify-between mb-2 bg-background/95 backdrop-blur py-1.5 rounded-lg border px-2">
-        <button type="button" onClick={() => go(-1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">‹</button>
-        <span className="text-xs text-muted-foreground font-semibold">{safeIndex + 1} / {sections.length}</span>
-        <button type="button" onClick={() => go(1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">›</button>
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 mb-2 bg-background/95 backdrop-blur py-1.5 rounded-lg border px-2">
+        <button type="button" onClick={() => go(-1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg shrink-0">‹</button>
+        <div className="flex-1 min-w-0 flex items-center justify-center gap-2">
+          {(sections[safeIndex] as any)?.props?.title && (
+            <span className="text-sm font-bold truncate">{(sections[safeIndex] as any).props.title}</span>
+          )}
+          <span className="text-[10px] text-muted-foreground font-semibold shrink-0">{safeIndex + 1} / {sections.length}</span>
+        </div>
+        <button type="button" onClick={() => go(1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg shrink-0">›</button>
       </div>
       {sections.map((child, i) => (
         <div key={i} style={{ display: i === safeIndex ? 'block' : 'none' }}>
           {i === safeIndex && React.isValidElement(child)
-            ? React.cloneElement(child as React.ReactElement<any>, { forceOpen: true })
+            ? React.cloneElement(child as React.ReactElement<any>, { forceOpen: true, hideHeader: true })
             : child}
         </div>
       ))}
