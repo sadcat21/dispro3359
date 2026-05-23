@@ -486,7 +486,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               <div className="flex items-start gap-3 mb-2">
                 <div className="w-12 h-12 rounded-xl border bg-muted/40 overflow-hidden shrink-0 flex items-center justify-center">
                   {item.product?.image_url ? (
-                    <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={item.product.image_url} alt={getProductDisplayName(item.product)} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}
