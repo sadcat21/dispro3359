@@ -942,20 +942,23 @@ const StepSection: React.FC<{
   badge?: string;
   important?: boolean;
   forceOpen?: boolean;
+  hideHeader?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className={`rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : 'border-border'}`}>
-      <CollapsibleTrigger className="flex items-center gap-2.5 w-full text-right">
-        <div className={`${badge ? 'w-auto px-1.5 min-w-[1.5rem]' : 'w-6'} h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${colorClass}`}>
-          {badge ? `${step}-${badge}` : step}
-        </div>
-        <h3 className="font-bold text-sm flex-1 text-right">{title}</h3>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
-      </CollapsibleTrigger>
+    <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : 'border-border'}`}>
+      {!hideHeader && (
+        <CollapsibleTrigger className="flex items-center gap-2.5 w-full text-right">
+          <div className={`${badge ? 'w-auto px-1.5 min-w-[1.5rem]' : 'w-6'} h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${colorClass}`}>
+            {badge ? `${step}-${badge}` : step}
+          </div>
+          <h3 className="font-bold text-sm flex-1 text-right">{title}</h3>
+          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+        </CollapsibleTrigger>
+      )}
       <CollapsibleContent className="space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
         {children}
       </CollapsibleContent>
