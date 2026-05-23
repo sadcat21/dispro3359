@@ -215,6 +215,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
       toast.error(res.error || 'فشل تأكيد العرض');
     } else {
       toast.success('تم تأكيد العرض وخصم الكمية من رصيد العامل');
+      await qc.invalidateQueries();
     }
   };
 
