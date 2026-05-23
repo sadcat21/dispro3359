@@ -514,6 +514,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               </Button>
             </>
           )}
+          <RecalibrateBalanceButton
+            workerId={workerId}
+            title="إعادة معايرة رصيد الشاحنة"
+            className="!h-7 !w-auto !px-2 !mx-0 gap-1 text-[11px] rounded-md border border-amber-500/30 bg-amber-500/5"
+          />
         </div>
         <div className="flex items-center gap-1">
           <Button
