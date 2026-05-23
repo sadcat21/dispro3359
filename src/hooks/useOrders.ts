@@ -272,7 +272,7 @@ export const useCreateOrder = () => {
                 giftProductName: offer.gift_product?.name || productNameMap.get(g.product_id) || null,
                 giftBoxes: Number(g.gift_quantity || 0),
                 giftPieces: Number(g.gift_pieces || 0),
-                purchasedBoxes: Math.floor(Number(g.quantity || 0)),
+                purchasedBoxes: Math.max(0, Math.floor(Number(g.quantity || 0) - Number(g.gift_quantity || 0))),
                 purchasedPieces: Math.round((Number(g.quantity || 0) - Math.floor(Number(g.quantity || 0))) * 100),
                 customerId,
                 customerName,
