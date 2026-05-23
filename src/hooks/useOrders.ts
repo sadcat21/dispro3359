@@ -235,7 +235,7 @@ export const useCreateOrder = () => {
           const offerIds = Array.from(new Set(giftRows.map((g: any) => g.gift_offer_id))) as string[];
           const { data: offers } = await supabase
             .from('product_offers')
-            .select('id, is_deferred_confirmation, gift_product_id, gift_product:products!product_offers_gift_product_id_fkey(name)')
+            .select('id, is_deferred_confirmation, gift_product_id, gift_product:products!product_offers_gift_product_id_fkey(name, app_name)')
             .in('id', offerIds);
           const deferredMap = new Map<string, any>();
           for (const o of (offers || []) as any[]) {
@@ -243,8 +243,8 @@ export const useCreateOrder = () => {
           }
           if (deferredMap.size > 0) {
             const productIds = Array.from(new Set(giftRows.map((g: any) => g.product_id)));
-            const { data: prods } = await supabase.from('products').select('id, name').in('id', productIds);
-            const productNameMap = new Map<string, string>(((prods || []) as any[]).map((p) => [p.id, p.name]));
+            const { data: prods } = await supabase.from('products').select('id, name, app_name').in('id', productIds);
+            const productNameMap = new Map<string, string>(((prods || []) as any[]).map((p) => [p.id, p.app_name || p.name]));
 
             let customerName: string | null = null;
             const { data: cust } = await supabase.from('customers').select('name').eq('id', customerId).maybeSingle();
