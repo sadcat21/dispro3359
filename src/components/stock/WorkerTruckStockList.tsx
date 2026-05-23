@@ -272,7 +272,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const movements: Mv[] = [];
 
     let hasAppliedTrueReset = false;
-    for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
+    const productLoads = [...loadedData.filter((x: any) => x.product_id === pid)].sort(
+      (a: any, b: any) => (new Date(a._session?.created_at || 0).getTime() || 0) - (new Date(b._session?.created_at || 0).getTime() || 0)
+    );
+    for (const it of productLoads) {
       const giftQty = it.gift_unit === 'piece'
         ? Math.max(0, Number(it.gift_quantity || 0)) / ppb
         : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
@@ -326,8 +329,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
     const totalDelta = movements.reduce((sum, m) => sum + m.delta, 0);
-    const trueResetCount = movements.filter((m, index) => m.type === 'empty' && movements.slice(0, index).every(prev => prev.type !== 'load')).length;
-    const openingBalance = trueResetCount > 0 ? 0 : Math.max(0, currentQty - totalDelta);
+    const hasTrueReset = movements.some(m => m.type === 'empty' && m.before === 0 && m.after === 0);
+    const openingBalance = hasTrueReset ? 0 : Math.max(0, currentQty - totalDelta);
     let runningBalance = openingBalance;
     const forwardEntries = movements.map(m => {
       if (m.type === 'empty') {
