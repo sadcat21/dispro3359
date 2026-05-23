@@ -27,6 +27,7 @@ import WorkerHandoverSummary from './WorkerHandoverSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
 import TruckReviewSection from './TruckReviewSection';
+import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TruckUnloadDialog from './TruckUnloadDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
