@@ -418,7 +418,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium truncate flex-1 min-w-0">{r.product_name || 'منتج'}</p>
+                        <p className="text-sm font-medium truncate flex-1 min-w-0">{productNames[r.product_id] || r.product_name || 'منتج'}</p>
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <button
                             type="button"
