@@ -434,6 +434,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             </div>
 
             {/* Financial Items */}
+            <SwipeStack enabled={swipeMode}>
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
               title={t('session_details.financial_summary')}
