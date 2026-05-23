@@ -7,6 +7,7 @@ import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, Calendar
 import { Button } from '@/components/ui/button';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
@@ -63,7 +64,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     queryFn: async () => {
       const { data } = await supabase
         .from('worker_stock')
-        .select('*, product:products(name, image_url, pieces_per_box)')
+        .select('*, product:products(name, app_name, image_url, pieces_per_box)')
         .eq('worker_id', workerId)
         .gte('quantity', 0);
       return data || [];
@@ -379,7 +380,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     // اعتمد آخر "الباقي" من السجل الزمني كرصيد نهائي للشاحنة (يعكس أي إعادة تعيين مثل "الشاحنة فارغة")
     const finalRemaining = forwardEntries.length ? forwardEntries[forwardEntries.length - 1].after : currentQty;
 
-    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
+    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
   const getRemaining = (item: any) => {
@@ -392,7 +393,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const rb = getRemaining(b);
     if (ra === 0 && rb > 0) return 1;
     if (ra > 0 && rb === 0) return -1;
-    return (a.product?.name || '').localeCompare(b.product?.name || '');
+    return getProductDisplayName(a.product).localeCompare(getProductDisplayName(b.product));
   });
 
   if (!truckStock.length) {
@@ -447,10 +448,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 className={`p-1 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : hasSales ? 'bg-card border-green-500 border-2' : 'bg-card border-border'}`}
                 onClick={() => setSelected(item)}
               >
-                <p className="text-[10px] font-medium truncate mb-0.5">{item.product?.name}</p>
+                <p className="text-[10px] font-medium truncate mb-0.5">{getProductDisplayName(item.product)}</p>
                 <div className="h-14 w-full rounded-md border bg-muted/40 overflow-hidden flex items-center justify-center mb-1">
                   {item.product?.image_url ? (
-                    <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-contain" loading="lazy" />
+                    <img src={item.product.image_url} alt={getProductDisplayName(item.product)} className="w-full h-full object-contain" loading="lazy" />
                   ) : (
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}
@@ -485,14 +486,14 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               <div className="flex items-start gap-3 mb-2">
                 <div className="w-12 h-12 rounded-xl border bg-muted/40 overflow-hidden shrink-0 flex items-center justify-center">
                   {item.product?.image_url ? (
-                    <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={item.product.image_url} alt={getProductDisplayName(item.product)} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-medium text-sm truncate">{item.product?.name}</span>
+                    <span className="font-medium text-sm truncate">{getProductDisplayName(item.product)}</span>
                     <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
                       {fmtBP(remaining, ppb)}
                     </span>
