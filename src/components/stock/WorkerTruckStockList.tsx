@@ -3,11 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid } from 'lucide-react';
+import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import AccountingSessionsTimelineDialog, { type SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
+import { format } from 'date-fns';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
@@ -45,6 +47,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     setViewMode(m);
     try { localStorage.setItem('wtsl-view-mode', m); } catch {}
   };
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [selectedRanges, setSelectedRanges] = useState<SelectedSessionRange[]>([]);
+  const selectedRangeIds = useMemo(() => new Set(selectedRanges.map(r => r.id)), [selectedRanges]);
+  const inSelectedRanges = (iso?: string | null) => {
+    if (!selectedRanges.length || !iso) return true;
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return true;
+    return selectedRanges.some(r => t >= new Date(r.start).getTime() && t <= new Date(r.end).getTime());
+  };
 
   const { data: truckStock = [] } = useQuery({
     queryKey: ['wtsl-stock', workerId],
@@ -75,15 +86,26 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     enabled: !!workerId,
   });
 
+  // النافذة الزمنية الفعّالة: إن وُجدت جلسات محاسبية مختارة استُخدم بدايتها/نهايتها الموحدة،
+  // وإلا fallback إلى ما بعد آخر محاسبة مكتملة.
+  const effFrom = selectedRanges.length
+    ? new Date(Math.min(...selectedRanges.map(r => new Date(r.start).getTime()))).toISOString()
+    : (lastAccounting || null);
+  const effTo = selectedRanges.length
+    ? new Date(Math.max(...selectedRanges.map(r => new Date(r.end).getTime()))).toISOString()
+    : null;
+  const rangesKey = selectedRanges.map(r => r.id).join(',');
+
   const { data: loadedData = [] } = useQuery({
-    queryKey: ['wtsl-loaded', workerId, lastAccounting],
+    queryKey: ['wtsl-loaded', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('loading_sessions')
         .select('id, created_at, status, notes, manager:workers!loading_sessions_manager_id_fkey(full_name)')
         .eq('worker_id', workerId)
         .eq('status', 'completed');
-      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      if (effFrom) q = q.gte('created_at', effFrom);
+      if (effTo) q = q.lte('created_at', effTo);
       const { data: sessions } = await q;
       if (!sessions?.length) return [];
       const { data: items } = await supabase
@@ -96,14 +118,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   });
 
   const { data: unloadedData = [] } = useQuery({
-    queryKey: ['wtsl-unloaded', workerId, lastAccounting],
+    queryKey: ['wtsl-unloaded', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('loading_sessions')
         .select('id, created_at, status, notes, manager:workers!loading_sessions_manager_id_fkey(full_name)')
         .eq('worker_id', workerId)
         .eq('status', 'unloaded');
-      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      if (effFrom) q = q.gte('created_at', effFrom);
+      if (effTo) q = q.lte('created_at', effTo);
       const { data: sessions } = await q;
       if (!sessions?.length) return [];
       const { data: items } = await supabase
@@ -116,14 +139,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   });
 
   const { data: soldData = [] } = useQuery({
-    queryKey: ['wtsl-sold', workerId, lastAccounting],
+    queryKey: ['wtsl-sold', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('orders')
         .select('id, created_at, updated_at, payment_type, customer:customers(name, store_name, phone)')
         .eq('status', 'delivered')
         .or(`assigned_worker_id.eq.${workerId},created_by.eq.${workerId}`);
-      if (lastAccounting) q = q.gte('updated_at', lastAccounting);
+      if (effFrom) q = q.gte('updated_at', effFrom);
+      if (effTo) q = q.lte('updated_at', effTo);
       const { data: orders } = await q;
       if (!orders?.length) return [];
       const { data: items } = await supabase
@@ -181,14 +205,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   });
 
   const { data: modificationData = [] } = useQuery({
-    queryKey: ['wtsl-modifications', workerId, lastAccounting],
+    queryKey: ['wtsl-modifications', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('stock_movements')
         .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, status, customer:customers(name, store_name))')
         .eq('worker_id', workerId)
         .eq('movement_type', 'modification');
-      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      if (effFrom) q = q.gte('created_at', effFrom);
+      if (effTo) q = q.lte('created_at', effTo);
       const { data } = await q;
       return (data || []) as any[];
     },
@@ -460,25 +485,56 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           <span className="truncate">آخر محاسبة: {new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}</span>
         </div>
       )}
-      <div className="flex items-center justify-end gap-1 mb-2">
-        <Button
-          type="button"
-          size="sm"
-          variant={viewMode === 'list' ? 'default' : 'outline'}
-          className="h-7 px-2 gap-1 text-[11px]"
-          onClick={() => setMode('list')}
-        >
-          <List className="w-3.5 h-3.5" /> قائمة
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={viewMode === 'grid' ? 'default' : 'outline'}
-          className="h-7 px-2 gap-1 text-[11px]"
-          onClick={() => setMode('grid')}
-        >
-          <LayoutGrid className="w-3.5 h-3.5" /> شبكة
-        </Button>
+      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Button
+            type="button"
+            size="sm"
+            variant={selectedRanges.length ? 'default' : 'outline'}
+            className="h-7 px-2 gap-1 text-[11px]"
+            onClick={() => setSessionsOpen(true)}
+            title="تصفية حسب الجلسات المحاسبية"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            {selectedRanges.length ? `جلسات (${selectedRanges.length})` : 'الجلسات المحاسبية'}
+          </Button>
+          {selectedRanges.length > 0 && (
+            <>
+              <span className="text-[10px] text-muted-foreground" dir="ltr">
+                {format(new Date(effFrom!), 'dd/MM HH:mm')} ← {format(new Date(effTo!), 'dd/MM HH:mm')}
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 px-1.5 gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+                onClick={() => setSelectedRanges([])}
+              >
+                <X className="w-3 h-3" /> إلغاء
+              </Button>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            className="h-7 px-2 gap-1 text-[11px]"
+            onClick={() => setMode('list')}
+          >
+            <List className="w-3.5 h-3.5" /> قائمة
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            className="h-7 px-2 gap-1 text-[11px]"
+            onClick={() => setMode('grid')}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" /> شبكة
+          </Button>
+        </div>
       </div>
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-3 gap-1.5">
@@ -802,6 +858,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           </DialogContent>
         </Dialog>
       )}
+      <AccountingSessionsTimelineDialog
+        open={sessionsOpen}
+        onOpenChange={setSessionsOpen}
+        workerId={workerId}
+        selectedIds={selectedRangeIds}
+        onApply={(ranges) => setSelectedRanges(ranges)}
+      />
     </>
   );
 };
