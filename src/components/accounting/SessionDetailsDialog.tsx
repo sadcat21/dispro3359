@@ -105,6 +105,16 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [swipeMode, setSwipeMode] = useState(false);
+  const [emptyKeys, setEmptyKeys] = useState<Set<string>>(new Set());
+  const handleEmptyChange = React.useCallback((key: string, empty: boolean) => {
+    setEmptyKeys(prev => {
+      if (empty && prev.has(key)) return prev;
+      if (!empty && !prev.has(key)) return prev;
+      const next = new Set(prev);
+      if (empty) next.add(key); else next.delete(key);
+      return next;
+    });
+  }, []);
   const toggleSection = (key: string) => setActiveSection(prev => (prev === key || key === '' ? null : key));
   
   // Fetch live calculations for promo tracking
