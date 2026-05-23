@@ -47,6 +47,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     setViewMode(m);
     try { localStorage.setItem('wtsl-view-mode', m); } catch {}
   };
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [selectedRanges, setSelectedRanges] = useState<SelectedSessionRange[]>([]);
+  const selectedRangeIds = useMemo(() => new Set(selectedRanges.map(r => r.id)), [selectedRanges]);
+  const inSelectedRanges = (iso?: string | null) => {
+    if (!selectedRanges.length || !iso) return true;
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return true;
+    return selectedRanges.some(r => t >= new Date(r.start).getTime() && t <= new Date(r.end).getTime());
+  };
 
   const { data: truckStock = [] } = useQuery({
     queryKey: ['wtsl-stock', workerId],
