@@ -557,6 +557,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 />
               </CollapsibleSection>
             )}
+            </SwipeStack>
           </div>
         </ScrollArea>
       </DialogContent>
