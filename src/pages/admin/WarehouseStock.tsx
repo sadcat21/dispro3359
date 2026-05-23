@@ -8,6 +8,7 @@ import WarehouseProductMovementDialog from '@/components/warehouse/WarehouseProd
 import ProductWorkerMovementsDialog from '@/components/warehouse/ProductWorkerMovementsDialog';
 import ProductDailySoldDialog from '@/components/warehouse/ProductDailySoldDialog';
 import ProductMetricLogDialog, { MetricKind } from '@/components/warehouse/ProductMetricLogDialog';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 import { boxesToBP, dbBPDisplay, dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -284,7 +285,7 @@ const WarehouseStock: React.FC = () => {
     for (const p of products) {
       summaries[p.id] = {
         productId: p.id,
-        productName: p.name,
+        productName: getProductDisplayName(p),
         received: 0,
         workerStock: 0,
         sold: 0,
@@ -387,9 +388,18 @@ const WarehouseStock: React.FC = () => {
     }
 
     // Offers (promo gift_boxes/gift_pieces) from sales_tracking
+    // Only count delivered orders, deduped by order_id (direct_sale + delivery_sale duplicates).
+    const seenOfferOrderProduct = new Set<string>();
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid || !summaries[pid]) continue;
+      const status = (s as any).order?.status;
+      if (s.order_id && status !== 'delivered') continue;
+      if (s.order_id) {
+        const key = `${s.order_id}|${pid}`;
+        if (seenOfferOrderProduct.has(key)) continue;
+        seenOfferOrderProduct.add(key);
+      }
       const ppb = Number(s.pieces_per_box) || 20;
       const giftPieces = Number(s.gift_boxes || 0) * ppb + Number(s.gift_pieces || 0);
       if (giftPieces > 0) {
