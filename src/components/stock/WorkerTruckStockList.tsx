@@ -380,7 +380,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     // اعتمد آخر "الباقي" من السجل الزمني كرصيد نهائي للشاحنة (يعكس أي إعادة تعيين مثل "الشاحنة فارغة")
     const finalRemaining = forwardEntries.length ? forwardEntries[forwardEntries.length - 1].after : currentQty;
 
-    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: selected.product?.name || 'المنتج', productImage: selected.product?.image_url || null };
+    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
   const getRemaining = (item: any) => {
