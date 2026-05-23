@@ -474,9 +474,9 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
                           <span className="text-[10px] font-bold opacity-90">(PROMO)</span>
                         </span>
                       </div>
-                      {r.gift_product_name && r.gift_product_id !== r.product_id && (
+                      {r.gift_product_id && r.gift_product_id !== r.product_id && (
                         <p className="text-[11px] text-muted-foreground truncate mt-1">
-                          المنتج المُهدى: {r.gift_product_name}
+                          المنتج المُهدى: {productNames[r.gift_product_id] || r.gift_product_name || ''}
                         </p>
                       )}
                       {r.worker_name && (
