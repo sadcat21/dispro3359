@@ -493,21 +493,24 @@ const MyAchievements: React.FC = () => {
   }, [queryClient]);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo, today],
+    queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo, today, selectedSessionRanges.map(r => `${r.start}_${r.end}`).join('|')],
     placeholderData: (prev) => prev,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
-      // عند عرض "اليوم" فقط: ابدأ من نهاية آخر جلsة محاسبية مكتملة وحتى اللحظة الحالية
       const isTodayOnly = dateFrom === today && dateTo === today;
-      // Use local timezone-aware ISO bounds so UTC+X users see correct "today"
       let lowerBound = new Date(`${dateFrom}T00:00:00`).toISOString();
       let upperBound = new Date(`${dateTo}T23:59:59`).toISOString();
 
-      if (isTodayOnly) {
-        // Always show today's achievements from start of local day to now,
-        // regardless of any completed accounting session within today.
+      if (selectedSessionRanges.length > 0) {
+        // احترام فلتر ترتيب أوقات الجلسات: وسّع النافذة لتشمل جميع الجلسات المحددة
+        const starts = selectedSessionRanges.map(r => new Date(r.start).getTime());
+        const ends = selectedSessionRanges.map(r => new Date(r.end).getTime());
+        lowerBound = new Date(Math.min(...starts)).toISOString();
+        upperBound = new Date(Math.max(...ends)).toISOString();
+      } else if (isTodayOnly) {
+        // عرض إنجازات اليوم بالكامل من بداية اليوم المحلي حتى الآن
         const startOfLocalDay = new Date();
         startOfLocalDay.setHours(0, 0, 0, 0);
         lowerBound = startOfLocalDay.toISOString();
