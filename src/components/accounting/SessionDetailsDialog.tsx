@@ -429,10 +429,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             )}
 
             {/* Financial Items */}
-            <SwipeStack enabled={swipeMode}>
-
-            {/* Financial Items */}
-            <SwipeStack enabled={swipeMode}>
+            <SwipeStack enabled={swipeMode} onActiveSectionChange={setActiveSection}>
             <CollapsibleSection
               icon={<Calculator className="w-4 h-4 text-primary" />}
               title={t('session_details.financial_summary')}
