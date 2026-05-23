@@ -1251,7 +1251,7 @@ const WorkerActions: React.FC = () => {
 
               {selectedTruckProductHistory.hasMismatch && (
                 <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-sm">
-                  تنبيه: الرصيد المحسوب {formatTruckQty(selectedTruckProductHistory.computedCurrent, selectedTruckProductHistory.ppb)} بينما المسجل فعليًا {formatTruckQty(selectedTruckProductHistory.currentQty, selectedTruckProductHistory.ppb)}
+                  تنبيه: الرصيد المحسوب {formatTruckQty(selectedTruckProductHistory.computedCurrent, selectedTruckProductHistory.ppb)} بينما المسجل فعليًا {formatTruckQty(selectedTruckProductHistory.storedQty, selectedTruckProductHistory.ppb)}
                 </div>
               )}
 
