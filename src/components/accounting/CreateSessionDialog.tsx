@@ -44,6 +44,37 @@ interface CreateSessionDialogProps {
 
 const fmt = (n: number) => n.toLocaleString();
 
+const SwipeStack: React.FC<{ enabled: boolean; children: React.ReactNode }> = ({ enabled, children }) => {
+  const items = React.Children.toArray(children).filter(Boolean) as React.ReactNode[];
+  const [index, setIndex] = React.useState(0);
+  const startX = React.useRef<number | null>(null);
+  React.useEffect(() => { if (index >= items.length) setIndex(0); }, [items.length, index]);
+  if (!enabled) return <div className="space-y-3">{children}</div>;
+  const safeIndex = items.length ? ((index % items.length) + items.length) % items.length : 0;
+  const go = (delta: number) => { if (!items.length) return; setIndex((safeIndex + delta + items.length) % items.length); };
+  return (
+    <div
+      className="relative"
+      onTouchStart={(e) => { startX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        if (startX.current == null) return;
+        const dx = e.changedTouches[0].clientX - startX.current;
+        if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+        startX.current = null;
+      }}
+    >
+      <div className="sticky top-0 z-10 flex items-center justify-between mb-2 bg-background/95 backdrop-blur py-1.5 rounded-lg border px-2">
+        <button type="button" onClick={() => go(-1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">‹</button>
+        <span className="text-xs text-muted-foreground font-semibold">{safeIndex + 1} / {items.length}</span>
+        <button type="button" onClick={() => go(1)} className="px-3 py-1 rounded-md hover:bg-muted text-lg">›</button>
+      </div>
+      {items.map((child, i) => (
+        <div key={i} style={{ display: i === safeIndex ? 'block' : 'none' }}>{child}</div>
+      ))}
+    </div>
+  );
+};
+
 const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenChange, preselectedWorkerId, workerName, editSession }) => {
   const { t, dir } = useLanguage();
   const { activeBranch, workerId: currentWorkerId } = useAuth();
