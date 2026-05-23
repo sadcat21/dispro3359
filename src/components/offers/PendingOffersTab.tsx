@@ -229,6 +229,7 @@ const PendingOffersTab: React.FC<Props> = ({ workerId, branchId, dateFrom, dateT
       toast.error(res.error || 'فشل رفض العرض');
     } else {
       toast.success('تم رفض العرض');
+      await qc.invalidateQueries();
     }
   };
 
