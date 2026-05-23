@@ -506,24 +506,11 @@ const MyAchievements: React.FC = () => {
       let upperBound = new Date(`${dateTo}T23:59:59`).toISOString();
 
       if (isTodayOnly) {
-        const { data: lastSession } = await supabase
-          .from('accounting_sessions')
-          .select('completed_at, period_end')
-          .eq('worker_id', targetWorkerId)
-          .eq('status', 'completed')
-          .order('completed_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        const lastEnd = lastSession?.completed_at || lastSession?.period_end;
-        if (lastEnd) {
-          const lastEndDate = new Date(lastEnd);
-          const startOfLocalDay = new Date();
-          startOfLocalDay.setHours(0, 0, 0, 0);
-          // Use whichever is later: last session end or start of local day
-          lowerBound = lastEndDate > startOfLocalDay
-            ? lastEndDate.toISOString()
-            : startOfLocalDay.toISOString();
-        }
+        // Always show today's achievements from start of local day to now,
+        // regardless of any completed accounting session within today.
+        const startOfLocalDay = new Date();
+        startOfLocalDay.setHours(0, 0, 0, 0);
+        lowerBound = startOfLocalDay.toISOString();
         upperBound = new Date().toISOString();
       }
 
