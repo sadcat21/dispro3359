@@ -493,7 +493,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-medium text-sm truncate">{item.product?.name}</span>
+                    <span className="font-medium text-sm truncate">{getProductDisplayName(item.product)}</span>
                     <span className={`font-bold text-lg leading-none ${isZero ? 'text-destructive' : 'text-primary'}`}>
                       {fmtBP(remaining, ppb)}
                     </span>
