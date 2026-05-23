@@ -713,11 +713,13 @@ const WorkerActions: React.FC = () => {
           label: 'شحن',
           quantity: totalQty,
           when: session?.created_at || '',
-          note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
+          note: session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
           previousQty,
           delta: totalQty,
+          paidQty,
+          giftQty,
         });
         return movements;
       });
