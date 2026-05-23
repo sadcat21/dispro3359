@@ -661,6 +661,8 @@ const WorkerActions: React.FC = () => {
       sourceStatus?: string | null;
       previousQty?: number;
       delta: number;
+      paidQty?: number;
+      giftQty?: number;
     }> = [];
 
     const rawMovements: Array<{
@@ -678,6 +680,8 @@ const WorkerActions: React.FC = () => {
       sourceStatus?: string | null;
       previousQty?: number;
       delta: number;
+      paidQty?: number;
+      giftQty?: number;
     }> = [];
 
     const loadedItems = (truckLoadedData || [])
