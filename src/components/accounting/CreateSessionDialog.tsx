@@ -27,6 +27,7 @@ import WorkerHandoverSummary from './WorkerHandoverSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
 import TruckReviewSection from './TruckReviewSection';
+import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
 import TruckUnloadDialog from './TruckUnloadDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -690,7 +691,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {selectedWorkerId && periodStart && periodEnd && (
               <>
                 <StepSection step={9} title={t('accounting.truck_stock') || t('create_session.product_tracking')} color="primary" badge="A">
-                  <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
+                  <div className="space-y-3">
+                    <WorkerTruckStockList workerId={selectedWorkerId} />
+                    <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
+                  </div>
                 </StepSection>
                 {!viewByProduct && (
                   <>
