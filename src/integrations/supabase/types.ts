@@ -9483,6 +9483,42 @@ export type Database = {
           },
         ]
       }
+      v_worker_stock_reconciliation: {
+        Row: {
+          current_stock: number | null
+          expected_stock: number | null
+          loaded_since_acc: number | null
+          product_id: string | null
+          product_name: string | null
+          sold_since_acc: number | null
+          unloaded_since_acc: number | null
+          variance: number | null
+          worker_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_stock_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_stock_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_stock_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workers_safe: {
         Row: {
           bonus_cap_percentage: number | null
@@ -9651,6 +9687,7 @@ export type Database = {
         Args: { p_promo_id: string }
         Returns: undefined
       }
+      detect_stock_anomalies: { Args: never; Returns: number }
       ensure_pending_offer_cards_for_worker: {
         Args: { p_worker_id: string }
         Returns: number
