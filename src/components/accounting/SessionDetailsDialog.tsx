@@ -48,7 +48,8 @@ const CollapsibleSection: React.FC<{
   onToggle?: (key: string) => void;
   forceOpen?: boolean;
   hideHeader?: boolean;
-}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen, hideHeader }) => {
+  onEmptyChange?: (key: string, empty: boolean) => void;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen, hideHeader, onEmptyChange }) => {
   const controlled = sectionKey !== undefined && onToggle !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const baseOpen = controlled ? activeKey === sectionKey : uncontrolledOpen;
@@ -57,6 +58,19 @@ const CollapsibleSection: React.FC<{
     if (controlled) onToggle!(v ? sectionKey! : '');
     else setUncontrolledOpen(v);
   };
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!sectionKey || !onEmptyChange) return;
+    const check = () => {
+      const el = contentRef.current;
+      if (!el) return;
+      if (el.querySelector('[data-empty="true"]')) onEmptyChange(sectionKey, true);
+    };
+    check();
+    const obs = new MutationObserver(check);
+    if (contentRef.current) obs.observe(contentRef.current, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, [sectionKey, onEmptyChange]);
   return (
     <Collapsible open={open} onOpenChange={handleChange}>
       <div className={`${hideHeader ? '' : 'border-2 rounded-xl overflow-hidden'} ${className}`}>
@@ -70,8 +84,8 @@ const CollapsibleSection: React.FC<{
             <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
         )}
-        <CollapsibleContent>
-          <div className={hideHeader ? '' : 'px-3.5 pb-3.5'}>
+        <CollapsibleContent forceMount>
+          <div ref={contentRef} className={hideHeader ? '' : 'px-3.5 pb-3.5'} style={open ? undefined : { display: 'none' }}>
             {children}
           </div>
         </CollapsibleContent>
