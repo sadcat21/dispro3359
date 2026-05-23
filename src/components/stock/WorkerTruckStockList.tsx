@@ -97,14 +97,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   const rangesKey = selectedRanges.map(r => r.id).join(',');
 
   const { data: loadedData = [] } = useQuery({
-    queryKey: ['wtsl-loaded', workerId, lastAccounting],
+    queryKey: ['wtsl-loaded', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('loading_sessions')
         .select('id, created_at, status, notes, manager:workers!loading_sessions_manager_id_fkey(full_name)')
         .eq('worker_id', workerId)
         .eq('status', 'completed');
-      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      if (effFrom) q = q.gte('created_at', effFrom);
+      if (effTo) q = q.lte('created_at', effTo);
       const { data: sessions } = await q;
       if (!sessions?.length) return [];
       const { data: items } = await supabase
@@ -117,14 +118,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   });
 
   const { data: unloadedData = [] } = useQuery({
-    queryKey: ['wtsl-unloaded', workerId, lastAccounting],
+    queryKey: ['wtsl-unloaded', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('loading_sessions')
         .select('id, created_at, status, notes, manager:workers!loading_sessions_manager_id_fkey(full_name)')
         .eq('worker_id', workerId)
         .eq('status', 'unloaded');
-      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      if (effFrom) q = q.gte('created_at', effFrom);
+      if (effTo) q = q.lte('created_at', effTo);
       const { data: sessions } = await q;
       if (!sessions?.length) return [];
       const { data: items } = await supabase
@@ -137,14 +139,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   });
 
   const { data: soldData = [] } = useQuery({
-    queryKey: ['wtsl-sold', workerId, lastAccounting],
+    queryKey: ['wtsl-sold', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('orders')
         .select('id, created_at, updated_at, payment_type, customer:customers(name, store_name, phone)')
         .eq('status', 'delivered')
         .or(`assigned_worker_id.eq.${workerId},created_by.eq.${workerId}`);
-      if (lastAccounting) q = q.gte('updated_at', lastAccounting);
+      if (effFrom) q = q.gte('updated_at', effFrom);
+      if (effTo) q = q.lte('updated_at', effTo);
       const { data: orders } = await q;
       if (!orders?.length) return [];
       const { data: items } = await supabase
@@ -202,14 +205,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   });
 
   const { data: modificationData = [] } = useQuery({
-    queryKey: ['wtsl-modifications', workerId, lastAccounting],
+    queryKey: ['wtsl-modifications', workerId, effFrom, effTo, rangesKey],
     queryFn: async () => {
       let q = supabase
         .from('stock_movements')
         .select('id, product_id, quantity, signed_quantity, created_at, notes, order_id, order:orders(payment_type, status, customer:customers(name, store_name))')
         .eq('worker_id', workerId)
         .eq('movement_type', 'modification');
-      if (lastAccounting) q = q.gte('created_at', lastAccounting);
+      if (effFrom) q = q.gte('created_at', effFrom);
+      if (effTo) q = q.lte('created_at', effTo);
       const { data } = await q;
       return (data || []) as any[];
     },
