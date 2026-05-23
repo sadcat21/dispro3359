@@ -390,15 +390,21 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               </div>
               {t('accounting.session_details')}
             </DialogTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5 rounded-lg"
-              onClick={() => setShowEdit(true)}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              {t('common.edit') || 'تعديل'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] text-muted-foreground">تمرير</Label>
+                <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 rounded-lg"
+                onClick={() => setShowEdit(true)}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                {t('common.edit') || 'تعديل'}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
