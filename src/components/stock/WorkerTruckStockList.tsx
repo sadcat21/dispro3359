@@ -858,6 +858,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           </DialogContent>
         </Dialog>
       )}
+      <AccountingSessionsTimelineDialog
+        open={sessionsOpen}
+        onOpenChange={setSessionsOpen}
+        workerId={workerId}
+        selectedIds={selectedRangeIds}
+        onApply={(ranges) => setSelectedRanges(ranges)}
+      />
     </>
   );
 };
