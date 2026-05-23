@@ -1313,11 +1313,11 @@ const WorkerActions: React.FC = () => {
                             {entry.type === 'load' && (entry.paidQty !== undefined || entry.giftQty !== undefined) && (
                               <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
                                 <div className="rounded-lg bg-background/70 p-2 border border-blue-100">
-                                  <div className="text-muted-foreground">مدفوع</div>
+                                  <div className="text-muted-foreground">للبيع</div>
                                   <div className="font-semibold text-blue-700">{formatTruckQty(entry.paidQty || 0, selectedTruckProductHistory.ppb)}</div>
                                 </div>
                                 <div className="rounded-lg bg-background/70 p-2 border border-orange-100">
-                                  <div className="text-muted-foreground">هدية</div>
+                                  <div className="text-muted-foreground">برومو</div>
                                   <div className="font-semibold text-orange-700">{formatTruckQty(entry.giftQty || 0, selectedTruckProductHistory.ppb)}</div>
                                 </div>
                               </div>
@@ -1331,10 +1331,10 @@ const WorkerActions: React.FC = () => {
                               <div className="mt-2 text-[11px]">
                                 <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
                                   <div className="text-muted-foreground">قبل</div>
-                                  <div className="font-medium">{formatTruckQty(entry.before, selectedTruckProductHistory.ppb)}</div>
+                                  <div className="font-medium text-red-600">{formatTruckQty(entry.before, selectedTruckProductHistory.ppb)}</div>
                                   <div className="text-muted-foreground">←</div>
                                   <div className="text-muted-foreground">بعد</div>
-                                  <div className="font-bold text-foreground">{formatTruckQty(entry.after, selectedTruckProductHistory.ppb)}</div>
+                                  <div className="font-bold text-green-600">{formatTruckQty(entry.after, selectedTruckProductHistory.ppb)}</div>
                                 </div>
                               </div>
                             )}
