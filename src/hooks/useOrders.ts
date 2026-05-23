@@ -269,7 +269,7 @@ export const useCreateOrder = () => {
                 productName: productNameMap.get(g.product_id) || null,
                 piecesPerBox: g.pieces_per_box || 1,
                 giftProductId: offer.gift_product_id || g.product_id,
-                giftProductName: offer.gift_product?.name || productNameMap.get(g.product_id) || null,
+                giftProductName: offer.gift_product?.app_name || offer.gift_product?.name || productNameMap.get(g.product_id) || null,
                 giftBoxes: Number(g.gift_quantity || 0),
                 giftPieces: Number(g.gift_pieces || 0),
                 purchasedBoxes: Math.max(0, Math.floor(Number(g.quantity || 0) - Number(g.gift_quantity || 0))),
