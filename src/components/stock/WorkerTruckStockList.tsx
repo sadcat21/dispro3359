@@ -10,6 +10,7 @@ import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import AccountingSessionsTimelineDialog, { type SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
 import { format } from 'date-fns';
+import RecalibrateBalanceButton from './RecalibrateBalanceButton';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
