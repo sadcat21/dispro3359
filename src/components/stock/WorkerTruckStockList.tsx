@@ -302,7 +302,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         ? 0
         : Math.max(0, storedQty + totalConsumed - modificationDelta - totalLoaded);
       const total = openingBalance + totalLoaded;
-      const remaining = Math.max(0, total - totalConsumed + modificationDelta);
+      // المجموع المعروض هو الرصيد الفعلي المتبقي (لا يُخصم منه المبيع/التفريغ/الهدايا هنا).
+      const remaining = total;
       out[pid] = { remaining, total, openingBalance };
     }
 

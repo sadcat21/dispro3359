@@ -848,9 +848,8 @@ const WorkerActions: React.FC = () => {
     });
     // Display newest first.
     const historyEntries = [...forwardEntries].reverse();
-    const computedCurrent = forwardEntries.length
-      ? Math.max(0, Number(forwardEntries[forwardEntries.length - 1].after || 0))
-      : Math.max(0, totalAvailable - totalSold - totalGift - totalUnloaded);
+    // الرصيد المعروض = إجمالي ما تم تحميله (المجموع). الحركات تظهر منفصلة في السجل.
+    const computedCurrent = totalAvailable;
 
     return {
       productId,
@@ -1110,7 +1109,8 @@ const WorkerActions: React.FC = () => {
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.deliveredGiftQty || 0;
                       const totalAvailable = loaded + loadedGiftQty;
-                      const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
+                      // الباقي = المجموع المتاح (لا نخصم منه المبيع/التفريغ/الهدايا، الحركات معروضة منفصلة).
+                      const currentQty = totalAvailable;
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
                       const saleCount = stats?.saleOrderIds?.size || 0;
