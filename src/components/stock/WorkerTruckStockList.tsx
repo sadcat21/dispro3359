@@ -448,10 +448,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                 className={`p-1 rounded-lg border text-center transition-all active:scale-[0.98] hover:shadow-md ${isZero ? 'bg-destructive/10 border-destructive/30' : hasSales ? 'bg-card border-green-500 border-2' : 'bg-card border-border'}`}
                 onClick={() => setSelected(item)}
               >
-                <p className="text-[10px] font-medium truncate mb-0.5">{item.product?.name}</p>
+                <p className="text-[10px] font-medium truncate mb-0.5">{getProductDisplayName(item.product)}</p>
                 <div className="h-14 w-full rounded-md border bg-muted/40 overflow-hidden flex items-center justify-center mb-1">
                   {item.product?.image_url ? (
-                    <img src={item.product.image_url} alt={item.product?.name || ''} className="w-full h-full object-contain" loading="lazy" />
+                    <img src={item.product.image_url} alt={getProductDisplayName(item.product)} className="w-full h-full object-contain" loading="lazy" />
                   ) : (
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}
