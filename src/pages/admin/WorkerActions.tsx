@@ -1108,8 +1108,10 @@ const WorkerActions: React.FC = () => {
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.deliveredGiftQty || 0;
-                      // المجموع = رصيد قبل الشحن + ما تم تحميله. الباقي = المجموع − (المباع + الهدايا + التفريغ).
-                      const openingBalance = Math.max(0, (stats?.openingBalance || 0));
+                      const storedQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
+                      // الرصيد قبل الشحن = نستنتجه من (المخزون الحالي + المستهلك − المُحمَّل) إن كان موجبًا.
+                      const discrepancy = storedQty + sold + giftQty + unloaded - (loaded + loadedGiftQty);
+                      const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
                       const totalAvailable = openingBalance + loaded + loadedGiftQty;
                       const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
                       const loadCount = stats?.loadSessionIds?.size || 0;
