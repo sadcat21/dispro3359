@@ -100,7 +100,7 @@ const CompanyManagerHome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-2">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-28">
       {/* Hero — same blue identity as branch manager */}
       <ProductShowcaseHero
         bgImage={managerHeroBg}
