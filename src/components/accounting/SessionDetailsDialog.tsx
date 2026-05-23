@@ -421,8 +421,12 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               <User className="w-2.5 h-2.5 text-primary" />
               {session.worker?.full_name}
             </span>
-            <span className="bg-background/60 rounded-full px-2 py-0.5 text-muted-foreground font-mono" dir="ltr">
-              {session.period_start} → {session.period_end}
+            <span className="bg-background/60 rounded-full px-2 py-0.5 font-mono inline-flex items-center gap-1" dir="ltr">
+              <span className="text-foreground">{format(new Date(session.period_start), 'yyyy-MM-dd')}</span>
+              <span className="text-destructive">/ {format(new Date(session.period_start), 'HH:mm')}</span>
+              <span className="text-muted-foreground">→</span>
+              <span className="text-foreground">{format(new Date(session.period_end), 'yyyy-MM-dd')}</span>
+              <span className="text-destructive">/ {format(new Date(session.period_end), 'HH:mm')}</span>
             </span>
           </div>
         </DialogHeader>
