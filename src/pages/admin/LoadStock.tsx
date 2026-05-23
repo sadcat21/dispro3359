@@ -825,6 +825,30 @@ const LoadStock: React.FC = () => {
       return;
     }
 
+    // Prevent the "balance reset" bug: do NOT allow creating a new loading
+    // session for a worker who still has unconfirmed (pending) load
+    // confirmations. The worker must approve/reject the previous one first,
+    // so each session's previous_quantity reflects the real accumulated stock.
+    try {
+      const { data: pendingLoads, error: pendingErr } = await supabase
+        .from('stock_confirmations')
+        .select('id, created_at')
+        .eq('worker_id', selectedWorker)
+        .eq('operation_type', 'load')
+        .eq('status', 'pending')
+        .limit(1);
+      if (pendingErr) throw pendingErr;
+      if (pendingLoads && pendingLoads.length > 0) {
+        const msg = 'لا يمكن إنشاء جلسة شحن جديدة: يوجد طلب شحن سابق لم يؤكده العامل بعد. اطلب من العامل تأكيد أو رفض الطلب السابق أولاً لتجنب اختلال الرصيد.';
+        window.alert(msg);
+        toast.error('يوجد طلب شحن قيد الانتظار');
+        return;
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'تعذر التحقق من الطلبات المعلقة');
+      return;
+    }
+
     startSessionLockRef.current = true;
     setIsStartingSession(true);
 
