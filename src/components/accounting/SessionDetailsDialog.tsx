@@ -46,10 +46,12 @@ const CollapsibleSection: React.FC<{
   sectionKey?: string;
   activeKey?: string | null;
   onToggle?: (key: string) => void;
-}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle }) => {
+  forceOpen?: boolean;
+}> = ({ icon, title, summary, children, className = '', sectionKey, activeKey, onToggle, forceOpen }) => {
   const controlled = sectionKey !== undefined && onToggle !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const open = controlled ? activeKey === sectionKey : uncontrolledOpen;
+  const baseOpen = controlled ? activeKey === sectionKey : uncontrolledOpen;
+  const open = forceOpen || baseOpen;
   const handleChange = (v: boolean) => {
     if (controlled) onToggle!(v ? sectionKey! : '');
     else setUncontrolledOpen(v);
