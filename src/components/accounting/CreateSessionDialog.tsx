@@ -777,7 +777,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               <Textarea value={sessionNotes} onChange={e => setSessionNotes(e.target.value)} rows={2} className="rounded-lg" />
             </div>
 
-          </div>
+          </SwipeStack>
+
         </div>
 
         {/* Sticky footer with action buttons */}
