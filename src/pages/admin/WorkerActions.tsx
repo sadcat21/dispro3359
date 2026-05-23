@@ -1110,7 +1110,8 @@ const WorkerActions: React.FC = () => {
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.deliveredGiftQty || 0;
                       const totalAvailable = loaded + loadedGiftQty;
-                      const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
+                      // الباقي = المجموع المتاح (لا نخصم منه المبيع/التفريغ/الهدايا، الحركات معروضة منفصلة).
+                      const currentQty = totalAvailable;
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
                       const saleCount = stats?.saleOrderIds?.size || 0;
