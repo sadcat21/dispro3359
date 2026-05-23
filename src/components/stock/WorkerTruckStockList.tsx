@@ -393,7 +393,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const rb = getRemaining(b);
     if (ra === 0 && rb > 0) return 1;
     if (ra > 0 && rb === 0) return -1;
-    return (a.product?.name || '').localeCompare(b.product?.name || '');
+    return getProductDisplayName(a.product).localeCompare(getProductDisplayName(b.product));
   });
 
   if (!truckStock.length) {
