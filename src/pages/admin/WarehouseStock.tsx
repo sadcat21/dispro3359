@@ -285,7 +285,7 @@ const WarehouseStock: React.FC = () => {
     for (const p of products) {
       summaries[p.id] = {
         productId: p.id,
-        productName: p.name,
+        productName: getProductDisplayName(p),
         received: 0,
         workerStock: 0,
         sold: 0,
