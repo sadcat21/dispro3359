@@ -281,7 +281,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       ? new Date(lastAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
 
-    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification' | 'empty'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; giftQty?: number; previousQty?: number; delta: number; before?: number; after?: number; orderId?: string | null; mods?: Array<{ id: string; label: string; note?: string | null; when: string; delta: number; orderStatus?: string | null }> };
+    type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification' | 'empty'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; paidQty?: number; giftQty?: number; previousQty?: number; delta: number; before?: number; after?: number; orderId?: string | null; mods?: Array<{ id: string; label: string; note?: string | null; when: string; delta: number; orderStatus?: string | null }> };
     const movements: Mv[] = [];
 
     for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
@@ -294,7 +294,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       if (total > 0 && previousQty <= 0) {
         movements.push({ id: `empty-${it.session_id}-${pid}`, type: 'empty', label: 'الشاحنة فارغة', quantity: 0, when: it._session?.created_at || '', note: 'تم بدء هذا الشحن من رصيد صفر لهذا المنتج', sourceLabel: it._session?.manager?.full_name || null, delta: 0, previousQty: 0 });
       }
-      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: total, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: total, previousQty });
+      movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: total, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: total, previousQty, paidQty: paid, giftQty });
     }
     for (const it of unloadedData.filter((x: any) => x.product_id === pid)) {
       const q = dbBPToBoxes(Number(it.quantity || 0), ppb);
@@ -591,6 +591,63 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                         : 'bg-green-100 text-green-700 border-green-200';
                       const cardBg = entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'empty' ? 'bg-slate-50 border-slate-200' : entry.type === 'modification' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200';
                       const deltaColor = entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'gift' ? 'text-orange-700' : entry.type === 'empty' ? 'text-slate-700' : entry.type === 'modification' ? 'text-purple-700' : 'text-blue-700';
+                      // New design for load/empty (matches main entries dialog)
+                      if (entry.type === 'load' || entry.type === 'empty') {
+                        const deltaLabel = entry.type === 'empty' ? '—' : `+${fmtBP(entry.quantity, history.ppb)}`;
+                        return (
+                          <div key={entry.id} className="space-y-1">
+                            {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}
+                            <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'empty' ? 'bg-slate-50 border-slate-300 border-dashed' : 'bg-blue-50 border-blue-200'}`}>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <Badge className={`text-[10px] ${typeBadge}`}>{entry.label}</Badge>
+                                    {entry.sourceLabel && (
+                                      <span className="text-[11px] text-muted-foreground">{entry.sourceLabel}</span>
+                                    )}
+                                  </div>
+                                  <div className="mt-1 text-xs text-muted-foreground">{timeLabel || '—'}</div>
+                                </div>
+                                <div className={`text-sm font-bold ${entry.type === 'empty' ? 'text-slate-600' : 'text-blue-700'}`}>{deltaLabel}</div>
+                              </div>
+
+                              {entry.type === 'load' && (entry.paidQty !== undefined || entry.giftQty !== undefined) && (
+                                <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
+                                  <div className="rounded-lg bg-background/70 p-2 border border-blue-100">
+                                    <div className="text-muted-foreground">للبيع</div>
+                                    <div className="font-semibold text-blue-700">{fmtBP(entry.paidQty || 0, history.ppb)}</div>
+                                  </div>
+                                  <div className="rounded-lg bg-background/70 p-2 border border-orange-100">
+                                    <div className="text-muted-foreground">برومو</div>
+                                    <div className="font-semibold text-orange-700">{fmtBP(entry.giftQty || 0, history.ppb)}</div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {entry.type === 'empty' ? (
+                                <div className="mt-2 text-[11px] text-slate-600 bg-background/70 rounded-lg p-2 border border-slate-200">
+                                  {entry.note || 'الشاحنة فارغة قبل بدء هذا الشحن'}
+                                </div>
+                              ) : (
+                                <div className="mt-2 text-[11px]">
+                                  <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
+                                    <div className="text-muted-foreground">قبل</div>
+                                    <div className="font-medium text-red-600">{fmtBP(entry.before || 0, history.ppb)}</div>
+                                    <div className="text-muted-foreground">←</div>
+                                    <div className="text-muted-foreground">بعد</div>
+                                    <div className="font-bold text-green-600">{fmtBP(entry.after || 0, history.ppb)}</div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {entry.note && entry.type !== 'empty' && (
+                                <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">{entry.note}</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+
                       return (
                         <div key={entry.id} className="space-y-1">
                           {showDay && <div className="text-center text-[11px] font-semibold text-muted-foreground pt-1">{dateLabel}</div>}
