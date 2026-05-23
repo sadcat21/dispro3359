@@ -63,7 +63,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     queryFn: async () => {
       const { data } = await supabase
         .from('worker_stock')
-        .select('*, product:products(name, image_url, pieces_per_box)')
+        .select('*, product:products(name, app_name, image_url, pieces_per_box)')
         .eq('worker_id', workerId)
         .gte('quantity', 0);
       return data || [];
