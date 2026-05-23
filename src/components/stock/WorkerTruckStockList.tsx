@@ -207,7 +207,18 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
   const stats = useMemo(() => {
     const out: Record<string, any> = {};
-    const ensure = (id: string) => (out[id] ||= { loaded: 0, lastLoaded: 0, lastLoadedAt: 0, unloaded: 0, sold: 0, giftQty: 0, loadCount: new Set(), unloadCount: new Set(), saleCount: new Set() });
+    const ensure = (id: string) => (out[id] ||= {
+      loaded: 0,
+      loadedGiftQty: 0,
+      lastLoaded: 0,
+      lastLoadedAt: 0,
+      unloaded: 0,
+      sold: 0,
+      deliveredGiftQty: 0,
+      loadCount: new Set(),
+      unloadCount: new Set(),
+      saleCount: new Set(),
+    });
     for (const it of loadedData) {
       const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
@@ -223,7 +234,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         s.lastLoaded = qty;
       }
       if ((qty + gift) > 0 && it.session_id) s.loadCount.add(String(it.session_id));
-      s.giftQty += gift;
+      s.loadedGiftQty += gift;
     }
     for (const it of unloadedData) {
       const ppb = ppbOf(it.product_id);
@@ -242,22 +253,61 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const paid = Math.max(0, totalBoxes - gift);
       s.sold += paid;
       if ((paid > 0 || gift > 0) && it.order_id) s.saleCount.add(String(it.order_id));
-      s.giftQty += gift;
+      s.deliveredGiftQty += gift;
     }
     return out;
   }, [loadedData, unloadedData, soldData, ppbMap]);
 
-  // الرصيد الفعلي = القيمة المخزّنة في قاعدة البيانات (worker_stock.quantity) مباشرة.
-  // لا نقوم بأي محاكاة في الواجهة؛ التريغر الخلفي هو المرجع الوحيد للرصيد.
-  const remainingByProduct = useMemo(() => {
-    const out: Record<string, number> = {};
-    for (const it of truckStock as any[]) {
-      const pid = it.product_id;
+  const balanceByProduct = useMemo(() => {
+    const out: Record<string, { remaining: number; total: number; openingBalance: number }> = {};
+    const productIds = new Set<string>([
+      ...(truckStock as any[]).map((it) => String(it.product_id)),
+      ...loadedData.map((it: any) => String(it.product_id)),
+      ...unloadedData.map((it: any) => String(it.product_id)),
+      ...soldData.map((it: any) => String(it.product_id)),
+      ...modificationData.map((it: any) => String(it.product_id)),
+    ]);
+
+    for (const pid of productIds) {
       const ppb = ppbOf(pid);
-      out[pid] = dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const storedQty = dbBPToBoxes(Number((truckStock as any[]).find((it) => it.product_id === pid)?.quantity || 0), ppb);
+      const productLoads = [...loadedData.filter((it: any) => it.product_id === pid)].sort(
+        (a: any, b: any) => (new Date(a._session?.created_at || 0).getTime() || 0) - (new Date(b._session?.created_at || 0).getTime() || 0)
+      );
+
+      let hasTrueReset = false;
+      for (const it of productLoads) {
+        const paidQty = dbBPToBoxes(Number(it.quantity || 0), ppb);
+        const giftQty = it.gift_unit === 'piece'
+          ? Math.max(0, Number(it.gift_quantity || 0)) / ppb
+          : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+        const previousQty = dbBPToBoxes(Number(it.previous_quantity || 0), ppb);
+        if ((paidQty + giftQty) > 0 && previousQty <= 0) {
+          hasTrueReset = true;
+          break;
+        }
+      }
+
+      const s = stats[pid] || {};
+      const totalLoaded = Number(s.loaded || 0) + Number(s.loadedGiftQty || 0);
+      const totalConsumed = Number(s.unloaded || 0) + Number(s.sold || 0) + Number(s.deliveredGiftQty || 0);
+      const modificationDelta = (modificationData as any[])
+        .filter((it: any) => it.product_id === pid)
+        .reduce((sum, m: any) => {
+          const signed = Number(m.signed_quantity ?? 0);
+          const deltaBoxes = dbBPToBoxes(Math.abs(signed), ppb) * (signed >= 0 ? 1 : -1);
+          return sum + deltaBoxes;
+        }, 0);
+      const openingBalance = hasTrueReset
+        ? 0
+        : Math.max(0, storedQty + totalConsumed - modificationDelta - totalLoaded);
+      const total = openingBalance + totalLoaded;
+      const remaining = Math.max(0, total - totalConsumed + modificationDelta);
+      out[pid] = { remaining, total, openingBalance };
     }
+
     return out;
-  }, [truckStock, ppbMap]);
+  }, [truckStock, loadedData, unloadedData, soldData, modificationData, stats, ppbMap]);
 
   const history = useMemo(() => {
     if (!selected) return null;
@@ -381,7 +431,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
   const getRemaining = (item: any) => {
     const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
-    const r = remainingByProduct[item.product_id];
+    const r = balanceByProduct[item.product_id]?.remaining;
     return typeof r === 'number' ? r : dbBPToBoxes(Number(item.quantity || 0), ppb);
   };
   const sorted = [...truckStock].sort((a: any, b: any) => {
@@ -436,7 +486,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
             const remaining = getRemaining(item);
             const isZero = remaining === 0;
             const s = stats[item.product_id] || {};
-            const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
+            const deliveredGiftQty = s.deliveredGiftQty || 0;
+            const totalQty = balanceByProduct[item.product_id]?.total ?? ((s.loaded || 0) + (s.loadedGiftQty || 0));
+            const hasSales = (s.sold || 0) > 0 || deliveredGiftQty > 0;
             return (
               <button
                 key={item.id}
@@ -471,7 +523,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
           const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
           const remaining = getRemaining(item);
           const isZero = remaining === 0;
-          const hasSales = (s.sold || 0) > 0 || (s.giftQty || 0) > 0;
+          const deliveredGiftQty = s.deliveredGiftQty || 0;
+          const totalQty = balanceByProduct[item.product_id]?.total ?? ((s.loaded || 0) + (s.loadedGiftQty || 0));
+          const hasSales = (s.sold || 0) > 0 || deliveredGiftQty > 0;
           return (
             <button
               key={item.id}
@@ -502,7 +556,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <Package className="w-3 h-3" /> الباقي {fmtBP(remaining, ppb)}
                 </span>
                 <span className="flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold">
-                  <Package className="w-3 h-3" /> المجموع {fmtBP((s.loaded || 0) + (s.unloaded || 0) + (s.sold || 0) + (s.giftQty || 0), Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                  <Package className="w-3 h-3" /> المجموع {fmtBP(totalQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                 </span>
                 <span className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                   <TrendingUp className="w-3 h-3" /> شحن {fmtBP(s.lastLoaded || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
@@ -516,9 +570,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                   <TrendingDown className="w-3 h-3" /> مباع {fmtBP(s.sold || 0, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   {s.saleCount?.size > 0 && <span className="font-bold">×{s.saleCount.size}</span>}
                 </span>
-                {s.giftQty > 0 && (
+                {deliveredGiftQty > 0 && (
                   <span className="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded-full">
-                    <Gift className="w-3 h-3" /> هدايا {fmtBP(s.giftQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
+                    <Gift className="w-3 h-3" /> هدايا {fmtBP(deliveredGiftQty, Math.max(1, Number(item.product?.pieces_per_box) || 20))}
                   </span>
                 )}
               </div>

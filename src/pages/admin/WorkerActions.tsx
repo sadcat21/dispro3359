@@ -558,8 +558,8 @@ const WorkerActions: React.FC = () => {
         lastLoadedAt: number;
         unloaded: number;
         sold: number;
-        giftQty: number;
-        giftUnit: string;
+        loadedGiftQty: number;
+        deliveredGiftQty: number;
         loadSessionIds: Set<string>;
         unloadSessionIds: Set<string>;
         saleOrderIds: Set<string>;
@@ -574,8 +574,8 @@ const WorkerActions: React.FC = () => {
           lastLoadedAt: 0,
           unloaded: 0,
           sold: 0,
-          giftQty: 0,
-          giftUnit: 'piece',
+          loadedGiftQty: 0,
+          deliveredGiftQty: 0,
           loadSessionIds: new Set(),
           unloadSessionIds: new Set(),
           saleOrderIds: new Set(),
@@ -600,9 +600,7 @@ const WorkerActions: React.FC = () => {
         stat.lastLoaded = paidQty;
       }
       if ((paidQty + giftQty) > 0 && item.session_id) stat.loadSessionIds.add(String(item.session_id));
-      if ((item.gift_quantity || 0) > 0) {
-        stat.giftQty += giftQty;
-      }
+      if ((item.gift_quantity || 0) > 0) stat.loadedGiftQty += giftQty;
     }
 
     for (const item of (truckUnloadedData || [])) {
@@ -622,9 +620,7 @@ const WorkerActions: React.FC = () => {
       const giftBoxes = Number(item.gift_quantity || 0);
       const giftPieces = Number(item.gift_pieces || 0);
       const totalGift = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
-      if (giftBoxes > 0 || giftPieces > 0) {
-        stat.giftQty += totalGift;
-      }
+      if (giftBoxes > 0 || giftPieces > 0) stat.deliveredGiftQty += totalGift;
     }
 
     return stats;
@@ -636,7 +632,7 @@ const WorkerActions: React.FC = () => {
     const productName = selectedTruckProduct.product?.name || 'المنتج';
     const productImage = selectedTruckProduct.product?.image_url || null;
     const ppb = Math.max(1, Number(selectedTruckProduct.product?.pieces_per_box) || 1);
-    const currentQty = bpStoredToBoxes(Number(selectedTruckProduct.quantity || 0), ppb);
+    const storedQty = bpStoredToBoxes(Number(selectedTruckProduct.quantity || 0), ppb);
     const lastAccountingLabel = lastWorkerAccounting
       ? new Date(lastWorkerAccounting).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })
       : null;
@@ -821,7 +817,7 @@ const WorkerActions: React.FC = () => {
     const totalGift = soldItems.flat().filter((item) => item?.type === 'gift').reduce((sum, item: any) => sum + item.quantity, 0);
     // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
     const totalAvailable = totalLoaded;
-    const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
+    const discrepancy = (totalSold + totalGift + totalUnloaded + storedQty) - totalLoaded;
     const hasTrueReset = rawMovements.some((movement) => movement.type === 'empty' && movement.note?.includes('رصيد صفر فعلي'));
     const openingBalance = hasTrueReset ? 0 : discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
@@ -852,13 +848,17 @@ const WorkerActions: React.FC = () => {
     });
     // Display newest first.
     const historyEntries = [...forwardEntries].reverse();
+    const computedCurrent = forwardEntries.length
+      ? Math.max(0, Number(forwardEntries[forwardEntries.length - 1].after || 0))
+      : Math.max(0, totalAvailable - totalSold - totalGift - totalUnloaded);
 
     return {
       productId,
       productName,
       productImage,
-      currentQty,
-      computedCurrent: currentQty,
+      storedQty,
+      currentQty: computedCurrent,
+      computedCurrent,
       entries: historyEntries,
       totalLoaded,
       lastLoadedQty,
@@ -874,7 +874,7 @@ const WorkerActions: React.FC = () => {
       saleCount: soldItems.flat().filter((item) => item?.type === 'sale').length,
       giftCount: soldItems.flat().filter((item) => item?.type === 'gift').length,
       lastAccountingLabel,
-      hasMismatch: Math.abs(discrepancy) > 0.001,
+      hasMismatch: Math.abs(storedQty - computedCurrent) > 0.001,
     };
   }, [selectedTruckProduct, truckLoadedData, truckSoldData, truckUnloadedData, truckLoadSessions, truckUnloadSessions, t]);
 
@@ -1104,17 +1104,17 @@ const WorkerActions: React.FC = () => {
                       const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 1);
                       const stats = truckMovementStats[item.product_id];
                       const loaded = stats?.loaded || 0;
+                      const loadedGiftQty = stats?.loadedGiftQty || 0;
                       const lastLoaded = stats?.lastLoaded || 0;
                       const unloaded = stats?.unloaded || 0;
                       const sold = stats?.sold || 0;
-                      const giftQty = stats?.giftQty || 0;
-                      const currentQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
-                      const totalAvailable = loaded + unloaded + sold + giftQty;
-                      const giftUnit = stats?.giftUnit === 'piece' ? t('worker_actions.piece') : stats?.giftUnit === 'box' ? t('worker_actions.box') : stats?.giftUnit === 'kg' ? t('worker_actions.kg') : t('worker_actions.piece');
+                      const giftQty = stats?.deliveredGiftQty || 0;
+                      const totalAvailable = loaded + loadedGiftQty;
+                      const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
                       const loadCount = stats?.loadSessionIds?.size || 0;
                       const unloadCount = stats?.unloadSessionIds?.size || 0;
                       const saleCount = stats?.saleOrderIds?.size || 0;
-                      const isZero = item.quantity === 0;
+                      const isZero = currentQty === 0;
                       return (
                         <button
                           key={item.id}
@@ -1251,7 +1251,7 @@ const WorkerActions: React.FC = () => {
 
               {selectedTruckProductHistory.hasMismatch && (
                 <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-sm">
-                  تنبيه: الرصيد المحسوب {formatTruckQty(selectedTruckProductHistory.computedCurrent, selectedTruckProductHistory.ppb)} بينما المسجل فعليًا {formatTruckQty(selectedTruckProductHistory.currentQty, selectedTruckProductHistory.ppb)}
+                  تنبيه: الرصيد المحسوب {formatTruckQty(selectedTruckProductHistory.computedCurrent, selectedTruckProductHistory.ppb)} بينما المسجل فعليًا {formatTruckQty(selectedTruckProductHistory.storedQty, selectedTruckProductHistory.ppb)}
                 </div>
               )}
 
