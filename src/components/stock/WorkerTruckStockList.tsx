@@ -86,6 +86,16 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     enabled: !!workerId,
   });
 
+  // النافذة الزمنية الفعّالة: إن وُجدت جلسات محاسبية مختارة استُخدم بدايتها/نهايتها الموحدة،
+  // وإلا fallback إلى ما بعد آخر محاسبة مكتملة.
+  const effFrom = selectedRanges.length
+    ? new Date(Math.min(...selectedRanges.map(r => new Date(r.start).getTime()))).toISOString()
+    : (lastAccounting || null);
+  const effTo = selectedRanges.length
+    ? new Date(Math.max(...selectedRanges.map(r => new Date(r.end).getTime()))).toISOString()
+    : null;
+  const rangesKey = selectedRanges.map(r => r.id).join(',');
+
   const { data: loadedData = [] } = useQuery({
     queryKey: ['wtsl-loaded', workerId, lastAccounting],
     queryFn: async () => {
