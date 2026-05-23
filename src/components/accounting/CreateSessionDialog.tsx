@@ -457,15 +457,21 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
-            <div className="flex items-center gap-1.5">
-              <Label className="text-[10px] text-muted-foreground">{t('create_session.by_product')}</Label>
-              <Switch checked={viewByProduct} onCheckedChange={setViewByProduct} />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] text-muted-foreground">تمرير</Label>
+                <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-[10px] text-muted-foreground">{t('create_session.by_product')}</Label>
+                <Switch checked={viewByProduct} onCheckedChange={setViewByProduct} />
+              </div>
             </div>
           </div>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <div className="space-y-3">
+          <SwipeStack enabled={swipeMode}>
 
             {/* ━━━ Step 1: Period ━━━ */}
             <StepSection step={1} title={t('accounting.period') || 'الفترة'} color="primary">
