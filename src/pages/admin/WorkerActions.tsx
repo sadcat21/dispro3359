@@ -661,6 +661,8 @@ const WorkerActions: React.FC = () => {
       sourceStatus?: string | null;
       previousQty?: number;
       delta: number;
+      paidQty?: number;
+      giftQty?: number;
     }> = [];
 
     const rawMovements: Array<{
@@ -678,6 +680,8 @@ const WorkerActions: React.FC = () => {
       sourceStatus?: string | null;
       previousQty?: number;
       delta: number;
+      paidQty?: number;
+      giftQty?: number;
     }> = [];
 
     const loadedItems = (truckLoadedData || [])
@@ -709,11 +713,13 @@ const WorkerActions: React.FC = () => {
           label: 'شحن',
           quantity: totalQty,
           when: session?.created_at || '',
-          note: giftQty > 0 ? `+${formatTruckQty(giftQty, ppb)} هدية` : session?.notes || null,
+          note: session?.notes || null,
           sourceLabel: session?.manager?.full_name || null,
           sourceStatus: session?.status || null,
           previousQty,
           delta: totalQty,
+          paidQty,
+          giftQty,
         });
         return movements;
       });
@@ -1270,7 +1276,7 @@ const WorkerActions: React.FC = () => {
                               {dateLabel}
                             </div>
                           )}
-                          <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'empty' ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-200'}`}>
+                          <div className={`rounded-xl border px-3 py-2.5 ${entry.type === 'unload' ? 'bg-red-50 border-red-200' : entry.type === 'sale' ? 'bg-green-50 border-green-200' : entry.type === 'gift' ? 'bg-orange-50 border-orange-200' : entry.type === 'empty' ? 'bg-slate-50 border-slate-300 border-dashed' : 'bg-blue-50 border-blue-200'}`}>
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -1294,22 +1300,46 @@ const WorkerActions: React.FC = () => {
                                 {entry.customerName && entry.customerName !== entry.customerStoreName ? ` • ${entry.customerName}` : ''}
                               </div>
                             </div>
-                            <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'empty' ? 'text-slate-700' : 'text-blue-700'}`}>
+                            <div className={`text-sm font-bold ${entry.type === 'unload' ? 'text-red-700' : entry.type === 'sale' ? 'text-green-700' : entry.type === 'empty' ? 'text-slate-600' : 'text-blue-700'}`}>
                                 {entry.type === 'empty'
-                                  ? formatTruckQty(0, selectedTruckProductHistory.ppb)
+                                  ? '—'
                                   : deltaLabel.startsWith('-')
                                     ? `-${formatTruckQty(Math.abs(entry.quantity), selectedTruckProductHistory.ppb)}`
                                     : `+${formatTruckQty(entry.quantity, selectedTruckProductHistory.ppb)}`
                                 }
                               </div>
                             </div>
-                            <div className="mt-2 text-[11px]">
-                              <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
-                                <div className="text-muted-foreground">الباقي</div>
-                                <div className="font-semibold">{formatTruckQty(entry.after, selectedTruckProductHistory.ppb)}</div>
+
+                            {entry.type === 'load' && (entry.paidQty !== undefined || entry.giftQty !== undefined) && (
+                              <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
+                                <div className="rounded-lg bg-background/70 p-2 border border-blue-100">
+                                  <div className="text-muted-foreground">مدفوع</div>
+                                  <div className="font-semibold text-blue-700">{formatTruckQty(entry.paidQty || 0, selectedTruckProductHistory.ppb)}</div>
+                                </div>
+                                <div className="rounded-lg bg-background/70 p-2 border border-orange-100">
+                                  <div className="text-muted-foreground">هدية</div>
+                                  <div className="font-semibold text-orange-700">{formatTruckQty(entry.giftQty || 0, selectedTruckProductHistory.ppb)}</div>
+                                </div>
                               </div>
-                            </div>
-                            {entry.note && (
+                            )}
+
+                            {entry.type === 'empty' ? (
+                              <div className="mt-2 text-[11px] text-slate-600 bg-background/70 rounded-lg p-2 border border-slate-200">
+                                {entry.note || 'الشاحنة فارغة قبل بدء هذا الشحن'}
+                              </div>
+                            ) : (
+                              <div className="mt-2 text-[11px]">
+                                <div className="rounded-lg bg-background/70 p-2 flex items-center justify-between gap-2">
+                                  <div className="text-muted-foreground">قبل</div>
+                                  <div className="font-medium">{formatTruckQty(entry.before, selectedTruckProductHistory.ppb)}</div>
+                                  <div className="text-muted-foreground">←</div>
+                                  <div className="text-muted-foreground">بعد</div>
+                                  <div className="font-bold text-foreground">{formatTruckQty(entry.after, selectedTruckProductHistory.ppb)}</div>
+                                </div>
+                              </div>
+                            )}
+
+                            {entry.note && entry.type !== 'empty' && (
                               <div className="mt-2 text-[11px] text-muted-foreground border-t pt-2">
                                 {entry.note}
                               </div>
