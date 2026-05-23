@@ -10,6 +10,7 @@ import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import AccountingSessionsTimelineDialog, { type SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
 import { format } from 'date-fns';
+import RecalibrateBalanceButton from './RecalibrateBalanceButton';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
@@ -514,6 +515,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
               </Button>
             </>
           )}
+          <RecalibrateBalanceButton
+            workerId={workerId}
+            title="إعادة معايرة رصيد الشاحنة"
+            className="!h-7 !w-auto !px-2 !mx-0 gap-1 text-[11px] rounded-md border border-amber-500/30 bg-amber-500/5"
+          />
         </div>
         <div className="flex items-center gap-1">
           <Button
