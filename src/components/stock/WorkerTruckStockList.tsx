@@ -3,11 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid } from 'lucide-react';
+import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import AccountingSessionsTimelineDialog, { type SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
+import { format } from 'date-fns';
 
 /** Format a fractional-boxes value as B.P notation using the product's pieces-per-box. */
 const fmtBP = (fractionalBoxes: number, ppb: number) =>
