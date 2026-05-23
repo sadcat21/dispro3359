@@ -54,7 +54,7 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-4 text-muted-foreground text-xs">
+      <div data-empty="true" className="text-center py-4 text-muted-foreground text-xs">
         <Receipt className="w-8 h-8 mx-auto mb-1.5 opacity-40" />
         {t('expenses_summary.no_expenses')}
       </div>
