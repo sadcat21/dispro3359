@@ -271,7 +271,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     type Mv = { id: string; type: 'load' | 'unload' | 'sale' | 'gift' | 'modification' | 'empty'; label: string; quantity: number; when: string; note?: string | null; paymentType?: string | null; customerStoreName?: string | null; customerName?: string | null; sourceLabel?: string | null; saleChannel?: string | null; orderStatus?: string | null; priceSubtype?: string | null; totalPaid?: number | null; paidQty?: number; giftQty?: number; previousQty?: number; delta: number; before?: number; after?: number; orderId?: string | null; mods?: Array<{ id: string; label: string; note?: string | null; when: string; delta: number; orderStatus?: string | null }> };
     const movements: Mv[] = [];
 
-    for (const it of loadedData.filter((x: any) => x.product_id === pid)) {
+    let hasAppliedTrueReset = false;
+    const productLoads = [...loadedData.filter((x: any) => x.product_id === pid)].sort(
+      (a: any, b: any) => (new Date(a._session?.created_at || 0).getTime() || 0) - (new Date(b._session?.created_at || 0).getTime() || 0)
+    );
+    for (const it of productLoads) {
       const giftQty = it.gift_unit === 'piece'
         ? Math.max(0, Number(it.gift_quantity || 0)) / ppb
         : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
@@ -279,7 +283,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const total = paid + giftQty;
       const previousQty = dbBPToBoxes(Number(it.previous_quantity || 0), ppb);
       if (total > 0 && previousQty <= 0) {
-        movements.push({ id: `empty-${it.session_id}-${pid}`, type: 'empty', label: 'الشاحنة فارغة', quantity: 0, when: it._session?.created_at || '', note: 'تم بدء هذا الشحن من رصيد صفر لهذا المنتج', sourceLabel: it._session?.manager?.full_name || null, delta: 0, previousQty: 0 });
+        const isTrueReset = !hasAppliedTrueReset;
+        movements.push({ id: `empty-${it.session_id}-${pid}`, type: 'empty', label: 'الشاحنة فارغة', quantity: 0, when: it._session?.created_at || '', note: isTrueReset ? 'تم بدء هذا الشحن من رصيد صفر فعلي لهذا المنتج' : 'كان الطلب يبدأ من رصيد صفر وقت إنشائه، لكن وُجد شحن مؤكد سابق قبل اعتماده لذلك لا يُعد هذا تصفيرًا فعليًا', sourceLabel: it._session?.manager?.full_name || null, delta: 0, previousQty: 0, before: isTrueReset ? 0 : undefined, after: isTrueReset ? 0 : undefined });
+        if (isTrueReset) hasAppliedTrueReset = true;
       }
       movements.push({ id: `load-${it.session_id}-${paid}`, type: 'load', label: 'شحن', quantity: total, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: total, previousQty, paidQty: paid, giftQty });
     }
@@ -323,14 +329,17 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
     movements.sort((a, b) => (new Date(a.when).getTime() || 0) - (new Date(b.when).getTime() || 0));
     const totalDelta = movements.reduce((sum, m) => sum + m.delta, 0);
-    // إذا وُجد حدث "الشاحنة فارغة" فإن الرصيد قد أُعيد إلى الصفر، لذا لا يوجد رصيد افتتاحي غير مفسَّر.
-    const hasEmptyReset = movements.some(m => m.type === 'empty');
-    const openingBalance = hasEmptyReset ? 0 : Math.max(0, currentQty - totalDelta);
+    const hasTrueReset = movements.some(m => m.type === 'empty' && m.before === 0 && m.after === 0);
+    const openingBalance = hasTrueReset ? 0 : Math.max(0, currentQty - totalDelta);
     let runningBalance = openingBalance;
     const forwardEntries = movements.map(m => {
       if (m.type === 'empty') {
-        runningBalance = 0;
-        return { ...m, before: 0, after: 0 };
+        const isTrueReset = typeof m.after === 'number' && typeof m.before === 'number';
+        if (isTrueReset) {
+          runningBalance = 0;
+          return { ...m, before: 0, after: 0 };
+        }
+        return { ...m, before: runningBalance, after: runningBalance };
       }
       const before = m.type === 'load' && typeof m.previousQty === 'number' ? Math.max(0, m.previousQty) : runningBalance;
       const after = Math.max(0, before + m.delta);

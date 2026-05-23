@@ -684,7 +684,13 @@ const WorkerActions: React.FC = () => {
       giftQty?: number;
     }> = [];
 
-    const loadedItems = (truckLoadedData || [])
+    let hasAppliedTrueReset = false;
+    const loadedItems = ([...(truckLoadedData || [])] as any[])
+      .sort((a: any, b: any) => {
+        const aTime = loadSessionMap.get(a.session_id)?.created_at ? new Date(loadSessionMap.get(a.session_id)?.created_at).getTime() : 0;
+        const bTime = loadSessionMap.get(b.session_id)?.created_at ? new Date(loadSessionMap.get(b.session_id)?.created_at).getTime() : 0;
+        return aTime - bTime;
+      })
       .filter((item: any) => item.product_id === productId)
       .flatMap((item: any) => {
         const session = loadSessionMap.get(item.session_id);
@@ -694,18 +700,20 @@ const WorkerActions: React.FC = () => {
         const previousQty = bpStoredToBoxes(Number(item.previous_quantity || 0), ppb);
         const movements = [] as typeof rawMovements;
         if (totalQty > 0 && previousQty <= 0) {
+          const isTrueReset = !hasAppliedTrueReset;
           movements.push({
             id: `empty-${item.session_id || item.product_id}`,
             type: 'empty' as const,
             label: 'الشاحنة فارغة',
             quantity: 0,
             when: session?.created_at || '',
-            note: 'تم بدء هذا الشحن من رصيد صفر لهذا المنتج',
+            note: isTrueReset ? 'تم بدء هذا الشحن من رصيد صفر فعلي لهذا المنتج' : 'كان الطلب يبدأ من رصيد صفر وقت إنشائه، لكن وُجد شحن مؤكد سابق قبل اعتماده لذلك لا يُعد هذا تصفيرًا فعليًا',
             sourceLabel: session?.manager?.full_name || null,
             sourceStatus: session?.status || null,
             previousQty: 0,
             delta: 0,
           });
+          if (isTrueReset) hasAppliedTrueReset = true;
         }
         movements.push({
           id: `load-${item.session_id || item.product_id}-${item.previous_quantity || 0}-${totalQty}-${item.gift_quantity || 0}`,
@@ -814,7 +822,8 @@ const WorkerActions: React.FC = () => {
     // المجموع الفعلي = ما تم تحميله فقط. أي فرق بينه وبين (المباع + الهدايا + التفريغ + المتبقي) يُعرض كتباين صريح.
     const totalAvailable = totalLoaded;
     const discrepancy = (totalSold + totalGift + totalUnloaded + currentQty) - totalLoaded;
-    const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
+    const hasTrueReset = rawMovements.some((movement) => movement.type === 'empty' && movement.note?.includes('رصيد صفر فعلي'));
+    const openingBalance = hasTrueReset ? 0 : discrepancy > 0.001 ? discrepancy : 0;
     const shortage = discrepancy < -0.001 ? -discrepancy : 0;
     // Piece-based arithmetic to avoid floating-point drift.
     // Note: values here are already in *fractional boxes* (converted via bpStoredToBoxes upstream),
@@ -827,8 +836,12 @@ const WorkerActions: React.FC = () => {
     let runningPieces = toPieces(openingBalance);
     const forwardEntries = rawMovements.map((movement) => {
       if (movement.type === 'empty') {
-        runningPieces = 0;
-        return { ...movement, before: 0, after: 0 };
+        const isTrueReset = movement.note?.includes('رصيد صفر فعلي');
+        if (isTrueReset) {
+          runningPieces = 0;
+          return { ...movement, before: 0, after: 0 };
+        }
+        return { ...movement, before: fromPieces(runningPieces), after: fromPieces(runningPieces) };
       }
       const beforePieces = movement.type === 'load' && typeof movement.previousQty === 'number'
         ? toPieces(movement.previousQty)
