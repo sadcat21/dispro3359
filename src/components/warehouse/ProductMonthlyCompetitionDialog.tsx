@@ -239,7 +239,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                       <div className="text-center">
                         <div className="text-[10px] text-muted-foreground">الإجمالي</div>
                         <div className="text-base font-extrabold text-orange-700">
-                          {fmt(totalsByWorker.reduce((s, x) => s + x.pieces, 0))}
+                          <FmtBP pieces={totalsByWorker.reduce((s, x) => s + x.pieces, 0)} />
                         </div>
                       </div>
                     ) : (
