@@ -28,7 +28,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const ppb = Math.max(1, piecesPerBox);
   const toDb = (pieces: number) => Math.floor(pieces / ppb) + (pieces % ppb) / 100;
-  const fmt = (v: number) => dbBPDisplay(Math.max(0, v), ppb);
+  const fmt = (pieces: number) => dbBPDisplay(toDb(Math.max(0, pieces)), ppb);
 
   const { start, end, label, daysInMonth, year, month } = useMemo(() => {
     const now = new Date();
@@ -116,7 +116,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
       const row: any = { day: d };
       for (const wn of wnames) {
         const p = workerDaily.get(wn)?.get(d) || 0;
-        row[wn] = toDb(p);
+        row[wn] = p;
       }
       daily.push(row);
     }
@@ -319,7 +319,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                     <LineChart data={dailySeries}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: any) => fmt(Number(v))} />
                       <Tooltip formatter={(v: any) => fmt(Number(v))} labelFormatter={(l) => `يوم ${l}`} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
                       {workers.map((w, i) => (
