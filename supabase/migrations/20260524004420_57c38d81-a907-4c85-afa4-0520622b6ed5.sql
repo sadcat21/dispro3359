@@ -1,0 +1,1 @@
+UPDATE public.worker_stock SET quantity = 0 WHERE worker_id = '45f8ce43-628a-4f21-97bd-a373ee13b22f' AND quantity <> 0;
