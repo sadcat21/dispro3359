@@ -11,6 +11,7 @@ import { Banknote, Calendar, ClipboardList, Gift, HandCoins, Package, ShoppingBa
 import { useLanguage } from '@/contexts/LanguageContext';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { boxesToBPAlways, parseBP } from '@/utils/boxPieceInput';
+import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 interface Props {
   open: boolean;
@@ -391,7 +392,7 @@ const fetchWorkerSalesSummary = async (
     .select('order_id, product_id, gift_boxes, gift_pieces, sold_boxes, sold_pieces, pieces_per_box')
     .in('order_id', orderIds);
   const trackMap = new Map<string, { giftBoxes: number; giftPieces: number }>();
-  for (const tr of (trackingRows || []) as any[]) {
+  for (const tr of dedupeSalesTrackingRows((trackingRows || []) as any[])) {
     const key = `${tr.order_id}::${tr.product_id}`;
     const cur = trackMap.get(key) || { giftBoxes: 0, giftPieces: 0 };
     cur.giftBoxes += Number(tr.gift_boxes || 0);
