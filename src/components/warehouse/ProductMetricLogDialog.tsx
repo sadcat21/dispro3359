@@ -403,7 +403,7 @@ const OfferRecipientDetailsDialog: React.FC<{
       const upTo = entry.when || new Date().toISOString();
       const { data: rows } = await supabase
         .from('sales_tracking')
-        .select('id, sold_at, sold_boxes, sold_pieces, gift_boxes, gift_pieces, pieces_per_box, source')
+        .select('id, sold_at, sold_boxes, sold_pieces, gift_boxes, gift_pieces, pieces_per_box, source, order_id, product_id, worker_id, customer_id')
         .eq('product_id', productId)
         .eq('customer_id', entry.customerId!)
         .or(`branch_id.eq.${branchId},branch_id.is.null`)
