@@ -9,7 +9,6 @@ export interface SalesTrackingLikeRow {
   gift_pieces?: number | null;
   worker_id?: string | null;
   customer_id?: string | null;
-  [key: string]: unknown;
 }
 
 const getPriority = (row: SalesTrackingLikeRow) => {
