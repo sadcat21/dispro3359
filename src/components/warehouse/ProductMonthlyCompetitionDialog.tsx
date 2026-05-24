@@ -8,6 +8,7 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 interface Props {
   open: boolean;
@@ -65,12 +66,12 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
         : { data: [] as any[] };
       const orderById = new Map((ordersRes.data || []).map((o: any) => [o.id, o]));
 
-      const filtered = (rows || []).filter((r: any) => {
+      const filtered = dedupeSalesTrackingRows((rows || []).filter((r: any) => {
         const order = r.order_id ? orderById.get(r.order_id) : null;
         if (r.order_id && order?.status !== 'delivered') return false;
         const inferred = r.branch_id || order?.branch_id || null;
         return !inferred || inferred === branchId;
-      });
+      }));
 
       const workerIds = Array.from(new Set(filtered.map((r: any) => r.worker_id).filter(Boolean)));
       const namesRes = workerIds.length
