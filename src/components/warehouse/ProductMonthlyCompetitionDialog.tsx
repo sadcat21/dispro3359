@@ -28,7 +28,22 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const ppb = Math.max(1, piecesPerBox);
   const toDb = (pieces: number) => Math.floor(pieces / ppb) + (pieces % ppb) / 100;
-  const fmt = (pieces: number) => dbBPDisplay(toDb(Math.max(0, pieces)), ppb);
+  const fmt = (pieces: number) => dbBPDisplayAlways(toDb(Math.max(0, pieces)), ppb);
+  const FmtBP: React.FC<{ pieces: number; className?: string }> = ({ pieces, className }) => {
+    const s = fmt(pieces);
+    const [b, p] = s.split('.');
+    return (
+      <span className={className}>
+        {b}
+        {p !== undefined && (
+          <>
+            <span className="opacity-60">.</span>
+            <span className="text-red-600">{p}</span>
+          </>
+        )}
+      </span>
+    );
+  };
 
   const { start, end, label, daysInMonth, year, month } = useMemo(() => {
     const now = new Date();
