@@ -25,6 +25,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
   open, onOpenChange, branchId, productId, productName, piecesPerBox,
 }) => {
   const [monthOffset, setMonthOffset] = useState(0); // 0 = current month
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const ppb = Math.max(1, piecesPerBox);
   const toDb = (pieces: number) => Math.floor(pieces / ppb) + (pieces % ppb) / 100;
   const fmt = (v: number) => dbBPDisplay(Math.max(0, v), ppb);
