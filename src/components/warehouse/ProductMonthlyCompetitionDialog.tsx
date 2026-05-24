@@ -319,7 +319,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                     <LineChart data={dailySeries}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: any) => fmt(Number(v))} />
                       <Tooltip formatter={(v: any) => fmt(Number(v))} labelFormatter={(l) => `يوم ${l}`} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
                       {workers.map((w, i) => (
