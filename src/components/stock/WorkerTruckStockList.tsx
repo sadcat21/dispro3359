@@ -39,6 +39,7 @@ interface Props {
 }
 
 export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = 'لا يوجد مخزون في الشاحنة' }) => {
+  const qc = useQueryClient();
   const [selected, setSelected] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
     if (typeof window === 'undefined') return 'list';
