@@ -298,7 +298,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                         <div className="grid grid-cols-3 gap-2">
                           <div className="rounded-xl bg-background/70 p-2 text-center border">
                             <div className="text-[10px] text-muted-foreground">الكمية المباعة</div>
-                            <div className="font-extrabold text-sm">{fmt(w.pieces)}</div>
+                            <div className="font-extrabold text-sm"><FmtBP pieces={w.pieces} /></div>
                           </div>
                           <div className="rounded-xl bg-background/70 p-2 text-center border">
                             <div className="text-[10px] text-muted-foreground">النسبة</div>
