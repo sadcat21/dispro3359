@@ -161,14 +161,6 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                 <div className="relative w-full h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Tooltip
-                        formatter={(_v: any, _n: any, p: any) => {
-                          const total = totalsByWorker.reduce((s, x) => s + x.pieces, 0) || 1;
-                          const pieces = Number(p?.payload?.pieces || 0);
-                          const pct = ((pieces / total) * 100).toFixed(1);
-                          return [`${fmt(pieces)} (${pct}%)`, p?.payload?.name];
-                        }}
-                      />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
                       <Pie
                         data={totalsByWorker}
