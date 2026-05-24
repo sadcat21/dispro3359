@@ -29,6 +29,7 @@ import WarehouseReviewDialog from '@/components/warehouse/WarehouseReviewDialog'
 import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistory';
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import { Calendar } from 'lucide-react';
+import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 interface ProductSummary {
   productId: string;
@@ -228,7 +229,7 @@ const WarehouseStock: React.FC = () => {
         .gte('sold_at', Object.values(latestReceiptAtByProduct).sort()[0] || new Date(0).toISOString())
         .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
-      const rows = (rawSales || []) as WarehouseSaleSummaryRow[];
+      const rows = dedupeSalesTrackingRows((rawSales || []) as WarehouseSaleSummaryRow[]);
       const orderIds = Array.from(new Set(rows.map(r => r.order_id).filter(Boolean) as string[]));
       const workerIds = Array.from(new Set(rows.map(r => r.worker_id).filter(Boolean) as string[]));
       const customerIds = Array.from(new Set(rows.map(r => r.customer_id).filter(Boolean) as string[]));
