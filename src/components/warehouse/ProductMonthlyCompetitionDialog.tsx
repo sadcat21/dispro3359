@@ -248,7 +248,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                           {totalsByWorker[selectedIdx]?.name}
                         </div>
                         <div className="text-sm font-extrabold mt-0.5">
-                          {fmt(Number(totalsByWorker[selectedIdx]?.pieces || 0))}
+                          <FmtBP pieces={Number(totalsByWorker[selectedIdx]?.pieces || 0)} />
                         </div>
                         <div className="text-base font-extrabold" style={{ color: COLORS[selectedIdx % COLORS.length] }}>
                           {(
