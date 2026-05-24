@@ -117,6 +117,8 @@ const LoadStock: React.FC = () => {
   const [showLoadSheetPrint, setShowLoadSheetPrint] = useState(false);
   const [showBulkLoadNeeds, setShowBulkLoadNeeds] = useState(false);
   const [insufficientAlert, setInsufficientAlert] = useState<{ name: string; available: string; requested: string } | null>(null);
+  const [pendingLoadDialog, setPendingLoadDialog] = useState<{ confirmationId: string } | null>(null);
+  const [isRejectingPendingLoad, setIsRejectingPendingLoad] = useState(false);
 
   useEffect(() => {
     if (!insufficientAlert) return;
@@ -839,9 +841,7 @@ const LoadStock: React.FC = () => {
         .limit(1);
       if (pendingErr) throw pendingErr;
       if (pendingLoads && pendingLoads.length > 0) {
-        const msg = 'لا يمكن إنشاء جلسة شحن جديدة: يوجد طلب شحن سابق لم يؤكده العامل بعد. اطلب من العامل تأكيد أو رفض الطلب السابق أولاً لتجنب اختلال الرصيد.';
-        window.alert(msg);
-        toast.error('يوجد طلب شحن قيد الانتظار');
+        setPendingLoadDialog({ confirmationId: pendingLoads[0].id });
         return;
       }
     } catch (err: any) {
@@ -2714,6 +2714,55 @@ const LoadStock: React.FC = () => {
               <div>المطلوب: {insufficientAlert?.requested} صندوق.قطع</div>
             </DialogDescription>
           </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pendingLoadDialog} onOpenChange={(o) => !o && setPendingLoadDialog(null)}>
+        <DialogContent className="max-w-md border-2 border-orange-500">
+          <DialogHeader>
+            <DialogTitle className="text-lg flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              يوجد طلب شحن قيد الانتظار
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2 leading-relaxed">
+              لا يمكن إنشاء جلسة شحن جديدة: يوجد طلب شحن سابق لم يؤكده العامل بعد.
+              اطلب من العامل تأكيد الطلب السابق، أو ارفضه من هنا لتجنّب اختلال الرصيد.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setPendingLoadDialog(null)} disabled={isRejectingPendingLoad}>
+              إغلاق
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={isRejectingPendingLoad}
+              onClick={async () => {
+                if (!pendingLoadDialog) return;
+                setIsRejectingPendingLoad(true);
+                try {
+                  const { error } = await supabase
+                    .from('stock_confirmations')
+                    .update({
+                      status: 'rejected',
+                      rejection_note: 'رفض من قبل المسؤول لإلغاء طلب شحن معلق',
+                      responded_at: new Date().toISOString(),
+                    } as any)
+                    .eq('id', pendingLoadDialog.confirmationId);
+                  if (error) throw error;
+                  toast.success('تم رفض طلب الشحن السابق');
+                  setPendingLoadDialog(null);
+                  queryClient.invalidateQueries({ queryKey: ['stock-confirmations'] });
+                } catch (err: any) {
+                  toast.error(err?.message || 'فشل رفض الطلب');
+                } finally {
+                  setIsRejectingPendingLoad(false);
+                }
+              }}
+            >
+              {isRejectingPendingLoad ? <Loader2 className="w-4 h-4 animate-spin me-1" /> : <X className="w-4 h-4 me-1" />}
+              رفض الطلب السابق
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
