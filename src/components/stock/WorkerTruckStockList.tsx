@@ -33,6 +33,16 @@ const pendingGiftFractional = (item: any, ppb: number) => {
   return pendingPieces / safePpb;
 };
 
+const deliveredSaleBreakdown = (item: any, ppb: number) => {
+  const paid = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb));
+  const gift = confirmedGiftFractional(item, ppb);
+  return {
+    paid,
+    gift,
+    total: paid + gift,
+  };
+};
+
 interface Props {
   workerId: string;
   emptyLabel?: string;
@@ -294,11 +304,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     for (const it of soldData) {
       const ppb = ppbOf(it.product_id);
       const s = ensure(it.product_id);
-      const paidBP = getDeliveredPaidQuantity(it);
-      const gift = confirmedGiftFractional(it, ppb);
-      const pendingGift = pendingGiftFractional(it, ppb);
-      const totalBoxes = Math.max(0, dbBPToBoxes(Number(paidBP || 0), ppb) - pendingGift);
-      const paid = Math.max(0, totalBoxes - gift);
+      const { paid, gift } = deliveredSaleBreakdown(it, ppb);
       s.sold += paid;
       if ((paid > 0 || gift > 0) && it.order_id) s.saleCount.add(String(it.order_id));
       s.deliveredGiftQty += gift;
@@ -393,13 +399,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       movements.push({ id: `unload-${it.session_id}-${q}`, type: 'unload', label: 'تفريغ', quantity: q, when: it._session?.created_at || '', note: it._session?.notes || null, sourceLabel: it._session?.manager?.full_name || null, delta: -q });
     }
     for (const it of soldData.filter((x: any) => x.product_id === pid)) {
-      const giftQty = confirmedGiftFractional(it, ppb);
-      // المسلَّم المدفوع فقط — لا يتضمن أي هدية (مؤكدة أو معلَّقة).
-      const paidBP = Number(getDeliveredPaidQuantity(it) || 0);
-      const saleQty = dbBPToBoxes(paidBP, ppb);
+      const { paid: saleQty, gift: giftQty, total: totalDelta } = deliveredSaleBreakdown(it, ppb);
       const when = it.order_updated_at || it.order_created_at || '';
       // الخصم من الشاحنة: المباع + الهدية المؤكدة فقط. الهدية المعلَّقة تبقى في الشاحنة حتى التأكيد.
-      const totalDelta = saleQty + giftQty;
       if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta, orderId: it.order_id || null });
     }
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
