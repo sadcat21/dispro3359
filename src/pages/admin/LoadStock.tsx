@@ -841,9 +841,7 @@ const LoadStock: React.FC = () => {
         .limit(1);
       if (pendingErr) throw pendingErr;
       if (pendingLoads && pendingLoads.length > 0) {
-        const msg = 'لا يمكن إنشاء جلسة شحن جديدة: يوجد طلب شحن سابق لم يؤكده العامل بعد. اطلب من العامل تأكيد أو رفض الطلب السابق أولاً لتجنب اختلال الرصيد.';
-        window.alert(msg);
-        toast.error('يوجد طلب شحن قيد الانتظار');
+        setPendingLoadDialog({ confirmationId: pendingLoads[0].id });
         return;
       }
     } catch (err: any) {
