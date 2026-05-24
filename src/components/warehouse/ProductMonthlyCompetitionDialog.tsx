@@ -116,7 +116,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
       const row: any = { day: d };
       for (const wn of wnames) {
         const p = workerDaily.get(wn)?.get(d) || 0;
-        row[wn] = toDb(p);
+        row[wn] = p;
       }
       daily.push(row);
     }
