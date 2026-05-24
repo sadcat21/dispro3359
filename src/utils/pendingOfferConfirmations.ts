@@ -55,8 +55,11 @@ export async function recordPendingOfferConfirmation(input: RecordPendingOfferIn
     };
 
     // Skip if a non-pending (confirmed/rejected) record already exists for the
-    // same order line / offer — avoids re-spawning a pending card after the
-    // manager has already responded.
+    // same order / offer / product — avoids re-spawning a pending card after the
+    // manager has already responded. We intentionally do NOT match on
+    // order_item_id: legacy POCs were stored with order_item_id=NULL, and a
+    // strict match would miss them and cause a duplicate confirmation
+    // (which the deferred-gift trigger blocks as over-deduction).
     try {
       let existsQuery = (supabase as any)
         .from('pending_offer_confirmations')
@@ -65,8 +68,6 @@ export async function recordPendingOfferConfirmation(input: RecordPendingOfferIn
         .in('status', ['confirmed', 'rejected']);
       if (input.orderId) existsQuery = existsQuery.eq('order_id', input.orderId);
       else existsQuery = existsQuery.is('order_id', null);
-      if (input.orderItemId) existsQuery = existsQuery.eq('order_item_id', input.orderItemId);
-      else existsQuery = existsQuery.is('order_item_id', null);
       if (input.offerId) existsQuery = existsQuery.eq('offer_id', input.offerId);
       else existsQuery = existsQuery.is('offer_id', null);
       const { count: respondedCount } = await existsQuery;
