@@ -161,14 +161,6 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                 <div className="relative w-full h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Tooltip
-                        formatter={(_v: any, _n: any, p: any) => {
-                          const total = totalsByWorker.reduce((s, x) => s + x.pieces, 0) || 1;
-                          const pieces = Number(p?.payload?.pieces || 0);
-                          const pct = ((pieces / total) * 100).toFixed(1);
-                          return [`${fmt(pieces)} (${pct}%)`, p?.payload?.name];
-                        }}
-                      />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
                       <Pie
                         data={totalsByWorker}
@@ -237,8 +229,11 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                       </div>
                     ) : (
                       <div className="text-center animate-scale-in">
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs font-bold" style={{ color: COLORS[selectedIdx % COLORS.length] }}>
                           {totalsByWorker[selectedIdx]?.name}
+                        </div>
+                        <div className="text-sm font-extrabold mt-0.5">
+                          {fmt(Number(totalsByWorker[selectedIdx]?.pieces || 0))}
                         </div>
                         <div className="text-base font-extrabold" style={{ color: COLORS[selectedIdx % COLORS.length] }}>
                           {(
