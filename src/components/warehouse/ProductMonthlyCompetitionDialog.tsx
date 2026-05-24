@@ -156,15 +156,34 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                   <BarChart3 className="w-4 h-4 text-orange-600" />
                   <span>إجمالي مبيعات كل عامل خلال الشهر</span>
                 </div>
-                <div className="w-full h-64">
+                <div className="w-full h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={totalsByWorker}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip formatter={(v: any) => fmt(Number(v))} />
-                      <Bar dataKey="value" fill="#ea580c" radius={[6, 6, 0, 0]} />
-                    </BarChart>
+                    <PieChart>
+                      <Tooltip
+                        formatter={(v: any, _n: any, p: any) => {
+                          const total = totalsByWorker.reduce((s, x) => s + x.pieces, 0) || 1;
+                          const pct = ((Number(p?.payload?.pieces || 0) / total) * 100).toFixed(1);
+                          return [`${fmt(Number(p?.payload?.pieces || 0) / (p?.payload?.pieces ? p.payload.pieces : 1) * Number(v))}`.replace(/.*/, fmt(Number(p?.payload?.pieces || 0))) + ` (${pct}%)`, p?.payload?.name];
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Pie
+                        data={totalsByWorker}
+                        dataKey="pieces"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={95}
+                        paddingAngle={2}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {totalsByWorker.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
