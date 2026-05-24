@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { BarChart3, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import {
-  ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
+  ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
