@@ -7,7 +7,7 @@ import { BarChart3, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Sector, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
-import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 interface Props {
