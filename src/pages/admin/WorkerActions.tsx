@@ -61,6 +61,23 @@ const orderGiftToBoxes = (giftBoxes: number, giftPieces: number, piecesPerBox: n
   return bpStoredToBoxes(Number(giftBoxes || 0), ppb) + Math.max(0, Number(giftPieces || 0)) / ppb;
 };
 
+const confirmedOrderGiftToBoxes = (item: any, piecesPerBox: number) => {
+  const ppb = Math.max(1, Number(piecesPerBox) || 1);
+  const storedPieces = Math.max(0, Number(item.gift_quantity || 0)) * ppb + Math.max(0, Number(item.gift_pieces || 0));
+  const pendingPieces = Math.max(0, Number(item.pending_gift_boxes || 0)) * ppb + Math.max(0, Number(item.pending_gift_pieces || 0));
+  return Math.max(0, storedPieces - pendingPieces) / ppb;
+};
+
+const deliveredSaleBreakdown = (item: any, piecesPerBox: number) => {
+  const paid = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), piecesPerBox);
+  const gift = confirmedOrderGiftToBoxes(item, piecesPerBox);
+  return {
+    paid,
+    gift,
+    total: paid + gift,
+  };
+};
+
 import CoinExchangeDialog from '@/components/treasury/CoinExchangeDialog';
 import WorkerHandoverPreviewDialog from '@/components/accounting/WorkerHandoverPreviewDialog';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
@@ -477,7 +494,7 @@ const WorkerActions: React.FC = () => {
       const orderIds = orders.map(o => o.id);
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box')
         .in('order_id', orderIds);
       if (!items || items.length === 0) return [];
       const { data: movements } = await supabase
@@ -486,10 +503,23 @@ const WorkerActions: React.FC = () => {
         .eq('worker_id', selectedWorker!.id)
         .eq('movement_type', 'delivery')
         .in('order_id', orderIds);
+      const { data: pendingOffers } = await (supabase as any)
+        .from('pending_offer_confirmations')
+        .select('order_id, product_id, offer_id, gift_boxes, gift_pieces')
+        .eq('status', 'pending')
+        .in('order_id', orderIds);
       // ppb lookup so we can sum movements in PIECES (BP-safe) then convert back to BP.
       const ppbByProduct = new Map<string, number>();
       for (const it of items) {
         ppbByProduct.set(it.product_id, Math.max(1, Number(it.pieces_per_box) || 1));
+      }
+      const pendingGiftByOrderProductOffer = new Map<string, { boxes: number; pieces: number }>();
+      for (const pending of (pendingOffers || []) as any[]) {
+        const key = `${pending.order_id}|${pending.product_id}|${pending.offer_id || ''}`;
+        const current = pendingGiftByOrderProductOffer.get(key) || { boxes: 0, pieces: 0 };
+        current.boxes += Number(pending.gift_boxes || 0);
+        current.pieces += Number(pending.gift_pieces || 0);
+        pendingGiftByOrderProductOffer.set(key, current);
       }
       const deliveredPiecesByOrderProduct = new Map<string, number>();
       for (const movement of movements || []) {
@@ -525,8 +555,11 @@ const WorkerActions: React.FC = () => {
       );
       return items.map((i) => {
         const order = orderMap.get(i.order_id);
+        const pendingGift = pendingGiftByOrderProductOffer.get(`${i.order_id}|${i.product_id}|${(i as any).gift_offer_id || ''}`) || { boxes: 0, pieces: 0 };
         return {
           ...i,
+          pending_gift_boxes: pendingGift.boxes,
+          pending_gift_pieces: pendingGift.pieces,
           delivered_quantity: deliveredByOrderProduct.get(`${i.order_id}|${i.product_id}`),
           order_created_at: order?.created_at || null,
           order_updated_at: order?.updated_at || null,
@@ -614,13 +647,10 @@ const WorkerActions: React.FC = () => {
     for (const item of (truckSoldData || [])) {
       const ppb = ppbOf(item.product_id, item.pieces_per_box);
       const stat = ensure(item.product_id);
-      const paidQty = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb);
-      stat.sold += paidQty;
-      if (paidQty > 0 && item.order_id) stat.saleOrderIds.add(String(item.order_id));
-      const giftBoxes = Number(item.gift_quantity || 0);
-      const giftPieces = Number(item.gift_pieces || 0);
-      const totalGift = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
-      if (giftBoxes > 0 || giftPieces > 0) stat.deliveredGiftQty += totalGift;
+      const { paid, gift } = deliveredSaleBreakdown(item, ppb);
+      stat.sold += paid;
+      if ((paid > 0 || gift > 0) && item.order_id) stat.saleOrderIds.add(String(item.order_id));
+      stat.deliveredGiftQty += gift;
     }
 
     return stats;
@@ -749,10 +779,7 @@ const WorkerActions: React.FC = () => {
     const soldItems = (truckSoldData || [])
       .filter((item: any) => item.product_id === productId)
       .map((item: any) => {
-        const giftBoxes = Math.max(0, Number(item.gift_quantity || 0));
-        const giftPieces = Math.max(0, Number(item.gift_pieces || 0));
-        const giftQty = orderGiftToBoxes(giftBoxes, giftPieces, ppb);
-        const saleQty = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb);
+        const { paid: saleQty, gift: giftQty } = deliveredSaleBreakdown(item, ppb);
         const when = item.order_updated_at || item.order_created_at || '';
         const paymentType = item.order_payment_type || null;
         const customerName = item.customer_name || null;
