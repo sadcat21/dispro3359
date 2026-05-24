@@ -160,10 +160,11 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Tooltip
-                        formatter={(v: any, _n: any, p: any) => {
+                        formatter={(_v: any, _n: any, p: any) => {
                           const total = totalsByWorker.reduce((s, x) => s + x.pieces, 0) || 1;
-                          const pct = ((Number(p?.payload?.pieces || 0) / total) * 100).toFixed(1);
-                          return [`${fmt(Number(p?.payload?.pieces || 0) / (p?.payload?.pieces ? p.payload.pieces : 1) * Number(v))}`.replace(/.*/, fmt(Number(p?.payload?.pieces || 0))) + ` (${pct}%)`, p?.payload?.name];
+                          const pieces = Number(p?.payload?.pieces || 0);
+                          const pct = ((pieces / total) * 100).toFixed(1);
+                          return [`${fmt(pieces)} (${pct}%)`, p?.payload?.name];
                         }}
                       />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
