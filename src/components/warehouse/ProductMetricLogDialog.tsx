@@ -7,6 +7,7 @@ import {
   Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart,
 } from 'lucide-react';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
+import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 export type MetricKind =
   | 'gifts'
@@ -109,9 +110,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           .eq('product_id', productId)
           .or(`branch_id.eq.${branchId},branch_id.is.null`)
           .order('sold_at', { ascending: false });
-        const filtered = (rows || []).filter((r: any) =>
+        const filtered = dedupeSalesTrackingRows((rows || []).filter((r: any) =>
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
-        );
+        ));
         const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
         return filtered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
@@ -410,7 +411,11 @@ const OfferRecipientDetailsDialog: React.FC<{
         .order('sold_at', { ascending: true });
 
       // Determine the start point: previous gift event (so we show the accumulation that triggered THIS gift)
-      const list = (rows || []) as any[];
+      const list = dedupeSalesTrackingRows((rows || []) as any[]).sort((a, b) => {
+        const at = new Date(a.sold_at || 0).getTime();
+        const bt = new Date(b.sold_at || 0).getTime();
+        return at - bt;
+      });
       // last index where a gift was received BEFORE current entry
       let startIdx = 0;
       for (let i = list.length - 2; i >= 0; i--) {
