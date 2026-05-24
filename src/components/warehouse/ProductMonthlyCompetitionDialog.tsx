@@ -229,8 +229,11 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                       </div>
                     ) : (
                       <div className="text-center animate-scale-in">
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs font-bold" style={{ color: COLORS[selectedIdx % COLORS.length] }}>
                           {totalsByWorker[selectedIdx]?.name}
+                        </div>
+                        <div className="text-sm font-extrabold mt-0.5">
+                          {fmt(Number(totalsByWorker[selectedIdx]?.pieces || 0))}
                         </div>
                         <div className="text-base font-extrabold" style={{ color: COLORS[selectedIdx % COLORS.length] }}>
                           {(
