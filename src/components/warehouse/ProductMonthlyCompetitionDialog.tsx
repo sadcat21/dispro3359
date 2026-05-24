@@ -176,7 +176,13 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                 <div className="relative w-full h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Legend
+                        wrapperStyle={{ fontSize: 11, cursor: 'pointer' }}
+                        onClick={(e: any) => {
+                          const idx = totalsByWorker.findIndex((w) => w.name === e?.value);
+                          if (idx >= 0) setSelectedIdx((cur) => (cur === idx ? null : idx));
+                        }}
+                      />
                       <Pie
                         data={totalsByWorker}
                         dataKey="pieces"
