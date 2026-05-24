@@ -308,7 +308,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                           </div>
                           <div className="rounded-xl bg-background/70 p-2 text-center border">
                             <div className="text-[10px] text-muted-foreground">الإجمالي</div>
-                            <div className="font-extrabold text-sm">{fmt(total)}</div>
+                            <div className="font-extrabold text-sm"><FmtBP pieces={total} /></div>
                           </div>
                         </div>
                         {/* Animated progress bar */}
