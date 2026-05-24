@@ -7,7 +7,7 @@ import { BarChart3, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Sector, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
-import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 interface Props {
@@ -28,7 +28,22 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const ppb = Math.max(1, piecesPerBox);
   const toDb = (pieces: number) => Math.floor(pieces / ppb) + (pieces % ppb) / 100;
-  const fmt = (pieces: number) => dbBPDisplay(toDb(Math.max(0, pieces)), ppb);
+  const fmt = (pieces: number) => dbBPDisplayAlways(toDb(Math.max(0, pieces)), ppb);
+  const FmtBP: React.FC<{ pieces: number; className?: string }> = ({ pieces, className }) => {
+    const s = fmt(pieces);
+    const [b, p] = s.split('.');
+    return (
+      <span className={className}>
+        {b}
+        {p !== undefined && (
+          <>
+            <span className="opacity-60">.</span>
+            <span className="text-red-600">{p}</span>
+          </>
+        )}
+      </span>
+    );
+  };
 
   const { start, end, label, daysInMonth, year, month } = useMemo(() => {
     const now = new Date();
@@ -161,7 +176,13 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                 <div className="relative w-full h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Legend
+                        wrapperStyle={{ fontSize: 11, cursor: 'pointer' }}
+                        onClick={(e: any) => {
+                          const idx = totalsByWorker.findIndex((w) => w.name === e?.value);
+                          if (idx >= 0) setSelectedIdx((cur) => (cur === idx ? null : idx));
+                        }}
+                      />
                       <Pie
                         data={totalsByWorker}
                         dataKey="pieces"
@@ -224,7 +245,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                       <div className="text-center">
                         <div className="text-[10px] text-muted-foreground">الإجمالي</div>
                         <div className="text-base font-extrabold text-orange-700">
-                          {fmt(totalsByWorker.reduce((s, x) => s + x.pieces, 0))}
+                          <FmtBP pieces={totalsByWorker.reduce((s, x) => s + x.pieces, 0)} />
                         </div>
                       </div>
                     ) : (
@@ -233,7 +254,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                           {totalsByWorker[selectedIdx]?.name}
                         </div>
                         <div className="text-sm font-extrabold mt-0.5">
-                          {fmt(Number(totalsByWorker[selectedIdx]?.pieces || 0))}
+                          <FmtBP pieces={Number(totalsByWorker[selectedIdx]?.pieces || 0)} />
                         </div>
                         <div className="text-base font-extrabold" style={{ color: COLORS[selectedIdx % COLORS.length] }}>
                           {(
@@ -283,7 +304,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                         <div className="grid grid-cols-3 gap-2">
                           <div className="rounded-xl bg-background/70 p-2 text-center border">
                             <div className="text-[10px] text-muted-foreground">الكمية المباعة</div>
-                            <div className="font-extrabold text-sm">{fmt(w.pieces)}</div>
+                            <div className="font-extrabold text-sm"><FmtBP pieces={w.pieces} /></div>
                           </div>
                           <div className="rounded-xl bg-background/70 p-2 text-center border">
                             <div className="text-[10px] text-muted-foreground">النسبة</div>
@@ -293,7 +314,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
                           </div>
                           <div className="rounded-xl bg-background/70 p-2 text-center border">
                             <div className="text-[10px] text-muted-foreground">الإجمالي</div>
-                            <div className="font-extrabold text-sm">{fmt(total)}</div>
+                            <div className="font-extrabold text-sm"><FmtBP pieces={total} /></div>
                           </div>
                         </div>
                         {/* Animated progress bar */}
