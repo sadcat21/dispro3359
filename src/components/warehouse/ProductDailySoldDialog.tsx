@@ -109,8 +109,13 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           <DialogTitle className="flex items-center gap-2 flex-wrap">
             <ShoppingBag className="w-5 h-5 text-orange-600" />
             <span className="truncate">{productName}</span>
-            <span className="text-[11px] font-normal text-muted-foreground">المبيعات اليومية</span>
+            <span className="text-[11px] font-normal text-muted-foreground">
+              {sinceIso
+                ? `المبيعات منذ ${new Date(sinceIso).toLocaleDateString('ar-DZ')} حتى الآن`
+                : 'كل المبيعات'}
+            </span>
           </DialogTitle>
+
         </DialogHeader>
 
         <div className="flex items-center justify-between border rounded-xl p-3 bg-orange-50">
