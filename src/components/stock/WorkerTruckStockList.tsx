@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,7 @@ interface Props {
 }
 
 export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = 'لا يوجد مخزون في الشاحنة' }) => {
+  const qc = useQueryClient();
   const [selected, setSelected] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
     if (typeof window === 'undefined') return 'list';
@@ -70,6 +71,27 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     },
     enabled: !!workerId,
   });
+
+  // إعادة جلب تلقائية عند أي تغيير في رصيد العامل/الحركات/العروض المؤكدة
+  // لمنع ظهور أرقام قديمة بعد التأكيد أو بعد تحديث الصفحة.
+  useEffect(() => {
+    if (!workerId) return;
+    const refresh = () => {
+      qc.invalidateQueries({ queryKey: ['wtsl-stock', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-loaded', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-unloaded', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-sold', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-modifications', workerId] });
+    };
+    const ch = supabase
+      .channel(`wtsl-rt-${workerId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_stock', filter: `worker_id=eq.${workerId}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_movements', filter: `worker_id=eq.${workerId}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_offer_confirmations', filter: `worker_id=eq.${workerId}` }, refresh)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [workerId, qc]);
+
 
   const { data: lastAccounting } = useQuery({
     queryKey: ['wtsl-last-accounting', workerId],
