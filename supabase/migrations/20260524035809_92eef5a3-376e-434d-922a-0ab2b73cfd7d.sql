@@ -1,0 +1,1 @@
+UPDATE public.stock_receipt_items SET quantity = 153.07 WHERE id = 'a9d66773-1914-4ee5-a40c-b2a76fe49c8e';
