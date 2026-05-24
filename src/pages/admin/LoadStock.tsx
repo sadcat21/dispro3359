@@ -117,6 +117,8 @@ const LoadStock: React.FC = () => {
   const [showLoadSheetPrint, setShowLoadSheetPrint] = useState(false);
   const [showBulkLoadNeeds, setShowBulkLoadNeeds] = useState(false);
   const [insufficientAlert, setInsufficientAlert] = useState<{ name: string; available: string; requested: string } | null>(null);
+  const [pendingLoadDialog, setPendingLoadDialog] = useState<{ confirmationId: string } | null>(null);
+  const [isRejectingPendingLoad, setIsRejectingPendingLoad] = useState(false);
 
   useEffect(() => {
     if (!insufficientAlert) return;
