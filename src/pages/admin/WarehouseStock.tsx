@@ -219,14 +219,13 @@ const WarehouseStock: React.FC = () => {
   // - warehouse_sale: subtracted from المتبقي AND added to المباع
   // - delivery_sale / direct_sale: added to المباع only (worker stock handles المتبقي)
   const { data: warehouseSalesData, isLoading: warehouseSalesLoading } = useQuery({
-    queryKey: ['warehouse-sales-tracking', branchId, latestReceiptQueryKey],
+    queryKey: ['warehouse-sales-tracking', branchId],
     queryFn: async () => {
       if (!branchId) return [];
       const { data: rawSales } = await supabase
         .from('sales_tracking')
         .select('product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, total_boxes, total_pieces, pieces_per_box, order_id, source, sold_at')
         .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
-        .gte('sold_at', Object.values(latestReceiptAtByProduct).sort()[0] || new Date(0).toISOString())
         .or(`branch_id.eq.${branchId},branch_id.is.null`);
 
       const rows = dedupeSalesTrackingRows((rawSales || []) as WarehouseSaleSummaryRow[]);
@@ -248,12 +247,10 @@ const WarehouseStock: React.FC = () => {
         const order = row.order_id ? orderById.get(row.order_id) : null;
         const inferredBranchId = row.branch_id || order?.branch_id || (row.worker_id ? workerBranchById.get(row.worker_id) : null) || (row.customer_id ? customerBranchById.get(row.customer_id) : null);
         const belongsToBranch = inferredBranchId === branchId || (!row.branch_id && !inferredBranchId);
-        const lastReceiptAt = row.product_id ? latestReceiptAtByProduct[row.product_id] : null;
-        const afterLastReceipt = !!lastReceiptAt && !!row.sold_at && row.sold_at >= lastReceiptAt;
         const hasGift = Number(row.gift_boxes || 0) > 0 || Number(row.gift_pieces || 0) > 0;
         const orderOk = !row.order_id || order?.status === 'delivered' || hasGift;
-        // Gift rows are cumulative (not reset by receipts) so they must match the offers dialog total.
-        return belongsToBranch && (afterLastReceipt || hasGift) && orderOk;
+        // Counted cumulatively so totals balance against cumulative received.
+        return belongsToBranch && orderOk;
       }).map((row) => ({
         ...row,
         order: row.order_id ? { status: orderById.get(row.order_id)?.status || null } : null,
@@ -371,8 +368,6 @@ const WarehouseStock: React.FC = () => {
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
-      const lastReceiptAt = lastReceiptByProduct[pid];
-      if (lastReceiptAt && s.sold_at && s.sold_at < lastReceiptAt) continue;
       // Skip non-delivered orders for sold/warehouse counting (offers loop handles those separately)
       if (s.order_id && (s as any).order?.status !== 'delivered') continue;
       const ppb = Number(s.pieces_per_box) || 20;
