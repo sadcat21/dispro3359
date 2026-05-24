@@ -72,6 +72,27 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     enabled: !!workerId,
   });
 
+  // إعادة جلب تلقائية عند أي تغيير في رصيد العامل/الحركات/العروض المؤكدة
+  // لمنع ظهور أرقام قديمة بعد التأكيد أو بعد تحديث الصفحة.
+  useEffect(() => {
+    if (!workerId) return;
+    const refresh = () => {
+      qc.invalidateQueries({ queryKey: ['wtsl-stock', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-loaded', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-unloaded', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-sold', workerId] });
+      qc.invalidateQueries({ queryKey: ['wtsl-modifications', workerId] });
+    };
+    const ch = supabase
+      .channel(`wtsl-rt-${workerId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_stock', filter: `worker_id=eq.${workerId}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_movements', filter: `worker_id=eq.${workerId}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_offer_confirmations', filter: `worker_id=eq.${workerId}` }, refresh)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [workerId, qc]);
+
+
   const { data: lastAccounting } = useQuery({
     queryKey: ['wtsl-last-accounting', workerId],
     queryFn: async () => {
