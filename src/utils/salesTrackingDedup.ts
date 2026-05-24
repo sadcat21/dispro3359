@@ -40,7 +40,7 @@ export const dedupeSalesTrackingRows = <T extends SalesTrackingLikeRow>(rows: T[
 
   for (const row of rows) {
     if (row.order_id && row.product_id) {
-      const key = `${row.order_id}::${row.product_id}`;
+      const key = `${row.order_id}::${row.product_id}::${row.worker_id || ''}`;
       const existing = byOrderProduct.get(key);
       if (!existing || shouldReplace(existing, row)) {
         byOrderProduct.set(key, row);
