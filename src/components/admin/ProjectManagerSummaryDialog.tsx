@@ -269,14 +269,6 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
                 <div className="space-y-1">
                   {((data as any).rows || []).slice(0, 80).map((r: any) => (
                     <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2 text-xs">
-                      {(() => {
-                        const soldDisplay = Number(r.sold_boxes || 0) > 0
-                          ? `${Number(r.sold_boxes || 0)} صندوق${Number(r.sold_pieces || 0) > 0 ? ` + ${Number(r.sold_pieces || 0)} قطعة` : ''}`
-                          : `${Number(r.sold_pieces || 0)} قطعة`;
-                        const giftDisplay = Number(r.gift_boxes || 0) > 0
-                          ? `${Number(r.gift_boxes || 0)} صندوق${Number(r.gift_pieces || 0) > 0 ? ` + ${Number(r.gift_pieces || 0)} قطعة` : ''}`
-                          : `${Number(r.gift_pieces || 0)} قطعة`;
-                        return (
                       <div className="flex items-center gap-2 min-w-0">
                         {r.image_url ? (
                           <img src={r.image_url} alt={r.product_name} className="h-10 w-10 rounded-md object-cover border shrink-0" loading="lazy" />
@@ -289,11 +281,17 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant="outline" className="text-[10px]">بيع: {soldDisplay}</Badge>
-                        <Badge className="text-[10px] bg-rose-600">هدية: {giftDisplay}</Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          بيع: {Number(r.sold_boxes || 0) > 0
+                            ? `${Number(r.sold_boxes || 0)} صندوق${Number(r.sold_pieces || 0) > 0 ? ` + ${Number(r.sold_pieces || 0)} قطعة` : ''}`
+                            : `${Number(r.sold_pieces || 0)} قطعة`}
+                        </Badge>
+                        <Badge className="text-[10px] bg-rose-600">
+                          هدية: {Number(r.gift_boxes || 0) > 0
+                            ? `${Number(r.gift_boxes || 0)} صندوق${Number(r.gift_pieces || 0) > 0 ? ` + ${Number(r.gift_pieces || 0)} قطعة` : ''}`
+                            : `${Number(r.gift_pieces || 0)} قطعة`}
+                        </Badge>
                       </div>
-                        );
-                      })()}
                     </div>
                   ))}
                   {((data as any).rows || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">لا توجد عروض مسلّمة هذا الشهر</p>}
