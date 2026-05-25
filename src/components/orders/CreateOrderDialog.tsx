@@ -881,7 +881,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       <>
                         <InvoicePaymentMethodSelect
                           value={invoicePaymentMethod}
-                          onChange={setInvoicePaymentMethod}
+                          onChange={(m) => { setInvoicePaymentMethod(m); setInvoicePaymentSubType(null); }}
+                          subType={invoicePaymentSubType}
+                          onSubTypeChange={setInvoicePaymentSubType}
                         />
                         <div className="mt-2 space-y-1">
                           <Label className="text-xs text-slate-600">رقم الفاتورة (اختياري)</Label>
