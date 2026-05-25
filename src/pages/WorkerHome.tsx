@@ -402,12 +402,16 @@ const WorkerHome: React.FC = () => {
       <ProductShowcaseHero>
         <div className="flex items-stretch gap-1.5 rounded-lg border border-primary/20 bg-background/85 backdrop-blur-sm p-1.5 shadow-md">
           <WorkerSalesSummaryCard onOpenSalesSummary={() => setShowSalesSummary(true)} />
-          <div className="flex flex-col items-center justify-center px-1.5 min-w-0 flex-shrink">
+          <button
+            type="button"
+            onClick={() => setShowSalesSummary(true)}
+            className="flex flex-col items-center justify-center px-1.5 min-w-0 flex-shrink cursor-pointer hover:bg-primary/5 rounded transition-colors"
+          >
             <span className="text-[9px] text-muted-foreground leading-tight">{t('common.welcome')}</span>
             <span className="text-[11px] font-bold text-foreground leading-tight truncate max-w-[110px]">
               {user?.full_name} 👋
             </span>
-          </div>
+          </button>
           <Button
             variant="outline"
             className="flex-1 h-9 gap-1.5 text-xs font-bold border border-primary/20 bg-gradient-to-br from-background to-muted/30 shadow-md"
