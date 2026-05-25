@@ -35,7 +35,8 @@ export const useWorkerFrozenStatus = (workerId?: string | null) => {
       const rows = (data || []).filter(d => Number(d.remaining_amount || 0) > 0);
       const totalRemaining = rows.reduce((s, r) => s + Number(r.remaining_amount || 0), 0);
       return {
-        isFrozen: rows.length > 0,
+        // Freezing disabled by policy — only show as warning. Always false to never block operations.
+        isFrozen: false,
         totalRemaining,
         debtsCount: rows.length,
       };
