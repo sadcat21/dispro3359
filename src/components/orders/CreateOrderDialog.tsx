@@ -591,6 +591,14 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       toast.error(t('orders.select_payment_error'));
       return;
     }
+    if (
+      paymentType === 'with_invoice' &&
+      (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer') &&
+      !invoicePaymentSubType
+    ) {
+      toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
 
     try {
       // Don't auto-assign worker at creation - let the AssignWorkerAfterSaveDialog handle it
@@ -603,6 +611,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         deliveryDate: deliveryDate ? (deliveryTime ? `${deliveryDate}T${deliveryTime}` : deliveryDate) : undefined,
         paymentType,
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
+        paidByCash: paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')
+          ? invoicePaymentSubType === 'cash'
+          : undefined,
         invoiceNumber: paymentType === 'with_invoice' ? invoiceNumber : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
