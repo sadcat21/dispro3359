@@ -17,26 +17,26 @@ interface Props {
  * في مراجعة المخزون. يُخفى تلقائياً عند سداد الدين.
  */
 export const FrozenWorkerBadge: React.FC<Props> = ({ workerId, variant = 'alert', className }) => {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const { data } = useWorkerFrozenStatus(workerId);
-  if (!data?.isFrozen) return null;
+  if (!data || data.debtsCount === 0 || data.totalRemaining <= 0) return null;
 
   if (variant === 'badge') {
     return (
-      <Badge variant="destructive" className={className}>
-        <Lock className="w-3 h-3 me-1" />
-        {t('worker.frozen_short')} {formatNumber(data.totalRemaining, language)} دج
+      <Badge variant="outline" className={`border-amber-500 text-amber-700 dark:text-amber-400 ${className || ''}`}>
+        <AlertTriangle className="w-3 h-3 me-1" />
+        تنبيه: عجز {formatNumber(data.totalRemaining, language)} دج
       </Badge>
     );
   }
 
   return (
-    <Alert variant="destructive" className={className}>
+    <Alert className={`border-amber-500 text-amber-800 dark:text-amber-300 ${className || ''}`}>
       <AlertTriangle className="h-4 w-4" />
       <AlertDescription>
-        {t('worker.frozen_message_prefix')}{' '}
+        تنبيه: على هذا الموظف عجز غير مسدد بقيمة{' '}
         <strong>{formatNumber(data.totalRemaining, language)} دج</strong>{' '}
-        {t('worker.frozen_message_suffix')}
+        من مراجعة المخزون. يُرجى تسوية الحساب في أقرب وقت.
       </AlertDescription>
     </Alert>
   );
