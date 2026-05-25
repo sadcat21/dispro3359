@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { parseBP as parseBPUtil, boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
+import { recordSaleTracking } from '@/utils/salesTracking';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { cn } from '@/lib/utils';
 
@@ -495,6 +496,40 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           reason: 'تسجيل عرض/هدية يدوي',
           notes: notes.trim() || null,
         } as any);
+      }
+
+      // 4) Mirror into sales_tracking so the offers log (سجل العروض) shows it
+      try {
+        const giftUnit = selectedTier.gift_quantity_unit || 'piece';
+        const productName = selectedOffer.product?.name || null;
+        for (const entry of validEntries) {
+          const parsedSold = parseBPLocal(entry.soldQuantity, piecesPerBox);
+          const giftBoxes = giftUnit === 'box' ? Number(entry.giftQuantity || 0) : 0;
+          const giftPieces = giftUnit === 'piece' ? Number(entry.giftQuantity || 0) : 0;
+          const cust = customers.find((c) => c.id === entry.customerId);
+          await recordSaleTracking({
+            source: 'direct_sale',
+            orderId: null,
+            branchId: activeBranch.id,
+            branchName: (activeBranch as any)?.name || null,
+            workerId,
+            customerId: entry.customerId,
+            customerName: cust?.name || null,
+            notes: notes.trim() || 'تسجيل عرض/هدية يدوي',
+            items: [{
+              productId: selectedProductId,
+              productName,
+              quantity: parsedSold.raw,
+              giftBoxes,
+              giftPieces,
+              piecesPerBox,
+              giftProductId: selectedProductId,
+              giftProductName: productName,
+            }],
+          });
+        }
+      } catch (e) {
+        console.warn('[ManualPromo] sales_tracking mirror failed', e);
       }
 
       toast.success(`تم تسجيل ${validEntries.length} عرض وخصم ${formatPieces(totalGiftPieces)} من مخزون الفرع`);
