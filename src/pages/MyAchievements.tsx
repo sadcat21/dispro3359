@@ -517,24 +517,64 @@ const MyAchievements: React.FC = () => {
         upperBound = new Date().toISOString();
       }
 
-      const { data: visits } = await supabase
-        .from('visit_tracking')
-        .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
-        .eq('worker_id', targetWorkerId)
-        .gte('created_at', lowerBound)
-        .lte('created_at', upperBound)
-        .order('created_at', { ascending: false });
+      const [{ data: visits }, { data: directDebtCollections }] = await Promise.all([
+        supabase
+          .from('visit_tracking')
+          .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
+          .eq('worker_id', targetWorkerId)
+          .gte('created_at', lowerBound)
+          .lte('created_at', upperBound)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('debt_collections')
+          .select(`
+            id,
+            worker_id,
+            debt_id,
+            created_at,
+            notes,
+            debt:customer_debts!debt_collections_debt_id_fkey(customer_id)
+          `)
+          .eq('worker_id', targetWorkerId)
+          .gte('created_at', lowerBound)
+          .lte('created_at', upperBound)
+          .neq('status', 'rejected')
+          .order('created_at', { ascending: false }),
+      ]);
 
-      const customerIds = [...new Set((visits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
+      const visitList = visits || [];
+      const visitDebtCollectionIds = new Set(
+        visitList
+          .filter((v: any) => v.operation_type === 'debt_collection')
+          .map((v: any) => v.operation_id || (v as any).entity_id || (v as any).reference_id)
+          .filter(Boolean)
+      );
+      const mergedVisits = [
+        ...visitList,
+        ...((directDebtCollections || [])
+          .filter((collection: any) => !visitDebtCollectionIds.has(collection.debt_id))
+          .map((collection: any) => ({
+            id: `debt-collection-${collection.id}`,
+            worker_id: collection.worker_id,
+            customer_id: collection?.debt?.customer_id || null,
+            operation_type: 'debt_collection',
+            operation_id: collection.debt_id,
+            notes: collection.notes,
+            created_at: collection.created_at,
+            branch_id: activeBranch?.id || null,
+          }))),
+      ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const customerIds = [...new Set((mergedVisits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
       const orderLinkedTypes = new Set<OperationType>(['order', 'direct_sale', 'delivery']);
       const debtCollectionDebtIds = [...new Set(
-        (visits || [])
+        (mergedVisits || [])
           .filter(v => v.operation_type === 'debt_collection')
           .map(v => v.operation_id || (v as any).entity_id || (v as any).reference_id)
           .filter(Boolean) as string[]
       )];
       const orderIds = [...new Set(
-        (visits || [])
+        (mergedVisits || [])
           .filter(v => orderLinkedTypes.has(v.operation_type as OperationType))
           .map(v => v.operation_id)
           .filter(Boolean) as string[]
@@ -669,7 +709,7 @@ const MyAchievements: React.FC = () => {
         return match ? match.completedAt : null;
       };
 
-      const enrichedVisits = (visits || []).map((visit) => {
+      const enrichedVisits = (mergedVisits || []).map((visit) => {
         const customerInfo = visit.customer_id ? customerMap.get(visit.customer_id) : null;
         const orderMeta = visit.operation_id ? orderMetaMap.get(visit.operation_id) : null;
         const accountedDate = getAccountingDate(visit.created_at);
