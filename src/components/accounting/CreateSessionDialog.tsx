@@ -570,7 +570,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <span className="text-xl font-bold text-primary">{fmt(calc.totalSales)} DA</span>
                     </div>
                   </div>
-                  {/* الكاشير المسلم للمدير - تصميم مميز بارز */}
+                  {/* الكاش المسلم للمدير - تصميم مميز بارز */}
                   <div className="mb-2 relative overflow-hidden rounded-xl p-3 bg-gradient-to-l from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/30 ring-2 ring-purple-300">
                     <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/20 blur-xl" />
                     <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-white/20 blur-xl" />
@@ -581,7 +581,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] text-white/90 font-medium">يجب تسليمه نقداً للمدير</span>
-                          <span className="font-bold text-sm text-white">الكاشير المسلم للمدير</span>
+                          <span className="font-bold text-sm text-white">الكاش المسلم للمدير</span>
                         </div>
                       </div>
                       <span className="text-2xl font-extrabold text-white drop-shadow">{fmt(calc.physicalCash)} DA</span>
