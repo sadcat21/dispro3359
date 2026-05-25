@@ -172,6 +172,11 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           }
         }
         filtered.push(...byOrder.values());
+        const fallbackWorkerIds = Array.from(new Set((fallbackPromos || []).map((p: any) => p.worker_id).filter(Boolean)));
+        const { data: fallbackWorkers } = fallbackWorkerIds.length
+          ? await supabase.from('workers').select('id, branch_id').in('id', fallbackWorkerIds as string[])
+          : { data: [] as any[] };
+        const fallbackWorkerBranchMap = new Map((fallbackWorkers || []).map((w: any) => [w.id, w.branch_id || null]));
         const trackingPromoKeys = new Set(
           filtered
             .filter((r: any) => !r.order_id)
@@ -183,7 +188,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           const giftPieces = p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0;
           const key = `${p.worker_id || ''}|${p.customer_id || ''}|${promoAt || ''}|${giftBoxes}|${giftPieces}`;
           const isManual = String(p.notes || '').includes('تسجيل عرض/هدية يدوي') || String(p.notes || '').includes('تسجيل البرومو اليدوي') || !p.notes;
-          if (!isManual || trackingPromoKeys.has(key)) return [];
+          if (!isManual || trackingPromoKeys.has(key) || fallbackWorkerBranchMap.get(p.worker_id) !== branchId) return [];
           return [{
             id: `promo-${p.id}`,
             sold_at: promoAt,
@@ -198,7 +203,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customer_name: null,
           }];
         });
-        const mergedRows = [...filtered, ...manualFallbackRows];
+        const mergedRows = [...filtered, ...manualFallbackRows].sort((a: any, b: any) =>
+          new Date(b.sold_at || 0).getTime() - new Date(a.sold_at || 0).getTime()
+        );
         const names = await resolveWorkers(mergedRows.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(mergedRows.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
