@@ -558,6 +558,12 @@ const MyAchievements: React.FC = () => {
           .map((v: any) => v.operation_id || (v as any).entity_id || (v as any).reference_id)
           .filter(Boolean)
       );
+      const trackedOrderIds = new Set(
+        visitList
+          .filter((v: any) => ['order', 'direct_sale', 'delivery'].includes(v.operation_type))
+          .map((v: any) => v.operation_id)
+          .filter(Boolean)
+      );
       const mergedVisits = [
         ...visitList,
         ...((directDebtCollections || [])
@@ -571,6 +577,21 @@ const MyAchievements: React.FC = () => {
             notes: collection.notes,
             created_at: collection.created_at,
             branch_id: activeBranch?.id || null,
+          }))),
+        // Synthesize visit entries for assigned orders that never produced a
+        // visit_tracking row (e.g. GPS denied), so achievements count matches
+        // the real order count.
+        ...((directOrders || [])
+          .filter((o: any) => o.id && !trackedOrderIds.has(o.id))
+          .map((o: any) => ({
+            id: `order-${o.id}`,
+            worker_id: targetWorkerId,
+            customer_id: o.customer_id || null,
+            operation_type: 'direct_sale' as OperationType,
+            operation_id: o.id,
+            notes: null,
+            created_at: o.created_at,
+            branch_id: o.branch_id || activeBranch?.id || null,
           }))),
       ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
