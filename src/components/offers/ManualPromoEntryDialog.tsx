@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
 import { parseBP as parseBPUtil, boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
+import { recordSaleTracking } from '@/utils/salesTracking';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { cn } from '@/lib/utils';
 
