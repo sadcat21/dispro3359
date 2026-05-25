@@ -150,6 +150,11 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
   const [showProductPicker, setShowProductPicker] = useState(false);
 
+  // Confirmation step state
+  const [step, setStep] = useState<'edit' | 'confirm'>('edit');
+  const [branchStockPieces, setBranchStockPieces] = useState<number | null>(null);
+  const [loadingStock, setLoadingStock] = useState(false);
+
   const today = new Date().toISOString().split('T')[0];
 
   // Derived data
