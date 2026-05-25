@@ -7,13 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Gift, User, Package, Layers, Trash2, Plus, X } from 'lucide-react';
+import { Loader2, Gift, User, Package, Layers, Trash2, Plus, X, AlertTriangle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/database';
 import { toast } from 'sonner';
-import { parseBP as parseBPUtil, boxesToBP } from '@/utils/boxPieceInput';
+import { parseBP as parseBPUtil, boxesToBP, dbBPToBoxes } from '@/utils/boxPieceInput';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import { cn } from '@/lib/utils';
 
@@ -150,6 +150,11 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
   const [showProductPicker, setShowProductPicker] = useState(false);
 
+  // Confirmation step state
+  const [step, setStep] = useState<'edit' | 'confirm'>('edit');
+  const [branchStockPieces, setBranchStockPieces] = useState<number | null>(null);
+  const [loadingStock, setLoadingStock] = useState(false);
+
   const today = new Date().toISOString().split('T')[0];
 
   // Derived data
@@ -276,6 +281,8 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     setNotes('');
     setCustomerEntries([]);
     setShowCustomerSearch(false);
+    setStep('edit');
+    setBranchStockPieces(null);
 
     if (initialCustomerId) {
       setCustomerEntries([{
@@ -366,11 +373,30 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
 
   const validEntries = customerEntries.filter((e) => e.customerId && e.eligible && e.giftQuantity > 0);
 
-  const handleSave = async () => {
-    if (!workerId) {
-      toast.error('تعذر تحديد العامل الحالي');
-      return;
-    }
+  // Total gift in PIECES for the selected product (sum across customers)
+  const totalGiftPieces = useMemo(() => {
+    if (!selectedTier) return 0;
+    const unit = selectedTier.gift_quantity_unit || 'piece';
+    const totalUnits = validEntries.reduce((sum, e) => sum + Number(e.giftQuantity || 0), 0);
+    return unit === 'box' ? totalUnits * piecesPerBox : totalUnits;
+  }, [validEntries, selectedTier, piecesPerBox]);
+
+  const formatPieces = useCallback((pieces: number): string => {
+    if (piecesPerBox <= 1) return `${pieces} قطعة`;
+    const boxes = Math.floor(pieces / piecesPerBox);
+    const rem = pieces - boxes * piecesPerBox;
+    if (boxes > 0 && rem > 0) return `${boxes} صندوق + ${rem} قطعة`;
+    if (boxes > 0) return `${boxes} صندوق`;
+    return `${rem} قطعة`;
+  }, [piecesPerBox]);
+
+  const insufficientStock =
+    branchStockPieces !== null && totalGiftPieces > branchStockPieces;
+
+  /** Step 1 → Step 2: validate inputs and load branch stock */
+  const handleProceed = async () => {
+    if (!workerId) { toast.error('تعذر تحديد العامل الحالي'); return; }
+    if (!activeBranch?.id) { toast.error('لم يتم تحديد الفرع'); return; }
     if (!selectedProductId || !selectedOffer || !selectedTier) {
       toast.error('يرجى اختيار المنتج والعرض والشريحة');
       return;
@@ -379,9 +405,39 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
       toast.error('لا يوجد عملاء مؤهلين للعرض');
       return;
     }
+    setLoadingStock(true);
+    try {
+      const { data: ws } = await supabase
+        .from('warehouse_stock')
+        .select('quantity')
+        .eq('branch_id', activeBranch.id)
+        .eq('product_id', selectedProductId)
+        .maybeSingle();
+      const dbQty = Number(ws?.quantity || 0);
+      const boxes = piecesPerBox > 1 ? dbBPToBoxes(dbQty, piecesPerBox) : dbQty;
+      // Convert fractional boxes to pieces for comparison
+      const totalPieces = piecesPerBox > 1
+        ? Math.round(boxes * piecesPerBox)
+        : Math.round(dbQty);
+      setBranchStockPieces(totalPieces);
+      setStep('confirm');
+    } catch (e: any) {
+      toast.error(e.message || 'تعذر تحميل مخزون الفرع');
+    } finally {
+      setLoadingStock(false);
+    }
+  };
 
+  /** Step 2: persist promos + deduct branch stock + record movement */
+  const handleConfirm = async () => {
+    if (!workerId || !activeBranch?.id || !selectedTier || !selectedOffer) return;
+    if (insufficientStock) {
+      toast.error('مخزون الفرع غير كافٍ لتغطية الهدايا');
+      return;
+    }
     setIsSaving(true);
     try {
+      // 1) Insert promo records
       const detail = buildOfferDetail(selectedTier);
       const payloads = validEntries.map((entry) => {
         const parsedSold = parseBPLocal(entry.soldQuantity, piecesPerBox);
@@ -398,11 +454,50 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           notes: notes.trim() || null,
         };
       });
+      const { error: promoErr } = await supabase.from('promos').insert(payloads as any);
+      if (promoErr) throw promoErr;
 
-      const { error } = await supabase.from('promos').insert(payloads as any);
-      if (error) throw error;
+      // 2) Deduct from branch warehouse_stock
+      if (totalGiftPieces > 0) {
+        const { data: stock } = await supabase
+          .from('warehouse_stock')
+          .select('id, quantity')
+          .eq('branch_id', activeBranch.id)
+          .eq('product_id', selectedProductId)
+          .maybeSingle();
+        if (stock) {
+          const currentDb = Number(stock.quantity) || 0;
+          const currentBoxes = piecesPerBox > 1 ? dbBPToBoxes(currentDb, piecesPerBox) : currentDb;
+          const currentPieces = piecesPerBox > 1 ? Math.round(currentBoxes * piecesPerBox) : currentDb;
+          const newPieces = Math.max(0, currentPieces - totalGiftPieces);
+          const newDb = piecesPerBox > 1
+            ? parseFloat(boxesToBP(newPieces / piecesPerBox, piecesPerBox))
+            : newPieces;
+          const { error: updErr } = await supabase
+            .from('warehouse_stock')
+            .update({ quantity: newDb })
+            .eq('id', stock.id);
+          if (updErr) throw updErr;
+        }
 
-      toast.success(`تم تسجيل ${validEntries.length} عرض يدوي بنجاح`);
+        // 3) Record stock movement (pieces)
+        await supabase.from('stock_movements').insert({
+          branch_id: activeBranch.id,
+          product_id: selectedProductId,
+          movement_type: 'promo_gift',
+          quantity: totalGiftPieces,
+          signed_quantity: -totalGiftPieces,
+          from_location_type: 'branch',
+          from_location_id: activeBranch.id,
+          to_location_type: 'customer',
+          worker_id: workerId,
+          created_by: workerId,
+          reason: 'تسجيل عرض/هدية يدوي',
+          notes: notes.trim() || null,
+        } as any);
+      }
+
+      toast.success(`تم تسجيل ${validEntries.length} عرض وخصم ${formatPieces(totalGiftPieces)} من مخزون الفرع`);
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error saving manual promo:', error);
@@ -427,6 +522,85 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         {isLoading ? (
           <div className="py-10 flex justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : step === 'confirm' ? (
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <ScrollArea className="flex-1 px-4 py-3">
+              <div className="space-y-3">
+                <div className="rounded-lg border bg-card p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    {selectedProduct?.image_url ? (
+                      <img src={selectedProduct.image_url} alt="" className="w-10 h-10 rounded object-cover" />
+                    ) : (
+                      <Package className="w-8 h-8 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm truncate">{selectedProduct ? getProductDisplayName(selectedProduct) : ''}</div>
+                      <div className="text-xs text-muted-foreground truncate">{selectedOffer?.name}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-lg border p-2">
+                    <div className="text-[10px] text-muted-foreground">مخزون الفرع</div>
+                    <div className="text-sm font-bold">{branchStockPieces !== null ? formatPieces(branchStockPieces) : '—'}</div>
+                  </div>
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-2">
+                    <div className="text-[10px] text-destructive">سيُخصم</div>
+                    <div className="text-sm font-bold text-destructive">−{formatPieces(totalGiftPieces)}</div>
+                  </div>
+                  <div className={cn(
+                    'rounded-lg border p-2',
+                    insufficientStock ? 'border-destructive bg-destructive/10' : 'border-primary/40 bg-primary/5'
+                  )}>
+                    <div className="text-[10px] text-muted-foreground">المتبقي</div>
+                    <div className={cn('text-sm font-bold', insufficientStock && 'text-destructive')}>
+                      {branchStockPieces !== null ? formatPieces(Math.max(0, branchStockPieces - totalGiftPieces)) : '—'}
+                    </div>
+                  </div>
+                </div>
+
+                {insufficientStock && (
+                  <div className="flex items-start gap-2 rounded-lg border border-destructive bg-destructive/10 p-2 text-xs text-destructive">
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>المخزون المتاح في الفرع غير كافٍ لتغطية الهدايا. عدّل العملاء أو أضف مخزونًا أولاً.</span>
+                  </div>
+                )}
+
+                <div className="rounded-lg border bg-card">
+                  <div className="px-3 py-2 border-b text-xs font-semibold flex items-center justify-between">
+                    <span>تفصيل الهدايا ({validEntries.length} عميل)</span>
+                  </div>
+                  <div className="divide-y">
+                    {validEntries.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between px-3 py-2 text-xs">
+                        <span className="truncate flex-1">{getCustomerName(entry.customerId)}</span>
+                        <span className="font-bold text-primary">
+                          +{entry.giftQuantity} {unitLabel(selectedTier?.gift_quantity_unit || 'piece')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {notes.trim() && (
+                  <div className="rounded-lg border p-2 text-xs">
+                    <div className="text-muted-foreground mb-1">ملاحظات:</div>
+                    <div>{notes}</div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+            <div className="border-t px-4 py-3 flex gap-2">
+              <Button variant="outline" className="flex-1 gap-1" onClick={() => setStep('edit')} disabled={isSaving}>
+                <ArrowRight className="w-4 h-4" /> رجوع
+              </Button>
+              <Button className="flex-1 gap-1" onClick={handleConfirm} disabled={isSaving || insufficientStock}>
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                تأكيد الخصم
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col flex-1 overflow-hidden">
@@ -637,9 +811,9 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
                 <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
                   إلغاء
                 </Button>
-                <Button className="flex-1 gap-1" onClick={handleSave} disabled={isSaving || validEntries.length === 0}>
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
-                  حفظ ({validEntries.length})
+                <Button className="flex-1 gap-1" onClick={handleProceed} disabled={loadingStock || validEntries.length === 0}>
+                  {loadingStock ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                  متابعة ({validEntries.length})
                 </Button>
               </div>
             </div>
