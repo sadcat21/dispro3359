@@ -1090,13 +1090,29 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         changes.push({ operation: 'change_delivery_date', new_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null });
       }
 
-      if (paymentTypeChanged || invoiceMethodChanged || priceSubTypeChanged) {
+      if (paymentTypeChanged || invoiceMethodChanged || invoiceSubTypeChanged || priceSubTypeChanged) {
         orderUpdate.payment_type = paymentType;
         orderUpdate.invoice_payment_method = paymentType === 'with_invoice' ? (invoicePaymentMethod || null) : null;
+        // Persist Cash/Doc sub-choice so the sale is counted in "الكاش المسلم للمدير" when Cash is selected
+        if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')) {
+          const existingDv: any = (order as any).document_verification && typeof (order as any).document_verification === 'object' ? (order as any).document_verification : {};
+          orderUpdate.document_verification = {
+            ...existingDv,
+            type: invoicePaymentMethod,
+            paid_by_cash: invoicePaymentSubType === 'cash',
+            receipt_received: invoicePaymentSubType === 'doc' ? true : !!existingDv.receipt_received,
+            verified_at: new Date().toISOString(),
+          };
+          orderUpdate.document_status = invoicePaymentSubType === 'cash' ? 'none' : 'received';
+        } else if (paymentType !== 'with_invoice') {
+          orderUpdate.document_verification = null;
+          orderUpdate.document_status = null;
+        }
         changes.push({
           operation: 'change_payment_setup',
           payment_type: paymentType,
           invoice_payment_method: invoicePaymentMethod || null,
+          paid_by_cash: invoicePaymentSubType === 'cash',
           price_subtype: priceSubType,
         });
 
