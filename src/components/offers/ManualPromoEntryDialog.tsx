@@ -502,32 +502,32 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
       try {
         const giftUnit = selectedTier.gift_quantity_unit || 'piece';
         const productName = selectedOffer.product?.name || null;
-        await recordSaleTracking({
-          source: 'direct_sale',
-          orderId: null,
-          branchId: activeBranch.id,
-          branchName: (activeBranch as any)?.name || null,
-          workerId,
-          customerId: null,
-          notes: notes.trim() || 'تسجيل عرض/هدية يدوي',
-          items: validEntries.map((entry) => {
-            const parsedSold = parseBPLocal(entry.soldQuantity, piecesPerBox);
-            const giftBoxes = giftUnit === 'box' ? Number(entry.giftQuantity || 0) : 0;
-            const giftPieces = giftUnit === 'piece' ? Number(entry.giftQuantity || 0) : 0;
-            return {
+        for (const entry of validEntries) {
+          const parsedSold = parseBPLocal(entry.soldQuantity, piecesPerBox);
+          const giftBoxes = giftUnit === 'box' ? Number(entry.giftQuantity || 0) : 0;
+          const giftPieces = giftUnit === 'piece' ? Number(entry.giftQuantity || 0) : 0;
+          const cust = customers.find((c) => c.id === entry.customerId);
+          await recordSaleTracking({
+            source: 'direct_sale',
+            orderId: null,
+            branchId: activeBranch.id,
+            branchName: (activeBranch as any)?.name || null,
+            workerId,
+            customerId: entry.customerId,
+            customerName: cust?.name || null,
+            notes: notes.trim() || 'تسجيل عرض/هدية يدوي',
+            items: [{
               productId: selectedProductId,
               productName,
               quantity: parsedSold.raw,
               giftBoxes,
               giftPieces,
               piecesPerBox,
-              customerId: entry.customerId,
-              customerName: customers.find((c) => c.id === entry.customerId)?.name || null,
               giftProductId: selectedProductId,
               giftProductName: productName,
-            } as any;
-          }),
-        });
+            }],
+          });
+        }
       } catch (e) {
         console.warn('[ManualPromo] sales_tracking mirror failed', e);
       }
