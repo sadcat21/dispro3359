@@ -138,6 +138,12 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const rawFiltered = (rows || []).filter((r: any) =>
           (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
         );
+        const { data: fallbackPromos } = await supabase
+          .from('promos')
+          .select('id, promo_date, created_at, worker_id, customer_id, product_id, vente_quantity, gratuite_quantity, gift_quantity_unit, notes')
+          .eq('product_id', productId)
+          .gt('gratuite_quantity', 0)
+          .order('promo_date', { ascending: false });
         // Deduplicate: same order often has two sales_tracking rows (direct_sale + delivery_sale)
         // representing the same offer. Collapse them per order_id, preferring the delivered row.
         // Fallback key (no order_id): worker+customer+sold_at+qty.
@@ -166,18 +172,45 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           }
         }
         filtered.push(...byOrder.values());
-        const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
-        const customerIds = Array.from(new Set(filtered.map((r: any) => r.customer_id).filter(Boolean)));
+        const trackingPromoKeys = new Set(
+          filtered
+            .filter((r: any) => !r.order_id)
+            .map((r: any) => `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`)
+        );
+        const manualFallbackRows = (fallbackPromos || []).flatMap((p: any) => {
+          const promoAt = p.promo_date || p.created_at;
+          const giftBoxes = p.gift_quantity_unit === 'box' ? Number(p.gratuite_quantity || 0) : 0;
+          const giftPieces = p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0;
+          const key = `${p.worker_id || ''}|${p.customer_id || ''}|${promoAt || ''}|${giftBoxes}|${giftPieces}`;
+          const isManual = String(p.notes || '').includes('تسجيل عرض/هدية يدوي') || String(p.notes || '').includes('تسجيل البرومو اليدوي') || !p.notes;
+          if (!isManual || trackingPromoKeys.has(key)) return [];
+          return [{
+            id: `promo-${p.id}`,
+            sold_at: promoAt,
+            worker_id: p.worker_id,
+            customer_id: p.customer_id,
+            gift_boxes: giftBoxes,
+            gift_pieces: giftPieces,
+            pieces_per_box: piecesPerBox,
+            source: 'direct_sale',
+            order_id: null,
+            branch_id: branchId,
+            customer_name: null,
+          }];
+        });
+        const mergedRows = [...filtered, ...manualFallbackRows];
+        const names = await resolveWorkers(mergedRows.map((r: any) => r.worker_id));
+        const customerIds = Array.from(new Set(mergedRows.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
         const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
-        const orderIds = Array.from(new Set(filtered.map((r: any) => r.order_id).filter(Boolean)));
+        const orderIds = Array.from(new Set(mergedRows.map((r: any) => r.order_id).filter(Boolean)));
         const { data: orders } = orderIds.length
           ? await supabase.from('orders').select('id, status').in('id', orderIds as string[])
           : { data: [] as any[] };
         const orderStatusMap = new Map((orders || []).map((o: any) => [o.id, o.status]));
-        return filtered.map((r: any) => {
+        return mergedRows.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           const c = custMap.get(r.customer_id) || { store: null, full: null };
