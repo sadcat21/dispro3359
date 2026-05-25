@@ -354,6 +354,10 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       { table: 'orders' },
       { table: 'order_items' },
       { table: 'promos' },
+      { table: 'debt_payments' },
+      { table: 'document_collections' },
+      { table: 'expenses' },
+      { table: 'manager_treasury' },
     ],
     [['worker-sales-summary', workerId, periodFrom, periodTo], ['worker-sales-promo-summary', workerId, periodFrom, periodTo], ['worker-last-accounting-sales', workerId]],
     open && !!workerId
