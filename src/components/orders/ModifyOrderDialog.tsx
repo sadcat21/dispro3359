@@ -178,6 +178,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(order.delivery_date ? new Date(order.delivery_date) : undefined);
   const [paymentType, setPaymentType] = useState<string>(normalizePaymentType(order.payment_type || order.customer?.default_payment_type));
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>((order.invoice_payment_method as InvoicePaymentMethod) || null);
+  const [invoicePaymentSubType, setInvoicePaymentSubType] = useState<'cash' | 'doc' | null>(() => {
+    const dv: any = (order as any).document_verification;
+    if (dv && typeof dv === 'object') {
+      if (dv.paid_by_cash === true) return 'cash';
+      if (dv.paid_by_cash === false) return 'doc';
+    }
+    return null;
+  });
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [showQuantityDialog, setShowQuantityDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
