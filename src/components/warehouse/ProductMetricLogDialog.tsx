@@ -66,6 +66,26 @@ const parseDisplay = (v: any): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const buildPromoTrackingKey = ({
+  workerId,
+  customerId,
+  occurredAt,
+  giftBoxes,
+  giftPieces,
+}: {
+  workerId?: string | null;
+  customerId?: string | null;
+  occurredAt?: string | null;
+  giftBoxes?: number | null;
+  giftPieces?: number | null;
+}) => [
+  workerId || '',
+  customerId || '',
+  occurredAt || '',
+  Number(giftBoxes || 0),
+  Number(giftPieces || 0),
+].join('|');
+
 const ProductMetricLogDialog: React.FC<Props> = ({
   open, onOpenChange, branchId, productId, productName, piecesPerBox, metric,
 }) => {
@@ -131,7 +151,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         // Offers/promo gifts tracked via sales_tracking gift_boxes / gift_pieces
         const { data: rows } = await supabase
           .from('sales_tracking')
-          .select('id, sold_at, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id')
+          .select('id, sold_at, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id, notes')
           .eq('product_id', productId)
           .or(`branch_id.eq.${branchId},branch_id.is.null`)
           .order('sold_at', { ascending: false });
@@ -177,16 +197,58 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           ? await supabase.from('workers').select('id, branch_id').in('id', fallbackWorkerIds as string[])
           : { data: [] as any[] };
         const fallbackWorkerBranchMap = new Map((fallbackWorkers || []).map((w: any) => [w.id, w.branch_id || null]));
+        const existingPromoKeys = new Set(
+          (fallbackPromos || []).map((p: any) => {
+            const promoAt = p.promo_date || p.created_at;
+            return buildPromoTrackingKey({
+              workerId: p.worker_id,
+              customerId: p.customer_id,
+              occurredAt: promoAt,
+              giftBoxes: p.gift_quantity_unit === 'box' ? Number(p.gratuite_quantity || 0) : 0,
+              giftPieces: p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0,
+            });
+          })
+        );
+        const staleBackfilledRows = new Set(
+          filtered
+            .filter((r: any) => {
+              const notes = String(r.notes || '');
+              const isManualBackfill = notes.includes('تسجيل البرومو اليدوي') || notes.includes('مُعاد ملؤه');
+              if (!isManualBackfill) return false;
+              const key = buildPromoTrackingKey({
+                workerId: r.worker_id,
+                customerId: r.customer_id,
+                occurredAt: r.sold_at,
+                giftBoxes: r.gift_boxes,
+                giftPieces: r.gift_pieces,
+              });
+              return !existingPromoKeys.has(key);
+            })
+            .map((r: any) => r.id)
+        );
         const trackingPromoKeys = new Set(
           filtered
+            .filter((r: any) => !staleBackfilledRows.has(r.id))
             .filter((r: any) => !r.order_id)
-            .map((r: any) => `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`)
+            .map((r: any) => buildPromoTrackingKey({
+              workerId: r.worker_id,
+              customerId: r.customer_id,
+              occurredAt: r.sold_at,
+              giftBoxes: r.gift_boxes,
+              giftPieces: r.gift_pieces,
+            }))
         );
         const manualFallbackRows = (fallbackPromos || []).flatMap((p: any) => {
           const promoAt = p.promo_date || p.created_at;
           const giftBoxes = p.gift_quantity_unit === 'box' ? Number(p.gratuite_quantity || 0) : 0;
           const giftPieces = p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0;
-          const key = `${p.worker_id || ''}|${p.customer_id || ''}|${promoAt || ''}|${giftBoxes}|${giftPieces}`;
+          const key = buildPromoTrackingKey({
+            workerId: p.worker_id,
+            customerId: p.customer_id,
+            occurredAt: promoAt,
+            giftBoxes,
+            giftPieces,
+          });
           const isManual = String(p.notes || '').includes('تسجيل عرض/هدية يدوي') || String(p.notes || '').includes('تسجيل البرومو اليدوي') || !p.notes;
           if (!isManual || trackingPromoKeys.has(key) || fallbackWorkerBranchMap.get(p.worker_id) !== branchId) return [];
           return [{
@@ -203,7 +265,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customer_name: null,
           }];
         });
-        const mergedRows = [...filtered, ...manualFallbackRows].sort((a: any, b: any) =>
+        const mergedRows = [...filtered.filter((r: any) => !staleBackfilledRows.has(r.id)), ...manualFallbackRows].sort((a: any, b: any) =>
           new Date(b.sold_at || 0).getTime() - new Date(a.sold_at || 0).getTime()
         );
         const names = await resolveWorkers(mergedRows.map((r: any) => r.worker_id));
