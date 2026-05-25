@@ -82,6 +82,15 @@ const formatByUnit = (
 const unitLabel = (u: 'box' | 'piece' | string | null | undefined) =>
   u === 'box' ? 'صندوق' : 'قطعة';
 
+const buildPromoTrackingDeleteMatch = (promo: PromoWithDetails, piecesPerBox?: number | null) => {
+  const ppb = Math.max(1, Number(piecesPerBox || promo.product?.pieces_per_box || 1));
+  const promoAt = promo.promo_date || promo.created_at;
+  const giftUnit = String((promo as any).gift_quantity_unit || (promo as any).offer?.gift_quantity_unit || 'piece');
+  const giftBoxes = giftUnit === 'box' ? Math.max(0, Math.round(Number(promo.gratuite_quantity || 0))) : 0;
+  const giftPieces = giftUnit === 'piece' ? Math.max(0, Math.round(Number(promo.gratuite_quantity || 0))) : 0;
+  return { ppb, promoAt, giftBoxes, giftPieces };
+};
+
 const MyPromosContent: React.FC = () => {
   const [deletePromo, setDeletePromo] = useState<PromoWithDetails | null>(null);
   const { workerId, activeBranch } = useAuth();
@@ -271,6 +280,20 @@ const MyPromosContent: React.FC = () => {
     }
 
     try {
+      const { promoAt, giftBoxes, giftPieces } = buildPromoTrackingDeleteMatch(promo);
+      const { error: trackingDeleteError } = await supabase
+        .from('sales_tracking')
+        .delete()
+        .eq('product_id', promo.product_id)
+        .eq('worker_id', promo.worker_id)
+        .eq('customer_id', promo.customer_id)
+        .eq('sold_at', promoAt)
+        .eq('gift_boxes', giftBoxes)
+        .eq('gift_pieces', giftPieces)
+        .or('notes.ilike.%تسجيل البرومو اليدوي%,notes.ilike.%مُعاد ملؤه%,notes.ilike.%تسجيل عرض/هدية يدوي%');
+
+      if (trackingDeleteError) throw trackingDeleteError;
+
       const { error } = await supabase
         .from('promos')
         .delete()
