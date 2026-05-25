@@ -515,7 +515,7 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
         <DialogHeader className="px-4 pt-4 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Gift className="w-5 h-5 text-primary" />
-            تسجيل عروض/هدايا يدويًا
+            تسجيل البرومو اليدوي
           </DialogTitle>
         </DialogHeader>
 
