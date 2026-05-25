@@ -557,8 +557,12 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       if (!workerId) return null;
 
       const normalized = normalizePeriodRange(periodFrom, periodTo);
-      const fallbackStart = lastAccounting ? new Date(lastAccounting).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
-      const fallbackEnd = new Date().toISOString().slice(0, 10);
+      // Match accounting session period exactly: from last completed session's
+      // completed_at (or today 00:00 if none) up to now.
+      const fallbackStart = lastAccounting
+        ? new Date(lastAccounting).toISOString()
+        : (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString(); })();
+      const fallbackEnd = new Date().toISOString();
 
       return fetchSessionCalculations({
         workerId,
