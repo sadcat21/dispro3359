@@ -64,11 +64,12 @@ const MyStock: React.FC = () => {
         </h2>
         <div className="flex items-center gap-2">
           {hasStock && !isDirectSaleHidden && (
-            <Button size="sm" onClick={() => setShowSalesHubDialog(true)}>
+            <Button size="sm" onClick={handleOpenSale}>
               <ShoppingBag className="w-4 h-4 ml-1" />
               {t('stock.direct_sale')}
             </Button>
           )}
+
         </div>
       </div>
 
