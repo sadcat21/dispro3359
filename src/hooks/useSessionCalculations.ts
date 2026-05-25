@@ -84,18 +84,35 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
   const periodStartTz = toTimestampTz(periodStart, false);
   const periodEndTz = toTimestampTz(periodEnd, true);
 
-  // 1. Fetch delivered orders using stock_movements (reliable delivery timestamp)
-  const { data: stockMovements, error: stockMovementsError } = await supabase
-    .from('stock_movements')
-    .select('order_id')
-    .eq('worker_id', workerId)
-    .eq('movement_type', 'delivery')
-    .eq('status', 'approved')
-    .gte('created_at', periodStartTz)
-    .lte('created_at', periodEndTz);
+  // 1. Fetch delivered orders. We combine two sources to avoid missing rows:
+  //    (a) stock_movements (delivery/approved) — reliable delivery timestamp
+  //    (b) orders.status='delivered' within the period — covers cases where the
+  //        delivery stock_movement was never created / approved (otherwise the
+  //        order's total silently disappears from totals).
+  const [{ data: stockMovements, error: stockMovementsError }, { data: deliveredOrdersInPeriod, error: deliveredOrdersErr }] = await Promise.all([
+    supabase
+      .from('stock_movements')
+      .select('order_id')
+      .eq('worker_id', workerId)
+      .eq('movement_type', 'delivery')
+      .eq('status', 'approved')
+      .gte('created_at', periodStartTz)
+      .lte('created_at', periodEndTz),
+    supabase
+      .from('orders')
+      .select('id')
+      .eq('assigned_worker_id', workerId)
+      .eq('status', 'delivered')
+      .gte('updated_at', periodStartTz)
+      .lte('updated_at', periodEndTz),
+  ]);
   ensureNoError(stockMovementsError, 'stock movements');
+  ensureNoError(deliveredOrdersErr, 'delivered orders');
 
-  const deliveryOrderIds = Array.from(new Set((stockMovements || []).map((m: any) => m.order_id).filter(Boolean)));
+  const deliveryOrderIds = Array.from(new Set([
+    ...((stockMovements || []).map((m: any) => m.order_id).filter(Boolean)),
+    ...((deliveredOrdersInPeriod || []).map((o: any) => o.id).filter(Boolean)),
+  ]));
 
   let orders: any[] = [];
   if (deliveryOrderIds.length > 0) {
