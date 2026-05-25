@@ -281,6 +281,8 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
     setNotes('');
     setCustomerEntries([]);
     setShowCustomerSearch(false);
+    setStep('edit');
+    setBranchStockPieces(null);
 
     if (initialCustomerId) {
       setCustomerEntries([{
