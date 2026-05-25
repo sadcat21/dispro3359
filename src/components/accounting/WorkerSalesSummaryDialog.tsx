@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag } from 'lucide-react';
+import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag, ArrowUpCircle, Wallet } from 'lucide-react';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
 import { buildPricingGroups } from './PricingGroupsSummary';
