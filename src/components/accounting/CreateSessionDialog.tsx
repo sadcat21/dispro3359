@@ -570,6 +570,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <span className="text-xl font-bold text-primary">{fmt(calc.totalSales)} DA</span>
                     </div>
                   </div>
+                  {/* الكاشير المسلم للمدير - تصميم مميز بارز */}
+                  <div className="mb-2 relative overflow-hidden rounded-xl p-3 bg-gradient-to-l from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/30 ring-2 ring-purple-300">
+                    <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/20 blur-xl" />
+                    <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-white/20 blur-xl" />
+                    <div className="relative flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur flex items-center justify-center ring-1 ring-white/40">
+                          <Wallet className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-white/90 font-medium">يجب تسليمه نقداً للمدير</span>
+                          <span className="font-bold text-sm text-white">الكاشير المسلم للمدير</span>
+                        </div>
+                      </div>
+                      <span className="text-2xl font-extrabold text-white drop-shadow">{fmt(calc.physicalCash)} DA</span>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-2.5 text-center">
                       <p className="text-[10px] text-muted-foreground">{t('accounting.total_paid')}</p>
@@ -588,23 +605,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
                       <p className="text-[10px] text-muted-foreground">الديون المحصلة</p>
                       <p className="font-bold text-lg text-orange-600">{fmt(calc.debtCollections?.total || 0)} DA</p>
-                    </div>
-                  </div>
-                  {/* الكاشير المسلم للمدير - تصميم مميز */}
-                  <div className="mt-2 relative overflow-hidden rounded-xl p-3 bg-gradient-to-l from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/30 ring-1 ring-white/20">
-                    <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/10 blur-xl" />
-                    <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-xl" />
-                    <div className="relative flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center ring-1 ring-white/30">
-                          <Wallet className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-white/80 font-medium">يجب تسليمه نقداً للمدير</span>
-                          <span className="font-bold text-sm text-white">الكاشير المسلم للمدير</span>
-                        </div>
-                      </div>
-                      <span className="text-2xl font-extrabold text-white drop-shadow">{fmt(calc.physicalCash)} DA</span>
                     </div>
                   </div>
                 </StepSection>
