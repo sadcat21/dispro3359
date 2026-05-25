@@ -811,9 +811,9 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
                 <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
                   إلغاء
                 </Button>
-                <Button className="flex-1 gap-1" onClick={handleSave} disabled={isSaving || validEntries.length === 0}>
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
-                  حفظ ({validEntries.length})
+                <Button className="flex-1 gap-1" onClick={handleProceed} disabled={loadingStock || validEntries.length === 0}>
+                  {loadingStock ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                  متابعة ({validEntries.length})
                 </Button>
               </div>
             </div>
