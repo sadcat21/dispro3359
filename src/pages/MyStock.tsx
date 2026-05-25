@@ -19,9 +19,14 @@ const MyStock: React.FC = () => {
   const [showSalesHubDialog, setShowSalesHubDialog] = useState(false);
   const isDirectSaleHidden = useIsElementHidden('button', 'stock_direct_sale');
 
-  const { data: stockItems, isLoading } = useQuery({
+  const { data: stockItems, isLoading, refetch } = useQuery({
     queryKey: ['my-worker-stock', workerId],
     queryFn: async () => {
+      // Recalibrate worker_stock from movements so the truck-view "remaining"
+      // matches the worker_stock used by the direct/delivery sale dialogs.
+      if (workerId) {
+        await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId }).then(() => {}, () => {});
+      }
       const { data, error } = await supabase
         .from('worker_stock')
         .select('*, product:products(*)')
@@ -33,6 +38,12 @@ const MyStock: React.FC = () => {
     },
     enabled: !!workerId,
   });
+
+  const handleOpenSale = async () => {
+    await refetch();
+    setShowSalesHubDialog(true);
+  };
+
 
   if (isLoading) {
     return (
