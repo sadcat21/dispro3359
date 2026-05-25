@@ -612,6 +612,15 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const originalPaidAmount = originalPaymentSnapshot.paidAmount;
   const originalRemainingAmount = originalPaymentSnapshot.remainingAmount;
   const paymentAmountChanged = isSold && (adjustPaidAmount !== originalPaidAmount || adjustRemainingAmount !== originalRemainingAmount);
+  const originalPaidByCash = (() => {
+    const dv: any = (order as any).document_verification;
+    if (dv && typeof dv === 'object' && typeof dv.paid_by_cash === 'boolean') return dv.paid_by_cash;
+    return null;
+  })();
+  const currentPaidByCash = invoicePaymentSubType === 'cash' ? true : invoicePaymentSubType === 'doc' ? false : null;
+  const invoiceSubTypeChanged = paymentType === 'with_invoice'
+    && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')
+    && currentPaidByCash !== originalPaidByCash;
 
   const hasItemSubtypeChanges = items.some((item) => (item.item_subtype || undefined) !== (item.original_item_subtype || undefined));
   const hasPriceChanges = items.some((item) => item.unit_price !== item.original_unit_price);
@@ -623,6 +632,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     deliveryDateChanged ||
     paymentTypeChanged ||
     invoiceMethodChanged ||
+    invoiceSubTypeChanged ||
     priceSubTypeChanged ||
     paymentAmountChanged ||
     hasItemSubtypeChanges ||
