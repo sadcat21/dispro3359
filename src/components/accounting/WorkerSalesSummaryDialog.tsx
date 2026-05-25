@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag } from 'lucide-react';
+import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag, ArrowUpCircle, Wallet } from 'lucide-react';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
 import { buildPricingGroups } from './PricingGroupsSummary';
@@ -659,6 +659,62 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               </span>
             )}
           </div>
+        )}
+
+        {!expandedProduct && promoData && (
+          (() => {
+            const calc = promoData as any;
+            const fmt = (n: number) => Number(n || 0).toLocaleString(localeCode);
+            return (
+              <div className="space-y-2 mt-2">
+                <div className="bg-primary/5 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpCircle className="w-5 h-5 text-primary" />
+                      <span className="font-bold text-sm">{t('accounting.total_sales')}</span>
+                    </div>
+                    <span className="text-xl font-bold text-primary">{fmt(calc.totalSales)} DA</span>
+                  </div>
+                </div>
+                <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-l from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/30 ring-2 ring-purple-300">
+                  <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/20 blur-xl" />
+                  <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-white/20 blur-xl" />
+                  <div className="relative flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur flex items-center justify-center ring-1 ring-white/40">
+                        <Wallet className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-white/90 font-medium">يجب تسليمه نقداً للمدير</span>
+                        <span className="font-bold text-sm text-white">الكاش المسلم للمدير</span>
+                      </div>
+                    </div>
+                    <span className="text-2xl font-extrabold text-white drop-shadow">{fmt(calc.physicalCash)} DA</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">{t('accounting.total_paid')}</p>
+                    <p className="font-bold text-lg text-green-600">{fmt(calc.totalPaid)} DA</p>
+                  </div>
+                  <div className="bg-destructive/5 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">{t('accounting.new_debts')}</p>
+                    <p className="font-bold text-lg text-destructive">{fmt(calc.newDebts)} DA</p>
+                  </div>
+                  <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">الكاش المقبوض</p>
+                    <p className="font-bold text-lg text-emerald-600">
+                      {fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0))} DA
+                    </p>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">الديون المحصلة</p>
+                    <p className="font-bold text-lg text-orange-600">{fmt(calc.debtCollections?.total || 0)} DA</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()
         )}
 
         {!expandedProduct && salesData?.items?.length ? (
