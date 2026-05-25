@@ -112,6 +112,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [prepaidAmount, setPrepaidAmount] = useState('');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
+  const [invoicePaymentSubType, setInvoicePaymentSubType] = useState<'cash' | 'doc' | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [selectedDeliveryWorker, setSelectedDeliveryWorker] = useState('');
   const [showAssignWorkerDialog, setShowAssignWorkerDialog] = useState(false);
@@ -590,6 +591,14 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       toast.error(t('orders.select_payment_error'));
       return;
     }
+    if (
+      paymentType === 'with_invoice' &&
+      (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer') &&
+      !invoicePaymentSubType
+    ) {
+      toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
 
     try {
       // Don't auto-assign worker at creation - let the AssignWorkerAfterSaveDialog handle it
@@ -602,6 +611,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         deliveryDate: deliveryDate ? (deliveryTime ? `${deliveryDate}T${deliveryTime}` : deliveryDate) : undefined,
         paymentType,
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
+        paidByCash: paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')
+          ? invoicePaymentSubType === 'cash'
+          : undefined,
         invoiceNumber: paymentType === 'with_invoice' ? invoiceNumber : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
@@ -880,7 +892,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       <>
                         <InvoicePaymentMethodSelect
                           value={invoicePaymentMethod}
-                          onChange={setInvoicePaymentMethod}
+                          onChange={(m) => { setInvoicePaymentMethod(m); setInvoicePaymentSubType(null); }}
+                          subType={invoicePaymentSubType}
+                          onSubTypeChange={setInvoicePaymentSubType}
                         />
                         <div className="mt-2 space-y-1">
                           <Label className="text-xs text-slate-600">رقم الفاتورة (اختياري)</Label>

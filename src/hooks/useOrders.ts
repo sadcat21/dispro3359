@@ -162,6 +162,7 @@ export const useCreateOrder = () => {
       deliveryDate,
       paymentType = 'with_invoice',
       invoicePaymentMethod,
+      paidByCash,
       invoiceNumber,
       assignedWorkerId,
       totalAmount,
@@ -173,11 +174,20 @@ export const useCreateOrder = () => {
       deliveryDate?: string;
       paymentType?: 'with_invoice' | 'without_invoice';
       invoicePaymentMethod?: 'receipt' | 'check' | 'cash' | 'transfer' | null;
+      paidByCash?: boolean;
       invoiceNumber?: string | null;
       assignedWorkerId?: string;
       totalAmount?: number;
       prepaidAmount?: number;
     }) => {
+      const docVerification = (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer') && paidByCash !== undefined)
+        ? {
+            type: invoicePaymentMethod,
+            paid_by_cash: !!paidByCash,
+            receipt_received: !paidByCash,
+            verified_at: new Date().toISOString(),
+          }
+        : null;
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -194,6 +204,8 @@ export const useCreateOrder = () => {
           total_amount: totalAmount || null,
           prepaid_amount: prepaidAmount || 0,
           client_request_id: crypto.randomUUID(),
+          document_verification: docVerification,
+          document_status: docVerification ? (paidByCash ? 'none' : 'received') : null,
         } as any)
         .select()
         .single();

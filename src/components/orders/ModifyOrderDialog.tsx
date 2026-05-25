@@ -178,6 +178,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(order.delivery_date ? new Date(order.delivery_date) : undefined);
   const [paymentType, setPaymentType] = useState<string>(normalizePaymentType(order.payment_type || order.customer?.default_payment_type));
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>((order.invoice_payment_method as InvoicePaymentMethod) || null);
+  const [invoicePaymentSubType, setInvoicePaymentSubType] = useState<'cash' | 'doc' | null>(() => {
+    const dv: any = (order as any).document_verification;
+    if (dv && typeof dv === 'object') {
+      if (dv.paid_by_cash === true) return 'cash';
+      if (dv.paid_by_cash === false) return 'doc';
+    }
+    return null;
+  });
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [showQuantityDialog, setShowQuantityDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -604,6 +612,15 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const originalPaidAmount = originalPaymentSnapshot.paidAmount;
   const originalRemainingAmount = originalPaymentSnapshot.remainingAmount;
   const paymentAmountChanged = isSold && (adjustPaidAmount !== originalPaidAmount || adjustRemainingAmount !== originalRemainingAmount);
+  const originalPaidByCash = (() => {
+    const dv: any = (order as any).document_verification;
+    if (dv && typeof dv === 'object' && typeof dv.paid_by_cash === 'boolean') return dv.paid_by_cash;
+    return null;
+  })();
+  const currentPaidByCash = invoicePaymentSubType === 'cash' ? true : invoicePaymentSubType === 'doc' ? false : null;
+  const invoiceSubTypeChanged = paymentType === 'with_invoice'
+    && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')
+    && currentPaidByCash !== originalPaidByCash;
 
   const hasItemSubtypeChanges = items.some((item) => (item.item_subtype || undefined) !== (item.original_item_subtype || undefined));
   const hasPriceChanges = items.some((item) => item.unit_price !== item.original_unit_price);
@@ -615,6 +632,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     deliveryDateChanged ||
     paymentTypeChanged ||
     invoiceMethodChanged ||
+    invoiceSubTypeChanged ||
     priceSubTypeChanged ||
     paymentAmountChanged ||
     hasItemSubtypeChanges ||
@@ -888,6 +906,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       toast.error(t('orders.add_products_error'));
       return;
     }
+    if (
+      paymentType === 'with_invoice' &&
+      (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer') &&
+      !invoicePaymentSubType
+    ) {
+      toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
     if (isSold && Math.abs(orderTotal - originalTotal) > 0.009) {
       await loadCustomerFinancialContext();
       setConfirmMode('adjustment');
@@ -1064,13 +1090,29 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         changes.push({ operation: 'change_delivery_date', new_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null });
       }
 
-      if (paymentTypeChanged || invoiceMethodChanged || priceSubTypeChanged) {
+      if (paymentTypeChanged || invoiceMethodChanged || invoiceSubTypeChanged || priceSubTypeChanged) {
         orderUpdate.payment_type = paymentType;
         orderUpdate.invoice_payment_method = paymentType === 'with_invoice' ? (invoicePaymentMethod || null) : null;
+        // Persist Cash/Doc sub-choice so the sale is counted in "الكاش المسلم للمدير" when Cash is selected
+        if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')) {
+          const existingDv: any = (order as any).document_verification && typeof (order as any).document_verification === 'object' ? (order as any).document_verification : {};
+          orderUpdate.document_verification = {
+            ...existingDv,
+            type: invoicePaymentMethod,
+            paid_by_cash: invoicePaymentSubType === 'cash',
+            receipt_received: invoicePaymentSubType === 'doc' ? true : !!existingDv.receipt_received,
+            verified_at: new Date().toISOString(),
+          };
+          orderUpdate.document_status = invoicePaymentSubType === 'cash' ? 'none' : 'received';
+        } else if (paymentType !== 'with_invoice') {
+          orderUpdate.document_verification = null;
+          orderUpdate.document_status = null;
+        }
         changes.push({
           operation: 'change_payment_setup',
           payment_type: paymentType,
           invoice_payment_method: invoicePaymentMethod || null,
+          paid_by_cash: invoicePaymentSubType === 'cash',
           price_subtype: priceSubType,
         });
 
@@ -2112,7 +2154,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               {paymentType === 'with_invoice' && (
                 <InvoicePaymentMethodSelect
                   value={invoicePaymentMethod}
-                  onChange={setInvoicePaymentMethod}
+                  onChange={(m) => { setInvoicePaymentMethod(m); setInvoicePaymentSubType(null); }}
+                  subType={invoicePaymentSubType}
+                  onSubTypeChange={setInvoicePaymentSubType}
                 />
               )}
             </div>
