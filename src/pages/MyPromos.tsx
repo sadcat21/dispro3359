@@ -85,7 +85,7 @@ const unitLabel = (u: 'box' | 'piece' | string | null | undefined) =>
 const buildPromoTrackingDeleteMatch = (promo: PromoWithDetails, piecesPerBox?: number | null) => {
   const ppb = Math.max(1, Number(piecesPerBox || promo.product?.pieces_per_box || 1));
   const promoAt = promo.promo_date || promo.created_at;
-  const giftUnit = String((promo as any).gift_quantity_unit || promo.offer?.gift_quantity_unit || 'piece');
+  const giftUnit = String((promo as any).gift_quantity_unit || (promo as any).offer?.gift_quantity_unit || 'piece');
   const giftBoxes = giftUnit === 'box' ? Math.max(0, Math.round(Number(promo.gratuite_quantity || 0))) : 0;
   const giftPieces = giftUnit === 'piece' ? Math.max(0, Math.round(Number(promo.gratuite_quantity || 0))) : 0;
   return { ppb, promoAt, giftBoxes, giftPieces };
