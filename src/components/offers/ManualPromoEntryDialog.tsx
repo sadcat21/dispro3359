@@ -373,11 +373,30 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
 
   const validEntries = customerEntries.filter((e) => e.customerId && e.eligible && e.giftQuantity > 0);
 
-  const handleSave = async () => {
-    if (!workerId) {
-      toast.error('تعذر تحديد العامل الحالي');
-      return;
-    }
+  // Total gift in PIECES for the selected product (sum across customers)
+  const totalGiftPieces = useMemo(() => {
+    if (!selectedTier) return 0;
+    const unit = selectedTier.gift_quantity_unit || 'piece';
+    const totalUnits = validEntries.reduce((sum, e) => sum + Number(e.giftQuantity || 0), 0);
+    return unit === 'box' ? totalUnits * piecesPerBox : totalUnits;
+  }, [validEntries, selectedTier, piecesPerBox]);
+
+  const formatPieces = useCallback((pieces: number): string => {
+    if (piecesPerBox <= 1) return `${pieces} قطعة`;
+    const boxes = Math.floor(pieces / piecesPerBox);
+    const rem = pieces - boxes * piecesPerBox;
+    if (boxes > 0 && rem > 0) return `${boxes} صندوق + ${rem} قطعة`;
+    if (boxes > 0) return `${boxes} صندوق`;
+    return `${rem} قطعة`;
+  }, [piecesPerBox]);
+
+  const insufficientStock =
+    branchStockPieces !== null && totalGiftPieces > branchStockPieces;
+
+  /** Step 1 → Step 2: validate inputs and load branch stock */
+  const handleProceed = async () => {
+    if (!workerId) { toast.error('تعذر تحديد العامل الحالي'); return; }
+    if (!activeBranch?.id) { toast.error('لم يتم تحديد الفرع'); return; }
     if (!selectedProductId || !selectedOffer || !selectedTier) {
       toast.error('يرجى اختيار المنتج والعرض والشريحة');
       return;
@@ -386,9 +405,39 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
       toast.error('لا يوجد عملاء مؤهلين للعرض');
       return;
     }
+    setLoadingStock(true);
+    try {
+      const { data: ws } = await supabase
+        .from('warehouse_stock')
+        .select('quantity')
+        .eq('branch_id', activeBranch.id)
+        .eq('product_id', selectedProductId)
+        .maybeSingle();
+      const dbQty = Number(ws?.quantity || 0);
+      const boxes = piecesPerBox > 1 ? dbBPToBoxes(dbQty, piecesPerBox) : dbQty;
+      // Convert fractional boxes to pieces for comparison
+      const totalPieces = piecesPerBox > 1
+        ? Math.round(boxes * piecesPerBox)
+        : Math.round(dbQty);
+      setBranchStockPieces(totalPieces);
+      setStep('confirm');
+    } catch (e: any) {
+      toast.error(e.message || 'تعذر تحميل مخزون الفرع');
+    } finally {
+      setLoadingStock(false);
+    }
+  };
 
+  /** Step 2: persist promos + deduct branch stock + record movement */
+  const handleConfirm = async () => {
+    if (!workerId || !activeBranch?.id || !selectedTier || !selectedOffer) return;
+    if (insufficientStock) {
+      toast.error('مخزون الفرع غير كافٍ لتغطية الهدايا');
+      return;
+    }
     setIsSaving(true);
     try {
+      // 1) Insert promo records
       const detail = buildOfferDetail(selectedTier);
       const payloads = validEntries.map((entry) => {
         const parsedSold = parseBPLocal(entry.soldQuantity, piecesPerBox);
@@ -405,11 +454,50 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           notes: notes.trim() || null,
         };
       });
+      const { error: promoErr } = await supabase.from('promos').insert(payloads as any);
+      if (promoErr) throw promoErr;
 
-      const { error } = await supabase.from('promos').insert(payloads as any);
-      if (error) throw error;
+      // 2) Deduct from branch warehouse_stock
+      if (totalGiftPieces > 0) {
+        const { data: stock } = await supabase
+          .from('warehouse_stock')
+          .select('id, quantity')
+          .eq('branch_id', activeBranch.id)
+          .eq('product_id', selectedProductId)
+          .maybeSingle();
+        if (stock) {
+          const currentDb = Number(stock.quantity) || 0;
+          const currentBoxes = piecesPerBox > 1 ? dbBPToBoxes(currentDb, piecesPerBox) : currentDb;
+          const currentPieces = piecesPerBox > 1 ? Math.round(currentBoxes * piecesPerBox) : currentDb;
+          const newPieces = Math.max(0, currentPieces - totalGiftPieces);
+          const newDb = piecesPerBox > 1
+            ? parseFloat(boxesToBP(newPieces / piecesPerBox, piecesPerBox))
+            : newPieces;
+          const { error: updErr } = await supabase
+            .from('warehouse_stock')
+            .update({ quantity: newDb })
+            .eq('id', stock.id);
+          if (updErr) throw updErr;
+        }
 
-      toast.success(`تم تسجيل ${validEntries.length} عرض يدوي بنجاح`);
+        // 3) Record stock movement (pieces)
+        await supabase.from('stock_movements').insert({
+          branch_id: activeBranch.id,
+          product_id: selectedProductId,
+          movement_type: 'promo_gift',
+          quantity: totalGiftPieces,
+          signed_quantity: -totalGiftPieces,
+          from_location_type: 'branch',
+          from_location_id: activeBranch.id,
+          to_location_type: 'customer',
+          worker_id: workerId,
+          created_by: workerId,
+          reason: 'تسجيل عرض/هدية يدوي',
+          notes: notes.trim() || null,
+        } as any);
+      }
+
+      toast.success(`تم تسجيل ${validEntries.length} عرض وخصم ${formatPieces(totalGiftPieces)} من مخزون الفرع`);
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error saving manual promo:', error);
