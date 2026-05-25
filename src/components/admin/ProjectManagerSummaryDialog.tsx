@@ -105,12 +105,11 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
           .from('sales_tracking')
           .select('id, product_id, product_name, gift_pieces, gift_boxes, sold_pieces, sold_boxes, sold_at, worker_name, customer_name, branch_id, order_id')
           .gte('sold_at', startOfMonthIso())
-          .gt('gift_pieces', 0)
           .order('sold_at', { ascending: false })
           .limit(200);
         if (branchId) q = q.eq('branch_id', branchId);
         const { data: rows } = await q as any;
-        const list = (rows || []) as any[];
+        const list = ((rows || []) as any[]).filter((r) => Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0);
 
         // Fetch product images in a single batch
         const productIds = Array.from(new Set(list.map((r) => r.product_id).filter(Boolean)));
@@ -126,7 +125,7 @@ const ProjectManagerSummaryDialog: React.FC<Props> = ({ open, onOpenChange, kind
 
         const today = startOfDayIso();
         const todayRows = enriched.filter((r) => r.sold_at >= today);
-        const sumGifts = (arr: any[]) => arr.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+        const sumGifts = (arr: any[]) => arr.reduce((s, r) => s + Number(r.gift_boxes || 0) * Number(r.pieces_per_box || 1) + Number(r.gift_pieces || 0), 0);
         const uniqueOrders = (arr: any[]) => new Set(arr.map((r) => r.order_id || r.id)).size;
         return {
           rows: enriched,

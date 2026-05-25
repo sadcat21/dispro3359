@@ -368,8 +368,7 @@ const AdminHome: React.FC = () => {
       let offersQuery = supabase
         .from('sales_tracking')
         .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
-        .gte('sold_at', queryStart)
-        .gt('gift_pieces', 0);
+        .gte('sold_at', queryStart);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -377,10 +376,11 @@ const AdminHome: React.FC = () => {
         offersQuery = offersQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
       }
       const { data: offerRows } = await offersQuery;
-      const offerList = (offerRows || []) as any[];
-      const monthGiftPieces = offerList.filter((r) => r.sold_at >= startOfMonth).reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+      const offerList = ((offerRows || []) as any[]).filter((r) => Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0);
+      const toGiftPieces = (r: any) => Number(r.gift_boxes || 0) * Number(r.pieces_per_box || 1) + Number(r.gift_pieces || 0);
+      const monthGiftPieces = offerList.filter((r) => r.sold_at >= startOfMonth).reduce((s, r) => s + toGiftPieces(r), 0);
       const todayOfferRows = offerList.filter((r) => r.sold_at >= periodStart);
-      const todayGiftPieces = todayOfferRows.reduce((s, r) => s + Number(r.gift_pieces || 0), 0);
+      const todayGiftPieces = todayOfferRows.reduce((s, r) => s + toGiftPieces(r), 0);
       const offersDeliveredMonth = new Set(offerList.filter((r) => r.sold_at >= startOfMonth).map((r) => r.order_id || r.order_item_id || r.id)).size;
       const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
 
