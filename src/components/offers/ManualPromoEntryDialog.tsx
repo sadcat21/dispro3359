@@ -523,6 +523,85 @@ const ManualPromoEntryDialog: React.FC<ManualPromoEntryDialogProps> = ({
           <div className="py-10 flex justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
+        ) : step === 'confirm' ? (
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <ScrollArea className="flex-1 px-4 py-3">
+              <div className="space-y-3">
+                <div className="rounded-lg border bg-card p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    {selectedProduct?.image_url ? (
+                      <img src={selectedProduct.image_url} alt="" className="w-10 h-10 rounded object-cover" />
+                    ) : (
+                      <Package className="w-8 h-8 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm truncate">{selectedProduct ? getProductDisplayName(selectedProduct) : ''}</div>
+                      <div className="text-xs text-muted-foreground truncate">{selectedOffer?.name}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-lg border p-2">
+                    <div className="text-[10px] text-muted-foreground">مخزون الفرع</div>
+                    <div className="text-sm font-bold">{branchStockPieces !== null ? formatPieces(branchStockPieces) : '—'}</div>
+                  </div>
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-2">
+                    <div className="text-[10px] text-destructive">سيُخصم</div>
+                    <div className="text-sm font-bold text-destructive">−{formatPieces(totalGiftPieces)}</div>
+                  </div>
+                  <div className={cn(
+                    'rounded-lg border p-2',
+                    insufficientStock ? 'border-destructive bg-destructive/10' : 'border-primary/40 bg-primary/5'
+                  )}>
+                    <div className="text-[10px] text-muted-foreground">المتبقي</div>
+                    <div className={cn('text-sm font-bold', insufficientStock && 'text-destructive')}>
+                      {branchStockPieces !== null ? formatPieces(Math.max(0, branchStockPieces - totalGiftPieces)) : '—'}
+                    </div>
+                  </div>
+                </div>
+
+                {insufficientStock && (
+                  <div className="flex items-start gap-2 rounded-lg border border-destructive bg-destructive/10 p-2 text-xs text-destructive">
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>المخزون المتاح في الفرع غير كافٍ لتغطية الهدايا. عدّل العملاء أو أضف مخزونًا أولاً.</span>
+                  </div>
+                )}
+
+                <div className="rounded-lg border bg-card">
+                  <div className="px-3 py-2 border-b text-xs font-semibold flex items-center justify-between">
+                    <span>تفصيل الهدايا ({validEntries.length} عميل)</span>
+                  </div>
+                  <div className="divide-y">
+                    {validEntries.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between px-3 py-2 text-xs">
+                        <span className="truncate flex-1">{getCustomerName(entry.customerId)}</span>
+                        <span className="font-bold text-primary">
+                          +{entry.giftQuantity} {unitLabel(selectedTier?.gift_quantity_unit || 'piece')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {notes.trim() && (
+                  <div className="rounded-lg border p-2 text-xs">
+                    <div className="text-muted-foreground mb-1">ملاحظات:</div>
+                    <div>{notes}</div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+            <div className="border-t px-4 py-3 flex gap-2">
+              <Button variant="outline" className="flex-1 gap-1" onClick={() => setStep('edit')} disabled={isSaving}>
+                <ArrowRight className="w-4 h-4" /> رجوع
+              </Button>
+              <Button className="flex-1 gap-1" onClick={handleConfirm} disabled={isSaving || insufficientStock}>
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                تأكيد الخصم
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col flex-1 overflow-hidden">
             <div className="px-4 space-y-3 pb-3">
