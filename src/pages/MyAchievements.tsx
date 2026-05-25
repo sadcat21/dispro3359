@@ -517,7 +517,7 @@ const MyAchievements: React.FC = () => {
         upperBound = new Date().toISOString();
       }
 
-      const [{ data: visits }, { data: directDebtCollections }] = await Promise.all([
+      const [{ data: visits }, { data: directDebtCollections }, { data: directOrders }] = await Promise.all([
         supabase
           .from('visit_tracking')
           .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
@@ -539,6 +539,15 @@ const MyAchievements: React.FC = () => {
           .gte('created_at', lowerBound)
           .lte('created_at', upperBound)
           .neq('status', 'rejected')
+          .order('created_at', { ascending: false }),
+        // Fallback: include orders directly assigned to this worker even when
+        // visit_tracking row is missing (e.g. GPS/permissions blocked insert).
+        supabase
+          .from('orders')
+          .select('id, customer_id, branch_id, created_at, status')
+          .eq('assigned_worker_id', targetWorkerId)
+          .gte('created_at', lowerBound)
+          .lte('created_at', upperBound)
           .order('created_at', { ascending: false }),
       ]);
 
