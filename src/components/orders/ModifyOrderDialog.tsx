@@ -896,6 +896,14 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       toast.error(t('orders.add_products_error'));
       return;
     }
+    if (
+      paymentType === 'with_invoice' &&
+      (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer') &&
+      !invoicePaymentSubType
+    ) {
+      toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
     if (isSold && Math.abs(orderTotal - originalTotal) > 0.009) {
       await loadCustomerFinancialContext();
       setConfirmMode('adjustment');
