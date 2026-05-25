@@ -517,7 +517,7 @@ const MyAchievements: React.FC = () => {
         upperBound = new Date().toISOString();
       }
 
-      const [{ data: visits }, { data: directDebtCollections }] = await Promise.all([
+      const [{ data: visits }, { data: directDebtCollections }, { data: directOrders }] = await Promise.all([
         supabase
           .from('visit_tracking')
           .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
@@ -540,6 +540,15 @@ const MyAchievements: React.FC = () => {
           .lte('created_at', upperBound)
           .neq('status', 'rejected')
           .order('created_at', { ascending: false }),
+        // Fallback: include orders directly assigned to this worker even when
+        // visit_tracking row is missing (e.g. GPS/permissions blocked insert).
+        supabase
+          .from('orders')
+          .select('id, customer_id, branch_id, created_at, status')
+          .eq('assigned_worker_id', targetWorkerId)
+          .gte('created_at', lowerBound)
+          .lte('created_at', upperBound)
+          .order('created_at', { ascending: false }),
       ]);
 
       const visitList = visits || [];
@@ -547,6 +556,12 @@ const MyAchievements: React.FC = () => {
         visitList
           .filter((v: any) => v.operation_type === 'debt_collection')
           .map((v: any) => v.operation_id || (v as any).entity_id || (v as any).reference_id)
+          .filter(Boolean)
+      );
+      const trackedOrderIds = new Set(
+        visitList
+          .filter((v: any) => ['order', 'direct_sale', 'delivery'].includes(v.operation_type))
+          .map((v: any) => v.operation_id)
           .filter(Boolean)
       );
       const mergedVisits = [
@@ -562,6 +577,21 @@ const MyAchievements: React.FC = () => {
             notes: collection.notes,
             created_at: collection.created_at,
             branch_id: activeBranch?.id || null,
+          }))),
+        // Synthesize visit entries for assigned orders that never produced a
+        // visit_tracking row (e.g. GPS denied), so achievements count matches
+        // the real order count.
+        ...((directOrders || [])
+          .filter((o: any) => o.id && !trackedOrderIds.has(o.id))
+          .map((o: any) => ({
+            id: `order-${o.id}`,
+            worker_id: targetWorkerId,
+            customer_id: o.customer_id || null,
+            operation_type: 'direct_sale' as OperationType,
+            operation_id: o.id,
+            notes: null,
+            created_at: o.created_at,
+            branch_id: o.branch_id || activeBranch?.id || null,
           }))),
       ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
