@@ -2120,7 +2120,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               {paymentType === 'with_invoice' && (
                 <InvoicePaymentMethodSelect
                   value={invoicePaymentMethod}
-                  onChange={setInvoicePaymentMethod}
+                  onChange={(m) => { setInvoicePaymentMethod(m); setInvoicePaymentSubType(null); }}
+                  subType={invoicePaymentSubType}
+                  onSubTypeChange={setInvoicePaymentSubType}
                 />
               )}
             </div>
