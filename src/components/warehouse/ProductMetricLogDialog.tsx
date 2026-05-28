@@ -198,7 +198,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           : { data: [] as any[] };
         const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
 
-        return filtered
+        const orderEntries = filtered
           .map((it: any) => {
             const o = orderById.get(it.order_id) as any;
             const ppb = Number(it.pieces_per_box) || piecesPerBox;
@@ -222,9 +222,53 @@ const ProductMetricLogDialog: React.FC<Props> = ({
               delivered: true,
               workerName: names.get(o?.assigned_worker_id) || null,
             };
-          })
+          });
+
+        // Manual promo entries (admin-entered) — sales_tracking with order_id = null
+        const { data: manualRows } = await supabase
+          .from('sales_tracking')
+          .select('id, product_id, branch_id, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, sold_at, order_id, source')
+          .eq('product_id', productId)
+          .eq('branch_id', branchId)
+          .is('order_id', null);
+        const mFiltered = (manualRows || []).filter((r: any) => {
+          if (!(Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)) return false;
+          if (ranges && ranges.length && !isInRanges(r.sold_at, ranges)) return false;
+          return true;
+        });
+        const mWorkerIds = Array.from(new Set(mFiltered.map((r: any) => r.worker_id).filter(Boolean)));
+        const mCustomerIds = Array.from(new Set(mFiltered.map((r: any) => r.customer_id).filter(Boolean)));
+        const [mNames, mCustRes] = await Promise.all([
+          resolveWorkers(mWorkerIds),
+          mCustomerIds.length
+            ? supabase.from('customers').select('id, name, store_name').in('id', mCustomerIds as string[])
+            : Promise.resolve({ data: [] as any[] }),
+        ]);
+        const mCustMap = new Map(((mCustRes as any).data || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
+        const manualEntries = mFiltered.map((r: any) => {
+          const ppb = Number(r.pieces_per_box) || piecesPerBox;
+          const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
+          const c = mCustMap.get(r.customer_id) || { store: null, full: null };
+          const cname = c.store || c.full || null;
+          return {
+            id: `manual-${r.id}`,
+            when: r.sold_at,
+            qty: piecesToDbBP(pieces, piecesPerBox),
+            who: cname || mNames.get(r.worker_id || '') || null,
+            refLabel: 'يدوي',
+            customerId: r.customer_id || null,
+            customerName: cname,
+            customerStoreName: c.store,
+            customerFullName: c.full,
+            delivered: true,
+            workerName: mNames.get(r.worker_id || '') || null,
+          };
+        });
+
+        return [...orderEntries, ...manualEntries]
           .sort((a: any, b: any) => new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime());
       }
+
 
       // damaged / factoryReturn / compensation → activity_logs manual edits
       const changeKey = metric; // 'damaged' | 'factoryReturn' | 'compensation'
