@@ -680,8 +680,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                             className={cn(
                               'flex h-11 items-center justify-center rounded-lg transition-colors',
                               hasActive
-                                ? 'bg-yellow-400/20 text-yellow-400'
-                                : 'text-yellow-400 hover:bg-yellow-400/10'
+                                ? 'bg-red-500/20 text-red-500'
+                                : 'text-red-500 hover:bg-red-500/10'
                             )}
                           >
                             <representative.icon className="h-5 w-5 shrink-0" />
@@ -734,8 +734,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                         className={cn(
                           'flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
                           isActive
-                            ? 'bg-yellow-400/20 text-yellow-400'
-                            : 'text-yellow-400 hover:bg-yellow-400/10'
+                            ? 'bg-red-500/20 text-red-500'
+                            : 'text-red-500 hover:bg-red-500/10'
                         )}
                       >
                         <item.icon className="h-5 w-5 shrink-0" />
