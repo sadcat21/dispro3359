@@ -1,38 +1,41 @@
 ## الهدف
-إضافة زر "طلب من المصنع" لمدير الفرع يسمح بإرسال طلب منتجات يمر بدورة موافقة (المساعد ← مدير النظام) وعند الموافقة يظهر زر واتساب يفتح محادثة مع مندوب المصنع برسالة جاهزة.
+إضافة زر في صفحة `/warehouse` يفتح نافذة شبيهة بـ "ترتيب أوقات الجلسات المحاسبية"، لكن مصدرها **وصولات الاستلام** (`stock_receipts`). يمكن اختيار جلسة واحدة أو أكثر، وعندها تتحدّث بطاقات المنتج لتعرض ما حدث داخل النوافذ المختارة فقط.
+
+## تعريف "جلسة استلام"
+- كل وصل استلام يفتح نافذة زمنية تبدأ من `created_at` للوصل وتنتهي عند `created_at` للوصل التالي (أو "الآن" إن لم يوجد).
+- آخر نافذة مفتوحة تُعرض ببطاقة "جلسة مفتوحة" كما هو في نافذة الجلسات المحاسبية.
 
 ## التغييرات
 
-### 1) قاعدة البيانات (migration)
-- إضافة قيمة جديدة `'factory_request'` لعمود `order_type` في `factory_orders` (بجانب `sending` و`receiving` الحاليين)، أو استخدام `'receiving'` مع `status='draft'` يبدأها مدير الفرع. **القرار:** استخدام `order_type='factory_request'` لفصل المنطق.
-- إضافة جدول/إعداد `factory_sales_rep_phone` على مستوى الفرع: عمود نصي `factory_sales_phone TEXT` في `branches` (أبسط حل).
-- تعديل RPC `approve_factory_order` / `submit_factory_order_for_approval` لقبول النوع الجديد (نفس مسار الموافقة الحالي: pending_approval → assistant → system_manager → confirmed).
+### 1) مكوّن جديد
+`src/components/warehouse/ReceiptSessionsTimelineDialog.tsx` (نسخة مطابقة بصريًا لـ `AccountingSessionsTimelineDialog`):
+- يجلب `stock_receipts` للفرع الحالي مرتّبة تنازليًا.
+- يحوّل كل وصل إلى نافذة `{id, start, end}` حيث `end` = `created_at` التالي أو الآن.
+- يدعم التحديد المتعدد + "إلغاء التحديد" + "تطبيق (n)".
 
-### 2) واجهة مدير الفرع
-- مكوّن جديد `FactoryRequestDialog.tsx` في `src/components/stock/` مبني على نمط `FactoryDeliveryDialog`:
-  - اختيار المنتجات والكميات (BoxPieceInput + SimpleProductPickerDialog) — نفس تجربة الإيصالات.
-  - حقل لرقم هاتف المندوب (يُحفظ في `branches.factory_sales_phone` ويُملأ تلقائياً).
-  - ملاحظات اختيارية.
-  - عند الحفظ: إنشاء `factory_orders` بـ `order_type='factory_request'`, `status='pending_approval'` + `factory_order_items`.
-- إضافة زر "📦 طلب من المصنع" في `BranchManagerHome.tsx` بجانب أزرار المصنع الحالية.
+### 2) ربط في `src/pages/admin/WarehouseStock.tsx`
+- حالة `selectedReceiptRanges: SelectedSessionRange[]`.
+- زر في رأس قسم "ملخّص المخزن" بنفس شكل الزر في `MyAchievements` مع شارة العدد.
+- زر إعادة تعيين عند تفعيل الفلتر.
 
-### 3) صفحة الموافقات
-- في `FactoryApprovalsDialog.tsx` و`BranchManagerApprovals.tsx`: عرض الطلبات الجديدة من النوع `factory_request` بنفس آلية الموافقة متعددة المراحل (موجودة بالفعل عبر hook `useApproveFactoryOrder`).
+### 3) تطبيق الفلتر على الحسابات
+عند وجود نوافذ مختارة (الاتحاد = مجموع كل النوافذ المحددة):
+- **المستلم**: فقط `stock_receipt_items` التي `created_at` للوصل داخل النوافذ.
+- **المباع / الهدايا**: فقط الطلبات `delivered` التي `updated_at ∈ النوافذ` (نفس مصدر الحقيقة الحالي).
+- **العروض**: نفس الفلترة من `sales_tracking.sold_at`.
+- **الحركات (load/return) و warehouse_sale**: فلترة حسب `created_at` / `sold_at`.
+- **العجز/الفائض**: فلترة حسب `stock_discrepancies.created_at`.
+- **عند العمال / تالف / مرتجع / تعويض**: لقطات حالية بدون تاريخ ⇒ تُخفى (تُصبح 0) عند تفعيل الفلتر، مع تلميح "لقطة حالية".
+- **المتبقي**: عند تفعيل الفلتر = `المستلم (داخل النافذة) − البطاقات المؤرّخة`. عند عدم تفعيل الفلتر يبقى السلوك الحالي (رصيد `warehouse_stock` الفعلي).
 
-### 4) إشعار + زر واتساب على بطاقة الطلب
-- في `BranchManagerHome.tsx`: استعلام للطلبات `order_type='factory_request' AND status IN ('confirmed','in_production','ready_for_delivery')` للفرع الحالي.
-- عرض بطاقة/شارة "تمت الموافقة على طلبك للمصنع" + زر أيقونة واتساب أخضر.
-- عند الضغط: بناء نص الرسالة `طلب من فرع {branch.name}:\n- {product.name}: {qty}\n...` ثم فتح:
-  `https://wa.me/{phone}?text={encodeURIComponent(message)}`
+### 4) نوافذ التفاصيل
+عند تفعيل الفلتر، نمرّر النوافذ المختارة إلى:
+- `ProductDailySoldDialog` (بدلًا من `sinceIso` المنفرد) ⇒ يدعم `ranges` لتصفية الطلبات.
+- `ProductMetricLogDialog` لتصفية سجل العروض/الهدايا/العجز/الفائض حسب التاريخ.
+(تغيير غير مكسور: عند غياب `ranges` يبقى السلوك الحالي.)
 
-## الملفات
-- **migration**: إضافة `factory_sales_phone` لـ `branches` + سماح القيمة الجديدة في CHECK constraint إن وُجد.
-- **جديد**: `src/components/stock/FactoryRequestDialog.tsx`, `src/components/stock/FactoryRequestApprovedBanner.tsx`
-- **تعديل**: `src/pages/BranchManagerHome.tsx` (زر + بانر), `src/components/stock/FactoryApprovalsDialog.tsx` (دعم النوع الجديد), `src/pages/admin/BranchManagerApprovals.tsx`
-
-## تفاصيل تقنية
-- رسالة الواتساب بالعربية، الأرقام تُنسَّق بـ `dbBPDisplay` (صناديق وقطع).
-- رقم الهاتف يُنظَّف من رموز غير الأرقام قبل تمريره لـ `wa.me`.
-- نفس نمط realtime subscription الموجود لتحديث الحالة فوراً عند الموافقة.
-
-هل أتابع التنفيذ؟
+## ملاحظات تقنية
+- استخدام `useMemo` لبناء فهرس وصلات الاستلام (`id → created_at`) لتجنّب إعادة الحساب.
+- دالة مساعدة `isInRanges(iso, ranges)` تُستخدم في كل التجميعات.
+- لا تغييرات على قاعدة البيانات.
+- مفاتيح React Query تشمل `selectedReceiptRangesKey` لإعادة الحساب عند التغيير دون إعادة جلب الشبكة (الفلترة محلية).

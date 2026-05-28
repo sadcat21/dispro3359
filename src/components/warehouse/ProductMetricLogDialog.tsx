@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
+import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
+import { isInRanges } from './ReceiptSessionsTimelineDialog';
 
 export type MetricKind =
   | 'gifts'
@@ -26,6 +28,8 @@ interface Props {
   productName: string;
   piecesPerBox: number;
   metric: MetricKind;
+  /** When provided, only entries whose date falls inside one window are shown. */
+  ranges?: SelectedReceiptRange[];
 }
 
 interface Entry {
@@ -87,13 +91,17 @@ const buildPromoTrackingKey = ({
 ].join('|');
 
 const ProductMetricLogDialog: React.FC<Props> = ({
-  open, onOpenChange, branchId, productId, productName, piecesPerBox, metric,
+  open, onOpenChange, branchId, productId, productName, piecesPerBox, metric, ranges,
 }) => {
   const meta = META[metric];
   const fmt = (v: number) => dbBPDisplayAlways(Math.max(0, v), piecesPerBox);
+  const rangesKey = useMemo(
+    () => (ranges || []).map((r) => `${r.id}:${r.start}:${r.end}`).join('|'),
+    [ranges],
+  );
 
   const { data, isLoading } = useQuery({
-    queryKey: ['product-metric-log', metric, branchId, productId],
+    queryKey: ['product-metric-log', metric, branchId, productId, rangesKey],
     enabled: open && !!branchId && !!productId,
     queryFn: async (): Promise<Entry[]> => {
       // Helper to resolve worker names
@@ -349,9 +357,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
   const [workerFilter, setWorkerFilter] = useState<string | null>(null);
 
   const filteredData = useMemo(() => {
-    if (!workerFilter) return data || [];
-    return (data || []).filter(e => e.workerName === workerFilter);
-  }, [data, workerFilter]);
+    let arr = data || [];
+    if (ranges && ranges.length) {
+      arr = arr.filter((e) => isInRanges(e.when, ranges));
+    }
+    if (workerFilter) arr = arr.filter((e) => e.workerName === workerFilter);
+    return arr;
+  }, [data, workerFilter, ranges]);
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 

@@ -30,6 +30,8 @@ import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistor
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import { Calendar } from 'lucide-react';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
+import ReceiptSessionsTimelineDialog, { SelectedReceiptRange, isInRanges } from '@/components/warehouse/ReceiptSessionsTimelineDialog';
+import { Filter, X } from 'lucide-react';
 
 interface ProductSummary {
   productId: string;
@@ -102,6 +104,9 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
+  const [showReceiptSessionsDialog, setShowReceiptSessionsDialog] = useState(false);
+  const [selectedReceiptRanges, setSelectedReceiptRanges] = useState<SelectedReceiptRange[]>([]);
+  const hasReceiptFilter = selectedReceiptRanges.length > 0;
 
   // Fetch aggregated data for summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
@@ -129,7 +134,7 @@ const WarehouseStock: React.FC = () => {
         // Discrepancies (surplus, deficit)
         supabase
           .from('stock_discrepancies')
-          .select('product_id, quantity, discrepancy_type')
+          .select('product_id, quantity, discrepancy_type, created_at')
           .eq('branch_id', branchId),
         // Worker stocks
         supabase
@@ -194,23 +199,25 @@ const WarehouseStock: React.FC = () => {
     [latestReceiptAtByProduct]
   );
 
-  // Fetch sold from order_items for delivered orders
+  // Fetch sold from order_items for delivered orders. Each item carries the
+  // order's updated_at so window-filtering by receipt sessions can be applied.
   const { data: soldData, isLoading: soldLoading } = useQuery({
     queryKey: ['warehouse-sold-summary', branchId],
     queryFn: async () => {
-      if (!branchId) return [];
+      if (!branchId) return [] as any[];
       const { data: deliveredOrders } = await supabase
         .from('orders')
-        .select('id')
+        .select('id, updated_at, created_at')
         .eq('branch_id', branchId)
         .eq('status', 'delivered');
       const orderIds = (deliveredOrders || []).map(o => o.id);
       if (orderIds.length === 0) return [];
+      const dateById = new Map((deliveredOrders || []).map((o: any) => [o.id, o.updated_at || o.created_at]));
       const { data } = await supabase
         .from('order_items')
         .select('order_id, product_id, quantity, gift_quantity')
         .in('order_id', orderIds);
-      return data || [];
+      return (data || []).map((it: any) => ({ ...it, _delivered_at: dateById.get(it.order_id) || null }));
     },
     enabled: !!branchId,
   });
@@ -298,17 +305,23 @@ const WarehouseStock: React.FC = () => {
       };
     }
 
+    // فلتر النوافذ (جلسات الاستلام). عند تفعيله نُجمّع فقط الأحداث التي تقع داخل النوافذ.
+    const inWindow = (iso: string | null | undefined) =>
+      !hasReceiptFilter || isInRanges(iso || null, selectedReceiptRanges);
+
     // Received
     for (const r of (summaryData?.receipts || [])) {
-      if (summaries[r.product_id]) {
-        summaries[r.product_id].received += Number(r.quantity || 0);
-      }
+      if (!summaries[r.product_id]) continue;
+      if (!inWindow((r as any).created_at)) continue;
+      summaries[r.product_id].received += Number(r.quantity || 0);
     }
 
-    // Worker stocks
-    for (const ws of (summaryData?.workerStocks || [])) {
-      if (summaries[ws.product_id]) {
-        summaries[ws.product_id].workerStock += Number(ws.quantity || 0);
+    // Worker stocks — لقطة حالية بلا تاريخ. عند تفعيل الفلتر نُخفيها.
+    if (!hasReceiptFilter) {
+      for (const ws of (summaryData?.workerStocks || [])) {
+        if (summaries[ws.product_id]) {
+          summaries[ws.product_id].workerStock += Number(ws.quantity || 0);
+        }
       }
     }
 
@@ -316,6 +329,7 @@ const WarehouseStock: React.FC = () => {
     for (const oi of (soldData || [])) {
       const pid = oi.product_id;
       if (!summaries[pid]) continue;
+      if (!inWindow((oi as any)._delivered_at)) continue;
       const ppb = Number(products.find(p => p.id === pid)?.pieces_per_box) || 20;
       const g = Number((oi as any).gift_quantity || 0);
       const gBoxes = Math.floor(g);
@@ -327,6 +341,7 @@ const WarehouseStock: React.FC = () => {
     // Discrepancies (surplus / deficit فقط)
     for (const d of (summaryData?.discrepancies || [])) {
       if (!summaries[d.product_id]) continue;
+      if (!inWindow((d as any).created_at)) continue;
       const qty = Number(d.quantity || 0);
       if (d.discrepancy_type === 'deficit') {
         summaries[d.product_id].deficit += qty;
@@ -335,42 +350,17 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    // Damaged, factory return, compensation from warehouse stock (current snapshot)
-    for (const ws of (summaryData?.warehouseDamaged || [])) {
-      if (!summaries[ws.product_id]) continue;
-      summaries[ws.product_id].damaged += Number(ws.damaged_quantity || 0);
-      summaries[ws.product_id].factoryReturn += Number(ws.factory_return_quantity || 0);
-      summaries[ws.product_id].compensation += Number(ws.compensation_quantity || 0);
-    }
-
-    // Compute remaining from fundamentals: receipts − load + return − warehouse_sale
-    // (deliveries are deducted from worker stock, not from warehouse stock)
-    const loadByProduct: Record<string, number> = {};
-    const returnByProduct: Record<string, number> = {};
-    const lastReceiptByProduct: Record<string, string> = {};
-    for (const m of ((movementsData || []) as StockMovementSummaryRow[])) {
-      const pid = m.product_id;
-      if (!pid) continue;
-      const qty = Number(m.quantity || 0);
-      if (m.movement_type === 'load') {
-        loadByProduct[pid] = (loadByProduct[pid] || 0) + qty;
-      } else if (m.movement_type === 'return') {
-        returnByProduct[pid] = (returnByProduct[pid] || 0) + qty;
-      }
-    }
-
-    for (const r of (summaryData?.receipts || [])) {
-      const pid = r.product_id;
-      const createdAt = (r as any).created_at as string | undefined;
-      if (pid && createdAt && (!lastReceiptByProduct[pid] || createdAt > lastReceiptByProduct[pid])) {
-        lastReceiptByProduct[pid] = createdAt;
+    // Damaged / factory return / compensation — لقطة حالية بلا تاريخ. تُخفى عند الفلترة.
+    if (!hasReceiptFilter) {
+      for (const ws of (summaryData?.warehouseDamaged || [])) {
+        if (!summaries[ws.product_id]) continue;
+        summaries[ws.product_id].damaged += Number(ws.damaged_quantity || 0);
+        summaries[ws.product_id].factoryReturn += Number(ws.factory_return_quantity || 0);
+        summaries[ws.product_id].compensation += Number(ws.compensation_quantity || 0);
       }
     }
 
     // Sold: derive from delivered orders + order_items (authoritative source).
-    // sales_tracking is unreliable (deletions on order modification + partial
-    // inserts from deferred-offer confirmations) — keep it only for warehouse_sale
-    // bookkeeping which feeds the "remaining" calculation.
     const warehouseSaleByProduct: Record<string, number> = {};
     const soldPiecesByProduct: Record<string, number> = {};
     const ppbByProduct: Record<string, number> = {};
@@ -379,17 +369,14 @@ const WarehouseStock: React.FC = () => {
     for (const oi of (soldData || [])) {
       const pid = oi.product_id;
       if (!pid) continue;
+      if (!inWindow((oi as any)._delivered_at)) continue;
       const ppb = ppbByProduct[pid] || 20;
       const qty = Number((oi as any).quantity || 0);            // BP-encoded boxes.pieces
-      const gift = Number((oi as any).gift_quantity || 0);      // same convention
       const qBoxes = Math.floor(qty);
       const qPieces = Math.round((qty - qBoxes) * 100);
-      const gBoxes = Math.floor(gift);
-      const gPieces = Math.round((gift - gBoxes) * 100);
-      // المباع = الكمية الإجمالية (شاملة الهدية) — مصدر الحقيقة هو orders+order_items
+      // المباع = الكمية الإجمالية (شاملة الهدية)
       const totalPiecesAll = qBoxes * ppb + qPieces;
       soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + totalPiecesAll;
-
     }
 
     // warehouse_sale still needs sales_tracking (for "remaining" computation only)
@@ -398,6 +385,7 @@ const WarehouseStock: React.FC = () => {
       if (!pid) continue;
       if (s.order_id && (s as any).order?.status !== 'delivered') continue;
       if (s.source !== 'warehouse_sale') continue;
+      if (!inWindow((s as any).sold_at)) continue;
       const ppb = Number(s.pieces_per_box) || 20;
       const totalPieces = Number(s.total_boxes || 0) * ppb + Number(s.total_pieces || 0);
       const fullBoxes = Math.floor(totalPieces / ppb);
@@ -407,13 +395,13 @@ const WarehouseStock: React.FC = () => {
 
 
     // Offers (promo gift_boxes/gift_pieces) from sales_tracking
-    // Only count delivered orders, deduped by order_id (direct_sale + delivery_sale duplicates).
     const seenOfferOrderProduct = new Set<string>();
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid || !summaries[pid]) continue;
       const status = (s as any).order?.status;
       if (s.order_id && status !== 'delivered') continue;
+      if (!inWindow((s as any).sold_at)) continue;
       if (s.order_id) {
         const key = `${s.order_id}|${pid}`;
         if (seenOfferOrderProduct.has(key)) continue;
@@ -436,8 +424,6 @@ const WarehouseStock: React.FC = () => {
       summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
       summaries[pid].offers = piecesToDbBP(summaries[pid].offers || 0, ppb);
       const s = summaries[pid];
-      // المتبقي = المستلم − جميع البطاقات. ملاحظة: "المباع" يشمل الهدية أصلاً
-      // (من order_items)، لذلك لا نطرح "العروض" مرة ثانية لتجنّب الاحتساب المزدوج.
       const deductions = (s.workerStock || 0)
         + (s.sold || 0)
         + (s.surplus || 0)
@@ -448,10 +434,9 @@ const WarehouseStock: React.FC = () => {
 
       summaries[pid].remaining = Math.round((received - deductions) * 100) / 100;
 
-      // الرصيد الفعلي للمخزن هو quantity داخل warehouse_stock.
-      // الحساب أعلاه يبقى فقط كـ fallback عند غياب صف المنتج من الجدول
-      // (بيانات قديمة/ناقصة)، أما إذا وُجد الصف فنُظهر الرصيد الحقيقي دائمًا.
-      if (warehouseQtyByProduct.has(pid)) {
+      // عند عدم تفعيل الفلتر: أَظهر الرصيد الفعلي من جدول warehouse_stock.
+      // عند تفعيل الفلتر: نبقي على الحساب المُحدود بالنافذة (المستلم − البطاقات المؤرَّخة).
+      if (!hasReceiptFilter && warehouseQtyByProduct.has(pid)) {
         summaries[pid].remaining = warehouseQtyByProduct.get(pid) || 0;
       }
     }
@@ -460,7 +445,7 @@ const WarehouseStock: React.FC = () => {
     return Object.values(summaries)
       .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.offers + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData]);
+  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData, hasReceiptFilter, selectedReceiptRanges]);
 
   const filteredSummaries = useMemo(() => {
     if (!search.trim()) return productSummaries;
@@ -549,11 +534,37 @@ const WarehouseStock: React.FC = () => {
 
       {/* Product Summary Table */}
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-          <Package className="w-4 h-4" />
-          {t('warehouse.stock_summary')}
-          <Badge variant="secondary" className="text-xs">{filteredSummaries.length}</Badge>
-        </h3>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+            <Package className="w-4 h-4" />
+            {t('warehouse.stock_summary')}
+            <Badge variant="secondary" className="text-xs">{filteredSummaries.length}</Badge>
+          </h3>
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              variant={hasReceiptFilter ? 'default' : 'outline'}
+              className="h-7 text-xs gap-1.5"
+              onClick={() => setShowReceiptSessionsDialog(true)}
+              title="تصفية حسب جلسات الاستلام"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              {hasReceiptFilter ? `جلسات (${selectedReceiptRanges.length})` : 'جلسات الاستلام'}
+            </Button>
+            {hasReceiptFilter && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => setSelectedReceiptRanges([])}
+                title="إلغاء التصفية"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+
 
         {filteredSummaries.length === 0 ? (
           <Card>
@@ -844,7 +855,8 @@ const WarehouseStock: React.FC = () => {
           productId={soldForProduct.productId}
           productName={soldForProduct.productName}
           piecesPerBox={products.find(p => p.id === soldForProduct.productId)?.pieces_per_box || 20}
-          sinceIso={latestReceiptAtByProduct[soldForProduct.productId] || null}
+          sinceIso={hasReceiptFilter ? null : (latestReceiptAtByProduct[soldForProduct.productId] || null)}
+          ranges={hasReceiptFilter ? selectedReceiptRanges : undefined}
         />
       )}
       {metricLog && branchId && (
@@ -856,6 +868,7 @@ const WarehouseStock: React.FC = () => {
           productName={metricLog.product.productName}
           piecesPerBox={products.find(p => p.id === metricLog.product.productId)?.pieces_per_box || 20}
           metric={metricLog.metric}
+          ranges={hasReceiptFilter ? selectedReceiptRanges : undefined}
         />
       )}
       {movementProduct && branchId && (
@@ -869,7 +882,17 @@ const WarehouseStock: React.FC = () => {
           piecesPerBox={products.find(p => p.id === movementProduct.productId)?.pieces_per_box || 20}
         />
       )}
+      {branchId && (
+        <ReceiptSessionsTimelineDialog
+          open={showReceiptSessionsDialog}
+          onOpenChange={setShowReceiptSessionsDialog}
+          branchId={branchId}
+          selectedIds={new Set(selectedReceiptRanges.map((r) => r.id))}
+          onApply={setSelectedReceiptRanges}
+        />
+      )}
     </div>
+
   );
 };
 
