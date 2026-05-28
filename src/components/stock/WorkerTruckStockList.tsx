@@ -479,10 +479,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
     const totalGift = movements.reduce((s, m) => s + (m.type === 'sale' ? Number(m.giftQty || 0) : m.type === 'gift' ? m.quantity : 0), 0);
+    // مجموع الهدايا المؤجَّلة التي لم يؤكِّدها المسؤول بعد — تبقى داخل الشاحنة وتفسّر فرق «الباقي».
+    const pendingGiftTotal = soldData
+      .filter((x: any) => x.product_id === pid)
+      .reduce((s: number, x: any) => s + pendingGiftFractional(x, ppb), 0);
     // اعتمد آخر "الباقي" من السجل الزمني كرصيد نهائي للشاحنة (يعكس أي إعادة تعيين مثل "الشاحنة فارغة")
     const finalRemaining = forwardEntries.length ? forwardEntries[forwardEntries.length - 1].after : currentQty;
 
-    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
+    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, pendingGiftTotal, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
+
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
   const getRemaining = (item: any) => {
@@ -706,12 +711,22 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     )}
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">آخر شحن {fmtBP(history.lastLoadedQty, history.ppb)}</Badge>
                     <Badge className="bg-red-100 text-red-700 border-red-200">تفريغ {fmtBP(history.totalUnloaded, history.ppb)}</Badge>
-                    <Badge className="bg-green-100 text-green-700 border-green-200">مباع {fmtBP(history.totalSold, history.ppb)}</Badge>
                     {history.totalGift > 0 && (
                       <Badge className="bg-orange-100 text-orange-700 border-orange-200">هدايا {fmtBP(history.totalGift, history.ppb)}</Badge>
                     )}
+                    {history.pendingGiftTotal > 0 && (
+                      <Badge className="bg-amber-100 text-amber-800 border-amber-300" title="هدايا مؤجَّلة لم يؤكِّدها المسؤول بعد، لذلك لا تزال داخل الشاحنة">
+                        هدايا بانتظار التأكيد {fmtBP(history.pendingGiftTotal, history.ppb)}
+                      </Badge>
+                    )}
                   </div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">الباقي {fmtBP(history.currentQty, history.ppb)}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    الباقي {fmtBP(history.currentQty, history.ppb)}
+                    {history.pendingGiftTotal > 0 && (
+                      <span className="mr-1 text-amber-700">(منها {fmtBP(history.pendingGiftTotal, history.ppb)} هدايا بانتظار التأكيد)</span>
+                    )}
+                  </div>
+
                 </div>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto pr-1">
