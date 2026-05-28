@@ -102,10 +102,12 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     const dayMap = new Map<string, { pieces: number; workers: Map<string, number> }>();
     for (const r of ((data as any)?.rows || [])) {
       const rppb = Number((r as any).pieces_per_box || ppb);
-      // quantity is BP-encoded (boxes.pieces); include gifts in total.
+      // quantity is BP-encoded (boxes.pieces) and INCLUDES full-box gifts;
+      // subtract gift_quantity so only PAID sales are counted.
       const q = Number((r as any).quantity || 0);
-      const qBoxes = Math.floor(q);
-      const qPieces = Math.round((q - qBoxes) * 100);
+      const giftBoxes = Number((r as any).gift_quantity || 0);
+      const qBoxes = Math.max(0, Math.floor(q) - giftBoxes);
+      const qPieces = Math.round((q - Math.floor(q)) * 100);
       const pieces = qBoxes * rppb + qPieces;
       if (pieces <= 0) continue;
       const day = (r as any).sold_at ? new Date((r as any).sold_at).toISOString().slice(0, 10) : '—';
@@ -115,6 +117,7 @@ const ProductDailySoldDialog: React.FC<Props> = ({
       const wn = ((data as any)?.nameMap?.get((r as any).worker_id)) || 'بدون عامل';
       entry.workers.set(wn, (entry.workers.get(wn) || 0) + pieces);
     }
+
     return Array.from(dayMap.entries())
       .sort((a, b) => b[0].localeCompare(a[0]))
       .map(([day, e]) => ({
