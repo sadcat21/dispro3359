@@ -34,7 +34,12 @@ const pendingGiftFractional = (item: any, ppb: number) => {
 };
 
 const deliveredSaleBreakdown = (item: any, ppb: number) => {
-  const paid = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb));
+  // اعتمد الكمية المدفوعة كما هي في order_items بدل التقييد بـ stock_movements،
+  // لأن بعض الحركات قد تُحذف وتُعاد بصيغة جزئية عند تصحيح رصيد الشاحنة، مما
+  // يُظهر «القسم» أقل من الحقيقة (مثلاً 2 بدل 100). الهدية تُعالَج مستقلًا.
+  const paidFromOrder = Math.max(0, dbBPToBoxes(Number(getPaidQuantity(item) || 0), ppb));
+  const paidCapped = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb));
+  const paid = Math.max(paidFromOrder, paidCapped);
   const gift = confirmedGiftFractional(item, ppb);
   return {
     paid,
