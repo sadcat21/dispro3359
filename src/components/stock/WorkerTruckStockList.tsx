@@ -748,9 +748,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     {history.pendingGiftTotal > 0 && (
                       <span className="mr-1 text-amber-700">(منها {fmtBP(history.pendingGiftTotal, history.ppb)} هدايا بانتظار التأكيد)</span>
                     )}
-                    {history.totalReturned > 0 && (
-                      <span className="mr-1 text-emerald-700">(+{fmtBP(history.totalReturned, history.ppb)} إرجاع من تعديل المبيعات)</span>
-                    )}
+                  </div>
+
                   </div>
 
 
