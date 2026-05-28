@@ -114,7 +114,13 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
                     <ChevronDown className="w-4 h-4 ml-auto transition-transform data-[state=open]:rotate-180" />
                   </div>
                   <div className="flex gap-1.5 flex-wrap">
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1"><Boxes className="w-3 h-3" />الرصيد {fmt(stockByWorkerName?.get(g.worker) || 0)}</Badge>
+                    {(() => {
+                      const bal = stockByWorkerName?.get(g.worker) || 0;
+                      const cls = bal > 0
+                        ? 'bg-red-500 text-white border-red-500 gap-1'
+                        : 'bg-emerald-100 text-emerald-700 border-emerald-200 gap-1';
+                      return <Badge className={cls}><Boxes className="w-3 h-3" />الرصيد {fmt(bal)}</Badge>;
+                    })()}
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1"><Truck className="w-3 h-3" />شحن {fmt(g.loaded)}</Badge>
                     <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 gap-1"><RotateCcw className="w-3 h-3" />تفريغ {fmt(g.returned)}</Badge>
                   </div>
