@@ -321,6 +321,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const [offerDetail, setOfferDetail] = useState<Entry | null>(null);
   const [workerFilter, setWorkerFilter] = useState<string | null>(null);
+  const [groupBy, setGroupBy] = useState<'worker' | 'customer'>('worker');
+  const [isPrintVisible, setIsPrintVisible] = useState(false);
 
   const filteredData = useMemo(() => {
     let arr = data || [];
@@ -333,9 +335,44 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
+  // Build promo-shaped rows for printing (offers metric only)
+  const printPromos = useMemo(() => {
+    if (metric !== 'offers') return [] as any[];
+    const sorted = [...filteredData].sort((a, b) => {
+      const ak = groupBy === 'worker' ? (a.workerName || '') : (a.customerName || '');
+      const bk = groupBy === 'worker' ? (b.workerName || '') : (b.customerName || '');
+      if (ak !== bk) return ak.localeCompare(bk, 'ar');
+      return new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime();
+    });
+    return sorted.map((e) => ({
+      id: e.id,
+      vente_quantity: 0,
+      gratuite_quantity: e.qty,
+      promo_date: e.when || new Date().toISOString(),
+      customer: { name: e.customerName || e.customerFullName || '', address: '', wilaya: '', phone: '' },
+      product: { name: productName },
+      worker: { full_name: e.workerName || '' },
+    }));
+  }, [filteredData, groupBy, metric, productName]);
+
+  const handlePrint = () => {
+    setIsPrintVisible(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => setIsPrintVisible(false), 500);
+    }, 100);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
+        {metric === 'offers' && (
+          <PromoPrintView
+            promos={printPromos as any}
+            productName={productName}
+            isVisible={isPrintVisible}
+          />
+        )}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 flex-wrap">
             <span className={meta.accent}>{meta.icon}</span>
@@ -349,6 +386,27 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           <Badge className={`${meta.tone} text-sm font-bold border`}>{fmt(total)}</Badge>
         </div>
 
+        {metric === 'offers' && (
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'worker' | 'customer')}>
+              <TabsList className="h-8">
+                <TabsTrigger value="worker" className="text-xs h-6">حسب العمال</TabsTrigger>
+                <TabsTrigger value="customer" className="text-xs h-6">حسب العملاء</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handlePrint}
+              disabled={filteredData.length === 0}
+              className="gap-1 h-8"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span className="text-xs">طباعة</span>
+            </Button>
+          </div>
+        )}
+
         {workerFilter && (
           <button
             type="button"
@@ -358,6 +416,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             إزالة فلتر العامل: {workerFilter}
           </button>
         )}
+
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
+
 
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {isLoading ? (
