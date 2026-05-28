@@ -85,6 +85,11 @@ const buildPromoTrackingKey = ({
 }) => [
   workerId || '',
   customerId || '',
+  occurredAt || '',
+  Number(giftBoxes || 0),
+  Number(giftPieces || 0),
+].join('|');
+
 const ProductMetricLogDialog: React.FC<Props> = ({
   open, onOpenChange, branchId, productId, productName, piecesPerBox, metric, ranges,
 }) => {
@@ -94,14 +99,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
     () => (ranges || []).map((r) => `${r.id}:${r.start}:${r.end}`).join('|'),
     [ranges],
   );
-  open, onOpenChange, branchId, productId, productName, piecesPerBox, metric,
-}) => {
-  const meta = META[metric];
-  const fmt = (v: number) => dbBPDisplayAlways(Math.max(0, v), piecesPerBox);
+
   const { data, isLoading } = useQuery({
     queryKey: ['product-metric-log', metric, branchId, productId, rangesKey],
-    enabled: open && !!branchId && !!productId,
-    queryKey: ['product-metric-log', metric, branchId, productId],
     enabled: open && !!branchId && !!productId,
     queryFn: async (): Promise<Entry[]> => {
       // Helper to resolve worker names
