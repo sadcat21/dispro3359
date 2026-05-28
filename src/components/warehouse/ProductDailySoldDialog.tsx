@@ -168,7 +168,12 @@ const ProductDailySoldDialog: React.FC<Props> = ({
 
         <div className="flex items-center justify-between border rounded-xl p-3 bg-orange-50">
           <span className="text-sm font-semibold text-orange-700">الإجمالي</span>
-          <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm">{fmt(totalDb)}</Badge>
+          <div className="flex items-center gap-1.5">
+            {totalGiftPieces > 0 && (
+              <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[11px]">🎁 {fmt(totalGiftDb)}</Badge>
+            )}
+            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm">{fmt(totalDb)}</Badge>
+          </div>
         </div>
 
         <Button
