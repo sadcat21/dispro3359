@@ -39,21 +39,41 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     queryKey: ['product-daily-sold-v2', branchId, productId, sinceIso, rangesKey],
     enabled: open && !!branchId && !!productId,
     queryFn: async () => {
-      let oq = supabase
-        .from('orders')
-        .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
-        .eq('branch_id', branchId)
-        .eq('status', 'delivered');
-      if (sinceIso && !(ranges && ranges.length)) oq = oq.gte('created_at', sinceIso);
-      const { data: orders } = await oq;
+
+      const hasRanges = !!(ranges && ranges.length);
+      const minStart = hasRanges
+        ? ranges!.reduce((m, r) => (new Date(r.start).getTime() < new Date(m).getTime() ? r.start : m), ranges![0].start)
+        : null;
+      // Paginate delivered orders to bypass Supabase's 1000-row default cap.
+      const PAGE = 1000;
+      let from = 0;
+      const orders: any[] = [];
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        let q = supabase
+          .from('orders')
+          .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
+          .eq('branch_id', branchId)
+          .eq('status', 'delivered')
+          .order('updated_at', { ascending: false })
+          .range(from, from + PAGE - 1);
+        if (minStart) q = q.gte('updated_at', minStart);
+        else if (sinceIso) q = q.gte('created_at', sinceIso);
+        const { data: page } = await q;
+        if (!page || page.length === 0) break;
+        orders.push(...page);
+        if (page.length < PAGE) break;
+        from += PAGE;
+      }
 
       // عند تفعيل فلتر النوافذ نُبقي فقط الطلبات التي تقع داخل أحد النوافذ.
-      const filteredOrders = (orders || []).filter((o: any) =>
-        !(ranges && ranges.length) || isInRanges(o.updated_at || o.created_at, ranges),
+      const filteredOrders = orders.filter((o: any) =>
+        !hasRanges || isInRanges(o.updated_at || o.created_at, ranges!),
       );
 
       const orderIds = filteredOrders.map((o: any) => o.id);
       if (orderIds.length === 0) return { rows: [], nameMap: new Map() };
+
 
       const { data: items } = await supabase
         .from('order_items')
