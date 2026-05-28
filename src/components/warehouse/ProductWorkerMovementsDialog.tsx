@@ -103,6 +103,8 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
           ) : grouped.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد حركات</div>
+          ) : (
             grouped.map(g => (
               <Collapsible key={g.worker} className="border rounded-xl p-3 space-y-2 bg-muted/20">
                 <CollapsibleTrigger className="w-full text-right space-y-2">
