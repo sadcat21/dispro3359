@@ -36,7 +36,6 @@ const DEFAULT_ITEMS: BottomNavItem[] = [
   { key: 'finance', label: 'Finance', icon: Wallet },
   { key: 'achievements', label: 'Achievements', icon: Trophy, activeColor: 'text-red-500' },
   { key: 'orders', label: 'Orders', icon: ClipboardList, badge: 11 },
-    activeColor: 'text-yellow-500'
 ];
 
 /**
