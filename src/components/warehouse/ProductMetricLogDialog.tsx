@@ -11,7 +11,6 @@ import {
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 import { fetchDeliveredOrdersForBranch } from '@/utils/fetchDeliveredOrdersForBranch';
-import PromoPrintView from '@/components/print/PromoPrintView';
 import OffersLogPrintViewFr from '@/components/print/OffersLogPrintViewFr';
 import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
 import { isInRanges } from './ReceiptSessionsTimelineDialog';
