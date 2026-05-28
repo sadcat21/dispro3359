@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, Calendar, User, BarChart3 } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
-import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 import ProductMonthlyCompetitionDialog from './ProductMonthlyCompetitionDialog';
 
 interface Props {
