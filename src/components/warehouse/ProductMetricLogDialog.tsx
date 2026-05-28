@@ -418,21 +418,22 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         )}
 
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
-
-
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
           ) : (filteredData.length === 0) ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد سجلات</div>
           ) : (() => {
-            // Group entries by workerName
+            // Group entries by selected key (worker or customer for offers)
             const groups = new Map<string, Entry[]>();
+            const useCustomer = metric === 'offers' && groupBy === 'customer';
             for (const e of filteredData) {
-              const k = e.workerName || 'بدون عامل';
+              const k = useCustomer
+                ? (e.customerName || e.customerFullName || 'بدون عميل')
+                : (e.workerName || 'بدون عامل');
               if (!groups.has(k)) groups.set(k, []);
               groups.get(k)!.push(e);
             }
+
             const palette = [
               'bg-blue-50 text-blue-700 border-blue-300',
               'bg-amber-50 text-amber-700 border-amber-300',
