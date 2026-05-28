@@ -1,16 +1,20 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart,
+  Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart, Printer,
 } from 'lucide-react';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 import { fetchDeliveredOrdersForBranch } from '@/utils/fetchDeliveredOrdersForBranch';
+import PromoPrintView from '@/components/print/PromoPrintView';
 import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
 import { isInRanges } from './ReceiptSessionsTimelineDialog';
+
 
 export type MetricKind =
   | 'gifts'
