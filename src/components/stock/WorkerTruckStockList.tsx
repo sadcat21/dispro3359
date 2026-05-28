@@ -483,10 +483,18 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const pendingGiftTotal = soldData
       .filter((x: any) => x.product_id === pid)
       .reduce((s: number, x: any) => s + pendingGiftFractional(x, ppb), 0);
+    // مجموع التعديلات (إرجاع للمخزون موجب، سحب إضافي سالب) — يفسّر اختلاف «الباقي» عن (الشحن − البيع − الهدايا).
+    const totalReturned = movements
+      .filter(m => m.type === 'modification' && m.delta > 0)
+      .reduce((s, m) => s + m.delta, 0);
+    const totalExtraDeducted = movements
+      .filter(m => m.type === 'modification' && m.delta < 0)
+      .reduce((s, m) => s + Math.abs(m.delta), 0);
     // اعتمد آخر "الباقي" من السجل الزمني كرصيد نهائي للشاحنة (يعكس أي إعادة تعيين مثل "الشاحنة فارغة")
     const finalRemaining = forwardEntries.length ? forwardEntries[forwardEntries.length - 1].after : currentQty;
 
-    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, pendingGiftTotal, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
+    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, pendingGiftTotal, totalReturned, totalExtraDeducted, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
+
 
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
@@ -719,13 +727,28 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                         هدايا بانتظار التأكيد {fmtBP(history.pendingGiftTotal, history.ppb)}
                       </Badge>
                     )}
+                    {history.totalReturned > 0 && (
+
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200" title="كميات أُعيدت إلى الشاحنة بعد تعديل/إلغاء طلبيات">
+                        إرجاع للمخزون +{fmtBP(history.totalReturned, history.ppb)}
+                      </Badge>
+                    )}
+                    {history.totalExtraDeducted > 0 && (
+                      <Badge className="bg-rose-100 text-rose-700 border-rose-200" title="كميات إضافية خُصمت من الشاحنة بسبب تعديل طلبيات">
+                        خصم إضافي −{fmtBP(history.totalExtraDeducted, history.ppb)}
+                      </Badge>
+                    )}
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">
                     الباقي {fmtBP(history.currentQty, history.ppb)}
                     {history.pendingGiftTotal > 0 && (
                       <span className="mr-1 text-amber-700">(منها {fmtBP(history.pendingGiftTotal, history.ppb)} هدايا بانتظار التأكيد)</span>
                     )}
+                    {history.totalReturned > 0 && (
+                      <span className="mr-1 text-emerald-700">(+{fmtBP(history.totalReturned, history.ppb)} إرجاع من تعديل المبيعات)</span>
+                    )}
                   </div>
+
 
                 </div>
               </div>
