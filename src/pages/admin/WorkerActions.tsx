@@ -1138,9 +1138,27 @@ const WorkerActions: React.FC = () => {
                       const sold = stats?.sold || 0;
                       const giftQty = stats?.deliveredGiftQty || 0;
                       const storedQty = bpStoredToBoxes(Number(item.quantity || 0), ppb);
-                      // الرصيد قبل الشحن = نستنتجه من (المخزون الحالي + المستهلك − المُحمَّل) إن كان موجبًا.
+                      const productLoads = ([...(truckLoadedData || [])] as any[])
+                        .filter((loadItem: any) => loadItem.product_id === item.product_id)
+                        .sort((a: any, b: any) => {
+                          const aTime = a.session_id ? new Date(truckLoadSessions.find((session: any) => session.id === a.session_id)?.created_at || 0).getTime() : 0;
+                          const bTime = b.session_id ? new Date(truckLoadSessions.find((session: any) => session.id === b.session_id)?.created_at || 0).getTime() : 0;
+                          return aTime - bTime;
+                        });
+
+                      let hasTrueReset = false;
+                      for (const loadItem of productLoads) {
+                        const paidQty = bpStoredToBoxes(Number(loadItem.quantity || 0), ppb);
+                        const loadGiftQty = loadGiftToBoxes(Number(loadItem.gift_quantity || 0), loadItem.gift_unit, ppb);
+                        const previousQty = bpStoredToBoxes(Number(loadItem.previous_quantity || 0), ppb);
+                        if ((paidQty + loadGiftQty) > 0 && previousQty <= 0) {
+                          hasTrueReset = true;
+                          break;
+                        }
+                      }
+
                       const discrepancy = storedQty + sold + giftQty + unloaded - (loaded + loadedGiftQty);
-                      const openingBalance = discrepancy > 0.001 ? discrepancy : 0;
+                      const openingBalance = hasTrueReset ? 0 : discrepancy > 0.001 ? discrepancy : 0;
                       const totalAvailable = openingBalance + loaded + loadedGiftQty;
                       const currentQty = Math.max(0, totalAvailable - sold - giftQty - unloaded);
                       const loadCount = stats?.loadSessionIds?.size || 0;
