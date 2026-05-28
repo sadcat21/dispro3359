@@ -220,7 +220,6 @@ const ProductDailySoldDialog: React.FC<Props> = ({
                       </div>
                     </div>
                   ))}
-                  ))}
                 </div>
               </details>
             ))
