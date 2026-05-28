@@ -97,11 +97,6 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     const toDb = (pieces: number) => {
       const boxes = Math.floor(pieces / ppb);
       const rem = pieces % ppb;
-  const byDay = useMemo(() => {
-    const ppb = Math.max(1, piecesPerBox);
-    const toDb = (pieces: number) => {
-      const boxes = Math.floor(pieces / ppb);
-      const rem = pieces % ppb;
       return boxes + rem / 100;
     };
     const dayMap = new Map<string, { pieces: number; giftPieces: number; workers: Map<string, { pieces: number; giftPieces: number }> }>();
