@@ -19,11 +19,14 @@ interface Props {
   productName: string;
   promoLabel?: string;
   periode?: string;
+  totalSoldDisplay?: string;
+  totalPromoDisplay?: string;
   isVisible?: boolean;
 }
 
 const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
-  ({ rows, productName, promoLabel = '', periode = '', isVisible = false }, ref) => {
+  ({ rows, productName, promoLabel = '', periode = '', totalSoldDisplay = '0', totalPromoDisplay = '0', isVisible = false }, ref) => {
+
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,19 +69,24 @@ const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
 
         <div className="print-header-with-logo" style={{ position: 'relative', zIndex: 1 }}>
           <div className="print-logo"><img src={logoImage} alt="Laser Food" /></div>
-          <div className="print-title-section">
-            <h1 style={{ fontSize: '14pt' }}>Produit : {productName}</h1>
-            {promoLabel && (
-              <p style={{ fontSize: '11pt', fontWeight: 700, marginTop: '4px' }}>
-                PROMO : {promoLabel}
-              </p>
-            )}
-            {periode && (
-              <p style={{ fontSize: '11pt', fontWeight: 700, marginTop: '2px' }}>
-                PERIODE : {periode}
-              </p>
-            )}
+          <div className="print-title-section" style={{ flex: 1 }}>
+            <h1 style={{ fontSize: '14pt', textAlign: 'center', margin: 0 }}>Produit : {productName}</h1>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gridTemplateRows: 'auto auto',
+              gap: '2px 16px',
+              marginTop: '6px',
+              fontSize: '10pt',
+              fontWeight: 700,
+            }}>
+              <div>PROMO : {promoLabel || '-'}</div>
+              <div>PERIODE : {periode || '-'}</div>
+              <div>Total Vendu (B.P) : {totalSoldDisplay}</div>
+              <div>Total Promo (B.P) : {totalPromoDisplay}</div>
+            </div>
           </div>
+
           <div className="print-logo"><img src={logoImage} alt="Laser Food" /></div>
         </div>
 

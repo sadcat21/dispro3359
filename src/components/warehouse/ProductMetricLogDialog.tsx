@@ -424,6 +424,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
   });
 
   // Build rows for the French offers-log print sheet (sorted ascending by date)
+  // Build rows for the French offers-log print sheet (sorted ascending by date)
   const printRows = useMemo(() => {
     if (metric !== 'offers') return [] as any[];
     const sorted = [...filteredData].sort(
@@ -441,6 +442,25 @@ const ProductMetricLogDialog: React.FC<Props> = ({
     }));
   }, [filteredData, metric, fmt]);
 
+  const { totalSoldDisplay, totalPromoDisplay } = useMemo(() => {
+    const toPieces = (v: number) => {
+      const b = Math.floor(v);
+      const r = Math.round((v - b) * 100);
+      return b * Math.max(1, piecesPerBox) + r;
+    };
+    let sold = 0; let promo = 0;
+    if (metric === 'offers') {
+      for (const e of filteredData) {
+        sold += toPieces(Number(e.soldQty || 0));
+        promo += toPieces(Number(e.qty || 0));
+      }
+    }
+    return {
+      totalSoldDisplay: fmt(piecesToDbBP(sold, piecesPerBox)),
+      totalPromoDisplay: fmt(piecesToDbBP(promo, piecesPerBox)),
+    };
+  }, [filteredData, metric, fmt, piecesPerBox]);
+
   const periode = useMemo(() => {
     if (!printRows.length) return '';
     const first = printRows[0].date;
@@ -450,6 +470,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
     };
     return `${f(first)} - ${f(last)}`;
   }, [printRows]);
+
 
 
   const handlePrint = () => {
@@ -469,8 +490,11 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             productName={productName}
             promoLabel={offerInfo || ''}
             periode={periode}
+            totalSoldDisplay={totalSoldDisplay}
+            totalPromoDisplay={totalPromoDisplay}
             isVisible={isPrintVisible}
           />
+
         )}
 
         <DialogHeader>
