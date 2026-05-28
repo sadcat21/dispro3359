@@ -43,10 +43,16 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
         .order('created_at', { ascending: false });
 
       const workerIds = Array.from(new Set((movs || []).map(m => m.worker_id).filter(Boolean) as string[]));
-      const wRes = workerIds.length
-        ? await supabase.from('workers_safe').select('id, full_name').in('id', workerIds)
-        : { data: [] as any[] };
+      const [wRes, stockRes] = await Promise.all([
+        workerIds.length
+          ? supabase.from('workers_safe').select('id, full_name').in('id', workerIds)
+          : Promise.resolve({ data: [] as any[] }),
+        workerIds.length
+          ? supabase.from('worker_stock').select('worker_id, quantity').eq('branch_id', branchId).eq('product_id', productId).in('worker_id', workerIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
       const nameById = new Map((wRes.data || []).map((w: any) => [w.id, w.full_name]));
+      const stockByWorker = new Map<string, number>((stockRes.data || []).map((s: any) => [s.worker_id, Number(s.quantity || 0)]));
 
       const rows: Row[] = (movs || []).map((m: any) => ({
         id: m.id,
@@ -56,8 +62,17 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
         worker: nameById.get(m.worker_id || '') || '—',
         note: m.notes,
       }));
-      return rows;
+      const stockByWorkerName = new Map<string, number>();
+      for (const [wid, qty] of stockByWorker) {
+        const n = nameById.get(wid) || '—';
+        stockByWorkerName.set(n, (stockByWorkerName.get(n) || 0) + qty);
+      }
+      return { rows, stockByWorkerName };
     },
+  });
+
+  const rowsData = (data as any)?.rows as Row[] | undefined;
+  const stockByWorkerName = (data as any)?.stockByWorkerName as Map<string, number> | undefined;
   });
 
   const grouped = useMemo(() => {
