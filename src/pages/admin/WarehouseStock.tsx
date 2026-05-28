@@ -503,6 +503,29 @@ const WarehouseStock: React.FC = () => {
           <BarChart3 className="w-5 h-5 text-primary" />
           {t('stock.warehouse_stock')}
         </h2>
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant={hasReceiptFilter ? 'default' : 'outline'}
+            className="h-8 text-xs gap-1.5"
+            onClick={() => setShowReceiptSessionsDialog(true)}
+            title="تصفية حسب جلسات الاستلام"
+          >
+            <Filter className="w-3.5 h-3.5" />
+            {hasReceiptFilter ? `جلسات الاستلام (${selectedReceiptRanges.length})` : 'جلسات الاستلام'}
+          </Button>
+          {hasReceiptFilter && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setSelectedReceiptRanges([])}
+              title="إلغاء التصفية"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
       {/* Tabs */}
       <Tabs value={activeTab === 'today' ? 'stock' : activeTab} onValueChange={setActiveTab}>
