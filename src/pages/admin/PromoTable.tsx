@@ -350,6 +350,22 @@ const PromoTable: React.FC = () => {
         </div>
       </div>
 
+      {/* Group By Toggle */}
+      <div className="no-print">
+        <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'customer' | 'worker')}>
+          <TabsList className="grid w-full sm:w-auto grid-cols-2">
+            <TabsTrigger value="customer" className="gap-2">
+              <User className="w-4 h-4" />
+              حسب العملاء
+            </TabsTrigger>
+            <TabsTrigger value="worker" className="gap-2">
+              <Users className="w-4 h-4" />
+              حسب العمال
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       {/* Search */}
       <div className="relative no-print">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
