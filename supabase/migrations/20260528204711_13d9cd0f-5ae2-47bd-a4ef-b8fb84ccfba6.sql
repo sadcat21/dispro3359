@@ -1,0 +1,1 @@
+DELETE FROM public.sales_tracking WHERE id = '2fef4295-f264-4613-905c-d0c91d970026';
