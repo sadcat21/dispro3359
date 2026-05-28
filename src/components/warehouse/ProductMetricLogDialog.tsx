@@ -201,6 +201,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const filtered: any[] = [];
         for (const r of rawFiltered) {
           if (r.order_id) {
+            // Align with WarehouseStock card: only count gifts from delivered orders.
+            if (statusPre.get(r.order_id) !== 'delivered') continue;
             const prev = byOrder.get(r.order_id);
             if (!prev) {
               byOrder.set(r.order_id, r);
