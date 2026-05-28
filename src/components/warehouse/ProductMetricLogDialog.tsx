@@ -262,7 +262,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
               giftPieces: r.gift_pieces,
             }))
         );
-        const manualFallbackRows = (fallbackPromos || []).flatMap((p: any) => {
+        const manualFallbackRowsRaw = (fallbackPromos || []).flatMap((p: any) => {
           const promoAt = p.promo_date || p.created_at;
           const giftBoxes = p.gift_quantity_unit === 'box' ? Number(p.gratuite_quantity || 0) : 0;
           const giftPieces = p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0;
@@ -283,15 +283,26 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             gift_boxes: giftBoxes,
             gift_pieces: giftPieces,
             pieces_per_box: piecesPerBox,
-            source: 'direct_sale',
+            source: 'manual_promo',
             order_id: null,
             branch_id: branchId,
             customer_name: null,
           }];
         });
+        // Dedupe manual entries by worker+customer+gift qty (ignore date) — keep latest sold_at
+        const manualDedupMap = new Map<string, any>();
+        for (const r of manualFallbackRowsRaw) {
+          const k = `${r.worker_id}|${r.customer_id}|${r.gift_boxes}|${r.gift_pieces}`;
+          const prev = manualDedupMap.get(k);
+          if (!prev || new Date(r.sold_at || 0).getTime() > new Date(prev.sold_at || 0).getTime()) {
+            manualDedupMap.set(k, r);
+          }
+        }
+        const manualFallbackRows = Array.from(manualDedupMap.values());
         const mergedRows = [...filtered.filter((r: any) => !staleBackfilledRows.has(r.id)), ...manualFallbackRows].sort((a: any, b: any) =>
           new Date(b.sold_at || 0).getTime() - new Date(a.sold_at || 0).getTime()
         );
+
         const names = await resolveWorkers(mergedRows.map((r: any) => r.worker_id));
         const customerIds = Array.from(new Set(mergedRows.map((r: any) => r.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
@@ -315,7 +326,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             when: r.sold_at,
             qty: piecesToDbBP(pieces, piecesPerBox),
             who: cname || names.get(r.worker_id) || null,
-            refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
+            refLabel: r.source === 'manual_promo' ? 'إدخال يدوي' : r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
             customerId: r.customer_id || null,
             customerName: cname,
             customerStoreName: c.store,
