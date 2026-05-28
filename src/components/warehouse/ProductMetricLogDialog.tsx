@@ -466,12 +466,12 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             };
             return Array.from(groups.entries())
               .sort((a, b) => b[1].reduce((s, e) => s + (e.qty || 0), 0) - a[1].reduce((s, e) => s + (e.qty || 0), 0))
-              .map(([workerName, entries]) => {
+              .map(([groupName, entries]) => {
               const groupTotal = entries.reduce((s, e) => s + (e.qty || 0), 0);
-              const headerCls = colorFor(workerName);
-              const isActive = workerFilter === workerName;
+              const headerCls = colorFor(groupName);
+              const isActive = groupFilter === groupName;
               return (
-                <details key={workerName} className="rounded-xl border overflow-hidden">
+                <details key={groupName} className="rounded-xl border overflow-hidden">
                   <summary className={`cursor-pointer select-none flex items-center justify-between gap-2 px-3 py-2 ${headerCls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}>
                     <span className="inline-flex items-center gap-2 text-xs font-bold">
                       <User className="w-3.5 h-3.5" />
@@ -480,11 +480,11 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                         onClick={(ev) => {
                           ev.preventDefault();
                           ev.stopPropagation();
-                          setWorkerFilter(isActive ? null : workerName);
+                          setGroupFilter(isActive ? null : groupName);
                         }}
                         className="underline-offset-2 hover:underline"
                       >
-                        {workerName}
+                        {groupName}
                       </button>
                       <span className="text-[10px] opacity-70">({entries.length})</span>
                     </span>
