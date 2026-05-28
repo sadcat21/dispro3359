@@ -248,25 +248,37 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           : Promise.resolve({ data: [] as any[] }),
         ]);
         const mCustMap = new Map<string, { store: string | null; full: string | null }>(((mCustRes as any).data || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
+        const ADMIN_ROLES = new Set(['admin', 'company_manager', 'warehouse_manager', 'branch_admin', 'admin_assistant', 'project_manager', 'accountant']);
+        const mNames = new Map<string, string>(mNamesBase);
+        const mIsAdmin = new Map<string, boolean>();
+        for (const w of ((mAdminRes as any).data || []) as any[]) {
+          if (!mNames.has(w.id)) mNames.set(w.id, w.full_name);
+          if (ADMIN_ROLES.has(w.role)) mIsAdmin.set(w.id, true);
+        }
         const manualEntries = mFiltered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           const c = mCustMap.get(r.customer_id) || { store: null, full: null };
           const cname = c.store || c.full || null;
+          const isAdmin = mIsAdmin.get(r.worker_id || '') || false;
+          const workerLabel = isAdmin
+            ? `مدير النظام (${mNames.get(r.worker_id || '') || '—'})`
+            : (mNames.get(r.worker_id || '') || null);
           return {
             id: `manual-${r.id}`,
             when: r.sold_at,
             qty: piecesToDbBP(pieces, piecesPerBox),
-            who: cname || mNames.get(r.worker_id || '') || null,
+            who: cname || workerLabel,
             refLabel: 'يدوي',
             customerId: r.customer_id || null,
             customerName: cname,
             customerStoreName: c.store,
             customerFullName: c.full,
             delivered: true,
-            workerName: mNames.get(r.worker_id || '') || null,
+            workerName: workerLabel,
           };
         });
+
 
         return [...orderEntries, ...manualEntries]
           .sort((a: any, b: any) => new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime());
