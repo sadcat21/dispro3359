@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/pagination';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Users, Calendar as CalendarIcon, Loader2, FileSpreadsheet, Search, Printer, Package, Download } from 'lucide-react';
+import { Users, Calendar as CalendarIcon, Loader2, FileSpreadsheet, Search, Printer, Package, Download, User } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, startOfMonth, endOfMonth, subMonths, startOfDay, endOfDay, subDays } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -64,6 +65,7 @@ const PromoTable: React.FC = () => {
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [isPrintVisible, setIsPrintVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupBy, setGroupBy] = useState<'customer' | 'worker'>('customer');
   const pageSize = 20;
 
   useEffect(() => {
@@ -160,8 +162,17 @@ const PromoTable: React.FC = () => {
         promo.worker?.full_name?.toLowerCase().includes(query);
       
       return inDateRange && matchesWorker && matchesProduct && matchesSearch && matchesBranch;
+    }).sort((a, b) => {
+      if (groupBy === 'worker') {
+        const w = (a.worker?.full_name || '').localeCompare(b.worker?.full_name || '', 'ar');
+        if (w !== 0) return w;
+        return (a.customer?.name || '').localeCompare(b.customer?.name || '', 'ar');
+      }
+      const c = (a.customer?.name || '').localeCompare(b.customer?.name || '', 'ar');
+      if (c !== 0) return c;
+      return new Date(b.promo_date).getTime() - new Date(a.promo_date).getTime();
     });
-  }, [promos, selectedWorker, dateFilterType, startDate, endDate, selectedProduct, searchQuery, activeBranch]);
+  }, [promos, selectedWorker, dateFilterType, startDate, endDate, selectedProduct, searchQuery, activeBranch, groupBy]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -337,6 +348,22 @@ const PromoTable: React.FC = () => {
             <span className="hidden xs:inline sm:inline">{t('common.print')}</span>
           </Button>
         </div>
+      </div>
+
+      {/* Group By Toggle */}
+      <div className="no-print">
+        <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'customer' | 'worker')}>
+          <TabsList className="grid w-full sm:w-auto grid-cols-2">
+            <TabsTrigger value="customer" className="gap-2">
+              <User className="w-4 h-4" />
+              حسب العملاء
+            </TabsTrigger>
+            <TabsTrigger value="worker" className="gap-2">
+              <Users className="w-4 h-4" />
+              حسب العمال
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Search */}
