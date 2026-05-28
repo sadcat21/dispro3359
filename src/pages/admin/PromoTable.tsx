@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/pagination';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Users, Calendar as CalendarIcon, Loader2, FileSpreadsheet, Search, Printer, Package, Download } from 'lucide-react';
+import { Users, Calendar as CalendarIcon, Loader2, FileSpreadsheet, Search, Printer, Package, Download, User } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, startOfMonth, endOfMonth, subMonths, startOfDay, endOfDay, subDays } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
