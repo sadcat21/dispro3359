@@ -335,12 +335,10 @@ const WarehouseStock: React.FC = () => {
       summaries[r.product_id].received += Number(r.quantity || 0);
     }
 
-    // Worker stocks — لقطة حالية بلا تاريخ. عند تفعيل الفلتر نُخفيها.
-    if (!hasReceiptFilter) {
-      for (const ws of (summaryData?.workerStocks || [])) {
-        if (summaries[ws.product_id]) {
-          summaries[ws.product_id].workerStock += Number(ws.quantity || 0);
-        }
+    // Worker stocks — لقطة حالية بلا تاريخ. تُعرض دائمًا حتى مع تفعيل فلتر النوافذ.
+    for (const ws of (summaryData?.workerStocks || [])) {
+      if (summaries[ws.product_id]) {
+        summaries[ws.product_id].workerStock += Number(ws.quantity || 0);
       }
     }
 
