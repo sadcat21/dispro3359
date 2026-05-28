@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
+import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
+import { isInRanges } from './ReceiptSessionsTimelineDialog';
 
 export type MetricKind =
   | 'gifts'
@@ -26,6 +28,8 @@ interface Props {
   productName: string;
   piecesPerBox: number;
   metric: MetricKind;
+  /** When provided, only entries whose date falls inside one window are shown. */
+  ranges?: SelectedReceiptRange[];
 }
 
 interface Entry {
