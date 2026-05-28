@@ -238,8 +238,11 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         });
         const mWorkerIds = Array.from(new Set(mFiltered.map((r: any) => r.worker_id).filter(Boolean)));
         const mCustomerIds = Array.from(new Set(mFiltered.map((r: any) => r.customer_id).filter(Boolean)));
-        const [mNames, mCustRes] = await Promise.all([
+        const [mNamesBase, mAdminRes, mCustRes] = await Promise.all([
           resolveWorkers(mWorkerIds),
+          mWorkerIds.length
+            ? supabase.from('workers').select('id, full_name, role').in('id', mWorkerIds as string[])
+            : Promise.resolve({ data: [] as any[] }),
           mCustomerIds.length
             ? supabase.from('customers').select('id, name, store_name').in('id', mCustomerIds as string[])
           : Promise.resolve({ data: [] as any[] }),
