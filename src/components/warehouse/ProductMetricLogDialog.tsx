@@ -49,6 +49,10 @@ interface Entry {
   customerName?: string | null;
   customerStoreName?: string | null;
   customerFullName?: string | null;
+  customerNameFr?: string | null;
+  customerPhone?: string | null;
+  sectorName?: string | null;
+  soldQty?: number;
   delivered?: boolean | null; // null = no related order
   workerName?: string | null;
 }
