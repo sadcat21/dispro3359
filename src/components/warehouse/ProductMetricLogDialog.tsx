@@ -51,6 +51,7 @@ interface Entry {
   customerNameFr?: string | null;
   customerPhone?: string | null;
   sectorName?: string | null;
+  zoneName?: string | null;
   soldQty?: number;
   delivered?: boolean | null; // null = no related order
   workerName?: string | null;
@@ -202,19 +203,25 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const names = await resolveWorkers(filtered.map((it: any) => orderById.get(it.order_id)?.assigned_worker_id).filter(Boolean));
         const customerIds = Array.from(new Set(filtered.map((it: any) => orderById.get(it.order_id)?.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
-          ? await supabase.from('customers').select('id, name, name_fr, store_name, phone, sector_id').in('id', customerIds as string[])
+          ? await supabase.from('customers').select('id, name, name_fr, store_name, phone, sector_id, zone_id').in('id', customerIds as string[])
           : { data: [] as any[] };
         const sectorIds = Array.from(new Set(((customers || []) as any[]).map((c: any) => c.sector_id).filter(Boolean)));
+        const zoneIds = Array.from(new Set(((customers || []) as any[]).map((c: any) => c.zone_id).filter(Boolean)));
         const { data: sectors } = sectorIds.length
           ? await supabase.from('sectors').select('id, name, name_fr').in('id', sectorIds as string[])
           : { data: [] as any[] };
+        const { data: zones } = zoneIds.length
+          ? await supabase.from('sector_zones').select('id, name, name_fr').in('id', zoneIds as string[])
+          : { data: [] as any[] };
         const sectorMap = new Map(((sectors || []) as any[]).map((s: any) => [s.id, s.name_fr || s.name || null]));
+        const zoneMap = new Map(((zones || []) as any[]).map((z: any) => [z.id, z.name_fr || z.name || null]));
         const custMap = new Map(((customers || []) as any[]).map((c: any) => [c.id, {
           store: c.store_name || null,
           full: c.name || null,
           nameFr: c.name_fr || null,
           phone: c.phone || null,
           sectorName: sectorMap.get(c.sector_id) || null,
+          zoneName: zoneMap.get(c.zone_id) || null,
         }]));
 
         const orderEntries = filtered
@@ -226,12 +233,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             const giftBoxPieces = Math.round((giftBoxesRaw - giftBoxes) * 100);
             const extraGiftPieces = Number(it.gift_pieces || 0);
             const pieces = giftBoxes * ppb + giftBoxPieces + extraGiftPieces;
-            // Sold qty (boxes + pieces encoded in quantity decimal)
+            // Sold qty — quantity includes full-box gifts; subtract them for PAID sold display
             const soldRaw = Number(it.quantity || 0);
-            const soldBoxes = Math.floor(soldRaw);
-            const soldPieces = Math.round((soldRaw - soldBoxes) * 100);
-            const soldPiecesTotal = soldBoxes * ppb + soldPieces;
-            const c = custMap.get(o?.customer_id) || { store: null, full: null, nameFr: null, phone: null, sectorName: null };
+            const soldBoxesRaw = Math.floor(soldRaw);
+            const soldPieces = Math.round((soldRaw - soldBoxesRaw) * 100);
+            const paidBoxes = Math.max(0, soldBoxesRaw - giftBoxes);
+            const soldPiecesTotal = paidBoxes * ppb + soldPieces;
+            const c = custMap.get(o?.customer_id) || { store: null, full: null, nameFr: null, phone: null, sectorName: null, zoneName: null };
             const cname = c.store || c.full || null;
             return {
               id: it.id,
@@ -246,11 +254,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
               customerNameFr: c.nameFr,
               customerPhone: c.phone,
               sectorName: c.sectorName,
+              zoneName: c.zoneName,
               soldQty: piecesToDbBP(soldPiecesTotal, piecesPerBox),
               delivered: true,
               workerName: names.get(o?.assigned_worker_id) || null,
             };
           });
+
 
 
         // Manual promo entries (admin-entered) — sales_tracking with order_id = null
@@ -273,20 +283,26 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             ? supabase.from('workers').select('id, full_name, role').in('id', mWorkerIds as string[])
             : Promise.resolve({ data: [] as any[] }),
           mCustomerIds.length
-            ? supabase.from('customers').select('id, name, name_fr, store_name, phone, sector_id').in('id', mCustomerIds as string[])
+            ? supabase.from('customers').select('id, name, name_fr, store_name, phone, sector_id, zone_id').in('id', mCustomerIds as string[])
           : Promise.resolve({ data: [] as any[] }),
         ]);
         const mSectorIds = Array.from(new Set(((mCustRes as any).data || []).map((c: any) => c.sector_id).filter(Boolean)));
+        const mZoneIds = Array.from(new Set(((mCustRes as any).data || []).map((c: any) => c.zone_id).filter(Boolean)));
         const { data: mSectors } = mSectorIds.length
           ? await supabase.from('sectors').select('id, name, name_fr').in('id', mSectorIds as string[])
           : { data: [] as any[] };
+        const { data: mZones } = mZoneIds.length
+          ? await supabase.from('sector_zones').select('id, name, name_fr').in('id', mZoneIds as string[])
+          : { data: [] as any[] };
         const mSectorMap = new Map(((mSectors || []) as any[]).map((s: any) => [s.id, s.name_fr || s.name || null]));
-        const mCustMap = new Map<string, { store: string | null; full: string | null; nameFr: string | null; phone: string | null; sectorName: string | null }>(((mCustRes as any).data || []).map((c: any) => [c.id, {
+        const mZoneMap = new Map(((mZones || []) as any[]).map((z: any) => [z.id, z.name_fr || z.name || null]));
+        const mCustMap = new Map<string, { store: string | null; full: string | null; nameFr: string | null; phone: string | null; sectorName: string | null; zoneName: string | null }>(((mCustRes as any).data || []).map((c: any) => [c.id, {
           store: c.store_name || null,
           full: c.name || null,
           nameFr: c.name_fr || null,
           phone: c.phone || null,
           sectorName: mSectorMap.get(c.sector_id) || null,
+          zoneName: mZoneMap.get(c.zone_id) || null,
         }]));
         const ADMIN_ROLES = new Set(['admin', 'company_manager', 'warehouse_manager', 'branch_admin', 'admin_assistant', 'project_manager', 'accountant']);
         const mNames = new Map<string, string>(mNamesBase);
@@ -299,7 +315,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
           const soldPiecesTotal = Number(r.sold_boxes || 0) * ppb + Number(r.sold_pieces || 0);
-          const c = mCustMap.get(r.customer_id) || { store: null, full: null, nameFr: null, phone: null, sectorName: null };
+          const c = mCustMap.get(r.customer_id) || { store: null, full: null, nameFr: null, phone: null, sectorName: null, zoneName: null };
           const cname = c.store || c.full || null;
           const isAdmin = mIsAdmin.get(r.worker_id || '') || false;
           const workerLabel = isAdmin
@@ -318,11 +334,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customerNameFr: c.nameFr,
             customerPhone: c.phone,
             sectorName: c.sectorName,
+            zoneName: c.zoneName,
             soldQty: piecesToDbBP(soldPiecesTotal, piecesPerBox),
             delivered: true,
             workerName: workerLabel,
           };
         });
+
 
 
 
@@ -386,26 +404,53 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
-  // Build rows for the French offers-log print sheet
+  // Fetch active promo offer for header label
+  const { data: offerInfo } = useQuery({
+    queryKey: ['product-offer-label', productId],
+    enabled: open && metric === 'offers' && !!productId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('product_offers')
+        .select('min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, is_active, priority')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .order('priority', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!data) return null;
+      const u = (s: string) => (s === 'piece' ? 'PCS' : 'BOX');
+      return `${data.min_quantity}${u(data.min_quantity_unit)}+${data.gift_quantity} ${u(data.gift_quantity_unit)}(PROMO)`;
+    },
+  });
+
+  // Build rows for the French offers-log print sheet (sorted ascending by date)
   const printRows = useMemo(() => {
     if (metric !== 'offers') return [] as any[];
-    const sorted = [...filteredData].sort((a, b) => {
-      const ak = groupBy === 'worker' ? (a.workerName || '') : (a.customerNameFr || a.customerName || '');
-      const bk = groupBy === 'worker' ? (b.workerName || '') : (b.customerNameFr || b.customerName || '');
-      if (ak !== bk) return ak.localeCompare(bk);
-      return new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime();
-    });
+    const sorted = [...filteredData].sort(
+      (a, b) => new Date(a.when || 0).getTime() - new Date(b.when || 0).getTime(),
+    );
     return sorted.map((e) => ({
       id: e.id,
       customerNameFr: e.customerNameFr || e.customerFullName || e.customerName || '',
       customerPhone: e.customerPhone || '',
-      sectorName: e.sectorName || '',
+      sectorName: e.zoneName || e.sectorName || '',
       soldDisplay: fmt(e.soldQty || 0),
       promoDisplay: fmt(e.qty || 0),
       workerName: e.workerName || '',
       date: e.when || new Date().toISOString(),
     }));
-  }, [filteredData, groupBy, metric, fmt]);
+  }, [filteredData, metric, fmt]);
+
+  const periode = useMemo(() => {
+    if (!printRows.length) return '';
+    const first = printRows[0].date;
+    const last = printRows[printRows.length - 1].date;
+    const f = (d: string) => {
+      try { const dt = new Date(d); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`; } catch { return ''; }
+    };
+    return `${f(first)} - ${f(last)}`;
+  }, [printRows]);
+
 
   const handlePrint = () => {
     setIsPrintVisible(true);
@@ -422,6 +467,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           <OffersLogPrintViewFr
             rows={printRows}
             productName={productName}
+            promoLabel={offerInfo || ''}
+            periode={periode}
             isVisible={isPrintVisible}
           />
         )}

@@ -17,11 +17,13 @@ export interface OffersLogPrintRow {
 interface Props {
   rows: OffersLogPrintRow[];
   productName: string;
+  promoLabel?: string;
+  periode?: string;
   isVisible?: boolean;
 }
 
 const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
-  ({ rows, productName, isVisible = false }, ref) => {
+  ({ rows, productName, promoLabel = '', periode = '', isVisible = false }, ref) => {
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,6 +41,7 @@ const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
         containerRef.current = null;
       };
     }, []);
+
 
     const minRows = 20;
     const emptyRowsCount = Math.max(0, minRows - rows.length);
@@ -64,10 +67,17 @@ const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
         <div className="print-header-with-logo" style={{ position: 'relative', zIndex: 1 }}>
           <div className="print-logo"><img src={logoImage} alt="Laser Food" /></div>
           <div className="print-title-section">
-            <h1>Espace Client dans le Secteur</h1>
-            <p style={{ fontSize: '12pt', fontWeight: 700, marginTop: '5px' }}>
-              Produit : {productName}
-            </p>
+            <h1 style={{ fontSize: '14pt' }}>Produit : {productName}</h1>
+            {promoLabel && (
+              <p style={{ fontSize: '11pt', fontWeight: 700, marginTop: '4px' }}>
+                PROMO : {promoLabel}
+              </p>
+            )}
+            {periode && (
+              <p style={{ fontSize: '11pt', fontWeight: 700, marginTop: '2px' }}>
+                PERIODE : {periode}
+              </p>
+            )}
           </div>
           <div className="print-logo"><img src={logoImage} alt="Laser Food" /></div>
         </div>
