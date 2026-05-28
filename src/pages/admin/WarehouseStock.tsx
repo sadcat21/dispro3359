@@ -312,13 +312,17 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    // Gifts from delivered order_items only; sold is reconciled below from current stock balances.
+    // Gifts from delivered order_items (BP-encoded → convert to pieces).
     for (const oi of (soldData || [])) {
-      if (summaries[oi.product_id]) {
-        const rawGiftPieces = Number(oi.gift_quantity || 0);
-        summaries[oi.product_id].gifts += rawGiftPieces;
-      }
+      const pid = oi.product_id;
+      if (!summaries[pid]) continue;
+      const ppb = Number(products.find(p => p.id === pid)?.pieces_per_box) || 20;
+      const g = Number((oi as any).gift_quantity || 0);
+      const gBoxes = Math.floor(g);
+      const gPieces = Math.round((g - gBoxes) * 100);
+      summaries[pid].gifts += gBoxes * ppb + gPieces;
     }
+
 
     // Discrepancies (surplus / deficit فقط)
     for (const d of (summaryData?.discrepancies || [])) {
@@ -363,25 +367,45 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
+    // Sold: derive from delivered orders + order_items (authoritative source).
+    // sales_tracking is unreliable (deletions on order modification + partial
+    // inserts from deferred-offer confirmations) — keep it only for warehouse_sale
+    // bookkeeping which feeds the "remaining" calculation.
     const warehouseSaleByProduct: Record<string, number> = {};
     const soldPiecesByProduct: Record<string, number> = {};
+    const ppbByProduct: Record<string, number> = {};
+    for (const p of products) ppbByProduct[p.id] = Number(p.pieces_per_box) || 20;
+
+    for (const oi of (soldData || [])) {
+      const pid = oi.product_id;
+      if (!pid) continue;
+      const ppb = ppbByProduct[pid] || 20;
+      const qty = Number((oi as any).quantity || 0);            // BP-encoded boxes.pieces
+      const gift = Number((oi as any).gift_quantity || 0);      // same convention
+      const qBoxes = Math.floor(qty);
+      const qPieces = Math.round((qty - qBoxes) * 100);
+      const gBoxes = Math.floor(gift);
+      const gPieces = Math.round((gift - gBoxes) * 100);
+      // المباع = الكمية الإجمالية − الهدية (بالقطع)
+      const totalPiecesAll = qBoxes * ppb + qPieces;
+      const giftPiecesAll = gBoxes * ppb + gPieces;
+      const paidPieces = Math.max(0, totalPiecesAll - giftPiecesAll);
+      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + paidPieces;
+    }
+
+    // warehouse_sale still needs sales_tracking (for "remaining" computation only)
     for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
       const pid = s.product_id;
       if (!pid) continue;
-      // Skip non-delivered orders for sold/warehouse counting (offers loop handles those separately)
       if (s.order_id && (s as any).order?.status !== 'delivered') continue;
+      if (s.source !== 'warehouse_sale') continue;
       const ppb = Number(s.pieces_per_box) || 20;
-      const boxes = Number(s.total_boxes || 0);
-      const pieces = Number(s.total_pieces || 0);
-      const totalPieces = boxes * ppb + pieces;
+      const totalPieces = Number(s.total_boxes || 0) * ppb + Number(s.total_pieces || 0);
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
-      const inBoxPieceFmt = fullBoxes + remPieces / 100;
-      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + (Number(s.sold_boxes || 0) * ppb + Number(s.sold_pieces || 0));
-      if (s.source === 'warehouse_sale') {
-        warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + inBoxPieceFmt;
-      }
+      warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + (fullBoxes + remPieces / 100);
     }
+
 
     // Offers (promo gift_boxes/gift_pieces) from sales_tracking
     // Only count delivered orders, deduped by order_id (direct_sale + delivery_sale duplicates).
