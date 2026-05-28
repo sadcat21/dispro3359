@@ -312,13 +312,17 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    // Gifts from delivered order_items only; sold is reconciled below from current stock balances.
+    // Gifts from delivered order_items (BP-encoded → convert to pieces).
     for (const oi of (soldData || [])) {
-      if (summaries[oi.product_id]) {
-        const rawGiftPieces = Number(oi.gift_quantity || 0);
-        summaries[oi.product_id].gifts += rawGiftPieces;
-      }
+      const pid = oi.product_id;
+      if (!summaries[pid]) continue;
+      const ppb = Number(products.find(p => p.id === pid)?.pieces_per_box) || 20;
+      const g = Number((oi as any).gift_quantity || 0);
+      const gBoxes = Math.floor(g);
+      const gPieces = Math.round((g - gBoxes) * 100);
+      summaries[pid].gifts += gBoxes * ppb + gPieces;
     }
+
 
     // Discrepancies (surplus / deficit فقط)
     for (const d of (summaryData?.discrepancies || [])) {
