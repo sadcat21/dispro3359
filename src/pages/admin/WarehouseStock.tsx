@@ -30,6 +30,7 @@ import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistor
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import { Calendar } from 'lucide-react';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
+import { fetchDeliveredOrdersForBranch } from '@/utils/fetchDeliveredOrdersForBranch';
 import ReceiptSessionsTimelineDialog, { SelectedReceiptRange, isInRanges } from '@/components/warehouse/ReceiptSessionsTimelineDialog';
 import { Filter, X } from 'lucide-react';
 
@@ -209,10 +210,6 @@ const WarehouseStock: React.FC = () => {
     queryKey: ['warehouse-sold-summary', branchId, rangesKey],
     queryFn: async () => {
       if (!branchId) return [] as any[];
-      // Paginate delivered orders to avoid Supabase's 1000-row default cap.
-      const PAGE = 1000;
-      let from = 0;
-      const deliveredOrders: any[] = [];
       // When ranges are active, restrict by earliest start to limit payload.
       const minStart = selectedReceiptRanges.length
         ? selectedReceiptRanges.reduce(
@@ -220,22 +217,11 @@ const WarehouseStock: React.FC = () => {
             selectedReceiptRanges[0].start,
           )
         : null;
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        let q = supabase
-          .from('orders')
-          .select('id, updated_at, created_at')
-          .eq('branch_id', branchId)
-          .eq('status', 'delivered')
-          .order('updated_at', { ascending: false })
-          .range(from, from + PAGE - 1);
-        if (minStart) q = q.gte('updated_at', minStart);
-        const { data: page } = await q;
-        if (!page || page.length === 0) break;
-        deliveredOrders.push(...page);
-        if (page.length < PAGE) break;
-        from += PAGE;
-      }
+      const deliveredOrders = await fetchDeliveredOrdersForBranch({
+        branchId,
+        minStart,
+        select: 'id, updated_at, created_at, branch_id, assigned_worker_id',
+      });
       const orderIds = deliveredOrders.map(o => o.id);
       if (orderIds.length === 0) return [];
       const dateById = new Map(deliveredOrders.map((o: any) => [o.id, o.updated_at || o.created_at]));
