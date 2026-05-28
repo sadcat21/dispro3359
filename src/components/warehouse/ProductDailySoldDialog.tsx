@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ShoppingBag, Calendar, User, BarChart3 } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 import ProductMonthlyCompetitionDialog from './ProductMonthlyCompetitionDialog';
+import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
+import { isInRanges } from './ReceiptSessionsTimelineDialog';
 
 interface Props {
   open: boolean;
@@ -17,10 +19,12 @@ interface Props {
   piecesPerBox: number;
   /** ISO date; sales before this date are ignored (e.g. last receipt date) */
   sinceIso?: string | null;
+  /** When provided, only orders delivered within one of these windows are shown. */
+  ranges?: SelectedReceiptRange[];
 }
 
 const ProductDailySoldDialog: React.FC<Props> = ({
-  open, onOpenChange, branchId, productId, productName, piecesPerBox, sinceIso,
+  open, onOpenChange, branchId, productId, productName, piecesPerBox, sinceIso, ranges,
 }) => {
   const fmt = (v: number) => dbBPDisplay(Math.max(0, v), piecesPerBox);
   const [competitionOpen, setCompetitionOpen] = useState(false);
