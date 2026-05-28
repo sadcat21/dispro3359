@@ -45,42 +45,51 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         ? ranges!.reduce((m, r) => (new Date(r.start).getTime() < new Date(m).getTime() ? r.start : m), ranges![0].start)
         : null;
 
-      // Direct-sale orders have branch_id=NULL, so widen the filter to also
-      // include orders whose assigned worker belongs to this branch.
+      // Direct-sale orders have branch_id=NULL, so also fetch orders by
+      // worker membership in this branch and union the two result sets.
       const { data: branchWorkers } = await supabase
         .from('workers_safe')
         .select('id')
         .eq('branch_id', branchId);
       const branchWorkerIds = (branchWorkers || []).map((w: any) => w.id);
-      const workerInList = branchWorkerIds.length
-        ? `(${branchWorkerIds.map((id: string) => `"${id}"`).join(',')})`
-        : null;
 
-      // Paginate delivered orders to bypass Supabase's 1000-row default cap.
       const PAGE = 1000;
-      let from = 0;
-      const orders: any[] = [];
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        let q = supabase
-          .from('orders')
-          .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
-          .eq('status', 'delivered')
-          .order('updated_at', { ascending: false })
-          .range(from, from + PAGE - 1);
-        if (workerInList) {
-          q = q.or(`branch_id.eq.${branchId},assigned_worker_id.in.${workerInList}`);
-        } else {
-          q = q.eq('branch_id', branchId);
+      const seen = new Map<string, any>();
+
+      const fetchPaged = async (
+        applyFilter: (q: any) => any,
+      ) => {
+        let from = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          let q = supabase
+            .from('orders')
+            .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
+            .eq('status', 'delivered')
+            .order('updated_at', { ascending: false })
+            .range(from, from + PAGE - 1);
+          q = applyFilter(q);
+          if (minStart) q = q.gte('updated_at', minStart);
+          else if (sinceIso) q = q.gte('created_at', sinceIso);
+          const { data: page } = await q;
+          if (!page || page.length === 0) break;
+          for (const o of page) seen.set(o.id, o);
+          if (page.length < PAGE) break;
+          from += PAGE;
         }
-        if (minStart) q = q.gte('updated_at', minStart);
-        else if (sinceIso) q = q.gte('created_at', sinceIso);
-        const { data: page } = await q;
-        if (!page || page.length === 0) break;
-        orders.push(...page);
-        if (page.length < PAGE) break;
-        from += PAGE;
+      };
+
+      await fetchPaged((q) => q.eq('branch_id', branchId));
+      if (branchWorkerIds.length) {
+        // chunk to keep URL length reasonable
+        const CHUNK = 100;
+        for (let i = 0; i < branchWorkerIds.length; i += CHUNK) {
+          const chunk = branchWorkerIds.slice(i, i + CHUNK);
+          await fetchPaged((q) => q.in('assigned_worker_id', chunk).is('branch_id', null));
+        }
       }
+      const orders = Array.from(seen.values());
+
 
       const filteredOrders = orders.filter((o: any) =>
         !hasRanges || isInRanges(o.updated_at || o.created_at, ranges!),
