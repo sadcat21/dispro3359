@@ -490,8 +490,11 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             productName={productName}
             promoLabel={offerInfo || ''}
             periode={periode}
+            totalSoldDisplay={totalSoldDisplay}
+            totalPromoDisplay={totalPromoDisplay}
             isVisible={isPrintVisible}
           />
+
         )}
 
         <DialogHeader>
