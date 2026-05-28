@@ -77,6 +77,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   const { data: truckStock = [] } = useQuery({
     queryKey: ['wtsl-stock', workerId],
     queryFn: async () => {
+      if (workerId) {
+        await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId }).then(() => {}, () => {});
+      }
       const { data } = await supabase
         .from('worker_stock')
         .select('*, product:products(name, app_name, image_url, pieces_per_box)')
