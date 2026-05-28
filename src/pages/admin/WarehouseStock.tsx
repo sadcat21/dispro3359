@@ -30,6 +30,8 @@ import WarehouseReviewHistory from '@/components/warehouse/WarehouseReviewHistor
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import { Calendar } from 'lucide-react';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
+import ReceiptSessionsTimelineDialog, { SelectedReceiptRange, isInRanges } from '@/components/warehouse/ReceiptSessionsTimelineDialog';
+import { Filter, X } from 'lucide-react';
 
 interface ProductSummary {
   productId: string;
@@ -102,6 +104,9 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
+  const [showReceiptSessionsDialog, setShowReceiptSessionsDialog] = useState(false);
+  const [selectedReceiptRanges, setSelectedReceiptRanges] = useState<SelectedReceiptRange[]>([]);
+  const hasReceiptFilter = selectedReceiptRanges.length > 0;
 
   // Fetch aggregated data for summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
