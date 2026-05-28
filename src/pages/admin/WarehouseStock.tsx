@@ -436,7 +436,19 @@ const WarehouseStock: React.FC = () => {
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
       summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
       summaries[pid].offers = piecesToDbBP(summaries[pid].offers || 0, ppb);
-      summaries[pid].remaining = Math.round((received - loadT + returnT - wSale - damaged) * 100) / 100;
+      const s = summaries[pid];
+      // المتبقي = المستلم − (عند العمال + المباع + العروض + الفائض + العجز + التالف + الإرجاع للمصنع + التعويض) + العجز? 
+      // المطلوب: خصم جميع البطاقات من المستلم.
+      const deductions = (s.workerStock || 0)
+        + (s.sold || 0)
+        + (s.offers || 0)
+        + (s.surplus || 0)
+        + (s.deficit || 0)
+        + (s.damaged || 0)
+        + (s.factoryReturn || 0)
+        + (s.compensation || 0);
+      summaries[pid].remaining = Math.round((received - deductions) * 100) / 100;
+
     }
 
     // Fallback: if warehouse_stock table has an actual balance that the
