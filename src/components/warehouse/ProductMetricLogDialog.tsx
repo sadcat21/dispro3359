@@ -467,6 +467,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           <OffersLogPrintViewFr
             rows={printRows}
             productName={productName}
+            promoLabel={offerInfo || ''}
+            periode={periode}
             isVisible={isPrintVisible}
           />
         )}
