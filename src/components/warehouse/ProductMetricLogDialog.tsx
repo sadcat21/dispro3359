@@ -242,9 +242,9 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           resolveWorkers(mWorkerIds),
           mCustomerIds.length
             ? supabase.from('customers').select('id, name, store_name').in('id', mCustomerIds as string[])
-            : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as any[] }),
+        ]);
         const mCustMap = new Map<string, { store: string | null; full: string | null }>(((mCustRes as any).data || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
-        const mCustMap = new Map(((mCustRes as any).data || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
         const manualEntries = mFiltered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
