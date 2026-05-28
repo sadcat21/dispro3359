@@ -30,20 +30,29 @@ const ProductDailySoldDialog: React.FC<Props> = ({
   const [competitionOpen, setCompetitionOpen] = useState(false);
 
 
+  const rangesKey = useMemo(
+    () => (ranges || []).map((r) => `${r.id}:${r.start}:${r.end}`).join('|'),
+    [ranges],
+  );
+
   const { data, isLoading } = useQuery({
-    queryKey: ['product-daily-sold-v2', branchId, productId, sinceIso],
+    queryKey: ['product-daily-sold-v2', branchId, productId, sinceIso, rangesKey],
     enabled: open && !!branchId && !!productId,
     queryFn: async () => {
-      // Source of truth: delivered orders + order_items (sales_tracking is unreliable).
       let oq = supabase
         .from('orders')
         .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
         .eq('branch_id', branchId)
         .eq('status', 'delivered');
-      if (sinceIso) oq = oq.gte('created_at', sinceIso);
+      if (sinceIso && !(ranges && ranges.length)) oq = oq.gte('created_at', sinceIso);
       const { data: orders } = await oq;
 
-      const orderIds = (orders || []).map((o: any) => o.id);
+      // عند تفعيل فلتر النوافذ نُبقي فقط الطلبات التي تقع داخل أحد النوافذ.
+      const filteredOrders = (orders || []).filter((o: any) =>
+        !(ranges && ranges.length) || isInRanges(o.updated_at || o.created_at, ranges),
+      );
+
+      const orderIds = filteredOrders.map((o: any) => o.id);
       if (orderIds.length === 0) return { rows: [], nameMap: new Map() };
 
       const { data: items } = await supabase
@@ -52,7 +61,7 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         .eq('product_id', productId)
         .in('order_id', orderIds);
 
-      const orderById = new Map((orders || []).map((o: any) => [o.id, o]));
+      const orderById = new Map(filteredOrders.map((o: any) => [o.id, o]));
       const rows = (items || []).map((it: any) => {
         const o = orderById.get(it.order_id) as any;
         return {
