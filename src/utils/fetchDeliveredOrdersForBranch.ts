@@ -48,7 +48,7 @@ export async function fetchDeliveredOrdersForBranch({
       if (error) throw error;
       if (!page || page.length === 0) break;
 
-      for (const order of page) {
+      for (const order of (page as any[])) {
         if (order?.id) ordersById.set(order.id, order);
       }
 
