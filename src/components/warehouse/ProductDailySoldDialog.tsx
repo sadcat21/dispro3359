@@ -139,9 +139,21 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           .map(([name, p]) => ({ name, pieces: p.pieces, dbValue: toDb(p.pieces), giftPieces: p.giftPieces, giftDbValue: toDb(p.giftPieces) })),
       }));
   }, [data, piecesPerBox]);
-
+  const totalPieces = byDay.reduce((s, d) => s + d.pieces, 0);
+  const totalGiftPieces = byDay.reduce((s, d) => s + d.giftPieces, 0);
+  const totalDb = (() => {
+    const ppb = Math.max(1, piecesPerBox);
+    const boxes = Math.floor(totalPieces / ppb);
+    const rem = totalPieces % ppb;
     return boxes + rem / 100;
   })();
+  const totalGiftDb = (() => {
+    const ppb = Math.max(1, piecesPerBox);
+    const boxes = Math.floor(totalGiftPieces / ppb);
+    const rem = totalGiftPieces % ppb;
+    return boxes + rem / 100;
+  })();
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
