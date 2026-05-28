@@ -326,7 +326,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             when: r.sold_at,
             qty: piecesToDbBP(pieces, piecesPerBox),
             who: cname || names.get(r.worker_id) || null,
-            refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
+            refLabel: r.source === 'manual_promo' ? 'إدخال يدوي' : r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
             customerId: r.customer_id || null,
             customerName: cname,
             customerStoreName: c.store,
