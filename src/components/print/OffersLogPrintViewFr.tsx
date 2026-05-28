@@ -16,7 +16,6 @@ export interface OffersLogPrintRow {
 
 interface Props {
   rows: OffersLogPrintRow[];
-interface Props {
   rows: OffersLogPrintRow[];
   productName: string;
   promoLabel?: string;
