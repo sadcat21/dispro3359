@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Users, Truck, RotateCcw, Package } from 'lucide-react';
+import { Users, Truck, RotateCcw, Package, Boxes } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface Props {
@@ -43,10 +43,16 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
         .order('created_at', { ascending: false });
 
       const workerIds = Array.from(new Set((movs || []).map(m => m.worker_id).filter(Boolean) as string[]));
-      const wRes = workerIds.length
-        ? await supabase.from('workers_safe').select('id, full_name').in('id', workerIds)
-        : { data: [] as any[] };
+      const [wRes, stockRes] = await Promise.all([
+        workerIds.length
+          ? supabase.from('workers_safe').select('id, full_name').in('id', workerIds)
+          : Promise.resolve({ data: [] as any[] }),
+        workerIds.length
+          ? supabase.from('worker_stock').select('worker_id, quantity').eq('branch_id', branchId).eq('product_id', productId).in('worker_id', workerIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
       const nameById = new Map((wRes.data || []).map((w: any) => [w.id, w.full_name]));
+      const stockByWorker = new Map<string, number>((stockRes.data || []).map((s: any) => [s.worker_id, Number(s.quantity || 0)]));
 
       const rows: Row[] = (movs || []).map((m: any) => ({
         id: m.id,
@@ -56,13 +62,21 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
         worker: nameById.get(m.worker_id || '') || '—',
         note: m.notes,
       }));
-      return rows;
+      const stockByWorkerName = new Map<string, number>();
+      for (const [wid, qty] of stockByWorker) {
+        const n = nameById.get(wid) || '—';
+        stockByWorkerName.set(n, (stockByWorkerName.get(n) || 0) + qty);
+      }
+      return { rows, stockByWorkerName };
     },
   });
 
+  const rowsData = (data as any)?.rows as Row[] | undefined;
+  const stockByWorkerName = (data as any)?.stockByWorkerName as Map<string, number> | undefined;
+
   const grouped = useMemo(() => {
     const map = new Map<string, { worker: string; loaded: number; returned: number; entries: Row[] }>();
-    for (const r of (data || [])) {
+    for (const r of (rowsData || [])) {
       const k = r.worker;
       const cur = map.get(k) || { worker: k, loaded: 0, returned: 0, entries: [] };
       if (r.type === 'load') cur.loaded += r.qty;
@@ -71,7 +85,7 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
       map.set(k, cur);
     }
     return Array.from(map.values()).sort((a, b) => (b.loaded + b.returned) - (a.loaded + a.returned));
-  }, [data]);
+  }, [rowsData]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,9 +111,10 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
                     <Package className="w-4 h-4 text-primary" />
                     {g.worker}
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1"><Truck className="w-3 h-3" />شحن {fmt(g.loaded)}</Badge>
                     <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 gap-1"><RotateCcw className="w-3 h-3" />تفريغ {fmt(g.returned)}</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1"><Boxes className="w-3 h-3" />الرصيد {fmt(stockByWorkerName?.get(g.worker) || 0)}</Badge>
                   </div>
                 </div>
                 <div className="space-y-1">
