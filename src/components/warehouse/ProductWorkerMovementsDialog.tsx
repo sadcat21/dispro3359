@@ -73,11 +73,10 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
 
   const rowsData = (data as any)?.rows as Row[] | undefined;
   const stockByWorkerName = (data as any)?.stockByWorkerName as Map<string, number> | undefined;
-  });
 
   const grouped = useMemo(() => {
     const map = new Map<string, { worker: string; loaded: number; returned: number; entries: Row[] }>();
-    for (const r of (data || [])) {
+    for (const r of (rowsData || [])) {
       const k = r.worker;
       const cur = map.get(k) || { worker: k, loaded: 0, returned: 0, entries: [] };
       if (r.type === 'load') cur.loaded += r.qty;
