@@ -16,8 +16,6 @@ export interface OffersLogPrintRow {
 
 interface Props {
   rows: OffersLogPrintRow[];
-interface Props {
-  rows: OffersLogPrintRow[];
   productName: string;
   promoLabel?: string;
   periode?: string;
@@ -26,7 +24,9 @@ interface Props {
   isVisible?: boolean;
 }
 
-  ({ rows, productName, promoLabel = '', periode = '', isVisible = false }, ref) => {
+const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
+  ({ rows, productName, promoLabel = '', periode = '', totalSoldDisplay = '0', totalPromoDisplay = '0', isVisible = false }, ref) => {
+
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
