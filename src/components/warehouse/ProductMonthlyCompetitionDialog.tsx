@@ -8,7 +8,6 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Sector, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
-import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 
 interface Props {
   open: boolean;
@@ -64,38 +63,54 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
   }, [monthOffset]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['product-monthly-competition', branchId, productId, year, month],
+    queryKey: ['product-monthly-competition-v2', branchId, productId, year, month],
     enabled: open && !!branchId && !!productId,
     queryFn: async () => {
-      const { data: rows } = await supabase
-        .from('sales_tracking')
-        .select('sold_boxes, sold_pieces, pieces_per_box, sold_at, source, branch_id, worker_id, order_id')
+      // Source of truth: delivered orders + order_items.
+      // sales_tracking is unreliable (deletions on order modification,
+      // deferred-offer confirmations writing partial rows, etc.).
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
+        .eq('branch_id', branchId)
+        .eq('status', 'delivered')
+        .gte('created_at', start)
+        .lt('created_at', end);
+
+      const orderIds = (orders || []).map((o: any) => o.id);
+      if (orderIds.length === 0) {
+        return { rows: [], nameMap: new Map() };
+      }
+
+      const { data: items } = await supabase
+        .from('order_items')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box')
         .eq('product_id', productId)
-        .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
-        .or(`branch_id.eq.${branchId},branch_id.is.null`)
-        .gte('sold_at', start)
-        .lt('sold_at', end);
+        .in('order_id', orderIds);
 
-      const orderIds = Array.from(new Set((rows || []).map((r: any) => r.order_id).filter(Boolean)));
-      const ordersRes = orderIds.length
-        ? await supabase.from('orders').select('id, status, branch_id').in('id', orderIds as string[])
-        : { data: [] as any[] };
-      const orderById = new Map((ordersRes.data || []).map((o: any) => [o.id, o]));
+      const orderById = new Map((orders || []).map((o: any) => [o.id, o]));
+      const rows = (items || []).map((it: any) => {
+        const o = orderById.get(it.order_id) as any;
+        return {
+          order_id: it.order_id,
+          worker_id: o?.assigned_worker_id || null,
+          branch_id: o?.branch_id || null,
+          sold_at: o?.updated_at || o?.created_at,
+          pieces_per_box: it.pieces_per_box || ppb,
+          // include gift boxes in total sold for the competition view
+          quantity: Number(it.quantity || 0),
+          gift_quantity: Number(it.gift_quantity || 0),
+          gift_pieces: Number(it.gift_pieces || 0),
+        };
+      });
 
-      const filtered = dedupeSalesTrackingRows((rows || []).filter((r: any) => {
-        const order = r.order_id ? orderById.get(r.order_id) : null;
-        if (r.order_id && order?.status !== 'delivered') return false;
-        const inferred = r.branch_id || order?.branch_id || null;
-        return !inferred || inferred === branchId;
-      }));
-
-      const workerIds = Array.from(new Set(filtered.map((r: any) => r.worker_id).filter(Boolean)));
+      const workerIds = Array.from(new Set(rows.map((r: any) => r.worker_id).filter(Boolean)));
       const namesRes = workerIds.length
         ? await supabase.from('workers_safe').select('id, full_name').in('id', workerIds as string[])
         : { data: [] as any[] };
       const nameMap = new Map((namesRes.data || []).map((w: any) => [w.id, w.full_name]));
 
-      return { rows: filtered, nameMap };
+      return { rows, nameMap };
     },
   });
 
@@ -107,7 +122,11 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
 
     for (const r of rows) {
       const rppb = Number(r.pieces_per_box || ppb);
-      const pieces = Number(r.sold_boxes || 0) * rppb + Number(r.sold_pieces || 0);
+      // quantity field on order_items is already in B.P units (boxes incl. full-box gifts).
+      // Convert to pieces: floor=boxes, decimals*100=loose pieces.
+      const qBoxes = Math.floor(Number(r.quantity || 0));
+      const qPieces = Math.round((Number(r.quantity || 0) - qBoxes) * 100);
+      const pieces = qBoxes * rppb + qPieces;
       if (pieces <= 0) continue;
       const wn = nameMap.get(r.worker_id) || 'بدون عامل';
       const day = new Date(r.sold_at).getDate();
@@ -138,6 +157,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
 
     return { workers: wnames, totalsByWorker: totals, dailySeries: daily };
   }, [data, ppb, daysInMonth]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
