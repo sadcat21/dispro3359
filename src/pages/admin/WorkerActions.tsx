@@ -371,6 +371,12 @@ const WorkerActions: React.FC = () => {
   const { data: truckStock = [] } = useQuery({
     queryKey: ['worker-truck-stock', selectedWorker?.id],
     queryFn: async () => {
+      // معايرة الرصيد قبل الجلب لضمان تجاهل تعديلات الإرجاع الموجبة
+      try {
+        await supabase.rpc('recalibrate_worker_stock', { p_worker_id: selectedWorker!.id });
+      } catch (e) {
+        console.warn('recalibrate_worker_stock failed', e);
+      }
       const { data } = await supabase
         .from('worker_stock')
         .select('*, product:products(name, image_url, pieces_per_box)')
@@ -380,6 +386,7 @@ const WorkerActions: React.FC = () => {
     },
     enabled: !!selectedWorker?.id && truckStockOpen,
   });
+
 
   // Fetch last accounting session for selected worker
   const { data: lastWorkerAccounting } = useQuery({
