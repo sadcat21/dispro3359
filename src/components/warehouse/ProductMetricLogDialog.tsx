@@ -257,7 +257,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         // Manual promo entries (admin-entered) — sales_tracking with order_id = null
         const { data: manualRows } = await supabase
           .from('sales_tracking')
-          .select('id, product_id, branch_id, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, sold_at, order_id, source')
+          .select('id, product_id, branch_id, worker_id, customer_id, sold_boxes, sold_pieces, gift_boxes, gift_pieces, pieces_per_box, sold_at, order_id, source')
           .eq('product_id', productId)
           .eq('branch_id', branchId)
           .is('order_id', null);
@@ -274,10 +274,21 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             ? supabase.from('workers').select('id, full_name, role').in('id', mWorkerIds as string[])
             : Promise.resolve({ data: [] as any[] }),
           mCustomerIds.length
-            ? supabase.from('customers').select('id, name, store_name').in('id', mCustomerIds as string[])
+            ? supabase.from('customers').select('id, name, name_fr, store_name, phone, sector_id').in('id', mCustomerIds as string[])
           : Promise.resolve({ data: [] as any[] }),
         ]);
-        const mCustMap = new Map<string, { store: string | null; full: string | null }>(((mCustRes as any).data || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
+        const mSectorIds = Array.from(new Set(((mCustRes as any).data || []).map((c: any) => c.sector_id).filter(Boolean)));
+        const { data: mSectors } = mSectorIds.length
+          ? await supabase.from('sectors').select('id, name, name_fr').in('id', mSectorIds as string[])
+          : { data: [] as any[] };
+        const mSectorMap = new Map(((mSectors || []) as any[]).map((s: any) => [s.id, s.name_fr || s.name || null]));
+        const mCustMap = new Map<string, { store: string | null; full: string | null; nameFr: string | null; phone: string | null; sectorName: string | null }>(((mCustRes as any).data || []).map((c: any) => [c.id, {
+          store: c.store_name || null,
+          full: c.name || null,
+          nameFr: c.name_fr || null,
+          phone: c.phone || null,
+          sectorName: mSectorMap.get(c.sector_id) || null,
+        }]));
         const ADMIN_ROLES = new Set(['admin', 'company_manager', 'warehouse_manager', 'branch_admin', 'admin_assistant', 'project_manager', 'accountant']);
         const mNames = new Map<string, string>(mNamesBase);
         const mIsAdmin = new Map<string, boolean>();
@@ -288,7 +299,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         const manualEntries = mFiltered.map((r: any) => {
           const ppb = Number(r.pieces_per_box) || piecesPerBox;
           const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
-          const c = mCustMap.get(r.customer_id) || { store: null, full: null };
+          const soldPiecesTotal = Number(r.sold_boxes || 0) * ppb + Number(r.sold_pieces || 0);
+          const c = mCustMap.get(r.customer_id) || { store: null, full: null, nameFr: null, phone: null, sectorName: null };
           const cname = c.store || c.full || null;
           const isAdmin = mIsAdmin.get(r.worker_id || '') || false;
           const workerLabel = isAdmin
@@ -304,10 +316,15 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             customerName: cname,
             customerStoreName: c.store,
             customerFullName: c.full,
+            customerNameFr: c.nameFr,
+            customerPhone: c.phone,
+            sectorName: c.sectorName,
+            soldQty: piecesToDbBP(soldPiecesTotal, piecesPerBox),
             delivered: true,
             workerName: workerLabel,
           };
         });
+
 
 
         return [...orderEntries, ...manualEntries]
