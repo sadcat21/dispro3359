@@ -404,26 +404,53 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
-  // Build rows for the French offers-log print sheet
+  // Fetch active promo offer for header label
+  const { data: offerInfo } = useQuery({
+    queryKey: ['product-offer-label', productId],
+    enabled: open && metric === 'offers' && !!productId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('product_offers')
+        .select('min_quantity, min_quantity_unit, gift_quantity, gift_quantity_unit, is_active, priority')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .order('priority', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!data) return null;
+      const u = (s: string) => (s === 'piece' ? 'PCS' : 'BOX');
+      return `${data.min_quantity}${u(data.min_quantity_unit)}+${data.gift_quantity} ${u(data.gift_quantity_unit)}(PROMO)`;
+    },
+  });
+
+  // Build rows for the French offers-log print sheet (sorted ascending by date)
   const printRows = useMemo(() => {
     if (metric !== 'offers') return [] as any[];
-    const sorted = [...filteredData].sort((a, b) => {
-      const ak = groupBy === 'worker' ? (a.workerName || '') : (a.customerNameFr || a.customerName || '');
-      const bk = groupBy === 'worker' ? (b.workerName || '') : (b.customerNameFr || b.customerName || '');
-      if (ak !== bk) return ak.localeCompare(bk);
-      return new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime();
-    });
+    const sorted = [...filteredData].sort(
+      (a, b) => new Date(a.when || 0).getTime() - new Date(b.when || 0).getTime(),
+    );
     return sorted.map((e) => ({
       id: e.id,
       customerNameFr: e.customerNameFr || e.customerFullName || e.customerName || '',
       customerPhone: e.customerPhone || '',
-      sectorName: e.sectorName || '',
+      sectorName: e.zoneName || e.sectorName || '',
       soldDisplay: fmt(e.soldQty || 0),
       promoDisplay: fmt(e.qty || 0),
       workerName: e.workerName || '',
       date: e.when || new Date().toISOString(),
     }));
-  }, [filteredData, groupBy, metric, fmt]);
+  }, [filteredData, metric, fmt]);
+
+  const periode = useMemo(() => {
+    if (!printRows.length) return '';
+    const first = printRows[0].date;
+    const last = printRows[printRows.length - 1].date;
+    const f = (d: string) => {
+      try { const dt = new Date(d); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`; } catch { return ''; }
+    };
+    return `${f(first)} - ${f(last)}`;
+  }, [printRows]);
+
 
   const handlePrint = () => {
     setIsPrintVisible(true);
