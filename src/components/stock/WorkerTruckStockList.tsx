@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getDeliveredPaidQuantity, getPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import AccountingSessionsTimelineDialog, { type SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
