@@ -39,7 +39,7 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     queryKey: ['product-daily-sold-v2', branchId, productId, sinceIso, rangesKey],
     enabled: open && !!branchId && !!productId,
     queryFn: async () => {
-    queryFn: async () => {
+
       const hasRanges = !!(ranges && ranges.length);
       const minStart = hasRanges
         ? ranges!.reduce((m, r) => (new Date(r.start).getTime() < new Date(m).getTime() ? r.start : m), ranges![0].start)
