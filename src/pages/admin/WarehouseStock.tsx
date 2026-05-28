@@ -355,7 +355,21 @@ const WarehouseStock: React.FC = () => {
       const giftPieces = gBoxes * ppb + gBoxPieces + extraGiftPieces;
       summaries[pid].gifts += giftPieces;
       summaries[pid].offers += giftPieces;
+
+    // Manual promo entries (entered by admin via ManualPromoEntryDialog) are written to
+    // sales_tracking with order_id = null. They never appear in order_items, so add them here.
+    for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
+      const pid = s.product_id;
+      if (!summaries[pid]) continue;
+      if (s.order_id) continue; // already counted via order_items above
+      if (!inWindow((s as any).sold_at)) continue;
+      const ppb = Number(s.pieces_per_box) || Number(products.find(p => p.id === pid)?.pieces_per_box) || 20;
+      const gPieces = Number((s as any).gift_boxes || 0) * ppb + Number((s as any).gift_pieces || 0);
+      if (gPieces <= 0) continue;
+      summaries[pid].gifts += gPieces;
+      summaries[pid].offers += gPieces;
     }
+
 
 
     // Discrepancies (surplus / deficit فقط)
