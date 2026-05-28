@@ -855,7 +855,8 @@ const WarehouseStock: React.FC = () => {
           productId={soldForProduct.productId}
           productName={soldForProduct.productName}
           piecesPerBox={products.find(p => p.id === soldForProduct.productId)?.pieces_per_box || 20}
-          sinceIso={latestReceiptAtByProduct[soldForProduct.productId] || null}
+          sinceIso={hasReceiptFilter ? null : (latestReceiptAtByProduct[soldForProduct.productId] || null)}
+          ranges={hasReceiptFilter ? selectedReceiptRanges : undefined}
         />
       )}
       {metricLog && branchId && (
@@ -867,6 +868,7 @@ const WarehouseStock: React.FC = () => {
           productName={metricLog.product.productName}
           piecesPerBox={products.find(p => p.id === metricLog.product.productId)?.pieces_per_box || 20}
           metric={metricLog.metric}
+          ranges={hasReceiptFilter ? selectedReceiptRanges : undefined}
         />
       )}
       {movementProduct && branchId && (
@@ -880,7 +882,17 @@ const WarehouseStock: React.FC = () => {
           piecesPerBox={products.find(p => p.id === movementProduct.productId)?.pieces_per_box || 20}
         />
       )}
+      {branchId && (
+        <ReceiptSessionsTimelineDialog
+          open={showReceiptSessionsDialog}
+          onOpenChange={setShowReceiptSessionsDialog}
+          branchId={branchId}
+          selectedIds={new Set(selectedReceiptRanges.map((r) => r.id))}
+          onApply={setSelectedReceiptRanges}
+        />
+      )}
     </div>
+
   );
 };
 
