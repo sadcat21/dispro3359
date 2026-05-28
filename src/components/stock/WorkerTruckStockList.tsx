@@ -479,10 +479,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     const totalUnloaded = movements.filter(m => m.type === 'unload').reduce((s, m) => s + m.quantity, 0);
     const totalSold = movements.filter(m => m.type === 'sale').reduce((s, m) => s + m.quantity, 0);
     const totalGift = movements.reduce((s, m) => s + (m.type === 'sale' ? Number(m.giftQty || 0) : m.type === 'gift' ? m.quantity : 0), 0);
+    // مجموع الهدايا المؤجَّلة التي لم يؤكِّدها المسؤول بعد — تبقى داخل الشاحنة وتفسّر فرق «الباقي».
+    const pendingGiftTotal = soldData
+      .filter((x: any) => x.product_id === pid)
+      .reduce((s: number, x: any) => s + pendingGiftFractional(x, ppb), 0);
     // اعتمد آخر "الباقي" من السجل الزمني كرصيد نهائي للشاحنة (يعكس أي إعادة تعيين مثل "الشاحنة فارغة")
     const finalRemaining = forwardEntries.length ? forwardEntries[forwardEntries.length - 1].after : currentQty;
 
-    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
+    return { entries, currentQty: finalRemaining, totalLoaded, lastLoadedQty, totalUnloaded, totalSold, totalGift, pendingGiftTotal, openingBalance, lastLabel, ppb, productName: getProductDisplayName(selected.product) || 'المنتج', productImage: selected.product?.image_url || null };
+
   }, [selected, loadedData, unloadedData, soldData, modificationData, lastAccounting, ppbMap]);
 
   const getRemaining = (item: any) => {
