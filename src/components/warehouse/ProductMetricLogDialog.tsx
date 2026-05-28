@@ -390,7 +390,7 @@ const ProductMetricLogDialog: React.FC<Props> = ({
               const headerCls = colorFor(workerName);
               const isActive = workerFilter === workerName;
               return (
-                <details key={workerName} className="rounded-xl border overflow-hidden">
+                <details key={workerName} open className="rounded-xl border overflow-hidden">
                   <summary className={`cursor-pointer select-none flex items-center justify-between gap-2 px-3 py-2 ${headerCls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}>
                     <span className="inline-flex items-center gap-2 text-xs font-bold">
                       <User className="w-3.5 h-3.5" />
