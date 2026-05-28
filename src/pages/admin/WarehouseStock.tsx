@@ -231,7 +231,7 @@ const WarehouseStock: React.FC = () => {
         const slice = orderIds.slice(i, i + 200);
         const { data } = await supabase
           .from('order_items')
-          .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
+          .select('order_id, product_id, quantity, gift_quantity, gift_pieces, pieces_per_box')
           .in('order_id', slice);
         if (data) items.push(...data);
       }
@@ -347,7 +347,7 @@ const WarehouseStock: React.FC = () => {
       const pid = oi.product_id;
       if (!summaries[pid]) continue;
       if (!inWindow((oi as any)._delivered_at)) continue;
-      const ppb = Number(products.find(p => p.id === pid)?.pieces_per_box) || 20;
+      const ppb = Number((oi as any).pieces_per_box || products.find(p => p.id === pid)?.pieces_per_box) || 20;
       const g = Number((oi as any).gift_quantity || 0);
       const gBoxes = Math.floor(g);
       const gBoxPieces = Math.round((g - gBoxes) * 100);
@@ -390,12 +390,12 @@ const WarehouseStock: React.FC = () => {
       const pid = oi.product_id;
       if (!pid) continue;
       if (!inWindow((oi as any)._delivered_at)) continue;
-      const ppb = ppbByProduct[pid] || 20;
+      const rppb = Number((oi as any).pieces_per_box || ppbByProduct[pid]) || 20;
       const qty = Number((oi as any).quantity || 0);            // BP-encoded boxes.pieces
       const giftBoxes = Number((oi as any).gift_quantity || 0);
       const qBoxes = Math.max(0, Math.floor(qty) - giftBoxes);
-      const qPieces = Math.round((qty - qBoxes) * 100);
-      const paidPieces = qBoxes * ppb + qPieces;
+      const qPieces = Math.round((qty - Math.floor(qty)) * 100);
+      const paidPieces = qBoxes * rppb + qPieces;
       soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + paidPieces;
     }
 
