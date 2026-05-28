@@ -426,12 +426,12 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
+    const warehouseQtyByProduct = new Map(
+      warehouseStock.map((row) => [row.product_id, Number(row.quantity || 0)])
+    );
+
     for (const pid of Object.keys(summaries)) {
       const received = summaries[pid].received;
-      const loadT = loadByProduct[pid] || 0;
-      const returnT = returnByProduct[pid] || 0;
-      const wSale = warehouseSaleByProduct[pid] || 0;
-      const damaged = summaries[pid].damaged || 0;
       const ppb = products.find(p => p.id === pid)?.pieces_per_box || 20;
       summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
       summaries[pid].offers = piecesToDbBP(summaries[pid].offers || 0, ppb);
@@ -448,17 +448,11 @@ const WarehouseStock: React.FC = () => {
 
       summaries[pid].remaining = Math.round((received - deductions) * 100) / 100;
 
-    }
-
-    // Fallback: if warehouse_stock table has an actual balance that the
-    // receipts-based computation missed (legacy data, manual edits, or pruned
-    // receipts), surface it so the branch doesn't appear empty.
-    for (const ws of warehouseStock) {
-      const pid = ws.product_id;
-      if (!summaries[pid]) continue;
-      const dbQty = Number(ws.quantity || 0);
-      if (dbQty > 0 && summaries[pid].remaining <= 0) {
-        summaries[pid].remaining = dbQty;
+      // الرصيد الفعلي للمخزن هو quantity داخل warehouse_stock.
+      // الحساب أعلاه يبقى فقط كـ fallback عند غياب صف المنتج من الجدول
+      // (بيانات قديمة/ناقصة)، أما إذا وُجد الصف فنُظهر الرصيد الحقيقي دائمًا.
+      if (warehouseQtyByProduct.has(pid)) {
+        summaries[pid].remaining = warehouseQtyByProduct.get(pid) || 0;
       }
     }
 
@@ -473,8 +467,8 @@ const WarehouseStock: React.FC = () => {
     return productSummaries.filter(s => s.productName.includes(search));
   }, [productSummaries, search]);
 
-  // Map of computed remaining (received - load + return - warehouse_sale) per product,
-  // used as fallback when the warehouse_stock table itself is empty (e.g., after data cleanup).
+  // Map of available quantities per product. When warehouse_stock exists it reflects
+  // the real warehouse balance; otherwise it falls back to the reconstructed total.
   const availableQuantities = useMemo(() => {
     const map: Record<string, number> = {};
     for (const s of productSummaries) {
