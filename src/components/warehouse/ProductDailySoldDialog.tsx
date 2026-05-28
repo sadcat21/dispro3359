@@ -44,6 +44,18 @@ const ProductDailySoldDialog: React.FC<Props> = ({
       const minStart = hasRanges
         ? ranges!.reduce((m, r) => (new Date(r.start).getTime() < new Date(m).getTime() ? r.start : m), ranges![0].start)
         : null;
+
+      // Direct-sale orders have branch_id=NULL, so widen the filter to also
+      // include orders whose assigned worker belongs to this branch.
+      const { data: branchWorkers } = await supabase
+        .from('workers_safe')
+        .select('id')
+        .eq('branch_id', branchId);
+      const branchWorkerIds = (branchWorkers || []).map((w: any) => w.id);
+      const workerInList = branchWorkerIds.length
+        ? `(${branchWorkerIds.map((id: string) => `"${id}"`).join(',')})`
+        : null;
+
       // Paginate delivered orders to bypass Supabase's 1000-row default cap.
       const PAGE = 1000;
       let from = 0;
@@ -53,10 +65,14 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         let q = supabase
           .from('orders')
           .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
-          .eq('branch_id', branchId)
           .eq('status', 'delivered')
           .order('updated_at', { ascending: false })
           .range(from, from + PAGE - 1);
+        if (workerInList) {
+          q = q.or(`branch_id.eq.${branchId},assigned_worker_id.in.${workerInList}`);
+        } else {
+          q = q.eq('branch_id', branchId);
+        }
         if (minStart) q = q.gte('updated_at', minStart);
         else if (sinceIso) q = q.gte('created_at', sinceIso);
         const { data: page } = await q;
@@ -66,9 +82,6 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         from += PAGE;
       }
 
-      // عند تفعيل فلتر النوافذ نُبقي فقط الطلبات التي تقع داخل أحد النوافذ.
-      const filteredOrders = orders.filter((o: any) =>
-        !hasRanges || isInRanges(o.updated_at || o.created_at, ranges!),
       );
 
       const orderIds = filteredOrders.map((o: any) => o.id);
