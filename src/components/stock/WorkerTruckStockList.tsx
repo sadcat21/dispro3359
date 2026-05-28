@@ -726,6 +726,15 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                       <Badge className="bg-amber-100 text-amber-800 border-amber-300" title="هدايا مؤجَّلة لم يؤكِّدها المسؤول بعد، لذلك لا تزال داخل الشاحنة">
                         هدايا بانتظار التأكيد {fmtBP(history.pendingGiftTotal, history.ppb)}
                       </Badge>
+                    {history.totalReturned > 0 && (
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200" title="كميات أُعيدت إلى الشاحنة بعد تعديل/إلغاء طلبيات">
+                        إرجاع للمخزون +{fmtBP(history.totalReturned, history.ppb)}
+                      </Badge>
+                    )}
+                    {history.totalExtraDeducted > 0 && (
+                      <Badge className="bg-rose-100 text-rose-700 border-rose-200" title="كميات إضافية خُصمت من الشاحنة بسبب تعديل طلبيات">
+                        خصم إضافي −{fmtBP(history.totalExtraDeducted, history.ppb)}
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">
@@ -733,7 +742,11 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     {history.pendingGiftTotal > 0 && (
                       <span className="mr-1 text-amber-700">(منها {fmtBP(history.pendingGiftTotal, history.ppb)} هدايا بانتظار التأكيد)</span>
                     )}
+                    {history.totalReturned > 0 && (
+                      <span className="mr-1 text-emerald-700">(+{fmtBP(history.totalReturned, history.ppb)} إرجاع من تعديل المبيعات)</span>
+                    )}
                   </div>
+
 
                 </div>
               </div>
