@@ -172,171 +172,58 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
 
       if (metric === 'offers') {
-        // Offers/promo gifts tracked via sales_tracking gift_boxes / gift_pieces
-        const { data: rows } = await supabase
-          .from('sales_tracking')
-          .select('id, sold_at, worker_id, customer_id, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id, notes')
-          .eq('product_id', productId)
-          .or(`branch_id.eq.${branchId},branch_id.is.null`)
-          .order('sold_at', { ascending: false });
-        const rawFiltered = (rows || []).filter((r: any) =>
-          (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
-        );
-        const { data: fallbackPromos } = await supabase
-          .from('promos')
-          .select('id, promo_date, created_at, worker_id, customer_id, product_id, vente_quantity, gratuite_quantity, gift_quantity_unit, notes')
-          .eq('product_id', productId)
-          .gt('gratuite_quantity', 0)
-          .order('promo_date', { ascending: false });
-        // Deduplicate: same order often has two sales_tracking rows (direct_sale + delivery_sale)
-        // representing the same offer. Collapse them per order_id, preferring the delivered row.
-        // Fallback key (no order_id): worker+customer+sold_at+qty.
-        const orderIds0 = Array.from(new Set(rawFiltered.map((r: any) => r.order_id).filter(Boolean)));
-        const { data: ordersPre } = orderIds0.length
-          ? await supabase.from('orders').select('id, status').in('id', orderIds0 as string[])
-          : { data: [] as any[] };
-        const statusPre = new Map((ordersPre || []).map((o: any) => [o.id, o.status]));
-        const byOrder = new Map<string, any>();
-        const seen = new Set<string>();
-        const filtered: any[] = [];
-        for (const r of rawFiltered) {
-          if (r.order_id) {
-            // Align with WarehouseStock card: only count gifts from delivered orders.
-            if (statusPre.get(r.order_id) !== 'delivered') continue;
-            const prev = byOrder.get(r.order_id);
-            if (!prev) {
-              byOrder.set(r.order_id, r);
-            } else {
-              // Prefer the delivered one, otherwise the latest sold_at
-              const prevDelivered = statusPre.get(prev.order_id) === 'delivered';
-              const curDelivered = statusPre.get(r.order_id) === 'delivered';
-              if (curDelivered && !prevDelivered) byOrder.set(r.order_id, r);
-            }
-          } else {
-            const key = `${r.worker_id || ''}|${r.customer_id || ''}|${r.sold_at || ''}|${r.gift_boxes || 0}|${r.gift_pieces || 0}`;
-            if (!seen.has(key)) { seen.add(key); filtered.push(r); }
-          }
-        }
-        filtered.push(...byOrder.values());
-        const fallbackWorkerIds = Array.from(new Set((fallbackPromos || []).map((p: any) => p.worker_id).filter(Boolean)));
-        const { data: fallbackWorkers } = fallbackWorkerIds.length
-          ? await supabase.from('workers').select('id, branch_id').in('id', fallbackWorkerIds as string[])
-          : { data: [] as any[] };
-        const fallbackWorkerBranchMap = new Map((fallbackWorkers || []).map((w: any) => [w.id, w.branch_id || null]));
-        const existingPromoKeys = new Set(
-          (fallbackPromos || []).map((p: any) => {
-            const promoAt = p.promo_date || p.created_at;
-            return buildPromoTrackingKey({
-              workerId: p.worker_id,
-              customerId: p.customer_id,
-              occurredAt: promoAt,
-              giftBoxes: p.gift_quantity_unit === 'box' ? Number(p.gratuite_quantity || 0) : 0,
-              giftPieces: p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0,
-            });
-          })
-        );
-        const staleBackfilledRows = new Set(
-          filtered
-            .filter((r: any) => {
-              const notes = String(r.notes || '');
-              const isManualBackfill = notes.includes('تسجيل البرومو اليدوي') || notes.includes('مُعاد ملؤه');
-              if (!isManualBackfill) return false;
-              const key = buildPromoTrackingKey({
-                workerId: r.worker_id,
-                customerId: r.customer_id,
-                occurredAt: r.sold_at,
-                giftBoxes: r.gift_boxes,
-                giftPieces: r.gift_pieces,
-              });
-              return !existingPromoKeys.has(key);
-            })
-            .map((r: any) => r.id)
-        );
-        const trackingPromoKeys = new Set(
-          filtered
-            .filter((r: any) => !staleBackfilledRows.has(r.id))
-            .filter((r: any) => !r.order_id)
-            .map((r: any) => buildPromoTrackingKey({
-              workerId: r.worker_id,
-              customerId: r.customer_id,
-              occurredAt: r.sold_at,
-              giftBoxes: r.gift_boxes,
-              giftPieces: r.gift_pieces,
-            }))
-        );
-        const manualFallbackRowsRaw = (fallbackPromos || []).flatMap((p: any) => {
-          const promoAt = p.promo_date || p.created_at;
-          const giftBoxes = p.gift_quantity_unit === 'box' ? Number(p.gratuite_quantity || 0) : 0;
-          const giftPieces = p.gift_quantity_unit === 'piece' ? Number(p.gratuite_quantity || 0) : 0;
-          const key = buildPromoTrackingKey({
-            workerId: p.worker_id,
-            customerId: p.customer_id,
-            occurredAt: promoAt,
-            giftBoxes,
-            giftPieces,
-          });
-          const isManual = String(p.notes || '').includes('تسجيل عرض/هدية يدوي') || String(p.notes || '').includes('تسجيل البرومو اليدوي') || !p.notes;
-          if (!isManual || trackingPromoKeys.has(key) || fallbackWorkerBranchMap.get(p.worker_id) !== branchId) return [];
-          return [{
-            id: `promo-${p.id}`,
-            sold_at: promoAt,
-            worker_id: p.worker_id,
-            customer_id: p.customer_id,
-            gift_boxes: giftBoxes,
-            gift_pieces: giftPieces,
-            pieces_per_box: piecesPerBox,
-            source: 'manual_promo',
-            order_id: null,
-            branch_id: branchId,
-            customer_name: null,
-          }];
+        const orders = await fetchDeliveredOrdersForBranch({
+          branchId,
+          select: 'id, status, branch_id, customer_id, assigned_worker_id, created_at, updated_at',
         });
-        // Dedupe manual entries by worker+customer+gift qty (ignore date) — keep latest sold_at
-        const manualDedupMap = new Map<string, any>();
-        for (const r of manualFallbackRowsRaw) {
-          const k = `${r.worker_id}|${r.customer_id}|${r.gift_boxes}|${r.gift_pieces}`;
-          const prev = manualDedupMap.get(k);
-          if (!prev || new Date(r.sold_at || 0).getTime() > new Date(prev.sold_at || 0).getTime()) {
-            manualDedupMap.set(k, r);
-          }
-        }
-        const manualFallbackRows = Array.from(manualDedupMap.values());
-        const mergedRows = [...filtered.filter((r: any) => !staleBackfilledRows.has(r.id)), ...manualFallbackRows].sort((a: any, b: any) =>
-          new Date(b.sold_at || 0).getTime() - new Date(a.sold_at || 0).getTime()
+        const rangeFilteredOrders = (orders || []).filter((order: any) =>
+          !(ranges && ranges.length) || isInRanges(order?.updated_at || order?.created_at, ranges),
         );
+        const orderIds = rangeFilteredOrders.map((o: any) => o.id);
+        if (!orderIds.length) return [];
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('id, order_id, product_id, gift_quantity, gift_pieces, pieces_per_box')
+          .eq('product_id', productId)
+          .in('order_id', orderIds);
 
-        const names = await resolveWorkers(mergedRows.map((r: any) => r.worker_id));
-        const customerIds = Array.from(new Set(mergedRows.map((r: any) => r.customer_id).filter(Boolean)));
+        const orderById = new Map(rangeFilteredOrders.map((o: any) => [o.id, o]));
+        const filtered = (items || []).filter((it: any) =>
+          Number(it.gift_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0,
+        );
+        const names = await resolveWorkers(filtered.map((it: any) => orderById.get(it.order_id)?.assigned_worker_id).filter(Boolean));
+        const customerIds = Array.from(new Set(filtered.map((it: any) => orderById.get(it.order_id)?.customer_id).filter(Boolean)));
         const { data: customers } = customerIds.length
           ? await supabase.from('customers').select('id, name, store_name').in('id', customerIds as string[])
           : { data: [] as any[] };
         const custMap = new Map((customers || []).map((c: any) => [c.id, { store: c.store_name || null, full: c.name || null }]));
-        const orderIds = Array.from(new Set(mergedRows.map((r: any) => r.order_id).filter(Boolean)));
-        const { data: orders } = orderIds.length
-          ? await supabase.from('orders').select('id, status').in('id', orderIds as string[])
-          : { data: [] as any[] };
-        const orderStatusMap = new Map((orders || []).map((o: any) => [o.id, o.status]));
-        return mergedRows.map((r: any) => {
-          const ppb = Number(r.pieces_per_box) || piecesPerBox;
-          const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
-          const c = custMap.get(r.customer_id) || { store: null, full: null };
-          const customerFallback = r.customer_name || null;
-          const cname = c.store || c.full || customerFallback;
-          const delivered: boolean | null = r.order_id ? orderStatusMap.get(r.order_id) === 'delivered' : null;
-          return {
-            id: r.id,
-            when: r.sold_at,
-            qty: piecesToDbBP(pieces, piecesPerBox),
-            who: cname || names.get(r.worker_id) || null,
-            refLabel: r.source === 'manual_promo' ? 'إدخال يدوي' : r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
-            customerId: r.customer_id || null,
-            customerName: cname,
-            customerStoreName: c.store,
-            customerFullName: c.full || customerFallback,
-            delivered,
-            workerName: names.get(r.worker_id) || null,
-          };
-        });
+
+        return filtered
+          .map((it: any) => {
+            const o = orderById.get(it.order_id) as any;
+            const ppb = Number(it.pieces_per_box) || piecesPerBox;
+            const giftBoxesRaw = Number(it.gift_quantity || 0);
+            const giftBoxes = Math.floor(giftBoxesRaw);
+            const giftBoxPieces = Math.round((giftBoxesRaw - giftBoxes) * 100);
+            const extraGiftPieces = Number(it.gift_pieces || 0);
+            const pieces = giftBoxes * ppb + giftBoxPieces + extraGiftPieces;
+            const c = custMap.get(o?.customer_id) || { store: null, full: null };
+            const cname = c.store || c.full || null;
+            return {
+              id: it.id,
+              when: o?.updated_at || o?.created_at || null,
+              qty: piecesToDbBP(pieces, piecesPerBox),
+              who: cname || names.get(o?.assigned_worker_id) || null,
+              refLabel: 'توصيل',
+              customerId: o?.customer_id || null,
+              customerName: cname,
+              customerStoreName: c.store,
+              customerFullName: c.full,
+              delivered: true,
+              workerName: names.get(o?.assigned_worker_id) || null,
+            };
+          })
+          .sort((a: any, b: any) => new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime());
       }
 
       // damaged / factoryReturn / compensation → activity_logs manual edits
