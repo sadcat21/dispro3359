@@ -51,6 +51,7 @@ interface Entry {
   customerNameFr?: string | null;
   customerPhone?: string | null;
   sectorName?: string | null;
+  zoneName?: string | null;
   soldQty?: number;
   delivered?: boolean | null; // null = no related order
   workerName?: string | null;
