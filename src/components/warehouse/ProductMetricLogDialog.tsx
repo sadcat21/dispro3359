@@ -357,9 +357,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
   const [workerFilter, setWorkerFilter] = useState<string | null>(null);
 
   const filteredData = useMemo(() => {
-    if (!workerFilter) return data || [];
-    return (data || []).filter(e => e.workerName === workerFilter);
-  }, [data, workerFilter]);
+    let arr = data || [];
+    if (ranges && ranges.length) {
+      arr = arr.filter((e) => isInRanges(e.when, ranges));
+    }
+    if (workerFilter) arr = arr.filter((e) => e.workerName === workerFilter);
+    return arr;
+  }, [data, workerFilter, ranges]);
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
