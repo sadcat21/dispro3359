@@ -16,7 +16,6 @@ export interface OffersLogPrintRow {
 
 interface Props {
   rows: OffersLogPrintRow[];
-  rows: OffersLogPrintRow[];
   productName: string;
   promoLabel?: string;
   periode?: string;
@@ -25,6 +24,7 @@ interface Props {
 
 const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
   ({ rows, productName, promoLabel = '', periode = '', isVisible = false }, ref) => {
+    const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     useLayoutEffect(() => {
@@ -41,6 +41,7 @@ const OffersLogPrintViewFr = forwardRef<HTMLDivElement, Props>(
         containerRef.current = null;
       };
     }, []);
+
 
     const minRows = 20;
     const emptyRowsCount = Math.max(0, minRows - rows.length);
