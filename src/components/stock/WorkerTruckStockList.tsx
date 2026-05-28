@@ -726,7 +726,9 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                       <Badge className="bg-amber-100 text-amber-800 border-amber-300" title="هدايا مؤجَّلة لم يؤكِّدها المسؤول بعد، لذلك لا تزال داخل الشاحنة">
                         هدايا بانتظار التأكيد {fmtBP(history.pendingGiftTotal, history.ppb)}
                       </Badge>
+                    )}
                     {history.totalReturned > 0 && (
+
                       <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200" title="كميات أُعيدت إلى الشاحنة بعد تعديل/إلغاء طلبيات">
                         إرجاع للمخزون +{fmtBP(history.totalReturned, history.ppb)}
                       </Badge>
