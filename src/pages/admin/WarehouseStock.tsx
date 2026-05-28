@@ -201,26 +201,59 @@ const WarehouseStock: React.FC = () => {
 
   // Fetch sold from order_items for delivered orders. Each item carries the
   // order's updated_at so window-filtering by receipt sessions can be applied.
+  const rangesKey = useMemo(
+    () => selectedReceiptRanges.map(r => `${r.id}:${r.start}:${r.end}`).join('|'),
+    [selectedReceiptRanges],
+  );
   const { data: soldData, isLoading: soldLoading } = useQuery({
-    queryKey: ['warehouse-sold-summary', branchId],
+    queryKey: ['warehouse-sold-summary', branchId, rangesKey],
     queryFn: async () => {
       if (!branchId) return [] as any[];
-      const { data: deliveredOrders } = await supabase
-        .from('orders')
-        .select('id, updated_at, created_at')
-        .eq('branch_id', branchId)
-        .eq('status', 'delivered');
-      const orderIds = (deliveredOrders || []).map(o => o.id);
+      // Paginate delivered orders to avoid Supabase's 1000-row default cap.
+      const PAGE = 1000;
+      let from = 0;
+      const deliveredOrders: any[] = [];
+      // When ranges are active, restrict by earliest start to limit payload.
+      const minStart = selectedReceiptRanges.length
+        ? selectedReceiptRanges.reduce(
+            (m, r) => (new Date(r.start).getTime() < new Date(m).getTime() ? r.start : m),
+            selectedReceiptRanges[0].start,
+          )
+        : null;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        let q = supabase
+          .from('orders')
+          .select('id, updated_at, created_at')
+          .eq('branch_id', branchId)
+          .eq('status', 'delivered')
+          .order('updated_at', { ascending: false })
+          .range(from, from + PAGE - 1);
+        if (minStart) q = q.gte('updated_at', minStart);
+        const { data: page } = await q;
+        if (!page || page.length === 0) break;
+        deliveredOrders.push(...page);
+        if (page.length < PAGE) break;
+        from += PAGE;
+      }
+      const orderIds = deliveredOrders.map(o => o.id);
       if (orderIds.length === 0) return [];
-      const dateById = new Map((deliveredOrders || []).map((o: any) => [o.id, o.updated_at || o.created_at]));
-      const { data } = await supabase
-        .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity')
-        .in('order_id', orderIds);
-      return (data || []).map((it: any) => ({ ...it, _delivered_at: dateById.get(it.order_id) || null }));
+      const dateById = new Map(deliveredOrders.map((o: any) => [o.id, o.updated_at || o.created_at]));
+      // Paginate order_items too.
+      const items: any[] = [];
+      for (let i = 0; i < orderIds.length; i += 200) {
+        const slice = orderIds.slice(i, i + 200);
+        const { data } = await supabase
+          .from('order_items')
+          .select('order_id, product_id, quantity, gift_quantity')
+          .in('order_id', slice);
+        if (data) items.push(...data);
+      }
+      return items.map((it: any) => ({ ...it, _delivered_at: dateById.get(it.order_id) || null }));
     },
     enabled: !!branchId,
   });
+
 
   // Fetch sales totals from sales_tracking after the latest receipt per product. We split by source:
   // - warehouse_sale: subtracted from المتبقي AND added to المباع
