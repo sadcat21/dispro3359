@@ -1,16 +1,20 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart,
+  Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart, Printer,
 } from 'lucide-react';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
 import { fetchDeliveredOrdersForBranch } from '@/utils/fetchDeliveredOrdersForBranch';
+import PromoPrintView from '@/components/print/PromoPrintView';
 import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
 import { isInRanges } from './ReceiptSessionsTimelineDialog';
+
 
 export type MetricKind =
   | 'gifts'
@@ -317,6 +321,8 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const [offerDetail, setOfferDetail] = useState<Entry | null>(null);
   const [workerFilter, setWorkerFilter] = useState<string | null>(null);
+  const [groupBy, setGroupBy] = useState<'worker' | 'customer'>('worker');
+  const [isPrintVisible, setIsPrintVisible] = useState(false);
 
   const filteredData = useMemo(() => {
     let arr = data || [];
@@ -329,9 +335,44 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
+  // Build promo-shaped rows for printing (offers metric only)
+  const printPromos = useMemo(() => {
+    if (metric !== 'offers') return [] as any[];
+    const sorted = [...filteredData].sort((a, b) => {
+      const ak = groupBy === 'worker' ? (a.workerName || '') : (a.customerName || '');
+      const bk = groupBy === 'worker' ? (b.workerName || '') : (b.customerName || '');
+      if (ak !== bk) return ak.localeCompare(bk, 'ar');
+      return new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime();
+    });
+    return sorted.map((e) => ({
+      id: e.id,
+      vente_quantity: 0,
+      gratuite_quantity: e.qty,
+      promo_date: e.when || new Date().toISOString(),
+      customer: { name: e.customerName || e.customerFullName || '', address: '', wilaya: '', phone: '' },
+      product: { name: productName },
+      worker: { full_name: e.workerName || '' },
+    }));
+  }, [filteredData, groupBy, metric, productName]);
+
+  const handlePrint = () => {
+    setIsPrintVisible(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => setIsPrintVisible(false), 500);
+    }, 100);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
+        {metric === 'offers' && (
+          <PromoPrintView
+            promos={printPromos as any}
+            productName={productName}
+            isVisible={isPrintVisible}
+          />
+        )}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 flex-wrap">
             <span className={meta.accent}>{meta.icon}</span>
@@ -344,6 +385,27 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           <span className="text-sm font-semibold">الإجمالي</span>
           <Badge className={`${meta.tone} text-sm font-bold border`}>{fmt(total)}</Badge>
         </div>
+
+        {metric === 'offers' && (
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'worker' | 'customer')}>
+              <TabsList className="h-8">
+                <TabsTrigger value="worker" className="text-xs h-6">حسب العمال</TabsTrigger>
+                <TabsTrigger value="customer" className="text-xs h-6">حسب العملاء</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handlePrint}
+              disabled={filteredData.length === 0}
+              className="gap-1 h-8"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span className="text-xs">طباعة</span>
+            </Button>
+          </div>
+        )}
 
         {workerFilter && (
           <button
@@ -361,13 +423,17 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           ) : (filteredData.length === 0) ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد سجلات</div>
           ) : (() => {
-            // Group entries by workerName
+            // Group entries by selected key (worker or customer for offers)
             const groups = new Map<string, Entry[]>();
+            const useCustomer = metric === 'offers' && groupBy === 'customer';
             for (const e of filteredData) {
-              const k = e.workerName || 'بدون عامل';
+              const k = useCustomer
+                ? (e.customerName || e.customerFullName || 'بدون عميل')
+                : (e.workerName || 'بدون عامل');
               if (!groups.has(k)) groups.set(k, []);
               groups.get(k)!.push(e);
             }
+
             const palette = [
               'bg-blue-50 text-blue-700 border-blue-300',
               'bg-amber-50 text-amber-700 border-amber-300',
