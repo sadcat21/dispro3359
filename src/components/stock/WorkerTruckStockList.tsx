@@ -350,20 +350,24 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       const s = stats[pid] || {};
       const totalLoaded = Number(s.loaded || 0) + Number(s.loadedGiftQty || 0);
       const totalConsumed = Number(s.unloaded || 0) + Number(s.sold || 0) + Number(s.deliveredGiftQty || 0);
+      // التعديلات: الإرجاع للمخزون (موجب) لا يُضاف إلى رصيد الشاحنة لأن البضاعة لم تعد فعلياً للشاحنة،
+      // أما السحب الإضافي (سالب) فيُخصم من الرصيد.
       const modificationDelta = (modificationData as any[])
         .filter((it: any) => it.product_id === pid)
         .reduce((sum, m: any) => {
           const signed = Number(m.signed_quantity ?? 0);
-          const deltaBoxes = dbBPToBoxes(Math.abs(signed), ppb) * (signed >= 0 ? 1 : -1);
+          if (signed >= 0) return sum; // تجاهل الإرجاع الموجب
+          const deltaBoxes = -dbBPToBoxes(Math.abs(signed), ppb);
           return sum + deltaBoxes;
         }, 0);
       const openingBalance = hasTrueReset
         ? 0
         : Math.max(0, storedQty + totalConsumed - modificationDelta - totalLoaded);
       const total = openingBalance + totalLoaded;
-      // الباقي = المجموع (الافتتاحي + المُحمَّل) − (المباع + الهدايا + التفريغ) + تعديلات.
+      // الباقي = المجموع (الافتتاحي + المُحمَّل) − (المباع + الهدايا + التفريغ) − السحوبات الإضافية.
       const remaining = Math.max(0, total - totalConsumed + modificationDelta);
       out[pid] = { remaining, total, openingBalance };
+
     }
 
     return out;
@@ -744,10 +748,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     {history.pendingGiftTotal > 0 && (
                       <span className="mr-1 text-amber-700">(منها {fmtBP(history.pendingGiftTotal, history.ppb)} هدايا بانتظار التأكيد)</span>
                     )}
-                    {history.totalReturned > 0 && (
-                      <span className="mr-1 text-emerald-700">(+{fmtBP(history.totalReturned, history.ppb)} إرجاع من تعديل المبيعات)</span>
-                    )}
                   </div>
+
 
 
                 </div>
