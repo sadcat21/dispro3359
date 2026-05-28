@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Users, Truck, RotateCcw, Package } from 'lucide-react';
-import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { Users, Truck, RotateCcw, Package, Boxes } from 'lucide-react';
 
 interface Props {
   open: boolean;
