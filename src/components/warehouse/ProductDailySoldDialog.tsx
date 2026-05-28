@@ -182,9 +182,9 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           <span className="text-sm font-semibold text-orange-700">الإجمالي</span>
           <div className="flex items-center gap-1.5">
             {totalGiftPieces > 0 && (
-              <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[11px]">🎁 {fmt(totalGiftDb)}</Badge>
+              <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[11px]">🎁 {fmtPpb(totalGiftDb)}</Badge>
             )}
-            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm">{fmt(totalDb)}</Badge>
+            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-sm">{fmtPpb(totalDb)}</Badge>
           </div>
         </div>
 
@@ -212,9 +212,9 @@ const ProductDailySoldDialog: React.FC<Props> = ({
                   </div>
                   <div className="flex items-center gap-1.5">
                     {d.giftPieces > 0 && (
-                      <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px]">🎁 {fmt(d.giftDbValue)}</Badge>
+                      <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px]">🎁 {fmtPpb(d.giftDbValue)}</Badge>
                     )}
-                    <span className="font-extrabold text-orange-700 tabular-nums">{fmt(d.dbValue)}</span>
+                    <span className="font-extrabold text-orange-700 tabular-nums">{fmtPpb(d.dbValue)}</span>
                   </div>
                 </summary>
                 <div className="px-3 pb-2 pt-1 space-y-1">
@@ -226,9 +226,9 @@ const ProductDailySoldDialog: React.FC<Props> = ({
                       </div>
                       <div className="flex items-center gap-1.5">
                         {w.giftPieces > 0 && (
-                          <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0">🎁 {fmt(w.giftDbValue)}</Badge>
+                          <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0">🎁 {fmtPpb(w.giftDbValue)}</Badge>
                         )}
-                        <span className="text-xs font-extrabold text-orange-700 tabular-nums">{fmt(w.dbValue)}</span>
+                        <span className="text-xs font-extrabold text-orange-700 tabular-nums">{fmtPpb(w.dbValue)}</span>
                       </div>
                     </div>
                   ))}
