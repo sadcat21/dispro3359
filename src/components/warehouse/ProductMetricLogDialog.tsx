@@ -387,25 +387,26 @@ const ProductMetricLogDialog: React.FC<Props> = ({
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
-  // Build promo-shaped rows for printing (offers metric only)
-  const printPromos = useMemo(() => {
+  // Build rows for the French offers-log print sheet
+  const printRows = useMemo(() => {
     if (metric !== 'offers') return [] as any[];
     const sorted = [...filteredData].sort((a, b) => {
-      const ak = groupBy === 'worker' ? (a.workerName || '') : (a.customerName || '');
-      const bk = groupBy === 'worker' ? (b.workerName || '') : (b.customerName || '');
-      if (ak !== bk) return ak.localeCompare(bk, 'ar');
+      const ak = groupBy === 'worker' ? (a.workerName || '') : (a.customerNameFr || a.customerName || '');
+      const bk = groupBy === 'worker' ? (b.workerName || '') : (b.customerNameFr || b.customerName || '');
+      if (ak !== bk) return ak.localeCompare(bk);
       return new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime();
     });
     return sorted.map((e) => ({
       id: e.id,
-      vente_quantity: 0,
-      gratuite_quantity: e.qty,
-      promo_date: e.when || new Date().toISOString(),
-      customer: { name: e.customerName || e.customerFullName || '', address: '', wilaya: '', phone: '' },
-      product: { name: productName },
-      worker: { full_name: e.workerName || '' },
+      customerNameFr: e.customerNameFr || e.customerFullName || e.customerName || '',
+      customerPhone: e.customerPhone || '',
+      sectorName: e.sectorName || '',
+      soldDisplay: fmt(e.soldQty || 0),
+      promoDisplay: fmt(e.qty || 0),
+      workerName: e.workerName || '',
+      date: e.when || new Date().toISOString(),
     }));
-  }, [filteredData, groupBy, metric, productName]);
+  }, [filteredData, groupBy, metric, fmt]);
 
   const handlePrint = () => {
     setIsPrintVisible(true);
@@ -419,12 +420,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md h-[90vh] flex flex-col overflow-hidden">
         {metric === 'offers' && (
-          <PromoPrintView
-            promos={printPromos as any}
+          <OffersLogPrintViewFr
+            rows={printRows}
             productName={productName}
             isVisible={isPrintVisible}
           />
         )}
+
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 flex-wrap">
             <span className={meta.accent}>{meta.icon}</span>
