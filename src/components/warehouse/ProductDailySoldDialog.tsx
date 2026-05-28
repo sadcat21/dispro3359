@@ -198,7 +198,12 @@ const ProductDailySoldDialog: React.FC<Props> = ({
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>{d.day === '—' ? '—' : new Date(d.day).toLocaleDateString('ar-DZ')}</span>
                   </div>
-                  <span className="font-extrabold text-orange-700 tabular-nums">{fmt(d.dbValue)}</span>
+                  <div className="flex items-center gap-1.5">
+                    {d.giftPieces > 0 && (
+                      <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px]">🎁 {fmt(d.giftDbValue)}</Badge>
+                    )}
+                    <span className="font-extrabold text-orange-700 tabular-nums">{fmt(d.dbValue)}</span>
+                  </div>
                 </summary>
                 <div className="px-3 pb-2 pt-1 space-y-1">
                   {d.workers.map(w => (
@@ -207,8 +212,14 @@ const ProductDailySoldDialog: React.FC<Props> = ({
                         <User className="w-3.5 h-3.5" />
                         <span>{w.name}</span>
                       </div>
-                      <span className="text-xs font-extrabold text-orange-700 tabular-nums">{fmt(w.dbValue)}</span>
+                      <div className="flex items-center gap-1.5">
+                        {w.giftPieces > 0 && (
+                          <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] px-1.5 py-0">🎁 {fmt(w.giftDbValue)}</Badge>
+                        )}
+                        <span className="text-xs font-extrabold text-orange-700 tabular-nums">{fmt(w.dbValue)}</span>
+                      </div>
                     </div>
+                  ))}
                   ))}
                 </div>
               </details>
