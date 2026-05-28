@@ -123,29 +123,42 @@ const ProductMetricLogDialog: React.FC<Props> = ({
       }
 
       if (metric === 'gifts') {
-        // Per-delivery breakdown from sales_tracking gift_boxes / gift_pieces
-        const { data: rows } = await supabase
-          .from('sales_tracking')
-          .select('id, sold_at, worker_id, customer_id, customer_name, gift_boxes, gift_pieces, pieces_per_box, source, order_id, branch_id')
+        // Source of truth: delivered orders + order_items (sales_tracking is unreliable —
+        // rows get deleted on order modification and partial-inserted by deferred-offer confirms).
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
+          .eq('branch_id', branchId)
+          .eq('status', 'delivered');
+        const orderIds = (orders || []).map((o: any) => o.id);
+        if (!orderIds.length) return [];
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('id, order_id, product_id, gift_quantity, pieces_per_box')
           .eq('product_id', productId)
-          .or(`branch_id.eq.${branchId},branch_id.is.null`)
-          .order('sold_at', { ascending: false });
-        const filtered = dedupeSalesTrackingRows((rows || []).filter((r: any) =>
-          (Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0)
-        ));
-        const names = await resolveWorkers(filtered.map((r: any) => r.worker_id));
-        return filtered.map((r: any) => {
-          const ppb = Number(r.pieces_per_box) || piecesPerBox;
-          const pieces = Number(r.gift_boxes || 0) * ppb + Number(r.gift_pieces || 0);
-          return {
-            id: r.id,
-            when: r.sold_at,
-            qty: piecesToDbBP(pieces, piecesPerBox),
-            who: names.get(r.worker_id) || null,
-            refLabel: r.source === 'warehouse_sale' ? 'بيع من المخزن' : r.source === 'direct_sale' ? 'بيع مباشر' : 'توصيل',
-          };
-        });
+          .in('order_id', orderIds);
+        const orderById = new Map((orders || []).map((o: any) => [o.id, o]));
+        const filtered = (items || []).filter((it: any) => Number(it.gift_quantity || 0) > 0);
+        const names = await resolveWorkers(filtered.map((it: any) => orderById.get(it.order_id)?.assigned_worker_id).filter(Boolean));
+        return filtered
+          .map((it: any) => {
+            const o = orderById.get(it.order_id) as any;
+            const ppb = Number(it.pieces_per_box) || piecesPerBox;
+            const g = Number(it.gift_quantity || 0);
+            const gBoxes = Math.floor(g);
+            const gPieces = Math.round((g - gBoxes) * 100);
+            const pieces = gBoxes * ppb + gPieces;
+            return {
+              id: it.id,
+              when: o?.updated_at || o?.created_at || null,
+              qty: piecesToDbBP(pieces, piecesPerBox),
+              who: names.get(o?.assigned_worker_id) || null,
+              refLabel: 'توصيل',
+            };
+          })
+          .sort((a: any, b: any) => new Date(b.when || 0).getTime() - new Date(a.when || 0).getTime());
       }
+
 
       if (metric === 'offers') {
         // Offers/promo gifts tracked via sales_tracking gift_boxes / gift_pieces
