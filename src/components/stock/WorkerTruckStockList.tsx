@@ -323,7 +323,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
   const balanceByProduct = useMemo(() => {
     const out: Record<string, { remaining: number; total: number; openingBalance: number }> = {};
     const productIds = new Set<string>([
-      ...(truckStock as any[]).map((it) => String(it.product_id)),
+      ...truckStock.map((p: any) => String(p.product_id)),
       ...loadedData.map((it: any) => String(it.product_id)),
       ...unloadedData.map((it: any) => String(it.product_id)),
       ...soldData.map((it: any) => String(it.product_id)),
@@ -332,49 +332,46 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
     for (const pid of productIds) {
       const ppb = ppbOf(pid);
-      const storedQty = dbBPToBoxes(Number((truckStock as any[]).find((it) => it.product_id === pid)?.quantity || 0), ppb);
-      const productLoads = [...loadedData.filter((it: any) => it.product_id === pid)].sort(
-        (a: any, b: any) => (new Date(a._session?.created_at || 0).getTime() || 0) - (new Date(b._session?.created_at || 0).getTime() || 0)
-      );
+      const s = stats[pid] || {};
+      // الباقي = آخر شحنة − (المباع + الهدايا + التفريغ + خصومات التعريض) منذ آخر شحنة فقط.
+      const lastAt = Number(s.lastLoadedAt || 0);
+      const total = Number(s.lastLoaded || 0);
 
-      let hasTrueReset = false;
-      for (const it of productLoads) {
-        const paidQty = dbBPToBoxes(Number(it.quantity || 0), ppb);
-        const giftQty = it.gift_unit === 'piece'
-          ? Math.max(0, Number(it.gift_quantity || 0)) / ppb
-          : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
-        const previousQty = dbBPToBoxes(Number(it.previous_quantity || 0), ppb);
-        if ((paidQty + giftQty) > 0 && previousQty <= 0) {
-          hasTrueReset = true;
-          break;
-        }
+      let sinceConsumed = 0;
+      // التفريغ منذ آخر شحنة
+      for (const it of unloadedData) {
+        if (String(it.product_id) !== pid) continue;
+        const ts = it._session?.created_at ? new Date(it._session.created_at).getTime() : 0;
+        if (ts < lastAt) continue;
+        sinceConsumed += dbBPToBoxes(Number(it.quantity || 0), ppb);
+      }
+      // المباع + الهدايا المُسلَّمة منذ آخر شحنة
+      for (const it of soldData) {
+        if (String(it.product_id) !== pid) continue;
+        const ts = it.order_updated_at
+          ? new Date(it.order_updated_at).getTime()
+          : (it.order_created_at ? new Date(it.order_created_at).getTime() : 0);
+        if (ts < lastAt) continue;
+        const { paid, gift } = deliveredSaleBreakdown(it, ppb);
+        sinceConsumed += paid + gift;
+      }
+      // التعريض السالب (خصم إضافي) منذ آخر شحنة — الموجب مُتجاهَل دائماً
+      for (const m of modificationData as any[]) {
+        if (String(m.product_id) !== pid) continue;
+        const ts = m.created_at ? new Date(m.created_at).getTime() : 0;
+        if (ts < lastAt) continue;
+        const signed = Number(m.signed_quantity ?? 0);
+        if (signed >= 0) continue;
+        sinceConsumed += dbBPToBoxes(Math.abs(signed), ppb);
       }
 
-      const s = stats[pid] || {};
-      const totalLoaded = Number(s.loaded || 0) + Number(s.loadedGiftQty || 0);
-      const totalConsumed = Number(s.unloaded || 0) + Number(s.sold || 0) + Number(s.deliveredGiftQty || 0);
-      // التعديلات: الإرجاع للمخزون (موجب) لا يُضاف إلى رصيد الشاحنة لأن البضاعة لم تعد فعلياً للشاحنة،
-      // أما السحب الإضافي (سالب) فيُخصم من الرصيد.
-      const modificationDelta = (modificationData as any[])
-        .filter((it: any) => it.product_id === pid)
-        .reduce((sum, m: any) => {
-          const signed = Number(m.signed_quantity ?? 0);
-          if (signed >= 0) return sum; // تجاهل الإرجاع الموجب
-          const deltaBoxes = -dbBPToBoxes(Math.abs(signed), ppb);
-          return sum + deltaBoxes;
-        }, 0);
-      const openingBalance = hasTrueReset
-        ? 0
-        : Math.max(0, storedQty + totalConsumed - modificationDelta - totalLoaded);
-      const total = openingBalance + totalLoaded;
-      // الباقي = المجموع (الافتتاحي + المُحمَّل) − (المباع + الهدايا + التفريغ) − السحوبات الإضافية.
-      const remaining = Math.max(0, total - totalConsumed + modificationDelta);
-      out[pid] = { remaining, total, openingBalance };
-
+      const remaining = Math.max(0, total - sinceConsumed);
+      out[pid] = { remaining, total, openingBalance: 0 };
     }
 
     return out;
   }, [truckStock, loadedData, unloadedData, soldData, modificationData, stats, ppbMap]);
+
 
   const history = useMemo(() => {
     if (!selected) return null;
