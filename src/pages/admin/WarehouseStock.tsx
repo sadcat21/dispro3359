@@ -425,6 +425,7 @@ const WarehouseStock: React.FC = () => {
       const s = summaries[pid];
       const deductions = (s.workerStock || 0)
         + (s.sold || 0)
+        + (s.offers || 0)
         + (s.surplus || 0)
         + (s.deficit || 0)
         + (s.damaged || 0)
