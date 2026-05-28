@@ -386,11 +386,10 @@ const WarehouseStock: React.FC = () => {
       const qPieces = Math.round((qty - qBoxes) * 100);
       const gBoxes = Math.floor(gift);
       const gPieces = Math.round((gift - gBoxes) * 100);
-      // المباع = الكمية الإجمالية − الهدية (بالقطع)
+      // المباع = الكمية الإجمالية (شاملة الهدية) — مصدر الحقيقة هو orders+order_items
       const totalPiecesAll = qBoxes * ppb + qPieces;
-      const giftPiecesAll = gBoxes * ppb + gPieces;
-      const paidPieces = Math.max(0, totalPiecesAll - giftPiecesAll);
-      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + paidPieces;
+      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + totalPiecesAll;
+
     }
 
     // warehouse_sale still needs sales_tracking (for "remaining" computation only)
@@ -437,16 +436,16 @@ const WarehouseStock: React.FC = () => {
       summaries[pid].sold = piecesToDbBP(soldPiecesByProduct[pid] || 0, ppb);
       summaries[pid].offers = piecesToDbBP(summaries[pid].offers || 0, ppb);
       const s = summaries[pid];
-      // المتبقي = المستلم − (عند العمال + المباع + العروض + الفائض + العجز + التالف + الإرجاع للمصنع + التعويض) + العجز? 
-      // المطلوب: خصم جميع البطاقات من المستلم.
+      // المتبقي = المستلم − جميع البطاقات. ملاحظة: "المباع" يشمل الهدية أصلاً
+      // (من order_items)، لذلك لا نطرح "العروض" مرة ثانية لتجنّب الاحتساب المزدوج.
       const deductions = (s.workerStock || 0)
         + (s.sold || 0)
-        + (s.offers || 0)
         + (s.surplus || 0)
         + (s.deficit || 0)
         + (s.damaged || 0)
         + (s.factoryReturn || 0)
         + (s.compensation || 0);
+
       summaries[pid].remaining = Math.round((received - deductions) * 100) / 100;
 
     }
