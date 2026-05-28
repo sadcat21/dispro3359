@@ -231,7 +231,7 @@ const WarehouseStock: React.FC = () => {
         const slice = orderIds.slice(i, i + 200);
         const { data } = await supabase
           .from('order_items')
-          .select('order_id, product_id, quantity, gift_quantity')
+          .select('order_id, product_id, quantity, gift_quantity, gift_pieces')
           .in('order_id', slice);
         if (data) items.push(...data);
       }
@@ -342,7 +342,7 @@ const WarehouseStock: React.FC = () => {
       }
     }
 
-    // Gifts from delivered order_items (BP-encoded → convert to pieces).
+    // Offers/gifts from delivered order_items (authoritative source).
     for (const oi of (soldData || [])) {
       const pid = oi.product_id;
       if (!summaries[pid]) continue;
@@ -350,8 +350,11 @@ const WarehouseStock: React.FC = () => {
       const ppb = Number(products.find(p => p.id === pid)?.pieces_per_box) || 20;
       const g = Number((oi as any).gift_quantity || 0);
       const gBoxes = Math.floor(g);
-      const gPieces = Math.round((g - gBoxes) * 100);
-      summaries[pid].gifts += gBoxes * ppb + gPieces;
+      const gBoxPieces = Math.round((g - gBoxes) * 100);
+      const extraGiftPieces = Number((oi as any).gift_pieces || 0);
+      const giftPieces = gBoxes * ppb + gBoxPieces + extraGiftPieces;
+      summaries[pid].gifts += giftPieces;
+      summaries[pid].offers += giftPieces;
     }
 
 
@@ -389,11 +392,11 @@ const WarehouseStock: React.FC = () => {
       if (!inWindow((oi as any)._delivered_at)) continue;
       const ppb = ppbByProduct[pid] || 20;
       const qty = Number((oi as any).quantity || 0);            // BP-encoded boxes.pieces
-      const qBoxes = Math.floor(qty);
+      const giftBoxes = Number((oi as any).gift_quantity || 0);
+      const qBoxes = Math.max(0, Math.floor(qty) - giftBoxes);
       const qPieces = Math.round((qty - qBoxes) * 100);
-      // المباع = الكمية الإجمالية (شاملة الهدية)
-      const totalPiecesAll = qBoxes * ppb + qPieces;
-      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + totalPiecesAll;
+      const paidPieces = qBoxes * ppb + qPieces;
+      soldPiecesByProduct[pid] = (soldPiecesByProduct[pid] || 0) + paidPieces;
     }
 
     // warehouse_sale still needs sales_tracking (for "remaining" computation only)
@@ -408,27 +411,6 @@ const WarehouseStock: React.FC = () => {
       const fullBoxes = Math.floor(totalPieces / ppb);
       const remPieces = totalPieces % ppb;
       warehouseSaleByProduct[pid] = (warehouseSaleByProduct[pid] || 0) + (fullBoxes + remPieces / 100);
-    }
-
-
-    // Offers (promo gift_boxes/gift_pieces) from sales_tracking
-    const seenOfferOrderProduct = new Set<string>();
-    for (const s of ((warehouseSalesData || []) as WarehouseSaleSummaryRow[])) {
-      const pid = s.product_id;
-      if (!pid || !summaries[pid]) continue;
-      const status = (s as any).order?.status;
-      if (s.order_id && status !== 'delivered') continue;
-      if (!inWindow((s as any).sold_at)) continue;
-      if (s.order_id) {
-        const key = `${s.order_id}|${pid}`;
-        if (seenOfferOrderProduct.has(key)) continue;
-        seenOfferOrderProduct.add(key);
-      }
-      const ppb = Number(s.pieces_per_box) || 20;
-      const giftPieces = Number(s.gift_boxes || 0) * ppb + Number(s.gift_pieces || 0);
-      if (giftPieces > 0) {
-        summaries[pid].offers += giftPieces; // pieces; converted below
-      }
     }
 
     const warehouseQtyByProduct = new Map(
