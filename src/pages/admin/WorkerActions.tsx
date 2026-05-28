@@ -13,7 +13,7 @@ import { useMyUIOverrides, useMyRoleOverrides } from '@/hooks/useUIOverrides';
 import { Badge } from '@/components/ui/badge';
 import { Worker } from '@/types/database';
 import { getLocalizedName } from '@/utils/sectorName';
-import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getDeliveredPaidQuantity, getPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 
 const JS_DAY_TO_NAME: Record<number, string> = {
@@ -69,7 +69,9 @@ const confirmedOrderGiftToBoxes = (item: any, piecesPerBox: number) => {
 };
 
 const deliveredSaleBreakdown = (item: any, piecesPerBox: number) => {
-  const paid = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), piecesPerBox);
+  const paidFromOrder = bpStoredToBoxes(Number(getPaidQuantity(item) || 0), piecesPerBox);
+  const paidCapped = bpStoredToBoxes(Number(getDeliveredPaidQuantity(item) || 0), piecesPerBox);
+  const paid = Math.max(0, Math.max(paidFromOrder, paidCapped));
   const gift = confirmedOrderGiftToBoxes(item, piecesPerBox);
   return {
     paid,
