@@ -162,8 +162,17 @@ const PromoTable: React.FC = () => {
         promo.worker?.full_name?.toLowerCase().includes(query);
       
       return inDateRange && matchesWorker && matchesProduct && matchesSearch && matchesBranch;
+    }).sort((a, b) => {
+      if (groupBy === 'worker') {
+        const w = (a.worker?.full_name || '').localeCompare(b.worker?.full_name || '', 'ar');
+        if (w !== 0) return w;
+        return (a.customer?.name || '').localeCompare(b.customer?.name || '', 'ar');
+      }
+      const c = (a.customer?.name || '').localeCompare(b.customer?.name || '', 'ar');
+      if (c !== 0) return c;
+      return new Date(b.promo_date).getTime() - new Date(a.promo_date).getTime();
     });
-  }, [promos, selectedWorker, dateFilterType, startDate, endDate, selectedProduct, searchQuery, activeBranch]);
+  }, [promos, selectedWorker, dateFilterType, startDate, endDate, selectedProduct, searchQuery, activeBranch, groupBy]);
 
   // Reset pagination when filters change
   useEffect(() => {
