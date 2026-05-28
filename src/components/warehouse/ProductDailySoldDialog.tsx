@@ -82,7 +82,10 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         from += PAGE;
       }
 
+      const filteredOrders = orders.filter((o: any) =>
+        !hasRanges || isInRanges(o.updated_at || o.created_at, ranges!),
       );
+
 
       const orderIds = filteredOrders.map((o: any) => o.id);
       if (orderIds.length === 0) return { rows: [], nameMap: new Map() };
