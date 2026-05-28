@@ -111,9 +111,10 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
                     <Package className="w-4 h-4 text-primary" />
                     {g.worker}
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1"><Truck className="w-3 h-3" />شحن {fmt(g.loaded)}</Badge>
                     <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 gap-1"><RotateCcw className="w-3 h-3" />تفريغ {fmt(g.returned)}</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1"><Boxes className="w-3 h-3" />الرصيد {fmt(stockByWorkerName?.get(g.worker) || 0)}</Badge>
                   </div>
                 </div>
                 <div className="space-y-1">
