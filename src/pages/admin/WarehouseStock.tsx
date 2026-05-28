@@ -355,6 +355,8 @@ const WarehouseStock: React.FC = () => {
       const giftPieces = gBoxes * ppb + gBoxPieces + extraGiftPieces;
       summaries[pid].gifts += giftPieces;
       summaries[pid].offers += giftPieces;
+    }
+
 
     // Manual promo entries (entered by admin via ManualPromoEntryDialog) are written to
     // sales_tracking with order_id = null. They never appear in order_items, so add them here.
