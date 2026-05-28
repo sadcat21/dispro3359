@@ -1,10 +1,10 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import {
   Gift, AlertTriangle, TrendingUp, TrendingDown, RotateCcw, HandCoins, Sparkles, Calendar, User, ChevronLeft, ShoppingCart, Printer,
 } from 'lucide-react';
@@ -320,18 +320,27 @@ const ProductMetricLogDialog: React.FC<Props> = ({
   });
 
   const [offerDetail, setOfferDetail] = useState<Entry | null>(null);
-  const [workerFilter, setWorkerFilter] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string | null>(null);
   const [groupBy, setGroupBy] = useState<'worker' | 'customer'>('worker');
   const [isPrintVisible, setIsPrintVisible] = useState(false);
+  const isCustomerGrouping = metric === 'offers' && groupBy === 'customer';
+  const activeGroupLabel = isCustomerGrouping ? 'العميل' : 'العامل';
 
   const filteredData = useMemo(() => {
     let arr = data || [];
     if (ranges && ranges.length) {
       arr = arr.filter((e) => isInRanges(e.when, ranges));
     }
-    if (workerFilter) arr = arr.filter((e) => e.workerName === workerFilter);
+    if (groupFilter) {
+      arr = arr.filter((e) => {
+        const key = isCustomerGrouping
+          ? (e.customerName || e.customerFullName || 'بدون عميل')
+          : (e.workerName || 'بدون عامل');
+        return key === groupFilter;
+      });
+    }
     return arr;
-  }, [data, workerFilter, ranges]);
+  }, [data, groupFilter, isCustomerGrouping, ranges]);
 
   const total = useMemo(() => filteredData.reduce((s, e) => s + (e.qty || 0), 0), [filteredData]);
 
@@ -387,13 +396,19 @@ const ProductMetricLogDialog: React.FC<Props> = ({
         </div>
 
         {metric === 'offers' && (
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'worker' | 'customer')}>
-              <TabsList className="h-8">
-                <TabsTrigger value="worker" className="text-xs h-6">حسب العمال</TabsTrigger>
-                <TabsTrigger value="customer" className="text-xs h-6">حسب العملاء</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex items-center justify-between gap-2 flex-wrap rounded-xl border border-border bg-muted/30 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">حسب العمال</span>
+              <Switch
+                checked={groupBy === 'customer'}
+                onCheckedChange={(checked) => {
+                  setGroupBy(checked ? 'customer' : 'worker');
+                  setGroupFilter(null);
+                }}
+                aria-label="التبديل بين العرض حسب العمال أو العملاء"
+              />
+              <span className="text-xs font-medium text-muted-foreground">حسب العملاء</span>
+            </div>
             <Button
               size="sm"
               variant="secondary"
@@ -407,13 +422,13 @@ const ProductMetricLogDialog: React.FC<Props> = ({
           </div>
         )}
 
-        {workerFilter && (
+        {groupFilter && (
           <button
             type="button"
-            onClick={() => setWorkerFilter(null)}
+            onClick={() => setGroupFilter(null)}
             className="text-[11px] underline text-muted-foreground hover:text-foreground self-start"
           >
-            إزالة فلتر العامل: {workerFilter}
+            إزالة فلتر {activeGroupLabel}: {groupFilter}
           </button>
         )}
 
@@ -451,12 +466,12 @@ const ProductMetricLogDialog: React.FC<Props> = ({
             };
             return Array.from(groups.entries())
               .sort((a, b) => b[1].reduce((s, e) => s + (e.qty || 0), 0) - a[1].reduce((s, e) => s + (e.qty || 0), 0))
-              .map(([workerName, entries]) => {
+              .map(([groupName, entries]) => {
               const groupTotal = entries.reduce((s, e) => s + (e.qty || 0), 0);
-              const headerCls = colorFor(workerName);
-              const isActive = workerFilter === workerName;
+              const headerCls = colorFor(groupName);
+              const isActive = groupFilter === groupName;
               return (
-                <details key={workerName} className="rounded-xl border overflow-hidden">
+                <details key={groupName} className="rounded-xl border overflow-hidden">
                   <summary className={`cursor-pointer select-none flex items-center justify-between gap-2 px-3 py-2 ${headerCls} ${isActive ? 'ring-2 ring-foreground/40' : ''}`}>
                     <span className="inline-flex items-center gap-2 text-xs font-bold">
                       <User className="w-3.5 h-3.5" />
@@ -465,11 +480,11 @@ const ProductMetricLogDialog: React.FC<Props> = ({
                         onClick={(ev) => {
                           ev.preventDefault();
                           ev.stopPropagation();
-                          setWorkerFilter(isActive ? null : workerName);
+                          setGroupFilter(isActive ? null : groupName);
                         }}
                         className="underline-offset-2 hover:underline"
                       >
-                        {workerName}
+                        {groupName}
                       </button>
                       <span className="text-[10px] opacity-70">({entries.length})</span>
                     </span>
