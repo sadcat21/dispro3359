@@ -750,7 +750,6 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                     )}
                   </div>
 
-                  </div>
 
 
                 </div>
