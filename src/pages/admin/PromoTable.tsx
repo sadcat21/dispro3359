@@ -65,6 +65,7 @@ const PromoTable: React.FC = () => {
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [isPrintVisible, setIsPrintVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupBy, setGroupBy] = useState<'customer' | 'worker'>('customer');
   const pageSize = 20;
 
   useEffect(() => {
