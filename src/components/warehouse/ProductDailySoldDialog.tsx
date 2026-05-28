@@ -27,38 +27,47 @@ const ProductDailySoldDialog: React.FC<Props> = ({
 
 
   const { data, isLoading } = useQuery({
-    queryKey: ['product-daily-sold', branchId, productId, sinceIso],
+    queryKey: ['product-daily-sold-v2', branchId, productId, sinceIso],
     enabled: open && !!branchId && !!productId,
     queryFn: async () => {
-      let q = supabase
-        .from('sales_tracking')
-        .select('sold_boxes, sold_pieces, pieces_per_box, sold_at, source, branch_id, worker_id, customer_id, order_id')
+      // Source of truth: delivered orders + order_items (sales_tracking is unreliable).
+      let oq = supabase
+        .from('orders')
+        .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
+        .eq('branch_id', branchId)
+        .eq('status', 'delivered');
+      if (sinceIso) oq = oq.gte('created_at', sinceIso);
+      const { data: orders } = await oq;
+
+      const orderIds = (orders || []).map((o: any) => o.id);
+      if (orderIds.length === 0) return { rows: [], nameMap: new Map() };
+
+      const { data: items } = await supabase
+        .from('order_items')
+        .select('order_id, product_id, quantity, gift_quantity, pieces_per_box')
         .eq('product_id', productId)
-        .in('source', ['warehouse_sale', 'delivery_sale', 'direct_sale'])
-        .or(`branch_id.eq.${branchId},branch_id.is.null`);
-      if (sinceIso) q = q.gte('sold_at', sinceIso);
-      const { data: rows } = await q;
+        .in('order_id', orderIds);
 
-      const orderIds = Array.from(new Set((rows || []).map((r: any) => r.order_id).filter(Boolean)));
-      const ordersRes = orderIds.length
-        ? await supabase.from('orders').select('id, status, branch_id').in('id', orderIds as string[])
-        : { data: [] as any[] };
-      const orderById = new Map((ordersRes.data || []).map((o: any) => [o.id, o]));
+      const orderById = new Map((orders || []).map((o: any) => [o.id, o]));
+      const rows = (items || []).map((it: any) => {
+        const o = orderById.get(it.order_id) as any;
+        return {
+          order_id: it.order_id,
+          worker_id: o?.assigned_worker_id || null,
+          sold_at: o?.updated_at || o?.created_at,
+          pieces_per_box: it.pieces_per_box || piecesPerBox,
+          quantity: Number(it.quantity || 0),
+          gift_quantity: Number(it.gift_quantity || 0),
+        };
+      });
 
-      const filtered = dedupeSalesTrackingRows((rows || []).filter((r: any) => {
-        const order = r.order_id ? orderById.get(r.order_id) : null;
-        if (r.order_id && order?.status !== 'delivered') return false;
-        const inferred = r.branch_id || order?.branch_id || null;
-        return !inferred || inferred === branchId;
-      }));
-
-      const workerIds = Array.from(new Set(filtered.map((r: any) => r.worker_id).filter(Boolean)));
+      const workerIds = Array.from(new Set(rows.map((r: any) => r.worker_id).filter(Boolean)));
       const namesRes = workerIds.length
         ? await supabase.from('workers_safe').select('id, full_name').in('id', workerIds as string[])
         : { data: [] as any[] };
       const nameMap = new Map((namesRes.data || []).map((w: any) => [w.id, w.full_name]));
 
-      return { rows: filtered, nameMap };
+      return { rows, nameMap };
     },
   });
 
@@ -72,7 +81,11 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     const dayMap = new Map<string, { pieces: number; workers: Map<string, number> }>();
     for (const r of ((data as any)?.rows || [])) {
       const rppb = Number((r as any).pieces_per_box || ppb);
-      const pieces = Number((r as any).sold_boxes || 0) * rppb + Number((r as any).sold_pieces || 0);
+      // quantity is BP-encoded (boxes.pieces); include gifts in total.
+      const q = Number((r as any).quantity || 0);
+      const qBoxes = Math.floor(q);
+      const qPieces = Math.round((q - qBoxes) * 100);
+      const pieces = qBoxes * rppb + qPieces;
       if (pieces <= 0) continue;
       const day = (r as any).sold_at ? new Date((r as any).sold_at).toISOString().slice(0, 10) : '—';
       if (!dayMap.has(day)) dayMap.set(day, { pieces: 0, workers: new Map() });
@@ -92,6 +105,7 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           .map(([name, p]) => ({ name, pieces: p, dbValue: toDb(p) })),
       }));
   }, [data, piecesPerBox]);
+
 
   const totalPieces = byDay.reduce((s, d) => s + d.pieces, 0);
   const totalDb = (() => {
