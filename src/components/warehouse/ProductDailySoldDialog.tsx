@@ -97,25 +97,33 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     const toDb = (pieces: number) => {
       const boxes = Math.floor(pieces / ppb);
       const rem = pieces % ppb;
+  const byDay = useMemo(() => {
+    const ppb = Math.max(1, piecesPerBox);
+    const toDb = (pieces: number) => {
+      const boxes = Math.floor(pieces / ppb);
+      const rem = pieces % ppb;
       return boxes + rem / 100;
     };
-    const dayMap = new Map<string, { pieces: number; workers: Map<string, number> }>();
+    const dayMap = new Map<string, { pieces: number; giftPieces: number; workers: Map<string, { pieces: number; giftPieces: number }> }>();
     for (const r of ((data as any)?.rows || [])) {
       const rppb = Number((r as any).pieces_per_box || ppb);
-      // quantity is BP-encoded (boxes.pieces) and INCLUDES full-box gifts;
-      // subtract gift_quantity so only PAID sales are counted.
       const q = Number((r as any).quantity || 0);
       const giftBoxes = Number((r as any).gift_quantity || 0);
       const qBoxes = Math.max(0, Math.floor(q) - giftBoxes);
       const qPieces = Math.round((q - Math.floor(q)) * 100);
       const pieces = qBoxes * rppb + qPieces;
-      if (pieces <= 0) continue;
+      const giftPieces = giftBoxes * rppb;
+      if (pieces <= 0 && giftPieces <= 0) continue;
       const day = (r as any).sold_at ? new Date((r as any).sold_at).toISOString().slice(0, 10) : '—';
-      if (!dayMap.has(day)) dayMap.set(day, { pieces: 0, workers: new Map() });
+      if (!dayMap.has(day)) dayMap.set(day, { pieces: 0, giftPieces: 0, workers: new Map() });
       const entry = dayMap.get(day)!;
       entry.pieces += pieces;
+      entry.giftPieces += giftPieces;
       const wn = ((data as any)?.nameMap?.get((r as any).worker_id)) || 'بدون عامل';
-      entry.workers.set(wn, (entry.workers.get(wn) || 0) + pieces);
+      const w = entry.workers.get(wn) || { pieces: 0, giftPieces: 0 };
+      w.pieces += pieces;
+      w.giftPieces += giftPieces;
+      entry.workers.set(wn, w);
     }
 
     return Array.from(dayMap.entries())
@@ -124,18 +132,14 @@ const ProductDailySoldDialog: React.FC<Props> = ({
         day,
         pieces: e.pieces,
         dbValue: toDb(e.pieces),
+        giftPieces: e.giftPieces,
+        giftDbValue: toDb(e.giftPieces),
         workers: Array.from(e.workers.entries())
-          .sort((a, b) => b[1] - a[1])
-          .map(([name, p]) => ({ name, pieces: p, dbValue: toDb(p) })),
+          .sort((a, b) => b[1].pieces - a[1].pieces)
+          .map(([name, p]) => ({ name, pieces: p.pieces, dbValue: toDb(p.pieces), giftPieces: p.giftPieces, giftDbValue: toDb(p.giftPieces) })),
       }));
   }, [data, piecesPerBox]);
 
-
-  const totalPieces = byDay.reduce((s, d) => s + d.pieces, 0);
-  const totalDb = (() => {
-    const ppb = Math.max(1, piecesPerBox);
-    const boxes = Math.floor(totalPieces / ppb);
-    const rem = totalPieces % ppb;
     return boxes + rem / 100;
   })();
 
