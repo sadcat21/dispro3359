@@ -125,10 +125,13 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
 
     for (const r of rows) {
       const rppb = Number(r.pieces_per_box || ppb);
-      // quantity field on order_items is already in B.P units (boxes incl. full-box gifts).
-      // Convert to pieces: floor=boxes, decimals*100=loose pieces.
-      const qBoxes = Math.floor(Number(r.quantity || 0));
-      const qPieces = Math.round((Number(r.quantity || 0) - qBoxes) * 100);
+      // quantity on order_items includes full-box gifts; subtract them so the
+      // competition shows PAID sales only. gift_pieces are loose gift pieces
+      // and are never part of quantity, so they're already excluded.
+      const qRaw = Number(r.quantity || 0);
+      const giftBoxes = Number(r.gift_quantity || 0);
+      const qBoxes = Math.max(0, Math.floor(qRaw) - giftBoxes);
+      const qPieces = Math.round((qRaw - Math.floor(qRaw)) * 100);
       const pieces = qBoxes * rppb + qPieces;
       if (pieces <= 0) continue;
       const wn = nameMap.get(r.worker_id) || 'بدون عامل';
@@ -138,6 +141,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
       const dm = workerDaily.get(wn)!;
       dm.set(day, (dm.get(day) || 0) + pieces);
     }
+
 
     const sortedWorkers = Array.from(workerTotals.entries()).sort((a, b) => b[1] - a[1]);
     const wnames = sortedWorkers.map(([n]) => n);
