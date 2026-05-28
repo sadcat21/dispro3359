@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import StockEmptyDialog from '@/components/warehouse/StockEmptyDialog';
 import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog';
 import { useNavigate } from 'react-router-dom';
-import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil, History, Filter, X } from 'lucide-react';
+import { Package, Users, Loader2, Search, BarChart3, ChevronDown, ChevronUp, ClipboardList, ClipboardCheck, Trash2, Pencil, History } from 'lucide-react';
 import WarehouseProductMovementDialog from '@/components/warehouse/WarehouseProductMovementDialog';
 import ProductWorkerMovementsDialog from '@/components/warehouse/ProductWorkerMovementsDialog';
 import ProductDailySoldDialog from '@/components/warehouse/ProductDailySoldDialog';
