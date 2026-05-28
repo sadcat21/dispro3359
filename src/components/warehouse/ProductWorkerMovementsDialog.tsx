@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Users, Truck, RotateCcw, Package, Boxes } from 'lucide-react';
-import { dbBPDisplay } from '@/utils/boxPieceInput';
+import { Users, Truck, RotateCcw, Package, Boxes, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface Props {
   open: boolean;
@@ -102,33 +103,36 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground border rounded-xl">جارٍ التحميل...</div>
           ) : grouped.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground border rounded-xl">لا توجد حركات</div>
-          ) : (
             grouped.map(g => (
-              <div key={g.worker} className="border rounded-xl p-3 space-y-2 bg-muted/20">
-                <div className="font-semibold text-sm flex items-center gap-1.5">
-                  <Package className="w-4 h-4 text-primary" />
-                  {g.worker}
-                </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1"><Boxes className="w-3 h-3" />الرصيد {fmt(stockByWorkerName?.get(g.worker) || 0)}</Badge>
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1"><Truck className="w-3 h-3" />شحن {fmt(g.loaded)}</Badge>
-                  <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 gap-1"><RotateCcw className="w-3 h-3" />تفريغ {fmt(g.returned)}</Badge>
-                </div>
-                <div className="space-y-1">
-                  {g.entries.map(e => {
-                    const isLoad = e.type === 'load';
-                    return (
-                      <div key={e.id} className={`text-[11px] flex items-center justify-between gap-2 px-2 py-1 rounded-md ${isLoad ? 'bg-blue-50' : 'bg-cyan-50'}`}>
-                        <span className="text-muted-foreground">{new Date(e.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                        <span className={`font-bold ${isLoad ? 'text-blue-700' : 'text-cyan-700'}`}>
-                          {isLoad ? 'شحن' : 'تفريغ'} {fmt(e.qty)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              <Collapsible key={g.worker} className="border rounded-xl p-3 space-y-2 bg-muted/20">
+                <CollapsibleTrigger className="w-full text-right space-y-2">
+                  <div className="font-semibold text-sm flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-primary" />
+                    {g.worker}
+                    <ChevronDown className="w-4 h-4 ml-auto transition-transform data-[state=open]:rotate-180" />
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1"><Boxes className="w-3 h-3" />الرصيد {fmt(stockByWorkerName?.get(g.worker) || 0)}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1"><Truck className="w-3 h-3" />شحن {fmt(g.loaded)}</Badge>
+                    <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 gap-1"><RotateCcw className="w-3 h-3" />تفريغ {fmt(g.returned)}</Badge>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-1">
+                    {g.entries.map(e => {
+                      const isLoad = e.type === 'load';
+                      return (
+                        <div key={e.id} className={`text-[11px] flex items-center justify-between gap-2 px-2 py-1 rounded-md ${isLoad ? 'bg-blue-50' : 'bg-cyan-50'}`}>
+                          <span className="text-muted-foreground">{new Date(e.when).toLocaleString('ar-DZ', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                          <span className={`font-bold ${isLoad ? 'text-blue-700' : 'text-cyan-700'}`}>
+                            {isLoad ? 'شحن' : 'تفريغ'} {fmt(e.qty)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))
           )}
         </div>
