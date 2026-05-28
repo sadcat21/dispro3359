@@ -92,8 +92,19 @@ const ProductDailySoldDialog: React.FC<Props> = ({
     },
   });
 
+  const effectivePpb = useMemo(() => {
+    const rows = ((data as any)?.rows || []) as any[];
+    for (const r of rows) {
+      const v = Number(r?.pieces_per_box || 0);
+      if (v > 1) return v;
+    }
+    return Math.max(1, Number(piecesPerBox) || 1);
+  }, [data, piecesPerBox]);
+
+  const fmtPpb = (v: number) => dbBPDisplay(Math.max(0, v), effectivePpb);
+
   const byDay = useMemo(() => {
-    const ppb = Math.max(1, piecesPerBox);
+    const ppb = Math.max(1, effectivePpb);
     const toDb = (pieces: number) => {
       const boxes = Math.floor(pieces / ppb);
       const rem = pieces % ppb;
@@ -133,21 +144,22 @@ const ProductDailySoldDialog: React.FC<Props> = ({
           .sort((a, b) => b[1].pieces - a[1].pieces)
           .map(([name, p]) => ({ name, pieces: p.pieces, dbValue: toDb(p.pieces), giftPieces: p.giftPieces, giftDbValue: toDb(p.giftPieces) })),
       }));
-  }, [data, piecesPerBox]);
+  }, [data, effectivePpb]);
   const totalPieces = byDay.reduce((s, d) => s + d.pieces, 0);
   const totalGiftPieces = byDay.reduce((s, d) => s + d.giftPieces, 0);
   const totalDb = (() => {
-    const ppb = Math.max(1, piecesPerBox);
+    const ppb = Math.max(1, effectivePpb);
     const boxes = Math.floor(totalPieces / ppb);
     const rem = totalPieces % ppb;
     return boxes + rem / 100;
   })();
   const totalGiftDb = (() => {
-    const ppb = Math.max(1, piecesPerBox);
+    const ppb = Math.max(1, effectivePpb);
     const boxes = Math.floor(totalGiftPieces / ppb);
     const rem = totalGiftPieces % ppb;
     return boxes + rem / 100;
   })();
+
 
 
   return (
