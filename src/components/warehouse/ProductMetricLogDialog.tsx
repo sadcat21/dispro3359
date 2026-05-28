@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
 import { dedupeSalesTrackingRows } from '@/utils/salesTrackingDedup';
+import { fetchDeliveredOrdersForBranch } from '@/utils/fetchDeliveredOrdersForBranch';
 import type { SelectedReceiptRange } from './ReceiptSessionsTimelineDialog';
 import { isInRanges } from './ReceiptSessionsTimelineDialog';
 
@@ -133,19 +134,21 @@ const ProductMetricLogDialog: React.FC<Props> = ({
       if (metric === 'gifts') {
         // Source of truth: delivered orders + order_items (sales_tracking is unreliable —
         // rows get deleted on order modification and partial-inserted by deferred-offer confirms).
-        const { data: orders } = await supabase
-          .from('orders')
-          .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
-          .eq('branch_id', branchId)
-          .eq('status', 'delivered');
-        const orderIds = (orders || []).map((o: any) => o.id);
+        const orders = await fetchDeliveredOrdersForBranch({
+          branchId,
+          select: 'id, status, branch_id, assigned_worker_id, created_at, updated_at',
+        });
+        const rangeFilteredOrders = (orders || []).filter((order: any) =>
+          !(ranges && ranges.length) || isInRanges(order?.updated_at || order?.created_at, ranges),
+        );
+        const orderIds = rangeFilteredOrders.map((o: any) => o.id);
         if (!orderIds.length) return [];
         const { data: items } = await supabase
           .from('order_items')
           .select('id, order_id, product_id, gift_quantity, pieces_per_box')
           .eq('product_id', productId)
           .in('order_id', orderIds);
-        const orderById = new Map((orders || []).map((o: any) => [o.id, o]));
+        const orderById = new Map(rangeFilteredOrders.map((o: any) => [o.id, o]));
         const filtered = (items || []).filter((it: any) => Number(it.gift_quantity || 0) > 0);
         const names = await resolveWorkers(filtered.map((it: any) => orderById.get(it.order_id)?.assigned_worker_id).filter(Boolean));
         return filtered

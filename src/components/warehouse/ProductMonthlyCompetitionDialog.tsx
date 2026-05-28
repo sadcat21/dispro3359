@@ -8,6 +8,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Sector, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
 } from 'recharts';
 import { dbBPDisplayAlways } from '@/utils/boxPieceInput';
+import { fetchDeliveredOrdersForBranch } from '@/utils/fetchDeliveredOrdersForBranch';
 
 interface Props {
   open: boolean;
@@ -69,15 +70,17 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
       // Source of truth: delivered orders + order_items.
       // sales_tracking is unreliable (deletions on order modification,
       // deferred-offer confirmations writing partial rows, etc.).
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('id, status, branch_id, assigned_worker_id, created_at, updated_at')
-        .eq('branch_id', branchId)
-        .eq('status', 'delivered')
-        .gte('created_at', start)
-        .lt('created_at', end);
+      const orders = await fetchDeliveredOrdersForBranch({
+        branchId,
+        sinceIso: start,
+        select: 'id, status, branch_id, assigned_worker_id, created_at, updated_at',
+      });
+      const monthOrders = orders.filter((order: any) => {
+        const orderDate = order?.created_at || order?.updated_at;
+        return !!orderDate && orderDate >= start && orderDate < end;
+      });
 
-      const orderIds = (orders || []).map((o: any) => o.id);
+      const orderIds = monthOrders.map((o: any) => o.id);
       if (orderIds.length === 0) {
         return { rows: [], nameMap: new Map() };
       }
@@ -88,7 +91,7 @@ const ProductMonthlyCompetitionDialog: React.FC<Props> = ({
         .eq('product_id', productId)
         .in('order_id', orderIds);
 
-      const orderById = new Map((orders || []).map((o: any) => [o.id, o]));
+      const orderById = new Map(monthOrders.map((o: any) => [o.id, o]));
       const rows = (items || []).map((it: any) => {
         const o = orderById.get(it.order_id) as any;
         return {
