@@ -85,7 +85,7 @@ const ProductWorkerMovementsDialog: React.FC<Props> = ({
       map.set(k, cur);
     }
     return Array.from(map.values()).sort((a, b) => (b.loaded + b.returned) - (a.loaded + a.returned));
-  }, [data]);
+  }, [rowsData]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
