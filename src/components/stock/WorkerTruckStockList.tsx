@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageOpen, TrendingUp, TrendingDown, Gift, History, CalendarDays, List, LayoutGrid, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getDeliveredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getDeliveredPaidQuantity, getPaidQuantity } from '@/utils/orderItemQuantities';
 import { dbBPToBoxes, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import AccountingSessionsTimelineDialog, { type SelectedSessionRange } from '@/components/accounting/AccountingSessionsTimelineDialog';
@@ -34,7 +34,12 @@ const pendingGiftFractional = (item: any, ppb: number) => {
 };
 
 const deliveredSaleBreakdown = (item: any, ppb: number) => {
-  const paid = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb));
+  // اعتمد الكمية المدفوعة كما هي في order_items بدل التقييد بـ stock_movements،
+  // لأن بعض الحركات قد تُحذف وتُعاد بصيغة جزئية عند تصحيح رصيد الشاحنة، مما
+  // يُظهر «القسم» أقل من الحقيقة (مثلاً 2 بدل 100). الهدية تُعالَج مستقلًا.
+  const paidFromOrder = Math.max(0, dbBPToBoxes(Number(getPaidQuantity(item) || 0), ppb));
+  const paidCapped = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb));
+  const paid = Math.max(paidFromOrder, paidCapped);
   const gift = confirmedGiftFractional(item, ppb);
   return {
     paid,
