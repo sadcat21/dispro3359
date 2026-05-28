@@ -419,9 +419,8 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
       const isCancelled = m.order?.status === 'cancelled';
       const signed = Number(m.signed_quantity ?? 0);
-      const deltaBP = signed; // positive => stock returned, negative => more delivered
-      const deltaBoxes = dbBPToBoxes(Math.abs(deltaBP), ppb) * (deltaBP >= 0 ? 1 : -1);
-      const qtyBoxes = Math.abs(deltaBoxes);
+      const qtyBoxes = dbBPToBoxes(Math.abs(signed), ppb);
+      const deltaBoxes = signed < 0 ? -qtyBoxes : 0;
       const cust: any = m.order?.customer;
       movements.push({
         id: `mod-${m.id}`,
@@ -429,12 +428,14 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         label: isCancelled ? 'إلغاء' : 'تعديل',
         quantity: qtyBoxes,
         when: m.created_at,
-        note: m.notes || null,
+        note: signed > 0
+          ? [m.notes, 'هذا الإرجاع لا يُضاف إلى الباقي في الشاحنة.'].filter(Boolean).join(' — ')
+          : (m.notes || null),
         paymentType: m.order?.payment_type || null,
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
         orderStatus: m.order?.status || null,
-        // المُعدِّل أصبح مستقلاً عن صف البيع: يطرح/يضيف فعلياً من المخزون.
+        // التعديل الموجب يُعرض كسجل فقط ولا يزيد رصيد الشاحنة، بينما التعديل السالب يخصم فعلياً.
         delta: deltaBoxes,
         orderId: m.order_id || null,
       });
