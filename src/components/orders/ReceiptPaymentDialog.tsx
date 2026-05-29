@@ -117,15 +117,17 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                   <FileText className="w-5 h-5 me-2" />
                   استلام {docLabel}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="h-14 text-base"
-                  onClick={() => setMode('cash')}
-                  disabled={isSubmitting}
-                >
-                  <Banknote className="w-5 h-5 me-2" />
-                  دفع كاش
-                </Button>
+                {allowCash && (
+                  <Button
+                    variant="outline"
+                    className="h-14 text-base"
+                    onClick={() => setMode('cash')}
+                    disabled={isSubmitting}
+                  >
+                    <Banknote className="w-5 h-5 me-2" />
+                    دفع كاش
+                  </Button>
+                )}
                 <Button
                   variant="destructive"
                   className="h-14 text-base"
