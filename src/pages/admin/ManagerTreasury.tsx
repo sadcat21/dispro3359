@@ -758,10 +758,12 @@ const ManagerTreasury = () => {
                         const debtVal = availableDebtCashAmount;
                         const totalVal = inv1Val + inv2Val + debtVal;
                         const allocatedInv2 = Math.min(inv2Val, Math.max(0, currentCash - inv1Val));
+                        const allocatedDebt = Math.max(0, currentCash - inv1Val - inv2Val);
                         
                         // Detect which invoices are currently "inserted"
                         const isInv1Inserted = inv1Val > 0 && currentCash >= inv1Val - 1;
                         const isInv2Inserted = allocatedInv2 > 0;
+                        const isDebtInserted = debtVal > 0 && allocatedDebt >= debtVal - 1;
                         const isTotalInserted = Math.abs(currentCash - totalVal) < 1;
 
                         return (
