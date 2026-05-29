@@ -721,6 +721,26 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
               تفاصيل الموقع والسكتور
             </Label>
 
+            {/* 1) Branch */}
+            <div className="space-y-2">
+              <Label>الفرع *</Label>
+              {isManager ? (
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
+                  <SelectContent position="popper" className="z-[10050] bg-popover max-h-60">
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-3 bg-background/60 rounded-lg border">
+                  <p className="font-medium">{branches.find(b => b.id === selectedBranchId)?.name || '—'}</p>
+                </div>
+              )}
+            </div>
+
+            {/* 2) Sector */}
             {sectors.length > 0 && (
               <div className="space-y-2">
                 <Label>السكتور *</Label>
@@ -738,6 +758,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
               </div>
             )}
 
+            {/* 3) Zone within Sector */}
             {sectorId && (
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
@@ -776,57 +797,17 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
               </div>
             )}
 
-            {/* Default Delivery Worker - under sector/zone */}
-            {sectorId && (
-              <DeliveryWorkerSelect
-                customerBranchId={customer?.branch_id || null}
+            {/* 4) Delivery Worker - suggested by sector, pick from branch */}
+            {selectedBranchId && (
+              <InlineDeliveryWorkerPicker
+                customerBranchId={selectedBranchId}
+                customerSectorId={sectorId || null}
                 value={defaultDeliveryWorkerId}
                 onChange={setDefaultDeliveryWorkerId}
               />
             )}
 
-            <div className="space-y-2">
-              <Label>الفرع</Label>
-              {isManager ? (
-                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                  <SelectTrigger><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
-                  <SelectContent position="popper" className="z-[10050] bg-popover max-h-60">
-                    {branches.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="p-3 bg-background/60 rounded-lg border">
-                  <p className="font-medium">{branches.find(b => b.id === selectedBranchId)?.name || '—'}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>نوع الموقع</Label>
-              <div className="flex gap-2">
-                <Button type="button" variant={locationType === 'store' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('store')}>
-                  <Store className="w-4 h-4 ml-1" /> محل
-                </Button>
-                <Button type="button" variant={locationType === 'warehouse' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('warehouse')}>
-                  <Warehouse className="w-4 h-4 ml-1" /> مخزن
-                </Button>
-                <Button type="button" variant={locationType === 'office' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('office')}>
-                  <Building2 className="w-4 h-4 ml-1" /> مكتب
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-address" className="flex items-center gap-1">
-                العنوان
-                {addressLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
-              </Label>
-              <Input id="edit-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="أدخل العنوان" className="text-right" />
-              <p className="text-xs text-muted-foreground">💡 يتم اقتراح العنوان تلقائياً من الإحداثيات</p>
-            </div>
-
+            {/* 5) GPS coordinates */}
             <Collapsible open={showMap} onOpenChange={setShowMap}>
               <CollapsibleTrigger asChild>
                 <Button type="button" variant="outline" className={`w-full justify-between ${(latitude === null || latitude === undefined) ? 'border-destructive' : 'border-primary/30'} hover:bg-primary/5`}>
@@ -848,6 +829,32 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
               </CollapsibleContent>
             </Collapsible>
             {(latitude === null || latitude === undefined) && <p className="text-xs text-destructive">يجب تحديد الموقع الجغرافي</p>}
+
+            {/* 6) Address */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-address" className="flex items-center gap-1">
+                العنوان
+                {addressLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+              </Label>
+              <Input id="edit-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="أدخل العنوان" className="text-right" />
+              <p className="text-xs text-muted-foreground">💡 يتم اقتراح العنوان تلقائياً من الإحداثيات</p>
+            </div>
+
+            {/* 7) Location type */}
+            <div className="space-y-2">
+              <Label>نوع الموقع</Label>
+              <div className="flex gap-2">
+                <Button type="button" variant={locationType === 'store' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('store')}>
+                  <Store className="w-4 h-4 ml-1" /> محل
+                </Button>
+                <Button type="button" variant={locationType === 'warehouse' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('warehouse')}>
+                  <Warehouse className="w-4 h-4 ml-1" /> مخزن
+                </Button>
+                <Button type="button" variant={locationType === 'office' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('office')}>
+                  <Building2 className="w-4 h-4 ml-1" /> مكتب
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* --- Section: Finance & Preferences --- */}
