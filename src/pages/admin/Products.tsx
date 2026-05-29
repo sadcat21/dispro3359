@@ -19,6 +19,7 @@ import PricingGroupsTab from '@/components/products/PricingGroupsTab';
 import GroupPriceUpdateDialog from '@/components/products/GroupPriceUpdateDialog';
 import ProductInvoiceTemplateDialog from '@/components/products/ProductInvoiceTemplateDialog';
 import palletSettingsImage from '@/assets/pallet-settings.png';
+import { SupplierPalletCostsCard } from '@/components/admin/SupplierPalletCostsCard';
 
 interface ProductGroup {
   id: string;
@@ -1107,6 +1108,9 @@ const Products: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* بطاقة تكلفة الباليت حسب المورّد */}
+          <SupplierPalletCostsCard />
 
           {/* Products List */}
           <Card>
