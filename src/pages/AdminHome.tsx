@@ -673,7 +673,8 @@ const AdminHome: React.FC = () => {
           </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
-          <button type="button" onClick={() => setPmDetailKind('sales')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
+          <button type="button" onClick={() => navigate('/manager-sales-summary')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-blue-700">
                 <ShoppingCart className="h-4 w-4" />
