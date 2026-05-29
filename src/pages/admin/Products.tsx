@@ -630,6 +630,7 @@ const Products: React.FC = () => {
         allow_invoice2_sale: editAllowInvoice2Sale,
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
+        purchase_price: editPurchasePrice,
         allow_unit_sale: editAllowUnitSale,
         supplier_id: editSupplierId || null,
       };
