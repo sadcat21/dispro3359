@@ -73,6 +73,12 @@ interface ProcessedOrderEntry {
   accounting_time: number;
 }
 
+interface CustomerGroupsResult {
+  groups: CustomerGroup[];
+  cashInvoice2WindowTotal: number;
+  cashInvoice2WindowRemaining: number;
+}
+
 const MoneyValue = ({ value, className = '' }: { value: number; className?: string }) => (
   <bdi dir="ltr" className={`inline-block whitespace-nowrap tabular-nums ${className}`.trim()}>
     {formatAmountWithMaxFraction(value)} DA
@@ -140,7 +146,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
   });
   const handedCashInvoice2Amount = isCashInvoice2 ? handedCashInvoice2AmountFromQuery : handedCashInvoice2AmountProp;
 
-  const { data: customerGroups, isLoading } = useQuery({
+  const { data: customerGroupsData, isLoading } = useQuery<CustomerGroupsResult>({
     queryKey: ['treasury-details', category, activeBranch?.id, stampTiers?.length, handedCashInvoice2Amount, range?.from || null, range?.to || null],
     enabled: open && (isCashInvoice1 ? !!stampTiers : true),
     queryFn: async () => {
@@ -195,6 +201,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       if (error) throw error;
 
       const processedOrders: ProcessedOrderEntry[] = [];
+      let cashInvoice2WindowTotal = 0;
 
       (data || []).forEach((o: any) => {
         const orderTs = orderAccountingTime(o);
@@ -273,6 +280,15 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
           debt_amount: isCashInvoice2 ? 0 : debtAmount,
           can_move_to_receipt_cash: verification.manager_receipt_bucket === 'doc',
         };
+
+        if (isCashInvoice2) {
+          const isInsideWindow =
+            (rangeFromTs === null || orderTs >= rangeFromTs) &&
+            (rangeToTs === null || orderTs <= rangeToTs);
+          if (isInsideWindow) {
+            cashInvoice2WindowTotal += Number(processedOrder.total_amount || 0);
+          }
+        }
 
         processedOrders.push({
           customer_id: customerId,
@@ -373,7 +389,16 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         }
       }
 
-      return Array.from(groupMap.values()).sort((a, b) => b.total - a.total);
+      const groups = Array.from(groupMap.values()).sort((a, b) => b.total - a.total);
+      const cashInvoice2WindowRemaining = isCashInvoice2
+        ? groups.reduce((sum, group) => sum + Number(group.total || 0), 0)
+        : 0;
+
+      return {
+        groups,
+        cashInvoice2WindowTotal,
+        cashInvoice2WindowRemaining,
+      };
     },
   });
 
