@@ -387,6 +387,7 @@ const Products: React.FC = () => {
       setAllowInvoiceSale(true);
       setAllowInvoice2Sale(true);
       setPriceRetail(0);
+      setMinPrice(0);
       setPriceNoInvoice(0);
       setPurchasePrice(0);
       setBoxesPerPallet(0);
