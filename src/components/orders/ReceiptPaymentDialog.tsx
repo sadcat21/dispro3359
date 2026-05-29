@@ -14,7 +14,7 @@ interface ReceiptPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   orderTotal: number;
   customerName: string;
-  paymentMethod: 'receipt' | 'transfer'; // Versement or Virement
+  paymentMethod: 'receipt' | 'transfer' | 'check'; // Versement / Virement / Chèque
   onConfirm: (data: {
     receiptReceived: boolean;
     paidByCash: boolean;
