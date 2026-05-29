@@ -80,7 +80,8 @@ const ProductOffers: React.FC = () => {
   const isAdmin = isAdminRole(role);
   const isBranchAdmin = role === 'branch_admin';
   const isCompanyManager = isCompanyManagerRole(activeRole?.custom_role_code);
-  const canManage = isAdmin || isBranchAdmin || isCompanyManager;
+  const isProjectManager = role === 'project_manager';
+  const canManage = isAdmin || isBranchAdmin || isCompanyManager || isProjectManager;
   const isAddOfferHidden = useIsElementHidden('button', 'add_offer');
 
   useEffect(() => {
