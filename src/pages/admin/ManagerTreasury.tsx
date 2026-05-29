@@ -1194,20 +1194,6 @@ const ManagerTreasury = () => {
                 const hasCashDeficit = physicalRemaining < 0;
                 return (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Card>
-                        <CardContent className="p-3 text-center">
-                          <p className="text-xs text-muted-foreground">{t('treasury.total')}</p>
-                          <MoneyValue value={summary?.total || 0} currency={cur} className="text-lg font-bold" />
-                        </CardContent>
-                      </Card>
-                      <Card className="border-destructive/30">
-                        <CardContent className="p-3 text-center">
-                          <p className="text-xs text-muted-foreground">{t('treasury.handed_over')}</p>
-                          <MoneyValue value={summary?.handedOver || 0} currency={cur} className="text-lg font-bold text-destructive" />
-                        </CardContent>
-                      </Card>
-                    </div>
                     <Card className="border-primary/30">
                       <CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground">{t('treasury.overall_remaining')}</p>
