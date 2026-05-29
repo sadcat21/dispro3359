@@ -975,12 +975,18 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             : item.id.startsWith('payment-')
                               ? item.id.slice(8)
                               : null;
-                          const isAccounted = isPayment && underlyingId ? accountedPaymentIds.has(underlyingId) : false;
-                          const isLocked = isPayment && underlyingId ? lockedPaymentIds.has(underlyingId) : false;
+                          const groupedIds = underlyingId ? underlyingId.split('+').filter(Boolean) : [];
+                          const isAccounted = isPayment && groupedIds.length > 0 ? groupedIds.some(id => accountedPaymentIds.has(id)) : false;
+                          const isLocked = isPayment && groupedIds.length > 0 ? groupedIds.some(id => lockedPaymentIds.has(id)) : false;
                           const handleClick = () => {
                             if (isPayment && underlyingId) {
                               if (isLocked) {
                                 toast.error('تم إغلاق هذا التحصيل بعد المحاسبة مع المسؤول');
+                                return;
+                              }
+                              if (groupedIds.length > 1) {
+                                // Grouped collection (split across debts): only allow delete, not edit
+                                setDeleteTarget({ kind: 'payment', id: underlyingId, label: customerName || '' });
                                 return;
                               }
                               setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
