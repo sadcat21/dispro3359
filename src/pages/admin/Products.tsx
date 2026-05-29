@@ -380,6 +380,7 @@ const Products: React.FC = () => {
       setAllowInvoice2Sale(true);
       setPriceRetail(0);
       setPriceNoInvoice(0);
+      setPurchasePrice(0);
       setPricingUnit('box');
       setWeightPerBox(0);
       setAllowUnitSale(true);
