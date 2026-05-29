@@ -48,16 +48,14 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
       startOfDay.setHours(0, 0, 0, 0);
       const periodISO = periodStart || startOfDay.toISOString();
 
-      // Active debts (principal remaining)
-      let debtsQ = supabase
+      // Active debts (principal remaining) — match Debt Management page (all branches, all statuses)
+      const { data: debts } = await supabase
         .from('customer_debts')
         .select('remaining_amount, total_amount, created_at, branch_id, status');
-      if (branchId) debtsQ = debtsQ.eq('branch_id', branchId);
-      const { data: debts } = await debtsQ;
 
       const principal = (debts || [])
-        .filter((d: any) => d.status !== 'paid')
         .reduce((s, d: any) => s + Number(d.remaining_amount || 0), 0);
+
 
       const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= periodISO);
       const newDebtsCount = todayNewDebts.length;
