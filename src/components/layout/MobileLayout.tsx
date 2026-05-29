@@ -826,7 +826,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
       {/* Bottom Navigation — شريط SaaS مستقيم بدون أي انحناء أو زر عائم */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom border-t border-sidebar-border bg-sidebar text-sidebar-foreground md:hidden">
-        <div className="flex h-16 items-center justify-center gap-2 px-2 shadow-2xl [&>div:empty]:hidden">
+        <div className="flex h-16 items-center justify-around px-1 shadow-2xl [&>div:empty]:hidden">
             {/* العناصر اليسرى (أول عنصرين) */}
             {mainNavItems.slice(0, 2).map((item) => {
               const isActive = location.pathname === item.path;
