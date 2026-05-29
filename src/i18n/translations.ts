@@ -342,6 +342,7 @@ export const translations: Translations = {
   'products.price_no_invoice': { ar: 'سعر Facture 2', fr: 'Prix facture 2', en: 'Invoice 2 Price' },
   'products.purchase_price': { ar: 'سعر الشراء', fr: 'Prix d\'achat', en: 'Purchase Price' },
   'products.pallet_settings': { ar: 'إعدادات الباليت', fr: 'Paramètres de la palette', en: 'Pallet Settings' },
+  'products.boxes_per_pallet': { ar: 'عدد الصناديق في الباليت', fr: 'Boîtes par palette', en: 'Boxes per Pallet' },
   'products.supplier': { ar: 'المورد', fr: 'Fournisseur', en: 'Supplier' },
   'products.no_supplier': { ar: '— بدون مورد —', fr: '— Sans fournisseur —', en: '— No supplier —' },
   'products.select_supplier_placeholder': { ar: 'اختر موردًا (اختياري)', fr: 'Choisir un fournisseur (optionnel)', en: 'Select supplier (optional)' },
