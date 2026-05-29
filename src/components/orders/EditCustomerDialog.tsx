@@ -422,28 +422,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         const { data, error } = await supabase.from('customers').update(sanitizedPayload).eq('id', customer.id).select().single();
         if (error) throw error;
 
-        // Handle debt changes
-        const currentDebt = debtSummary?.totalDebt || 0;
-        const newDebt = parseFloat(debtAmount) || 0;
-        const difference = newDebt - currentDebt;
-
-        if (difference > 0 && workerId) {
-          await createDebt.mutateAsync({ customer_id: customer.id, worker_id: workerId, total_amount: difference, paid_amount: 0, notes: 'تعديل دين من بيانات العميل' });
-        } else if (difference < 0 && workerId) {
-          const absDiff = Math.abs(difference);
-          const { data: activeDebts } = await supabase.from('customer_debts').select('id, total_amount, paid_amount, remaining_amount').eq('customer_id', customer.id).eq('status', 'active').order('created_at', { ascending: true });
-          if (activeDebts && activeDebts.length > 0) {
-            let remainingPayment = absDiff;
-            for (const debt of activeDebts) {
-              if (remainingPayment <= 0) break;
-              const debtRemaining = Number(debt.remaining_amount) || (Number(debt.total_amount) - Number(debt.paid_amount));
-              const payAmount = Math.min(remainingPayment, debtRemaining);
-              if (payAmount > 0) {
-                await updateDebtPayment.mutateAsync({ debtId: debt.id, amount: payAmount, workerId, paymentMethod: 'cash', notes: 'تخفيض دين من بيانات العميل' });
-                remainingPayment -= payAmount;
-              }
-            }
-          }
+        // Handle debt addition (input is the new debt amount to ADD)
+        const addedDebt = parseFloat(debtAmount) || 0;
+        if (addedDebt > 0 && workerId) {
+          await createDebt.mutateAsync({ customer_id: customer.id, worker_id: workerId, total_amount: addedDebt, paid_amount: 0, notes: 'إضافة دين من بيانات العميل' });
         }
 
         toast.success('تم تحديث بيانات العميل بنجاح');
