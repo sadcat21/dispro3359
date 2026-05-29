@@ -113,6 +113,7 @@ const Products: React.FC = () => {
   const [allowInvoice2Sale, setAllowInvoice2Sale] = useState<boolean>(true);
   const [priceRetail, setPriceRetail] = useState<number>(0);
   const [priceNoInvoice, setPriceNoInvoice] = useState<number>(0);
+  const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [pricingUnit, setPricingUnit] = useState<string>('box');
   const [weightPerBox, setWeightPerBox] = useState<number>(0);
   const [allowUnitSale, setAllowUnitSale] = useState<boolean>(false);
@@ -142,6 +143,7 @@ const Products: React.FC = () => {
   const [editAllowInvoice2Sale, setEditAllowInvoice2Sale] = useState<boolean>(true);
   const [editPriceRetail, setEditPriceRetail] = useState<number>(0);
   const [editPriceNoInvoice, setEditPriceNoInvoice] = useState<number>(0);
+  const [editPurchasePrice, setEditPurchasePrice] = useState<number>(0);
   const [editPricingUnit, setEditPricingUnit] = useState<string>('box');
   const [editWeightPerBox, setEditWeightPerBox] = useState<number>(0);
   const [editAllowUnitSale, setEditAllowUnitSale] = useState<boolean>(false);
@@ -328,6 +330,7 @@ const Products: React.FC = () => {
         allow_invoice2_sale: allowInvoice2Sale,
         price_retail: priceRetail,
         price_no_invoice: priceNoInvoice,
+        purchase_price: purchasePrice,
         allow_unit_sale: allowUnitSale,
         sort_order: productSortOrder,
         supplier_id: productSupplierId || null,
@@ -377,6 +380,7 @@ const Products: React.FC = () => {
       setAllowInvoice2Sale(true);
       setPriceRetail(0);
       setPriceNoInvoice(0);
+      setPurchasePrice(0);
       setPricingUnit('box');
       setWeightPerBox(0);
       setAllowUnitSale(true);
@@ -434,6 +438,7 @@ const Products: React.FC = () => {
     setEditAllowInvoice2Sale((product as any).allow_invoice2_sale !== false);
     setEditPriceRetail(product.price_retail || 0);
     setEditPriceNoInvoice(product.price_no_invoice || 0);
+    setEditPurchasePrice((product as any).purchase_price || 0);
     
     // Store original prices for comparison
     setOriginalPrices({
@@ -529,6 +534,7 @@ const Products: React.FC = () => {
         allow_invoice2_sale: editAllowInvoice2Sale,
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
+        purchase_price: editPurchasePrice,
         allow_unit_sale: editAllowUnitSale,
         sort_order: editSortOrder,
         supplier_id: editSupplierId || null,
@@ -624,6 +630,7 @@ const Products: React.FC = () => {
         allow_invoice2_sale: editAllowInvoice2Sale,
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
+        purchase_price: editPurchasePrice,
         allow_unit_sale: editAllowUnitSale,
         supplier_id: editSupplierId || null,
       };
@@ -915,6 +922,11 @@ const Products: React.FC = () => {
 
                     {/* ===== Tab 4: Prices ===== */}
                     <TabsContent value="prices" className="mt-0 space-y-4">
+                      {/* سعر الشراء */}
+                      <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
+                        <Label className="text-sm font-bold text-primary block">{t('products.purchase_price')}</Label>
+                        <Input type="number" min={0} step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                      </div>
                       {/* فاتورة 2 */}
                       <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
                         <div className="flex items-center justify-between gap-3">
@@ -1386,7 +1398,13 @@ const Products: React.FC = () => {
             {/* Pricing Section */}
             <div className="pt-2 border-t space-y-4">
               <Label className="text-base font-semibold block">{t('products.prices')}</Label>
-              
+
+              {/* سعر الشراء */}
+              <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
+                <Label className="text-sm font-bold text-primary block">{t('products.purchase_price')}</Label>
+                <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+              </div>
+
               {/* فاتورة 2 */}
               <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
                 <div className="flex items-center justify-between gap-3">

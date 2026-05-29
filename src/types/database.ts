@@ -98,6 +98,7 @@ export interface Product {
   price_invoice: number | null;
   price_retail: number | null;
   price_no_invoice: number | null;
+  purchase_price: number | null;
   allow_invoice_sale: boolean;
   allow_invoice2_sale: boolean;
   allow_unit_sale: boolean;

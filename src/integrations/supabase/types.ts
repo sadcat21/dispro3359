@@ -4612,6 +4612,7 @@ export type Database = {
           price_super_gros: number | null
           pricing_unit: string
           product_code: string | null
+          purchase_price: number | null
           sort_order: number | null
           supplier_id: string | null
           weight_per_box: number | null
@@ -4636,6 +4637,7 @@ export type Database = {
           price_super_gros?: number | null
           pricing_unit?: string
           product_code?: string | null
+          purchase_price?: number | null
           sort_order?: number | null
           supplier_id?: string | null
           weight_per_box?: number | null
@@ -4660,6 +4662,7 @@ export type Database = {
           price_super_gros?: number | null
           pricing_unit?: string
           product_code?: string | null
+          purchase_price?: number | null
           sort_order?: number | null
           supplier_id?: string | null
           weight_per_box?: number | null
