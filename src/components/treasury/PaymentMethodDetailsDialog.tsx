@@ -65,6 +65,20 @@ interface CustomerGroup {
   totalDebt: number;
 }
 
+interface ProcessedOrderEntry {
+  customer_id: string;
+  customer_name: string;
+  store_name: string | null;
+  order: ProcessedOrder;
+  accounting_time: number;
+}
+
+interface CustomerGroupsResult {
+  groups: CustomerGroup[];
+  cashInvoice2WindowTotal: number;
+  cashInvoice2WindowRemaining: number;
+}
+
 const MoneyValue = ({ value, className = '' }: { value: number; className?: string }) => (
   <bdi dir="ltr" className={`inline-block whitespace-nowrap tabular-nums ${className}`.trim()}>
     {formatAmountWithMaxFraction(value)} DA
@@ -109,8 +123,6 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
     queryFn: async () => {
       let query = supabase.from('manager_handovers').select('cash_invoice2');
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
-      if (range?.from) query = query.gte('handover_date', range.from);
-      if (range?.to) query = query.lte('handover_date', range.to);
       const { data, error } = await query;
       if (error) throw error;
       const handed = (data || []).reduce((sum: number, handover: any) => sum + Number(handover.cash_invoice2 || 0), 0);
@@ -124,8 +136,6 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .select('amount, source_type, payment_method')
         .in('source_type', ['cash_consolidation_debit']);
       if (activeBranch?.id) consQuery = consQuery.eq('branch_id', activeBranch.id);
-      if (range?.from) consQuery = consQuery.gte('created_at', `${range.from}T00:00:00`);
-      if (range?.to) consQuery = consQuery.lte('created_at', `${range.to}T23:59:59`);
       const { data: consEntries } = await consQuery;
       const consDeducted = (consEntries || [])
         .filter((e: any) => e.payment_method === 'cash_invoice2')
@@ -134,9 +144,9 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       return handed + consDeducted;
     },
   });
-  const handedCashInvoice2Amount = handedCashInvoice2AmountProp || handedCashInvoice2AmountFromQuery;
+  const handedCashInvoice2Amount = isCashInvoice2 ? handedCashInvoice2AmountFromQuery : handedCashInvoice2AmountProp;
 
-  const { data: customerGroups, isLoading } = useQuery({
+  const { data: customerGroupsData, isLoading } = useQuery<CustomerGroupsResult>({
     queryKey: ['treasury-details', category, activeBranch?.id, stampTiers?.length, handedCashInvoice2Amount, range?.from || null, range?.to || null],
     enabled: open && (isCashInvoice1 ? !!stampTiers : true),
     queryFn: async () => {
@@ -165,8 +175,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
-      if (range?.from) query = query.gte('delivery_date', range.from);
-      if (range?.to) query = query.lte('delivery_date', range.to);
+      if (!isCashInvoice2 && range?.from) query = query.gte('delivery_date', range.from);
+      if (!isCashInvoice2 && range?.to) query = query.lte('delivery_date', range.to);
 
       switch (category) {
         case 'cash_invoice1':
@@ -190,12 +200,13 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       const { data, error } = await query;
       if (error) throw error;
 
-      const processedOrders: any[] = [];
+      const processedOrders: ProcessedOrderEntry[] = [];
+      let cashInvoice2WindowTotal = 0;
 
       (data || []).forEach((o: any) => {
         const orderTs = orderAccountingTime(o);
-        if (rangeFromTs !== null && orderTs < rangeFromTs) return;
-        if (rangeToTs !== null && orderTs > rangeToTs) return;
+        if (!isCashInvoice2 && rangeFromTs !== null && orderTs < rangeFromTs) return;
+        if (!isCashInvoice2 && rangeToTs !== null && orderTs > rangeToTs) return;
 
         const receiptBucket = resolveReceiptBucket(o.document_verification);
         const verification =
@@ -270,11 +281,21 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
           can_move_to_receipt_cash: verification.manager_receipt_bucket === 'doc',
         };
 
+        if (isCashInvoice2) {
+          const isInsideWindow =
+            (rangeFromTs === null || orderTs >= rangeFromTs) &&
+            (rangeToTs === null || orderTs <= rangeToTs);
+          if (isInsideWindow) {
+            cashInvoice2WindowTotal += Number(processedOrder.total_amount || 0);
+          }
+        }
+
         processedOrders.push({
           customer_id: customerId,
           customer_name: customer?.name || 'عميل غير معروف',
           store_name: customer?.store_name || null,
           order: processedOrder,
+          accounting_time: orderTs,
         });
       });
 
@@ -282,7 +303,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       if (isCashInvoice2) {
         let remainingHanded = handedCashInvoice2Amount;
         normalizedOrders = processedOrders
-          .sort((a, b) => new Date(a.order.created_at).getTime() - new Date(b.order.created_at).getTime())
+          .slice()
+          .sort((a, b) => a.accounting_time - b.accounting_time)
           .flatMap((entry) => {
             if (remainingHanded <= 0) return [entry];
             const orderAmount = Number(entry.order.total_amount || 0);
@@ -297,6 +319,12 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
             remainingHanded = 0;
             return adjustedOrder.total_amount > 0 ? [{ ...entry, order: adjustedOrder }] : [];
           });
+
+        normalizedOrders = normalizedOrders.filter((entry) => {
+          if (rangeFromTs !== null && entry.accounting_time < rangeFromTs) return false;
+          if (rangeToTs !== null && entry.accounting_time > rangeToTs) return false;
+          return true;
+        });
       }
 
       const groupMap = new Map<string, CustomerGroup>();
@@ -361,7 +389,16 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         }
       }
 
-      return Array.from(groupMap.values()).sort((a, b) => b.total - a.total);
+      const groups = Array.from(groupMap.values()).sort((a, b) => b.total - a.total);
+      const cashInvoice2WindowRemaining = isCashInvoice2
+        ? groups.reduce((sum, group) => sum + Number(group.total || 0), 0)
+        : 0;
+
+      return {
+        groups,
+        cashInvoice2WindowTotal,
+        cashInvoice2WindowRemaining,
+      };
     },
   });
 
@@ -573,14 +610,15 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
   // handleSaveConsolEdit removed — now handled by TreasuryConsolidationEditDialog
 
-  const grandTotal = (customerGroups || []).reduce((sum, group) => sum + group.total, 0);
-  const grandStamp = isCashInvoice1 ? (customerGroups || []).reduce((sum, group) => sum + group.totalStamp, 0) : 0;
-  const grandDebt = (customerGroups || []).reduce((sum, group) => sum + group.totalDebt, 0);
-  const totalOrders = (customerGroups || []).reduce((sum, group) => sum + group.orders.length, 0);
+  const customerGroups = customerGroupsData?.groups || [];
+  const grandTotal = customerGroups.reduce((sum, group) => sum + group.total, 0);
+  const grandStamp = isCashInvoice1 ? customerGroups.reduce((sum, group) => sum + group.totalStamp, 0) : 0;
+  const grandDebt = customerGroups.reduce((sum, group) => sum + group.totalDebt, 0);
+  const totalOrders = customerGroups.reduce((sum, group) => sum + group.orders.length, 0);
   const invoice1GrandTotal = isCashInvoice1 ? grandTotal + grandStamp : grandTotal;
-  const cashInvoice2Remaining = isCashInvoice2 ? grandTotal : 0;
-  const cashInvoice2Handed = isCashInvoice2 ? handedCashInvoice2Amount : 0;
-  const cashInvoice2Overall = isCashInvoice2 ? cashInvoice2Remaining + cashInvoice2Handed : 0;
+  const cashInvoice2Remaining = isCashInvoice2 ? (customerGroupsData?.cashInvoice2WindowRemaining || 0) : 0;
+  const cashInvoice2Overall = isCashInvoice2 ? (customerGroupsData?.cashInvoice2WindowTotal || 0) : 0;
+  const cashInvoice2Handed = isCashInvoice2 ? Math.max(0, cashInvoice2Overall - cashInvoice2Remaining) : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
