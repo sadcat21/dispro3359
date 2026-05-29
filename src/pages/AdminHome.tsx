@@ -679,7 +679,8 @@ const AdminHome: React.FC = () => {
                 <ShoppingCart className="h-4 w-4" />
                 <h3 className="text-sm font-bold">{t('admin_home.sales_summary')}</h3>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/sales-tracking'); }}>{t('admin_home.view')}</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/manager-sales-summary'); }}>{t('admin_home.view')}</Button>
+
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
