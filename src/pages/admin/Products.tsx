@@ -18,6 +18,7 @@ import StampTiersDialog from '@/components/products/StampTiersDialog';
 import PricingGroupsTab from '@/components/products/PricingGroupsTab';
 import GroupPriceUpdateDialog from '@/components/products/GroupPriceUpdateDialog';
 import ProductInvoiceTemplateDialog from '@/components/products/ProductInvoiceTemplateDialog';
+import palletSettingsImage from '@/assets/pallet-settings.png';
 
 interface ProductGroup {
   id: string;
