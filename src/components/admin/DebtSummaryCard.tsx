@@ -12,10 +12,11 @@ const DISMISS_KEY = 'debt-summary-card-dismissed';
 
 interface DebtSummaryCardProps {
   periodStart?: string;
+  periodEnd?: string;
   periodLabel?: string;
 }
 
-const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLabel }) => {
+const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodEnd, periodLabel }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
@@ -37,16 +38,17 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
       { table: 'debt_payments' },
       { table: 'debt_collections' },
     ],
-    [['debt-summary-card', branchId || undefined, periodStart || undefined]],
+    [['debt-summary-card', branchId || undefined, periodStart || undefined, periodEnd || undefined]],
     true,
   );
 
   const { data, isLoading } = useQuery({
-    queryKey: ['debt-summary-card', branchId, periodStart],
+    queryKey: ['debt-summary-card', branchId, periodStart, periodEnd],
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      const periodISO = periodStart || startOfDay.toISOString();
+      const periodStartISO = periodStart || startOfDay.toISOString();
+      const periodEndISO = periodEnd || new Date().toISOString();
 
       // Active debts (principal remaining) — match Debt Management page (all branches, all statuses)
       const { data: debts } = await supabase
@@ -57,7 +59,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
         .reduce((s, d: any) => s + Number(d.remaining_amount || 0), 0);
 
 
-      const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= periodISO);
+      const todayNewDebts = (debts || []).filter((d: any) => d.created_at >= periodStartISO && d.created_at <= periodEndISO);
       const newDebtsCount = todayNewDebts.length;
       const newDebtsAmount = todayNewDebts.reduce(
         (s, d: any) => s + Number(d.total_amount || 0),
@@ -76,7 +78,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
         0,
       );
       const todayCollections = (payments || [])
-        .filter((p: any) => p.collected_at >= periodISO)
+        .filter((p: any) => p.collected_at >= periodStartISO && p.collected_at <= periodEndISO)
         .reduce((s, p: any) => s + Number(p.amount || 0), 0);
 
       return {
