@@ -1065,6 +1065,7 @@ const ManagerTreasury = () => {
       <StampDetailsDialog open={stampOpen} onOpenChange={setStampOpen} />
       <UncollectedDebtsDialog open={uncollectedDebtsOpen} onOpenChange={setUncollectedDebtsOpen} />
       <CollectedDebtsDialog open={collectedDebtsOpen} onOpenChange={setCollectedDebtsOpen} range={dateRange} />
+      <WorkerHeldDialog open={workerHeldOpen} onOpenChange={setWorkerHeldOpen} range={dateRange} currency={cur} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
       <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
