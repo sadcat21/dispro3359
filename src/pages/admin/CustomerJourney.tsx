@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ar, enUS, fr } from 'date-fns/locale';
@@ -9,10 +9,13 @@ import {
   CreditCard,
   Loader2,
   MapPin,
+  Pencil,
   ShoppingCart,
+  Trash2,
   User,
   Wallet,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,11 +23,22 @@ import { Customer, OrderWithDetails } from '@/types/database';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import EditCustomerDialog from '@/components/orders/EditCustomerDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { getLocalizedName } from '@/utils/sectorName';
 
