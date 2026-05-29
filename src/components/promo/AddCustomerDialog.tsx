@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus, Loader2, MapPin, ChevronDown, ChevronUp, Store, Building2, Warehouse, CreditCard, User, UserCircle, Shield, Languages, Plus, Trash2, Type, BookOpen, X } from 'lucide-react';
-import DeliveryWorkerSelect from '@/components/orders/DeliveryWorkerSelect';
+import InlineDeliveryWorkerPicker from '@/components/orders/InlineDeliveryWorkerPicker';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Customer } from '@/types/database';
@@ -719,6 +719,28 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
               تفاصيل الموقع والسكتور
             </Label>
 
+            {/* 1) Branch */}
+            <div className="space-y-2">
+              <Label>الفرع *</Label>
+              {isAdminRole(role) ? (
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الفرع" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="bg-popover z-[10050] max-h-60">
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-3 bg-background/60 rounded-lg border">
+                  <p className="font-medium">{selectedBranch?.name || activeBranch?.name || '—'}</p>
+                </div>
+              )}
+            </div>
+
+            {/* 2) Sector */}
             <div className="space-y-2">
               <Label>السكتور *</Label>
               <Select value={sectorId || ''} onValueChange={(val) => setSectorId(val)}>
@@ -734,6 +756,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
               {!sectorId && requiredOnCreateSet.has('sector_id') && <p className="text-xs text-destructive">يجب اختيار سكتور</p>}
             </div>
 
+            {/* 3) Zone within Sector */}
             {sectorId && (
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
@@ -772,59 +795,17 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
               </div>
             )}
 
-            {/* Default Delivery Worker - under sector/zone */}
-            {sectorId && (
-              <DeliveryWorkerSelect
+            {/* 4) Delivery Worker - suggested by sector, pick from branch */}
+            {effectiveBranchId && (
+              <InlineDeliveryWorkerPicker
                 customerBranchId={effectiveBranchId}
+                customerSectorId={sectorId || null}
                 value={defaultDeliveryWorkerId}
                 onChange={setDefaultDeliveryWorkerId}
               />
             )}
 
-            <div className="space-y-2">
-              <Label>الفرع</Label>
-              {isAdminRole(role) ? (
-                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر الفرع" />
-                  </SelectTrigger>
-                  <SelectContent position="popper" className="bg-popover z-[10050] max-h-60">
-                    {branches.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="p-3 bg-background/60 rounded-lg border">
-                  <p className="font-medium">{selectedBranch?.name || activeBranch?.name || '—'}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>نوع الموقع</Label>
-              <div className="flex gap-2">
-                <Button type="button" variant={locationType === 'store' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('store')}>
-                  <Store className="w-4 h-4 ml-1" /> محل
-                </Button>
-                <Button type="button" variant={locationType === 'warehouse' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('warehouse')}>
-                  <Warehouse className="w-4 h-4 ml-1" /> مخزن
-                </Button>
-                <Button type="button" variant={locationType === 'office' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('office')}>
-                  <Building2 className="w-4 h-4 ml-1" /> مكتب
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="customer-address" className="flex items-center gap-1">
-                {t('common.address')}
-                {addressLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
-              </Label>
-              <Input id="customer-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('common.address')} className="text-right" />
-              <p className="text-xs text-muted-foreground">💡 يتم اقتراح العنوان تلقائياً من الإحداثيات مع إمكانية التعديل</p>
-            </div>
-
+            {/* 5) GPS coordinates */}
             <Collapsible open={showMap} onOpenChange={(isOpen) => { setShowMap(isOpen); if (isOpen && address.trim()) setSearchAddressQuery(address.trim()); }}>
               <CollapsibleTrigger asChild>
                 <Button type="button" variant="outline" className={`w-full justify-between ${!(latitude && longitude) ? 'border-destructive' : 'border-primary/30'} hover:bg-primary/5`}>
@@ -841,6 +822,32 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
               </CollapsibleContent>
             </Collapsible>
             {isLocationRequiredOnCreate && !(latitude && longitude) && <p className="text-xs text-destructive">يجب تحديد الموقع الجغرافي</p>}
+
+            {/* 6) Address */}
+            <div className="space-y-2">
+              <Label htmlFor="customer-address" className="flex items-center gap-1">
+                {t('common.address')}
+                {addressLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+              </Label>
+              <Input id="customer-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('common.address')} className="text-right" />
+              <p className="text-xs text-muted-foreground">💡 يتم اقتراح العنوان تلقائياً من الإحداثيات مع إمكانية التعديل</p>
+            </div>
+
+            {/* 7) Location type */}
+            <div className="space-y-2">
+              <Label>نوع الموقع</Label>
+              <div className="flex gap-2">
+                <Button type="button" variant={locationType === 'store' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('store')}>
+                  <Store className="w-4 h-4 ml-1" /> محل
+                </Button>
+                <Button type="button" variant={locationType === 'warehouse' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('warehouse')}>
+                  <Warehouse className="w-4 h-4 ml-1" /> مخزن
+                </Button>
+                <Button type="button" variant={locationType === 'office' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLocationType('office')}>
+                  <Building2 className="w-4 h-4 ml-1" /> مكتب
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* --- Section: Finance & Preferences --- */}
