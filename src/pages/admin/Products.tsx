@@ -1272,7 +1272,7 @@ const Products: React.FC = () => {
       <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
         <DialogContent className="max-w-md p-0 flex flex-col" style={{ maxHeight: '90vh' }}>
           <DialogHeader className="shrink-0 p-4 pb-2">
-            <DialogTitle>{t('products.edit')}</DialogTitle>
+            <DialogTitle>{t('products.edit')}{editingProduct?.name ? ` — ${editingProduct.name}` : ''}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateProduct} className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 overflow-y-auto px-4 space-y-4 pb-4">
