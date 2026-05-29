@@ -447,6 +447,7 @@ const Products: React.FC = () => {
     setEditAllowInvoiceSale((product as any).allow_invoice_sale !== false);
     setEditAllowInvoice2Sale((product as any).allow_invoice2_sale !== false);
     setEditPriceRetail(product.price_retail || 0);
+    setEditMinPrice((product as any).min_price || 0);
     setEditPriceNoInvoice(product.price_no_invoice || 0);
     setEditPurchasePrice((product as any).purchase_price || 0);
     setEditBoxesPerPallet((product as any).boxes_per_pallet || 0);
