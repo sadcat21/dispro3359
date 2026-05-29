@@ -113,6 +113,7 @@ const Products: React.FC = () => {
   const [allowInvoice2Sale, setAllowInvoice2Sale] = useState<boolean>(true);
   const [priceRetail, setPriceRetail] = useState<number>(0);
   const [priceNoInvoice, setPriceNoInvoice] = useState<number>(0);
+  const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [pricingUnit, setPricingUnit] = useState<string>('box');
   const [weightPerBox, setWeightPerBox] = useState<number>(0);
   const [allowUnitSale, setAllowUnitSale] = useState<boolean>(false);
