@@ -218,19 +218,56 @@ const buildTimeline = (
     });
   });
 
+  // Group payments inserted in the same transaction (split across multiple debts).
+  // We aggregate by worker + payment method + notes + same-second timestamp so a
+  // single user-entered collection appears as ONE row with the original amount.
+  const paymentGroups = new Map<string, {
+    ids: string[];
+    debtId: string;
+    workerId: string | null;
+    workerName: string;
+    paymentMethod: string | null;
+    notes: string | null;
+    amount: number;
+    date: string;
+  }>();
   payments.forEach((payment) => {
     const amount = toNumber(payment.amount);
     const date = payment.collected_at || payment.created_at || new Date().toISOString();
+    const bucketKey = [
+      payment.worker_id || '',
+      payment.payment_method || '',
+      (payment.notes || '').trim(),
+      new Date(date).toISOString().slice(0, 19), // group within same second
+    ].join('|');
+    const existing = paymentGroups.get(bucketKey);
+    if (existing) {
+      existing.amount += amount;
+      existing.ids.push(payment.id);
+    } else {
+      paymentGroups.set(bucketKey, {
+        ids: [payment.id],
+        debtId: payment.debt_id,
+        workerId: payment.worker_id || null,
+        workerName: payment.worker?.full_name || '-',
+        paymentMethod: payment.payment_method || null,
+        notes: payment.notes || null,
+        amount,
+        date,
+      });
+    }
+  });
+  paymentGroups.forEach((group) => {
     rawEvents.push({
-      id: `payment-${payment.id}`,
-      debtId: payment.debt_id,
-      kind: amount <= 0 ? 'visit' : 'partial',
-      date,
-      workerName: payment.worker?.full_name || '-',
-      workerId: payment.worker_id || null,
-      paymentMethod: payment.payment_method || null,
-      amount,
-      note: payment.notes || null,
+      id: `payment-${group.ids.join('+')}`,
+      debtId: group.debtId,
+      kind: group.amount <= 0 ? 'visit' : 'partial',
+      date: group.date,
+      workerName: group.workerName,
+      workerId: group.workerId,
+      paymentMethod: group.paymentMethod,
+      amount: group.amount,
+      note: group.notes,
       orderId: null,
     });
   });
