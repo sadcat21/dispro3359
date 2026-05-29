@@ -13,6 +13,7 @@ const DISMISS_KEY = 'treasury-summary-card-dismissed';
 
 interface Props {
   periodStart?: string;
+  periodEnd?: string;
   periodLabel?: string;
 }
 
@@ -24,7 +25,7 @@ interface ManagerRow {
   remaining: number;
 }
 
-const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
+const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLabel }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
@@ -40,7 +41,9 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodLabel }) => {
     } catch {}
   }, [dismissed]);
 
-  const range = periodStart ? { from: periodStart.slice(0, 10) } : undefined;
+  const range = (periodStart || periodEnd)
+    ? { from: periodStart ? periodStart.slice(0, 10) : undefined, to: periodEnd ? periodEnd.slice(0, 10) : undefined }
+    : undefined;
   const { data: aggregate, isLoading: aggLoading } = useTreasurySummary(range);
 
   const { data: perManager, isLoading: pmLoading } = useQuery({
